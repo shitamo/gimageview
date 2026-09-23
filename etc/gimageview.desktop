@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=GImageView
+Name[fr]=GImageView
+Name[ja]=GImageView
+Comment=Image Viewer
+Comment[fr]=Visualiseur d'image
+Comment[ja]=画像閲覧ソフト
+Exec=gimv -wd
+Terminal=0
+Type=Application
+Icon=gimv.png
