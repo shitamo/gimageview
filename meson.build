@@ -32,7 +32,16 @@ bz2_dep   = dependency('bzip2', required : false)
 if not bz2_dep.found()
   bz2_dep = cc.find_library('bz2', has_headers : ['bzlib.h'], required : false)
 endif
-mng_dep   = dependency('libmng', required : get_option('mng'))
+# libmng: some distributions (e.g. Debian 13) ship no libmng.pc
+if get_option('mng').disabled()
+  mng_dep = dependency('', required : false)
+else
+  mng_dep = dependency('libmng', required : false)
+  if not mng_dep.found()
+    mng_dep = cc.find_library('mng', has_headers : ['libmng.h'],
+                              required : get_option('mng'))
+  endif
+endif
 rsvg_dep  = dependency('librsvg-2.0', required : get_option('svg'))
 wmf_dep   = dependency('libwmf', required : get_option('wmf'))
 xine_dep  = dependency('libxine', version : '>= 1.2', required : get_option('xine'))
