@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include <gmodule.h>
 
 
@@ -168,7 +170,7 @@ cb_get_data_from_menuitem (GtkWidget *widget, gint *data)
    gint size_idx;
    gchar buf[8];
 
-   size_idx = GPOINTER_TO_INT (gtk_object_get_data (GTK_OBJECT (widget), "num"));
+   size_idx = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (widget), "num"));
    g_snprintf (buf, 8, "%d", size_idx);
    gimv_plugin_prefs_save_value (this->name,
                                  GIMV_PLUGIN_THUMB_CACHE,
@@ -315,35 +317,31 @@ prefs_save (gpointer data)
    GtkWidget *option_menu;
    GtkWidget *hbox;
    GtkWidget *label;
-   GtkWidget *menu, *menu_item;
+   const gchar **labels;
    gint i, size_idx;
    gint num = sizeof (gqview_thumb_size) / sizeof (GQViewThumbSize);
 
    size_idx = get_thumb_size_from_config ();
 
    /* GQview thumbnail size */
-   hbox = gtk_hbox_new (FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
    label = gtk_label_new (_("GQview thumbnail size"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
-   option_menu = gtk_option_menu_new();
-   menu = gtk_menu_new();
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
+   labels = g_new0 (const gchar *, num + 1);
    for (i = 0; i < num; i++) {
       gchar buf [BUF_SIZE];
 
       g_snprintf (buf, BUF_SIZE, "%d x %d",
                   gqview_thumb_size[i].width, gqview_thumb_size[i].height);
-      menu_item = gtk_menu_item_new_with_label (buf);
-      gtk_object_set_data (GTK_OBJECT (menu_item), "num", GINT_TO_POINTER(i));
-      gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-                         GTK_SIGNAL_FUNC(cb_get_data_from_menuitem),
-                         NULL);
-      gtk_menu_append (GTK_MENU(menu), menu_item);
-      gtk_widget_show (menu_item);
+      labels[i] = g_strdup (buf);
    }
-   gtk_option_menu_set_menu (GTK_OPTION_MENU (option_menu), menu);
-   gtk_option_menu_set_history (GTK_OPTION_MENU (option_menu),
-                                size_idx);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
+   option_menu = gimv_option_menu_new (labels, num, size_idx,
+                                       G_CALLBACK (cb_get_data_from_menuitem),
+                                       NULL);
+   for (i = 0; i < num; i++)
+      g_free ((gchar *) labels[i]);
+   g_free (labels);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
 
    return hbox;
 }

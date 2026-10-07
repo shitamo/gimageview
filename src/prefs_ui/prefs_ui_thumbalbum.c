@@ -38,8 +38,8 @@ prefs_ui_thumbalbum (void)
    GtkAdjustment *adj;
    GtkWidget *spinner;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
    /********************************************** 
     * Thumbnail Album Frame
@@ -47,44 +47,40 @@ prefs_ui_thumbalbum (void)
    gimv_prefs_ui_create_frame (_("Album"),
                                frame, frame_vbox, main_vbox, FALSE);
 
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_box_pack_start (GTK_BOX (frame_vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (frame_vbox), hbox, FALSE, FALSE, 0);
 
-   table = gtk_table_new (2, 4, FALSE);
-   gtk_table_set_row_spacings (GTK_TABLE (table), 5);
-   gtk_table_set_col_spacings (GTK_TABLE (table), 5);
-   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-   gtk_box_pack_start (GTK_BOX (hbox), table, FALSE, FALSE, 0);
+   table = gimv_table_new (2, 4, FALSE);
+   gimv_table_set_row_spacings (GTK_WIDGET (table), 5);
+   gimv_table_set_col_spacings (GTK_WIDGET (table), 5);
+   gimv_container_set_border_width (GTK_WIDGET (table), 5);
+   gimv_box_pack_start (GTK_BOX (hbox), table, FALSE, FALSE, 0);
 
    /* Row Spacing spinner */
    label = gtk_label_new (_("Row Spacing"));
-   gtk_table_attach (GTK_TABLE (table), label, 0, 1, 1, 2,
-                     GTK_EXPAND, GTK_FILL, 0, 0);
+   gimv_table_attach (GTK_WIDGET (table), label, 0, 1, 1, 2, GIMV_EXPAND, GIMV_FILL, 0, 0);
 
    adj = (GtkAdjustment *) gtk_adjustment_new (conf.thumbalbum_row_space,
                                                0.0, 255.0, 1.0, 5.0, 0.0);
    spinner = gtkutil_create_spin_button (adj);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
                        &config_changed->thumbalbum_row_space);
-   gtk_table_attach (GTK_TABLE (table), spinner, 1, 2, 1, 2,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+   gimv_table_attach (GTK_WIDGET (table), spinner, 1, 2, 1, 2, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 0, 0);
 
    /* Column Spacing spinner */
    label = gtk_label_new (_("Column Spacing"));
-   gtk_table_attach (GTK_TABLE (table), label, 2, 3, 1, 2,
-                     GTK_EXPAND, GTK_FILL, 0, 0);
+   gimv_table_attach (GTK_WIDGET (table), label, 2, 3, 1, 2, GIMV_EXPAND, GIMV_FILL, 0, 0);
 
    adj = (GtkAdjustment *) gtk_adjustment_new (conf.thumbalbum_col_space,
                                                0.0, 255.0, 1.0, 5.0, 0.0);
    spinner = gtkutil_create_spin_button (adj);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
                        &config_changed->thumbalbum_col_space);
-   gtk_table_attach (GTK_TABLE (table), spinner, 3, 4, 1, 2,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+   gimv_table_attach (GTK_WIDGET (table), spinner, 3, 4, 1, 2, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 0, 0);
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }

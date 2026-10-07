@@ -26,7 +26,6 @@
 #  include "config.h"
 #endif
 
-#ifdef HAVE_GDK_PIXBUF
 
 #include <glib.h>
 
@@ -39,6 +38,5 @@ GimvImage *pixbuf_load            (GimvImageLoader *loader,
 GimvImage *pixbuf_load_file       (GimvImageLoader *loader,
                                    gpointer         data);
 
-#endif /* HAVE_GDK_PIXBUF */
 
 #endif /* __PIXBUF_LOADER_H__ */

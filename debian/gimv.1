@@ -1,0 +1,70 @@
+.TH GIMV 1 "September 2026" "gimageview 0.2.27+gtk4" "User Commands"
+.SH NAME
+gimv \- GImageView, an image viewer and thumbnail browser
+.SH SYNOPSIS
+.B gimv
+[\fIOPTION\fR]... [\fIFILE\fR|\fIDIRECTORY\fR|\fIARCHIVE\fR]...
+.SH DESCRIPTION
+.B gimv
+shows image files in image windows and browses directories, archives and
+collections as thumbnails.  Without arguments a thumbnail window is opened.
+.SH OPTIONS
+.TP
+.BR \-d ", " \-\-directory
+Scan the given directories at start up.
+.TP
+.BR \-R ", " \-\-recursive
+Scan directories recursively (use with \fB\-d\fR).
+.TP
+.BR \-D ", " \-\-scan\-dot
+Read dot files when scanning directories (use with \fB\-d\fR).
+.TP
+.BR \-e ", " \-\-ignore\-ext
+Ignore file name extensions when detecting file types.
+.TP
+.BR \-s ", " \-\-scale =\fISCALE\fR
+Image scale in image windows, in percent.
+.TP
+.BR \-b ", " \-\-buffer =\fION\fR|\fIOFF\fR
+Keep the original image in memory or not.
+.TP
+.BR \-M ", " \-\-menubar
+Show the menu bar in image windows.
+.TP
+.BR \-T ", " \-\-toolbar
+Show the tool bar in image windows.
+.TP
+.BR \-I ", " \-\-imagewin
+Open an empty image window at start up.
+.TP
+.BR \-w ", " \-\-thumbwin
+Open a thumbnail window at start up.
+.TP
+.BR \-i ", " \-\-imageview
+Open all images in image windows.
+.TP
+.BR \-t ", " \-\-thumbview
+Open all images in a thumbnail window.
+.TP
+.BR \-S ", " \-\-slideshow
+Show the given images as a slide show.
+.TP
+.BR \-W ", " \-\-wait =\fITIME\fR
+Slide show interval in seconds (use with \fB\-S\fR).
+.TP
+.BR \-v ", " \-\-version
+Print version information and exit.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of the options and exit.
+.SH FILES
+.TP
+.I ~/.gimv/
+Preferences (\fIgimvrc\fR), key bindings (\fIkeyaccelrc\fR), comments and
+the thumbnail cache.
+.TP
+.I ~/.gimv/gtk.css
+Optional user style sheet (replaces the GTK+ 2 \fIgtkrc\fR).
+.SH AUTHOR
+GImageView was written by Takuro Ashie.  This manual page was written for
+the Debian package of the GTK 4 port.

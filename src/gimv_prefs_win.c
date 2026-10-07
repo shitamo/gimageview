@@ -55,21 +55,18 @@ typedef struct GimvPrefsWinPagePrivate_Tag
 {
    GimvPrefsWinPage *page;
    GtkWidget    *widget;
-#ifndef ENABLE_TREEVIEW
-   GtkCTreeNode *node;
-#endif /* ENABLE_TREEVIEW */
 } GimvPrefsWinPagePrivate;
 
 
 static GimvPrefsWinPage prefs_pages[] = {
-   {N_("/Infomation"),                 0, NULL, NULL, gimvhelp_create_info_widget,  NULL},
-   {N_("/Common"),                     0, NULL, NULL, prefs_common_page,            NULL},
+   {N_("/Information"),                 0, NULL, NULL, gimvhelp_create_info_widget,  NULL},
+   {N_("/Common"),                     0, NULL, NULL, prefs_common_page,            prefs_common_apply},
    {N_("/Common/Filtering"),           0, NULL, NULL, prefs_filter_page,            prefs_filter_apply},
-   {N_("/Common/Character set"),       0, NULL, NULL, prefs_charset_page,           prefs_charset_apply},
+   {N_("/Common/Character Set"),       0, NULL, NULL, prefs_charset_page,           prefs_charset_apply},
 
    {N_("/Image Window"),               0, NULL, NULL, prefs_imagewin_page,          NULL},
    {N_("/Image Window/Image"),         0, NULL, NULL, prefs_imagewin_image_page,    prefs_ui_imagewin_image_apply},
-   {N_("/Image Window/Mouse Buttton"), 0, NULL, NULL, prefs_imagewin_mouse_page,    NULL},
+   {N_("/Image Window/Mouse Buttons"), 0, NULL, NULL, prefs_imagewin_mouse_page,    NULL},
 
    {N_("/Thumbnail Window"),           0, NULL, NULL, prefs_thumbwin_page,          prefs_ui_thumbwin_apply},
    /*
@@ -77,17 +74,17 @@ static GimvPrefsWinPage prefs_pages[] = {
    */
    {N_("/Thumbnail Window/Tab"),                            0, NULL, NULL, prefs_thumbwin_tab_page,      prefs_ui_thumbwin_tab_apply},
    {N_("/Thumbnail Window/Thumbnail View"),                 0, NULL, NULL, prefs_thumbview_page,         NULL},
-   {N_("/Thumbnail Window/Thumbnail View/Mouse Buttton"),   0, NULL, NULL, prefs_thumbview_mouse_page,   NULL},
+   {N_("/Thumbnail Window/Thumbnail View/Mouse Buttons"),   0, NULL, NULL, prefs_thumbview_mouse_page,   NULL},
    {N_("/Thumbnail Window/Thumbnail View/Album"),           0, NULL, NULL, prefs_ui_thumbalbum,          NULL},
 
    {N_("/Thumbnail Window/Directory View"),                 0, NULL, NULL, prefs_dirview_page,           prefs_ui_dirview_apply},
-   {N_("/Thumbnail Window/Directory View/Mouse Buttton"),   0, NULL, NULL, prefs_dirview_mouse_page,     NULL},
+   {N_("/Thumbnail Window/Directory View/Mouse Buttons"),   0, NULL, NULL, prefs_dirview_mouse_page,     NULL},
    {N_("/Thumbnail Window/Preview"),                        0, NULL, NULL, prefs_preview_page,           prefs_ui_preview_apply},
-   {N_("/Thumbnail Window/Preview/Mouse Buttton"),          0, NULL, NULL, prefs_preview_mouse_page,     NULL},
+   {N_("/Thumbnail Window/Preview/Mouse Buttons"),          0, NULL, NULL, prefs_preview_mouse_page,     NULL},
 
-   {N_("/Movie and Audio"),            0, NULL, NULL, prefs_movie_page,               NULL},
+   {N_("/Movie and Audio"),            0, NULL, NULL, prefs_movie_page,               prefs_movie_apply},
 
-   {N_("/Slide Show"),                 0, NULL, NULL, prefs_slideshow_page,           NULL},
+   {N_("/Slideshow"),                 0, NULL, NULL, prefs_slideshow_page,           NULL},
    {N_("/Thumbnail Cache"),            0, NULL, NULL, prefs_cache_page,               NULL},
    {N_("/Comment"),                    0, NULL, NULL, prefs_comment_page,             prefs_comment_apply},
    {N_("/Search"),                     0, NULL, NULL, prefs_search_page,              NULL},
@@ -273,12 +270,8 @@ prefs_win_set_page (const gchar *path)
    num = gtk_notebook_page_num (GTK_NOTEBOOK (prefs_win.notebook),
                                 priv->widget);
    if (num >= 0)
-      gtk_notebook_set_page (GTK_NOTEBOOK (prefs_win.notebook), num);
+      gtk_notebook_set_current_page (GTK_NOTEBOOK (prefs_win.notebook), num);
 
-#ifdef ENABLE_TREEVIEW
-#else /* ENABLE_TREEVIEW */
-   /* gtk_ctree_select (GTK_CTREE (prefs_win.tree), priv->node); */
-#endif /* ENABLE_TREEVIEW */
 }
 
 
@@ -289,7 +282,7 @@ prefs_win_set_page (const gchar *path)
  *
  *******************************************************************************/
 static void
-get_icon (const gchar *name, GdkPixmap **pixmap, GdkBitmap **mask)
+get_icon (const gchar *name, GdkTexture **pixmap, GdkTexture **mask)
 {
    GimvIcon *icon;
 
@@ -310,7 +303,6 @@ get_icon (const gchar *name, GdkPixmap **pixmap, GdkBitmap **mask)
 }
 
 
-#ifdef ENABLE_TREEVIEW
 
 typedef enum {
    COLUMN_TERMINATOR = -1,
@@ -380,7 +372,7 @@ prefs_win_navtree_get_parent (GimvPrefsWinPagePrivate *priv, GtkTreeIter *iter)
 
 
 static gboolean
-cb_tree_key_press (GtkWidget *widget, GdkEventKey *event, gpointer data)
+cb_tree_key_press (GtkWidget *widget, GimvEventKey *event, gpointer data)
 {
    GtkTreeSelection *selection;
    GtkTreeModel *model;
@@ -398,21 +390,21 @@ cb_tree_key_press (GtkWidget *widget, GdkEventKey *event, gpointer data)
    if (!treepath) return FALSE;
 
    switch (event->keyval) {
-   case GDK_KP_Enter:
-   case GDK_Return:
-   case GDK_ISO_Enter:
-   case GDK_space:
+   case GDK_KEY_KP_Enter:
+   case GDK_KEY_Return:
+   case GDK_KEY_ISO_Enter:
+   case GDK_KEY_space:
       if (gtk_tree_view_row_expanded (GTK_TREE_VIEW (widget), treepath))
          gtk_tree_view_collapse_row (GTK_TREE_VIEW (widget), treepath);
       else
          gtk_tree_view_expand_row (GTK_TREE_VIEW (widget), treepath, FALSE);
       retval = TRUE;
       break;
-   case GDK_Right:
+   case GDK_KEY_Right:
       gtk_tree_view_expand_row (GTK_TREE_VIEW (widget), treepath, FALSE);
       retval = TRUE;
       break;
-   case GDK_Left:
+   case GDK_KEY_Left:
       gtk_tree_view_collapse_row (GTK_TREE_VIEW (widget), treepath);
       retval = TRUE;
       break;
@@ -436,8 +428,11 @@ cb_tree_cursor_changed (GtkTreeView *treeview, gpointer data)
 
    g_return_if_fail (treeview);
 
+   /* GTK4: also emitted while the tree view is disposed (without model) */
+   if (!gtk_tree_view_get_model (treeview)) return;
    selection = gtk_tree_view_get_selection (treeview);
-   gtk_tree_selection_get_selected (selection, &model, &iter);
+   if (!selection) return;
+   if (!gtk_tree_selection_get_selected (selection, &model, &iter)) return;
    gtk_tree_model_get (model, &iter,
                        COLUMN_PRIV_DATA, &priv,
                        COLUMN_TERMINATOR);
@@ -459,19 +454,18 @@ prefs_win_create_navtree (void)
    GList *node;
 
    store = gtk_tree_store_new (N_COLUMN,
-                               GDK_TYPE_PIXMAP,
-                               GDK_TYPE_PIXMAP,
-                               GDK_TYPE_PIXMAP,
-                               GDK_TYPE_PIXMAP,
+                               GDK_TYPE_TEXTURE,
+                               GDK_TYPE_TEXTURE,
+                               GDK_TYPE_TEXTURE,
+                               GDK_TYPE_TEXTURE,
                                G_TYPE_STRING,
                                G_TYPE_POINTER);
    tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
    prefs_win.tree = tree;
-   gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (tree), TRUE);
+   /* GTK4: gtk_tree_view_set_rules_hint () removed */
    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (tree), FALSE);
 
-   g_signal_connect (G_OBJECT (tree), "key_press_event",
-                     G_CALLBACK (cb_tree_key_press), NULL);
+   gimv_event_connect (GTK_WIDGET (tree), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_tree_key_press), NULL);
    g_signal_connect (G_OBJECT (tree), "cursor_changed",
                      G_CALLBACK (cb_tree_cursor_changed), NULL);
 
@@ -504,8 +498,8 @@ prefs_win_create_navtree (void)
    for (node = get_page_entries_list(); node; node = g_list_next (node)) {
       GimvPrefsWinPage *page = node->data;
       const gchar *title;
-      GdkPixmap *pixmap = NULL, *opixmap = NULL;
-      GdkBitmap *mask = NULL, *omask = NULL;
+      GdkTexture *pixmap = NULL, *opixmap = NULL;
+      GdkTexture *mask = NULL, *omask = NULL;
       GimvPrefsWinPagePrivate *priv;
       GtkTreeIter iter, parent_iter;
 
@@ -543,146 +537,6 @@ prefs_win_create_navtree (void)
    return tree;
 }
 
-#else /* ENABLE_TREEVIEW */
-
-static gboolean
-cb_ctree_key_press (GtkWidget *widget, GdkEventKey *event, gpointer data)
-{
-   GList *sel;
-   GtkCTreeNode *node;
-
-   g_return_val_if_fail (GTK_IS_CLIST (widget), FALSE);
-
-   sel = GTK_CLIST (widget)->selection;
-   if (!sel) return FALSE;
-   node = sel->data;
-
-   switch (event->keyval) {
-   case GDK_KP_Enter:
-   case GDK_Return:
-   case GDK_ISO_Enter:
-   case GDK_space:
-      gtk_ctree_toggle_expansion (GTK_CTREE (widget), node);
-      break;
-   case GDK_Right:
-      gtk_ctree_expand (GTK_CTREE (widget), node);
-      return TRUE;
-      break;
-   case GDK_Left:
-      gtk_ctree_collapse (GTK_CTREE (widget), node);
-      return TRUE;
-      break;
-   default:
-      break;
-   }
-
-   return FALSE;
-}
-
-
-static void
-cb_ctree_select_row (GtkWidget *widget, gint row, gint column,
-                     GdkEventButton *event, gpointer data)
-{
-   GtkCTreeNode *node;
-   GimvPrefsWinPagePrivate *priv;
-
-   node = gtk_ctree_node_nth (GTK_CTREE (widget), row);
-   if (!node) return;
-
-   priv = gtk_ctree_node_get_row_data (GTK_CTREE (widget), node);
-   if (priv->page)
-      prefs_win_set_page (priv->page->path);
-}
-
-
-static GtkCTreeNode *
-prefs_win_navtree_get_parent (GimvPrefsWinPage *page)
-{
-   GList *node = NULL;
-   gchar *parent;
-
-   g_return_val_if_fail (page, NULL);
-   g_return_val_if_fail (page->path, NULL);
-
-   if (!page->path) return NULL;
-   parent = g_dirname (page->path);
-
-   for (node = priv_page_list; node; node = g_list_next (node)) {
-      GimvPrefsWinPagePrivate *priv = node->data;
-      if (priv && priv->page && !strcmp (parent, priv->page->path)) {
-         g_free (parent);
-         return priv->node;
-      }
-   }
-
-   g_free (parent);
-
-   return NULL;
-}
-
-
-static GtkWidget *
-prefs_win_create_navtree (void)
-{
-   GtkWidget *ctree;
-   GtkCTreeNode *node, *parent = NULL;
-   GList *lnode;
-
-   /* create tree */
-   ctree = prefs_win.tree = gtk_ctree_new (1,0);
-   prefs_win.tree = ctree;
-   gtk_clist_set_column_auto_resize (GTK_CLIST (ctree), 0, TRUE);
-   gtk_clist_set_selection_mode (GTK_CLIST (ctree), GTK_SELECTION_BROWSE);
-   gtk_ctree_set_line_style (GTK_CTREE (ctree), conf.dirview_line_style);
-   gtk_ctree_set_expander_style (GTK_CTREE (ctree), conf.dirview_expander_style);
-   gtk_clist_set_row_height (GTK_CLIST (ctree), 18);
-
-   gtk_signal_connect (GTK_OBJECT (ctree), "key_press_event",
-                       GTK_SIGNAL_FUNC (cb_ctree_key_press), NULL);
-   gtk_signal_connect (GTK_OBJECT (ctree), "select-row",
-                       GTK_SIGNAL_FUNC (cb_ctree_select_row), NULL);
-
-   /* create pages */
-   for (lnode = get_page_entries_list(); lnode; lnode = g_list_next (lnode)) {
-      GimvPrefsWinPage *page = lnode->data;
-      const gchar *title;
-      GdkPixmap *pixmap = NULL, *opixmap = NULL;
-      GdkBitmap *mask = NULL, *omask = NULL;
-      GimvPrefsWinPagePrivate *priv;
-
-      if (!page || !page->path) continue;
-
-      /* translate page title */
-      title = g_basename (_(page->path));
-
-      /* get node icon */
-      get_icon (page->icon,      &pixmap,  &mask);
-      get_icon (page->icon_open, &opixmap, &omask);
-
-      /* insert node */
-      parent = prefs_win_navtree_get_parent (page);
-      node = gtk_ctree_insert_node (GTK_CTREE (ctree), parent, NULL,
-                                    (gchar **) &title, 4,
-                                    pixmap, mask,
-                                    opixmap, omask,
-                                    FALSE, FALSE);
-
-      /* set private data */
-      priv = g_new0 (GimvPrefsWinPagePrivate, 1);
-      priv->page   = page;
-      priv->widget = NULL;
-      priv->node   = node;
-
-      priv_page_list = g_list_append (priv_page_list, priv);
-
-      gtk_ctree_node_set_row_data (GTK_CTREE(ctree), node, priv);
-   }
-
-   return ctree;
-}
-
-#endif /* ENABLE_TREEVIEW */
 
 
 
@@ -722,7 +576,6 @@ cb_prefs_win_destroy ()
 }
 
 
-#ifdef USE_GTK2
 
 static void
 cb_dialog_response (GtkDialog *dialog, gint arg, gpointer data)
@@ -730,45 +583,20 @@ cb_dialog_response (GtkDialog *dialog, gint arg, gpointer data)
    switch (arg) {
    case GTK_RESPONSE_ACCEPT:
       prefs_win.ok_pressed = TRUE;
-      gtk_widget_destroy (prefs_window);
+      gimv_widget_destroy (prefs_window);
       break;
    case GTK_RESPONSE_APPLY:
       memcpy (&conf, config_changed, sizeof(Config));
       prefs_win_apply_config (GIMV_PREFS_WIN_ACTION_APPLY);
       break;
    case GTK_RESPONSE_REJECT:
-      gtk_widget_destroy (prefs_window);
+      gimv_widget_destroy (prefs_window);
       break;
    default:
       break;
    }
 }
 
-#else
-
-static void
-cb_prefs_ok_button ()
-{
-   prefs_win.ok_pressed = TRUE;
-   gtk_widget_destroy (prefs_window);
-}
-
-
-static void
-cb_prefs_apply_button ()
-{
-   memcpy (&conf, config_changed, sizeof(Config));
-   prefs_win_apply_config (GIMV_PREFS_WIN_ACTION_APPLY);
-}
-
-
-static void
-cb_prefs_cancel_button ()
-{
-   gtk_widget_destroy (prefs_window);
-}
-
-#endif
 
 
 
@@ -791,7 +619,7 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
 
    /* if preference window is alredy opend, raise it and return */
    if (prefs_window) {
-      gdk_window_raise (prefs_window->window);
+      gtk_window_present (GTK_WINDOW (prefs_window));
       return prefs_window;
    }
 
@@ -805,16 +633,18 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    prefs_window = gtk_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (prefs_window), parent);
-   gtk_window_set_wmclass(GTK_WINDOW(prefs_window), "prefs", GIMV_PROG_NAME);
+   else
+      gimv_window_set_default_transient (GTK_WINDOW (prefs_window));
+   /* GTK4: gtk_window_set_wmclass () removed */
    gtk_window_set_default_size (GTK_WINDOW(prefs_window), 600, 450);
-   gtk_window_set_title (GTK_WINDOW (prefs_window), _("Preference")); 
-   gtk_signal_connect (GTK_OBJECT(prefs_window), "destroy",
-                       GTK_SIGNAL_FUNC(cb_prefs_win_destroy), NULL);
+   gtk_window_set_title (GTK_WINDOW (prefs_window), _("Preferences")); 
+   g_signal_connect (G_OBJECT (prefs_window), "destroy",
+                       G_CALLBACK(cb_prefs_win_destroy), NULL);
 
    /* pane */
    pane = gimv_hpaned_new ();
-   gtk_container_set_border_width (GTK_CONTAINER (pane), 5);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (prefs_window)->vbox), 
+   gimv_container_set_border_width (GTK_WIDGET (pane), 5);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (prefs_window))), 
                        pane, TRUE, TRUE, 0);
    gtk_widget_show (pane);
 
@@ -827,73 +657,46 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    gtk_widget_show (notebook);
 
    /* scrolled window */
-   scrolledwin = gtk_scrolled_window_new (NULL, NULL);
+   scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwin),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-   gtk_widget_set_usize (scrolledwin, 170, -1);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
+   gimv_widget_set_size (scrolledwin, 170, -1);
    gtk_widget_show (scrolledwin);
 
    /* navigation tree */
    navtree = prefs_win_create_navtree ();
-   gtk_container_add (GTK_CONTAINER (scrolledwin), navtree);
+   gimv_container_add (GTK_WIDGET (scrolledwin), navtree);
    gtk_widget_show (navtree);
 
-   gimv_paned_add1 (GIMV_PANED (pane), scrolledwin);
-   gimv_paned_add2 (GIMV_PANED (pane), notebook);
+   /* GTK4: children that may shrink have no minimum size, which would let
+      the default window size clip the pages (GTK2 always requested the
+      children's size) */
+   gimv_paned_pack1 (GTK_PANED (pane), scrolledwin, FALSE, FALSE);
+   gimv_paned_pack2 (GTK_PANED (pane), notebook, TRUE, FALSE);
 
    /* button */
-#ifdef USE_GTK2
    gtk_dialog_add_buttons (GTK_DIALOG (prefs_window),
-                           GTK_STOCK_APPLY,  GTK_RESPONSE_APPLY,
-                           GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
-                           GTK_STOCK_OK,     GTK_RESPONSE_ACCEPT,
+                           GIMV_STOCK_APPLY,  GTK_RESPONSE_APPLY,
+                           GIMV_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+                           GIMV_STOCK_OK,     GTK_RESPONSE_ACCEPT,
                            NULL);
-   gtk_signal_connect_object (GTK_OBJECT (prefs_window), "response",
-                              GTK_SIGNAL_FUNC (cb_dialog_response),
-                              NULL);
-#else
-{
-   GtkWidget *button;
+   g_signal_connect (G_OBJECT (prefs_window), "response",
+                     G_CALLBACK (cb_dialog_response),
+                     NULL);
 
-   /* dialog buttons */
-   button = gtk_button_new_with_label (_("OK"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (prefs_window)->action_area), 
-                       button, TRUE, TRUE, 0);
-   gtk_signal_connect_object (GTK_OBJECT (button), "clicked",
-                              GTK_SIGNAL_FUNC (cb_prefs_ok_button),
-                              GTK_OBJECT (prefs_window));
-   GTK_WIDGET_SET_FLAGS(button, GTK_CAN_DEFAULT);
-   gtk_widget_show (button);
+   /* GTK4: create all pages before showing, so that the notebook requests
+      the size of the largest one: created on demand, a larger page grew the
+      window and the window manager moved it when a page was selected */
+   {
+      GList *node;
+      for (node = priv_page_list; node; node = g_list_next (node))
+         prefs_win_create_page (node->data);
+   }
 
-   gtk_widget_grab_focus (button);
-
-   button = gtk_button_new_with_label (_("Apply"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (prefs_window)->action_area), 
-                       button, FALSE, TRUE, 0);
-   gtk_signal_connect_object (GTK_OBJECT (button), "clicked",
-                              GTK_SIGNAL_FUNC (cb_prefs_apply_button),
-                              GTK_OBJECT (prefs_window));
-   GTK_WIDGET_SET_FLAGS(button, GTK_CAN_DEFAULT);
-   gtk_widget_show (button);
-
-   button = gtk_button_new_with_label (_("Cancel"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (prefs_window)->action_area), 
-                       button, FALSE, TRUE, 0);
-   gtk_signal_connect_object (GTK_OBJECT (button), "clicked",
-                              GTK_SIGNAL_FUNC (cb_prefs_cancel_button),
-                              GTK_OBJECT (prefs_window));
-   GTK_WIDGET_SET_FLAGS(button, GTK_CAN_DEFAULT);
-   gtk_widget_show (button);
-}
-#endif
-
-   gtk_window_set_position (GTK_WINDOW (prefs_window), GTK_WIN_POS_CENTER);
+   /* GTK4: window position (GTK_WIN_POS_CENTER) is up to the compositor */
    gtk_widget_show (prefs_window);
-   gimv_icon_stock_set_window_icon (prefs_window->window, "prefs");
+   gimv_icon_stock_set_window_icon (prefs_window, "prefs");
 
    prefs_win_set_page (NULL);
 
@@ -924,7 +727,7 @@ gimv_prefs_win_open_idle (const gchar *path, GtkWindow *parent)
 
    auauauau_window = parent;
 
-   gtk_idle_add (idle_prefs_win_open, str);
+   g_idle_add (idle_prefs_win_open, str);
 }
 
 

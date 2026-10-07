@@ -27,16 +27,16 @@
 
 #include "gimageview.h"
 
-#include <gtk/gtkdialog.h>
+#include <gtk/gtk.h>
 
 #include "gimv_dupl_finder.h"
 #include "gimv_thumb_view.h"
 
 #define GIMV_TYPE_DUPL_WIN            (gimv_dupl_win_get_type ())
-#define GIMV_DUPL_WIN(obj)            (GTK_CHECK_CAST (obj, gimv_dupl_win_get_type (), GimvDuplWin))
-#define GIMV_DUPL_WIN_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_dupl_win_get_type, GimvDuplWinClass))
-#define GIMV_IS_DUPL_WIN(obj)         (GTK_CHECK_TYPE (obj, gimv_dupl_win_get_type ()))
-#define GIMV_IS_DUPL_WIN_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_DUPL_WIN))
+#define GIMV_DUPL_WIN(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_dupl_win_get_type (), GimvDuplWin))
+#define GIMV_DUPL_WIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_dupl_win_get_type (), GimvDuplWinClass))
+#define GIMV_IS_DUPL_WIN(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_dupl_win_get_type ()))
+#define GIMV_IS_DUPL_WIN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_DUPL_WIN))
 
 typedef struct GimvDuplWin_Tag      GimvDuplWin;
 typedef struct GimvDuplWinClass_Tag GimvDuplWinClass;
@@ -68,7 +68,7 @@ struct GimvDuplWinClass_Tag
 
 
 /* result window */
-GtkType              gimv_dupl_win_get_type       (void);
+GType              gimv_dupl_win_get_type       (void);
 GimvDuplWin         *gimv_dupl_win_new            (gint thumbnail_size);
 void                 gimv_dupl_win_set_relation   (GimvDuplWin         *sw,
                                                    GimvThumbView       *tv);

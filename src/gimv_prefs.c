@@ -66,46 +66,24 @@ enum {
 
 static void gimv_prefs_class_init (GimvPrefsClass *klass);
 static void gimv_prefs_init       (GimvPrefs      *profile);
-static void gimv_prefs_destroy    (GtkObject      *object);
+static void gimv_prefs_destroy    (GimvObject      *object);
 
 
-static GtkObjectClass *parent_class = NULL;
+static GimvObjectClass *parent_class = NULL;
 
 static gint gimv_prefs_signals[LAST_SIGNAL] = {0};
 
 
-GtkType
-gimv_prefs_get_type (void)
-{
-   static GtkType gimv_prefs_type = 0;
-
-   if (!gimv_prefs_type) {
-      static const GtkTypeInfo gimv_prefs_info = {
-         "GimvPrefs",
-         sizeof (GimvPrefs),
-         sizeof (GimvPrefsClass),
-         (GtkClassInitFunc) gimv_prefs_class_init,
-         (GtkObjectInitFunc) gimv_prefs_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_prefs_type = gtk_type_unique (gtk_object_get_type (),
-					 &gimv_prefs_info);
-   }
-
-   return gimv_prefs_type;
-}
+G_DEFINE_TYPE (GimvPrefs, gimv_prefs, GIMV_TYPE_OBJECT)
 
 
 static void
 gimv_prefs_class_init (GimvPrefsClass *klass)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   parent_class = gtk_type_class (gtk_object_get_type ());
-   object_class = (GtkObjectClass *) klass;
+   parent_class = gimv_prefs_parent_class;
+   object_class = (GimvObjectClass *) klass;
 
    object_class->destroy = gimv_prefs_destroy;
 
@@ -116,49 +94,54 @@ gimv_prefs_class_init (GimvPrefsClass *klass)
    klass->changed         = NULL;
 
 	gimv_prefs_signals[SECTION_ADDED_SIGNAL]
-		= gtk_signal_new ("section-added",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvPrefsClass, section_added),
-                        gtk_marshal_NONE__STRING,
-                        GTK_TYPE_NONE, 1,
-                        GTK_TYPE_STRING);
+		= g_signal_new ("section-added",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvPrefsClass, section_added),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__STRING,
+                      G_TYPE_NONE, 1,
+                      G_TYPE_STRING);
 
 	gimv_prefs_signals[SECTION_DELETED_SIGNAL]
-		= gtk_signal_new ("section-deleted",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvPrefsClass, section_deleted),
-                        gtk_marshal_NONE__STRING,
-                        GTK_TYPE_NONE, 1,
-                        GTK_TYPE_STRING);
+		= g_signal_new ("section-deleted",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvPrefsClass, section_deleted),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__STRING,
+                      G_TYPE_NONE, 1,
+                      G_TYPE_STRING);
 
 	gimv_prefs_signals[KEY_ADDED_SIGNAL]
-		= gtk_signal_new ("key-added",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvPrefsClass, key_added),
-                        gtk_marshal_NONE__POINTER_POINTER,
-                        GTK_TYPE_NONE, 2,
-                        GTK_TYPE_STRING, GTK_TYPE_STRING);
+		= g_signal_new ("key-added",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvPrefsClass, key_added),
+                      NULL, NULL,
+                      g_cclosure_marshal_generic,
+                      G_TYPE_NONE, 2,
+                      G_TYPE_STRING, G_TYPE_STRING);
 
 	gimv_prefs_signals[KEY_DELETED_SIGNAL]
-		= gtk_signal_new ("key-deleted",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvPrefsClass, key_deleted),
-                        gtk_marshal_NONE__POINTER_POINTER,
-                        GTK_TYPE_NONE, 2,
-                        GTK_TYPE_STRING, GTK_TYPE_STRING);
+		= g_signal_new ("key-deleted",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvPrefsClass, key_deleted),
+                      NULL, NULL,
+                      g_cclosure_marshal_generic,
+                      G_TYPE_NONE, 2,
+                      G_TYPE_STRING, G_TYPE_STRING);
 
 	gimv_prefs_signals[CHANGED_SIGNAL]
-		= gtk_signal_new ("changed",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvPrefsClass, changed),
-                        gtk_marshal_NONE__POINTER_POINTER_POINTER,
-                        GTK_TYPE_NONE, 3,
-                        GTK_TYPE_STRING, GTK_TYPE_STRING, GTK_TYPE_STRING);
+		= g_signal_new ("changed",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvPrefsClass, changed),
+                      NULL, NULL,
+                      g_cclosure_marshal_generic,
+                      G_TYPE_NONE, 3,
+                      G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }
 
 
@@ -174,7 +157,7 @@ gimv_prefs_init (GimvPrefs *profile)
 
 
 static void
-gimv_prefs_destroy (GtkObject *object)
+gimv_prefs_destroy (GimvObject *object)
 {
 	GimvPrefs *profile = GIMV_PREFS(object);
 	GimvPrefsList *p, *q;
@@ -211,15 +194,16 @@ gimv_prefs_destroy (GtkObject *object)
 	}
 	profile->sublist = NULL;
 
-	if (GTK_OBJECT_CLASS (parent_class)->destroy)
-		GTK_OBJECT_CLASS (parent_class)->destroy(object);
+	if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+		GIMV_OBJECT_CLASS (parent_class)->destroy(object);
 }
 
 
 GimvPrefs *
 gimv_prefs_new (void)
 {
-	GimvPrefs *profile = GIMV_PREFS(gtk_object_new(GIMV_TYPE_PREFS, NULL));
+	GimvPrefs *profile = GIMV_PREFS(g_object_new(GIMV_TYPE_PREFS, NULL));
+	g_object_ref_sink (G_OBJECT (profile));
 	return profile;
 }
 
@@ -489,7 +473,8 @@ gimv_prefs_close (GimvPrefs *profile)
 	g_return_val_if_fail(GIMV_IS_PREFS(profile), FALSE);
 
 	gimv_prefs_save (profile);
-	gtk_object_destroy(GTK_OBJECT(profile));
+	gimv_object_destroy (G_OBJECT (profile));
+	g_object_unref (G_OBJECT (profile));
 
 	return TRUE;
 }
@@ -789,7 +774,7 @@ gimv_prefs_set_value (GimvPrefs *profile,
 				p->next = NULL;
 				profile->list = p;
 			}
-			gtk_signal_emit(GTK_OBJECT(profile),
+			g_signal_emit(G_OBJECT (profile),
 					gimv_prefs_signals[SECTION_ADDED_SIGNAL],
 					quark, p->section);
 		}
@@ -809,7 +794,7 @@ gimv_prefs_set_value (GimvPrefs *profile,
 		q->next = p;
 		if (p->next)
 			p->next->prev = p;
-		gtk_signal_emit(GTK_OBJECT(profile),
+		g_signal_emit(G_OBJECT (profile),
 				gimv_prefs_signals[KEY_ADDED_SIGNAL],
 				quark, p->section, p->key);
 	}
@@ -848,7 +833,7 @@ gimv_prefs_set_value (GimvPrefs *profile,
 	p->value = strchr(p->data,'=') + 1;
 	profile->edit = TRUE;
 
-	gtk_signal_emit(GTK_OBJECT(profile), gimv_prefs_signals[CHANGED_SIGNAL],
+	g_signal_emit(G_OBJECT (profile), gimv_prefs_signals[CHANGED_SIGNAL],
 			quark, p->section, p->key, old_value);
 
 	g_free(old_value);
@@ -914,7 +899,7 @@ gimv_prefs_delete_section (GimvPrefs *profile, const gchar *section)
 	}
 
 	quark = g_quark_from_string(section_tmp);
-	gtk_signal_emit(GTK_OBJECT(profile),
+	g_signal_emit(G_OBJECT (profile),
 			gimv_prefs_signals[SECTION_DELETED_SIGNAL],
 			quark, section_tmp);
 
@@ -965,7 +950,7 @@ gboolean gimv_prefs_delete_key (GimvPrefs *profile,
 	}
 
 	quark = g_quark_from_string(section_tmp);
-	gtk_signal_emit(GTK_OBJECT(profile),
+	g_signal_emit(G_OBJECT (profile),
 			gimv_prefs_signals[KEY_DELETED_SIGNAL],
 			quark, section_tmp, key_tmp);
 

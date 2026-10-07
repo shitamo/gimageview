@@ -36,23 +36,23 @@ typedef enum
 } TargetType;
 
 
-extern GtkTargetEntry dnd_types_all[];
+extern GimvTargetEntry dnd_types_all[];
 extern const gint dnd_types_all_num;
 
-extern GtkTargetEntry *dnd_types_uri;
+extern GimvTargetEntry *dnd_types_uri;
 extern const gint dnd_types_uri_num;
 
-extern GtkTargetEntry *dnd_types_archive;
+extern GimvTargetEntry *dnd_types_archive;
 extern const gint dnd_types_archive_num;
 
-extern GtkTargetEntry *dnd_types_tab_component;
+extern GimvTargetEntry *dnd_types_tab_component;
 extern const gint dnd_types_tab_component_num;
 
-extern GtkTargetEntry *dnd_types_component;
+extern GimvTargetEntry *dnd_types_component;
 extern const gint dnd_types_component_num;
 
 /*
-  extern GtkTargetEntry dnd_com_types[];
+  extern GimvTargetEntry dnd_com_types[];
   extern const gint dnd_com_types_num;
 */
 
@@ -60,14 +60,14 @@ extern const gint dnd_types_component_num;
 GList *dnd_get_file_list     (const gchar          *string,
                               gint                  len);
 void   dnd_src_set           (GtkWidget            *widget,
-                              const GtkTargetEntry *entry,
+                              const GimvTargetEntry *entry,
                               gint                  num);
 void   dnd_dest_set          (GtkWidget            *widget,
-                              const GtkTargetEntry *entry,
+                              const GimvTargetEntry *entry,
                               gint                  num);
 void   dnd_file_operation    (const gchar          *dest_dir,
-                              GdkDragContext       *context,
-                              GtkSelectionData     *seldata,
+                              GimvDragContext       *context,
+                              GimvSelectionData     *seldata,
                               guint                 time,
                               GimvThumbWin         *tw);
 

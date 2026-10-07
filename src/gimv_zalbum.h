@@ -43,10 +43,10 @@
 #include "gimv_zlist.h"
 
 #define GIMV_TYPE_ZALBUM            (gimv_zalbum_get_type ())
-#define GIMV_ZALBUM(widget)         (GTK_CHECK_CAST ((widget), GIMV_TYPE_ZALBUM, GimvZAlbum))
-#define GIMV_ZALBUM_CLASS(klass)    (GTK_CHECK_CLASS_CAST ((klass), GIMV_TYPE_ZALBUM, GimvZAlbumClass))
-#define GIMV_IS_ZALBUM(widget)      (GTK_CHECK_TYPE ((widget), GIMV_TYPE_ZALBUM))
-#define GIMV_IS_ZALBUM_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_ZALBUM))
+#define GIMV_ZALBUM(widget)         (G_TYPE_CHECK_INSTANCE_CAST ((widget), GIMV_TYPE_ZALBUM, GimvZAlbum))
+#define GIMV_ZALBUM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GIMV_TYPE_ZALBUM, GimvZAlbumClass))
+#define GIMV_IS_ZALBUM(widget)      (G_TYPE_CHECK_INSTANCE_TYPE ((widget), GIMV_TYPE_ZALBUM))
+#define GIMV_IS_ZALBUM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_ZALBUM))
 
 typedef struct _GimvZAlbum            GimvZAlbum;
 typedef struct _GimvZAlbumCell        GimvZAlbumCell;
@@ -91,15 +91,15 @@ struct _GimvZAlbumCell
    gint flags;
    const gchar *name;
 
-   GdkPixmap *ipix;
-   GdkBitmap *imask;
+   GdkTexture *ipix;
+   GdkTexture *imask;
 
    gpointer user_data;
-   GtkDestroyNotify destroy;
+   GDestroyNotify destroy;
 };
 
 
-GtkType    gimv_zalbum_get_type                  (void);
+GType    gimv_zalbum_get_type                  (void);
 GtkWidget *gimv_zalbum_new                       (void);
 guint      gimv_zalbum_add                       (GimvZAlbum       *album,
                                                   const gchar      *name);
@@ -118,15 +118,15 @@ void       gimv_zalbum_set_min_cell_size         (GimvZAlbum       *album,
                                                   guint             height);
 void       gimv_zalbum_set_pixmap                (GimvZAlbum       *album,
                                                   guint             idx,
-                                                  GdkPixmap        *pixmap,
-                                                  GdkBitmap        *mask);
+                                                  GdkTexture        *pixmap,
+                                                  GdkTexture        *mask);
 void       gimv_zalbum_set_cell_data             (GimvZAlbum       *album,
                                                   guint             idx,
                                                   gpointer          user_data);
 void       gimv_zalbum_set_cell_data_full        (GimvZAlbum       *album,
                                                   guint             idx,
                                                   gpointer          data,
-                                                  GtkDestroyNotify  destroy);
+                                                  GDestroyNotify  destroy);
 gpointer   gimv_zalbum_get_cell_data             (GimvZAlbum       *album,
                                                   guint             idx);
 

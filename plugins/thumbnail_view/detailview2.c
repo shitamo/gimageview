@@ -27,7 +27,6 @@
  *   For Gtk+-2.0
  */
 
-#ifdef ENABLE_TREEVIEW
 
 #include <time.h>
 #include <string.h>
@@ -41,7 +40,6 @@
 #include "gimv_image.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_win.h"
-#include "gtk2-compat.h"
 
 
 enum {
@@ -72,19 +70,19 @@ static gboolean cb_tree_selected               (GtkTreeSelection  *selection,
                                                 gboolean           selected,
                                                 gpointer           data);
 static gboolean cb_treeview_button_press       (GtkWidget         *widget,
-                                                GdkEventButton    *event,
+                                                GimvEventButton    *event,
                                                 GimvThumbView     *tv);
 static gboolean cb_treeview_motion_notify      (GtkWidget         *widget,
-                                                GdkEventMotion    *event,
+                                                GimvEventMotion    *event,
                                                 gpointer           data);
 static gboolean cb_treeview_button_release     (GtkWidget         *widget,
-                                                GdkEventButton    *event,
+                                                GimvEventButton    *event,
                                                 GimvThumbView     *tv);
 static void     cb_treeview_drag_data_received (GtkWidget         *widget,
-                                                GdkDragContext    *context,
+                                                GimvDragContext    *context,
                                                 gint               x,
                                                 gint               y,
-                                                GtkSelectionData  *seldata,
+                                                GimvSelectionData  *seldata,
                                                 guint              info,
                                                 guint              time,
                                                 gpointer           data);
@@ -99,6 +97,23 @@ static void            set_column_types        (GimvThumbView  *tv,
                                                 const gchar    *dest_mode);
 static void            detailview_set_pixmaps  (GimvThumbView  *tv,
                                                 const gchar    *dest_mode);
+
+
+
+/*
+ *  GTK4: gtk_tree_view_get_path_at_pos () takes bin window coordinates,
+ *  event coordinates are relative to the widget.
+ */
+static gboolean
+get_path_at_widget_pos (GtkTreeView *treeview, gint x, gint y,
+                        GtkTreePath **path, GtkTreeViewColumn **column)
+{
+   gint bx, by;
+
+   gtk_tree_view_convert_widget_to_bin_window_coords (treeview, x, y, &bx, &by);
+   return gtk_tree_view_get_path_at_pos (treeview, bx, by,
+                                         path, column, NULL, NULL);
+}
 
 
 
@@ -128,11 +143,11 @@ cb_tree_selected (GtkTreeSelection *selection, GtkTreeModel *model,
       return FALSE;
 
    /* get state of row under mouse cursor */
-   if (!tv_data->dragging && GTK_WIDGET_MAPPED (tv_data->treeview)) {
+   if (!tv_data->dragging && gtk_widget_get_mapped (GTK_WIDGET (tv_data->treeview))) {
       GtkTreePath *sel_treepath;
-      success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                               tv_data->press_x, tv_data->press_y,
-                                               &sel_treepath, NULL, NULL, NULL);
+      success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
+                                        tv_data->press_x, tv_data->press_y,
+                                        &sel_treepath, NULL);
       if (success) {
          sel_row_pos = gtk_tree_path_compare (sel_treepath, treepath);
          if (!sel_row_pos)
@@ -177,7 +192,7 @@ cb_tree_selected (GtkTreeSelection *selection, GtkTreeModel *model,
 
 static gint
 cb_treeview_key_press (GtkWidget *widget,
-                       GdkEventKey *event,
+                       GimvEventKey *event,
                        GimvThumbView *tv)
 {
    DetailViewData *tv_data;
@@ -210,13 +225,13 @@ cb_treeview_key_press (GtkWidget *widget,
 
    {
       switch (event->keyval) {
-      case GDK_Left:
-      case GDK_Right:
-      case GDK_Up:
-      case GDK_Down:
+      case GDK_KEY_Left:
+      case GDK_KEY_Right:
+      case GDK_KEY_Up:
+      case GDK_KEY_Down:
          return FALSE;
          break;
-      case GDK_Return:
+      case GDK_KEY_Return:
          if (!thumb) break;
          if (event->state & GDK_SHIFT_MASK || event->state & GDK_CONTROL_MASK) {
             /* is there somteing to do? */
@@ -226,11 +241,11 @@ cb_treeview_key_press (GtkWidget *widget,
          gimv_thumb_view_set_selection (thumb, TRUE);
          gimv_thumb_view_open_image (tv, thumb, 0);
          break;
-      case GDK_space:
+      case GDK_KEY_space:
          if (!thumb) break;
          gimv_thumb_view_set_selection (thumb, !thumb->selected);
          break;
-      case GDK_Delete:
+      case GDK_KEY_Delete:
          gimv_thumb_view_delete_files (tv);
          break;
       default:
@@ -244,14 +259,14 @@ cb_treeview_key_press (GtkWidget *widget,
 
 static gboolean
 cb_treeview_button_press (GtkWidget *widget,
-                          GdkEventButton *event,
+                          GimvEventButton *event,
                           GimvThumbView *tv)
 {
    DetailViewData *tv_data;
    GtkTreeModel *model;
    GtkTreeSelection *selection;
    GtkTreeIter iter;
-   GtkTreePath *treepath;
+   GtkTreePath *treepath = NULL;
    GtkTreeViewColumn *column;
    GimvThumb *thumb = NULL;
    gboolean success, retval1 = FALSE, retval2 = FALSE;
@@ -271,9 +286,9 @@ cb_treeview_button_press (GtkWidget *widget,
    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview));
 
    /* get state of row under mouse cursor */
-   success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                            event->x, event->y,
-                                            &treepath, &column, NULL, NULL);
+   success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
+                                     event->x, event->y,
+                                     &treepath, &column);
    if (success) {
       retval1 = gtk_tree_selection_path_is_selected (selection, treepath);
       gtk_tree_model_get_iter (model, &iter, treepath);
@@ -302,14 +317,14 @@ cb_treeview_button_press (GtkWidget *widget,
 
 static gboolean
 cb_treeview_motion_notify (GtkWidget *widget,
-                           GdkEventMotion *event,
+                           GimvEventMotion *event,
                            gpointer data)
 {
    DetailViewData *tv_data;
    GimvThumbView *tv = data;
    GtkTreeModel *model;
    GtkTreeSelection *selection;
-   GtkTreePath *treepath;
+   GtkTreePath *treepath = NULL;
    GtkTreeViewColumn *column;
    GimvThumb *thumb = NULL;
    gboolean success;
@@ -330,9 +345,9 @@ cb_treeview_motion_notify (GtkWidget *widget,
    model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview));
 
-   success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                            event->x, event->y,
-                                            &treepath, &column, NULL, NULL);
+   success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
+                                     event->x, event->y,
+                                     &treepath, &column);
    if (success) {
       GtkTreeIter iter;
       gtk_tree_model_get_iter (model, &iter, treepath);
@@ -350,14 +365,14 @@ cb_treeview_motion_notify (GtkWidget *widget,
 
 static gboolean
 cb_treeview_button_release (GtkWidget *widget,
-                            GdkEventButton *event,
+                            GimvEventButton *event,
                             GimvThumbView *tv)
 {
    DetailViewData *tv_data;
    GtkTreeModel *model;
    GtkTreeSelection *selection;
    GtkTreeIter iter;
-   GtkTreePath *treepath;
+   GtkTreePath *treepath = NULL;
    GtkTreeViewColumn *column;
    GimvThumb *thumb = NULL;
    gboolean success, retval1 = FALSE, retval2 = FALSE;
@@ -381,9 +396,9 @@ cb_treeview_button_release (GtkWidget *widget,
    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview));
 
    /* get state of row under mouse cursor */
-   success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                            event->x, event->y,
-                                            &treepath, &column, NULL, NULL);
+   success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
+                                     event->x, event->y,
+                                     &treepath, &column);
    if (success) {
       retval1 = gtk_tree_selection_path_is_selected (selection, treepath);
       gtk_tree_model_get_iter (model, &iter, treepath);
@@ -421,24 +436,23 @@ cb_treeview_button_release (GtkWidget *widget,
 
 
 static gboolean
-cb_treeview_scroll (GtkWidget *widget, GdkEventScroll *se, GimvThumbView *tv)
+cb_treeview_scroll (GtkWidget *widget, GimvEventScroll *se, GimvThumbView *tv)
 {
-   GdkEventButton be;
+   GimvEventButton be;
    gboolean retval = FALSE;
 
    g_return_val_if_fail (GTK_IS_WIDGET(widget), FALSE);
 
+   memset (&be, 0, sizeof (be));
    be.type       = GDK_BUTTON_PRESS;
-   be.window     = se->window;
-   be.send_event = se->send_event;
    be.time       = se->time;
    be.x          = se->x;
    be.y          = se->y;
-   be.axes       = NULL;
    be.state      = se->state;
-   be.device     = se->device;
-   be.x_root     = se->x_root;
-   be.y_root     = se->y_root;
+   be.x_root     = se->x;   /* GTK4: no root coordinates */
+   be.y_root     = se->y;
+   be.event      = se->event;
+   be.controller = se->controller;
    switch ((se)->direction) {
    case GDK_SCROLL_UP:
       be.button = 4;
@@ -469,9 +483,9 @@ cb_treeview_scroll (GtkWidget *widget, GdkEventScroll *se, GimvThumbView *tv)
 
 static void
 cb_treeview_drag_data_received (GtkWidget *widget,
-                                GdkDragContext *context,
+                                GimvDragContext *context,
                                 gint x, gint y,
-                                GtkSelectionData *seldata,
+                                GimvSelectionData *seldata,
                                 guint info,
                                 guint time,
                                 gpointer data)
@@ -479,8 +493,8 @@ cb_treeview_drag_data_received (GtkWidget *widget,
    gimv_thumb_view_drag_data_received_cb (widget, context, x, y,
                                           seldata, info, time, data);
 
-   /* F*ck! */
-   g_signal_stop_emission_by_name (G_OBJECT (widget), "drag_data_received");
+   /* GTK4: GtkTreeView has no default "drag_data_received" handler any
+      more, so there is no need to stop the emission */
 }
 
 
@@ -595,8 +609,8 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
    /* gtk_tree_view_column_set_resizable(col, TRUE); */
 
    render = gimv_cell_renderer_pixmap_new ();
-   xpad = GTK_CELL_RENDERER (render)->xpad;
-   ypad = GTK_CELL_RENDERER (render)->xpad;
+   gtk_cell_renderer_get_padding (GTK_CELL_RENDERER (render), &xpad, &ypad);
+   ypad = xpad;   /* the GTK2 version used xpad for both */
 
    if (!strcmp (DETAIL_ICON_LABEL, dest_mode)) {
       gint xsize = ICON_SIZE + xpad * 2, ysize = ICON_SIZE + ypad * 2;
@@ -720,6 +734,9 @@ detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
    pos = g_list_index (tv->thumblist, thumb);
    colnum = detailview_title_idx_list_num + N_COLUMN;
 
+   /* image sizes from the file headers, in the background */
+   detailview_size_job_start (tv, pos == 0);
+
    tv_data = g_object_get_data (G_OBJECT(tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data && tv_data->treeview);
 
@@ -762,8 +779,8 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
                              const gchar *dest_mode)
 {
    DetailViewData *tv_data;
-   GdkPixmap *pixmap = NULL;
-   GdkBitmap *mask;
+   GdkTexture *pixmap = NULL;
+   GdkTexture *mask = NULL;
    GList *node;
    gint pos, row, col, i;
    GtkTreeModel *model;
@@ -788,14 +805,17 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
       gimv_thumb_get_thumb (thumb, &pixmap, &mask);
    }
 
-   if (!pixmap) return;
-
    model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-   gtk_tree_model_iter_nth_child (model, &iter, NULL, row);
-   gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                       COLUMN_PIXMAP,   pixmap,
-                       COLUMN_MASK,     mask,
-                       COLUMN_TERMINATOR);
+   if (pos < 0 || !gtk_tree_model_iter_nth_child (model, &iter, NULL, row))
+      return;
+
+   /* GTK4 port: the text columns are also synced without a pixmap (plain
+      "Detail" mode), e.g. after a comment was saved */
+   if (pixmap)
+      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+                          COLUMN_PIXMAP,   pixmap,
+                          COLUMN_MASK,     mask,
+                          COLUMN_TERMINATOR);
 
    /* reset column data */
    node = detailview_title_idx_list;
@@ -833,8 +853,8 @@ detailview_get_load_list (GimvThumbView *tv)
 
    for (node = tv->thumblist; node; node = g_list_next (node)) {
       GimvThumb *thumb = node->data;
-      GdkPixmap *pixmap = NULL;
-      GdkBitmap *mask = NULL;
+      GdkTexture *pixmap = NULL;
+      GdkTexture *mask = NULL;
 
       gimv_thumb_get_thumb (thumb, &pixmap, &mask);
       if (!pixmap)
@@ -1038,7 +1058,7 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    /* get row range */
    model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
 
-   if (!GTK_WIDGET_MAPPED (tv_data->treeview)) return FALSE;
+   if (!gtk_widget_get_mapped (GTK_WIDGET (tv_data->treeview))) return FALSE;
 
    /* get index of top row */
    success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
@@ -1105,15 +1125,17 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    for (i = 0; i < ncolumns; i++)
       types[i] = G_TYPE_STRING;
    types[COLUMN_THUMB_DATA] = G_TYPE_POINTER;
-   types[COLUMN_PIXMAP]     = GDK_TYPE_PIXMAP;
-   types[COLUMN_MASK]       = GDK_TYPE_PIXMAP;
+   types[COLUMN_PIXMAP]     = GDK_TYPE_TEXTURE;
+   types[COLUMN_MASK]       = GDK_TYPE_TEXTURE;
    types[COLUMN_EDITABLE]   = G_TYPE_BOOLEAN;
    gtk_list_store_set_column_types (store, ncolumns, types);
 
    tv_data->treeview
       = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+   gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (tv_data->treeview));
 
-   gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (tv_data->treeview), TRUE);
+   /* GTK4: gtk_tree_view_set_rules_hint () was removed (theme hint for
+      alternating row colors) */
    set_column_types (tv, tv_data, store, dest_mode);
    detailview_prefs_get_value ("show_title", (gpointer) &show_title);
    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (tv_data->treeview),
@@ -1134,37 +1156,22 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
 
    gtk_widget_show (tv_data->treeview);
 
-   g_signal_connect (G_OBJECT (tv_data->treeview),
-                     "key-press-event",
-                     G_CALLBACK (cb_treeview_key_press), tv);
-   g_signal_connect (G_OBJECT (tv_data->treeview),
-                     "button-press-event",
-                     G_CALLBACK (cb_treeview_button_press), tv);
-   g_signal_connect (G_OBJECT (tv_data->treeview),
-                     "scroll-event",
-                     G_CALLBACK (cb_treeview_scroll), tv);
+   gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_treeview_key_press), tv);
+   gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_treeview_button_press), tv);
+   gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_SCROLL, G_CALLBACK (cb_treeview_scroll), tv);
    /* SIGNAL_CONNECT_TRANSRATE_SCROLL (tv_data->treeview); */
-   g_signal_connect (G_OBJECT (tv_data->treeview),
-                     "button-release-event",
-                     G_CALLBACK (cb_treeview_button_release), tv);
-   g_signal_connect (G_OBJECT (tv_data->treeview),
-                     "motion-notify-event",
-                     G_CALLBACK (cb_treeview_motion_notify), tv);
+   gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_treeview_button_release), tv);
+   gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_MOTION_NOTIFY, G_CALLBACK (cb_treeview_motion_notify), tv);
 
    /* for drop file list */
    dnd_src_set  (tv_data->treeview, detailview_dnd_targets, detailview_dnd_targets_num);
    dnd_dest_set (tv_data->treeview, detailview_dnd_targets, detailview_dnd_targets_num);
 
-   g_signal_connect (G_OBJECT (tv_data->treeview), "drag_begin",
-                     G_CALLBACK (gimv_thumb_view_drag_begin_cb), tv);
-   g_signal_connect (G_OBJECT (tv_data->treeview), "drag_data_get",
-                     G_CALLBACK (gimv_thumb_view_drag_data_get_cb), tv);
-   g_signal_connect (G_OBJECT (tv_data->treeview), "drag_data_received",
-                     G_CALLBACK (cb_treeview_drag_data_received), tv);
-   g_signal_connect (G_OBJECT (tv_data->treeview), "drag-data-delete",
-                     G_CALLBACK (gimv_thumb_view_drag_data_delete_cb), tv);
-   g_signal_connect (G_OBJECT (tv_data->treeview), "drag_end",
-                     G_CALLBACK (gimv_thumb_view_drag_end_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->treeview), GIMV_DND_DRAG_BEGIN, G_CALLBACK (gimv_thumb_view_drag_begin_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->treeview), GIMV_DND_DRAG_DATA_GET, G_CALLBACK (gimv_thumb_view_drag_data_get_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->treeview), GIMV_DND_DRAG_DATA_RECEIVED, G_CALLBACK (cb_treeview_drag_data_received), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->treeview), GIMV_DND_DRAG_DATA_DELETE, G_CALLBACK (gimv_thumb_view_drag_data_delete_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->treeview), GIMV_DND_DRAG_END, G_CALLBACK (gimv_thumb_view_drag_end_cb), tv);
    g_object_set_data (G_OBJECT (tv_data->treeview), "gimv-tab", tv);
 
 
@@ -1180,4 +1187,3 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    return tv_data->treeview;
 }
 
-#endif /* ENABLE_TREEVIEW */

@@ -124,6 +124,51 @@ static const gchar *wav_extensions[] =
 {
    "wav", "wave",
 };
+/* formats that did not exist or were rare in 2004 */
+static const gchar *mp4_extensions[] =
+{
+   "mp4", "m4v",
+};
+static const gchar *matroska_extensions[] =
+{
+   "mkv",
+};
+static const gchar *webm_extensions[] =
+{
+   "webm",
+};
+static const gchar *flv_extensions[] =
+{
+   "flv",
+};
+static const gchar *ogg_video_extensions[] =
+{
+   "ogv", "ogm",
+};
+static const gchar *mpeg_ts_extensions[] =
+{
+   "ts", "m2ts", "mts",
+};
+static const gchar *threegpp_extensions[] =
+{
+   "3gp",
+};
+static const gchar *threegpp2_extensions[] =
+{
+   "3g2",
+};
+static const gchar *ogg_audio_extensions[] =
+{
+   "ogg", "oga", "opus",
+};
+static const gchar *flac_extensions[] =
+{
+   "flac",
+};
+static const gchar *mp4_audio_extensions[] =
+{
+   "m4a", "aac",
+};
 
 static GimvMimeTypeEntry mplayer_mime_types[] =
 {
@@ -177,7 +222,7 @@ static GimvMimeTypeEntry mplayer_mime_types[] =
       icon:           NULL,
    },
    {
-      mime_type:      "video/qicktime",
+      mime_type:      "video/quicktime",
       description:    "Quicktime Video",
       extensions:     quicktime_extensions,
       extensions_len: sizeof (quicktime_extensions) / sizeof (gchar *),
@@ -202,6 +247,83 @@ static GimvMimeTypeEntry mplayer_mime_types[] =
       description:    "Microsoft Video",
       extensions:     msvideo_extensions,
       extensions_len: sizeof (msvideo_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "audio/ogg",
+      description:    "Ogg Audio",
+      extensions:     ogg_audio_extensions,
+      extensions_len: sizeof (ogg_audio_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "audio/flac",
+      description:    "FLAC Audio",
+      extensions:     flac_extensions,
+      extensions_len: sizeof (flac_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "audio/mp4",
+      description:    "MPEG-4 Audio",
+      extensions:     mp4_audio_extensions,
+      extensions_len: sizeof (mp4_audio_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/mp4",
+      description:    "MPEG-4 Video",
+      extensions:     mp4_extensions,
+      extensions_len: sizeof (mp4_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/x-matroska",
+      description:    "Matroska Video",
+      extensions:     matroska_extensions,
+      extensions_len: sizeof (matroska_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/webm",
+      description:    "WebM Video",
+      extensions:     webm_extensions,
+      extensions_len: sizeof (webm_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/x-flv",
+      description:    "Flash Video",
+      extensions:     flv_extensions,
+      extensions_len: sizeof (flv_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/ogg",
+      description:    "Ogg Video",
+      extensions:     ogg_video_extensions,
+      extensions_len: sizeof (ogg_video_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/mp2t",
+      description:    "MPEG Transport Stream",
+      extensions:     mpeg_ts_extensions,
+      extensions_len: sizeof (mpeg_ts_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/3gpp",
+      description:    "3GPP Video",
+      extensions:     threegpp_extensions,
+      extensions_len: sizeof (threegpp_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/3gpp2",
+      description:    "3GPP2 Video",
+      extensions:     threegpp2_extensions,
+      extensions_len: sizeof (threegpp2_extensions) / sizeof (gchar *),
       icon:           NULL,
    },
 };
@@ -235,10 +357,10 @@ GIMV_PLUGIN_GET_MIME_TYPE(mplayer_mime_types)
 GimvPluginInfo gimv_plugin_info =
 {
    if_version:    GIMV_PLUGIN_IF_VERSION,
-   name:          N_("MPlayer Embeder & Movie Frame Loader"),
-   version:       "0.1.2",
-   author:        N_("Takuro Ashie"),
-   description:   NULL,
+   name:          N_("MPlayer Embedder & Movie Frame Loader"),
+   version:       "0.2.0",
+   author:        N_("Takuro Ashie, shitamo"),
+   description:   N_("Plays movies and audio with MPlayer"),
    get_implement: gimv_plugin_get_impl,
    get_mime_type: gimv_plugin_get_mime_type,
    get_prefs_ui:  gimv_prefs_ui_mplayer_get_page,
@@ -267,12 +389,12 @@ get_mplayer (GimvImageView *iv)
    GimvMPlayer *mplayer;
 
    g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), NULL);
-   g_return_val_if_fail (GTK_IS_BIN (iv->draw_area), NULL);
+   g_return_val_if_fail (GTK_IS_WIDGET (iv->draw_area), NULL);
 
-   frame = GTK_BIN (iv->draw_area)->child;
-   g_return_val_if_fail (GTK_IS_BIN (frame), NULL);
+   frame = gimv_bin_get_child (GTK_WIDGET (iv->draw_area));
+   g_return_val_if_fail (GTK_IS_ASPECT_FRAME (frame), NULL);
 
-   mplayer = GIMV_MPLAYER (GTK_BIN (frame)->child);
+   mplayer = GIMV_MPLAYER (gimv_bin_get_child (GTK_WIDGET (frame)));
    g_return_val_if_fail (GIMV_IS_MPLAYER (mplayer), NULL);
 
    return mplayer;
@@ -283,7 +405,7 @@ static void
 imageview_mplayer_real_play (GimvImageView *iv)
 {
    GimvMPlayer *mplayer;
-   const gchar *filename;
+   gchar *filename;
 
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
    if (!iv->info) return;
@@ -293,11 +415,13 @@ imageview_mplayer_real_play (GimvImageView *iv)
    mplayer = get_mplayer (iv);
    g_return_if_fail (mplayer);
 
-   filename = gimv_image_info_get_path (iv->info);
+   filename = gimv_image_info_get_local_path (iv->info);
+   if (!filename) return;
 
    if (gimv_mplayer_set_file (GIMV_MPLAYER (mplayer), filename)) {
       gimv_mplayer_play (GIMV_MPLAYER (mplayer));
    }
+   g_free (filename);
 }
 
 
@@ -357,18 +481,21 @@ cb_mplayer_identified (GimvMPlayer *mplayer, GimvImageView *iv)
    mplayer = get_mplayer (iv);
    g_return_if_fail (mplayer);
 
-   g_return_if_fail (GTK_IS_BIN (iv->draw_area));
-   frame = GTK_BIN (iv->draw_area)->child;
+   g_return_if_fail (GTK_IS_WIDGET (iv->draw_area));
+   frame = gimv_bin_get_child (GTK_WIDGET (iv->draw_area));
    g_return_if_fail (GTK_IS_ASPECT_FRAME (frame));
 
    width  = gimv_mplayer_get_width  (mplayer);
    height = gimv_mplayer_get_height (mplayer);
    if (width <= 0 || height <= 0) return;
 
-   gtk_aspect_frame_set (GTK_ASPECT_FRAME (frame),  0.5, 0.5,
-                         (gfloat) width / (gfloat) height, FALSE);
+   gtk_aspect_frame_set_xalign (GTK_ASPECT_FRAME (frame), 0.5);
+   gtk_aspect_frame_set_yalign (GTK_ASPECT_FRAME (frame), 0.5);
+   gtk_aspect_frame_set_ratio (GTK_ASPECT_FRAME (frame),
+                               (gfloat) width / (gfloat) height);
+   gtk_aspect_frame_set_obey_child (GTK_ASPECT_FRAME (frame), FALSE);
 
-   while (gtk_events_pending ()) gtk_main_iteration ();
+   gimv_flush_events ();
 }
 
 
@@ -393,26 +520,30 @@ imageview_mplayer_create (GimvImageView *iv)
 {
    GtkWidget *widget, *frame, *mplayer;
 
-   widget = gtk_event_box_new ();
+   widget = gimv_event_box_new ();
 
-   frame = gtk_aspect_frame_new (NULL, 0.5, 0.5, 1.33333, FALSE);
-   gtk_container_add (GTK_CONTAINER (widget), frame);
+   frame = gtk_aspect_frame_new (0.5, 0.5, 1.33333, FALSE);
+   gimv_container_add (GTK_WIDGET (widget), frame);
+   /* GTK4: after packing (which resets them): the GTK2 event box gave its
+      child the whole area, otherwise the video window is 0x0 */
+   gtk_widget_set_hexpand (frame, TRUE);
+   gtk_widget_set_vexpand (frame, TRUE);
    gtk_widget_show (frame);
 
    mplayer = gimv_mplayer_new ();
-   gtk_container_add (GTK_CONTAINER (frame), mplayer);
+   gimv_container_add (GTK_WIDGET (frame), mplayer);
    gtk_widget_show (mplayer);
 
-   gtk_signal_connect (GTK_OBJECT (mplayer), "play",
-                       GTK_SIGNAL_FUNC (cb_mplayer_play), iv);
-   gtk_signal_connect (GTK_OBJECT (mplayer), "stop",
-                       GTK_SIGNAL_FUNC (cb_mplayer_stop), iv);
-   gtk_signal_connect (GTK_OBJECT (mplayer), "pause",
-                       GTK_SIGNAL_FUNC (cb_mplayer_pause), iv);
-   gtk_signal_connect (GTK_OBJECT (mplayer), "position_changed",
-                       GTK_SIGNAL_FUNC (cb_mplayer_pos_changed), iv);
-   gtk_signal_connect (GTK_OBJECT (mplayer), "identified",
-                       GTK_SIGNAL_FUNC (cb_mplayer_identified), iv);
+   g_signal_connect (G_OBJECT (mplayer), "play",
+                       G_CALLBACK (cb_mplayer_play), iv);
+   g_signal_connect (G_OBJECT (mplayer), "stop",
+                       G_CALLBACK (cb_mplayer_stop), iv);
+   g_signal_connect (G_OBJECT (mplayer), "pause",
+                       G_CALLBACK (cb_mplayer_pause), iv);
+   g_signal_connect (G_OBJECT (mplayer), "position_changed",
+                       G_CALLBACK (cb_mplayer_pos_changed), iv);
+   g_signal_connect (G_OBJECT (mplayer), "identified",
+                       G_CALLBACK (cb_mplayer_identified), iv);
 
    gimv_mplayer_set_video_out_driver (GIMV_MPLAYER (mplayer),
                                       gimv_prefs_mplayer_get_driver("vo"));
@@ -454,7 +585,7 @@ imageview_mplayer_create_thumbnail (GimvImageView *iv, const gchar *cache_write_
 
    if (imcache) {
       gimv_image_unref (imcache);
-      gtk_signal_emit_by_name (GTK_OBJECT (iv),
+      g_signal_emit_by_name (G_OBJECT (iv),
                                "thumbnail_created",
                                iv->info);
    }
@@ -517,7 +648,7 @@ imageview_mplayer_pause (GimvImageView *iv)
    if (!iv->info) return;
    if (!gimv_image_info_is_movie (iv->info) && !gimv_image_info_is_audio (iv->info))
       return;
-   g_return_if_fail (GTK_IS_BIN (iv->draw_area));
+   g_return_if_fail (GTK_IS_WIDGET (iv->draw_area));
 
    mplayer = get_mplayer (iv);
    g_return_if_fail (mplayer);
@@ -537,7 +668,7 @@ imageview_mplayer_stop (GimvImageView *iv)
    if (!iv->info) return;
    if (!gimv_image_info_is_movie (iv->info) && !gimv_image_info_is_audio (iv->info))
       return;
-   g_return_if_fail (GTK_IS_BIN (iv->draw_area));
+   g_return_if_fail (GTK_IS_WIDGET (iv->draw_area));
 
    mplayer = get_mplayer (iv);
    g_return_if_fail (mplayer);
@@ -597,7 +728,7 @@ imageview_mplayer_get_length (GimvImageView *iv)
 
    len = gimv_mplayer_get_length (mplayer);
 
-   return len * 10000;
+   return len * 1000;   /* [s] -> [ms] */
 }
 
 
@@ -614,7 +745,7 @@ imageview_mplayer_get_position (GimvImageView *iv)
 
    pos = gimv_mplayer_get_position (mplayer);
 
-   return pos * 10000;
+   return pos * 1000;   /* [s] -> [ms] */
 }
 
 #endif /* ENABLE_MPLAYER */

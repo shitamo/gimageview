@@ -32,7 +32,7 @@
 
 #ifdef ENABLE_XINE
 
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 #include <xine.h>
 
 #ifdef __cplusplus
@@ -45,10 +45,10 @@ extern "C" {
  */
 
 
-#define GIMV_XINE(obj)            (GTK_CHECK_CAST ((obj), gimv_xine_get_type (), GimvXine))
-#define GIMV_XINE_CLASS(klass)    (GTK_CHECK_CLASS_CAST ((klass), gimv_xine_get_type (), GimvXineClass))
-#define GIMV_IS_XINE(obj)         (GTK_CHECK_TYPE (obj, gimv_xine_get_type ()))
-#define GIMV_IS_XINE_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), gimv_xine_get_type ()))
+#define GIMV_XINE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), gimv_xine_get_type (), GimvXine))
+#define GIMV_XINE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), gimv_xine_get_type (), GimvXineClass))
+#define GIMV_IS_XINE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_xine_get_type ()))
+#define GIMV_IS_XINE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), gimv_xine_get_type ()))
 
 typedef enum
 {
@@ -91,11 +91,11 @@ struct GimvXineClass_Tag
 };
 
 
-GtkType      gimv_xine_get_type               (void);
+GType      gimv_xine_get_type               (void);
 GtkWidget   *gimv_xine_new                    (const gchar *video_driver_id,
                                                const gchar *audio_driver_id);
-void         gimv_xine_set_visibility         (GimvXine    *gtx,
-                                               GdkVisibilityState state);
+/* GTK4: gimv_xine_set_visibility () removed (GdkVisibilityState no longer
+ * exists; the function was never implemented) */
 void         gimv_xine_resize                 (GimvXine    *gtx, 
                                                gint         x,
                                                gint         y,

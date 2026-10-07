@@ -71,13 +71,13 @@ struct GimvImageLoaderPriv_Tag
 
 static void      gimv_image_loader_class_init (GimvImageLoaderClass *klass);
 static void      gimv_image_loader_init       (GimvImageLoader      *loader);
-static void      gimv_image_loader_destroy    (GtkObject        *object);
+static void      gimv_image_loader_destroy    (GimvObject        *object);
 static gboolean  idle_gimv_image_loader_load  (gpointer          data);
 
 /* callback */
 static void      gimv_image_loader_load_end   (GimvImageLoader      *loader);
 
-static GtkObjectClass *parent_class = NULL;
+static GimvObjectClass *parent_class = NULL;
 static gint gimv_image_loader_signals[LAST_SIGNAL] = {0};
 
 
@@ -131,25 +131,29 @@ gimv_image_loader_plugin_regist (const gchar *plugin_name,
  *
  *
  ****************************************************************************/
-GtkType
+GType
 gimv_image_loader_get_type (void)
 {
-   static GtkType gimv_image_loader_type = 0;
+   static GType gimv_image_loader_type = 0;
 
    if (!gimv_image_loader_type) {
-      static const GtkTypeInfo gimv_image_loader_info = {
-         "GimvImageLoader",
-         sizeof (GimvImageLoader),
+      static const GTypeInfo gimv_image_loader_info = {
          sizeof (GimvImageLoaderClass),
-         (GtkClassInitFunc) gimv_image_loader_class_init,
-         (GtkObjectInitFunc) gimv_image_loader_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
+         NULL, /* base_init */
+         NULL, /* base_finalize */
+         (GClassInitFunc) gimv_image_loader_class_init,
+         NULL, /* class_finalize */
+         NULL, /* class_data */
+         sizeof (GimvImageLoader),
+         0,    /* n_preallocs */
+         (GInstanceInitFunc) gimv_image_loader_init,
+         NULL, /* value_table */
       };
 
-      gimv_image_loader_type = gtk_type_unique (gtk_object_get_type (),
-                                                &gimv_image_loader_info);
+      gimv_image_loader_type = g_type_register_static (GIMV_TYPE_OBJECT,
+                                                       "GimvImageLoader",
+                                                       &gimv_image_loader_info,
+                                                       0);
    }
 
    return gimv_image_loader_type;
@@ -159,37 +163,38 @@ gimv_image_loader_get_type (void)
 static void
 gimv_image_loader_class_init (GimvImageLoaderClass *klass)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_object_get_type ());
+   object_class = (GimvObjectClass *) klass;
+   parent_class = g_type_class_peek_parent (klass);
 
    gimv_image_loader_signals[LOAD_START_SIGNAL]
-      = gtk_signal_new ("load_start",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageLoaderClass, load_start),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("load_start",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageLoaderClass, load_start),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
+   /* the GTK2 version wrongly used the offset of load_end here */
    gimv_image_loader_signals[PROGRESS_UPDATE_SIGNAL]
-      = gtk_signal_new ("progress_update",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageLoaderClass, load_end),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("progress_update",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageLoaderClass, progress_update),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    gimv_image_loader_signals[LOAD_END_SIGNAL]
-      = gtk_signal_new ("load_end",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageLoaderClass, load_end),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
-
-   gtk_object_class_add_signals (object_class,
-                                 gimv_image_loader_signals, LAST_SIGNAL);
+      = g_signal_new ("load_end",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageLoaderClass, load_end),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    object_class->destroy  = gimv_image_loader_destroy;
 
@@ -220,10 +225,7 @@ gimv_image_loader_init (GimvImageLoader *loader)
    loader->priv->flags             = 0;
    loader->priv->next_info         = NULL;
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (loader));
-   gtk_object_sink (GTK_OBJECT (loader));
-#endif
+   g_object_ref_sink (G_OBJECT (loader));
 }
 
 
@@ -231,7 +233,7 @@ GimvImageLoader *
 gimv_image_loader_new (void)
 {
    GimvImageLoader *loader
-      = GIMV_IMAGE_LOADER (gtk_type_new (gimv_image_loader_get_type ()));
+      = GIMV_IMAGE_LOADER (g_object_new (GIMV_TYPE_IMAGE_LOADER, NULL));
 
    return loader;
 }
@@ -268,7 +270,7 @@ gimv_image_loader_ref (GimvImageLoader *loader)
 {
    g_return_val_if_fail (GIMV_IS_IMAGE_LOADER (loader), NULL);
 
-   gtk_object_ref (GTK_OBJECT (loader));
+   g_object_ref (G_OBJECT (loader));
 
    return loader;
 }
@@ -279,12 +281,12 @@ gimv_image_loader_unref (GimvImageLoader *loader)
 {
    g_return_if_fail (GIMV_IS_IMAGE_LOADER (loader));
 
-   gtk_object_unref (GTK_OBJECT (loader));
+   g_object_unref (G_OBJECT (loader));
 }
 
 
 static void
-gimv_image_loader_destroy (GtkObject *object)
+gimv_image_loader_destroy (GimvObject *object)
 {
    GimvImageLoader *loader = GIMV_IMAGE_LOADER (object);
 
@@ -320,8 +322,8 @@ gimv_image_loader_destroy (GtkObject *object)
       loader->priv = NULL;
    }
 
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (*GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (*GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
@@ -449,7 +451,7 @@ gimv_image_loader_load_start (GimvImageLoader *loader)
    loader->priv->flags &= ~GIMV_IMAGE_LOADER_LOADING_FLAG;
    loader->priv->flags &= ~GIMV_IMAGE_LOADER_CANCEL_FLAG;
 
-   /* gtk_idle_add (idle_gimv_image_loader_load, loader); */
+   /* g_idle_add (idle_gimv_image_loader_load, loader); */
    gimv_image_loader_load (loader);
 }
 
@@ -595,8 +597,8 @@ gimv_image_loader_progress_update (GimvImageLoader *loader)
    g_return_val_if_fail (gimv_image_loader_is_loading (loader), FALSE);
    g_return_val_if_fail (loader->priv, FALSE);
 
-   gtk_signal_emit (GTK_OBJECT(loader),
-                    gimv_image_loader_signals[PROGRESS_UPDATE_SIGNAL]);
+   g_signal_emit (G_OBJECT (loader),
+                    gimv_image_loader_signals[PROGRESS_UPDATE_SIGNAL], 0);
 
    if (loader->priv->flags & GIMV_IMAGE_LOADER_CANCEL_FLAG)
       return FALSE;
@@ -623,8 +625,8 @@ gimv_image_loader_load (GimvImageLoader *loader)
    loader->priv->flags &= ~GIMV_IMAGE_LOADER_CANCEL_FLAG;
    loader->priv->flags |= GIMV_IMAGE_LOADER_LOADING_FLAG;
 
-   gtk_signal_emit (GTK_OBJECT(loader),
-                    gimv_image_loader_signals[LOAD_START_SIGNAL]);
+   g_signal_emit (G_OBJECT (loader),
+                    gimv_image_loader_signals[LOAD_START_SIGNAL], 0);
 
    g_timer_reset (loader->timer);
    g_timer_start (loader->timer);
@@ -712,13 +714,13 @@ gimv_image_loader_load (GimvImageLoader *loader)
       if (loader->priv->flags & GIMV_IMAGE_LOADER_DEBUG_FLAG)
          g_print ("----- loading canceled -----\n");
       /* emit canceled signal? */
-      gtk_signal_emit (GTK_OBJECT(loader),
-                       gimv_image_loader_signals[LOAD_END_SIGNAL]);
+      g_signal_emit (G_OBJECT (loader),
+                       gimv_image_loader_signals[LOAD_END_SIGNAL], 0);
    } else {
       if (loader->priv->flags & GIMV_IMAGE_LOADER_DEBUG_FLAG)
          g_print ("----- loading done -----\n");
-      gtk_signal_emit (GTK_OBJECT(loader),
-                       gimv_image_loader_signals[LOAD_END_SIGNAL]);
+      g_signal_emit (G_OBJECT (loader),
+                       gimv_image_loader_signals[LOAD_END_SIGNAL], 0);
    }
 }
 
@@ -745,5 +747,5 @@ gimv_image_loader_load_end (GimvImageLoader *loader)
 
    loader->info = loader->priv->next_info;
    loader->priv->next_info = NULL;
-   gtk_idle_add (idle_gimv_image_loader_load, loader);
+   g_idle_add (idle_gimv_image_loader_load, loader);
 }

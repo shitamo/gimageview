@@ -36,31 +36,34 @@
 #include "prefs.h"
 
 
-GtkTargetEntry dnd_types_all[] = {
+GimvTargetEntry dnd_types_all[] = {
    {"GIMV_TAB",                   0, TARGET_GIMV_TAB},
    {"GIMV_COMPONENT",             0, TARGET_GIMV_COMPONENT},
    {"GIMV_ARCHIVE_MEMBER_LIST",   0, TARGET_GIMV_ARCHIVE_MEMBER_LIST},
    {"text/uri-list",              0, TARGET_URI_LIST},
    {"property/bgimage",           0, TARGET_URI_LIST},
 };
-const gint dnd_types_all_num = sizeof(dnd_types_all) / sizeof(GtkTargetEntry);
+const gint dnd_types_all_num = sizeof(dnd_types_all) / sizeof(GimvTargetEntry);
 
-GtkTargetEntry *dnd_types_uri = &dnd_types_all[3];
+GimvTargetEntry *dnd_types_uri = &dnd_types_all[3];
 const gint dnd_types_uri_num = 1;
 
-GtkTargetEntry *dnd_types_archive = &dnd_types_all[2];
+GimvTargetEntry *dnd_types_archive = &dnd_types_all[2];
 const gint dnd_types_archive_num = 2;
 
-GtkTargetEntry *dnd_types_tab_component = &dnd_types_all[0];
+GimvTargetEntry *dnd_types_tab_component = &dnd_types_all[0];
 const gint dnd_types_tab_component_num = 2;
 
-GtkTargetEntry *dnd_types_component = &dnd_types_all[1];
+GimvTargetEntry *dnd_types_component = &dnd_types_all[1];
 const gint dnd_types_component_num = 1;
 
 
-GtkItemFactoryEntry dnd_file_popup_items [] =
+/* GTK4: GDK_ACTION_PRIVATE is gone, use a private value for "Open in new tab" */
+#define DND_ACTION_OPEN_TAB (1 << 16)
+
+GimvMenuEntry dnd_file_popup_items [] =
 {
-   {N_("/Open in new tab"), NULL, menu_modal_cb, GDK_ACTION_PRIVATE, NULL},
+   {N_("/Open in New Tab"), NULL, menu_modal_cb, DND_ACTION_OPEN_TAB, NULL},
    {N_("/---"),             NULL, NULL,          0,                  "<Separator>"},
    {N_("/Move"),            NULL, menu_modal_cb, GDK_ACTION_MOVE,    NULL},
    {N_("/Copy"),            NULL, menu_modal_cb, GDK_ACTION_COPY,    NULL},
@@ -129,15 +132,15 @@ dnd_get_file_list (const gchar *string, gint len)
  *  widget : widget to set DnD (source side).
  */
 void
-dnd_src_set (GtkWidget *widget, const GtkTargetEntry *entry, gint num)
+dnd_src_set (GtkWidget *widget, const GimvTargetEntry *entry, gint num)
 {
    /* FIXME */
    if (conf.dnd_enable_to_external)
       dnd_types_all[3].flags = 0;
    else
-      dnd_types_all[3].flags = GTK_TARGET_SAME_APP;
+      dnd_types_all[3].flags = GIMV_TARGET_SAME_APP;
 
-   gtk_drag_source_set(widget,
+   gimv_drag_source_set(widget,
                        GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK,
                        entry, num,
                        GDK_ACTION_ASK  | GDK_ACTION_COPY
@@ -152,16 +155,16 @@ dnd_src_set (GtkWidget *widget, const GtkTargetEntry *entry, gint num)
  *  widget : widget to set DnD (destination side).
  */
 void
-dnd_dest_set (GtkWidget *widget, const GtkTargetEntry *entry, gint num)
+dnd_dest_set (GtkWidget *widget, const GimvTargetEntry *entry, gint num)
 {
    if (conf.dnd_enable_from_external)
       dnd_types_all[3].flags = 0;
    else
-      dnd_types_all[3].flags = GTK_TARGET_SAME_APP;
+      dnd_types_all[3].flags = GIMV_TARGET_SAME_APP;
 
-   gtk_drag_dest_set(widget,
-                     GTK_DEST_DEFAULT_ALL,
-                     /* GTK_DEST_DEFAULT_MOTION | GTK_DEST_DEFAULT_DROP, */
+   gimv_drag_dest_set(widget,
+                     0,
+                     /* 0 | 0, */
                      entry, num,
                      GDK_ACTION_ASK  | GDK_ACTION_COPY
                      | GDK_ACTION_MOVE | GDK_ACTION_LINK);
@@ -181,10 +184,10 @@ dnd_dest_set (GtkWidget *widget, const GtkTargetEntry *entry, gint num)
  *  tw       : Pointer to parent ThumbWindow.
  */
 void
-dnd_file_operation (const gchar *dest_dir, GdkDragContext *context,
-                    GtkSelectionData *seldata, guint time, GimvThumbWin *tw)
+dnd_file_operation (const gchar *dest_dir, GimvDragContext *context,
+                    GimvSelectionData *seldata, guint time, GimvThumbWin *tw)
 {
-   GtkWidget *dnd_popup;
+   GtkWidget *dnd_popup, *relative;
    GList *list;
    GimvThumbView *tv;
    gboolean dnd_success = TRUE, dnd_delete = FALSE;
@@ -192,7 +195,7 @@ dnd_file_operation (const gchar *dest_dir, GdkDragContext *context,
 
    g_return_if_fail (dest_dir && context && seldata);
 
-   list = dnd_get_file_list (seldata->data, seldata->length);
+   list = dnd_get_file_list ((const gchar *) seldata->data, seldata->length);
 
    /* create popup menu */
    n_menu_items = sizeof (dnd_file_popup_items)
@@ -201,17 +204,17 @@ dnd_file_operation (const gchar *dest_dir, GdkDragContext *context,
                                   n_menu_items, "<DnDPop>",
                                   NULL);
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (dnd_popup));
-   gtk_object_sink (GTK_OBJECT (dnd_popup));
-#endif
+   /* popup menu at the pointer on the drop target */
+   relative = context->widget;
+   if (!relative && tw) relative = GTK_WIDGET (tw);
+   if (relative)
+      action = menu_popup_modal (dnd_popup, relative, -1, -1);
+   else
+      action = -1;
 
-   /* popup menu */
-   action = menu_popup_modal (dnd_popup, NULL, NULL, NULL, NULL);
+   gimv_menu_destroy (dnd_popup);
 
-   gtk_widget_unref (dnd_popup);
- 
-   if (action == GDK_ACTION_PRIVATE) {
+   if (action == DND_ACTION_OPEN_TAB) {
       open_images_dirs (list, tw, LOAD_CACHE, FALSE);
    } else {
       GtkWindow *window = tw ? GTK_WINDOW (tw) : NULL;
@@ -232,13 +235,13 @@ dnd_file_operation (const gchar *dest_dir, GdkDragContext *context,
       }
    }
 
-   gtk_drag_finish(context, dnd_success, dnd_delete, time);
+   gimv_drag_finish(context, dnd_success, dnd_delete, time);
 
    /* update dest side file list */
    tv = gimv_thumb_view_find_opened_dir (dest_dir);
    if (tv) {
       gimv_thumb_view_refresh_list (tv);
-      gtk_idle_add (gimv_thumb_view_refresh_list_idle, tv);
+      g_idle_add (gimv_thumb_view_refresh_list_idle, tv);
    }
 
    g_list_foreach (list, (GFunc) g_free, NULL);

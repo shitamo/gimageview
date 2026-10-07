@@ -11,8 +11,9 @@
  */
 
 #include "pixbuf_utils.h"
+#include "gimv_xpm.h"
+#include "gimv_gtk4_compat.h"
 
-#if HAVE_GDK_PIXBUF
 
 #include <gdk-pixbuf/gdk-pixbuf-loader.h>
 
@@ -134,14 +135,21 @@ pixbuf_copy_mirror (GdkPixbuf *src,
 
 void
 pixmap_from_xpm (const char **data, 
-                 GdkPixmap **pixmap, 
-                 GdkBitmap **mask)
+                 GdkTexture **pixmap, 
+                 GdkTexture **mask)
 {
    GdkPixbuf *pixbuf;
 
-   pixbuf = gdk_pixbuf_new_from_xpm_data (data);
-   gdk_pixbuf_render_pixmap_and_mask (pixbuf, pixmap, mask, 127);
-   gdk_pixbuf_unref (pixbuf);
+   if (pixmap) *pixmap = NULL;
+   if (mask)   *mask   = NULL;
+
+   /* GTK4 port: not gdk-pixbuf's optional XPM loader (gimv_xpm.c) */
+   pixbuf = gimv_xpm_pixbuf_new_from_data ((const gchar * const *) data);
+   if (!pixbuf) return;
+   if (pixmap)
+      *pixmap = gimv_texture_new_for_pixbuf (pixbuf);
+   if (mask)
+      *mask = NULL;   /* GTK4: alpha lives in the texture */
+   g_object_unref (pixbuf);
 }
 
-#endif /* HAVE_GDK_PIXBUF */

@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #include "bmp.h"
 #include "gimv_plugin.h"
@@ -227,7 +229,7 @@ bmp_load (GimvImageLoader *loader, gpointer data)
    BmpBitFields bf;
    GimvIOStatus status;
    guint bytes_read;
-   gboolean has_alpha = FALSE;
+   gboolean has_alpha = FALSE, top_down = FALSE;
 
    g_return_val_if_fail (GIMV_IS_IMAGE_LOADER (loader), NULL);
 
@@ -243,7 +245,7 @@ bmp_load (GimvImageLoader *loader, gpointer data)
 
    status = gimv_io_read (gio, buffer, 16, &bytes_read);
    if (status != GIMV_IO_STATUS_NORMAL) return NULL;
-   if (!bytes_read != 16) return NULL;
+   if (bytes_read != 16) return NULL;
 
    bfSize    = ToL (buffer, 0);
    reserverd = ToL (buffer, 4);
@@ -261,8 +263,16 @@ bmp_load (GimvImageLoader *loader, gpointer data)
    if (bytes_read != biSize - 4) return NULL;
 
    if (biSize == 40) {          /* Windows */
+      gint32 h;
+
       cinfo.width   = ToL (buffer, 0x00);
-      cinfo.height  = ToL (buffer, 0x04);
+      /* the height is signed: a negative value means a top-down bitmap */
+      h = (gint32) (guint32) ToL (buffer, 0x04);
+      if (h < 0) {
+         top_down = TRUE;
+         h = -h;
+      }
+      cinfo.height  = h;
       cinfo.planes  = ToS (buffer, 0x08);
       cinfo.bitCnt  = ToS (buffer, 0x0A);
       cinfo.compr   = ToL (buffer, 0x0C);
@@ -276,11 +286,23 @@ bmp_load (GimvImageLoader *loader, gpointer data)
       cinfo.planes  = ToS (buffer, 0x04);
       cinfo.bitCnt  = ToS (buffer, 0x06);
       cinfo.compr   = 0;
+      cinfo.clrUsed = 0;
    }
 
    if (cinfo.bitCnt > 32) {
       return NULL;
    }
+
+   /* reject broken or absurdly large headers instead of letting
+      g_malloc () abort below */
+   if (cinfo.width < 1 || cinfo.height < 1
+       || cinfo.width > 65535 || cinfo.height > 65535
+       || (guint64) cinfo.width * cinfo.height * 4 > G_MAXINT)
+   {
+      return NULL;
+   }
+   if (top_down && cinfo.compr != BI_RGB && cinfo.compr != BI_BITFIELDS)
+      return NULL;   /* not allowed by the format */
 
    Maps = 4;
    ColormapSize = (bfOffs - biSize - 14) / Maps;
@@ -314,6 +336,22 @@ bmp_load (GimvImageLoader *loader, gpointer data)
 
    if (cinfo.bitCnt == 32 && gimv_image_can_alpha (NULL))
       has_alpha = TRUE;
+
+   /* bmp_read_image () always stores rows bottom-up; flip them back */
+   if (top_down) {
+      gsize stride = (gsize) cinfo.width * (has_alpha ? 4 : 3);
+      guchar *tmp = g_malloc (stride);
+      gulong y;
+
+      for (y = 0; y < cinfo.height / 2; y++) {
+         guchar *a = dest + y * stride;
+         guchar *b = dest + (cinfo.height - 1 - y) * stride;
+         memcpy (tmp, a, stride);
+         memcpy (a, b, stride);
+         memcpy (b, tmp, stride);
+      }
+      g_free (tmp);
+   }
 
    image = gimv_image_create_from_data (dest, cinfo.width, cinfo.height, has_alpha);
 
@@ -432,7 +470,7 @@ bmp_read_image (GimvImageLoader *loader,
    g_return_val_if_fail (gio, NULL);
 
    ypos = height - 1;	/* Bitmaps begin in the lower left corner */
-                        /* FIXME!! If height is negative value, it will not work correctly. */
+                        /* (top-down bitmaps are flipped by bmp_load ()) */
 
    if (bpp == 32 && gimv_image_can_alpha (NULL))
       bytes = 4;

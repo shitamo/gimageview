@@ -21,7 +21,6 @@
 
 #include "pixbuf_loader.h"
 
-#ifdef HAVE_GDK_PIXBUF
 
 #include <gdk-pixbuf/gdk-pixbuf-loader.h>
 
@@ -50,7 +49,8 @@ static GimvImageLoaderPlugin gimv_pixbuf_loader[] =
    },
 };
 
-/* should be fetched from GdkPixbufModule */
+/* the gdk-pixbuf formats of 2002; installed loaders are added at run time,
+   see build_mime_types () */
 static const gchar *ani_extensions[] = {
    "ani",
 };
@@ -245,15 +245,133 @@ static GimvMimeTypeEntry pixbuf_mime_types[] = {
 };
 
 GIMV_PLUGIN_GET_IMPL(gimv_pixbuf_loader, GIMV_PLUGIN_IMAGE_LOADER)
-GIMV_PLUGIN_GET_MIME_TYPE(pixbuf_mime_types)
+
+
+/* GTK4 port: the formats above were the gdk-pixbuf loaders of 2002.  Add the
+   formats of the gdk-pixbuf loaders installed now (WebP, AVIF, HEIF, JPEG XL,
+   ... are separate packages), so that files with their extensions are
+   recognized as images.  Built once; the entries are never freed (the mime
+   type table keeps pointers into them). */
+static GimvMimeTypeEntry *all_mime_types     = NULL;
+static guint              all_mime_types_len = 0;
+
+static void
+build_mime_types (void)
+{
+   GArray *array;
+   GHashTable *known;
+   GSList *formats, *node;
+   guint i;
+
+   array = g_array_new (FALSE, FALSE, sizeof (GimvMimeTypeEntry));
+   known = g_hash_table_new (g_str_hash, g_str_equal);
+   formats = gdk_pixbuf_get_formats ();
+
+   /* the old entries only if an installed loader reads one of their
+      extensions: gdk-pixbuf dropped the Sun raster and WBMP loaders, and
+      builds ANI, PNM, XPM, ... only optionally.  Files nothing can read are
+      then not listed as images. */
+   {
+      GHashTable *exts = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+      for (node = formats; node; node = g_slist_next (node)) {
+         gchar **e;
+         if (gdk_pixbuf_format_is_disabled (node->data)) continue;
+         e = gdk_pixbuf_format_get_extensions (node->data);
+         for (i = 0; e && e[i]; i++)
+            g_hash_table_add (exts, g_ascii_strdown (e[i], -1));
+         g_strfreev (e);
+      }
+
+      for (i = 0; i < G_N_ELEMENTS (pixbuf_mime_types); i++) {
+         gint j;
+         gboolean readable = FALSE;
+
+         for (j = 0; j < pixbuf_mime_types[i].extensions_len && !readable; j++)
+            readable = g_hash_table_contains (exts, pixbuf_mime_types[i].extensions[j]);
+         if (!readable) continue;
+
+         g_array_append_val (array, pixbuf_mime_types[i]);
+         g_hash_table_add (known, (gpointer) pixbuf_mime_types[i].mime_type);
+      }
+
+      g_hash_table_destroy (exts);
+   }
+
+   for (node = formats; node; node = g_slist_next (node)) {
+      GdkPixbufFormat *format = node->data;
+      gchar **mime_types, **extensions, *description;
+      gboolean used = FALSE;
+
+      if (gdk_pixbuf_format_is_disabled (format)) continue;
+
+      extensions = gdk_pixbuf_format_get_extensions (format);
+      if (!extensions || !extensions[0]) {
+         g_strfreev (extensions);
+         continue;
+      }
+      mime_types  = gdk_pixbuf_format_get_mime_types (format);
+      description = gdk_pixbuf_format_get_description (format);
+
+      for (i = 0; mime_types && mime_types[i]; i++) {
+         /* only image types: e.g. the WebP loader also claims audio/x-riff */
+         if (!g_str_has_prefix (mime_types[i], "image/")) continue;
+         if (g_hash_table_contains (known, mime_types[i])) continue;
+         {
+            GimvMimeTypeEntry entry = {
+               mime_type:      mime_types[i],
+               description:    description,
+               extensions:     (const gchar **) extensions,
+               extensions_len: g_strv_length (extensions),
+               icon:           NULL,
+            };
+            g_array_append_val (array, entry);
+         }
+         g_hash_table_add (known, mime_types[i]);
+         used = TRUE;
+      }
+
+      if (used) {
+         g_free (mime_types);   /* the strings are kept by the entries */
+      } else {
+         g_strfreev (mime_types);
+         g_strfreev (extensions);
+         g_free (description);
+      }
+   }
+   g_slist_free (formats);
+   g_hash_table_destroy (known);
+
+   all_mime_types_len = array->len;
+   all_mime_types = (GimvMimeTypeEntry *) g_array_free (array, FALSE);
+}
+
+
+static gboolean
+gimv_plugin_get_mime_type (guint idx, GimvMimeTypeEntry **entry, guint *size)
+{
+   g_return_val_if_fail (entry, FALSE);
+   *entry = NULL;
+   g_return_val_if_fail (size, FALSE);
+   *size = 0;
+
+   if (!all_mime_types) build_mime_types ();
+
+   if (idx >= all_mime_types_len) return FALSE;
+
+   *size  = sizeof (GimvMimeTypeEntry);
+   *entry = &all_mime_types[idx];
+
+   return TRUE;
+}
 
 GimvPluginInfo gimv_plugin_info =
 {
    if_version:    GIMV_PLUGIN_IF_VERSION,
    name:          N_("GdkPixbuf Image Loader"),
-   version:       "0.1.1",
-   author:        N_("Takuro Ashie"),
-   description:   NULL,
+   version:       "0.2.0",
+   author:        N_("Takuro Ashie, shitamo"),
+   description:   N_("Formats of the installed gdk-pixbuf loaders"),
    get_implement: gimv_plugin_get_impl,
    get_mime_type: gimv_plugin_get_mime_type,
    get_prefs_ui:  NULL,
@@ -284,17 +402,6 @@ cb_area_updated (GdkPixbufLoader *loader,
 }
 
 
-#ifndef USE_GTK2
-static void
-cb_frame_done (GdkPixbufLoader *loader,
-               gpointer arg1,
-               gboolean *ret)
-{
-   g_return_if_fail (ret);
-
-   *ret = TRUE;
-}
-#endif
 
 
 GimvImage *
@@ -328,35 +435,22 @@ pixbuf_load (GimvImageLoader *loader, gpointer data)
    g_return_val_if_fail (pixbuf_loader, NULL);
 
    /* set signals */
-#ifdef USE_GTK2
    g_signal_connect (G_OBJECT (pixbuf_loader), "area-prepared",
                      G_CALLBACK (cb_area_prepared),
                      &prepared);
    g_signal_connect (G_OBJECT (pixbuf_loader), "area-updated",
                      G_CALLBACK (cb_area_updated),
                      &updated);
-#else
-   gtk_signal_connect (GTK_OBJECT (pixbuf_loader), "area-prepared",
-                       GTK_SIGNAL_FUNC (cb_area_prepared),
-                       &prepared);
-   gtk_signal_connect (GTK_OBJECT (pixbuf_loader), "area-updated",
-                       GTK_SIGNAL_FUNC (cb_area_updated),
-                       &updated);
-   gtk_signal_connect (GTK_OBJECT (pixbuf_loader), "frame-done",
-                       GTK_SIGNAL_FUNC (cb_frame_done),
-                       &frame_done);
-#endif
 
    /* load */
    for (i = 0;; i++) {
       gimv_io_read (gio, buf, buf_size, &bytes);
 
       if ((gint) bytes > 0) {
-#ifdef USE_GTK2
-         gdk_pixbuf_loader_write (pixbuf_loader, buf, bytes, NULL);
-#else
-         gdk_pixbuf_loader_write (pixbuf_loader, buf, bytes);
-#endif
+         /* a failed write closes the loader: stop feeding it (writing
+            on floods the log with criticals) */
+         if (!gdk_pixbuf_loader_write (pixbuf_loader, buf, bytes, NULL))
+            break;
       } else {
          break;
       }
@@ -369,11 +463,7 @@ pixbuf_load (GimvImageLoader *loader, gpointer data)
 
    if (!prepared) goto FUNC_END;
 
-#ifdef USE_GTK2
    if (gimv_image_loader_load_as_animation(loader)) {
-#else
-   if (gimv_image_loader_load_as_animation(loader) && frame_done) {
-#endif
       GdkPixbufAnimation *anim;
       anim = gdk_pixbuf_loader_get_animation (pixbuf_loader);
       if (anim) {
@@ -388,18 +478,13 @@ pixbuf_load (GimvImageLoader *loader, gpointer data)
          gimv_image_unref (image);
          image = NULL;
       } else {
-         gdk_pixbuf_ref (image->image);
+         g_object_ref (image->image);
       }
    }
 
  FUNC_END:
-#ifdef USE_GTK2
    gdk_pixbuf_loader_close (pixbuf_loader, NULL);
    g_object_unref (G_OBJECT (pixbuf_loader));
-#else
-   gdk_pixbuf_loader_close (pixbuf_loader);
-   gtk_object_unref (GTK_OBJECT (pixbuf_loader));
-#endif
 
    return image;
 }
@@ -428,7 +513,6 @@ pixbuf_load_file (GimvImageLoader *loader, gpointer data)
    if (!file_exists (filename))
       return NULL;
 
-#ifdef USE_GTK2
    if (gimv_image_loader_load_as_animation(loader)) {
       GdkPixbufAnimation *anim;
       anim = gdk_pixbuf_animation_new_from_file (filename, NULL);
@@ -440,19 +524,6 @@ pixbuf_load_file (GimvImageLoader *loader, gpointer data)
       image = gimv_image_new ();
       image->image = gdk_pixbuf_new_from_file (filename, NULL);
    }
-#else
-   if (gimv_image_loader_load_as_animation(loader)) {
-      GdkPixbufAnimation *anim;
-      anim = gdk_pixbuf_animation_new_from_file (filename);
-      if (anim) {
-         image = gimv_anim_new_from_gdk_pixbuf_animation (anim);
-         gdk_pixbuf_animation_unref (anim);
-      }
-   } else {
-      image = gimv_image_new ();
-      image->image = gdk_pixbuf_new_from_file (filename);
-   }
-#endif /* USE_GTK2 */
 
    if (image && !image->image) {
       gimv_image_unref (image);
@@ -462,4 +533,3 @@ pixbuf_load_file (GimvImageLoader *loader, gpointer data)
    return image;
 }
 
-#endif /* HAVE_GDK_PIXBUF */

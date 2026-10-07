@@ -277,8 +277,9 @@ jpeg_loader_load (GimvImageLoader *loader,
    ErrorHandlerData jerr;
    GimvIO *gio;
    unsigned char *lines[1];
-   guchar *buffer = NULL;
-   guchar *pixels = NULL;
+   /* modified after setjmp () and used in its error branch: must be volatile */
+   guchar * volatile buffer = NULL;
+   guchar * volatile pixels = NULL;
    guchar *ptr;
    int out_n_components;
    gboolean has_alpha;
@@ -287,8 +288,6 @@ jpeg_loader_load (GimvImageLoader *loader,
    gboolean keep_aspect;
    gint bytes_count, bytes_count_tmp = 0;
    guint step = 65536;
-
-   static guchar *buffer_prv = NULL;
 
    g_return_val_if_fail (GIMV_IS_IMAGE_LOADER (loader), NULL);
 
@@ -310,14 +309,10 @@ jpeg_loader_load (GimvImageLoader *loader,
    jerr.pub.error_exit = fatal_error_handler;
    jerr.pub.output_message = output_message_handler;
 
-#warning FIXME!
    if (setjmp (jerr.setjmp_buffer)) {
       /* Handle a JPEG error. */
       jpeg_destroy_decompress (&cinfo);
-      if(buffer != buffer_prv){
-         buffer_prv = buffer;
-         g_free (buffer);
-      }
+      g_free (buffer);
       g_free (pixels);
       return NULL;
    }
@@ -368,7 +363,14 @@ jpeg_loader_load (GimvImageLoader *loader,
    else
       out_n_components = cinfo.num_components;
 
-   g_return_val_if_fail (out_n_components <= 3, NULL);
+   /* CMYK is converted in place to RGB + opaque alpha (see
+      convert_cmyk_to_rgb ()), anything else must be gray or RGB */
+   if (out_n_components > 3
+       && !(out_n_components == 4 && cinfo.out_color_space == JCS_CMYK))
+   {
+      jpeg_destroy_decompress (&cinfo);
+      return NULL;
+   }
 
    pixels = g_malloc (cinfo.output_width * cinfo.output_height * out_n_components);
 
@@ -412,7 +414,6 @@ jpeg_loader_load (GimvImageLoader *loader,
       }
    }
 
-   buffer_prv = buffer;
    g_free (buffer);
    buffer = NULL;
 

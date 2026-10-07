@@ -407,6 +407,44 @@ gimv_image_info_is_dir (GimvImageInfo *info)
 }
 
 
+gchar *
+gimv_image_info_get_local_path (GimvImageInfo *info)
+{
+   g_return_val_if_fail (info, NULL);
+
+   /* the path of an archive member is relative to the archive
+      ("sub/movie.mp4"); a player would look for it in the current
+      directory ("Resource not found") */
+   if (gimv_image_info_need_temp_file (info))
+      return gimv_image_info_get_temp_file (info);
+
+   return g_strdup (gimv_image_info_get_path (info));
+}
+
+
+gchar *
+gimv_image_info_get_display_name (GimvImageInfo *info, const gchar *filename)
+{
+   gchar *name, *tmp;
+
+   g_return_val_if_fail (filename, NULL);
+
+   name = gimv_filename_to_internal (filename);
+   if (!name) name = g_strdup (filename);
+
+   if (info && !gimv_image_info_is_in_archive (info)
+       && gimv_image_info_is_dir (info)
+       && !g_str_has_suffix (name, "/"))
+   {
+      tmp = g_strconcat (name, "/", NULL);
+      g_free (name);
+      name = tmp;
+   }
+
+   return name;
+}
+
+
 gboolean
 gimv_image_info_is_archive (GimvImageInfo *info)
 {
@@ -604,7 +642,7 @@ gimv_image_info_get_temp_file_path (GimvImageInfo *info)
 
    filename = info->filename;
 
-   temp_dir = gtk_object_get_data (GTK_OBJECT (archive), "temp-dir");
+   temp_dir = g_object_get_data (G_OBJECT (archive), "temp-dir");
 
    g_return_val_if_fail (temp_dir && *temp_dir, NULL);
 
@@ -664,7 +702,7 @@ gimv_image_info_extract_archive (GimvImageInfo *info)
 
    filename = info->filename;
 
-   temp_dir = gtk_object_get_data (GTK_OBJECT (archive), "temp-dir");
+   temp_dir = g_object_get_data (G_OBJECT (archive), "temp-dir");
 
    g_return_val_if_fail (temp_dir && *temp_dir, FALSE);
 
@@ -679,7 +717,7 @@ gimv_image_info_extract_archive (GimvImageInfo *info)
       fr_archive_extract (archive, filelist, temp_dir,
                           FALSE, TRUE, FALSE);
 
-      gtk_main ();   /* will be quited by callback function
+      gimv_main ();   /* will be quited by callback function
                         of archive (see fileload.c) */
    }
 
@@ -769,7 +807,7 @@ gimv_image_info_rename_image (GimvImageInfo *info, const gchar *filename)
       dest_cache_path
          = gimv_thumb_cache_get_path (filename, cache_type);
       if (rename (src_cache_path, dest_cache_path) < 0)
-         g_print (_("Faild to rename cache file :%s\n"), filename);
+         g_print (_("Failed to rename cache file: %s\n"), filename);
       g_free (src_cache_path);
       g_free (dest_cache_path);
    }
@@ -779,7 +817,7 @@ gimv_image_info_rename_image (GimvImageInfo *info, const gchar *filename)
    if (src_comment) {
       dest_comment = gimv_comment_get_path (filename);
       if (rename (src_comment, dest_comment) < 0)
-         g_print (_("Faild to rename comment file :%s\n"), dest_comment);
+         g_print (_("Failed to rename comment file: %s\n"), dest_comment);
       g_free (src_comment);
       g_free (dest_comment);      
    }

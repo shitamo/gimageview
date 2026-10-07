@@ -26,7 +26,7 @@
 #define AUTO_COMPLETION_H
 
 #include <glib.h>
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 
 void    auto_compl_reset                (void);
 

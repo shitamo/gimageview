@@ -36,29 +36,29 @@ ArgsVal args_val;
 static struct arg_opt options[] =
 {
    /* file load */
-   { "directory", 'd', NULL,    N_("Scan directory at start up")                            },
-   { "recursive", 'R', NULL,    N_("Scan directory recursively (use with \"-d\")")          },
-   { "scan-dot",  'D', NULL,    N_("Read dotfile when scanning directory (use with \"-d\")")},
+   { "directory", 'd', NULL,    N_("Scan a directory at startup")                            },
+   { "recursive", 'R', NULL,    N_("Scan directories recursively (use with \"-d\")")          },
+   { "scan-dot",  'D', NULL,    N_("Read dotfiles when scanning directories (use with \"-d\")")},
    { "ignore-ext",'e', NULL,    N_("Ignore file name extension")                            },
 
    /* image window */
-   { "scale",     's', "SCALE", N_("Specify image scale on image window [%]")               },
-   { "buffer",    'b', "ON/OFF",N_("Keep original image on memory or not")                  },
-   { "menubar",   'M', NULL,    N_("Show menu bar on image view window")                    },
-   { "toolbar",   'T', NULL,    N_("Show tool bar on image view window")                    },
+   { "scale",     's', "SCALE", N_("Image scale in the image window [%]")               },
+   { "buffer",    'b', "ON/OFF",N_("Keep the original image in memory")                  },
+   { "menubar",   'M', NULL,    N_("Show the menubar in the image window")                    },
+   { "toolbar",   'T', NULL,    N_("Show the toolbar in the image window")                    },
 
    /*  */
-   { "imagewin",  'I', NULL,    N_("Open empty image window at start up")                   },
-   { "thumbwin",  'w', NULL,    N_("Open thumbnail window at start up")                     },
+   { "imagewin",  'I', NULL,    N_("Open an empty image window at startup")                   },
+   { "thumbwin",  'w', NULL,    N_("Open the thumbnail window at startup")                     },
 
    /* default window */
-   { "imageview", 'i', NULL,    N_("Open all images in imageview window")                   },
-   { "thumbview", 't', NULL,    N_("Open all images in thumbnail window")                   },
-   { "slideshow", 'S', NULL,    N_("Open images files in slide show")                       },
-   { "wait",      'W', "TIME",  N_("Interval of slideshow (use with \"-S\") [sec]")         },
+   { "imageview", 'i', NULL,    N_("Open all images in the image window")                   },
+   { "thumbview", 't', NULL,    N_("Open all images in the thumbnail window")                   },
+   { "slideshow", 'S', NULL,    N_("Open the image files in a slideshow")                       },
+   { "wait",      'W', "TIME",  N_("Slideshow interval (use with \"-S\") [sec]")         },
 
    /* etc */
-   { "version",   'v', NULL,    N_("Print version infomation")                              },
+   { "version",   'v', NULL,    N_("Print version information")                              },
    { "help",      'h', NULL,    N_("Show this message")                                     },
    { NULL,         0,  NULL,    NULL,                                                       },
 };
@@ -161,7 +161,7 @@ arg_version (void)
       _("Copyright (C) 2001 Takuro Ashie\n"
         "This is free software; see the source for copying conditions.  There is NO\n"
         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"));
-   printf (tmpstr);
+   printf ("%s", tmpstr);
    g_free (tmpstr);
 
    exit (0);

@@ -1,0 +1,299 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>8. GImageView FAQ</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="07.html" title="7. Default Key Bindings">
+<link rel="next" href="gimv_tips.html" title="9. Tips">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">8. GImageView FAQ</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="07.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="gimv_faq"></a>8. GImageView FAQ</h2></div></div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_01"></a>8.1. Getting, Installing and Starting</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_01-01"></a>There is no configure</span></dt>
+<dd><p class="para">
+The GTK 4 version is built with Meson, not with configure (autoconf / automake). For the procedure, see <a href="01.html#gimv_install" title="">Installation</a>.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_01-02"></a>I want to start the GImageView thumbnail window alone</span></dt>
+<dd>
+<pre class="screen">
+$ <b>gimv -w</b>
+</pre>
+<p class="para">
+Start it like this. If <span class="emphasis"><i>[Edit | Options] - [Common | Startup | Open thumbnail window]</i></span> is checked, the -w argument is not needed.
+</p>
+<pre class="screen">
+$ <b>gimv</b>
+</pre>
+<p class="para">
+alone starts it. After that, it works normally when you open some directory or file.
+</p>
+<p class="para">
+When registering it in a launcher, specifying just gimv is OK.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_02"></a>8.2. Operation and Settings</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_02-01"></a>I want to change the defined key bindings</span></dt>
+<dd>
+<p class="para">
+Edit ~/.gimv/keyconf. It takes effect from the next start. However, the key bindings shown in the menus do not change.
+</p>
+<p class="para">
+Menu shortcut keys can be changed in ~/.gimv/keyaccelrc. A line for every menu item is written out on exit, so remove the &quot;;&quot; at the beginning of the line you want to change and rewrite the key. For example, to make [File | Open] (Ctrl + F by default) of the thumbnail window F3, do the following. It takes effect from the next start.
+</p>
+<pre class="screen">
+(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/File/Open..." "F3")
+</pre>
+<p class="para">
+Changing a shortcut by pressing a key while the mouse is over a menu item, which was possible in the GTK+ 2 version, is not possible in the GTK 4 version.
+</p>
+<p class="para">
+If you change the key bindings, only you know how it will behave. Please do this <span class="emphasis"><i>at your own risk</i></span>.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_03"></a>8.3. Thumbnail Window</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_03-01"></a>What does &quot;**/** files&quot; shown in the status bar mean?</span></dt>
+<dd><p class="para">
+It is the total number of files open in GImageView and the number of images in the displayed tab. It is also how many image files there are under that directory.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_03-02"></a>What does &quot;**/** kB&quot; shown in the status bar mean?</span></dt>
+<dd><p class="para">
+It is the total size of the files open in GImageView and the total size of the images in the displayed tab. It lets you know how much disk space the files directly under that directory use.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_03-03"></a>What does &quot;**/** page&quot; shown in the status bar mean?</span></dt>
+<dd>
+<p class="para">
+It is the total number of tabs open in GImageView and the number of the currently displayed tab. You can see how many tabs are open now and which tab is the open one.
+</p>
+<p class="para">
+The deeper the hierarchy of the opened directory, the more characters a tab has. Depending on the hierarchy, it can happen that &quot;only one tab can be shown on the screen&quot;. In such a case, you can grasp the whole picture from the numbers in the status bar. The numbers are 1 for the leftmost tab, followed by 2, 3, 4... When you close a tab, the numbers increase or decrease automatically.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_faq_03-04"></a>How do I use the input entry on the right of the toolbar?</span></dt>
+<dd>
+<p class="para">
+Try specifying various absolute paths. The directory tree (if you are showing it...) should do something interesting.
+</p>
+<p class="para">
+It is very hard to explain, but this is where you specify a new (or existing) tab in a command-line-like way. Even when the directory view is not shown, you can open a new tab or move to an existing tab without relying on the file open dialog.
+</p>
+<p class="para">
+In this input entry, completion with the TAB key works. Press TAB freely, as you would in bash, tcsh or zsh. If there is only one candidate, it is completed automatically. If there are many candidates, they are listed below the input entry. In this input entry, the shorthand &quot;~/&quot; for the user's home directory is ignored. <span class="emphasis"><i>Always specify an absolute path</i></span>.
+</p>
+<p class="para">
+Also, individual files cannot be specified here. Input completion does not work for them either. If you want to open a single image in a separate window, first show that directory as thumbnails, and open it from there by middle-button click, left double-click or similar.
+</p>
+<p class="para">
+When the focus has moved to the input entry, use one of the following methods to move the focus back (to enable keyboard shortcuts).
+</p>
+<div class="orderedlist"><ol type="1">
+<li><p class="para">In the directory view, left-click some directory to &quot;select&quot; it.</p></li>
+<li><p class="para">In the thumbnail view, click (select / unselect) some image.</p></li>
+<li><p class="para">Click a tab to move to another tab.</p></li>
+<li><p class="para">Left-click (or Shift + left-click) in the preview window to change the display.</p></li>
+<li><p class="para">Press the Esc key.</p></li>
+</ol></div>
+<p class="para">
+Moving the focus from GImageView to another window (for example rxvt) does not switch the focus within GImageView. Note that the focus does not leave the input entry unless you do one of the operations described above.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_04"></a>8.4. Tabs</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_04-01"></a>How do I show a list of the currently open tabs?</span></dt>
+<dd><p class="para">
+Right-click on the tab area. A list of the currently open tabs is shown. You can also move to any tab.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_04-02"></a>Stopping the full path display on tabs</span></dt>
+<dd><p class="para">
+Uncheck &quot;Show full path&quot; in <span class="emphasis"><i>[Preferences | Thumbnail Window | Tab]</i></span>. Only the directory name will be shown on the tab. The full path of the open tab is then shown in the status bar, so check it there.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_04-03"></a>What is a collection tab?</span></dt>
+<dd>
+<p class="para">
+You can make one from <span class="emphasis"><i>[File | New Collection]</i></span>. Or select images in any tab and drag and drop them somewhere suitable.
+</p>
+<p class="para">
+The DnD menu appeared, right?
+</p>
+<p class="para">
+There, choose <span class="emphasis"><i>[Open in New Tab]</i></span>. The dragged image (all of them, if there are several) is opened in a new tab (named Collection).
+</p>
+<p class="para">
+To add new images to a collection tab you made, there are the following methods.
+</p>
+<div class="orderedlist"><ol type="1">
+<li><p class="para">DnD onto the tab of the collection tab</p></li>
+<li><p class="para">DnD onto the thumbnail view in the collection tab (in this case, from another application or from a second or later gimv)</p></li>
+<li><p class="para">With the collection page open, select files from the file open dialog (the button at the left end of the toolbar), and use &quot;Thumbnails of the selected files&quot;</p></li>
+</ol></div>
+<p class="para">
+For DnD onto a collection page, the DnD menu is not shown and the files are added immediately.
+</p>
+<p class="para">
+After collecting, move or copy them to any directory. The collected images are treated as one group. Rather than Ctrl-clicking the images one by one, gathering them in a collection tab first and then doing file operations on them should make organizing images more efficient.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_05"></a>8.5. Directory View</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_05-01"></a>How to show in the tree a directory added from the console</span></dt>
+<dd><p class="para">
+Do [Refresh Tree] on the parent directory of the added directory in the tree view, and it is shown. If you use [Make Directory...] from the right-click menu of the tree view, it is shown immediately, so adding directories this way is easier.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_05-02"></a>About &quot;Load Thumbnails Recursively&quot; in the right-click menu of the directory view</span></dt>
+<dd>
+<p class="para">
+Loads everything under that directory recursively.
+</p>
+<p class="para">
+That is, it expands everything under that directory and makes a thumbnail tab for each directory. It is very convenient when you want to expand only a certain place. The tree is also expanded properly.
+</p>
+<p class="para">
+If you load recursively from a high-level directory (such as directly under ~/) and the directory loading does not stop, stop it with the stop button in the toolbar, or skip that directory with the skip button. If &quot;GUI redraw interval while loading&quot; in the preferences is set to a large value, the response is poor.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_faq_05-03"></a>What are &quot;.&quot; and &quot;..&quot; in the directory view?</span></dt>
+<dd>
+<p class="para">
+Here is an example.
+</p>
+<pre class="screen">
+/home/~
+    + cg
+       + .
+       + ..
+       + desktop
+       + favorite
+       |    + .   (1)
+       |    + ..  (2)
+       |    + web
+       |    + download
+       + tmp
+</pre>
+<p class="para">
+Suppose it looks like this. If you double-click &quot;.&quot; at (1),
+</p>
+<pre class="screen">
+/home/~
+   + web
+   + download
+</pre>
+<p class="para">
+that directory becomes the root directory. This means the same as <span class="emphasis"><i>[Go Here]</i></span> in the right-click menu of the directory view.
+</p>
+<p class="para">
+And if you double-click &quot;..&quot; at (2),
+</p>
+<pre class="screen">
+/home/~
+   + desktop
+   + favorite
+   |    + web
+   |    + dl
+   + tmp
+</pre>
+<p class="para">
+its parent directory becomes the root.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_faq_05-04"></a>How to make the tree expand automatically and the view scroll up and down automatically during DnD from a tab window to the directory view</span></dt>
+<dd><p class="para">
+These settings (<span class="emphasis"><i>[Auto scroll]</i></span> and <span class="emphasis"><i>[Enable auto expand directory tree]</i></span>) exist only in the GTK+ 1.2 version, and not in the GTK+ 2 version and later (including the GTK 4 version). If the destination directory is collapsed, expand it beforehand.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_06"></a>8.6. Thumbnail View</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_06-01"></a>Fixing the list view mode at startup and for new tabs</span></dt>
+<dd><p class="para">
+You can specify it in <span class="emphasis"><i>[Preferences | Thumbnail Window | Thumbnail View | Default display mode]</i></span>. However, for this to take effect, &quot;Save window state on exit&quot; must be unchecked (not saved).
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_06-02"></a>The thumbnails look strangely bad</span></dt>
+<dd><p class="para">
+A thumbnail cache of a different size may have been loaded. For now, run Update Thumbnail.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_06-03"></a>Selecting / unselecting all images at once</span></dt>
+<dd><p class="para">
+It is in the <span class="emphasis"><i>[Edit]</i></span> menu. It is not in the mouse menu. Shortcuts are assigned (Ctrl + A [N]), so if you use it often, it is better to use those.
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_06-04"></a>Clicking (toggling) a thumbnail does not change its color</span></dt>
+<dd><p class="para">
+The color of a selection depends on the current gtk theme. The color probably does not change because of the color settings of the theme. Try another theme.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_07"></a>8.7. Image View</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_07-01"></a>About external commands</span></dt>
+<dd>
+<p class="para">
+Leaves the display of images in a separate window to another program.
+</p>
+<p class="para">
+Set the external programs in <span class="emphasis"><i>[Preferences | External Program]</i></span>. You can also register your own scripts and so on.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="07.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">7. Default Key Bindings&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;9. Tips</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

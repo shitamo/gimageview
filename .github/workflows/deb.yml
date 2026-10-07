@@ -1,0 +1,112 @@
+# Build the Debian package of GImageView.
+#
+# - push to master, pull requests, manual run (Actions > Debian package >
+#   Run workflow): builds the package in Debian containers; the .deb files
+#   are kept as an artifact of the run (download it from the run page).
+# - push of a tag (e.g. 0.2.27+gtk4): also creates a GitHub release of that
+#   tag with the .deb files attached.  The tag must be the version in
+#   debian/changelog.
+
+name: Debian package
+
+on:
+  push:
+    branches: [master]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (Debian ${{ matrix.dist }})
+    runs-on: ubuntu-latest
+    container: debian:${{ matrix.dist }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dist: [sid, trixie]
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential devscripts dpkg-dev git ca-certificates
+
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Install build dependencies (debian/control)
+        working-directory: src
+        run: apt-get build-dep -y ./
+
+      - name: Check the tag against debian/changelog
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: src
+        run: |
+          version=$(dpkg-parsechangelog -S Version)
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "tag $GITHUB_REF_NAME does not match debian/changelog version $version"
+            exit 1
+          fi
+
+      - name: Build the package
+        working-directory: src
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Collect the package
+        run: |
+          mkdir out
+          for f in gimageview_*.deb; do
+            # gimageview_<version>_<arch>.deb -> gimageview_<version>_<dist>_<arch>.deb
+            arch=${f##*_}
+            cp "$f" "out/${f%_*}_debian-${{ matrix.dist }}_${arch}"
+          done
+          ls -l out
+          dpkg-deb --info out/*.deb
+          dpkg-deb --contents out/*.deb | head -20
+
+      - name: Install test (the dependencies of the package can be installed)
+        run: |
+          apt-get install -y ./out/*.deb
+          dpkg -s gimageview | head -12
+          test -x /usr/bin/gimv
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gimageview-debian-${{ matrix.dist }}
+          path: out/*.deb
+
+  release:
+    name: Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          sha256sum *.deb > SHA256SUMS
+          ls -l
+          gh release create "$GITHUB_REF_NAME" *.deb SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "GImageView $GITHUB_REF_NAME" \
+            --notes "Debian packages of GImageView $GITHUB_REF_NAME (GTK 4 port).
+
+          - gimageview_*_debian-sid_amd64.deb: built on Debian sid
+          - gimageview_*_debian-trixie_amd64.deb: built on Debian 13 (trixie)
+
+          Install with: sudo apt install ./gimageview_*_debian-sid_amd64.deb
+          See NEWS for the changes."

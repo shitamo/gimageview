@@ -36,7 +36,6 @@
 #include "prefs.h"
 
 
-#ifdef ENABLE_TREEVIEW
 typedef enum {
    COLUMN_TERMINATOR = -1,
    COLUMN_KEY,
@@ -44,7 +43,6 @@ typedef enum {
    COLUMN_RAW_ENTRY,
    N_COLUMN
 } ListStoreColumn;
-#endif /* ENABLE_TREEVIEW */
 
 
 static void gimv_comment_view_set_sensitive  (GimvCommentView *cv);
@@ -60,8 +58,8 @@ static void gimv_comment_view_reset_data     (GimvCommentView *cv);
  ******************************************************************************/
 static void
 cb_switch_page (GtkNotebook *notebook,
-                GtkNotebookPage *page,
-                gint pagenum,
+                GtkWidget *page,
+                guint pagenum,
                 GimvCommentView *cv)
 {
    GtkWidget *widget;
@@ -89,7 +87,6 @@ gimv_comment_view_delete_selected_data (GimvCommentView *cv)
 
    g_return_if_fail (cv);
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (cv->comment_clist);
       GtkTreeSelection *selection  = gtk_tree_view_get_selection (treeview);
@@ -105,20 +102,12 @@ gimv_comment_view_delete_selected_data (GimvCommentView *cv)
                           COLUMN_TERMINATOR);
       gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
    }
-#else /* ENABLE_TREEVIEW */
-   if (cv->selected_row < 0) return;
-   g_return_if_fail (cv->selected_row < GTK_CLIST (cv->comment_clist)->rows);
-
-   entry = gtk_clist_get_row_data (GTK_CLIST (cv->comment_clist),
-                                   cv->selected_row);
-   gtk_clist_remove (GTK_CLIST (cv->comment_clist), cv->selected_row);
-#endif /* ENABLE_TREEVIEW */
 
    if (entry)
       gimv_comment_data_entry_remove (cv->comment, entry);
 
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (cv->key_combo)->entry), "\0");
-   gtk_entry_set_text (GTK_ENTRY (cv->value_entry), "\0");
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), "\0");
+   gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
    gimv_comment_view_set_sensitive (cv);
 }
@@ -132,7 +121,6 @@ cb_save_button_pressed (GtkButton *button, GimvCommentView *cv)
    g_return_if_fail (cv);
    g_return_if_fail (cv->comment);
 
-#if USE_GTK2
    {
       GtkTextBuffer *buffer;
       GtkTextIter start, end;
@@ -144,14 +132,6 @@ cb_save_button_pressed (GtkButton *button, GimvCommentView *cv)
 
       note = gtk_text_buffer_get_text (buffer, &start, &end, TRUE);
    }
-#else /* USE_GTK2 */
-   {
-      gint len;
-
-      len = gtk_text_get_length (GTK_TEXT (cv->note_box));
-      note = gtk_editable_get_chars (GTK_EDITABLE (cv->note_box), 0, len);
-   }
-#endif /* USE_GTK2 */
 
    if (note && *note)
       gimv_comment_update_note (cv->comment, note);
@@ -189,24 +169,29 @@ cb_destroyed (GtkWidget *widget, GimvCommentView *cv)
 {
    g_return_if_fail (cv);
 
-   gtk_signal_disconnect_by_func (GTK_OBJECT (cv->notebook),
-                                  GTK_SIGNAL_FUNC (cb_switch_page), cv);
+   /* GTK4: when the window is closed (close-request, Esc), the notebook
+      can outlive this box and still emit "switch-page" while it removes its
+      pages; disconnect it before cv is freed (cv->notebook is a weak
+      pointer, NULL if the notebook is already gone) */
+   if (cv->notebook) {
+      g_signal_handlers_disconnect_by_data (cv->notebook, cv);
+      g_object_remove_weak_pointer (G_OBJECT (cv->notebook),
+                                    (gpointer *) &cv->notebook);
+      cv->notebook = NULL;
+   }
 
    if (cv->comment) {
       gimv_comment_unref (cv->comment);
       cv->comment = NULL;
    }
 
-   if (cv->accel_group) {
-      gtk_accel_group_unref (cv->accel_group);
-      cv->accel_group = NULL;
-   }
+   /* GTK4: no accel group any more (mnemonics are used) */
+   cv->accel_group = NULL;
 
    g_free (cv);
 }
 
 
-#ifdef ENABLE_TREEVIEW
 static void
 cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
 {
@@ -217,7 +202,10 @@ cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
    gchar *key = NULL, *value = NULL;
    GtkEntry *entry1, *entry2;
 
-   entry1 = GTK_ENTRY (GTK_COMBO (cv->key_combo)->entry);
+   /* GTK4: also emitted while the tree view is disposed (without model) */
+   if (!gtk_tree_view_get_model (treeview)) return;
+
+   entry1 = GTK_ENTRY (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo)));
    entry2 = GTK_ENTRY(cv->value_entry);
 
    success = gtk_tree_selection_get_selected (selection, &model, &iter);
@@ -229,13 +217,13 @@ cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
    }
 
    if (key)
-      gtk_entry_set_text (entry1, key);
+      gtk_editable_set_text (GTK_EDITABLE (entry1), key);
    else
-      gtk_entry_set_text (entry1, "\0");
+      gtk_editable_set_text (GTK_EDITABLE (entry1), "\0");
    if (value)
-      gtk_entry_set_text (entry2, value);
+      gtk_editable_set_text (GTK_EDITABLE (entry2), value);
    else
-      gtk_entry_set_text (entry2, "\0");
+      gtk_editable_set_text (GTK_EDITABLE (entry2), "\0");
 
    g_free (key);
    g_free (value);
@@ -243,105 +231,23 @@ cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
    gimv_comment_view_set_sensitive (cv);
 }
 
-#else /* ENABLE_TREEVIEW */
-
-static void
-cb_clist_select_row (GtkCList *clist, gint row, gint col,
-                     GdkEventButton *event, GimvCommentView *cv)
-{
-   gchar *text[2] = {NULL, NULL};
-   gboolean success1, success2;
-
-   g_return_if_fail (cv);
-
-   cv->selected_row = row;
-
-   success1 = gtk_clist_get_text (clist, row, 0, &text[0]);
-   success2 = gtk_clist_get_text (clist, row, 1, &text[1]);
-
-   if (success1) {
-      gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (cv->key_combo)->entry), text[0]);
-   } else {
-      gtk_entry_set_text (GTK_ENTRY(cv->value_entry), "\0");
-   }
-
-   if (success2) {
-      gtk_entry_set_text (GTK_ENTRY(cv->value_entry), text[1]);
-   } else {
-      gtk_entry_set_text (GTK_ENTRY(cv->value_entry), "\0");
-   }
-
-   gimv_comment_view_set_sensitive (cv);
-}
-
-
-static void
-cb_clist_unselect_row (GtkCList *clist, gint row, gint col,
-                       GdkEventButton *event, GimvCommentView *cv)
-{
-   g_return_if_fail (cv);
-
-   cv->selected_row = -1;
-
-   gimv_comment_view_set_sensitive (cv);
-}
-
-
-static void
-cb_clist_row_move (GtkCList *clist,
-                   gint arg1, gint arg2,
-                   GimvCommentView *cv)
-{
-   GimvCommentDataEntry *entry1, *entry2, *tmpentry;
-   GList *node1, *node2;
-   gint pos1, pos2, tmppos;
-
-   g_return_if_fail (clist && GTK_IS_CLIST (clist));
-   g_return_if_fail (cv);
-   g_return_if_fail (cv->comment);
-
-   entry1 = gtk_clist_get_row_data (clist, arg1);
-   entry2 = gtk_clist_get_row_data (clist, arg2);
-
-   g_return_if_fail (entry1 && entry2);
-
-   node1 = g_list_find (cv->comment->data_list, entry1);
-   node2 = g_list_find (cv->comment->data_list, entry2);
-   g_return_if_fail (node1 && node2);
-
-   pos1 = g_list_position (cv->comment->data_list, node1);
-   pos2 = g_list_position (cv->comment->data_list, node2);
-
-   /* swap data position in the list */
-   if (pos1 > pos2) {
-      tmppos   = pos1;   pos1   = pos2;   pos2   = tmppos;
-      tmpentry = entry1; entry1 = entry2; entry2 = tmpentry;
-   }
-   cv->comment->data_list = g_list_remove (cv->comment->data_list, entry1);
-   cv->comment->data_list = g_list_remove (cv->comment->data_list, entry2);
-   cv->comment->data_list = g_list_insert (cv->comment->data_list, entry2, pos1);
-   cv->comment->data_list = g_list_insert (cv->comment->data_list, entry1, pos2);
-}
-#endif /* ENABLE_TREEVIEW */
 
 
 static gboolean
-cb_data_list_key_press (GtkWidget *widget, GdkEventKey *event, GimvCommentView *cv)
+cb_data_list_key_press (GtkWidget *widget, GimvEventKey *event, GimvCommentView *cv)
 {
    g_return_val_if_fail (cv, FALSE);
 
    switch (event->keyval) {
-   case GDK_KP_Enter:
-   case GDK_Return:
+   case GDK_KEY_KP_Enter:
+   case GDK_KEY_Return:
       if (cv->selected_item) {
          gtk_widget_grab_focus (cv->value_entry);
-         gtk_signal_emit_stop_by_name (GTK_OBJECT (widget),
-                                       "key_press_event");
          return TRUE;
       }
       break;
 
-   case GDK_Delete:
+   case GDK_KEY_Delete:
       gimv_comment_view_delete_selected_data  (cv);
       return TRUE;
       break;
@@ -355,19 +261,17 @@ cb_data_list_key_press (GtkWidget *widget, GdkEventKey *event, GimvCommentView *
 
 
 static gboolean
-cb_entry_key_press (GtkWidget *widget, GdkEventKey *event, GimvCommentView *cv)
+cb_entry_key_press (GtkWidget *widget, GimvEventKey *event, GimvCommentView *cv)
 {
    g_return_val_if_fail (cv, FALSE);
 
    switch (event->keyval) {
-   case GDK_Tab:
+   case GDK_KEY_Tab:
       if (event->state & GDK_SHIFT_MASK) {
          gtk_widget_grab_focus (cv->key_combo);
       } else {
          gtk_widget_grab_focus (cv->save_button);
       }
-      gtk_signal_emit_stop_by_name (GTK_OBJECT (widget),
-                                    "key_press_event");
       return TRUE;
       break;
 
@@ -398,20 +302,26 @@ cb_entry_enter (GtkEditable *entry, GimvCommentView *cv)
 }
 
 
+/*
+ *  GTK4: GtkCombo is gone, the key combo is a GtkComboBoxText with an entry.
+ *  The keys and the display names of the items are attached to the combo as
+ *  "keys" and "names" (GPtrArray).  When an item is selected (or the entry
+ *  text matches an item, like GtkCombo did), the key of it is attached as
+ *  "key" and cv->selected_item points to the combo.
+ */
 static void
-cb_combo_select (GtkWidget *label, GimvCommentView *cv)
+combo_select_key (GimvCommentView *cv, const gchar *key)
 {
    GtkWidget *clist;
-   gchar *key = gtk_object_get_data (GTK_OBJECT (label), "key");
 
-   g_return_if_fail (label && GTK_IS_LIST_ITEM (label));
    g_return_if_fail (cv);
    g_return_if_fail (key);
 
-   cv->selected_item = label;
+   g_object_set_data_full (G_OBJECT (cv->key_combo), "key",
+                           g_strdup (key), (GDestroyNotify) g_free);
+   cv->selected_item = cv->key_combo;
    clist = cv->comment_clist;
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (clist);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -430,41 +340,66 @@ cb_combo_select (GtkWidget *label, GimvCommentView *cv)
 
          if (entry->key && !strcmp (key, entry->key)) {
             GtkTreePath *treepath = gtk_tree_model_get_path (model, &iter);
+            GtkTreePath *cursor = NULL;
 
             if (!treepath) continue;
-            gtk_tree_view_set_cursor (treeview, treepath, NULL, FALSE);
+            gtk_tree_view_get_cursor (treeview, &cursor, NULL);
+            if (!cursor || gtk_tree_path_compare (cursor, treepath))
+               gtk_tree_view_set_cursor (treeview, treepath, NULL, FALSE);
+            if (cursor)
+               gtk_tree_path_free (cursor);
             gtk_tree_path_free (treepath);
             break;
          }
       }
    }
-#else /* ENABLE_TREEVIEW */
-   {
-      gint row;
+}
 
-      for (row = 0; row < GTK_CLIST (clist)->rows; row++) {
-         GimvCommentDataEntry *entry;
 
-         entry = gtk_clist_get_row_data (GTK_CLIST (clist), row);
-         if (!entry) continue;
+static void
+cb_combo_changed (GtkComboBox *combo, GimvCommentView *cv)
+{
+   GPtrArray *keys, *names;
+   gint idx;
 
-         if (entry->key && !strcmp (key, entry->key)) {
-            gtk_clist_select_row (GTK_CLIST (clist), row, 0);
-            /* gtk_clist_moveto (GTK_CLIST (clist), row, 0, 0.0, 0.0); */
+   g_return_if_fail (cv);
+
+   keys  = g_object_get_data (G_OBJECT (combo), "keys");
+   names = g_object_get_data (G_OBJECT (combo), "names");
+   if (!keys || !names) {
+      cv->selected_item = NULL;
+      return;
+   }
+
+   idx = gtk_combo_box_get_active (combo);
+   if (idx < 0) {
+      /* find the item which matches with the entry text */
+      const gchar *text;
+      guint i;
+
+      text = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (combo))));
+      for (i = 0; text && i < names->len; i++) {
+         if (!strcmp (text, g_ptr_array_index (names, i))) {
+            idx = i;
             break;
          }
       }
    }
-#endif /* ENABLE_TREEVIEW */
+
+   if (idx >= 0 && (guint) idx < keys->len)
+      combo_select_key (cv, g_ptr_array_index (keys, idx));
+   else
+      cv->selected_item = NULL;
 }
 
-static void
-cb_combo_deselect (GtkWidget *label, GimvCommentView *cv)
-{
-   g_return_if_fail (label && GTK_IS_LIST_ITEM (label));
-   g_return_if_fail (cv);
 
-   cv->selected_item = NULL;
+static void
+cb_combo_entry_changed (GtkEditable *entry, GimvCommentView *cv)
+{
+   g_return_if_fail (cv);
+   if (!cv->key_combo) return;
+
+   cb_combo_changed (GTK_COMBO_BOX (cv->key_combo), cv);
 }
 
 
@@ -533,23 +468,19 @@ create_data_page (GimvCommentView *cv)
    label = gtk_label_new (_("Data"));
    gtk_widget_set_name (label, "TabLabel");
    gtk_widget_show (label);
-   cv->data_page = vbox = gtk_vbox_new (FALSE, 0);
+   cv->data_page = vbox = gimv_vbox_new (FALSE, 0);
    gtk_widget_show (vbox);
 
    gtk_notebook_append_page (GTK_NOTEBOOK(cv->notebook),
                              vbox, label);
 
    /* scrolled window & clist */
-   scrolledwin = gtk_scrolled_window_new (NULL, NULL);
+   scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwin),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-   gtk_box_pack_start(GTK_BOX(vbox), scrolledwin, TRUE, TRUE, 0);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
+   gimv_box_pack_start(GTK_BOX(vbox), scrolledwin, TRUE, TRUE, 0);
 
-#ifdef ENABLE_TREEVIEW
 {
    GtkListStore *store;
    GtkTreeViewColumn *col;
@@ -560,9 +491,10 @@ create_data_page (GimvCommentView *cv)
                                G_TYPE_STRING,
                                G_TYPE_POINTER);
    clist =  gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+   gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
    cv->comment_clist = clist;
 
-   gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (clist), TRUE);
+   /* GTK4: gtk_tree_view_set_rules_hint () removed */
 
    /* set column for key */
    col = gtk_tree_view_column_new ();
@@ -582,70 +514,54 @@ create_data_page (GimvCommentView *cv)
    gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_VALUE);
    gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
 
-   gtk_signal_connect (GTK_OBJECT (clist),"cursor-changed",
-                       GTK_SIGNAL_FUNC (cb_tree_view_cursor_changed), cv);
+   g_signal_connect (G_OBJECT (clist),"cursor-changed",
+                       G_CALLBACK (cb_tree_view_cursor_changed), cv);
 
-   gtk_container_add (GTK_CONTAINER (scrolledwin), clist);
+   gimv_container_add (GTK_WIDGET (scrolledwin), clist);
 }
-#else /* ENABLE_TREEVIEW */
-   clist = cv->comment_clist =  gtk_clist_new_with_titles (2, titles);
-   gtk_clist_set_selection_mode (GTK_CLIST (clist), GTK_SELECTION_BROWSE);
-   /* gtk_clist_set_column_width (GTK_CLIST(clist), 0, 80); */
-   gtk_clist_set_column_auto_resize (GTK_CLIST(clist), 0, TRUE);
-   gtk_clist_set_column_auto_resize (GTK_CLIST(clist), 1, TRUE);
-   gtk_clist_set_reorderable(GTK_CLIST(clist), TRUE);
-   gtk_clist_set_use_drag_icons (GTK_CLIST(clist), FALSE);
-   gtk_container_add (GTK_CONTAINER (scrolledwin), clist);
-
-   gtk_signal_connect (GTK_OBJECT (clist),"select_row",
-                       GTK_SIGNAL_FUNC (cb_clist_select_row), cv);
-   gtk_signal_connect (GTK_OBJECT (clist),"unselect_row",
-                       GTK_SIGNAL_FUNC (cb_clist_unselect_row), cv);
-   gtk_signal_connect (GTK_OBJECT (clist),"row-move",
-                       GTK_SIGNAL_FUNC (cb_clist_row_move), cv);
-#endif /* ENABLE_TREEVIEW */
-   gtk_signal_connect (GTK_OBJECT (clist), "key_press_event",
-                       GTK_SIGNAL_FUNC (cb_data_list_key_press), cv);
+   gimv_event_connect (GTK_WIDGET (clist), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_data_list_key_press), cv);
    /* entry area */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
-   vbox1 = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
-   hbox1 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox1), hbox1, TRUE, TRUE, 0);
+   vbox1 = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
+   hbox1 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox1), hbox1, TRUE, TRUE, 0);
    label = gtk_label_new (_("Key: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
 
-   cv->key_combo = combo = gtk_combo_new ();
-   gtk_box_pack_start (GTK_BOX (vbox1), combo, TRUE, TRUE, 0);
-   gtk_entry_set_editable (GTK_ENTRY (GTK_COMBO (cv->key_combo)->entry), FALSE);
+   cv->key_combo = combo = gimv_combo_new ();
+   gimv_box_pack_start (GTK_BOX (vbox1), combo, TRUE, TRUE, 0);
+   gtk_editable_set_editable (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), FALSE);
+   g_signal_connect (G_OBJECT (combo), "changed",
+                     G_CALLBACK (cb_combo_changed), cv);
+   g_signal_connect (G_OBJECT (gimv_combo_get_entry (combo)), "changed",
+                     G_CALLBACK (cb_combo_entry_changed), cv);
 
-   vbox1 = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
-   hbox1 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox1), hbox1, TRUE, TRUE, 0);
+   vbox1 = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
+   hbox1 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox1), hbox1, TRUE, TRUE, 0);
    label = gtk_label_new (_("Value: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
    cv->value_entry = entry = gtk_entry_new ();
-   gtk_box_pack_start (GTK_BOX (vbox1), entry, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (entry), "changed",
-                       GTK_SIGNAL_FUNC (cb_entry_changed), cv);
-   gtk_signal_connect (GTK_OBJECT (entry), "activate",
-                       GTK_SIGNAL_FUNC (cb_entry_enter), cv);
-   gtk_signal_connect (GTK_OBJECT (entry), "key_press_event",
-                       GTK_SIGNAL_FUNC (cb_entry_key_press), cv);
+   gimv_box_pack_start (GTK_BOX (vbox1), entry, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (entry), "changed",
+                       G_CALLBACK (cb_entry_changed), cv);
+   g_signal_connect (G_OBJECT (entry), "activate",
+                       G_CALLBACK (cb_entry_enter), cv);
+   gimv_event_connect (GTK_WIDGET (entry), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_entry_key_press), cv);
 
-   gtk_widget_show_all (cv->data_page);
+   gimv_widget_show_all (cv->data_page);
 
    return vbox;
 }
 
 
-#ifdef USE_GTK2
 static void
 cb_text_buffer_changed (GtkTextBuffer *buffer, GimvCommentView *cv)
 {
@@ -653,15 +569,6 @@ cb_text_buffer_changed (GtkTextBuffer *buffer, GimvCommentView *cv)
       cv->changed = TRUE;
    }
 }
-#else /* USE_GTK2 */
-static void
-cb_text_changed (GtkEditable *editable, GimvCommentView *cv)
-{
-   if (cv->comment) {
-      cv->changed = TRUE;
-   }
-}
-#endif /* USE_GTK2 */
 
 
 static GtkWidget *
@@ -675,16 +582,12 @@ create_note_page (GimvCommentView *cv)
    gtk_widget_set_name (label, "TabLabel");
    gtk_widget_show (label);
 
-   cv->note_page = scrolledwin = gtk_scrolled_window_new (NULL, NULL);
+   cv->note_page = scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwin),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
    gtk_widget_show (scrolledwin);
 
-#ifdef USE_GTK2
    {
       GtkTextBuffer *textbuf;
 
@@ -693,16 +596,7 @@ create_note_page (GimvCommentView *cv)
       g_signal_connect (G_OBJECT (textbuf), "changed",
                         G_CALLBACK (cb_text_buffer_changed), cv);
    }
-#else /* USE_GTK2 */
-   cv->note_box = gtk_text_new (gtk_scrolled_window_get_hadjustment
-                                (GTK_SCROLLED_WINDOW (scrolledwin)),
-                                gtk_scrolled_window_get_vadjustment
-                                (GTK_SCROLLED_WINDOW (scrolledwin)));
-   gtk_text_set_editable (GTK_TEXT (cv->note_box), TRUE);
-   gtk_signal_connect (GTK_OBJECT (cv->note_box), "changed",
-                       GTK_SIGNAL_FUNC (cb_text_changed), cv);
-#endif /* USE_GTK2 */
-   gtk_container_add (GTK_CONTAINER (scrolledwin), cv->note_box);
+   gimv_container_add (GTK_WIDGET (scrolledwin), cv->note_box);
    gtk_widget_show (cv->note_box);
 
    gtk_notebook_append_page (GTK_NOTEBOOK(cv->notebook),
@@ -737,17 +631,16 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
 
    g_return_if_fail (cv);
 
-   key_str   = gtk_entry_get_text (GTK_ENTRY (GTK_COMBO (cv->key_combo)->entry));
-   value_str = gtk_entry_get_text (GTK_ENTRY (cv->value_entry));
+   key_str   = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))));
+   value_str = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
 
-   if (!cv->comment || !GTK_WIDGET_VISIBLE (cv->button_area)) {
+   if (!cv->comment || !gtk_widget_get_visible (GTK_WIDGET (cv->button_area))) {
       gimv_comment_view_set_sensitive_all (cv, FALSE);
       return;
    } else {
       gimv_comment_view_set_sensitive_all (cv, TRUE);
    }
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (cv->comment_clist);
       GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
@@ -756,19 +649,6 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
 
       selected = gtk_tree_selection_get_selected (selection, &model, &iter);
    }
-#else /* ENABLE_TREEVIEW */
-   if (cv->selected_row >= 0) selected = TRUE;
-#endif /* ENABLE_TREEVIEW */
-}
-
-
-static void
-entry_list_remove_item (GtkWidget *widget, GtkContainer *container)
-{
-   g_return_if_fail (widget && GTK_IS_WIDGET (widget));
-   g_return_if_fail (container && GTK_IS_CONTAINER (container));
-
-   gtk_container_remove (container, widget);
 }
 
 
@@ -776,20 +656,33 @@ static void
 gimv_comment_view_set_combo_list (GimvCommentView *cv)
 {
    GList *list;
-   GtkWidget *first_label = NULL;
+   GPtrArray *keys, *names;
+   GtkComboBox *combo;
 
    g_return_if_fail (cv);
    g_return_if_fail (cv->key_combo);
 
-   gtk_container_foreach (GTK_CONTAINER (GTK_COMBO (cv->key_combo)->list),
-                          (GtkCallback) (entry_list_remove_item),
-                          GTK_COMBO (cv->key_combo)->list);
+   combo = GTK_COMBO_BOX (cv->key_combo);
+
+   g_signal_handlers_block_by_func (G_OBJECT (combo),
+                                    G_CALLBACK (cb_combo_changed), cv);
+   g_signal_handlers_block_by_func (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))),
+                                    G_CALLBACK (cb_combo_entry_changed), cv);
+
+   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (combo));
+   cv->selected_item = NULL;
+
+   keys  = g_ptr_array_new_with_free_func (g_free);
+   names = g_ptr_array_new_with_free_func (g_free);
+   g_object_set_data_full (G_OBJECT (combo), "keys", keys,
+                           (GDestroyNotify) g_ptr_array_unref);
+   g_object_set_data_full (G_OBJECT (combo), "names", names,
+                           (GDestroyNotify) g_ptr_array_unref);
 
    list = gimv_comment_get_data_entry_list ();
    while (list) {
       GimvCommentDataEntry *data_entry = list->data;
       GimvImageInfo *info;
-      GtkWidget *label;
 
       list = g_list_next (list);
 
@@ -808,25 +701,20 @@ gimv_comment_view_set_combo_list (GimvCommentView *cv)
          continue;
       }
 
-      label = gtk_list_item_new_with_label (_(data_entry->display_name));
-
-      gtk_object_set_data_full (GTK_OBJECT (label), "key",
-                                g_strdup (data_entry->key),
-                                (GtkDestroyNotify) g_free);
-      gtk_container_add (GTK_CONTAINER (GTK_COMBO (cv->key_combo)->list),
-                         label);
-      gtk_widget_show (label);
-
-      gtk_signal_connect (GTK_OBJECT(label), "select",
-                          GTK_SIGNAL_FUNC (cb_combo_select), cv);
-      gtk_signal_connect (GTK_OBJECT(label), "deselect",
-                          GTK_SIGNAL_FUNC (cb_combo_deselect), cv);
-
-      if (!first_label)
-         first_label = label;
+      g_ptr_array_add (keys,  g_strdup (data_entry->key));
+      g_ptr_array_add (names, g_strdup (_(data_entry->display_name)));
+      gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo),
+                                      _(data_entry->display_name));
    }
 
-   gtk_list_item_select (GTK_LIST_ITEM (first_label));
+   g_signal_handlers_unblock_by_func (G_OBJECT (combo),
+                                      G_CALLBACK (cb_combo_changed), cv);
+   g_signal_handlers_unblock_by_func (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))),
+                                      G_CALLBACK (cb_combo_entry_changed), cv);
+
+   /* select first item */
+   if (keys->len > 0)
+      gtk_combo_box_set_active (combo, 0);
 }
 
 
@@ -840,18 +728,17 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
    g_return_if_fail (cv);
    if (!cv->selected_item) return;
 
-   key = gtk_object_get_data (GTK_OBJECT (cv->selected_item), "key");
+   key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
    g_return_if_fail (key);
 
-   dname = gtk_entry_get_text (GTK_ENTRY (GTK_COMBO (cv->key_combo)->entry));
-   value = gtk_entry_get_text (GTK_ENTRY (cv->value_entry));
+   dname = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))));
+   value = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
    g_return_if_fail (dname && *dname);
 
    entry = gimv_comment_append_data (cv->comment, key, value);
 
    g_return_if_fail (entry);
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (cv->comment_clist);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -879,23 +766,6 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
                           COLUMN_RAW_ENTRY, entry,
                           COLUMN_TERMINATOR);
    }
-#else /* ENABLE_TREEVIEW */
-   {
-      GtkCList *clist = GTK_CLIST (cv->comment_clist);
-      gint row = gtk_clist_find_row_from_data (clist, entry);
-
-      text[0] = entry->display_name;
-      text[1] = entry->value;
-      if (!entry->userdef) text[0] = _(text[0]);
-
-      if (row < 0) {
-         row = gtk_clist_append (clist, text);
-         gtk_clist_set_row_data (clist, row, entry);
-      } else {
-         gtk_clist_set_text (clist, row, 1, text[1]);
-      }
-   }
-#endif /* ENABLE_TREEVIEW */
 
    cv->changed = TRUE;
 
@@ -931,7 +801,6 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
          text[0] = _(entry->display_name);
          text[1] = entry->value;
 
-#ifdef ENABLE_TREEVIEW
          {
             GtkTreeModel *model;
             GtkTreeIter iter;
@@ -943,36 +812,13 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
                                 COLUMN_RAW_ENTRY, entry,
                                 COLUMN_TERMINATOR);
          }
-#else /* ENABLE_TREEVIEW */
-         {
-            gint row;
-            row = gtk_clist_append (GTK_CLIST (cv->comment_clist), text);
-            gtk_clist_set_row_data (GTK_CLIST (cv->comment_clist),
-                                    row, entry);
-         }
-#endif /* ENABLE_TREEVIEW */
       }
 
       if (cv->comment->note && *cv->comment->note) {
-#ifdef USE_GTK2
          GtkTextBuffer *buffer;
 
          buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (cv->note_box));
          gtk_text_buffer_set_text (buffer, cv->comment->note, -1);
-#else /* USE_GTK2 */
-         GdkFont *font;
-
-         if (conf.textentry_font && *conf.textentry_font)
-            font = gdk_fontset_load (conf.textentry_font);
-         else
-            font = NULL;
-
-         gtk_text_insert (GTK_TEXT (cv->note_box), font, NULL, NULL,
-                          cv->comment->note, -1);
-
-         if (font)
-            gdk_font_unref (font);
-#endif /* USE_GTK2 */
       }
    }
 
@@ -992,38 +838,20 @@ gimv_comment_view_clear (GimvCommentView *cv)
 {
    g_return_if_fail (cv);
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeModel *model
          = gtk_tree_view_get_model (GTK_TREE_VIEW (cv->comment_clist));
       gtk_list_store_clear (GTK_LIST_STORE (model));
    }
-#else /* ENABLE_TREEVIEW */
-   {
-      gint i;
-      for (i = GTK_CLIST (cv->comment_clist)->rows - 1; i >= 0; i--) {
-         gtk_clist_remove (GTK_CLIST (cv->comment_clist), i);
-      }
-   }
-#endif /* ENABLE_TREEVIEW */
 
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (cv->key_combo)->entry), "\0");
-   gtk_entry_set_text (GTK_ENTRY (cv->value_entry), "\0");
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), "\0");
+   gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
-#ifdef USE_GTK2
    {
       GtkTextBuffer *buffer;
       buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (cv->note_box));
       gtk_text_buffer_set_text (buffer, "\0", -1);
    }
-#else /* USE_GTK2 */
-   {
-      GtkText *text;
-      text = GTK_TEXT (cv->note_box);
-      gtk_text_set_point (text, 0);
-      gtk_text_forward_delete (text, gtk_text_get_length(text));
-   }
-#endif /* USE_GTK2 */
 
    cv->changed = FALSE;
 
@@ -1044,8 +872,8 @@ gimv_comment_view_change_file (GimvCommentView *cv, GimvImageInfo *info)
    }
 
    cv->comment = gimv_comment_get_from_image_info (info);
-   gtk_signal_connect (GTK_OBJECT (cv->comment), "file_saved",
-                       GTK_SIGNAL_FUNC (cb_file_saved), cv);
+   g_signal_connect (G_OBJECT (cv->comment), "file_saved",
+                       G_CALLBACK (cb_file_saved), cv);
 
    gimv_comment_view_reset_data (cv);
    gimv_comment_view_set_combo_list (cv);
@@ -1060,78 +888,61 @@ gimv_comment_view_create (void)
    GimvCommentView *cv;
    GtkWidget *hbox, *hbox1;
    GtkWidget *button;
-   guint key;
 
    cv = gimv_comment_view_new ();
 
-   cv->accel_group = gtk_accel_group_new ();
+   cv->accel_group = NULL; /* GTK4: mnemonics are used instead */
    cv->iv = NULL;
    cv->next_button = NULL;
    cv->prev_button = NULL;
    cv->changed = FALSE;
 
-   cv->main_vbox = gtk_vbox_new (FALSE, 0);
+   cv->main_vbox = gimv_vbox_new (FALSE, 0);
    gtk_widget_set_name (cv->main_vbox, "GimvCommentView");
-   gtk_signal_connect (GTK_OBJECT (cv->main_vbox), "destroy",
-                       GTK_SIGNAL_FUNC (cb_destroyed), cv);
+   g_signal_connect (G_OBJECT (cv->main_vbox), "destroy",
+                       G_CALLBACK (cb_destroyed), cv);
 
    cv->notebook = gtk_notebook_new ();
-   gtk_container_set_border_width (GTK_CONTAINER (cv->notebook), 1);
+   gimv_container_set_border_width (GTK_WIDGET (cv->notebook), 1);
    gtk_notebook_set_scrollable (GTK_NOTEBOOK (cv->notebook), TRUE);
-   gtk_box_pack_start(GTK_BOX(cv->main_vbox), cv->notebook, TRUE, TRUE, 0);
+   gimv_box_pack_start(GTK_BOX(cv->main_vbox), cv->notebook, TRUE, TRUE, 0);
    gtk_widget_show (cv->notebook);
 
-   gtk_signal_connect (GTK_OBJECT(cv->notebook), "switch-page",
-                       GTK_SIGNAL_FUNC(cb_switch_page), cv);
+   g_signal_connect (G_OBJECT (cv->notebook), "switch-page",
+                       G_CALLBACK(cb_switch_page), cv);
+   g_object_add_weak_pointer (G_OBJECT (cv->notebook), (gpointer *) &cv->notebook);
 
    create_data_page (cv);
    create_note_page (cv);
 
    /* button area */
-   hbox = cv->button_area = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start(GTK_BOX(cv->main_vbox), cv->button_area, FALSE, FALSE, 2);
+   hbox = cv->button_area = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start(GTK_BOX(cv->main_vbox), cv->button_area, FALSE, FALSE, 2);
    gtk_widget_show (cv->main_vbox);
 
-   hbox1 = cv->inner_button_area = gtk_hbox_new (TRUE, 0);
-   gtk_box_pack_end (GTK_BOX (hbox), hbox1, FALSE, TRUE, 0);
-#ifdef USE_GTK2
+   hbox1 = cv->inner_button_area = gimv_hbox_new (TRUE, 0);
+   gimv_box_pack_end (GTK_BOX (hbox), hbox1, FALSE, TRUE, 0);
    gtk_box_set_homogeneous (GTK_BOX(hbox1), FALSE);
-#endif /* USE_GTK2 */
 
-   button = gtk_button_new_with_label (_("_Save"));
+   button = gtk_button_new_with_mnemonic (_("_Save"));
    cv->save_button = button;
-   key = gtk_label_parse_uline(GTK_LABEL(GTK_BIN(button)->child),
-                               _("_Save"));
-   gtk_widget_add_accelerator(button, "clicked",
-                              cv->accel_group, key, GDK_MOD1_MASK, 0);
-   gtk_signal_connect (GTK_OBJECT (button),"clicked",
-                       GTK_SIGNAL_FUNC (cb_save_button_pressed), cv);
-   gtk_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
-   /* GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT); */
+   g_signal_connect (G_OBJECT (button),"clicked",
+                       G_CALLBACK (cb_save_button_pressed), cv);
+   gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
 
-   button = gtk_button_new_with_label (_("_Reset"));
+   button = gtk_button_new_with_mnemonic (_("_Reset"));
    cv->reset_button = button;
-   key = gtk_label_parse_uline(GTK_LABEL(GTK_BIN(button)->child),
-                               _("_Reset"));
-   gtk_widget_add_accelerator(button, "clicked",
-                              cv->accel_group, key, GDK_MOD1_MASK, 0);
-   gtk_signal_connect (GTK_OBJECT (button),"clicked",
-                       GTK_SIGNAL_FUNC (cb_reset_button_pressed), cv);
-   gtk_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
-   /* GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT); */
+   g_signal_connect (G_OBJECT (button),"clicked",
+                       G_CALLBACK (cb_reset_button_pressed), cv);
+   gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
 
-   button = gtk_button_new_with_label (_("_Delete"));
+   button = gtk_button_new_with_mnemonic (_("_Delete"));
    cv->delete_button = button;
-   key = gtk_label_parse_uline(GTK_LABEL(GTK_BIN(button)->child),
-                               _("_Delete"));
-   gtk_widget_add_accelerator(button, "clicked",
-                              cv->accel_group, key, GDK_MOD1_MASK, 0);
-   gtk_signal_connect (GTK_OBJECT (button),"clicked",
-                       GTK_SIGNAL_FUNC (cb_del_button_pressed), cv);
-   gtk_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
-   /* GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT); */
+   g_signal_connect (G_OBJECT (button),"clicked",
+                       G_CALLBACK (cb_del_button_pressed), cv);
+   gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
 
-   gtk_widget_show_all (cv->main_vbox);
+   gimv_widget_show_all (cv->main_vbox);
 
    gimv_comment_view_set_sensitive (cv);
 
@@ -1168,23 +979,44 @@ gimv_comment_view_create_window (GimvImageInfo *info)
    cv = gimv_comment_view_create ();
    if (!cv) return NULL;
 
-   gtk_container_set_border_width (GTK_CONTAINER (cv->main_vbox), 5);
+   gimv_container_set_border_width (GTK_WIDGET (cv->main_vbox), 5);
 
-   cv->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+   cv->window = gtk_window_new ();
    g_snprintf (buf, BUF_SIZE, _("Edit Comment (%s)"),
                gimv_image_info_get_path (info));
    gtk_window_set_title (GTK_WINDOW (cv->window), buf); 
    gtk_window_set_default_size (GTK_WINDOW (cv->window), 400, 350);
-   gtk_window_set_position (GTK_WINDOW (cv->window), GTK_WIN_POS_MOUSE);
-   if (cv->accel_group)
-      gtk_window_add_accel_group (GTK_WINDOW (cv->window), cv->accel_group);
-   gtk_container_add (GTK_CONTAINER (cv->window), cv->main_vbox);
+   /* GTK4: gtk_window_set_position (GTK_WIN_POS_MOUSE) is not available */
+   gimv_container_add (GTK_WIDGET (cv->window), cv->main_vbox);
 
-   gtk_widget_show_all (cv->window);
+   /* GTK4 port: a Close button and Esc for the stand-alone window (the
+      Save / Reset / Delete row is hidden on some pages, so it has its own
+      row) */
+   {
+      GtkWidget *hbox, *button;
+      GtkEventController *keys;
+      GtkShortcut *shortcut;
+
+      hbox = gimv_hbox_new (FALSE, 0);
+      gimv_box_pack_end (GTK_BOX (cv->main_vbox), hbox, FALSE, FALSE, 2);
+      button = gtk_button_new_with_mnemonic (_("_Close"));
+      g_signal_connect_swapped (button, "clicked",
+                                G_CALLBACK (gtk_window_destroy), cv->window);
+      gimv_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 2);
+
+      keys = gtk_shortcut_controller_new ();
+      shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (GDK_KEY_Escape, 0),
+                                   gtk_named_action_new ("window.close"));
+      gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (keys),
+                                            shortcut);
+      gtk_widget_add_controller (cv->window, keys);
+   }
+
+   gimv_widget_show_all (cv->window);
 
    gimv_comment_view_change_file (cv, info);
 
-   gimv_icon_stock_set_window_icon (cv->window->window, "gimv_icon");
+   gimv_icon_stock_set_window_icon (cv->window, "gimv_icon");
 
    return cv;
 }
@@ -1199,37 +1031,28 @@ gimv_comment_view_set_image_view (GimvCommentView *cv, GimvImageView *iv)
    /* add next and prev button */
    if (iv) {
       GtkWidget *hbox, *sep, *button;
-      guint key;
 
       /* cv->iv = iv; */
 
-      hbox = gtk_hbox_new (TRUE, 0);
-      gtk_box_pack_start (GTK_BOX (cv->button_area), hbox, TRUE, TRUE, 0);
+      hbox = gimv_hbox_new (TRUE, 0);
+      gimv_box_pack_start (GTK_BOX (cv->button_area), hbox, TRUE, TRUE, 0);
 
-      sep = gtk_vseparator_new ();
-      gtk_box_pack_start (GTK_BOX (cv->button_area),
+      sep = gtk_separator_new (GTK_ORIENTATION_VERTICAL);
+      gimv_box_pack_start (GTK_BOX (cv->button_area),
                           sep, TRUE, TRUE, 2);
 
-      button = gtk_button_new_with_label (_("_Prev"));
+      button = gtk_button_new_with_mnemonic (_("_Prev"));
       cv->prev_button = button;
-      key = gtk_label_parse_uline(GTK_LABEL(GTK_BIN(button)->child),
-                                  _("_Prev"));
-      gtk_widget_add_accelerator(button, "clicked",
-                                 cv->accel_group, key, GDK_MOD1_MASK, 0);
-      gtk_signal_connect (GTK_OBJECT (button),"clicked",
-                          GTK_SIGNAL_FUNC (cb_prev_button_pressed), cv);
-      gtk_box_pack_start (GTK_BOX (hbox),
+      g_signal_connect (G_OBJECT (button),"clicked",
+                          G_CALLBACK (cb_prev_button_pressed), cv);
+      gimv_box_pack_start (GTK_BOX (hbox),
                           button, FALSE, TRUE, 2);
 
-      button = gtk_button_new_with_label (_("_Next"));
+      button = gtk_button_new_with_mnemonic (_("_Next"));
       cv->next_button = button;
-      key = gtk_label_parse_uline(GTK_LABEL(GTK_BIN(button)->child),
-                                  _("_Next"));
-      gtk_widget_add_accelerator(button, "clicked",
-                                 cv->accel_group, key, GDK_MOD1_MASK, 0);
-      gtk_signal_connect (GTK_OBJECT (button),"clicked",
-                          GTK_SIGNAL_FUNC (cb_next_button_pressed), cv);
-      gtk_box_pack_start (GTK_BOX (hbox),
+      g_signal_connect (G_OBJECT (button),"clicked",
+                          G_CALLBACK (cb_next_button_pressed), cv);
+      gimv_box_pack_start (GTK_BOX (hbox),
                           button, FALSE, TRUE, 2);
    }
 }

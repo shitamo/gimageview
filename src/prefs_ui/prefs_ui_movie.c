@@ -25,6 +25,7 @@
 
 #include <string.h>
 #include "gimv_image_view.h"
+#include "gtkutils.h"
 #include "menu.h"
 #include "prefs.h"
 
@@ -40,7 +41,7 @@ cb_movie_view_mode (GtkWidget *widget, gpointer data)
 {
    gint idx;
 
-   idx = GPOINTER_TO_INT (gtk_object_get_data (GTK_OBJECT (widget), "num"));
+   idx = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (widget), "num"));
    g_return_if_fail (idx >=0 && idx < movie_view_modes_len);
 
    if (config_changed->movie_default_view_mode != config_prechanged->movie_default_view_mode)
@@ -56,7 +57,7 @@ prefs_movie_page (void)
    GtkWidget *label, *option_menu;
    gint i, defval = 0;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
+   main_vbox = gimv_vbox_new (FALSE, 0);
 
    /* create label array */
    if (!movie_view_modes) {
@@ -77,19 +78,19 @@ prefs_movie_page (void)
       }
    }
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER (hbox), 5);
-   gtk_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_show (hbox);
 
    if (movie_view_modes_len > 1) {
-      vbox = gtk_vbox_new (FALSE, 0);
-      gtk_container_set_border_width(GTK_CONTAINER (vbox), 0);
-      gtk_box_pack_start (GTK_BOX (hbox), vbox, FALSE, FALSE, 0);
+      vbox = gimv_vbox_new (FALSE, 0);
+      gimv_container_set_border_width (GTK_WIDGET (vbox), 0);
+      gimv_box_pack_start (GTK_BOX (hbox), vbox, FALSE, FALSE, 0);
       gtk_widget_show (vbox);
 
       label = gtk_label_new (_("Default view mode for movie and audio: "));
-      gtk_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 2);
+      gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 2);
       gtk_widget_show (label);
 
       for (i = 0; conf.movie_default_view_mode && movie_view_modes[i]; i++) {
@@ -101,14 +102,64 @@ prefs_movie_page (void)
 
       option_menu = create_option_menu (movie_view_modes, defval,
                                         cb_movie_view_mode, NULL);
-      gtk_box_pack_start (GTK_BOX (vbox), option_menu, FALSE, FALSE, 2);
+      gimv_box_pack_start (GTK_BOX (vbox), option_menu, FALSE, FALSE, 2);
       gtk_widget_show (option_menu);
 
    } else {
       label = gtk_label_new (_("No movie plugins are available."));
-      gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
+      gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
       gtk_widget_show (label);
    }
 
+   /* continuous play */
+   {
+      GtkWidget *toggle;
+
+      toggle = gtkutil_create_check_button (_("Play the next file when a movie or audio file ends (continuous play)"),
+                                            conf.imgview_movie_continuance,
+                                            gtkutil_get_data_from_toggle_cb,
+                                            &config_changed->imgview_movie_continuance);
+      gimv_container_set_border_width (GTK_WIDGET (toggle), 5);
+      gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
+
+      /* GTK2 versions: the movie player took the clicks itself */
+      toggle = gtkutil_create_check_button (_("Ignore mouse actions for next/previous image, zoom, rotation and scrolling while a movie or audio file is playing"),
+                                            conf.imgview_movie_lock_mouse,
+                                            gtkutil_get_data_from_toggle_cb,
+                                            &config_changed->imgview_movie_lock_mouse);
+      gimv_container_set_border_width (GTK_WIDGET (toggle), 5);
+      gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
+   }
+
    return main_vbox;
+}
+
+
+/* the open views follow the setting (their Movie > Continuous Play too) */
+gboolean
+prefs_movie_apply (GimvPrefsWinAction action)
+{
+   Config *src;
+   GList *node;
+
+   switch (action) {
+   case GIMV_PREFS_WIN_ACTION_OK:
+   case GIMV_PREFS_WIN_ACTION_APPLY:
+      src = config_changed;
+      break;
+   default:
+      src = config_prechanged;
+      break;
+   }
+
+   /* not changed here: keep what each view's menu says */
+   if (config_changed->imgview_movie_continuance
+       == config_prechanged->imgview_movie_continuance)
+      return FALSE;
+
+   for (node = gimv_image_view_get_list (); node; node = g_list_next (node))
+      gimv_image_view_set_continuance (GIMV_IMAGE_VIEW (node->data),
+                                       src->imgview_movie_continuance);
+
+   return FALSE;
 }

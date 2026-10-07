@@ -1,7 +1,9 @@
 [Desktop Entry]
-_Name=GImageView
-_Comment=Image Viewer
-Exec=gimv -wd
-Terminal=0
+Name=GImageView
+Comment=Image Viewer
+Exec=gimv %F
+Terminal=false
 Type=Application
-Icon=gimv.png
+Icon=gimv
+Categories=Graphics;Viewer;GTK;
+MimeType=image/png;image/jpeg;image/gif;image/bmp;image/x-tga;image/x-pcx;image/x-xcf;image/svg+xml;image/tiff;

@@ -27,6 +27,7 @@
 #include "gimv_prefs_win.h"
 
 GtkWidget *prefs_common_page        (void);
+gboolean   prefs_common_apply       (GimvPrefsWinAction action);
 GtkWidget *prefs_filter_page        (void);
 GtkWidget *prefs_charset_page       (void);
 gboolean   prefs_filter_apply       (GimvPrefsWinAction action);

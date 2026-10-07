@@ -32,52 +32,11 @@
 #  include "config.h"
 #endif
 
-#include <gdk/gdk.h>
+#include <gtk/gtk.h>
 #include "gimv_paned.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-
-#ifndef USE_NORMAL_PANED
-
-#define GIMV_HPANED(obj)          GTK_CHECK_CAST (obj, gimv_hpaned_get_type (), GimvHPaned)
-#define GIMV_HPANED_CLASS(klass)  GTK_CHECK_CLASS_CAST (klass, gimv_hpaned_get_type (), GimvHPanedClass)
-#define GIMV_IS_HPANED(obj)       GTK_CHECK_TYPE (obj, gimv_hpaned_get_type ())
-
-
-typedef struct _GimvHPaned       GimvHPaned;
-typedef struct _GimvHPanedClass  GimvHPanedClass;
-
-struct _GimvHPaned
-{
-   GimvPaned paned;
-};
-
-struct _GimvHPanedClass
-{
-   GimvPanedClass parent_class;
-};
-
-
-GtkType    gimv_hpaned_get_type (void);
-GtkWidget* gimv_hpaned_new      (void);
-
-#else /* USE_NORMAL_PANED */
-
-#include <gtk/gtkhpaned.h>
-
-#define GimvHPaned GtkHPaned
-#define gimv_hpaned_new() gtk_hpaned_new()
-
-#endif /* USE_NORMAL_PANED */
-
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
+/* GTK4: plain GtkPaned (see gimv_paned.h) */
+#define GimvHPaned GtkPaned
+#define gimv_hpaned_new() gtk_paned_new (GTK_ORIENTATION_HORIZONTAL)
 
 #endif /* __GIMV_HPANED_H__ */

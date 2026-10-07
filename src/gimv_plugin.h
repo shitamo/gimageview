@@ -29,16 +29,12 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <gmodule.h>
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 
 #include "gimv_mime_types.h"
 #include "gimv_prefs_win.h"
 
-#ifdef USE_GTK2
 #  define GIMV_PLUGIN_IF_VERSION    20004
-#else
-#  define GIMV_PLUGIN_IF_VERSION    4
-#endif
 
 #define GIMV_PLUGIN_IO_STREAMER       "IOStreamer"
 #define GIMV_PLUGIN_IMAGE_LOADER      "ImageLoader"
@@ -127,6 +123,8 @@ const gchar *gimv_plugin_get_name           (GModule *module);
 const gchar *gimv_plugin_get_version_string (GModule *module);
 const gchar *gimv_plugin_get_author         (GModule *module);
 const gchar *gimv_plugin_get_module_name    (GModule *module);
+const gchar *gimv_plugin_get_description    (GModule *module);
+gchar       *gimv_plugin_get_extensions     (GModule *module);
 GList       *gimv_plugin_get_list           (const gchar *type);
 
 /* plugin preference */
@@ -206,8 +204,6 @@ prefix##_prefs_get_value (const gchar *key, gpointer *value)                    
                                                                                 \
    g_return_val_if_fail(key && value, FALSE);                                   \
                                                                                 \
-   *value = NULL;                                                               \
-                                                                                \
    for (i = 0; i < sizeof (table) / sizeof (GimvPluginPrefsEntry); i++) {       \
       if (table[i].key && !strcmp(key, table[i].key)) {                         \
          entry = &table[i];                                                     \
@@ -218,6 +214,11 @@ prefix##_prefs_get_value (const gchar *key, gpointer *value)                    
       g_warning ("GimvPluginPrefs: key \"%s\" not found!\n", key);              \
       return FALSE;                                                             \
    }                                                                            \
+                                                                                \
+   /* only a string value is pointer sized (an int/bool caller passes the   \
+      address of a gint: writing a NULL pointer there clobbered the stack) */ \
+   if (entry->type == GIMV_PLUGIN_PREFS_STRING)                                 \
+      *value = NULL;                                                            \
                                                                                 \
    success = gimv_plugin_prefs_load_value (pname,                               \
                                            ptype,                               \

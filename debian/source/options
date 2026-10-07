@@ -1,0 +1,4 @@
+# keep the default ignore list (VCS directories etc.) and also skip build trees
+tar-ignore
+tar-ignore = "_build"
+tar-ignore = "obj-*"

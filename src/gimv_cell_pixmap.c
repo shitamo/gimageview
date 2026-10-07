@@ -25,13 +25,8 @@
  *  Copyright (C) 2000  Red Hat, Inc.,  Jonathan Blandford <jrb@redhat.com>
  */
 
-#ifndef GTK_DISABLE_DEPRECATED
-#  define GTK_DISABLE_DEPRECATED
-#endif /* GTK_DISABLE_DEPRECATED */
-
 #include "gimv_cell_pixmap.h"
 
-#if (GTK_MAJOR_VERSION >= 2)
 
 #include <stdlib.h>
 #include "intl.h"
@@ -46,20 +41,23 @@ static void gimv_cell_renderer_pixmap_set_property  (GObject                    
                                                      GParamSpec                 *pspec);
 static void gimv_cell_renderer_pixmap_init          (GimvCellRendererPixmap      *celltext);
 static void gimv_cell_renderer_pixmap_class_init    (GimvCellRendererPixmapClass *class);
-static void gimv_cell_renderer_pixmap_get_size      (GtkCellRenderer            *cell,
+static void gimv_cell_renderer_pixmap_finalize      (GObject                    *object);
+static void gimv_cell_renderer_pixmap_get_preferred_width
+                                                    (GtkCellRenderer            *cell,
                                                      GtkWidget                  *widget,
-                                                     GdkRectangle               *rectangle,
-                                                     gint                       *x_offset,
-                                                     gint                       *y_offset,
-                                                     gint                       *width,
-                                                     gint                       *height);
-static void gimv_cell_renderer_pixmap_render        (GtkCellRenderer            *cell,
-                                                     GdkWindow                  *window,
+                                                     gint                       *minimum,
+                                                     gint                       *natural);
+static void gimv_cell_renderer_pixmap_get_preferred_height
+                                                    (GtkCellRenderer            *cell,
                                                      GtkWidget                  *widget,
-                                                     GdkRectangle               *background_area,
-                                                     GdkRectangle               *cell_area,
-                                                     GdkRectangle               *expose_area,
-                                                     guint                       flags);
+                                                     gint                       *minimum,
+                                                     gint                       *natural);
+static void gimv_cell_renderer_pixmap_snapshot      (GtkCellRenderer            *cell,
+                                                     GtkSnapshot                *snapshot,
+                                                     GtkWidget                  *widget,
+                                                     const GdkRectangle         *background_area,
+                                                     const GdkRectangle         *cell_area,
+                                                     GtkCellRendererState        flags);
 
 
 enum {
@@ -73,10 +71,10 @@ enum {
 };
 
 
-GtkType
+GType
 gimv_cell_renderer_pixmap_get_type (void)
 {
-   static GtkType cell_pixmap_type = 0;
+   static GType cell_pixmap_type = 0;
 
    if (!cell_pixmap_type) {
       static const GTypeInfo cell_pixmap_info = {
@@ -115,15 +113,18 @@ gimv_cell_renderer_pixmap_class_init (GimvCellRendererPixmapClass *class)
    object_class->get_property       = gimv_cell_renderer_pixmap_get_property;
    object_class->set_property       = gimv_cell_renderer_pixmap_set_property;
 
-   cell_class->get_size             = gimv_cell_renderer_pixmap_get_size;
-   cell_class->render               = gimv_cell_renderer_pixmap_render;
+   object_class->finalize           = gimv_cell_renderer_pixmap_finalize;
+
+   cell_class->get_preferred_width  = gimv_cell_renderer_pixmap_get_preferred_width;
+   cell_class->get_preferred_height = gimv_cell_renderer_pixmap_get_preferred_height;
+   cell_class->snapshot             = gimv_cell_renderer_pixmap_snapshot;
 
    g_object_class_install_property (object_class,
                                     PROP_PIXMAP,
                                     g_param_spec_object ("pixmap",
                                                          _("Pixmap Object"),
                                                          _("The pixmap to render."),
-                                                         GDK_TYPE_PIXMAP,
+                                                         GDK_TYPE_TEXTURE,
                                                          G_PARAM_READABLE |
                                                          G_PARAM_WRITABLE));
 
@@ -132,7 +133,7 @@ gimv_cell_renderer_pixmap_class_init (GimvCellRendererPixmapClass *class)
                                     g_param_spec_object ("mask",
                                                          _("Mask Object"),
                                                          _("The mask to render."),
-                                                         GDK_TYPE_PIXMAP,
+                                                         GDK_TYPE_TEXTURE,
                                                          G_PARAM_READABLE |
                                                          G_PARAM_WRITABLE));
 
@@ -141,7 +142,7 @@ gimv_cell_renderer_pixmap_class_init (GimvCellRendererPixmapClass *class)
                                     g_param_spec_object ("pixmap_expander_open",
                                                          _("Pixmap Expander Open"),
                                                          _("Pixmap for open expander."),
-                                                         GDK_TYPE_PIXMAP,
+                                                         GDK_TYPE_TEXTURE,
                                                          G_PARAM_READABLE |
                                                          G_PARAM_WRITABLE));
 
@@ -150,7 +151,7 @@ gimv_cell_renderer_pixmap_class_init (GimvCellRendererPixmapClass *class)
                                     g_param_spec_object ("mask_expander_open",
                                                          _("Mask Expander Open"),
                                                          _("Mask for open expander."),
-                                                         GDK_TYPE_PIXMAP,
+                                                         GDK_TYPE_TEXTURE,
                                                          G_PARAM_READABLE |
                                                          G_PARAM_WRITABLE));
 
@@ -159,7 +160,7 @@ gimv_cell_renderer_pixmap_class_init (GimvCellRendererPixmapClass *class)
                                     g_param_spec_object ("pixmap_expander_closed",
                                                          _("Pixmap Expander Closed"),
                                                          _("Pixmap for closed expander."),
-                                                         GDK_TYPE_PIXMAP,
+                                                         GDK_TYPE_TEXTURE,
                                                          G_PARAM_READABLE |
                                                          G_PARAM_WRITABLE));
 
@@ -168,7 +169,7 @@ gimv_cell_renderer_pixmap_class_init (GimvCellRendererPixmapClass *class)
                                     g_param_spec_object ("mask_expander_closed",
                                                          _("Mask Expander Closed"),
                                                          _("Mask for closed expander."),
-                                                         GDK_TYPE_PIXMAP,
+                                                         GDK_TYPE_TEXTURE,
                                                          G_PARAM_READABLE |
                                                          G_PARAM_WRITABLE));
 }
@@ -226,13 +227,13 @@ gimv_cell_renderer_pixmap_set_property (GObject      *object,
                                         const GValue *value,
                                         GParamSpec   *pspec)
 {
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
+   GdkTexture *pixmap;
+   GdkTexture *mask;
    GimvCellRendererPixmap *cellpixmap = GIMV_CELL_RENDERER_PIXMAP (object);
   
    switch (param_id) {
    case PROP_PIXMAP:
-      pixmap = (GdkPixmap*) g_value_get_object (value);
+      pixmap = (GdkTexture*) g_value_get_object (value);
       if (pixmap)
          g_object_ref (G_OBJECT (pixmap));
       if (cellpixmap->pixmap)
@@ -240,7 +241,7 @@ gimv_cell_renderer_pixmap_set_property (GObject      *object,
       cellpixmap->pixmap = pixmap;
       break;
    case PROP_MASK:
-      mask = (GdkBitmap*) g_value_get_object (value);
+      mask = (GdkTexture*) g_value_get_object (value);
       if (mask)
          g_object_ref (G_OBJECT (mask));
       if (cellpixmap->mask)
@@ -248,7 +249,7 @@ gimv_cell_renderer_pixmap_set_property (GObject      *object,
       cellpixmap->mask = mask;
       break;
    case PROP_PIXMAP_EXPANDER_OPEN:
-      pixmap = (GdkPixmap*) g_value_get_object (value);
+      pixmap = (GdkTexture*) g_value_get_object (value);
       if (pixmap)
          g_object_ref (G_OBJECT (pixmap));
       if (cellpixmap->pixmap_expander_open)
@@ -256,7 +257,7 @@ gimv_cell_renderer_pixmap_set_property (GObject      *object,
       cellpixmap->pixmap_expander_open = pixmap;
       break;
    case PROP_MASK_EXPANDER_OPEN:
-      mask = (GdkBitmap*) g_value_get_object (value);
+      mask = (GdkTexture*) g_value_get_object (value);
       if (mask)
          g_object_ref (G_OBJECT (mask));
       if (cellpixmap->mask_expander_open)
@@ -264,7 +265,7 @@ gimv_cell_renderer_pixmap_set_property (GObject      *object,
       cellpixmap->mask_expander_open = mask;
       break;
    case PROP_PIXMAP_EXPANDER_CLOSED:
-      pixmap = (GdkPixmap*) g_value_get_object (value);
+      pixmap = (GdkTexture*) g_value_get_object (value);
       if (pixmap)
          g_object_ref (G_OBJECT (pixmap));
       if (cellpixmap->pixmap_expander_closed)
@@ -272,7 +273,7 @@ gimv_cell_renderer_pixmap_set_property (GObject      *object,
       cellpixmap->pixmap_expander_closed = pixmap;
       break;
    case PROP_MASK_EXPANDER_CLOSED:
-      mask = (GdkBitmap*) g_value_get_object (value);
+      mask = (GdkTexture*) g_value_get_object (value);
       if (mask)
          g_object_ref (G_OBJECT (mask));
       if (cellpixmap->mask_expander_closed)
@@ -294,52 +295,79 @@ gimv_cell_renderer_pixmap_new (void)
 
 
 static void
-gimv_cell_renderer_pixmap_get_size (GtkCellRenderer *cell,
-                                    GtkWidget       *widget,
-                                    GdkRectangle    *cell_area,
-                                    gint            *x_offset,
-                                    gint            *y_offset,
-                                    gint            *width,
-                                    gint            *height)
+gimv_cell_renderer_pixmap_finalize (GObject *object)
+{
+   GimvCellRendererPixmap *cellpixmap = GIMV_CELL_RENDERER_PIXMAP (object);
+
+   g_clear_object (&cellpixmap->pixmap);
+   g_clear_object (&cellpixmap->mask);
+   g_clear_object (&cellpixmap->pixmap_expander_open);
+   g_clear_object (&cellpixmap->mask_expander_open);
+   g_clear_object (&cellpixmap->pixmap_expander_closed);
+   g_clear_object (&cellpixmap->mask_expander_closed);
+
+   G_OBJECT_CLASS (g_type_class_peek_parent (G_OBJECT_GET_CLASS (object)))->finalize (object);
+}
+
+
+static void
+gimv_cell_renderer_pixmap_get_pixmap_size (GimvCellRendererPixmap *cellpixmap,
+                                           gint *width, gint *height)
+{
+   GdkTexture *textures[3];
+   gint i, pixmap_width = 0, pixmap_height = 0;
+
+   textures[0] = cellpixmap->pixmap;
+   textures[1] = cellpixmap->pixmap_expander_open;
+   textures[2] = cellpixmap->pixmap_expander_closed;
+
+   for (i = 0; i < 3; i++) {
+      if (!textures[i]) continue;
+      pixmap_width  = MAX (pixmap_width,  gdk_texture_get_width  (textures[i]));
+      pixmap_height = MAX (pixmap_height, gdk_texture_get_height (textures[i]));
+   }
+
+   if (width)  *width  = pixmap_width;
+   if (height) *height = pixmap_height;
+}
+
+
+static void
+gimv_cell_renderer_pixmap_get_size (GtkCellRenderer    *cell,
+                                    const GdkRectangle *cell_area,
+                                    gint               *x_offset,
+                                    gint               *y_offset,
+                                    gint               *width,
+                                    gint               *height)
 {
    GimvCellRendererPixmap *cellpixmap = (GimvCellRendererPixmap *) cell;
    gint pixmap_width = 0;
    gint pixmap_height = 0;
    gint calc_width;
    gint calc_height;
+   gint xpad, ypad;
+   gfloat xalign, yalign;
 
-   if (cellpixmap->pixmap) {
-      gdk_drawable_get_size (cellpixmap->pixmap, &pixmap_width, &pixmap_height);
-   }
-   if (cellpixmap->pixmap_expander_open) {
-      gint w, h;
-      gdk_drawable_get_size (cellpixmap->pixmap_expander_open, &w, &h);
-      pixmap_width  = MAX (pixmap_width,  w);
-      pixmap_height = MAX (pixmap_height, h);
-   }
-   if (cellpixmap->pixmap_expander_closed) {
-      gint w, h;
-      gdk_drawable_get_size (cellpixmap->pixmap_expander_closed, &w, &h);
-      pixmap_width  = MAX (pixmap_width,  w);
-      pixmap_height = MAX (pixmap_height, h);
-   }
+   gtk_cell_renderer_get_padding (cell, &xpad, &ypad);
+   gtk_cell_renderer_get_alignment (cell, &xalign, &yalign);
 
-   calc_width  = (gint) GTK_CELL_RENDERER (cellpixmap)->xpad * 2 + pixmap_width;
-   calc_height = (gint) GTK_CELL_RENDERER (cellpixmap)->ypad * 2 + pixmap_height;
+   gimv_cell_renderer_pixmap_get_pixmap_size (cellpixmap,
+                                              &pixmap_width, &pixmap_height);
+
+   calc_width  = xpad * 2 + pixmap_width;
+   calc_height = ypad * 2 + pixmap_height;
 
    if (x_offset) *x_offset = 0;
    if (y_offset) *y_offset = 0;
 
    if (cell_area && pixmap_width > 0 && pixmap_height > 0) {
       if (x_offset) {
-         *x_offset = GTK_CELL_RENDERER (cellpixmap)->xalign
-            * (cell_area->width - calc_width - (2 * GTK_CELL_RENDERER (cellpixmap)->xpad));
-         *x_offset = MAX (*x_offset, 0) + GTK_CELL_RENDERER (cellpixmap)->xpad;
+         *x_offset = xalign * (cell_area->width - calc_width - (2 * xpad));
+         *x_offset = MAX (*x_offset, 0) + xpad;
       }
       if (y_offset) {
-         *y_offset = GTK_CELL_RENDERER (cellpixmap)->yalign
-            * (cell_area->height - calc_height - (2 * GTK_CELL_RENDERER (cellpixmap)->ypad));
-         *y_offset = MAX (*y_offset, 0) + GTK_CELL_RENDERER (cellpixmap)->ypad;
+         *y_offset = yalign * (cell_area->height - calc_height - (2 * ypad));
+         *y_offset = MAX (*y_offset, 0) + ypad;
       }
    }
 
@@ -352,74 +380,82 @@ gimv_cell_renderer_pixmap_get_size (GtkCellRenderer *cell,
 
 
 static void
-gimv_cell_renderer_pixmap_render (GtkCellRenderer    *cell,
-                                  GdkWindow          *window,
-                                  GtkWidget          *widget,
-                                  GdkRectangle       *background_area,
-                                  GdkRectangle       *cell_area,
-                                  GdkRectangle       *expose_area,
-                                  guint               flags)
+gimv_cell_renderer_pixmap_get_preferred_width (GtkCellRenderer *cell,
+                                               GtkWidget       *widget,
+                                               gint            *minimum,
+                                               gint            *natural)
+{
+   gint width;
+
+   gimv_cell_renderer_pixmap_get_size (cell, NULL, NULL, NULL, &width, NULL);
+   if (minimum) *minimum = width;
+   if (natural) *natural = width;
+}
+
+
+static void
+gimv_cell_renderer_pixmap_get_preferred_height (GtkCellRenderer *cell,
+                                                GtkWidget       *widget,
+                                                gint            *minimum,
+                                                gint            *natural)
+{
+   gint height;
+
+   gimv_cell_renderer_pixmap_get_size (cell, NULL, NULL, NULL, NULL, &height);
+   if (minimum) *minimum = height;
+   if (natural) *natural = height;
+}
+
+
+static void
+gimv_cell_renderer_pixmap_snapshot (GtkCellRenderer      *cell,
+                                    GtkSnapshot          *snapshot,
+                                    GtkWidget            *widget,
+                                    const GdkRectangle   *background_area,
+                                    const GdkRectangle   *cell_area,
+                                    GtkCellRendererState  flags)
 
 {
    GimvCellRendererPixmap *cellpixmap = (GimvCellRendererPixmap *) cell;
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
+   GdkTexture *pixmap;
    GdkRectangle pix_rect;
    GdkRectangle draw_rect;
-   GdkGC *gc;
+   gint xpad, ypad;
 
    pixmap = cellpixmap->pixmap;
-   mask   = cellpixmap->mask;
-   if (cell->is_expander) {
-      if (cell->is_expanded &&
-          cellpixmap->pixmap_expander_open != NULL)
-      {
+   if (gtk_cell_renderer_get_is_expander (cell)) {
+      gboolean expanded = gtk_cell_renderer_get_is_expanded (cell);
+
+      if (expanded && cellpixmap->pixmap_expander_open != NULL) {
          pixmap = cellpixmap->pixmap_expander_open;
-         mask   = cellpixmap->mask_expander_open;
-      } else if (!cell->is_expanded &&
-                 cellpixmap->pixmap_expander_closed != NULL)
-      {
+      } else if (!expanded && cellpixmap->pixmap_expander_closed != NULL) {
          pixmap = cellpixmap->pixmap_expander_closed;
-         mask   = cellpixmap->mask_expander_closed;
       }
    }
 
    if (!pixmap) return;
 
-   gimv_cell_renderer_pixmap_get_size (cell, widget, cell_area,
+   gimv_cell_renderer_pixmap_get_size (cell, cell_area,
                                        &pix_rect.x,
                                        &pix_rect.y,
                                        &pix_rect.width,
                                        &pix_rect.height);
-  
+
+   gtk_cell_renderer_get_padding (cell, &xpad, &ypad);
    pix_rect.x += cell_area->x;
    pix_rect.y += cell_area->y;
-   pix_rect.width -= cell->xpad * 2;
-   pix_rect.height -= cell->ypad * 2;
+   pix_rect.width -= xpad * 2;
+   pix_rect.height -= ypad * 2;
 
    if (!gdk_rectangle_intersect (cell_area, &pix_rect, &draw_rect)) return;
 
-   gc = widget->style->fg_gc[GTK_STATE_NORMAL];
-
-   if (mask) {
-      gdk_gc_set_clip_mask (gc, mask);
-      gdk_gc_set_clip_origin (gc, pix_rect.x, pix_rect.y);
-   }
-
-   gdk_draw_pixmap(window,
-                   gc,
-                   pixmap,
-                   draw_rect.x - pix_rect.x,
-                   draw_rect.y - pix_rect.y,
-                   draw_rect.x,
-                   draw_rect.y,
-                   draw_rect.width,
-                   draw_rect.height);
-
-   if (mask) {
-      gdk_gc_set_clip_mask (gc, NULL);
-      gdk_gc_set_clip_origin (gc, 0, 0);
-   }
+   /* the mask is part of the texture (alpha channel) in GTK4 */
+   gtk_snapshot_push_clip (snapshot,
+                           &GRAPHENE_RECT_INIT (draw_rect.x, draw_rect.y,
+                                                draw_rect.width, draw_rect.height));
+   gtk_snapshot_append_texture (snapshot, pixmap,
+                                &GRAPHENE_RECT_INIT (pix_rect.x, pix_rect.y,
+                                                     gdk_texture_get_width (pixmap),
+                                                     gdk_texture_get_height (pixmap)));
+   gtk_snapshot_pop (snapshot);
 }
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */

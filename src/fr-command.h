@@ -27,13 +27,15 @@
 
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include "fr-process.h"
 
 
 #define FR_COMMAND_TYPE        fr_command_get_type ()
-#define FR_COMMAND(o)          GTK_CHECK_CAST (o, FR_COMMAND_TYPE, FRCommand)
-#define FR_COMMAND_CLASS(k)    GTK_CHECK_CLASS_CAST (k, FR_COMMAND_TYPE, FRCommandClass)
-#define IS_FR_COMMAND(o)       GTK_CHECK_TYPE (o, FR_COMMAND_TYPE)
+#define FR_COMMAND(o)          G_TYPE_CHECK_INSTANCE_CAST (o, FR_COMMAND_TYPE, FRCommand)
+#define FR_COMMAND_CLASS(k)    G_TYPE_CHECK_CLASS_CAST (k, FR_COMMAND_TYPE, FRCommandClass)
+#define IS_FR_COMMAND(o)       G_TYPE_CHECK_INSTANCE_TYPE (o, FR_COMMAND_TYPE)
 
 
 typedef struct _FRCommand       FRCommand;
@@ -50,7 +52,7 @@ typedef enum {
 
 struct _FRCommand
 {
-   GtkObject  __parent;
+   GimvObject  __parent;
    GList *file_list; /* FileData elements */
 
    /*<protected>*/
@@ -72,7 +74,7 @@ struct _FRCommand
 
 struct _FRCommandClass
 {
-   GtkObjectClass __parent_class;
+   GimvObjectClass __parent_class;
 
    /*<virtual functions>*/
 
@@ -104,7 +106,7 @@ struct _FRCommandClass
 };
 
 
-GtkType        fr_command_get_type           (void);
+GType        fr_command_get_type           (void);
 void           fr_command_construct          (FRCommand *comm,
                                               FRProcess *process,
                                               const char *filename);

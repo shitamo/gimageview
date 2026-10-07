@@ -45,7 +45,9 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
+#include <gtk/gtk.h>
 #include "intl.h"
 #include "gtk_prop.h"
 
@@ -60,13 +62,13 @@
 
 
 #define box_pack_start(box,w) \
-	gtk_box_pack_start(GTK_BOX(box),w,TRUE,FALSE,0)
+	gimv_box_pack_start(GTK_BOX(box),w,TRUE,FALSE,0)
 #define box_pack_end(box,w) \
-	gtk_box_pack_end(GTK_BOX(box),w,TRUE,FALSE,0)
+	gimv_box_pack_end(GTK_BOX(box),w,TRUE,FALSE,0)
 
 #define X_PAD 8
 #define Y_PAD 1
-#define TBL_XOPT GTK_EXPAND
+#define TBL_XOPT GIMV_EXPAND
 
 typedef struct
 {
@@ -89,7 +91,7 @@ label_new (const char *text, GtkJustification j_type)
    GtkWidget *label;
    label = gtk_label_new (text);
    gtk_label_set_justify (GTK_LABEL (label), j_type);
-   gtk_misc_set_alignment (GTK_MISC (label), 0.0, 0.5);
+   gimv_misc_set_alignment (label, 0.0, 0.5);
    /* j_type == GTK_JUSTIFY_RIGHT? 1.0 : 0.0, 0.5); */
    return (label);
 }
@@ -102,9 +104,9 @@ on_cancel (GtkWidget * btn, gpointer * data)
 {
    if ((int) ((long) data) != DLG_RC_DESTROY) {
       dl.result = (int) ((long) data);
-      gtk_widget_destroy (dl.top);
+      gimv_widget_destroy (dl.top);
    }
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -117,24 +119,24 @@ on_ok (GtkWidget * ok, gpointer * data)
    struct passwd *pw;
    struct group *gr;
 
-   val = gtk_entry_get_text (GTK_ENTRY (dl.user));
+   val = gtk_editable_get_text (GTK_EDITABLE (dl.user));
    if (val) {
       pw = getpwnam (val);
       if (pw) {
          dl.prop->uid = pw->pw_uid;
       }
    }
-   val = gtk_entry_get_text (GTK_ENTRY (dl.group));
+   val = gtk_editable_get_text (GTK_EDITABLE (dl.group));
    if (val) {
       gr = getgrnam (val);
       if (gr) {
          dl.prop->gid = gr->gr_gid;
       }
    }
-   gtk_widget_destroy (dl.top);
+   gimv_widget_destroy (dl.top);
 
    dl.result = (int) ((long) data);
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -144,7 +146,7 @@ static void
 cb_perm (GtkWidget * toggle, void *data)
 {
    int bit = (int) ((long) data);
-   if (GTK_TOGGLE_BUTTON (toggle)->active)
+   if (gimv_toggle_get_active (GTK_WIDGET (toggle)))
       dl.prop->mode |= (mode_t) bit;
    else
       dl.prop->mode &= (mode_t) ~ bit;
@@ -154,9 +156,9 @@ cb_perm (GtkWidget * toggle, void *data)
 /*
  */
 static gint
-on_key_press (GtkWidget * w, GdkEventKey * event, void *data)
+on_key_press (GtkWidget * w, GimvEventKey * event, void *data)
 {
-   if (event->keyval == GDK_Escape) {
+   if (event->keyval == GDK_KEY_Escape) {
       on_cancel ((GtkWidget *) data, (gpointer) ((long) DLG_RC_CANCEL));
       return (TRUE);
    }
@@ -189,62 +191,58 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
    dl.prop = prop;
    dl.top = gtk_dialog_new ();
    gtk_window_set_title (GTK_WINDOW (dl.top), _("Properties"));
-   gtk_signal_connect (GTK_OBJECT (dl.top), "destroy",
-                       GTK_SIGNAL_FUNC (on_cancel),
+   gimv_window_set_default_transient (GTK_WINDOW (dl.top));
+   g_signal_connect (G_OBJECT (dl.top), "destroy",
+                       G_CALLBACK (on_cancel),
                        (gpointer) ((long) DLG_RC_DESTROY));
    gtk_window_set_modal (GTK_WINDOW (dl.top), TRUE);
-   gtk_window_set_position (GTK_WINDOW (dl.top), GTK_WIN_POS_MOUSE);
+   /* GTK4: gtk_window_set_position (GTK_WIN_POS_MOUSE) is not available */
 
    notebook = gtk_notebook_new ();
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dl.top)->vbox), notebook,
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (dl.top))), notebook,
                        TRUE, TRUE, 0);
 
    /* ok and cancel buttons */
-   ok = gtk_button_new_with_label (_("Ok"));
+   ok = gtk_button_new_with_label (_("OK"));
    cancel = gtk_button_new_with_label (_("Cancel"));
 
-   GTK_WIDGET_SET_FLAGS (ok, GTK_CAN_DEFAULT);
-   GTK_WIDGET_SET_FLAGS (cancel, GTK_CAN_DEFAULT);
-
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dl.top)->action_area), ok,
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (dl.top))), ok,
                        TRUE, FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dl.top)->action_area),
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (dl.top))),
                        cancel, TRUE, FALSE, 0);
 
-   gtk_signal_connect (GTK_OBJECT (ok), "clicked",
-                       GTK_SIGNAL_FUNC (on_ok),
+   g_signal_connect (G_OBJECT (ok), "clicked",
+                       G_CALLBACK (on_ok),
                        (gpointer) ((long) DLG_RC_OK));
-   gtk_signal_connect (GTK_OBJECT (cancel), "clicked",
-                       GTK_SIGNAL_FUNC (on_cancel),
+   g_signal_connect (G_OBJECT (cancel), "clicked",
+                       G_CALLBACK (on_cancel),
                        (gpointer) ((long) DLG_RC_CANCEL));
-   gtk_widget_grab_default (ok);
+   gtk_window_set_default_widget (GTK_WINDOW (dl.top), ok);
 
    if (flags & GTK_PROP_MULTI) {
       skip = gtk_button_new_with_label (_("Skip"));
       all = gtk_button_new_with_label (_("All"));
-      gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dl.top)->action_area), skip,
+      gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (dl.top))), skip,
                           TRUE, FALSE, 0);
-      gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dl.top)->action_area), all,
+      gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (dl.top))), all,
                           TRUE, FALSE, 0);
-      gtk_signal_connect (GTK_OBJECT (skip), "clicked",
-                          GTK_SIGNAL_FUNC (on_cancel),
+      g_signal_connect (G_OBJECT (skip), "clicked",
+                          G_CALLBACK (on_cancel),
                           (gpointer) ((long) DLG_RC_SKIP));
-      gtk_signal_connect (GTK_OBJECT (all), "clicked",
-                          GTK_SIGNAL_FUNC (on_ok),
+      g_signal_connect (G_OBJECT (all), "clicked",
+                          G_CALLBACK (on_ok),
                           (gpointer) ((long) DLG_RC_ALL));
-      GTK_WIDGET_SET_FLAGS (skip, GTK_CAN_DEFAULT);
-      GTK_WIDGET_SET_FLAGS (all, GTK_CAN_DEFAULT);
    }
 
 
    /* date and size page */
    label = gtk_label_new (_("Info"));
-   table = gtk_table_new (6, 2, FALSE);
+   table = gimv_table_new (6, 2, FALSE);
    gtk_notebook_append_page (GTK_NOTEBOOK (notebook), table, label);
 
    n = 0;
-   info[n] = label_new (_("Name :"), GTK_JUSTIFY_RIGHT);
-   gtk_table_attach (GTK_TABLE (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
+   info[n] = label_new (_("Name:"), GTK_JUSTIFY_RIGHT);
+   gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
    {
       gchar *path_internal;
       path_internal = charset_to_internal (path,
@@ -254,7 +252,7 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
       info[n + 1] = label_new (path_internal, GTK_JUSTIFY_LEFT);
       g_free (path_internal);
    }
-   gtk_table_attach (GTK_TABLE (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
+   gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
 
    if (!(flags & GTK_PROP_NOT_DETECT_TYPE)) {
@@ -280,15 +278,13 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
             if ((p = strstr (line, ": ")) != NULL) {
                p += 2;
                info[n + 1] = label_new (p, GTK_JUSTIFY_LEFT);
-               info[n] = label_new (_("Type :"), GTK_JUSTIFY_RIGHT);
-               gtk_table_attach (GTK_TABLE (table), info[n], 0, 1, n, n + 1,
-                                 TBL_XOPT, 0, X_PAD, Y_PAD);
-               gtk_table_attach (GTK_TABLE (table), info[n + 1], 1, 2, n, n + 1,
-                                 TBL_XOPT, 0, 0, 0);
+               info[n] = label_new (_("Type:"), GTK_JUSTIFY_RIGHT);
+               gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
+               gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
                n += 2;
             }
          } else if (pid == 0) {
-            gchar **argv = g_new0 (gchar *, 1);
+            gchar **argv = g_new0 (gchar *, 3);
 
             argv[0] = g_strdup ("file");
             argv[1] = g_strdup (path);
@@ -304,11 +300,9 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
 
    sprintf (buf, _("%ld Bytes"), (unsigned long) prop->size);
    info[n + 1] = label_new (buf, GTK_JUSTIFY_LEFT);
-   info[n] = label_new (_("Size :"), GTK_JUSTIFY_RIGHT);
-   gtk_table_attach (GTK_TABLE (table), info[n], 0, 1, n, n + 1,
-                     TBL_XOPT, 0, X_PAD, Y_PAD);
-   gtk_table_attach (GTK_TABLE (table), info[n + 1], 1, 2, n, n + 1,
-                     TBL_XOPT, 0, 0, 0);
+   info[n] = label_new (_("Size:"), GTK_JUSTIFY_RIGHT);
+   gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
+   gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
 
    t = localtime (&prop->atime);
@@ -316,11 +310,9 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
             t->tm_hour, t->tm_min);
    info[n + 1] = gtk_label_new (buf);
-   info[n] = gtk_label_new (_("Access Time :"));
-   gtk_table_attach (GTK_TABLE (table), info[n], 0, 1, n, n + 1,
-                     TBL_XOPT, 0, X_PAD, Y_PAD);
-   gtk_table_attach (GTK_TABLE (table), info[n + 1], 1, 2, n, n + 1,
-                     TBL_XOPT, 0, 0, 0);
+   info[n] = gtk_label_new (_("Access Time:"));
+   gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
+   gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
 
    t = localtime (&prop->mtime);
@@ -328,11 +320,9 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
             t->tm_hour, t->tm_min);
    info[n + 1] = gtk_label_new (buf);
-   info[n] = gtk_label_new (_("Modification Time :"));
-   gtk_table_attach (GTK_TABLE (table), info[n], 0, 1, n, n + 1,
-                     TBL_XOPT, 0, X_PAD, Y_PAD);
-   gtk_table_attach (GTK_TABLE (table), info[n + 1], 1, 2, n, n + 1,
-                     TBL_XOPT, 0, 0, 0);
+   info[n] = gtk_label_new (_("Modification Time:"));
+   gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
+   gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
 
    t = localtime (&prop->ctime);
@@ -340,112 +330,110 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
             t->tm_hour, t->tm_min);
    info[n + 1] = gtk_label_new (buf);
-   info[n] = gtk_label_new (_("Change Time :"));
-   gtk_table_attach (GTK_TABLE (table), info[n], 0, 1, n, n + 1,
-                     TBL_XOPT, 0, X_PAD, Y_PAD);
-   gtk_table_attach (GTK_TABLE (table), info[n + 1], 1, 2, n, n + 1,
-                     TBL_XOPT, 0, 0, 0);
+   info[n] = gtk_label_new (_("Change Time:"));
+   gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
+   gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
 
    /* permissions page */
    if (!(flags & GTK_PROP_STALE_LINK)) {
       label = gtk_label_new (_("Permissions"));
-      table = gtk_table_new (3, 5, FALSE);
+      table = gimv_table_new (3, 5, FALSE);
       gtk_notebook_append_page (GTK_NOTEBOOK (notebook), table, label);
 
-      perm[0] = gtk_label_new (_("Owner :"));
+      perm[0] = gtk_label_new (_("Owner:"));
       perm[1] = gtk_check_button_new_with_label (_("Read"));
       if (prop->mode & S_IRUSR)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[1]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[1]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[1], TRUE);
+      g_signal_connect (G_OBJECT (perm[1]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IRUSR));
       perm[2] = gtk_check_button_new_with_label (_("Write"));
       if (prop->mode & S_IWUSR)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[2]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[2]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm), 
+         gimv_toggle_set_active (perm[2], TRUE);
+      g_signal_connect (G_OBJECT (perm[2]), "toggled",
+                          G_CALLBACK (cb_perm), 
                           (gpointer) ((long) S_IWUSR));
       perm[3] = gtk_check_button_new_with_label (_("Execute"));
       if (prop->mode & S_IXUSR)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[3]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[3]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[3], TRUE);
+      g_signal_connect (G_OBJECT (perm[3]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IXUSR));
       perm[4] = gtk_check_button_new_with_label (_("Set UID"));
       if (prop->mode & S_ISUID)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[4]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[4]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[4], TRUE);
+      g_signal_connect (G_OBJECT (perm[4]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_ISUID));
 
-      gtk_table_attach (GTK_TABLE (table), perm[0], 0, 1, 0, 1, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[1], 1, 2, 0, 1, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[2], 2, 3, 0, 1, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[3], 3, 4, 0, 1, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[4], 4, 5, 0, 1, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[0], 0, 1, 0, 1, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[1], 1, 2, 0, 1, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[2], 2, 3, 0, 1, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[3], 3, 4, 0, 1, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[4], 4, 5, 0, 1, 0, 0, X_PAD, 0);
 
-      perm[5] = gtk_label_new (_("Group :"));
+      perm[5] = gtk_label_new (_("Group:"));
       perm[6] = gtk_check_button_new_with_label (_("Read"));
       if (prop->mode & S_IRGRP)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[6]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[6]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[6], TRUE);
+      g_signal_connect (G_OBJECT (perm[6]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IRGRP));
       perm[7] = gtk_check_button_new_with_label (_("Write"));
       if (prop->mode & S_IWGRP)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[7]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[7]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[7], TRUE);
+      g_signal_connect (G_OBJECT (perm[7]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IWGRP));
       perm[8] = gtk_check_button_new_with_label (_("Execute"));
       if (prop->mode & S_IXGRP)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[8]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[8]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[8], TRUE);
+      g_signal_connect (G_OBJECT (perm[8]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IXGRP));
       perm[9] = gtk_check_button_new_with_label (_("Set GID"));
       if (prop->mode & S_ISGID)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[9]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[9]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[9], TRUE);
+      g_signal_connect (G_OBJECT (perm[9]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_ISGID));
-      gtk_table_attach (GTK_TABLE (table), perm[5], 0, 1, 1, 2, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[6], 1, 2, 1, 2, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[7], 2, 3, 1, 2, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[8], 3, 4, 1, 2, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[9], 4, 5, 1, 2, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[5], 0, 1, 1, 2, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[6], 1, 2, 1, 2, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[7], 2, 3, 1, 2, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[8], 3, 4, 1, 2, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[9], 4, 5, 1, 2, 0, 0, X_PAD, 0);
 
-      perm[10] = gtk_label_new (_("Other :"));
+      perm[10] = gtk_label_new (_("Others:"));
       perm[11] = gtk_check_button_new_with_label (_("Read"));
       if (prop->mode & S_IROTH)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[11]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[11]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[11], TRUE);
+      g_signal_connect (G_OBJECT (perm[11]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IROTH));
       perm[12] = gtk_check_button_new_with_label (_("Write"));
       if (prop->mode & S_IWOTH)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[12]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[12]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[12], TRUE);
+      g_signal_connect (G_OBJECT (perm[12]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IWOTH));
       perm[13] = gtk_check_button_new_with_label (_("Execute"));
       if (prop->mode & S_IXOTH)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[13]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[13]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[13], TRUE);
+      g_signal_connect (G_OBJECT (perm[13]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_IXOTH));
       perm[14] = gtk_check_button_new_with_label (_("Sticky"));
       if (prop->mode & S_ISVTX)
-         gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (perm[14]), 1);
-      gtk_signal_connect (GTK_OBJECT (perm[14]), "clicked",
-                          GTK_SIGNAL_FUNC (cb_perm),
+         gimv_toggle_set_active (perm[14], TRUE);
+      g_signal_connect (G_OBJECT (perm[14]), "toggled",
+                          G_CALLBACK (cb_perm),
                           (gpointer) ((long) S_ISVTX));
-      gtk_table_attach (GTK_TABLE (table), perm[10], 0, 1, 2, 3, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[11], 1, 2, 2, 3, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[12], 2, 3, 2, 3, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[13], 3, 4, 2, 3, 0, 0, X_PAD, 0);
-      gtk_table_attach (GTK_TABLE (table), perm[14], 4, 5, 2, 3, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[10], 0, 1, 2, 3, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[11], 1, 2, 2, 3, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[12], 2, 3, 2, 3, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[13], 3, 4, 2, 3, 0, 0, X_PAD, 0);
+      gimv_table_attach (GTK_WIDGET (table), perm[14], 4, 5, 2, 3, 0, 0, X_PAD, 0);
    }
 
    if (flags & GTK_PROP_EDITABLE) {
@@ -470,30 +458,30 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
    g_group = g_list_sort (g_group, (GCompareFunc) strcmp);
 
    label = gtk_label_new (_("Owner"));
-   table = gtk_table_new (2, 2, FALSE);
+   table = gimv_table_new (2, 2, FALSE);
    gtk_notebook_append_page (GTK_NOTEBOOK (notebook), table, label);
 
    pw = getpwuid (prop->uid);
    sprintf (buf, "%s", pw ? pw->pw_name : _("unknown"));
-   owner[1] = gtk_combo_new ();
-   dl.user = GTK_WIDGET (GTK_COMBO (owner[1])->entry);
+   owner[1] = gimv_combo_new ();
+   dl.user = GTK_WIDGET (gimv_combo_get_entry (GTK_WIDGET (owner[1])));
    if (g_user)
-      gtk_combo_set_popdown_strings (GTK_COMBO (owner[1]), g_user);
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (owner[1])->entry), buf);
-   owner[0] = label_new (_("Owner :"), GTK_JUSTIFY_RIGHT);
-   gtk_table_attach (GTK_TABLE (table), owner[0], 0, 1, 0, 1, 0, 0, X_PAD, Y_PAD);
-   gtk_table_attach (GTK_TABLE (table), owner[1], 1, 2, 0, 1, 0, 0, X_PAD, 0);
+      gimv_combo_set_popdown_strings (GTK_WIDGET (owner[1]), g_user);
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (owner[1]))), buf);
+   owner[0] = label_new (_("Owner:"), GTK_JUSTIFY_RIGHT);
+   gimv_table_attach (GTK_WIDGET (table), owner[0], 0, 1, 0, 1, 0, 0, X_PAD, Y_PAD);
+   gimv_table_attach (GTK_WIDGET (table), owner[1], 1, 2, 0, 1, 0, 0, X_PAD, 0);
 
    gr = getgrgid (prop->gid);
    sprintf (buf, "%s", gr ? gr->gr_name : _("unknown"));
-   owner[3] = gtk_combo_new ();
-   dl.group = GTK_WIDGET (GTK_COMBO (owner[3])->entry);
+   owner[3] = gimv_combo_new ();
+   dl.group = GTK_WIDGET (gimv_combo_get_entry (GTK_WIDGET (owner[3])));
    if (g_group)
-      gtk_combo_set_popdown_strings (GTK_COMBO (owner[3]), g_group);
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (owner[3])->entry), buf);
-   owner[2] = label_new (_("Group :"), GTK_JUSTIFY_RIGHT);
-   gtk_table_attach (GTK_TABLE (table), owner[2], 0, 1, 1, 2, 0, 0, X_PAD, Y_PAD);
-   gtk_table_attach (GTK_TABLE (table), owner[3], 1, 2, 1, 2, 0, 0, X_PAD, 0);
+      gimv_combo_set_popdown_strings (GTK_WIDGET (owner[3]), g_group);
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (owner[3]))), buf);
+   owner[2] = label_new (_("Group:"), GTK_JUSTIFY_RIGHT);
+   gimv_table_attach (GTK_WIDGET (table), owner[2], 0, 1, 1, 2, 0, 0, X_PAD, Y_PAD);
+   gimv_table_attach (GTK_WIDGET (table), owner[3], 1, 2, 1, 2, 0, 0, X_PAD, 0);
 
    if (flags & GTK_PROP_EDITABLE) {
       gint i, n_owners;
@@ -503,12 +491,10 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
       }
    }
 
-   gtk_signal_connect (GTK_OBJECT (dl.top), "key_press_event",
-                       GTK_SIGNAL_FUNC (on_key_press),
-                       (gpointer) cancel);
-   gtk_widget_show_all (dl.top);
+   gimv_event_connect (GTK_WIDGET (dl.top), GIMV_EVENT_KEY_PRESS, G_CALLBACK (on_key_press), (gpointer) cancel);
+   gimv_widget_show_all (dl.top);
 
-   gtk_main ();
+   gimv_main ();
 
    /* free the lists */
    g_tmp = g_user;

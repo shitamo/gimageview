@@ -30,6 +30,7 @@
 #include "gimv_comment.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -37,9 +38,9 @@
 #include "fileutil.h"
 #include "gimv_image_info.h"
 #include "gimv_mime_types.h"
-#include "gtk2-compat.h"
 #include "gtkutils.h"
 #include "prefs.h"
+#include "gimv_thumb_view.h"
 
 #define GIMV_COMMENT_DIRECTORY ".gimv/comment"
 
@@ -52,7 +53,7 @@ typedef enum {
 
 static void gimv_comment_init       (GimvComment      *comment);
 static void gimv_comment_class_init (GimvCommentClass *klass);
-static void gimv_comment_destroy    (GtkObject    *object);
+static void gimv_comment_destroy    (GimvObject    *object);
 
 static gchar *defval_time                 (GimvImageInfo *info, gpointer data);
 static gchar *defval_file_url             (GimvImageInfo *info, gpointer data);
@@ -66,8 +67,8 @@ static gchar *defval_img_cspace           (GimvImageInfo *info, gpointer data);
 #endif
 
 
-static GtkObjectClass *parent_class = NULL;
-static gint gimv_comment_signals[LAST_SIGNAL] = {0};
+static GimvObjectClass *parent_class = NULL;
+static guint gimv_comment_signals[LAST_SIGNAL] = {0};
 
 
 GimvCommentDataEntry gimv_comment_data_entry[] = {
@@ -97,55 +98,34 @@ GList *gimv_comment_data_entry_list = NULL;
  *   GimvComment class funcs
  *
  ******************************************************************************/
-GtkType
-gimv_comment_get_type ()
-{
-   static GtkType gimv_comment_type = 0;
-
-   if (!gimv_comment_type) {
-      static const GtkTypeInfo gimv_comment_info = {
-         "GimvComment",
-         sizeof (GimvComment),
-         sizeof (GimvCommentClass),
-         (GtkClassInitFunc) gimv_comment_class_init,
-         (GtkObjectInitFunc) gimv_comment_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_comment_type = gtk_type_unique (gtk_object_get_type (), &gimv_comment_info);
-   }
-
-   return gimv_comment_type;
-}
+G_DEFINE_TYPE (GimvComment, gimv_comment, GIMV_TYPE_OBJECT)
 
 
 static void
 gimv_comment_class_init (GimvCommentClass *klass)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_object_get_type ());
+   object_class = (GimvObjectClass *) klass;
+   parent_class = g_type_class_peek_parent (klass);
 
    gimv_comment_signals[FILE_SAVED]
-      = gtk_signal_new ("file_saved",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvCommentClass, file_saved),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("file_saved",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvCommentClass, file_saved),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    gimv_comment_signals[FILE_DELETED]
-      = gtk_signal_new ("file_deleted",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvCommentClass, file_deleted),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
-
-   gtk_object_class_add_signals (object_class, gimv_comment_signals, LAST_SIGNAL);
+      = g_signal_new ("file_deleted",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvCommentClass, file_deleted),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    object_class->destroy = gimv_comment_destroy;
 
@@ -164,15 +144,13 @@ gimv_comment_init (GimvComment *comment)
 
    comment->note      = NULL;
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (comment));
-   gtk_object_sink (GTK_OBJECT (comment));
-#endif
+   /* was gtk_object_ref () + gtk_object_sink () */
+   g_object_ref_sink (G_OBJECT (comment));
 }
 
 
 static void
-gimv_comment_destroy (GtkObject *object)
+gimv_comment_destroy (GimvObject *object)
 {
    GimvComment *comment = GIMV_COMMENT (object);
    GList *node;
@@ -204,8 +182,8 @@ gimv_comment_destroy (GtkObject *object)
       comment->note = NULL;
    }
 
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (*GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (*GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
@@ -215,7 +193,7 @@ gimv_comment_ref (GimvComment *comment)
    g_return_val_if_fail (comment, NULL);
    g_return_val_if_fail (GIMV_IS_COMMENT (comment), NULL);
 
-   gtk_object_ref (GTK_OBJECT (comment));
+   g_object_ref (G_OBJECT (comment));
 
    return comment;
 }
@@ -227,7 +205,7 @@ gimv_comment_unref (GimvComment *comment)
    g_return_if_fail (comment);
    g_return_if_fail (GIMV_IS_COMMENT (comment));
 
-   gtk_object_unref (GTK_OBJECT (comment));
+   g_object_unref (G_OBJECT (comment));
 }
 
 
@@ -390,7 +368,7 @@ gimv_comment_new ()
 {
    GimvComment *comment;
 
-   comment = GIMV_COMMENT (gtk_type_new (gimv_comment_get_type ()));
+   comment = GIMV_COMMENT (g_object_new (GIMV_TYPE_COMMENT, NULL));
    g_return_val_if_fail (comment, NULL);
 
    return comment;
@@ -562,6 +540,69 @@ gimv_comment_find_file (const gchar *img_path)
 }
 
 
+gboolean
+gimv_comment_get_summary (GimvImageInfo *info, gchar **subject, gchar **note)
+{
+   GimvComment *comment, *cached;
+   GimvCommentDataEntry *entry;
+   gchar *image_name, *path;
+
+   if (subject) *subject = NULL;
+   if (note)    *note    = NULL;
+   g_return_val_if_fail (info, FALSE);
+
+   image_name = gimv_image_info_get_path_with_archive (info);
+   if (!image_name) return FALSE;
+   path = gimv_comment_find_file (image_name);
+   g_free (image_name);
+   if (!path) return FALSE;
+   g_free (path);
+
+   /* a comment already open (e.g. in the editor) or a temporary one */
+   cached = gimv_image_info_get_comment (info);
+   comment = cached ? gimv_comment_ref (cached)
+                    : gimv_comment_get_from_image_info (info);
+   if (!comment) return FALSE;
+
+   entry = gimv_comment_find_data_entry_by_key (comment, "X-IMG-Subject");
+   if (subject && entry && entry->value && *entry->value)
+      *subject = g_strdup (entry->value);
+   if (note && comment->note && *comment->note)
+      *note = g_strdup (comment->note);
+
+   gimv_comment_unref (comment);
+
+   return TRUE;
+}
+
+
+gchar *
+gimv_comment_first_line (const gchar *text, gint max_chars)
+{
+   gchar **lines, *ret = NULL;
+   gint i;
+
+   if (!text) return NULL;
+
+   lines = g_strsplit (text, "\n", -1);
+   for (i = 0; lines[i] && !ret; i++) {
+      gchar *line = g_strstrip (lines[i]);
+      if (!*line) continue;
+      if (max_chars > 0 && g_utf8_strlen (line, -1) > max_chars) {
+         gchar *end = g_utf8_offset_to_pointer (line, max_chars);
+         gchar *head = g_strndup (line, end - line);
+         ret = g_strconcat (head, "...", NULL);
+         g_free (head);
+      } else {
+         ret = g_strdup (line);
+      }
+   }
+   g_strfreev (lines);
+
+   return ret;
+}
+
+
 GimvCommentDataEntry *
 gimv_comment_data_entry_find_template_by_key (const gchar *key)
 {
@@ -649,7 +690,9 @@ gimv_comment_append_data (GimvComment *comment, const gchar *key, const gchar *v
          entry->value        = NULL;
          entry->enable       = TRUE;
          entry->auto_val     = FALSE;
-         entry->display      = TRUE;
+         /* "X-GImageView-..." keys are kept for the program (e.g. the
+            rotation) and not shown in the comment editor */
+         entry->display      = !g_str_has_prefix (key, "X-GImageView-");
          entry->def_val_fn   = NULL;
       }
    }
@@ -785,7 +828,7 @@ gimv_comment_save_file (GimvComment *comment)
 
    success = mkdirs (comment->filename);
    if (!success) {
-      g_warning (_("cannot make dir\n"));
+      g_warning (_("Cannot create the directory\n"));
       return FALSE;
    }
 
@@ -835,15 +878,106 @@ gimv_comment_save_file (GimvComment *comment)
 
    fclose (file);
 
-   gtk_signal_emit (GTK_OBJECT (comment), gimv_comment_signals[FILE_SAVED]);
+   g_signal_emit (G_OBJECT (comment), gimv_comment_signals[FILE_SAVED], 0);
+   if (comment->info)
+      gimv_thumb_view_update_info (comment->info);
 
    return TRUE;
 
 ERROR:
    fclose (file);
 
-   gtk_signal_emit (GTK_OBJECT (comment), gimv_comment_signals[FILE_SAVED]);
+   g_signal_emit (G_OBJECT (comment), gimv_comment_signals[FILE_SAVED], 0);
    return FALSE;
+}
+
+
+static gboolean
+comment_has_data (GimvComment *comment)
+{
+   GList *node;
+
+   if (comment->note && *comment->note) return TRUE;
+   for (node = comment->data_list; node; node = g_list_next (node)) {
+      GimvCommentDataEntry *entry = node->data;
+      if (entry && entry->value && *entry->value) return TRUE;
+   }
+   return FALSE;
+}
+
+
+gboolean
+gimv_comment_get_rotation (GimvImageInfo *info, gint *orientation)
+{
+   GimvComment *comment;
+   GimvCommentDataEntry *entry;
+   gchar *path, *file;
+   gboolean found = FALSE;
+
+   g_return_val_if_fail (info && orientation, FALSE);
+
+   /* most images have no comment file: don't build comment objects */
+   path = gimv_image_info_get_path_with_archive (info);
+   file = path ? gimv_comment_find_file (path) : NULL;
+   g_free (path);
+   if (!file) return FALSE;
+   g_free (file);
+
+   comment = gimv_comment_get_from_image_info (info);
+   if (!comment) return FALSE;
+
+   entry = gimv_comment_find_data_entry_by_key (comment, GIMV_COMMENT_ROTATION_KEY);
+   if (entry && entry->value) {
+      switch (atoi (entry->value)) {
+      case 0:   *orientation = 0; found = TRUE; break;
+      case 90:  *orientation = 3; found = TRUE; break;
+      case 180: *orientation = 2; found = TRUE; break;
+      case 270: *orientation = 1; found = TRUE; break;
+      default:  break;
+      }
+   }
+
+   gimv_comment_unref (comment);
+
+   return found;
+}
+
+
+void
+gimv_comment_set_rotation (GimvImageInfo *info, gint orientation)
+{
+   static const gint cw_degrees[] = { 0, 270, 180, 90 };
+   GimvComment *comment;
+   gboolean fresh;
+   gchar buf[16];
+
+   g_return_if_fail (info);
+   if (orientation < 0 || orientation > 3) return;
+
+   /* a comment object made just now (nobody edits it) for an image without
+      a comment file: keep only the rotation, not the default values */
+   fresh = !gimv_image_info_get_comment (info);
+   comment = gimv_comment_get_from_image_info (info);
+   if (!comment) return;
+
+   if (fresh && !file_exists (comment->filename)) {
+      while (comment->data_list)
+         gimv_comment_data_entry_remove (comment, comment->data_list->data);
+   }
+
+   if (orientation == 0) {
+      gimv_comment_data_entry_remove_by_key (comment, GIMV_COMMENT_ROTATION_KEY);
+   } else {
+      g_snprintf (buf, sizeof (buf), "%d", cw_degrees[orientation]);
+      gimv_comment_append_data (comment, GIMV_COMMENT_ROTATION_KEY, buf);
+   }
+
+   if (comment_has_data (comment))
+      gimv_comment_save_file (comment);
+   else if (file_exists (comment->filename))
+      gimv_comment_delete_file (comment);
+
+   gimv_comment_unref (comment);
 }
 
 
@@ -854,6 +988,9 @@ gimv_comment_delete_file (GimvComment *comment)
    g_return_if_fail (comment->filename);
 
    remove (comment->filename);
+
+   if (comment->info)
+      gimv_thumb_view_update_info (comment->info);
 }
 
 

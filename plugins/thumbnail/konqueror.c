@@ -23,11 +23,12 @@
 
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include <gmodule.h>
 
 #include "fileutil.h"
 #include "gfileutil.h"
-#include "md5.h"
 #include "gimv_plugin.h"
 #include "gimv_thumb_cache.h"
 
@@ -103,7 +104,7 @@ GIMV_PLUGIN_GET_IMPL(plugin_impl, GIMV_PLUGIN_THUMB_CACHE)
 GimvPluginInfo gimv_plugin_info =
 {
    if_version:    GIMV_PLUGIN_IF_VERSION,
-   name:          N_("Konqueror(KDE2.2 or higher) thumbnail support"),
+   name:          N_("Konqueror (KDE 2.2 or later) thumbnail support"),
    version:       "0.5.0",
    author:        "Takuro Ashie",
    description:   NULL,
@@ -183,23 +184,24 @@ get_path (const gchar *filename, const gchar *cache_type)
    if (!image_name) goto ERROR;
 
    /* get dir name */
-   image_dir = g_dirname (abspath);
+   image_dir = g_path_get_dirname (abspath);
    if (!image_dir) goto ERROR;
 
    /* These codes are commited from Teppei Tamra <tam-t@par.odn.ne.jp> */
    {
-      unsigned char md5buf[16], tndir[MAX_PATH_LEN + 5];
-      unsigned char kdetn[MAX_PATH_LEN];
-      gchar *tmpstr;
-      size_t cnt;
+      gchar tndir[MAX_PATH_LEN + 5];
+      gchar kdetn[MAX_PATH_LEN];
+      gchar *tmpstr, *digest;
 
       tmpstr = link2abs (image_dir);
 
+      /* MD5 of "file:<dir>" (without the trailing slash) as hex;
+         GTK4 port: GChecksum instead of the bundled md5.c */
       snprintf (tndir, MAX_PATH_LEN + 5, "file:%s/", tmpstr);
-      md5_buffer (tndir, strlen (tndir + 1), md5buf);
-      for (cnt = 0; cnt < 16; ++cnt) {
-         snprintf(tndir + (cnt * 2), MAX_PATH_LEN + 5, "%02x", md5buf[cnt]);
-      }
+      digest = g_compute_checksum_for_data (G_CHECKSUM_MD5, (const guchar *) tndir,
+                                            strlen (tndir) - 1);
+      g_strlcpy (tndir, digest, sizeof (tndir));
+      g_free (digest);
       strncpy (kdetn, tndir, (size_t) 4);
       strcpy (kdetn + 4, "/");
       strncpy (kdetn + 5, tndir + 4, (size_t) 4);

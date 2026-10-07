@@ -25,7 +25,6 @@
 
 #ifdef ENABLE_EXIF
 
-#include <libexif/jpeg-data.h>
 #include <libexif/exif-data.h>
 
 #include "exif_view.h"
@@ -36,14 +35,12 @@
 #include "gimv_image_loader.h"
 
 
-#ifdef ENABLE_TREEVIEW
 typedef enum {
    COLUMN_TERMINATOR = -1,
    COLUMN_KEY,
    COLUMN_VALUE,
    N_COLUMN
 } ListStoreColumn;
-#endif /* ENABLE_TREEVIEW */
 
 
 /******************************************************************************
@@ -60,10 +57,6 @@ cb_exif_view_destroy (GtkWidget *widget, ExifView *ev)
       exif_data_unref (ev->exif_data);
    ev->exif_data = NULL;
 
-   if (ev->jpeg_data)
-      jpeg_data_unref (ev->jpeg_data);
-   ev->jpeg_data = NULL;
-
    g_free (ev);
 }
 
@@ -73,7 +66,7 @@ cb_exif_window_close (GtkWidget *button, ExifView *ev)
 {
    g_return_if_fail (ev);
 
-   gtk_widget_destroy (ev->window);
+   gimv_widget_destroy (ev->window);
 }
 
 
@@ -84,29 +77,27 @@ cb_exif_window_close (GtkWidget *button, ExifView *ev)
  ******************************************************************************/
 static void
 exif_view_content_list_set_data (GtkWidget *clist,
-                                 ExifContent *content)
+                                 ExifContent *content,
+                                 ExifIfd ifd)
 {
    const gchar *text[2];
+   gchar value[1024];
    guint i;
 
    g_return_if_fail (clist);
    g_return_if_fail (content);
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (clist));
       gtk_list_store_clear (GTK_LIST_STORE (model));
    }
-#else /* ENABLE_TREEVIEW */
-   gtk_clist_clear (GTK_CLIST (clist));
-#endif /* ENABLE_TREEVIEW */
 
    for (i = 0; i < content->count; i++) {
-      text[0] = exif_tag_get_name (content->entries[i]->tag);
-      if (text[0] && *text[0]) text[0] = _(text[0]);
-      text[1] = exif_entry_get_value (content->entries[i]);
-      if (text[1] && *text[1]) text[1] = _(text[1]);
-#ifdef ENABLE_TREEVIEW
+      /* system libexif: titles and values are translated by libexif */
+      text[0] = exif_tag_get_title_in_ifd (content->entries[i]->tag, ifd);
+      if (!text[0])
+         text[0] = exif_tag_get_name (content->entries[i]->tag);
+      text[1] = exif_entry_get_value (content->entries[i], value, sizeof (value));
       {
          GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (clist));
          GtkTreeIter iter;
@@ -117,9 +108,6 @@ exif_view_content_list_set_data (GtkWidget *clist,
                              COLUMN_VALUE,     text[1],
                              COLUMN_TERMINATOR);
       }
-#else /* ENABLE_TREEVIEW */
-      gtk_clist_append (GTK_CLIST (clist), (gchar **) text);
-#endif /* ENABLE_TREEVIEW */
    }
 }
 
@@ -144,29 +132,30 @@ exif_view_create_window (const gchar *filename, GtkWindow *parent)
    ev->window = gtk_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (ev->window), parent);
+   else
+      gimv_window_set_default_transient (GTK_WINDOW (ev->window));
    g_snprintf (buf, BUF_SIZE, _("%s EXIF data"), filename);
    gtk_window_set_title (GTK_WINDOW (ev->window), buf); 
    gtk_window_set_default_size (GTK_WINDOW (ev->window), 500, 400);
-   gtk_window_set_position (GTK_WINDOW (ev->window), GTK_WIN_POS_CENTER);
 
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (ev->window)->vbox),
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (ev->window))),
                        ev->container,
                        TRUE, TRUE, 0);
 
-   gtk_widget_show_all (ev->window);
+   gimv_widget_show_all (ev->window);
 
    /* button */
    button = gtk_button_new_with_label (_("Close"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (ev->window)->action_area), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (ev->window))), 
                        button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_exif_window_close), ev);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_exif_window_close), ev);
+   gtk_window_set_default_widget (GTK_WINDOW (ev->window), button);
    gtk_widget_show (button);
 
    gtk_widget_grab_focus (button);
 
-   gimv_icon_stock_set_window_icon (ev->window->window, "gimv_icon");
+   gimv_icon_stock_set_window_icon (ev->window, "gimv_icon");
 
    return ev;
 }
@@ -179,8 +168,8 @@ exif_view_get_thumbnail (ExifData *edata)
    GimvImageLoader *loader;
    GimvIO *gio;
    GimvImage *gimvimage;
-   GdkPixmap *pixmap = NULL;
-   GdkBitmap *bitmap = NULL;
+   GdkTexture *pixmap = NULL;
+   GdkTexture *bitmap = NULL;
 
 
    g_return_val_if_fail (edata, NULL);
@@ -211,14 +200,13 @@ exif_view_get_thumbnail (ExifData *edata)
    gimv_image_loader_unref (loader);
    gimv_io_unref (gio);
 
-#ifdef USE_GTK2
-   image = gtk_image_new_from_pixmap (pixmap, bitmap);   
-#else
-   image = gtk_pixmap_new (pixmap, bitmap);
-#endif
+   if (!pixmap) return NULL;
+
+   image = gtk_picture_new_for_paintable (GDK_PAINTABLE (pixmap));
+   gtk_picture_set_can_shrink (GTK_PICTURE (image), FALSE);
 
    if (pixmap)
-      gdk_pixmap_unref (pixmap);
+      g_object_unref (pixmap);
 
    return image;
 }
@@ -227,7 +215,6 @@ exif_view_get_thumbnail (ExifData *edata)
 ExifView *
 exif_view_create (const gchar *filename, GtkWindow *parent)
 {
-   JPEGData *jdata;
    ExifData *edata;
    ExifView *ev = NULL;
    ExifContent *contents[EXIF_IFD_COUNT];
@@ -241,23 +228,16 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
 
    g_return_val_if_fail (filename && *filename, NULL);
 
-   jdata = jpeg_data_new_from_file (filename);
-   if (!jdata) {
-      gtkutil_message_dialog (_("Error!!"), _("EXIF data not found."),
-                              GTK_WINDOW (ev->window));
-      return NULL;
-   }
-
-   edata = jpeg_data_get_exif_data (jdata);
+   /* system libexif: finds the EXIF data in JPEG (and a few other) files */
+   edata = exif_data_new_from_file (filename);
    if (!edata) {
-      gtkutil_message_dialog (_("Error!!"), _("EXIF data not found."),
+      gtkutil_message_dialog (_("Error!"), _("EXIF data not found."),
                               GTK_WINDOW (parent));
-      goto ERROR;
+      return NULL;
    }
 
    ev = g_new0 (ExifView, 1);
    ev->exif_data = edata;
-   ev->jpeg_data = jdata;
 
 #if 0
    contents[0] = edata->ifd0;
@@ -270,14 +250,14 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
       contents[i] = edata->ifd[i];
 #endif
 
-   ev->container = gtk_vbox_new (FALSE, 0);
-   gtk_signal_connect (GTK_OBJECT (ev->container), "destroy",
-                       GTK_SIGNAL_FUNC (cb_exif_view_destroy), ev);
+   ev->container = gimv_vbox_new (FALSE, 0);
+   g_signal_connect (G_OBJECT (ev->container), "destroy",
+                       G_CALLBACK (cb_exif_view_destroy), ev);
    gtk_widget_show (ev->container);
 
    notebook = gtk_notebook_new ();
    gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), TRUE);
-   gtk_box_pack_start(GTK_BOX(ev->container), notebook, TRUE, TRUE, 0);
+   gimv_box_pack_start(GTK_BOX(ev->container), notebook, TRUE, TRUE, 0);
    gtk_widget_show (notebook);
 
    /* Tag Tables */
@@ -286,19 +266,15 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
 
       /* scrolled window & clist */
       label = gtk_label_new (_(exif_ifd_get_name(i)));
-      scrolledwin = gtk_scrolled_window_new (NULL, NULL);
+      scrolledwin = gimv_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                       GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
-#ifdef USE_GTK2
-      gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwin),
-                                          GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-      gtk_container_set_border_width (GTK_CONTAINER (scrolledwin), 5);
+      gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
+      gimv_container_set_border_width (GTK_WIDGET (scrolledwin), 5);
       gtk_notebook_append_page (GTK_NOTEBOOK(notebook),
                                 scrolledwin, label);
       gtk_widget_show (scrolledwin);
 
-#ifdef ENABLE_TREEVIEW
       {
          GtkListStore *store;
          GtkTreeViewColumn *col;
@@ -306,8 +282,9 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
 
          store = gtk_list_store_new (N_COLUMN, G_TYPE_STRING, G_TYPE_STRING);
          clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+         gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
 
-         gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (clist), TRUE);
+         /* GTK4: gtk_tree_view_set_rules_hint () removed (no striped rows) */
 
          /* set column for key */
          col = gtk_tree_view_column_new();
@@ -327,22 +304,16 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
          gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_VALUE);
          gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
       }
-#else /* ENABLE_TREEVIEW */
-      clist =  gtk_clist_new_with_titles (2, titles);
-      gtk_clist_set_selection_mode (GTK_CLIST (clist), GTK_SELECTION_SINGLE);
-      gtk_clist_set_column_auto_resize (GTK_CLIST (clist), 0, TRUE);
-      gtk_clist_set_column_auto_resize (GTK_CLIST (clist), 1, TRUE);
-#endif /* ENABLE_TREEVIEW */
 
-      gtk_container_add (GTK_CONTAINER (scrolledwin), clist);
+      gimv_container_add (GTK_WIDGET (scrolledwin), clist);
       gtk_widget_show (clist);
 
-      exif_view_content_list_set_data (clist, contents[i]);
+      exif_view_content_list_set_data (clist, contents[i], i);
    }
 
    /* Thumbnail page */
    label = gtk_label_new (_("Thumbnail"));
-   vbox = gtk_vbox_new (TRUE, 0);
+   vbox = gimv_vbox_new (TRUE, 0);
    gtk_notebook_append_page (GTK_NOTEBOOK(notebook),
                              vbox, label);
    gtk_widget_show (vbox);
@@ -350,13 +321,9 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
    pixmap = exif_view_get_thumbnail (edata);
 
    if (pixmap)
-      gtk_box_pack_start (GTK_BOX (vbox), pixmap, TRUE, TRUE, 0);
+      gimv_box_pack_start (GTK_BOX (vbox), pixmap, TRUE, TRUE, 0);
 
    return ev;
-
-ERROR:
-   jpeg_data_unref (jdata);
-   return NULL;
 }
 
 #endif /* ENABLE_EXIF */

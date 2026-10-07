@@ -29,6 +29,8 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 
 typedef enum {
@@ -71,8 +73,11 @@ GtkWidget    *gtkutil_create_check_button    (const gchar   *lebel_text,
                                               gpointer       func,
                                               gpointer       data);
 GtkWidget    *gtkutil_create_toolbar         (void);
+/* style: 0 = icons, 1 = text, 2 = both, 3 = both horiz (GtkToolbarStyle values) */
+void          gtkutil_toolbar_set_style      (GtkWidget     *toolbar,
+                                              gint           style);
 GtkWidget    *gtkutil_create_spin_button     (GtkAdjustment *adj);
-GtkWidget    *gtkutil_option_menu_get_current(GtkWidget     *option_menu);
+GObject      *gtkutil_option_menu_get_current(GtkWidget     *option_menu);
 GList        *gtkutil_list_insert_sorted     (GList         *list,
                                               gpointer       data,
                                               GCompareFunc   func,

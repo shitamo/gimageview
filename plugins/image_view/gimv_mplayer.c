@@ -43,28 +43,19 @@
 #include <signal.h>
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
-#if (GTK_MAJOR_VERSION == 1) && (GTK_MAJOR_VERION <= 2)
-#  ifndef GDK_WINDOWING_X11
-#     define GDK_WINDOWING_X11
-#  endif
-#endif
 
 #ifdef GDK_WINDOWING_X11
-#include <gdk/gdkx.h>
+#include <X11/Xlib.h>
+#include <gdk/x11/gdkx.h>
+#include "gimv_x11_video_window.h"
 #endif /* GDK_WINDOWING_X11 */
 
 
 #define GIMV_MPLAYER_REFRESH_RATE 100 /* 0.1 [sec] */
 #define GIMV_MPLAYER_BUF_SIZE 1024
-
-#ifdef USE_GTK2
-#  define gtk_object_class_add_signals(class, func, type)
-#else
-#  ifndef GTK_CLASS_TYPE
-#     define GTK_CLASS_TYPE(object_class) object_class->type
-#  endif
-#endif
 
 enum {
    PLAY_SIGNAL,
@@ -101,7 +92,7 @@ struct ChildContext_Tag
 
    ProcessLineFunc  process_line_fn;
    gpointer         data;
-   GtkDestroyNotify destroy_fn;
+   GDestroyNotify destroy_fn;
 };
 
 
@@ -117,13 +108,19 @@ typedef struct  GetDriversContext_Tag
 /* object class */
 static void     gimv_mplayer_class_init    (GimvMPlayerClass *class);
 static void     gimv_mplayer_init          (GimvMPlayer      *player);
-static void     gimv_mplayer_destroy       (GtkObject        *object);
+static void     gimv_mplayer_dispose       (GObject          *object);
 
 /* widget class */
 static void     gimv_mplayer_realize       (GtkWidget        *widget);
 static void     gimv_mplayer_unrealize     (GtkWidget        *widget);
+static void     gimv_mplayer_map           (GtkWidget        *widget);
+static void     gimv_mplayer_unmap         (GtkWidget        *widget);
+static void     gimv_mplayer_snapshot      (GtkWidget        *widget,
+                                            GtkSnapshot      *snapshot);
 static void     gimv_mplayer_size_allocate (GtkWidget        *widget,
-                                            GtkAllocation    *allocation);
+                                            int               width,
+                                            int               height,
+                                            int               baseline);
 
 /* mplayer class */
 static ChildContext *gimv_mplayer_get_player_child (GimvMPlayer *player);
@@ -139,7 +136,7 @@ static ChildContext *start_command         (GimvMPlayer      *player,
                                             gboolean          main_iterate,
                                             ProcessLineFunc   func,
                                             gpointer          data,
-                                            GtkDestroyNotify  destroy_fn);
+                                            GDestroyNotify  destroy_fn);
 static gint     timeout_check_child        (gpointer          data);
 static gboolean process_output             (ChildContext     *context);
 
@@ -161,19 +158,18 @@ static void     process_line_identify      (ChildContext     *context,
 
 
 static GtkWidgetClass *parent_class = NULL;
-static gint gimv_mplayer_signals[LAST_SIGNAL] = {0};
+static guint gimv_mplayer_signals[LAST_SIGNAL] = {0};
 
 static GHashTable *player_context_table = NULL;
 static GHashTable *vo_drivers_table     = NULL;
 static GHashTable *ao_drivers_table     = NULL;
 
 
-GtkType
+GType
 gimv_mplayer_get_type (void)
 {
-   static GtkType gimv_mplayer_type = 0;
+   static GType gimv_mplayer_type = 0;
 
-#if (GTK_MAJOR_VERSION >= 2)
    if (!gimv_mplayer_type) {
       static const GTypeInfo gimv_mplayer_info = {
          sizeof (GimvMPlayerClass),
@@ -193,23 +189,6 @@ gimv_mplayer_get_type (void)
                                    &gimv_mplayer_info,
                                    0);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   if (!gimv_mplayer_type) {
-      static const GtkTypeInfo gimv_mplayer_info = {
-         "GimvMPlayer",
-         sizeof (GimvMPlayer),
-         sizeof (GimvMPlayerClass),
-         (GtkClassInitFunc) gimv_mplayer_class_init,
-         (GtkObjectInitFunc) gimv_mplayer_init,
-         /* reserved_1 */ NULL,
-         /* reserved_2 */ NULL,
-         (GtkClassInitFunc) NULL,
-      };
-    
-      gimv_mplayer_type
-         = gtk_type_unique (gtk_widget_get_type (), &gimv_mplayer_info);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    return gimv_mplayer_type;
 }
@@ -218,18 +197,17 @@ gimv_mplayer_get_type (void)
 static void
 gimv_mplayer_class_init (GimvMPlayerClass *class)
 {
-   GtkObjectClass *object_class;
+   GObjectClass *gobject_class;
    GtkWidgetClass *widget_class;
 
-   object_class = (GtkObjectClass *) class;
+   gobject_class = (GObjectClass *) class;
    widget_class = (GtkWidgetClass *) class;
 
-   parent_class = gtk_type_class (gtk_widget_get_type ());
+   parent_class = g_type_class_peek_parent (class);
 
-#if (defined USE_GTK2) && (defined GTK_DISABLE_DEPRECATED)
    gimv_mplayer_signals[PLAY_SIGNAL]
       = g_signal_new ("play",
-                      G_TYPE_FROM_CLASS (object_class),
+                      G_TYPE_FROM_CLASS (gobject_class),
                       G_SIGNAL_RUN_FIRST,
                       G_STRUCT_OFFSET (GimvMPlayerClass, play),
                       NULL, NULL,
@@ -238,7 +216,7 @@ gimv_mplayer_class_init (GimvMPlayerClass *class)
 
    gimv_mplayer_signals[STOP_SIGNAL]
       = g_signal_new ("stop",
-                      G_TYPE_FROM_CLASS (object_class),
+                      G_TYPE_FROM_CLASS (gobject_class),
                       G_SIGNAL_RUN_FIRST,
                       G_STRUCT_OFFSET (GimvMPlayerClass, stop),
                       NULL, NULL,
@@ -247,7 +225,7 @@ gimv_mplayer_class_init (GimvMPlayerClass *class)
 
    gimv_mplayer_signals[PAUSE_SIGNAL]
       = g_signal_new ("pause",
-                      G_TYPE_FROM_CLASS (object_class),
+                      G_TYPE_FROM_CLASS (gobject_class),
                       G_SIGNAL_RUN_FIRST,
                       G_STRUCT_OFFSET (GimvMPlayerClass, pause),
                       NULL, NULL,
@@ -255,8 +233,8 @@ gimv_mplayer_class_init (GimvMPlayerClass *class)
                       G_TYPE_NONE, 0);
 
    gimv_mplayer_signals[POS_CHANGED_SIGNAL]
-      = g_signal_new ("position-chaned",
-                      G_TYPE_FROM_CLASS (object_class),
+      = g_signal_new ("position-changed",
+                      G_TYPE_FROM_CLASS (gobject_class),
                       G_SIGNAL_RUN_FIRST,
                       G_STRUCT_OFFSET (GimvMPlayerClass, position_changed),
                       NULL, NULL,
@@ -265,61 +243,22 @@ gimv_mplayer_class_init (GimvMPlayerClass *class)
 
    gimv_mplayer_signals[IDENTIFIED_SIGNAL]
       = g_signal_new ("identified",
-                      G_TYPE_FROM_CLASS (object_class),
+                      G_TYPE_FROM_CLASS (gobject_class),
                       G_SIGNAL_RUN_FIRST,
                       G_STRUCT_OFFSET (GimvMPlayerClass, identified),
                       NULL, NULL,
                       g_cclosure_marshal_VOID__VOID,
                       G_TYPE_NONE, 0);
-#else
-   gimv_mplayer_signals[PLAY_SIGNAL]
-      = gtk_signal_new ("play",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvMPlayerClass, play),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
 
-   gimv_mplayer_signals[STOP_SIGNAL]
-      = gtk_signal_new ("stop",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvMPlayerClass, stop),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
-
-   gimv_mplayer_signals[PAUSE_SIGNAL]
-      = gtk_signal_new ("pause",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvMPlayerClass, pause),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
-
-   gimv_mplayer_signals[POS_CHANGED_SIGNAL]
-      = gtk_signal_new ("position-changed",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvMPlayerClass, position_changed),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
-
-   gimv_mplayer_signals[IDENTIFIED_SIGNAL]
-      = gtk_signal_new ("identified",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvMPlayerClass, identified),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
-
-   gtk_object_class_add_signals (object_class, gimv_mplayer_signals, LAST_SIGNAL);
-#endif
    /* object class methods */
-   object_class->destroy       = gimv_mplayer_destroy;
+   gobject_class->dispose      = gimv_mplayer_dispose;
 
    /* widget class methods */
    widget_class->realize       = gimv_mplayer_realize;
    widget_class->unrealize     = gimv_mplayer_unrealize;
+   widget_class->map           = gimv_mplayer_map;
+   widget_class->unmap         = gimv_mplayer_unmap;
+   widget_class->snapshot      = gimv_mplayer_snapshot;
    widget_class->size_allocate = gimv_mplayer_size_allocate;
 
    /* mplayer class methods */
@@ -382,11 +321,14 @@ gimv_mplayer_init (GimvMPlayer *player)
       player->include_file = NULL;
 
    gimv_mplayer_media_info_init (&player->media_info);
+
+   player->xid        = 0;
+   player->win_mapped = FALSE;
 }
 
 
 static void
-gimv_mplayer_destroy (GtkObject *object)
+gimv_mplayer_dispose (GObject *object)
 {
    GimvMPlayer *player = GIMV_MPLAYER (object);
 
@@ -412,8 +354,8 @@ gimv_mplayer_destroy (GtkObject *object)
 
    /* FIXME: free player->args */
 
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      GTK_OBJECT_CLASS (parent_class)->destroy (object);
+   if (G_OBJECT_CLASS (parent_class)->dispose)
+      G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
 
@@ -423,42 +365,108 @@ gimv_mplayer_destroy (GtkObject *object)
  *   widget class methods.
  *
  ******************************************************************************/
-static void gimv_mplayer_send_configure (GimvMPlayer *player);
+#ifdef GDK_WINDOWING_X11
+static Display *
+gimv_mplayer_get_xdisplay (GimvMPlayer *player)
+{
+   GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (player));
+
+   if (!GDK_IS_X11_DISPLAY (display)) return NULL;
+   return gdk_x11_display_get_xdisplay (display);
+}
+
+
+/*
+ * GTK4: keep the X child window at the position of the widget inside the
+ * toplevel surface.
+ */
+static void
+gimv_mplayer_update_window_geometry (GimvMPlayer *player)
+{
+   GtkWidget *widget = GTK_WIDGET (player);
+   Display *xdisplay;
+   GtkNative *native;
+   graphene_point_t p;
+   double sx = 0.0, sy = 0.0;
+   gint x, y, width, height;
+
+   if (!player->xid) return;
+   xdisplay = gimv_mplayer_get_xdisplay (player);
+   if (!xdisplay) return;
+
+   native = gtk_widget_get_native (widget);
+   if (!native) return;
+
+   if (!gtk_widget_compute_point (widget, GTK_WIDGET (native),
+                                  &GRAPHENE_POINT_INIT (0, 0), &p))
+      return;
+   gtk_native_get_surface_transform (native, &sx, &sy);
+
+   x      = (gint) (p.x + sx);
+   y      = (gint) (p.y + sy);
+   /* FIXME, TODO-1.3: back out the MAX() statements */
+   width  = MAX (1, gtk_widget_get_width (widget));
+   height = MAX (1, gtk_widget_get_height (widget));
+
+   if (x == player->win_x && y == player->win_y
+       && width == player->win_width && height == player->win_height)
+   {
+      return;
+   }
+
+   player->win_x      = x;
+   player->win_y      = y;
+   player->win_width  = width;
+   player->win_height = height;
+
+   XMoveResizeWindow (xdisplay, (Window) player->xid, x, y, width, height);
+   XFlush (xdisplay);
+}
+#endif /* GDK_WINDOWING_X11 */
+
 
 static void
 gimv_mplayer_realize (GtkWidget *widget)
 {
    GimvMPlayer *player;
-   GdkWindowAttr attributes;
-   gint attributes_mask;
 
    g_return_if_fail (widget != NULL);
    g_return_if_fail (GIMV_IS_MPLAYER (widget));
 
    player = GIMV_MPLAYER (widget);
-   GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
 
-   attributes.window_type = GDK_WINDOW_CHILD;
-   attributes.x           = widget->allocation.x;
-   attributes.y           = widget->allocation.y;
-   attributes.width       = widget->allocation.width;
-   attributes.height      = widget->allocation.height;
-   attributes.wclass      = GDK_INPUT_OUTPUT;
-   attributes.visual      = gtk_widget_get_visual (widget);
-   attributes.colormap    = gtk_widget_get_colormap (widget);
-   attributes.event_mask  = gtk_widget_get_events (widget) | GDK_EXPOSURE_MASK;
+   GTK_WIDGET_CLASS (parent_class)->realize (widget);
 
-   attributes_mask = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP;
+   player->xid = 0;
 
-   widget->window = gdk_window_new (gtk_widget_get_parent_window (widget),
-                                    &attributes, attributes_mask);
-   gdk_window_set_user_data (widget->window, player);
+#ifdef GDK_WINDOWING_X11
+   /* GTK4: create an X child window of the toplevel surface for mplayer's
+    * "-wid" option.  On other backends mplayer opens its own window. */
+   {
+      Display *xdisplay = gimv_mplayer_get_xdisplay (player);
+      GtkNative *native = gtk_widget_get_native (widget);
+      GdkSurface *surface = native ? gtk_native_get_surface (native) : NULL;
 
-   widget->style = gtk_style_attach (widget->style, widget->window);
-   gtk_style_set_background (widget->style, widget->window, GTK_STATE_NORMAL);
-   gdk_window_set_background (widget->window, &widget->style->black);
+      if (xdisplay && surface && GDK_IS_X11_SURFACE (surface)) {
+         Window parent = gdk_x11_surface_get_xid (surface);
+         int screen = DefaultScreen (xdisplay);
 
-   gimv_mplayer_send_configure (player);
+         player->win_x = player->win_y = -1;
+         player->win_width = player->win_height = -1;
+         player->win_mapped = FALSE;
+         Colormap colormap;
+
+         (void) screen;
+         player->xid = (gulong) gimv_x11_create_video_window (xdisplay, parent,
+                                                              1, 1, &colormap);
+         player->colormap = (gulong) colormap;
+         gimv_mplayer_update_window_geometry (player);
+      }
+   }
+#endif /* GDK_WINDOWING_X11 */
+
+   /* GTK4: synthetic configure events (gimv_mplayer_send_configure) are
+    * not possible any more; nothing in GImageView listened to them. */
 }
 
 
@@ -471,51 +479,104 @@ gimv_mplayer_unrealize (GtkWidget *widget)
       gimv_mplayer_stop (player);
    }
 
+#ifdef GDK_WINDOWING_X11
+   if (player->xid) {
+      Display *xdisplay = gimv_mplayer_get_xdisplay (player);
+
+      if (xdisplay) {
+         gimv_x11_destroy_video_window (xdisplay, (Window) player->xid,
+                                        (Colormap) player->colormap);
+         XFlush (xdisplay);
+      }
+      player->colormap = 0;
+   }
+#endif /* GDK_WINDOWING_X11 */
+   player->xid = 0;
+   player->win_mapped = FALSE;
+
    if (parent_class->unrealize)
       (*parent_class->unrealize) (widget);
 }
 
 
 static void
-gimv_mplayer_size_allocate (GtkWidget     *widget,
-                            GtkAllocation *allocation)
+gimv_mplayer_map (GtkWidget *widget)
 {
-   g_return_if_fail (widget != NULL);
-   g_return_if_fail (GIMV_IS_MPLAYER (widget));
-   g_return_if_fail (allocation != NULL);
+   GimvMPlayer *player = GIMV_MPLAYER (widget);
 
-   widget->allocation = *allocation;
-   /* FIXME, TODO-1.3: back out the MAX() statements */
-   widget->allocation.width = MAX (1, widget->allocation.width);
-   widget->allocation.height = MAX (1, widget->allocation.height);
+   GTK_WIDGET_CLASS (parent_class)->map (widget);
 
-   if (GTK_WIDGET_REALIZED (widget)) {
-      gdk_window_move_resize (widget->window,
-                              allocation->x, allocation->y,
-                              allocation->width, allocation->height);
+#ifdef GDK_WINDOWING_X11
+   if (player->xid && !player->win_mapped) {
+      Display *xdisplay = gimv_mplayer_get_xdisplay (player);
 
-      gimv_mplayer_send_configure (GIMV_MPLAYER (widget));
+      if (xdisplay) {
+         gimv_mplayer_update_window_geometry (player);
+         XMapWindow (xdisplay, (Window) player->xid);
+         XFlush (xdisplay);
+         player->win_mapped = TRUE;
+      }
    }
+#else /* GDK_WINDOWING_X11 */
+   (void) player;
+#endif /* GDK_WINDOWING_X11 */
 }
 
 
 static void
-gimv_mplayer_send_configure (GimvMPlayer *player)
+gimv_mplayer_unmap (GtkWidget *widget)
 {
-   GtkWidget *widget;
-   GdkEventConfigure event;
+   GimvMPlayer *player = GIMV_MPLAYER (widget);
 
-   widget = GTK_WIDGET (player);
+#ifdef GDK_WINDOWING_X11
+   if (player->xid && player->win_mapped) {
+      Display *xdisplay = gimv_mplayer_get_xdisplay (player);
 
-   event.type = GDK_CONFIGURE;
-   event.window = widget->window;
-   event.send_event = TRUE;
-   event.x = widget->allocation.x;
-   event.y = widget->allocation.y;
-   event.width = widget->allocation.width;
-   event.height = widget->allocation.height;
-  
-   gtk_widget_event (widget, (GdkEvent*) &event);
+      if (xdisplay) {
+         XUnmapWindow (xdisplay, (Window) player->xid);
+         XFlush (xdisplay);
+      }
+      player->win_mapped = FALSE;
+   }
+#else /* GDK_WINDOWING_X11 */
+   (void) player;
+#endif /* GDK_WINDOWING_X11 */
+
+   GTK_WIDGET_CLASS (parent_class)->unmap (widget);
+}
+
+
+/* GTK2 version used a window with black background */
+static void
+gimv_mplayer_snapshot (GtkWidget *widget, GtkSnapshot *snapshot)
+{
+   GdkRGBA black = { 0.0, 0.0, 0.0, 1.0 };
+
+   gtk_snapshot_append_color (snapshot, &black,
+                              &GRAPHENE_RECT_INIT (0, 0,
+                                                   gtk_widget_get_width (widget),
+                                                   gtk_widget_get_height (widget)));
+
+#ifdef GDK_WINDOWING_X11
+   /* the widget may have been moved without a new allocation */
+   gimv_mplayer_update_window_geometry (GIMV_MPLAYER (widget));
+#endif /* GDK_WINDOWING_X11 */
+}
+
+
+static void
+gimv_mplayer_size_allocate (GtkWidget *widget,
+                            int        width,
+                            int        height,
+                            int        baseline)
+{
+   g_return_if_fail (widget != NULL);
+   g_return_if_fail (GIMV_IS_MPLAYER (widget));
+
+#ifdef GDK_WINDOWING_X11
+   if (gtk_widget_get_realized (GTK_WIDGET (widget)))
+      gimv_mplayer_update_window_geometry (GIMV_MPLAYER (widget));
+#endif /* GDK_WINDOWING_X11 */
 }
 
 
@@ -523,17 +584,24 @@ gimv_mplayer_send_configure (GimvMPlayer *player)
 static void
 gimv_mplayer_send_dummy_configure (GimvMPlayer *player)
 {
-   GtkWidget *widget;
-   gint width, height;
-
    g_return_if_fail (GTK_IS_WIDGET (player));
 
-   widget = GTK_WIDGET (player);
-   width  = widget->allocation.width;
-   height = widget->allocation.height;
+#ifdef GDK_WINDOWING_X11
+   if (player->xid) {
+      Display *xdisplay = gimv_mplayer_get_xdisplay (player);
+      GtkWidget *widget = GTK_WIDGET (player);
+      gint width, height;
 
-   gdk_window_resize (widget->window, width - 1, height - 1);
-   gdk_window_resize (widget->window, width, height);
+      if (!xdisplay) return;
+
+      width  = MAX (2, gtk_widget_get_width (widget));
+      height = MAX (2, gtk_widget_get_height (widget));
+
+      XResizeWindow (xdisplay, (Window) player->xid, width - 1, height - 1);
+      XResizeWindow (xdisplay, (Window) player->xid, width, height);
+      XFlush (xdisplay);
+   }
+#endif /* GDK_WINDOWING_X11 */
 }
 
 
@@ -630,7 +698,7 @@ gimv_mplayer_is_running (GimvMPlayer *player)
 GtkWidget *
 gimv_mplayer_new (void)
 {
-   GimvMPlayer *player = GIMV_MPLAYER (gtk_type_new (gimv_mplayer_get_type ()));
+   GimvMPlayer *player = GIMV_MPLAYER (g_object_new (gimv_mplayer_get_type (), NULL));
 
    return GTK_WIDGET (player);
 }
@@ -645,7 +713,7 @@ playback_done (gpointer data)
 
    player->pos = 0.0;
    player->status = GimvMPlayerStatusStop;
-   gtk_signal_emit (GTK_OBJECT (player), gimv_mplayer_signals[STOP_SIGNAL]);
+   g_signal_emit (G_OBJECT (player), gimv_mplayer_signals[STOP_SIGNAL], 0);
 }
 
 
@@ -679,23 +747,22 @@ gimv_mplayer_start (GimvMPlayer *player, gfloat pos, gfloat speed)
    arg_list = g_list_append (arg_list, g_strdup (player->command));
    arg_list = g_list_append (arg_list, g_strdup("-slave"));
 
-   if (GTK_WIDGET_REALIZED (GTK_WIDGET (player))) {
-#if defined(GDK_WINDOWING_X11)
+   /* GTK4: embedding is only possible on the X11 backend (player->xid is
+    * our X child window); elsewhere mplayer opens its own video window. */
+   if (gtk_widget_get_realized (GTK_WIDGET (player)) && player->xid) {
       if (player->flags & GimvMPlayerEmbedFlag) {
-         g_snprintf (buf, buf_size, "%ld",
-                     GDK_WINDOW_XWINDOW (GTK_WIDGET (player)->window));
+         g_snprintf (buf, buf_size, "%lu", player->xid);
          arg_list = g_list_append (arg_list, g_strdup("-wid"));
          arg_list = g_list_append (arg_list, g_strdup(buf));
       }
-#endif /* GDK_WINDOWING_X11 */
 
       if (player->vo && !strcmp ("x11", player->vo) &&
           player->flags & GimvMPlayerEmbedFlag)
       {
          g_snprintf (buf, buf_size, "scale=%d:%d",
-                     GTK_WIDGET (player)->allocation.width,
-                     GTK_WIDGET (player)->allocation.height);
-         arg_list = g_list_append (arg_list, g_strdup("-vop"));
+                     gtk_widget_get_width (GTK_WIDGET (player)),
+                     gtk_widget_get_height (GTK_WIDGET (player)));
+         arg_list = g_list_append (arg_list, g_strdup("-vf")   /* -vop was removed from mplayer */);
          arg_list = g_list_append (arg_list, g_strdup(buf));
       }
    }
@@ -861,7 +928,7 @@ gimv_mplayer_set_audio_delay (GimvMPlayer *player, gfloat second)
 static void
 identify_done (gpointer data)
 {
-   /* gtk_main_quit (); */
+   /* gimv_main_quit (); */
 }
 
 
@@ -901,17 +968,17 @@ gimv_mplayer_set_file (GimvMPlayer *player,
       start_command (player, args, NULL, FALSE,
                      process_line_identify, &identify_supported, identify_done);
 #if 0
-      gtk_grab_add (GTK_WIDGET (player));
-      gtk_main ();
-      gtk_grab_remove (GTK_WIDGET (player));
+      gimv_grab_add (GTK_WIDGET (player));
+      gimv_main ();
+      gimv_grab_remove (GTK_WIDGET (player));
 #endif
 
       if (player->media_info.video || player->media_info.audio
           || !identify_supported)
       {
          player->filename = g_strdup (file);
-         gtk_signal_emit (GTK_OBJECT (player),
-                          gimv_mplayer_signals[IDENTIFIED_SIGNAL]);
+         g_signal_emit (G_OBJECT (player),
+                     gimv_mplayer_signals[IDENTIFIED_SIGNAL], 0);
          return TRUE;
       } else {
          /* error handling */
@@ -953,7 +1020,7 @@ gimv_mplayer_get_flags (GimvMPlayer *player, GimvMPlayerFlags flags)
 static void
 get_drivers_done (gpointer data)
 {
-   /* gtk_main_quit (); */
+   /* gimv_main_quit (); */
 }
 
 
@@ -999,7 +1066,7 @@ get_drivers (GimvMPlayer *player, gboolean refresh,
 
       start_command (player, args, NULL, FALSE,
                      process_line_get_drivers, &dcontext, get_drivers_done);
-      /* gtk_main (); */
+      /* gimv_main (); */
 
       if (dcontext.drivers_list)
          g_hash_table_insert (drivers_table,
@@ -1189,7 +1256,7 @@ get_frame_done (gpointer data)
    gboolean *main_iterate = data;
 
    if (main_iterate && *main_iterate)
-      gtk_main_quit ();
+      gimv_main_quit ();
 }
 
 
@@ -1247,7 +1314,7 @@ gimv_mplayer_get_frame (GimvMPlayer *player,
    start_command (player, arg_list, dir, main_iterate,
                   NULL, &main_iterate, get_frame_done);
    if (main_iterate)
-      gtk_main ();
+      gimv_main ();
    filename = pickup_newest_file (dir);
 
    return filename;
@@ -1271,12 +1338,12 @@ gimv_mplayer_remove_dir (const gchar *dirname)
          if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, ".."))
             continue;
 
-         format = path[strlen(path) - 1] == '/' ? "%s%s" : "%s/%s";
+         format = dirname[strlen(dirname) - 1] == '/' ? "%s%s" : "%s/%s";
          g_snprintf (path, PATH_SIZE, format, dirname, entry->d_name);
          list = g_list_append (list, g_strdup (path));
       }
+      closedir (dp);
    }
-   closedir (dp);
 
    for (node = list; node; node = g_list_next (node)) {
       struct stat st;
@@ -1332,7 +1399,7 @@ start_command (GimvMPlayer *player,
                GList *arg_list, /* include command */
                const gchar *work_dir,
                gboolean main_iterate,
-               ProcessLineFunc func, gpointer data, GtkDestroyNotify destroy_fn)
+               ProcessLineFunc func, gpointer data, GDestroyNotify destroy_fn)
 {
    ChildContext *context;
    pid_t pid;
@@ -1376,7 +1443,7 @@ start_command (GimvMPlayer *player,
 
       /* observe output */
       if (main_iterate) {
-         context->checker_id = gtk_timeout_add (GIMV_MPLAYER_REFRESH_RATE, 
+         context->checker_id = g_timeout_add (GIMV_MPLAYER_REFRESH_RATE, 
                                                 timeout_check_child, context);
       } else {
          while (timeout_check_child (context))
@@ -1457,6 +1524,7 @@ timeout_check_child (gpointer data)
       int status;
 
       pid = waitpid (context->pid, &status, WNOHANG);
+      (void) pid;
       context->pid  = 0;
       context->checker_id = 0;
 
@@ -1481,7 +1549,7 @@ process_lines (ChildContext *context,
    gchar *src, *end;
 
    g_return_if_fail (buf && stock_buf);
-   g_return_if_fail (size > 0 || size < GIMV_MPLAYER_BUF_SIZE);
+   g_return_if_fail (bufsize > 0 || bufsize < GIMV_MPLAYER_BUF_SIZE);
    g_return_if_fail (remain_size);
 
    src = buf;
@@ -1594,8 +1662,8 @@ process_output (ChildContext *context)
                      FALSE);
 
       if (fabs (context->player->pos - pos) > 0.1)
-         gtk_signal_emit (GTK_OBJECT (context->player),
-                          gimv_mplayer_signals[POS_CHANGED_SIGNAL]);
+         g_signal_emit (G_OBJECT (context->player),
+                     gimv_mplayer_signals[POS_CHANGED_SIGNAL], 0);
    }
 
    if (n == 0)
@@ -1614,7 +1682,7 @@ child_context_destroy (ChildContext *context)
       g_hash_table_remove (player_context_table, context->player);
 
    if (context->checker_id > 0) {
-      gtk_timeout_remove (context->checker_id);
+      g_source_remove (context->checker_id);
       context->checker_id = 0;
    }
 
@@ -1666,8 +1734,8 @@ process_line (ChildContext *context,
    } else {
       if (strstr (line, "PAUSE")) {
          player->status = GimvMPlayerStatusPause;
-         gtk_signal_emit (GTK_OBJECT (player),
-                          gimv_mplayer_signals[PAUSE_SIGNAL]);
+         g_signal_emit (G_OBJECT (player),
+                     gimv_mplayer_signals[PAUSE_SIGNAL], 0);
 
       } else if (len > 2 && (!strncmp (line, "A:", 2)
                           || !strncmp (line, "V:", 2)))
@@ -1678,11 +1746,11 @@ process_line (ChildContext *context,
          /* set status */
          if (player->status != GimvMPlayerStatusPlay) {
             player->status = GimvMPlayerStatusPlay;
-            if (GTK_WIDGET_MAPPED (player)) {
+            if (gtk_widget_get_mapped (GTK_WIDGET (player))) {
                gimv_mplayer_send_dummy_configure (player);
             }
-            gtk_signal_emit (GTK_OBJECT (player),
-                             gimv_mplayer_signals[PLAY_SIGNAL]);
+            g_signal_emit (G_OBJECT (player),
+                     gimv_mplayer_signals[PLAY_SIGNAL], 0);
          }
 
          /* get movie position */

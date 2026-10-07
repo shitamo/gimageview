@@ -329,7 +329,7 @@ fileutil_size2str (size_t size, int space)
       n_digit++;
    }
 
-   sprintf (tmp, "%d", size);
+   g_snprintf (tmp, sizeof (tmp), "%lu", (unsigned long) size);
 
    if (strlen (tmp) < 4)
       return g_strdup (tmp);
@@ -476,7 +476,7 @@ fileutil_mode2str (mode_t mode)
    if (mode & S_ISVTX)
       permission[9] = 'T';
 
-   permission[11] = 0;
+   permission[10] = 0;
 
    return g_strdup (permission);
 }
@@ -537,18 +537,21 @@ fileutil_dir_basename (const char *path)
    tmpstr = g_strdup (path);
    endchr = strrchr(tmpstr, '/');
 
-   if (endchr && endchr + 1) {
+   if (endchr && endchr[1]) {
       basename = endchr + 1;
    } else if (endchr) {
       *endchr = '\0';
       endchr = strrchr(tmpstr, '/');
-      if (endchr && endchr + 1)
+      if (endchr && endchr[1])
          basename = endchr + 1;
+      else if (!endchr)
+         basename = tmpstr;
    } else {
+      g_free (tmpstr);
       return NULL;
    }
 
-   retval = g_strdup (basename);
+   retval = g_strdup (basename ? basename : "");
    g_free (tmpstr);
 
    return retval;
@@ -569,7 +572,7 @@ fileutil_get_extention (const char *filename)
    else
       return NULL;
 
-   if (ext == "\0")
+   if (*ext == '\0')
       return NULL;
    else
       return ext;

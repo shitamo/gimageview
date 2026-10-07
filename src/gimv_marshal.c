@@ -24,7 +24,6 @@
 
 #include "gimv_marshal.h"
 
-#if (GTK_MAJOR_VERSION >= 2)
 
 #ifdef G_ENABLE_DEBUG
 #define g_marshal_value_peek_int(v)      g_value_get_int (v)
@@ -69,27 +68,3 @@ gtk_marshal_INT__INT_INT (GClosure     *closure,
    g_value_set_int (return_value, v_return);
 }
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-typedef gint (*GtkSignal_INT__INT_INT) (GtkObject * object,
-                                        gint arg1,
-                                        gint arg2,
-                                        gpointer user_data);
-
-void
-gtk_marshal_INT__INT_INT (GtkObject * object,
-                          GtkSignalFunc func,
-                          gpointer func_data,
-                          GtkArg * args)
-{
-  GtkSignal_INT__INT_INT rfunc;
-  gint *return_val;
-  return_val = GTK_RETLOC_INT (args[2]);
-  rfunc = (GtkSignal_INT__INT_INT) func;
-  *return_val = (*rfunc) (object,
-                          GTK_VALUE_INT (args[0]),
-                          GTK_VALUE_INT (args[1]),
-                          func_data);
-}
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */

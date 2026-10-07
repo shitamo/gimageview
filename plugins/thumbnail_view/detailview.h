@@ -40,6 +40,8 @@ void       detailview_thaw                     (GimvThumbView *tv);
 void       detailview_append_thumb_frame       (GimvThumbView *tv,
                                                 GimvThumb     *thumb,
                                                 const gchar   *dest_mode);
+void       detailview_size_job_start           (GimvThumbView *tv,
+                                                gboolean       restart);
 void       detailview_update_thumbnail         (GimvThumbView *tv,
                                                 GimvThumb     *thumb,
                                                 const gchar   *dest_mode);

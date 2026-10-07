@@ -50,10 +50,10 @@ struct GimvImageSaverPriv_Tag
 
 static void gimv_image_saver_class_init (GimvImageSaverClass *klass);
 static void gimv_image_saver_init       (GimvImageSaver      *saver);
-static void gimv_image_saver_destroy    (GtkObject           *object);
+static void gimv_image_saver_destroy    (GimvObject           *object);
 
 
-static GtkObjectClass *parent_class = NULL;
+static GimvObjectClass *parent_class = NULL;
 static gint gimv_image_saver_signals[LAST_SIGNAL] = {0};
 
 
@@ -93,25 +93,29 @@ gimv_image_saver_plugin_regist (const gchar *plugin_name,
  *
  *
  ******************************************************************************/
-GtkType
+GType
 gimv_image_saver_get_type (void)
 {
-   static GtkType gimv_image_saver_type = 0;
+   static GType gimv_image_saver_type = 0;
 
    if (!gimv_image_saver_type) {
-      static const GtkTypeInfo gimv_image_saver_info = {
-         "GimvImageSaver",
-         sizeof (GimvImageSaver),
+      static const GTypeInfo gimv_image_saver_info = {
          sizeof (GimvImageSaverClass),
-         (GtkClassInitFunc) gimv_image_saver_class_init,
-         (GtkObjectInitFunc) gimv_image_saver_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
+         NULL, /* base_init */
+         NULL, /* base_finalize */
+         (GClassInitFunc) gimv_image_saver_class_init,
+         NULL, /* class_finalize */
+         NULL, /* class_data */
+         sizeof (GimvImageSaver),
+         0,    /* n_preallocs */
+         (GInstanceInitFunc) gimv_image_saver_init,
+         NULL, /* value_table */
       };
 
-      gimv_image_saver_type = gtk_type_unique (gtk_object_get_type (),
-                                               &gimv_image_saver_info);
+      gimv_image_saver_type = g_type_register_static (GIMV_TYPE_OBJECT,
+                                                      "GimvImageSaver",
+                                                      &gimv_image_saver_info,
+                                                      0);
    }
 
    return gimv_image_saver_type;
@@ -121,37 +125,38 @@ gimv_image_saver_get_type (void)
 static void
 gimv_image_saver_class_init (GimvImageSaverClass *klass)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_object_get_type ());
+   object_class = (GimvObjectClass *) klass;
+   parent_class = g_type_class_peek_parent (klass);
 
    gimv_image_saver_signals[SAVE_START_SIGNAL]
-      = gtk_signal_new ("save_start",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageSaverClass, save_start),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("save_start",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageSaverClass, save_start),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
+   /* the GTK2 version wrongly used the offset of save_end here */
    gimv_image_saver_signals[PROGRESS_UPDATE_SIGNAL]
-      = gtk_signal_new ("progress_update",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageSaverClass, save_end),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("progress_update",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageSaverClass, progress_update),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    gimv_image_saver_signals[SAVE_END_SIGNAL]
-      = gtk_signal_new ("save_end",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE (object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageSaverClass, save_end),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
-
-   gtk_object_class_add_signals (object_class,
-                                 gimv_image_saver_signals, LAST_SIGNAL);
+      = g_signal_new ("save_end",
+                      G_TYPE_FROM_CLASS (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageSaverClass, save_end),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    object_class->destroy  = gimv_image_saver_destroy;
 
@@ -177,15 +182,12 @@ gimv_image_saver_init (GimvImageSaver *saver)
    saver->priv        = g_new0 (GimvImageSaverPriv, 1);
    saver->priv->flags = 0;
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (saver));
-   gtk_object_sink (GTK_OBJECT (saver));
-#endif
+   g_object_ref_sink (G_OBJECT (saver));
 }
 
 
 static void
-gimv_image_saver_destroy (GtkObject *object)
+gimv_image_saver_destroy (GimvObject *object)
 {
    GimvImageSaver *saver = GIMV_IMAGE_SAVER (object);
 
@@ -201,8 +203,8 @@ gimv_image_saver_destroy (GtkObject *object)
       saver->priv = NULL;
    }
 
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (*GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (*GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
@@ -210,7 +212,7 @@ GimvImageSaver *
 gimv_image_saver_new (void)
 {
    GimvImageSaver *saver
-      = GIMV_IMAGE_SAVER (gtk_type_new (gimv_image_saver_get_type ()));
+      = GIMV_IMAGE_SAVER (g_object_new (GIMV_TYPE_IMAGE_SAVER, NULL));
 
    return saver;
 }
@@ -222,7 +224,7 @@ gimv_image_saver_new_with_attr (GimvImage *image,
                                 const gchar *format)
 {
    GimvImageSaver *saver
-      = GIMV_IMAGE_SAVER (gtk_type_new (gimv_image_saver_get_type ()));
+      = GIMV_IMAGE_SAVER (g_object_new (GIMV_TYPE_IMAGE_SAVER, NULL));
 
    gimv_image_saver_set_image (saver, image);
    gimv_image_saver_set_path (saver, path);
@@ -237,7 +239,7 @@ gimv_image_saver_ref (GimvImageSaver *saver)
 {
    g_return_val_if_fail (GIMV_IS_IMAGE_SAVER (saver), NULL);
 
-   gtk_object_ref (GTK_OBJECT (saver));
+   g_object_ref (G_OBJECT (saver));
 
    return saver;
 }
@@ -248,7 +250,7 @@ gimv_image_saver_unref (GimvImageSaver *saver)
 {
    g_return_if_fail (GIMV_IS_IMAGE_SAVER (saver));
 
-   gtk_object_unref (GTK_OBJECT (saver));
+   g_object_unref (G_OBJECT (saver));
 }
 
 
@@ -394,16 +396,16 @@ gimv_image_saver_save (GimvImageSaver *saver)
 
    saver->priv->flags |= GIMV_IMAGE_SAVER_SAVING_FLAG;
 
-   gtk_signal_emit (GTK_OBJECT(saver),
-                    gimv_image_saver_signals[SAVE_START_SIGNAL]);
+   g_signal_emit (G_OBJECT (saver),
+                    gimv_image_saver_signals[SAVE_START_SIGNAL], 0);
 
    g_timer_reset (saver->timer);
    g_timer_start (saver->timer);
 
    saver_funcs = g_hash_table_lookup (image_savers, saver->format);
    if (!saver_funcs) {
-      gtk_signal_emit (GTK_OBJECT(saver),
-                       gimv_image_saver_signals[SAVE_END_SIGNAL]);
+      g_signal_emit (G_OBJECT (saver),
+                       gimv_image_saver_signals[SAVE_END_SIGNAL], 0);
       g_timer_stop (saver->timer);
       g_timer_reset (saver->timer);
       return FALSE;
@@ -419,8 +421,8 @@ gimv_image_saver_save (GimvImageSaver *saver)
 
    g_timer_stop (saver->timer);
 
-   gtk_signal_emit (GTK_OBJECT(saver),
-                    gimv_image_saver_signals[SAVE_END_SIGNAL]);
+   g_signal_emit (G_OBJECT (saver),
+                    gimv_image_saver_signals[SAVE_END_SIGNAL], 0);
 
    return retval;
 }
@@ -529,8 +531,8 @@ gimv_image_saver_progress_update (GimvImageSaver *saver)
    g_return_val_if_fail (gimv_image_saver_is_saving (saver), FALSE);
    g_return_val_if_fail (saver->priv, FALSE);
 
-   gtk_signal_emit (GTK_OBJECT(saver),
-                    gimv_image_saver_signals[PROGRESS_UPDATE_SIGNAL]);
+   g_signal_emit (G_OBJECT (saver),
+                    gimv_image_saver_signals[PROGRESS_UPDATE_SIGNAL], 0);
 
    if (saver->priv->flags & GIMV_IMAGE_SAVER_CANCEL_FLAG)
       return FALSE;

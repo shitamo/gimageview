@@ -33,10 +33,11 @@
 #endif
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
-#if (GTK_MAJOR_VERSION >= 2)
 
-#include <gtk/gtkcellrenderer.h>
+#include <gtk/gtk.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,11 +45,11 @@ extern "C" {
 
 
 #define GIMV_TYPE_CELL_RENDERER_PIXMAP			     (gimv_cell_renderer_pixmap_get_type ())
-#define GIMV_CELL_RENDERER_PIXMAP(obj)			     (GTK_CHECK_CAST ((obj), GIMV_TYPE_CELL_RENDERER_PIXMAP, GimvCellRendererPixmap))
-#define GIMV_CELL_RENDERER_PIXMAP_CLASS(klass)    (GTK_CHECK_CLASS_CAST ((klass), GIMV_TYPE_CELL_RENDERER_PIXMAP, GimvCellRendererPixmapClass))
-#define GIMV_IS_CELL_RENDERER_PIXMAP(obj)		     (GTK_CHECK_TYPE ((obj), GIMV_TYPE_CELL_RENDERER_PIXMAP))
-#define GIMV_IS_CELL_RENDERER_PIXMAP_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_CELL_RENDERER_PIXMAP))
-#define GIMV_CELL_RENDERER_PIXMAP_GET_CLASS(obj)  (GTK_CHECK_GET_CLASS ((obj), GIMV_TYPE_CELL_RENDERER_PIXMAP, GimvCellRendererPixmapClass))
+#define GIMV_CELL_RENDERER_PIXMAP(obj)			     (G_TYPE_CHECK_INSTANCE_CAST ((obj), GIMV_TYPE_CELL_RENDERER_PIXMAP, GimvCellRendererPixmap))
+#define GIMV_CELL_RENDERER_PIXMAP_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GIMV_TYPE_CELL_RENDERER_PIXMAP, GimvCellRendererPixmapClass))
+#define GIMV_IS_CELL_RENDERER_PIXMAP(obj)		     (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GIMV_TYPE_CELL_RENDERER_PIXMAP))
+#define GIMV_IS_CELL_RENDERER_PIXMAP_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_CELL_RENDERER_PIXMAP))
+#define GIMV_CELL_RENDERER_PIXMAP_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GIMV_TYPE_CELL_RENDERER_PIXMAP, GimvCellRendererPixmapClass))
 
 typedef struct GimvCellRendererPixmap_Tag         GimvCellRendererPixmap;
 typedef struct GimvCellRendererPixmapClass_Tag    GimvCellRendererPixmapClass;
@@ -57,12 +58,12 @@ struct GimvCellRendererPixmap_Tag
 {
    GtkCellRenderer parent;
 
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
-   GdkPixmap *pixmap_expander_open;
-   GdkBitmap *mask_expander_open;
-   GdkPixmap *pixmap_expander_closed;
-   GdkBitmap *mask_expander_closed;
+   GdkTexture *pixmap;
+   GdkTexture *mask;
+   GdkTexture *pixmap_expander_open;
+   GdkTexture *mask_expander_open;
+   GdkTexture *pixmap_expander_closed;
+   GdkTexture *mask_expander_closed;
 };
 
 struct GimvCellRendererPixmapClass_Tag
@@ -76,13 +77,12 @@ struct GimvCellRendererPixmapClass_Tag
    void (*_gimv_reserved4) (void);
 };
 
-GtkType          gimv_cell_renderer_pixmap_get_type (void);
+GType          gimv_cell_renderer_pixmap_get_type (void);
 GtkCellRenderer *gimv_cell_renderer_pixmap_new      (void);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* __GIMV_CELL_RENDERER_PIXMAP_H__ */
 
 #endif /* (GTK_MAJOR_VERSION >= 2) */

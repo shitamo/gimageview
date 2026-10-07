@@ -1,24 +1,24 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="ja">
 <head>
-<meta content="text/html; charset=EUC-JP" http-equiv="Content-Type">
-<title>1. �Ϥ����</title>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>1. はじめに</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
 <link rel="previous" href="index.html" title="GImageView User's Manual">
-<link rel="next" href="02.html" title="2. �Ȥ���">
+<link rel="next" href="02.html" title="2. 使い方">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">1. �Ϥ����</th></tr>
+<tr><th colspan="3" align="center">1. はじめに</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="index.html">���Υڡ���</a>&#160;</td>
+<a accesskey="p" href="index.html">前のページ</a>&#160;</td>
 <th width="60%" align="center">&#160;</th>
-<td width="20%" align="right">&#160;<a accesskey="n" href="02.html">���Υڡ���</a>
+<td width="20%" align="right">&#160;<a accesskey="n" href="02.html">次のページ</a>
 </td>
 </tr>
 </table>
@@ -26,225 +26,160 @@
 </div>
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
-<a name="01"></a>1. <a name="first_impression"></a>�Ϥ����</h2></div></div>
+<a name="01"></a>1. <a name="first_impression"></a>はじめに</h2></div></div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="01-01"></a>1.1. <a name="whats_gimv"></a>����ϲ�?</h3></div></div>
+<a name="01-01"></a>1.1. <a name="whats_gimv"></a>これは何?</h3></div></div>
 <p class="para">
-GImageView ��Ķ���̲���(ư��)ɽ�����ˤ�������˾Ū���������ˤ��٤���ȯ��Ρ�XWindowSystem ���ư�������������եȤǤ���
+GImageView は超大量画像(動画)表示下における絶望的状況を打破すべく開発中の、XWindowSystem 上で動作する画像閲覧ソフトです。
 </p>
 <p class="para">
-����Ū�ˡ������������եȤǤ������С������ 0.1.1 �ʹߡ��ɥ�å�&amp;�ɥ��åפˤ���ñ�ʥե��������(����������ǽ)��������Ƥ��ޤ���0.2.3 �Ǥϡ�xine �����Ѥ���ư��κ�����ǽ��susie �ץ饰����ؤ��б��ʤɤ�¸�Ū�˹Ԥ��Ƥ��ޤ���
+この版 (0.2.27+gtk4) は、GImageView 0.2.27 を GTK 4 に移植したものです。X Window System (X11) の上で動作を確認しています。Wayland では MPlayer・xine プラグインによる動画の埋め込み再生はできません。
+</p>
+<p class="para">
+基本的に、画像閲覧ソフトですが、バージョン 0.1.1 以降、ドラッグ&amp;ドロップによる簡単なファイル操作(画像管理機能)も実装しています。0.2.3 からは xine や MPlayer を利用した動画の再生機能にも対応しています (GTK 4 版では GStreamer にも対応しました)。なお、0.2.3 で実験的に対応した susie プラグインは、GTK 4 版では削除しました。
 </p>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="01-02"></a>1.2. <a name="characteristic"></a>��ħ</h3></div></div>
+<a name="01-02"></a>1.2. <a name="characteristic"></a>特徴</h3></div></div>
 <p class="para">
-GImageView �ϡ��ʲ��Τ褦����ħ����äƤ��ޤ���
+GImageView は、以下のような特徴を持っています。
 
 
 <div class="itemizedlist"><ul>
-<li><p class="para">ʣ���ǥ��쥯�ȥ��Ʊ�������ץ󡢥��֤ˤ�륵��ͥ���ӥ塼�ڤ��ؤ�</p></li>
-<li><p class="para">Ǥ�եǥ��쥯�ȥ�κƵ�Ū�ɤ߹��ߡ��롼�������ǽ</p></li>
-<li><p class="para">��������</p></li>
-<li><p class="para">���ޥ�ɥ饤�󤫤�λ��Ѥ�ʬ�˹�θ</p></li>
-<li><p class="para">����ץ뤫�Ľ���ʥ��󥿡��ե�����</p></li>
-<li><p class="para">����������ǽ</p></li>
-<li><p class="para">���饤�ɥ��硼����</p></li>
-<li><p class="para">���¤����ꥹ�ȥӥ塼(ʣ�����¤Ӵ������б�)</p></li>
-<li><p class="para">�ɥ�å�&amp;�ɥ��åפˤ��ե��������</p></li>
-<li><p class="para">¿���Υ���ͥ��륭��å���������б�
+<li><p class="para">複数ディレクトリの同時オープン、タブによるサムネイルビュー切り替え</p></li>
+<li><p class="para">任意ディレクトリの再帰的読み込み・ルート設定可能</p></li>
+<li><p class="para">低消費メモリ</p></li>
+<li><p class="para">コマンドラインからの使用を充分に考慮</p></li>
+<li><p class="para">シンプルかつ柔軟なインターフェース</p></li>
+<li><p class="para">画像管理機能</p></li>
+<li><p class="para">スライドショー完備</p></li>
+<li><p class="para">充実したリストビュー(複数の並び換えに対応)</p></li>
+<li><p class="para">ドラッグ&amp;ドロップによるファイル操作</p></li>
+<li><p class="para">多数のサムネイルキャッシュ形式に対応 (いずれも読み書き対応)
    <div class="itemizedlist"><ul>
-<li><p class="para">�ɤ߽��б�
-      <div class="itemizedlist"><ul>
-<li><p class="para">Konqueror</p></li>
+<li><p class="para">GImageView (独自の形式。~/.gimv/thumbnail)</p></li>
+<li><p class="para">Nautilus、Nautilus-2.0</p></li>
+<li><p class="para">Konqueror (旧形式を含む)</p></li>
 <li><p class="para">GQview</p></li>
 <li><p class="para">Electric Eyes (Picview)</p></li>
-</ul></div>
-     </p></li>
-<li><p class="para">�ɤ߹��ߤΤ��б� (������񤭹��ߤ��б�ͽ��)
-      <div class="itemizedlist"><ul>
-<li><p class="para">Nuatilus</p></li>
 <li><p class="para">.xvpics</p></li>
 </ul></div>
-     </p></li>
-</ul></div>
+   freedesktop.org の Thumbnail Managing Standard (~/.cache/thumbnails) には対応していません。
   </p></li>
 <li>
-<p class="para">�б���������
+<p class="para">対応画像形式
    <div class="itemizedlist"><ul>
-<li><p class="para">JPEG</p></li>
-<li><p class="para">PNG</p></li>
-<li><p class="para">PNM</p></li>
-<li><p class="para">GIF</p></li>
-<li><p class="para">TIFF</p></li>
-<li><p class="para">XPM</p></li>
-<li><p class="para">XWD</p></li>
-<li><p class="para">XBM (�饤�֥�꤬̤�б��ξ���gimv�ȼ��Υ����������)</p></li>
-<li><p class="para">BMP (gimv�ȼ���������ͥ��)</p></li>
-<li><p class="para">PCX (�饤�֥�꤬̤�б��ξ���gimv�ȼ��Υ����������)</p></li>
-<li><p class="para">TGA (gimv�ȼ�����)</p></li>
-<li><p class="para">MAG (gimv�ȼ�����)</p></li>
-<li><p class="para">���˥᡼�����GIF��MNG</p></li>
+<li><p class="para">JPEG、PNG、BMP、PCX、TGA、MAG、XBM、XCF、xvpics (gimv独自のローダ)</p></li>
+<li><p class="para">PNM (PBM・PGM・PPM)、XPM、Sun raster、WBMP (gimv独自のローダ。GTK 4 版で追加)</p></li>
+<li><p class="para">SVG (librsvg)、MNG (libmng)、WMF (libwmf)</p></li>
+<li><p class="para">GIF、TIFF、ICO など、gdk-pixbuf が読める形式</p></li>
+<li><p class="para">WebP、AVIF、HEIF、JPEG XL など (対応する gdk-pixbuf の読み込み部品がインストールされている場合)</p></li>
+<li><p class="para">アニメーションGIF、MNG</p></li>
 </ul></div>
   </p>
 <p class="para">
-   gdk-pixbuf(���뤤��Imlib)��̤�б��β��������˴ؤ��Ƥϡ�Plugin �ˤ�ä��б���ǽ�Ǥ���
+   読み込める処理がない形式のファイルは、サムネイル一覧に表示しません。対応している形式は、[ヘルプ | GImageView について] の「プラグイン情報」で確認できます。
   </p>
 </li>
 <li>
-<p class="para">�б����(����������)����
+<p class="para">対応書庫(アーカイブ)形式
    <div class="itemizedlist"><ul>
 <li><p class="para">LZH</p></li>
-<li><p class="para">ZIP</p></li>
-<li><p class="para">TAR</p></li>
-<li><p class="para">RAR</p></li>
+<li><p class="para">ZIP (CBZ)</p></li>
+<li><p class="para">TAR (tar.gz、tar.bz2、tar.xz、tar.zst など)</p></li>
+<li><p class="para">RAR (CBR)</p></li>
+<li><p class="para">7z (CB7)</p></li>
 </ul></div>
   </p>
 <p class="para">
-   ��ˤϡ������ǥ��쥯�ȥ�Ȥ���Ÿ������ޤ���
+   書庫は、仮想ディレクトリとして展開されます。GTK 4 版では、書庫は libarchive で読み込みます (lha や unzip などの外部コマンドは使いません)。
   </p>
 </li>
-<li><p class="para">�б�ư�����
-   <div class="itemizedlist"><ul><li><p class="para">̤��</p></li></ul></div>
+<li><p class="para">対応動画形式
+   <div class="itemizedlist"><ul>
+<li><p class="para">MPEG、AVI、QuickTime、WMV・ASF、MP4、Matroska (mkv)、WebM、FLV、Ogg、MPEG-TS、3GP など</p></li>
+<li><p class="para">MP3、WAV、Ogg、FLAC、AAC など (音声)</p></li>
+</ul></div>
+  </p>
+<p class="para">
+   動画・音声の再生には GStreamer、MPlayer、xine-lib のいずれかが必要です。実際に再生できる形式は、それぞれの側の対応によります。GStreamer の場合は、インストールされているプラグイン (gstreamer1.0-plugins-good、-bad、-ugly、gstreamer1.0-libav など) によります。
   </p></li>
 </ul></div>
 </p>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="01-03"></a>1.3. <a name="pc_require"></a>ư��Ķ�</h3></div></div>
+<a name="01-03"></a>1.3. <a name="pc_require"></a>動作環境</h3></div></div>
 <p class="para">
-���Υץ������Υ���ѥ���ڤӼ¹Ԥˤϡ��ʲ��Υ饤�֥�꤬ɬ�פǤ���
+このプログラムのコンパイル及び実行には、以下のものが必要です。
 <div class="itemizedlist"><ul>
-<li><p class="para">GLib-1.2 �ڤ� GTK+-1.2 �ʹ� : <a href="http://www.gtk.org/" target="_top">http://www.gtk.org/</a>
-</p></li>
-<li><p class="para">Imlib-1.9.x : <a href="ftp://ftp.gnome.org/pub/GNOME/stable/sources/imlib/" target="_top">ftp://ftp.gnome.org/pub/GNOME/stable/sources/imlib/</a>
-</p></li>
-<li>
-<p class="para">gdk-pixbuf : <a href="ftp://ftp.gnome.org/pub/GNOME/unstable/sources/gdk-pixbuf/" target="_top">ftp://ftp.gnome.org/pub/GNOME/unstable/sources/gdk-pixbuf/</a>
-</p>
-<p class="para">
-Imlib �� gdk-pixbuf �ϡ��ɤ��餫�����������פǤ���
-</p>
-</li>
+<li><p class="para">GTK 4.10 以降 : <a href="https://www.gtk.org/" target="_top">https://www.gtk.org/</a></p></li>
+<li><p class="para">GLib 2.72 以降、gdk-pixbuf 2.0</p></li>
+<li><p class="para">Meson と Ninja (ビルド時のみ)</p></li>
+<li><p class="para">X Window System (X11) (動作を確認している環境)。Wayland では MPlayer・xine プラグインによる動画の埋め込み再生はできません。</p></li>
 </ul></div>
 </p>
 <p class="para">
-�ޤ��������Υ饤�֥�꤬�����硢��ǽ���ĥ���뤳�Ȥ��Ǥ��ޤ���
+また、下記のライブラリ・プログラムがある場合、機能を拡張することができます。
 
 <div class="itemizedlist"><ul>
-<li>
-<p class="para">librsvg-1.0�ʹ� : <a href="ftp://ftp.gnome.org/pub/GNOME/stable/sources/librsvg/" target="_top">ftp://ftp.gnome.org/pub/GNOME/stable/sources/librsvg/</a>
-</p>
-<p class="para">�Դ����ʤ���SVG��ɽ����������Ǥ��ޤ���</p>
-</li>
-<li>
-<p class="para">xine-lib-0.9.9�ʹ� : <a href="http://xine.sourceforge.net/" target="_top">http://xine.sourceforge.net/</a>
-</p>
-<p class="para">ư��ե�����������������Ǥ��ޤ���</p>
-</li>
-<li>
-<p class="para">libmng-1.0.0�ʹ� : <a href="http://www.libmng.com/" target="_top">http://www.libmng.com/</a>
-</p>
-<p class="para">MNG�������������Ǥ��ޤ���</p>
-</li>
+<li><p class="para">libarchive : 書庫 (zip、rar、7z、lha、tar など) を開く事ができます。</p></li>
+<li><p class="para">libjpeg : JPEG を高速に読み込みます。</p></li>
+<li><p class="para">libexif : EXIF 情報の表示と、EXIF の向き情報による自動回転ができます。</p></li>
+<li><p class="para">librsvg : SVG を表示する事ができます。</p></li>
+<li><p class="para">libmng : MNG を再生する事ができます。</p></li>
+<li><p class="para">libwmf : WMF を表示する事ができます。</p></li>
+<li><p class="para">GStreamer 1.16 以降、xine-lib 1.2 以降、または MPlayer : 動画・音声ファイルを再生する事ができます。</p></li>
+<li><p class="para">gdk-pixbuf の追加の読み込み部品 (webp-pixbuf-loader、libavif-gdk-pixbuf、heif-gdk-pixbuf、libjxl-gdk-pixbuf など) : WebP、AVIF、HEIF、JPEG XL などを表示する事ができます。</p></li>
 </ul></div>
 </p>
 <p class="para">
-�ʲ��δĶ���ư���ǧ����Ƥ��ޤ���
-<div class="itemizedlist"><ul>
-<li><p class="para">Plamo Linux 2.0 (Alpha3�١���)</p></li>
-<li><p class="para">Kondara MNU/Linux 1.2</p></li>
-<li><p class="para">Kondara MNU/Linux 2000</p></li>
-<li><p class="para">Kondara MNU/Linux 2.0</p></li>
-<li><p class="para">Kondara MNU/Linux 2.1</p></li>
-<li><p class="para">Vine Linux/ppc 2.1.5</p></li>
-<li><p class="para">Vine Linux/ppc 2.5</p></li>
-<li><p class="para">FreeBSD 4.2-RELEASE</p></li>
-<li><p class="para">FreeBSD 4.5-RELEASE</p></li>
-<li><p class="para">NetBSD(?)</p></li>
-<li><p class="para">AIX</p></li>
-<li><p class="para">RedHat Linux 7.2</p></li>
-<li><p class="para">TurboLinux 7.0</p></li>
-<li><p class="para">Mandrake 8.1</p></li>
-<li><p class="para">Debian (potato/woody ??)</p></li>
-<li><p class="para">Cygwin on Windows</p></li>
-</ul></div>
+GTK 4 版は Debian (sid, GTK 4.24) で動作を確認しています。
 </p>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="01-04"></a>1.4. <a name="get_gimv"></a>������ˡ</h3></div></div>
+<a name="01-04"></a>1.4. <a name="get_gimv"></a>入手方法</h3></div></div>
 <p class="para">
-���ΥС�������ޤᡢ�ʲ���������Ǥ��ޤ���
+元の GImageView (0.2.27 まで) は、以下で公開されていました。現在は更新されていません。
 
 
 <div class="itemizedlist"><ul>
-<li><p class="para"><a href="http://www.homa.ne.jp/~ashie/gimageview/" target="_top">http://www.homa.ne.jp/~ashie/gimageview/</a></p></li>
-<li><p class="para"><a href="http://sourceforge.net/projects/gtkmmviewer/" target="_top">http://sourceforge.net/projects/gtkmmviewer/</a></p></li>
+<li><p class="para"><a href="https://github.com/ashie/gimageview" target="_top">https://github.com/ashie/gimageview</a></p></li>
 </ul></div>
 </p>
 <p class="para">
-�ޤ���GImageView �Υ����������ɤ� CVS �Ǵ������Ƥ��ꡢCVS �����󥹥ȡ��뤵��Ƥ��륷���ƥ�Ǥ���С��ʲ��μ��Ǻǿ���&quot;��ȯ��&quot;��������뤳�Ȥ��Ǥ��ޤ���
-</p>
-<pre class="screen">
-$ <b>export CVSROOT=:pserver:anonymous@cvs.gtkmmviewer.sourceforge.net:/cvsroot/gtkmmviewer</b>
-$ <b>cvs login</b>
-(�ѥ���ɤϡ�ñ��Enter)
-$ <b>cvs -z3 co gimageview</b>
-</pre>
-<p class="para">
-�����Ǽ������������������ɤ���¸���Ƥ����С��ʹߤϥ������ĥ꡼�Υȥåץǥ��쥯�ȥ��
-</p>
-<pre class="screen">
-$ <b>cvs -z3 update -dP</b>
-</pre>
-<p class="para">
-�Ȥ�������Ǻǿ��ξ��֤˥��åץǡ��ȤǤ��ޤ���
-</p>
-<p class="para">
-�ʤ�����ȯ�Ǥˤ� configure ������ץȤ��ޤޤ�Ƥ��ޤ��󡣥ȥåץǥ��쥯�ȥ��&quot;autogen.sh&quot; ������ץȤ�¹Ԥ���ȡ�configure ������ץȤ���ưŪ�˺������졢���Τޤ� configure ������ץȤ��¹Ԥ���ޤ�����������autoconf, automake ��ɬ�פǤ���
-</p>
-<p class="para">
-�ޤ���CVS ������Ǥ����Τϡ�&quot;�ǿ�����ȯ��&quot;�Ǥ����ɤ�ʥХ����Զ�礬����Ǥ��뤫ʬ����ޤ��󡣾��ˤ�äƤϥ���ѥ��뤹���̤�ʤ����Ȥ⤢��ޤ��������ˡ�<span class="emphasis"><i>at your own risk</i></span> �Ǥ��������������줰��⤪˺��ʤ��褦���ꤤ���ޤ���
+GTK 4 版は、0.2.27 を元に移植したものです。
 </p>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="01-05"></a>1.5. <a name="gimv_install"></a>���󥹥ȡ���</h3></div></div>
+<a name="01-05"></a>1.5. <a name="gimv_install"></a>インストール</h3></div></div>
 <p class="para">
-����δĶ��Ǥϡ��ʲ��μ��ǥ���ѥ�������Ȼפ��ޤ����С������̾���ϡ�Ŭ���ɤߤ����Ƥ���������
+GTK 4 版は Meson でビルドします。ソースのトップディレクトリで、以下のようにします。
 </p>
 <pre class="screen">
-$ <b>tar xvfz gimageview-x.y.z.tar.gz</b>
-$ <b>./configure</b>
-$ <b>make</b>
-$ <b>su</b>
-(�ѥ����)
-# <b>make install</b>
+$ <b>meson setup _build --prefix=/usr/local</b>
+$ <b>ninja -C _build</b>
+$ <b>sudo ninja -C _build install</b>
 </pre>
 <p class="para">
-imlib����Ѥ�����ϡ��ʲ��Τ褦�ˤ��Ƥ�������(�ǥե���Ȥ� gdk-pixbuf �Ǥ�)��
+各種機能は、ライブラリがあれば自動的に有効になります。明示的に指定する場合は、meson setup に以下のようなオプションを付けて下さい。オプションの一覧は meson_options.txt を見て下さい。
 </p>
 <pre class="screen">
-$ <b> ./configure --disable-gdk-pixbuf</b>
+$ <b>meson setup _build -Dgstreamer=enabled -Dxine=enabled -Dsvg=enabled -Dexif=enabled -Dmplayer=true</b>
 </pre>
 <p class="para">
-xine��llibsvg��susie�ץ饰���󡢤ʤɤγƼﵡǽ��ͭ���ˤ���ˤϡ��ʲ��Τ褦�ˤ��Ʋ��������ʤ����ܺ٤� ./configure --help �򸫤Ʋ�������
+Debian では、パッケージを作ってインストールすることもできます。
 </p>
 <pre class="screen">
-$ <b> ./configure --with-xine --enable-spi --with-librsvg</b>
+$ <b>dpkg-buildpackage -us -uc -b</b>
+$ <b>sudo apt install ../gimageview_*.deb</b>
 </pre>
 <p class="para">
-���ΤޤޤǤϥǥХå����������ޤ줿�ޤޤǤ����嵭�Υ��󥹥ȡ�����򲼵��Τ褦���Ѥ��뤳�Ȥˤ�äơ��ǥХå��Ѥξ��󤬺��졢�¹ԥե����륵�������������ʤ�ޤ���
-</p>
-<pre class="screen">
-# <b>make install-strip</b>
-</pre>
-<p class="para">
-GImageView ��̤����ȯ����ʳ��Ǥ��뤿�ᡢ����ե�����Υե����ޥåȤ��礭���Ѥ���ǽ��������ޤ��� ���Τ��ᡢ���åץǡ��Ȥ������ͽ�� ~/.gimv �ǥ��쥯�ȥ�����򤵤����������������Τ�ޤ���
+設定ファイル (~/.gimv) は GTK+ 2 版のものをそのまま使えます。ただし、~/.gimv/gtkrc は使われなくなり、代わりに ~/.gimv/gtk.css で見た目を変更します。
 </p>
 </div>
 </div>
@@ -253,15 +188,15 @@ GImageView ��̤����ȯ����ʳ��Ǥ��뤿�ᡢ����ե�����Υե����ޥåȤ��礭���Ѥ�
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="index.html">���Υڡ���</a>&#160;</td>
-<td width="20%" align="center"><a accesskey="h" href="index.html">�ۡ���</a></td>
-<td width="40%" align="right">&#160;<a accesskey="n" href="02.html">���Υڡ���</a>
+<a accesskey="p" href="index.html">前のページ</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">ホーム</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="02.html">次のページ</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left">GImageView User's Manual&#160;</td>
-<td width="20%" align="center"><a accesskey="u" href="index.html">������</a></td>
-<td width="40%" align="right">&#160;2. �Ȥ���</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
+<td width="40%" align="right">&#160;2. 使い方</td>
 </tr>
 </table>
 </div>

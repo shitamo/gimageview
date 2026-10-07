@@ -17,7 +17,6 @@
 #  include "config.h"
 #endif
 
-#ifdef HAVE_GDK_PIXBUF
 
 #include <glib.h>
 #include <gdk/gdk.h>
@@ -31,8 +30,7 @@ GdkPixbuf *pixbuf_copy_mirror     (GdkPixbuf *src,
                                    gboolean flip);
 
 void       pixmap_from_xpm        (const char **data, 
-                                   GdkPixmap **pixmap, 
-                                   GdkBitmap **mask);
+                                   GdkTexture **pixmap, 
+                                   GdkTexture **mask);
 
-#endif /* HAVE_GDK_PIXBUF */
 #endif /* PIXBUF_UTILS_H */

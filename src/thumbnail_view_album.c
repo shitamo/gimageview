@@ -26,6 +26,7 @@
 #include "gimageview.h"
 
 #include "dnd.h"
+#include "gimv_comment.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
@@ -135,7 +136,7 @@ gchar *album_create_label_str       (GimvThumb *thumb);
  *
  ******************************************************************************/
 static gboolean
-cb_album_button_press (GtkWidget *widget, GdkEventButton *event, gpointer data)
+cb_album_button_press (GtkWidget *widget, GimvEventButton *event, gpointer data)
 {
    GimvThumbView *tv = data;
    gint row;
@@ -146,8 +147,8 @@ cb_album_button_press (GtkWidget *widget, GdkEventButton *event, gpointer data)
 
    row = gimv_zlist_cell_index_from_xy (GIMV_ZLIST (widget), event->x, event->y);
    if (row < 0) {
-      gtk_drag_source_unset (widget);
-      gtk_object_set_data (GTK_OBJECT (widget), "drag-unset", GINT_TO_POINTER (1));
+      gimv_drag_source_unset (widget);
+      g_object_set_data (G_OBJECT (widget), "drag-unset", GINT_TO_POINTER (1));
       gimv_thumb_win_notebook_drag_src_unset (tv->tw);   /* FIXME!! */
       return retval;
    }
@@ -161,8 +162,59 @@ cb_album_button_press (GtkWidget *widget, GdkEventButton *event, gpointer data)
 }
 
 
+/* GTK4: GTK2 converted wheel events into button 4-7 presses
+ * (SIGNAL_CONNECT_TRANSRATE_SCROLL) so that the mouse button preferences
+ * apply to the wheel too.  Do the same here. */
 static gboolean
-cb_album_button_release (GtkWidget *widget, GdkEventButton *event, gpointer data)
+cb_album_scroll (GtkWidget *widget, GimvEventScroll *event, gpointer data)
+{
+   GimvEventButton be;
+
+   memset (&be, 0, sizeof (be));
+   switch (event->direction) {
+   case GDK_SCROLL_UP:
+      be.button = 4;
+      break;
+   case GDK_SCROLL_DOWN:
+      be.button = 5;
+      break;
+   case GDK_SCROLL_LEFT:
+      be.button = 6;
+      break;
+   case GDK_SCROLL_RIGHT:
+      be.button = 7;
+      break;
+   case GDK_SCROLL_SMOOTH:
+   default:
+      if (event->delta_y < 0)
+         be.button = 4;
+      else if (event->delta_y > 0)
+         be.button = 5;
+      else if (event->delta_x < 0)
+         be.button = 6;
+      else if (event->delta_x > 0)
+         be.button = 7;
+      else
+         return FALSE;
+      break;
+   }
+
+   be.type       = GIMV_BUTTON_PRESS;
+   be.time       = event->time;
+   be.x          = event->x;
+   be.y          = event->y;
+   be.x_root     = event->x;
+   be.y_root     = event->y;
+   be.state      = event->state;
+   be.event      = event->event;
+   be.controller = event->controller;
+
+   return cb_album_button_press (widget, &be, data);
+}
+
+
+static gboolean
+cb_album_button_release (GtkWidget *widget, GimvEventButton *event, gpointer data)
 {
    GimvThumbView *tv = data;
    GimvThumb *thumb;
@@ -172,7 +224,7 @@ cb_album_button_release (GtkWidget *widget, GdkEventButton *event, gpointer data
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
 
-   dnd_unset = gtk_object_get_data (GTK_OBJECT (widget), "drag-unset");
+   dnd_unset = g_object_get_data (G_OBJECT (widget), "drag-unset");
    if (dnd_unset)
       dnd_src_set  (widget, dnd_types_uri, dnd_types_uri_num);
    dnd_unset = FALSE;
@@ -226,7 +278,7 @@ cb_unselect_cell (GimvZAlbum *album, gint idx, GimvThumbView *tv)
 
 static gboolean
 cb_album_key_press (GtkWidget *widget,
-                    GdkEventKey *event,
+                    GimvEventKey *event,
                     GimvThumbView *tv)
 {
    GimvThumb *thumb = NULL;
@@ -242,10 +294,10 @@ cb_album_key_press (GtkWidget *widget,
 
    {
       switch (event->keyval) {
-      case GDK_Left:
-      case GDK_Right:
-      case GDK_Up:
-      case GDK_Down:
+      case GDK_KEY_Left:
+      case GDK_KEY_Right:
+      case GDK_KEY_Up:
+      case GDK_KEY_Down:
          if (event->state & GDK_SHIFT_MASK) {
             gimv_thumb_view_set_selection_all (tv, FALSE);
             gimv_thumb_view_set_selection (thumb, TRUE);
@@ -253,7 +305,7 @@ cb_album_key_press (GtkWidget *widget,
                                         GIMV_THUMB_VIEW_OPEN_IMAGE_PREVIEW);
          }
          return TRUE;
-      case GDK_Return:
+      case GDK_KEY_Return:
          if (!thumb) break;
          if (event->state & GDK_SHIFT_MASK || event->state & GDK_CONTROL_MASK) {
             /* is there somteing to do? */
@@ -264,11 +316,11 @@ cb_album_key_press (GtkWidget *widget,
          gimv_thumb_view_open_image (tv, thumb,
                                      GIMV_THUMB_VIEW_OPEN_IMAGE_AUTO);
          break;
-      case GDK_space:
+      case GDK_KEY_space:
          if (!thumb) break;
          gimv_thumb_view_set_selection (thumb, !thumb->selected);
          break;
-      case GDK_Delete:
+      case GDK_KEY_Delete:
          gimv_thumb_view_delete_files (tv);
          break;
       default:
@@ -292,12 +344,12 @@ thumbalbum_new (GimvThumbView *tv)
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    if (!tv_data) {
       tv_data = g_new0 (ThumbViewData, 1);
       tv_data->album = NULL;
-      gtk_object_set_data_full (GTK_OBJECT (tv), THUMBALBUM_LABEL, tv_data,
-                                (GtkDestroyNotify) g_free);
+      g_object_set_data_full (G_OBJECT (tv), THUMBALBUM_LABEL, tv_data,
+                                (GDestroyNotify) g_free);
    }
 
    return tv_data;
@@ -317,7 +369,7 @@ thumbalbum_freeze (GimvThumbView *tv)
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && GIMV_IS_ZALBUM (tv_data->album));
 
    gimv_zalbum_freeze (tv_data->album);
@@ -331,7 +383,7 @@ thumbalbum_thaw (GimvThumbView *tv)
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && GIMV_IS_ZALBUM (tv_data->album));
 
    gimv_zalbum_thawn (tv_data->album);
@@ -345,15 +397,15 @@ thumbalbum_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
    ThumbViewData *tv_data;
    const gchar *filename;
    gchar *label;
-   GdkPixmap *pixmap = NULL;
-   GdkBitmap *mask = NULL;
+   GdkTexture *pixmap = NULL;
+   GdkTexture *mask = NULL;
    gint pos;
    guint idx;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
    g_return_if_fail (GIMV_IS_THUMB (thumb));
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data);
 
    pos = g_list_index (tv->thumblist, thumb);
@@ -363,7 +415,7 @@ thumbalbum_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
    if (!strcmp (dest_mode, THUMBALBUM3_LABEL)) {
       label = album_create_label_str (thumb);
    } else {
-      label = gimv_filename_to_internal (filename);
+      label = gimv_image_info_get_display_name (thumb->info, filename);
    }
 
    idx = gimv_zalbum_insert (GIMV_ZALBUM (tv_data->album), pos, label);
@@ -389,14 +441,14 @@ thumbalbum_update_thumbnail (GimvThumbView *tv, GimvThumb *thumb,
                              const gchar *dest_mode)
 {
    ThumbViewData *tv_data;
-   GdkPixmap *pixmap = NULL;
-   GdkBitmap *mask = NULL;
+   GdkTexture *pixmap = NULL;
+   GdkTexture *mask = NULL;
    gint pos;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
    g_return_if_fail (GIMV_IS_THUMB (thumb));
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && tv_data->album);
 
    pos = g_list_index (tv->thumblist, thumb);
@@ -421,8 +473,8 @@ thumbalbum_get_load_list (GimvThumbView *tv)
 
    for (node = tv->thumblist; node; node = g_list_next (node)) {
       GimvThumb *thumb = node->data;
-      GdkPixmap *pixmap = NULL;
-      GdkBitmap *mask = NULL;
+      GdkTexture *pixmap = NULL;
+      GdkTexture *mask = NULL;
 
       if (!strcmp (THUMBALBUM2_LABEL, tv->summary_mode)) {
          gimv_thumb_get_icon (thumb, &pixmap, &mask);
@@ -446,7 +498,7 @@ thumbalbum_remove_thumbnail (GimvThumbView *tv, GimvThumb *thumb)
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
    g_return_if_fail (GIMV_IS_THUMB (thumb));
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && tv_data->album);
 
    pos = g_list_index (tv->thumblist, thumb);
@@ -467,7 +519,7 @@ thumbalbum_set_selection (GimvThumbView *tv, GimvThumb *thumb, gboolean select)
 
    if (g_list_length (tv->thumblist) < 1) return FALSE;
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_val_if_fail (tv_data && tv_data->album, FALSE);
 
    pos = g_list_index (tv->thumblist, thumb);
@@ -492,7 +544,7 @@ thumbalbum_set_focus (GimvThumbView *tv, GimvThumb *thumb)
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && tv_data->album);
 
    pos = g_list_index (tv->thumblist, thumb);
@@ -513,7 +565,7 @@ thumbalbum_get_focus (GimvThumbView *tv)
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_val_if_fail (tv_data && tv_data->album, NULL);
 
    pos = GIMV_ZLIST (tv_data->album)->focus;
@@ -539,7 +591,7 @@ thumbalbum_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_val_if_fail (tv_data, FALSE);
 
    node = g_list_find (tv->thumblist, thumb);
@@ -572,7 +624,7 @@ thumbalbum_adjust (GimvThumbView *tv, GimvThumb *thumb)
    node = g_list_find (gimv_thumb_view_get_list(), tv);
    if (!node) return;
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data);
 
    pos = g_list_index (tv->thumblist, thumb);
@@ -583,6 +635,47 @@ thumbalbum_adjust (GimvThumbView *tv, GimvThumb *thumb)
 }
 
 
+
+/* GTK4 port: subject and comment of the thumbnail under the pointer */
+static gboolean
+cb_album_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
+                        GtkTooltip *tooltip, GimvThumbView *tv)
+{
+   GimvThumb *thumb;
+   gchar *subject = NULL, *note = NULL;
+   GString *text;
+   gint idx;
+
+   if (keyboard || !GIMV_IS_THUMB_VIEW (tv)) return FALSE;
+
+   idx = gimv_zlist_cell_index_from_xy (GIMV_ZLIST (widget), x, y);
+   if (idx < 0) return FALSE;
+   thumb = g_list_nth_data (tv->thumblist, idx);
+   if (!GIMV_IS_THUMB (thumb) || !thumb->info) return FALSE;
+
+   if (!gimv_comment_get_summary (thumb->info, &subject, &note)) return FALSE;
+   if (!subject && !note) return FALSE;
+
+   text = g_string_new (NULL);
+   if (subject)
+      g_string_append (text, subject);
+   if (note) {
+      gchar *body = g_strstrip (note);
+      if (g_utf8_strlen (body, -1) > 1000)
+         *g_utf8_offset_to_pointer (body, 1000) = '\0';
+      if (text->len) g_string_append (text, "\n\n");
+      g_string_append (text, body);
+   }
+   gtk_tooltip_set_text (tooltip, text->str);
+
+   g_string_free (text, TRUE);
+   g_free (subject);
+   g_free (note);
+
+   return TRUE;
+}
+
+
 static GtkWidget *
 thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
 {
@@ -590,7 +683,7 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
 
-   tv_data = gtk_object_get_data (GTK_OBJECT (tv), THUMBALBUM_LABEL);
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    if (!tv_data) {
       tv_data = thumbalbum_new (tv);
       g_return_val_if_fail (tv_data, NULL);
@@ -598,6 +691,11 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
 
    /* create zalbum widget */
    tv_data->album = gimv_zalbum_new ();
+
+   /* GTK4 port: the comment of a thumbnail as its tooltip */
+   gtk_widget_set_has_tooltip (tv_data->album, TRUE);
+   g_signal_connect (tv_data->album, "query-tooltip",
+                     G_CALLBACK (cb_album_query_tooltip), tv);
 
    if (!strcmp (THUMBALBUM2_LABEL, dest_mode)) {
       gtk_widget_set_name (tv_data->album, "List2IconMode");
@@ -633,7 +731,7 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
                                                20, 10);
 
    gimv_zlist_set_selection_mode (GIMV_ZLIST (tv_data->album),
-                                  GTK_SELECTION_EXTENDED);
+                                  GTK_SELECTION_MULTIPLE);   /* was GTK_SELECTION_EXTENDED */
 
    if (!strcmp (THUMBALBUM_LABEL, dest_mode)) {
       gimv_zlist_set_cell_padding (GIMV_ZLIST (tv_data->album),
@@ -645,38 +743,26 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
 
    gtk_widget_show (tv_data->album);
 
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "button_press_event",
-                             GTK_SIGNAL_FUNC (cb_album_button_press), tv);
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "button_release_event",
-                             GTK_SIGNAL_FUNC (cb_album_button_release), tv);
-   SIGNAL_CONNECT_TRANSRATE_SCROLL (tv_data->album);
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "key-press-event",
-                             GTK_SIGNAL_FUNC (cb_album_key_press), tv);
+   gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_album_button_press), tv);
+   gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_album_button_release), tv);
+   gimv_event_connect (GTK_WIDGET (tv_data->album), GIMV_EVENT_SCROLL, G_CALLBACK (cb_album_scroll), tv);
+   gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_album_key_press), tv);
 
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "cell_select",
-                             GTK_SIGNAL_FUNC (cb_select_cell), tv);
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "cell_unselect",
-                             GTK_SIGNAL_FUNC (cb_unselect_cell), tv);
+   g_signal_connect_after (G_OBJECT (tv_data->album), "cell_select",
+                             G_CALLBACK (cb_select_cell), tv);
+   g_signal_connect_after (G_OBJECT (tv_data->album), "cell_unselect",
+                             G_CALLBACK (cb_unselect_cell), tv);
 
    /* Drag and Drop */
    dnd_src_set  (tv_data->album, dnd_types_uri, dnd_types_uri_num);
    dnd_dest_set (tv_data->album, dnd_types_uri, dnd_types_uri_num);
-   gtk_object_set_data (GTK_OBJECT (tv_data->album), "gimv-tab", tv);
+   g_object_set_data (G_OBJECT (tv_data->album), "gimv-tab", tv);
 
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "drag_begin",
-                             GTK_SIGNAL_FUNC (gimv_thumb_view_drag_begin_cb),
-                             tv);
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "drag_data_get",
-                             GTK_SIGNAL_FUNC (gimv_thumb_view_drag_data_get_cb),
-                             tv);
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "drag_data_received",
-                             GTK_SIGNAL_FUNC (gimv_thumb_view_drag_data_received_cb),
-                             tv);
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "drag-data-delete",
-                             GTK_SIGNAL_FUNC (gimv_thumb_view_drag_data_delete_cb),
-                             tv);
-   gtk_signal_connect_after (GTK_OBJECT (tv_data->album), "drag_end",
-                             GTK_SIGNAL_FUNC (gimv_thumb_view_drag_end_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->album), GIMV_DND_DRAG_BEGIN, G_CALLBACK (gimv_thumb_view_drag_begin_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->album), GIMV_DND_DRAG_DATA_GET, G_CALLBACK (gimv_thumb_view_drag_data_get_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->album), GIMV_DND_DRAG_DATA_RECEIVED, G_CALLBACK (gimv_thumb_view_drag_data_received_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->album), GIMV_DND_DRAG_DATA_DELETE, G_CALLBACK (gimv_thumb_view_drag_data_delete_cb), tv);
+   gimv_dnd_connect (GTK_WIDGET (tv_data->album), GIMV_DND_DRAG_END, G_CALLBACK (gimv_thumb_view_drag_end_cb), tv);
 
    /* append thumbnail frames */
    if (tv->thumblist) {
@@ -710,10 +796,10 @@ label_filename (GimvThumb *thumb)
 
    filename = g_basename(gimv_image_info_get_path (thumb->info));
 
-   tmpstr = gimv_filename_to_internal (filename);
+   tmpstr = gimv_image_info_get_display_name (thumb->info, filename);
 
    if (show_data_title)
-      g_snprintf (buf, BUF_SIZE, _("Name : %s"), tmpstr);
+      g_snprintf (buf, BUF_SIZE, _("Name: %s"), tmpstr);
    else
       return tmpstr;
 
@@ -732,7 +818,7 @@ label_size (GimvThumb *thumb)
 
    size_str = fileutil_size2str (thumb->info->st.st_size, FALSE);
    if (show_data_title)
-      g_snprintf (buf, BUF_SIZE, _("Size : %s bytes"), size_str);
+      g_snprintf (buf, BUF_SIZE, _("Size: %s bytes"), size_str);
    else
       g_snprintf (buf, BUF_SIZE, _("%s bytes"), size_str);
    g_free (size_str);
@@ -750,7 +836,7 @@ label_mtime (GimvThumb *thumb)
 
    time_str = fileutil_time2str (thumb->info->st.st_mtime);
    if (show_data_title)
-      str = g_strconcat (_("Time : "), time_str, NULL);
+      str = g_strconcat (_("Time: "), time_str, NULL);
    else
       return time_str;
    g_free (time_str);

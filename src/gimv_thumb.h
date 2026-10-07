@@ -29,10 +29,10 @@
 
 
 #define GIMV_TYPE_THUMB            (gimv_thumb_get_type ())
-#define GIMV_THUMB(obj)            (GTK_CHECK_CAST (obj, gimv_thumb_get_type (), GimvThumb))
-#define GIMV_THUMB_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_thumb_get_type, GimvThumbClass))
-#define GIMV_IS_THUMB(obj)         (GTK_CHECK_TYPE (obj, gimv_thumb_get_type ()))
-#define GIMV_IS_THUMB_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_THUMB))
+#define GIMV_THUMB(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_thumb_get_type (), GimvThumb))
+#define GIMV_THUMB_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_thumb_get_type (), GimvThumbClass))
+#define GIMV_IS_THUMB(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_thumb_get_type ()))
+#define GIMV_IS_THUMB_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_THUMB))
 
 
 typedef struct GimvThumbPriv_Tag  GimvThumbPriv;
@@ -44,15 +44,15 @@ typedef struct GimvThumbClass_Tag GimvThumbClass;
 
 struct GimvThumb_Tag
 {
-   GtkObject       parent;
+   GimvObject       parent;
 
    GimvImageInfo  *info;
 
    /* image */
-   GdkPixmap      *thumbnail;
-   GdkBitmap      *thumbnail_mask;
-   GdkPixmap      *icon;
-   GdkBitmap      *icon_mask;
+   GdkTexture      *thumbnail;
+   GdkTexture      *thumbnail_mask;
+   GdkTexture      *icon;
+   GdkTexture      *icon_mask;
    gchar          *cache_type;
 
    gint            thumb_width;
@@ -65,11 +65,11 @@ struct GimvThumb_Tag
 
 struct GimvThumbClass_Tag
 {
-   GtkObjectClass  parent_class;
+   GimvObjectClass  parent_class;
 };
 
 
-GtkType        gimv_thumb_get_type             (void);
+GType        gimv_thumb_get_type             (void);
 GimvThumb     *gimv_thumb_new                  (GimvImageInfo  *info);
 gboolean       gimv_thumb_load                 (GimvThumb      *thumb,
                                                 gint            thumb_size,
@@ -78,28 +78,21 @@ gboolean       gimv_thumb_is_loading           (GimvThumb      *thumb);
 void           gimv_thumb_load_stop            (GimvThumb      *thumb);
 
 void           gimv_thumb_get_thumb            (GimvThumb      *thumb,
-                                                GdkPixmap     **pixmap,
-                                                GdkBitmap     **mask);
+                                                GdkTexture     **pixmap,
+                                                GdkTexture     **mask);
 GtkWidget     *gimv_thumb_get_thumb_by_widget  (GimvThumb      *thumb);
 void           gimv_thumb_get_icon             (GimvThumb      *thumb,
-                                                GdkPixmap     **pixmap,
-                                                GdkBitmap     **mask);
+                                                GdkTexture     **pixmap,
+                                                GdkTexture     **mask);
 GtkWidget     *gimv_thumb_get_icon_by_widget   (GimvThumb      *thumb);
 const gchar   *gimv_thumb_get_cache_type       (GimvThumb      *thumb);
 gboolean       gimv_thumb_has_thumbnail        (GimvThumb      *thumb);
 gchar         *gimv_thumb_find_thumbcache      (const gchar    *filename,
                                                 gchar         **type);
 
-#ifdef USE_GTK2
 #  define gimv_thumb_get_parent_thumbview(thumb) \
    ((GimvThumbView *) g_object_get_data(G_OBJECT(thumb), "GimvThumbView"))
 #  define gimv_thumb_set_parent_thumbview(thumb, tv) \
    g_object_set_data(G_OBJECT(thumb), "GimvThumbView", tv);
-#else
-#  define gimv_thumb_get_parent_thumbview(thumb) \
-   ((GimvThumbView *) gtk_object_get_data(GTK_OBJECT(thumb), "GimvThumbView"))
-#  define gimv_thumb_set_parent_thumbview(thumb, tv) \
-   gtk_object_set_data(GTK_OBJECT(thumb), "GimvThumbView", tv);
-#endif
 
 #endif /* __GIMV_THUMB_H__ */

@@ -31,10 +31,10 @@
 #include "gimv_image_loader.h"
 
 #define GIMV_TYPE_IMAGE_VIEW            (gimv_image_view_get_type ())
-#define GIMV_IMAGE_VIEW(obj)            (GTK_CHECK_CAST (obj, gimv_image_view_get_type (), GimvImageView))
-#define GIMV_IMAGE_VIEW_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_image_view_get_type, GimvImageViewClass))
-#define GIMV_IS_IMAGE_VIEW(obj)         (GTK_CHECK_TYPE (obj, gimv_image_view_get_type ()))
-#define GIMV_IS_IMAGE_VIEW_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_VIEW))
+#define GIMV_IMAGE_VIEW(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_image_view_get_type (), GimvImageView))
+#define GIMV_IMAGE_VIEW_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_image_view_get_type (), GimvImageViewClass))
+#define GIMV_IS_IMAGE_VIEW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_image_view_get_type ()))
+#define GIMV_IS_IMAGE_VIEW_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_VIEW))
 
 
 #define GIMV_IMAGE_VIEW_DEFAULT_VIEW_MODE N_("Default Image Viewer")
@@ -122,7 +122,7 @@ typedef void (*GimvImageViewRemoveListFn) (GimvImageView *iv,
 
 struct GimvImageView_Tag
 {
-   GtkVBox          parent;
+   GtkBox          parent;
 
    GtkWidget       *draw_area;
    GimvImageViewPlugin *draw_area_funcs;
@@ -154,6 +154,10 @@ struct GimvImageView_Tag
       GtkWidget *eject;
       GtkWidget *seekbar;
       GtkWidget *play_icon;
+      GtkWidget *time_label;   /* "elapsed / total" */
+      GtkWidget *preview;      /* seek bar preview popover */
+      GtkWidget *preview_picture;
+      GtkWidget *preview_label;
    } player;
 
    /* information about image */
@@ -164,7 +168,7 @@ struct GimvImageView_Tag
    GimvImage       *image;
 
    /* imageview status */
-   GdkColor        *bg_color;
+   GdkRGBA         *bg_color;
 
    GimvImageViewPrivate *priv;
 };
@@ -172,7 +176,7 @@ struct GimvImageView_Tag
 
 struct GimvImageViewClass_Tag
 {
-   GtkVBoxClass parent_class;
+   GtkBoxClass parent_class;
 
    /* signals */
    void     (*image_changed)     (GimvImageView *iv);
@@ -192,16 +196,16 @@ struct GimvImageViewClass_Tag
                                   GimvImageInfo *info);
 
    gboolean (*image_pressed)     (GimvImageView  *iv,
-                                  GdkEventButton *button);
+                                  GimvEventButton *button);
    gboolean (*image_released)    (GimvImageView  *iv,
-                                  GdkEventButton *button);
+                                  GimvEventButton *button);
    gboolean (*image_clicked)     (GimvImageView  *iv,
-                                  GdkEventButton *button);
+                                  GimvEventButton *button);
 };
 
 
 GList     *gimv_image_view_get_list               (void);
-GtkType    gimv_image_view_get_type               (void);
+GType    gimv_image_view_get_type               (void);
 GtkWidget *gimv_image_view_new                    (GimvImageInfo  *info);
 
 void       gimv_image_view_change_image           (GimvImageView  *iv,
@@ -222,6 +226,9 @@ GtkWidget *gimv_image_view_create_zoom_menu       (GtkWidget      *window,
 GtkWidget *gimv_image_view_create_rotate_menu     (GtkWidget      *window,
                                                    GimvImageView  *iv,
                                                    const gchar    *path);
+void       gimv_image_view_set_menu_ptr           (GimvImageView  *iv,
+                                                   GtkWidget     **field,
+                                                   GtkWidget      *menu);
 GtkWidget *gimv_image_view_create_popup_menu      (GtkWidget      *window,
                                                    GimvImageView  *iv,
                                                    const gchar    *path);
@@ -240,11 +247,16 @@ GimvImageViewPlayerVisibleType
 void       gimv_image_view_show_scrollbar         (GimvImageView  *iv);
 void       gimv_image_view_hide_scrollbar         (GimvImageView  *iv);
 void       gimv_image_view_popup_menu             (GimvImageView  *iv,
-                                                   GdkEventButton *event);
+                                                   GimvEventButton *event);
 void       gimv_image_view_set_bg_color           (GimvImageView  *iv,
                                                    gint            red,
                                                    gint            green,
                                                    gint            blue);
+/* GTK4: current background color, components are 0 - 65535 */
+void       gimv_image_view_get_bg_color           (GimvImageView  *iv,
+                                                   gint           *red,
+                                                   gint           *green,
+                                                   gint           *blue);
 void       gimv_image_view_open_navwin            (GimvImageView  *iv,
                                                    gint            x_root,
                                                    gint            y_root);
@@ -321,6 +333,16 @@ void       gimv_image_view_playable_seek          (GimvImageView  *iv,
 void       gimv_image_view_playable_eject         (GimvImageView  *iv);
 GimvImageViewPlayableStatus
            gimv_image_view_playable_get_status    (GimvImageView  *iv);
+gboolean   gimv_image_view_playable_is_busy       (GimvImageView  *iv);
+gboolean   gimv_image_view_frame_resized          (GimvImageView  *iv);
+/* checkerboard behind the transparent parts of an image (else the
+   background colour shows through) */
+void       gimv_image_view_set_alpha_checker      (GimvImageView  *iv,
+                                                   gboolean        checker);
+gboolean   gimv_image_view_get_alpha_checker      (GimvImageView  *iv);
+/* go to the next file when a movie ends (also updates the menu toggle) */
+void       gimv_image_view_set_continuance        (GimvImageView  *iv,
+                                                   gboolean        continuance);
 guint      gimv_image_view_playable_get_length    (GimvImageView  *iv);
 guint      gimv_image_view_playable_get_position  (GimvImageView  *iv);
 
@@ -354,7 +376,7 @@ void       gimv_image_view_nth                    (GimvImageView  *iv,
  *  GimvImageView Embeder Plugin interface
  *
  ****************************************************************************/
-#define GIMV_IMAGE_VIEW_IF_VERSION 5
+#define GIMV_IMAGE_VIEW_IF_VERSION 6
 
 struct GimvImageViewPlugin_Tag
 {
@@ -394,6 +416,11 @@ struct GimvImageViewPlayableIF_Tag {
             (*get_status_fn)   (GimvImageView *iv);
    guint    (*get_length_fn)   (GimvImageView *iv);
    guint    (*get_position_fn) (GimvImageView *iv);
+   /* optional: seek bar preview.  Make a frame at pos [ms] and hand it to
+      gimv_image_view_playable_set_preview () (may be later, from the main
+      loop).  A new request may come before the last one is answered. */
+   void     (*preview_fn)      (GimvImageView *iv,
+                                guint          pos);
 };
 
 
@@ -401,10 +428,19 @@ GList *gimv_image_view_plugin_get_list (void);
 
 
 /* for internal use */
+/* GTK4: paints background and image, used by the default draw area */
+void gimv_image_view_paint                 (GimvImageView *iv,
+                                            cairo_t       *cr,
+                                            gint           width,
+                                            gint           height);
 void gimv_image_view_playable_set_status   (GimvImageView *iv,
                                             GimvImageViewPlayableStatus status);
 void gimv_image_view_playable_set_position (GimvImageView *iv,
                                             gfloat     pos); /* [%] */
+/* answer to preview_fn: the frame at pos [ms], NULL if there is none */
+void gimv_image_view_playable_set_preview  (GimvImageView *iv,
+                                            GdkTexture    *frame,
+                                            guint          pos);
 
 /* for plugin loader */
 gboolean gimv_image_view_plugin_regist (const gchar *plugin_name,

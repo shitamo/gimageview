@@ -25,10 +25,30 @@
 #define __PREFS_H__
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
+
+
+/*
+ *  "Tools > Set as Wallpaper": "label,command;label,command;..."
+ *  %s = the image file, %u = its file:// URI (both shell quoted).
+ *  Commands must not contain ';' or ','.
+ */
+#define WALLPAPER_MENU_DEFAULT \
+   "Xfce,xfconf-query -c xfce4-desktop -l | grep 'last-image$' | xargs -r -I{} xfconf-query -c xfce4-desktop -p {} -s %s;" \
+   "GNOME,gsettings set org.gnome.desktop.background picture-uri %u && gsettings set org.gnome.desktop.background picture-uri-dark %u;" \
+   "KDE Plasma,plasma-apply-wallpaperimage %s;" \
+   "MATE,gsettings set org.mate.background picture-filename %s;" \
+   "Cinnamon,gsettings set org.cinnamon.desktop.background picture-uri %u;" \
+   "LXDE and LXQt (PCManFM),pcmanfm --set-wallpaper %s || pcmanfm-qt --set-wallpaper %s;" \
+   "feh,feh --bg-fill %s"
+/* 0.2.27: launched the settings programs of GNOME 1/2 and KDE 3 */
+#define WALLPAPER_MENU_OLD_DEFAULT \
+   "GNOME1,background-properties-capplet;GNOME2,gnome-background-properties;KDE,kcmshell background;KDE(RedHat8),kcmshell kde-background"
 
 #define SCRIPTS_DEFAULT_SEARCH_DIR_LIST \
    DATADIR"/scripts"
@@ -64,6 +84,8 @@ typedef struct _Config {
    gboolean   fast_scale_down;
    gboolean   conv_rel_path_to_abs;
    gchar     *iconset;
+   gboolean   use_theme_icons;
+   gint       color_scheme;     /* GimvColorScheme (gimv_color_scheme.h) */
    gchar     *textentry_font;
 
    /* Charset related common option */
@@ -78,6 +100,7 @@ typedef struct _Config {
    gboolean   startup_read_dir;
    gboolean   startup_open_thumbwin;
    gboolean   startup_no_warning;
+   gboolean   startup_show_splash;
 
    /* filter */
    gchar     *imgtype_disables;
@@ -103,7 +126,10 @@ typedef struct _Config {
    gfloat     imgview_scale;
    gboolean   imgview_keep_aspect;
    gint       imgview_default_zoom;
+   gboolean   imgview_alpha_checker;   /* checkerboard behind transparency */
+   gboolean   imgview_movie_lock_mouse; /* no next/prev/zoom clicks while playing */
    gint       imgview_default_rotation;
+   gboolean   imgview_remember_rotation;   /* keep each image's rotation */
    gboolean   imgview_buffer;
    gboolean   imgview_scrollbar;
    gint       imgview_player_visible;
@@ -339,12 +365,16 @@ typedef struct _KeyConf {
 extern Config conf;
 extern KeyConf akey;
 
+/* groups of the mouse button settings: double click of button 1,
+   buttons 1-5, button 8 (back) and button 9 (forward) */
+#define PREFS_MOUSE_BUTTON_IDS 8
+
 void prefs_load_config              (void);
 void prefs_save_config              (void);
 gint prefs_mouse_get_num            (gint            button_id,
                                      gint            mod_id,
                                      const gchar    *string);
-gint prefs_mouse_get_num_from_event (GdkEventButton *event,
+gint prefs_mouse_get_num_from_event (GimvEventButton *event,
                                      const gchar    *string);
 
 #endif /* __PREFS_H__ */

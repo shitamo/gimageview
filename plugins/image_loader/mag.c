@@ -32,6 +32,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #include "mag.h"
 #include "gimv_plugin.h"

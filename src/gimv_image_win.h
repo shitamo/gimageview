@@ -29,10 +29,10 @@
 
 
 #define GIMV_TYPE_IMAGE_WIN            (gimv_image_win_get_type ())
-#define GIMV_IMAGE_WIN(obj)            (GTK_CHECK_CAST (obj, gimv_image_win_get_type (), GimvImageWin))
-#define GIMV_IMAGE_WIN_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_image_win_get_type, GimvImageWinClass))
-#define GIMV_IS_IMAGE_WIN(obj)         (GTK_CHECK_TYPE (obj, gimv_image_win_get_type ()))
-#define GIMV_IS_IMAGE_WIN_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_WIN))
+#define GIMV_IMAGE_WIN(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_image_win_get_type (), GimvImageWin))
+#define GIMV_IMAGE_WIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_image_win_get_type, GimvImageWinClass))
+#define GIMV_IS_IMAGE_WIN(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_image_win_get_type ()))
+#define GIMV_IS_IMAGE_WIN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_WIN))
 
 
 typedef struct GimvImageWinClass_Tag GimvImageWinClass;
@@ -123,7 +123,7 @@ struct GimvImageWinClass_Tag
 };
 
 
-GtkType       gimv_image_win_get_type                  (void);
+GType       gimv_image_win_get_type                  (void);
 GtkWidget    *gimv_image_win_new                       (GimvImageInfo *info);
 GimvImageWin *gimv_image_win_open_window               (GimvImageInfo *info);
 GimvImageWin *gimv_image_win_open_shared_window        (GimvImageInfo *info);

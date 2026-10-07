@@ -49,12 +49,15 @@ static GHashTable *ext_archivers = NULL;
 static GList *archive_ext_list = NULL;
 
 
-static GtkObjectClass *parent_class;
+static GimvObjectClass *parent_class;
 static guint fr_archive_signals[LAST_SIGNAL] = { 0 };
 
 
+G_DEFINE_TYPE (FRArchive, fr_archive, GIMV_TYPE_OBJECT)
+
+
 static void
-fr_archive_destroy (GtkObject *object)
+fr_archive_destroy (GimvObject *object)
 {
    FRArchive *archive;
 
@@ -64,49 +67,53 @@ fr_archive_destroy (GtkObject *object)
    archive = FR_ARCHIVE (object);
 
    if (archive->command != NULL) 
-      gtk_object_unref (GTK_OBJECT (archive->command));
+      g_object_unref (G_OBJECT (archive->command));
+   archive->command = NULL;
 
-   gtk_object_unref (GTK_OBJECT (archive->process));
+   if (archive->process != NULL)
+      g_object_unref (G_OBJECT (archive->process));
+   archive->process = NULL;
 
    g_print (_("archive \"%s\" has been finalized.\n"), archive->filename);
 
    if (archive->filename != NULL)
       g_free (archive->filename);
+   archive->filename = NULL;
 
    /* Chain up */
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (* GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (* GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
 static void
 fr_archive_class_init (FRArchiveClass *class)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   object_class = (GtkObjectClass *) class;
-   parent_class = gtk_type_class (gtk_object_get_type ());
+   object_class = (GimvObjectClass *) class;
+   parent_class = g_type_class_peek_parent (class);
 
    fr_archive_signals[START] =
-      gtk_signal_new ("start",
-                      GTK_RUN_LAST,
-                      GTK_CLASS_TYPE (object_class),
-                      GTK_SIGNAL_OFFSET (FRArchiveClass, start),
-                      gtk_marshal_NONE__INT,
-                      GTK_TYPE_NONE, 1,
-                      GTK_TYPE_INT);
+      g_signal_new ("start",
+                    G_TYPE_FROM_CLASS (object_class),
+                    G_SIGNAL_RUN_LAST,
+                    G_STRUCT_OFFSET (FRArchiveClass, start),
+                    NULL, NULL,
+                    g_cclosure_marshal_VOID__INT,
+                    G_TYPE_NONE, 1,
+                    G_TYPE_INT);
 
    fr_archive_signals[DONE] =
-      gtk_signal_new ("done",
-                      GTK_RUN_LAST,
-                      GTK_CLASS_TYPE (object_class),
-                      GTK_SIGNAL_OFFSET (FRArchiveClass, done),
-                      gtk_marshal_NONE__INT_INT,
-                      GTK_TYPE_NONE, 2,
-                      GTK_TYPE_INT,
-                      GTK_TYPE_INT);
-   gtk_object_class_add_signals (object_class, fr_archive_signals, 
-                                 LAST_SIGNAL);
+      g_signal_new ("done",
+                    G_TYPE_FROM_CLASS (object_class),
+                    G_SIGNAL_RUN_LAST,
+                    G_STRUCT_OFFSET (FRArchiveClass, done),
+                    NULL, NULL,
+                    g_cclosure_marshal_generic,
+                    G_TYPE_NONE, 2,
+                    G_TYPE_INT,
+                    G_TYPE_INT);
 
    object_class->destroy = fr_archive_destroy;
    class->start = NULL;
@@ -121,35 +128,7 @@ fr_archive_init (FRArchive *archive)
    archive->command = NULL;
    archive->process = fr_process_new ();
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (archive));
-   gtk_object_sink (GTK_OBJECT (archive));
-#endif
-}
-
-
-GtkType
-fr_archive_get_type (void)
-{
-   static GtkType fr_archive_type = 0;
-
-   if (! fr_archive_type) {
-      GtkTypeInfo fr_archive_info = {
-         "FRArchive",
-         sizeof (FRArchive),
-         sizeof (FRArchiveClass),
-         (GtkClassInitFunc) fr_archive_class_init,
-         (GtkObjectInitFunc) fr_archive_init,
-         NULL, /* reserved_1 */
-         NULL, /* reserved_2 */
-         (GtkClassInitFunc) NULL
-      };
-
-      fr_archive_type = gtk_type_unique (gtk_object_get_type (), 
-                                         &fr_archive_info);
-   }
-
-   return fr_archive_type;
+   g_object_ref_sink (G_OBJECT (archive));
 }
 
 
@@ -157,7 +136,7 @@ FRArchive *
 fr_archive_new (void)
 {
    FRArchive *archive;
-   archive = FR_ARCHIVE (gtk_type_new (fr_archive_get_type ()));
+   archive = FR_ARCHIVE (g_object_new (FR_TYPE_ARCHIVE, NULL));
    return archive;
 }
 
@@ -168,7 +147,7 @@ fr_archive_ref (FRArchive *archive)
    g_return_val_if_fail (archive != NULL, NULL);
    g_return_val_if_fail (FR_IS_ARCHIVE (archive), NULL);
 
-   gtk_object_ref (GTK_OBJECT (archive));
+   g_object_ref (G_OBJECT (archive));
 
    return archive;
 }
@@ -180,7 +159,7 @@ fr_archive_unref (FRArchive *archive)
    g_return_if_fail (archive != NULL);
    g_return_if_fail (FR_IS_ARCHIVE (archive));
 
-   gtk_object_unref (GTK_OBJECT (archive));
+   g_object_unref (G_OBJECT (archive));
 }
 
 
@@ -223,8 +202,8 @@ action_started (FRCommand *command,
                 FRAction action,
                 FRArchive *archive)
 {
-   gtk_signal_emit (GTK_OBJECT (archive), 
-                    fr_archive_signals[START],
+   g_signal_emit (G_OBJECT (archive),
+                    fr_archive_signals[START], 0,
                     action);
 }
 
@@ -255,8 +234,8 @@ action_performed (FRCommand *command,
    g_print ("%s [DONE]\n", s_action);
 #endif
 
-   gtk_signal_emit (GTK_OBJECT (archive), 
-                    fr_archive_signals[DONE],
+   g_signal_emit (G_OBJECT (archive),
+                    fr_archive_signals[DONE], 0,
                     action,
                     error);
 }
@@ -280,13 +259,13 @@ fr_archive_new_file (FRArchive *archive, char *filename)
    if (! create_command_from_filename (archive, filename))
       return;
    if (tmp_command != NULL) 
-      gtk_object_unref (GTK_OBJECT (tmp_command));
+      g_object_unref (G_OBJECT (tmp_command));
 
-   gtk_signal_connect (GTK_OBJECT (archive->command), "start",
-                       GTK_SIGNAL_FUNC (action_started),
+   g_signal_connect (G_OBJECT (archive->command), "start",
+                       G_CALLBACK (action_started),
                        archive);
-   gtk_signal_connect (GTK_OBJECT (archive->command), "done",
-                       GTK_SIGNAL_FUNC (action_performed),
+   g_signal_connect (G_OBJECT (archive->command), "done",
+                       G_CALLBACK (action_performed),
                        archive);
 }
 
@@ -317,14 +296,14 @@ fr_archive_load (FRArchive *archive,
    if (!create_command_from_filename (archive, filename))
       return FALSE;
    if (tmp_command != NULL) 
-      gtk_object_unref (GTK_OBJECT (tmp_command));
+      g_object_unref (G_OBJECT (tmp_command));
 
-   gtk_signal_connect (GTK_OBJECT (archive->command), "start",
-                       GTK_SIGNAL_FUNC (action_started),
+   g_signal_connect (G_OBJECT (archive->command), "start",
+                       G_CALLBACK (action_started),
                        archive);
 
-   gtk_signal_connect (GTK_OBJECT (archive->command), "done",
-                       GTK_SIGNAL_FUNC (action_performed),
+   g_signal_connect (G_OBJECT (archive->command), "done",
+                       G_CALLBACK (action_performed),
                        archive);
 	
    fr_command_list (archive->command);

@@ -128,9 +128,9 @@ Objects without "Gimv" prefix will be replaced to new implementation.
 ###############################################################################
 
 
-libintl  : Gettext (message translation).
-libexif  : EXIF support.
-dllloader: Win32 DLL(Dynamic Link Library) support.
+None since the GTK 4 port: libexif is the system library (it was bundled),
+and dllloader (Win32 DLL support for Susie plugins) was removed together with
+Susie plugin support.
 
 
 
@@ -157,12 +157,15 @@ dllloader: Win32 DLL(Dynamic Link Library) support.
   PCXLoader:        PCX.
   PixbufLoader:     GdkPixbuf image loader.
   PNGLoader:        PNG
-  SPILoader:        Susie plugin support (include archiver).
+  PNM:              PBM, PGM, PPM (GTK 4 port).
+  SunRaster:        Sun raster (GTK 4 port).
   SVGLoader:        SVG.
   TGALoader:        Targa.
   WMFLoader:        Windows Meta File.
+  WBMP:             WBMP (GTK 4 port).
   XBMLoader:        XBM.
   XCFLoader:        Image format of GIMP.
+  XPM:              XPM (GTK 4 port).
   XVPICSLoader:     XV thumbnail image.
 
 

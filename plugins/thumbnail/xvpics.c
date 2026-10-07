@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include <gmodule.h>
 
 #include "fileutil.h"
@@ -155,7 +157,7 @@ get_path (const gchar *filename, const gchar *cache_type)
    if (!image_name) goto ERROR;
 
    /* get dir name */
-   dir = image_dir = g_dirname (abspath);
+   dir = image_dir = g_path_get_dirname (abspath);
    if (!image_dir) goto ERROR;
 
    g_snprintf (buf, MAX_PATH_LEN, "%s/%s/%s",

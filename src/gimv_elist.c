@@ -38,7 +38,6 @@ enum {
 };
 
 
-#if (GTK_MAJOR_VERSION >= 2)
 
 #include <gobject/gvaluecollector.h>
 
@@ -49,20 +48,11 @@ enum {
 #define ROWDESTROY(columns)  columns + 1
 #define ALL_COLUMNS(columns) columns + 2
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-#define list_widget_get_row_num(widget) GTK_CLIST (widget)->rows;
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
 
 static void gimv_elist_init       (GimvEList *editlist);
 static void gimv_elist_class_init (GimvEListClass *klass);
-#ifdef USE_GTK2
 static void gimv_elist_finalize   (GObject *object);
-#else
-static void gimv_elist_finalize   (GtkObject *object);
-#endif
 
 /* private */
 static void     gimv_elist_set_move_button_sensitive   (GimvEList *editlist);
@@ -74,16 +64,15 @@ static gchar  **gimv_elist_edit_area_get_data          (GimvEList *editlist,
 static void     gimv_elist_edit_area_reset             (GimvEList *editlist);
 
 
-static GtkVBoxClass *parent_class = NULL;
-static gint gimv_elist_signals[LAST_SIGNAL] = {0};
+static GtkBoxClass *parent_class = NULL;
+static guint gimv_elist_signals[LAST_SIGNAL] = {0};
 
 
-GtkType
+GType
 gimv_elist_get_type (void)
 {
-   static GtkType gimv_elist_type = 0;
+   static GType gimv_elist_type = 0;
 
-#if (GTK_MAJOR_VERSION >= 2)
    if (!gimv_elist_type) {
       static const GTypeInfo gimv_elist_info = {
          sizeof (GimvEListClass),
@@ -97,28 +86,11 @@ gimv_elist_get_type (void)
          (GInstanceInitFunc) gimv_elist_init,
       };
 
-      gimv_elist_type = g_type_register_static (GTK_TYPE_VBOX,
+      gimv_elist_type = g_type_register_static (GTK_TYPE_BOX,
                                                    "GimvEList",
                                                    &gimv_elist_info,
                                                    0);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   if (!gimv_elist_type) {
-      static const GtkTypeInfo gimv_elist_info = {
-         "GimvEList",
-         sizeof (GimvEList),
-         sizeof (GimvEListClass),
-         (GtkClassInitFunc)  gimv_elist_class_init,
-         (GtkObjectInitFunc) gimv_elist_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_elist_type = gtk_type_unique (gtk_vbox_get_type (),
-                                            &gimv_elist_info);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    return gimv_elist_type;
 }
@@ -148,50 +120,52 @@ gimv_elist_init (GimvEList *editlist)
    editlist->column_func_tables = NULL;
    editlist->get_rowdata_fn     = NULL;
 
-#if (GTK_MAJOR_VERSION >= 2)
+   gtk_orientable_set_orientation (GTK_ORIENTABLE (editlist),
+                                   GTK_ORIENTATION_VERTICAL);
+
    editlist->rowdata_table
       = g_hash_table_new (g_direct_hash, g_direct_equal);
    editlist->rowdata_destroy_fn_table
       = g_hash_table_new (g_direct_hash, g_direct_equal);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
 static void
 gimv_elist_class_init (GimvEListClass *klass)
 {
-   GtkObjectClass *object_class;
+   GObjectClass *gobject_class;
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_vbox_get_type ());
+   gobject_class = (GObjectClass *) klass;
+   parent_class = g_type_class_peek_parent (klass);
 
    gimv_elist_signals[LIST_UPDATED_SIGNAL]
-      = gtk_signal_new ("list-updated",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvEListClass, list_updated),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("list-updated",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvEListClass, list_updated),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    gimv_elist_signals[EDIT_AREA_SET_DATA_SIGNAL]
-      = gtk_signal_new ("edit-area-set-data",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvEListClass, edit_area_set_data),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("edit-area-set-data",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvEListClass, edit_area_set_data),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    gimv_elist_signals[ACTION_CONFIRM_SIGNAL]
-      = gtk_signal_new ("action-confirm",
-                        GTK_RUN_LAST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvEListClass, action_confirm),
-                        gtk_marshal_NONE__INT_INT_POINTER,
-                        GTK_TYPE_NONE, 3, GTK_TYPE_INT, GTK_TYPE_INT, GTK_TYPE_POINTER);
+      = g_signal_new ("action-confirm",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_LAST,
+                      G_STRUCT_OFFSET (GimvEListClass, action_confirm),
+                      NULL, NULL,
+                      g_cclosure_marshal_generic,
+                      G_TYPE_NONE, 3, G_TYPE_INT, G_TYPE_INT, G_TYPE_POINTER);
 
-   gtk_object_class_add_signals (object_class, gimv_elist_signals, LAST_SIGNAL);
-
-   OBJECT_CLASS_SET_FINALIZE_FUNC (klass, gimv_elist_finalize);
+   gobject_class->finalize = gimv_elist_finalize;
 }
 
 
@@ -200,8 +174,8 @@ gimv_elist_updated (GimvEList *editlist)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
 
-   gtk_signal_emit (GTK_OBJECT (editlist),
-                    gimv_elist_signals[LIST_UPDATED_SIGNAL]);
+   g_signal_emit (G_OBJECT (editlist),
+                  gimv_elist_signals[LIST_UPDATED_SIGNAL], 0);
 }
 
 
@@ -211,26 +185,20 @@ gimv_elist_updated (GimvEList *editlist)
  *  Object class functions.
  *
  *******************************************************************************/
-#if (GTK_MAJOR_VERSION >= 2)
 static void
 free_rowdata (gpointer key, gpointer value, gpointer data)
 {
    GimvEList *editlist = data;
-   GtkDestroyNotify destroy;
+   GDestroyNotify destroy;
 
    destroy = g_hash_table_lookup (editlist->rowdata_destroy_fn_table, value);
    if (destroy)
       destroy (value);
 }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
 
 static void
-#ifdef USE_GTK2
 gimv_elist_finalize (GObject *object)
-#else
-gimv_elist_finalize (GtkObject *object)
-#endif
 {
    GimvEList *editlist = GIMV_ELIST (object);
    gint i;
@@ -246,13 +214,12 @@ gimv_elist_finalize (GtkObject *object)
    g_free (editlist->column_func_tables);
    editlist->column_func_tables = NULL;
 
-#if (GTK_MAJOR_VERSION >= 2)
    g_hash_table_foreach (editlist->rowdata_table, free_rowdata, editlist);
    g_hash_table_destroy (editlist->rowdata_table);
    g_hash_table_destroy (editlist->rowdata_destroy_fn_table);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
-   OBJECT_CLASS_FINALIZE_SUPER (parent_class, object);
+   if (G_OBJECT_CLASS (parent_class)->finalize)
+      G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
 
@@ -262,7 +229,6 @@ gimv_elist_finalize (GtkObject *object)
  *  Callback functions for child widget.
  *
  *******************************************************************************/
-#if (GTK_MAJOR_VERSION >= 2)
 
 static void
 cb_editlist_cursor_changed (GtkTreeView *treeview, gpointer data)
@@ -272,6 +238,9 @@ cb_editlist_cursor_changed (GtkTreeView *treeview, gpointer data)
    GtkTreeModel *model = NULL;
    GtkTreeIter iter;
    gboolean success;
+
+   /* GTK4: also emitted while the tree view is disposed (without model) */
+   if (!gtk_tree_view_get_model (treeview)) return;
 
    g_return_if_fail (treeview);
    g_return_if_fail (editlist);
@@ -331,80 +300,6 @@ cb_editlist_row_deleted (GtkTreeModel *model,
    gimv_elist_set_sensitive (editlist);
 }
 
-#else /* (GTK_MAJOR_VERSION >=2) */
-
-static void
-cb_editlist_select_row (GtkCList *clist, gint row, gint col,
-                        GdkEventButton *event, gpointer data)
-{
-   GimvEList *editlist = data;
-
-   editlist->selected = row;
-
-   gimv_elist_edit_area_set_data (editlist, row);
-
-   gimv_elist_set_sensitive (editlist);
-}
-
-
-static void
-cb_editlist_unselect_row (GtkCList *clist, gint row, gint col,
-                          GdkEventButton *event, gpointer data)
-{
-   GimvEList *editlist = data;
-
-   editlist->selected = -1;
-
-   gimv_elist_edit_area_set_data (editlist, -1);
-
-   gimv_elist_set_sensitive (editlist);
-}
-
-
-static gint
-idle_editlist_row_move (gpointer data)
-{
-   GimvEList *editlist = data;
-
-   gimv_elist_updated (editlist);
-   gimv_elist_set_sensitive (editlist);
-
-   return FALSE;
-}
-
-
-static void
-cb_editlist_row_move (GtkCList *clist, gint arg1, gint arg2, gpointer data)
-{
-   GimvEList *editlist = data;
-   gint src, dest = editlist->dest_row;
-   gint selected = editlist->selected;
-
-   if (editlist->dest_row >= 0) {
-      dest = editlist->dest_row;
-      src  = arg1 == dest ? arg2 : arg1;
-   } else {
-      src  = arg1;
-      dest = arg2;
-   }
-
-   if (selected >= 0) {
-      if (selected == src) {
-         editlist->selected = dest;
-      } else if (selected >= MIN (src, dest) && selected <= MAX (src, dest)) {
-         if (src < dest)
-            editlist->selected--;
-         else
-            editlist->selected++;
-      }
-   }
-
-   editlist->dest_row = -1;
-
-   gtk_idle_add (idle_editlist_row_move, editlist);
-}
-
-#endif /* (GTK_MAJOR_VERSION >=2) */
 
 
 static void
@@ -421,7 +316,6 @@ cb_editlist_up_button (GtkButton *button, gpointer data)
 
    editlist->dest_row = editlist->selected - 1;
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -474,12 +368,6 @@ cb_editlist_up_button (GtkButton *button, gpointer data)
       /* clean */
       gtk_tree_path_free (treepath);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gtk_clist_swap_rows (GTK_CLIST (editlist->clist), selected, selected - 1);
-      gtk_clist_moveto (GTK_CLIST (editlist->clist), selected - 1, 0, 0, 0);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -496,7 +384,6 @@ cb_editlist_down_button (GtkButton *button, gpointer data)
 
    editlist->dest_row = editlist->selected + 1;
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -544,12 +431,6 @@ cb_editlist_down_button (GtkButton *button, gpointer data)
       /* clean */
       gtk_tree_path_free (treepath);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gtk_clist_swap_rows (GTK_CLIST (editlist->clist), selected, selected + 1);
-      gtk_clist_moveto (GTK_CLIST (editlist->clist), selected + 1, 0, 0, 0);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -576,7 +457,7 @@ cb_editlist_add_button (GtkButton *button, gpointer data)
    gint row;
    gchar **text;
    gpointer rowdata = NULL;
-   GtkDestroyNotify destroy_fn = NULL;
+   GDestroyNotify destroy_fn = NULL;
    gboolean set_rowdata = FALSE;
 
    g_return_if_fail (GIMV_IS_ELIST (editlist));
@@ -613,7 +494,7 @@ cb_editlist_change_button (GtkButton *button, gpointer data)
    gchar **text;
    gint i;
    gpointer rowdata = NULL;
-   GtkDestroyNotify destroy_fn = NULL;
+   GDestroyNotify destroy_fn = NULL;
    gboolean set_rowdata = FALSE;
 
    g_return_if_fail (GIMV_IS_ELIST (editlist));
@@ -627,7 +508,6 @@ cb_editlist_change_button (GtkButton *button, gpointer data)
                                             GIMV_ELIST_ACTION_CHANGE);
    g_return_if_fail (text);
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
       GtkTreeModel *model;
@@ -646,15 +526,6 @@ cb_editlist_change_button (GtkButton *button, gpointer data)
          gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, text[i], -1);
       }
    }
-#else /* ENABLE_TREEVIEW */
-   {
-      GtkCList *clist = GTK_CLIST (editlist->clist);
-
-      for (i = 0; i < editlist->columns; i++) {
-         gtk_clist_set_text (clist, editlist->selected, i, text[i]);
-      }
-   }
-#endif /* ENABLE_TREEVIEW */
 
    g_strfreev (text);
 
@@ -740,7 +611,6 @@ gimv_elist_create_list_widget (GimvEList *editlist, gint colnum)
 {
    GtkWidget *clist;
 
-#if (GTK_MAJOR_VERSION >= 2)
    GtkListStore *store;
    GtkTreeViewColumn *col;
    GtkCellRenderer *render;
@@ -751,7 +621,7 @@ gimv_elist_create_list_widget (GimvEList *editlist, gint colnum)
 
    /*
     *  types[colnum] is row data
-    *  types[colnum+1] is GtkDestroyNotify
+    *  types[colnum+1] is GDestroyNotify
     */
    types = g_new0 (GType, ALL_COLUMNS(colnum));
    for (i = 0; i < colnum; i++)
@@ -762,8 +632,9 @@ gimv_elist_create_list_widget (GimvEList *editlist, gint colnum)
    g_free (types);
 
    clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+   gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
    editlist->clist = clist;
-   gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (clist), TRUE);
+   /* GTK4: gtk_tree_view_set_rules_hint () was removed (row striping is up to the theme) */
    gtk_tree_view_set_reorderable (GTK_TREE_VIEW (clist), TRUE);
 
    g_signal_connect (G_OBJECT (store), "row_changed",
@@ -785,19 +656,6 @@ gimv_elist_create_list_widget (GimvEList *editlist, gint colnum)
       gtk_tree_view_column_add_attribute (col, render, "text", i);
       gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   clist = editlist->clist = gtk_clist_new (colnum);
-   gtk_clist_set_selection_mode (GTK_CLIST (clist), GTK_SELECTION_SINGLE);
-   gtk_clist_set_reorderable (GTK_CLIST (clist), TRUE);
-   gtk_clist_set_use_drag_icons (GTK_CLIST (clist), FALSE);
-
-   gtk_signal_connect (GTK_OBJECT (clist),"row_move",
-                       GTK_SIGNAL_FUNC (cb_editlist_row_move), editlist);
-   gtk_signal_connect (GTK_OBJECT (editlist->clist), "select_row",
-                       GTK_SIGNAL_FUNC (cb_editlist_select_row), editlist);
-   gtk_signal_connect (GTK_OBJECT (editlist->clist), "unselect_row",
-                       GTK_SIGNAL_FUNC (cb_editlist_unselect_row), editlist);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    editlist->columns = colnum;
 
@@ -828,8 +686,8 @@ gimv_elist_edit_area_set_data (GimvEList *editlist, gint row)
 
    g_return_if_fail (row < editlist->rows);
 
-   gtk_signal_emit (GTK_OBJECT (editlist),
-                    gimv_elist_signals[EDIT_AREA_SET_DATA_SIGNAL]);
+   g_signal_emit (G_OBJECT (editlist),
+                  gimv_elist_signals[EDIT_AREA_SET_DATA_SIGNAL], 0);
 
    for (i = 0; i < editlist->columns; i++) {
       GimvEListColumnFuncTable *table = editlist->column_func_tables[i];
@@ -839,7 +697,6 @@ gimv_elist_edit_area_set_data (GimvEList *editlist, gint row)
       if (!table->set_data_fn) continue;
 
       if (row >= 0) {
-#if (GTK_MAJOR_VERSION >= 2)
          GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
          GtkTreeModel *model = gtk_tree_view_get_model (treeview);
          GtkTreeIter iter;
@@ -849,10 +706,6 @@ gimv_elist_edit_area_set_data (GimvEList *editlist, gint row)
          if (success) {
             gtk_tree_model_get (model, &iter, i, &text, -1);
          }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-         gtk_clist_get_text (GTK_CLIST (editlist->clist), row, i, &text);
-         if (text) text = g_strdup (text);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
       } 
 
       table->set_data_fn (editlist, table->widget, row, i,
@@ -939,106 +792,98 @@ gimv_elist_new (gint colnum)
 
    g_return_val_if_fail (colnum > 0, NULL);
 
-#if (GTK_MAJOR_VERSION >= 2)
    editlist = g_object_new (gimv_elist_get_type (), NULL);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   editlist = gtk_type_new (gimv_elist_get_type ());
-#endif /* (GTK_MAJOR_VERSION >= 2) */
    main_vbox = GTK_WIDGET (editlist);
 
    /* clist */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER (hbox), 0);
-   gtk_box_pack_start (GTK_BOX (main_vbox), hbox, TRUE, TRUE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 0);
+   gimv_box_pack_start (GTK_BOX (main_vbox), hbox, TRUE, TRUE, 0);
    gtk_widget_show (hbox);
 
-   scrollwin = gtk_scrolled_window_new (NULL, NULL);
+   scrollwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrollwin),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-   gtk_container_set_border_width(GTK_CONTAINER (scrollwin), 5);
-   gtk_box_pack_start (GTK_BOX (hbox), scrollwin, TRUE, TRUE, 0);
-   gtk_widget_set_usize (scrollwin, -1, 120);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrollwin), TRUE);
+   gimv_container_set_border_width (GTK_WIDGET (scrollwin), 5);
+   gimv_box_pack_start (GTK_BOX (hbox), scrollwin, TRUE, TRUE, 0);
+   gimv_widget_set_size (scrollwin, -1, 120);
    gtk_widget_show (scrollwin);
 
    clist = gimv_elist_create_list_widget (editlist, colnum);
-   gtk_container_add (GTK_CONTAINER (scrollwin), clist);
+   gimv_container_add (GTK_WIDGET (scrollwin), clist);
    gtk_widget_show (clist);
 
 
    /* move buttons */
-   vbox = editlist->move_button_area = gtk_vbox_new (TRUE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox, FALSE, FALSE, 2);
+   vbox = editlist->move_button_area = gimv_vbox_new (TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox, FALSE, FALSE, 2);
    gtk_widget_show (vbox);
 
-   vbox1 = gtk_vbox_new (TRUE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), vbox1, FALSE, FALSE, 2);
+   vbox1 = gimv_vbox_new (TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), vbox1, FALSE, FALSE, 2);
    gtk_widget_show (vbox1);
 
    button = editlist->up_button = gtk_button_new ();
 #ifdef USE_ARROW
-   arrow = gtk_arrow_new (GTK_ARROW_UP, GTK_SHADOW_NONE);
+   arrow = gimv_arrow_new (GTK_ARROW_UP);
 #else /* USE_ARROW */
    arrow = gtk_label_new (_("Up"));
-   gtk_misc_set_alignment (GTK_MISC (arrow), 0.5, 0.5);
+   gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
-   gtk_container_add (GTK_CONTAINER (button), arrow);
+   gimv_container_add (GTK_WIDGET (button), arrow);
    gtk_widget_show (arrow);
-   gtk_box_pack_start (GTK_BOX (vbox1), button, FALSE, FALSE, 2);
+   gimv_box_pack_start (GTK_BOX (vbox1), button, FALSE, FALSE, 2);
    gtk_widget_show (button);
 
    button = editlist->down_button = gtk_button_new ();
 #ifdef USE_ARROW
-   arrow = gtk_arrow_new (GTK_ARROW_DOWN, GTK_SHADOW_NONE);
+   arrow = gimv_arrow_new (GTK_ARROW_DOWN);
 #else /* USE_ARROW */
    arrow = gtk_label_new (_("Down"));
-   gtk_misc_set_alignment (GTK_MISC (arrow), 0.5, 0.5);
+   gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
-   gtk_container_add (GTK_CONTAINER (button), arrow);
+   gimv_container_add (GTK_WIDGET (button), arrow);
    gtk_widget_show (arrow);
-   gtk_box_pack_start (GTK_BOX (vbox1), button, FALSE, FALSE, 2);
+   gimv_box_pack_start (GTK_BOX (vbox1), button, FALSE, FALSE, 2);
    gtk_widget_show (button);
 
 
    /* edit area */
-   editlist->edit_area = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (editlist->edit_area), 5);
-   gtk_box_pack_start (GTK_BOX (main_vbox), editlist->edit_area,
+   editlist->edit_area = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (editlist->edit_area), 5);
+   gimv_box_pack_start (GTK_BOX (main_vbox), editlist->edit_area,
                        FALSE, TRUE, 0);
    gtk_widget_show (editlist->edit_area);
 
 
    /* edit buttons */
-   hbox = editlist->action_button_area = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
-   gtk_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, TRUE, 0);
+   hbox = editlist->action_button_area = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, TRUE, 0);
    gtk_widget_show (hbox);
 
-   hbox1 = gtk_hbox_new (TRUE, 0);
-   gtk_box_pack_end (GTK_BOX (hbox), hbox1, FALSE, TRUE, 0);
+   hbox1 = gimv_hbox_new (TRUE, 0);
+   gimv_box_pack_end (GTK_BOX (hbox), hbox1, FALSE, TRUE, 0);
    gtk_widget_show (hbox1);
 
    button = editlist->new_button = gtk_button_new_with_label (_("New"));
-   gtk_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
+   gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
    gtk_widget_show (button);
 
    button = editlist->add_button = gtk_button_new_with_label (_("Add"));
-   gtk_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
+   gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
    gtk_widget_show (button);
 
    button = editlist->change_button = gtk_button_new_with_label (_("Change"));
-   gtk_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
+   gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
    gtk_widget_show (button);
 
    button = editlist->del_button = gtk_button_new_with_label (_("Delete"));
-   gtk_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
+   gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
    gtk_widget_show (button);
 
 
-#if (GTK_MAJOR_VERSION >= 2)
 
 #ifdef USE_ARROW
    gtk_widget_set_size_request (editlist->up_button, 20, 20);
@@ -1059,28 +904,6 @@ gimv_elist_new (gint colnum)
    g_signal_connect (G_OBJECT (editlist->del_button), "clicked",
                      G_CALLBACK (cb_editlist_delete_button), editlist);
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-#ifdef USE_ARROW
-   gtk_widget_set_usize (editlist->up_button, 20, 20);
-   gtk_widget_set_usize (editlist->down_button, 20, 20);
-#endif /* USE_ARROW */
-   gtk_widget_set_usize (editlist->new_button, 70, -1);
-
-   gtk_signal_connect (GTK_OBJECT (editlist->up_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_editlist_up_button), editlist);
-   gtk_signal_connect (GTK_OBJECT (editlist->down_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_editlist_down_button), editlist);
-   gtk_signal_connect (GTK_OBJECT (editlist->new_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_editlist_new_button), editlist);
-   gtk_signal_connect (GTK_OBJECT (editlist->add_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_editlist_add_button), editlist);
-   gtk_signal_connect (GTK_OBJECT (editlist->change_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_editlist_change_button), editlist);
-   gtk_signal_connect (GTK_OBJECT (editlist->del_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_editlist_delete_button), editlist);
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    /* initialize column func tables */
    editlist->column_func_tables
@@ -1104,7 +927,6 @@ gimv_elist_new_with_titles (gint colnum, gchar *titles[])
 
    editlist = GIMV_ELIST (gimv_elist_new (colnum));
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GList *list, *node;
       list = gtk_tree_view_get_columns (GTK_TREE_VIEW (editlist->clist));
@@ -1114,15 +936,6 @@ gimv_elist_new_with_titles (gint colnum, gchar *titles[])
       }
    }
    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (editlist->clist), TRUE);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   for (i = 0; i < colnum; i++) {
-      gtk_clist_set_column_title (GTK_CLIST (editlist->clist),
-                                  i, titles[i]);
-      gtk_clist_set_column_auto_resize (GTK_CLIST (editlist->clist),
-                                        i, TRUE);
-   }
-   gtk_clist_column_titles_show (GTK_CLIST (editlist->clist));
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    return GTK_WIDGET (editlist);
 }
@@ -1133,14 +946,7 @@ gimv_elist_set_column_title_visible (GimvEList *editlist, gboolean visible)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
 
-#if (GTK_MAJOR_VERSION >= 2)
    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (editlist->clist), visible);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   if (visible)
-      gtk_clist_column_titles_show (GTK_CLIST (editlist->clist));
-   else
-      gtk_clist_column_titles_hide (GTK_CLIST (editlist->clist));
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -1149,11 +955,7 @@ gimv_elist_set_reorderable (GimvEList *editlist, gboolean reorderble)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
 
-#if (GTK_MAJOR_VERSION >= 2)
    gtk_tree_view_set_reorderable (GTK_TREE_VIEW (editlist->clist), reorderble);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   gtk_clist_set_reorderable (GTK_CLIST (editlist->clist), reorderble);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    if (reorderble)
       gtk_widget_show (editlist->move_button_area);
@@ -1168,7 +970,6 @@ gimv_elist_set_auto_sort (GimvEList *editlist, gint column)
    g_return_if_fail (GIMV_IS_ELIST (editlist));
    g_return_if_fail (column < editlist->columns);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GList *list, *node;
       list = gtk_tree_view_get_columns (GTK_TREE_VIEW (editlist->clist));
@@ -1189,14 +990,6 @@ gimv_elist_set_auto_sort (GimvEList *editlist, gint column)
 
       g_list_free (list);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   if (column < 0)
-      gtk_clist_set_auto_sort (GTK_CLIST (editlist->clist), FALSE);
-   else
-      gtk_clist_set_auto_sort (GTK_CLIST (editlist->clist), TRUE);
-
-   gtk_clist_set_sort_column (GTK_CLIST (editlist->clist), column);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -1205,11 +998,7 @@ gimv_elist_get_reorderable (GimvEList *editlist)
 {
    g_return_val_if_fail (GIMV_IS_ELIST (editlist), FALSE);
 
-#if (GTK_MAJOR_VERSION >= 2)
    return gtk_tree_view_get_reorderable (GTK_TREE_VIEW (editlist->clist));
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   return GTK_CLIST_REORDERABLE (GTK_CLIST (editlist->clist));
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -1222,7 +1011,6 @@ gimv_elist_append_row (GimvEList *editlist, gchar *data[])
    g_return_val_if_fail (editlist->max_row < 0
                          || editlist->rows <= editlist->max_row, -1);
 
-#if (GTK_MAJOR_VERSION >= 2)
 
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
@@ -1240,12 +1028,6 @@ gimv_elist_append_row (GimvEList *editlist, gchar *data[])
    editlist->rows = list_widget_get_row_num(editlist->clist);
    retval = editlist->rows - 1;
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-   retval = gtk_clist_append (GTK_CLIST (editlist->clist), data);
-   editlist->rows = list_widget_get_row_num(editlist->clist);
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    gimv_elist_set_sensitive (editlist);
 
@@ -1261,7 +1043,6 @@ gimv_elist_remove_row (GimvEList *editlist, gint row)
 
    gimv_elist_set_row_data (editlist, row, NULL);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -1275,9 +1056,6 @@ gimv_elist_remove_row (GimvEList *editlist, gint row)
          editlist->selected = -1;
       }
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   gtk_clist_remove (GTK_CLIST (editlist->clist), row);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    editlist->rows = list_widget_get_row_num(editlist->clist);
 
@@ -1316,7 +1094,6 @@ gimv_elist_get_row_text (GimvEList *editlist, gint row)
 
    text = g_new0 (gchar *, editlist->columns + 1);
 
-#if (GTK_MAJOR_VERSION >= 2)
 
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
@@ -1335,18 +1112,6 @@ gimv_elist_get_row_text (GimvEList *editlist, gint row)
       }
    }
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-   for (i = 0; i < editlist->columns; i++) {
-      text[i] = NULL;
-      gtk_clist_get_text (GTK_CLIST (editlist->clist), row, i, &text[i]);
-      if (text[i])
-         text[i] = g_strdup (text[i]);
-      else
-         text[i] = g_strdup ("");
-   }
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    text[editlist->columns] = NULL;
 
@@ -1364,7 +1129,6 @@ gimv_elist_get_cell_text (GimvEList *editlist, gint row, gint col)
    g_return_val_if_fail (editlist->columns > 0, NULL);
    g_return_val_if_fail (col < editlist->columns, NULL);
 
-#if (GTK_MAJOR_VERSION >= 2)
 
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
@@ -1378,17 +1142,6 @@ gimv_elist_get_cell_text (GimvEList *editlist, gint row, gint col)
       gtk_tree_model_get (model, &iter, col, &text, -1);
    }
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-   {
-      gboolean success;
-      success = gtk_clist_get_text (GTK_CLIST (editlist->clist),
-                                    row, col, &text);
-      if (!success) return NULL;
-      text = g_strdup (text);
-   }
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    return text;
 }
@@ -1410,17 +1163,16 @@ void
 gimv_elist_set_row_data_full (GimvEList *editlist,
                               gint          row,
                               gpointer      data,
-                              GtkDestroyNotify destroy_fn)
+                              GDestroyNotify destroy_fn)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
    g_return_if_fail (row >= 0 &&  row < editlist->rows);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
       GtkTreeIter iter;
-      GtkDestroyNotify destroy;
+      GDestroyNotify destroy;
       gboolean success;
       gpointer rowdata = gimv_elist_get_row_data (editlist, row);
 
@@ -1450,10 +1202,6 @@ gimv_elist_set_row_data_full (GimvEList *editlist,
                               data, destroy_fn);
       }
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   gtk_clist_set_row_data_full (GTK_CLIST (editlist->clist), row,
-                                data, destroy_fn);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    gimv_elist_updated (editlist);
 }
@@ -1466,7 +1214,6 @@ gimv_elist_get_row_data (GimvEList *editlist,
    g_return_val_if_fail (GIMV_IS_ELIST (editlist), NULL);
    g_return_val_if_fail (row >= 0 &&  row < editlist->rows, NULL);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -1482,9 +1229,6 @@ gimv_elist_get_row_data (GimvEList *editlist,
 
       return data;
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   return gtk_clist_get_row_data (GTK_CLIST (editlist->clist), row);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -1493,7 +1237,6 @@ gimv_elist_unselect_all (GimvEList *editlist)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
       GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
@@ -1501,9 +1244,6 @@ gimv_elist_unselect_all (GimvEList *editlist)
       gtk_tree_selection_unselect_all (selection);
       editlist->selected = -1;
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   gtk_clist_unselect_all (GTK_CLIST (editlist->clist));
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    gimv_elist_set_sensitive (editlist);
 }
@@ -1526,7 +1266,7 @@ gimv_elist_set_column_funcs (GimvEList *editlist,
                              GimvEListGetDataFn get_data_fn,
                              GimvEListResetFn   reset_fn,
                              gpointer coldata,
-                             GtkDestroyNotify destroy_fn)
+                             GDestroyNotify destroy_fn)
 {
    GimvEListColumnFuncTable *table;
 
@@ -1589,8 +1329,8 @@ gimv_elist_action_confirm (GimvEList *editlist,
       retval |= GIMV_ELIST_CONFIRM_CANNOT_DELETE;
    }
 
-   gtk_signal_emit (GTK_OBJECT (editlist),
-                    gimv_elist_signals[ACTION_CONFIRM_SIGNAL],
+   g_signal_emit (G_OBJECT (editlist),
+                  gimv_elist_signals[ACTION_CONFIRM_SIGNAL], 0,
                     type,
                     editlist->selected,
                     &retval);
@@ -1647,7 +1387,7 @@ cb_editlist_entry_set_data (GimvEList *editlist, GtkWidget *widget,
    g_return_if_fail (entry_data);
 
    if (text)
-      gtk_entry_set_text (GTK_ENTRY (widget), text);
+      gtk_editable_set_text (GTK_EDITABLE (widget), text);
 }
 
 
@@ -1664,7 +1404,7 @@ cb_editlist_entry_get_data (GimvEList *editlist,
    g_return_val_if_fail (GTK_IS_ENTRY (widget), NULL);
    g_return_val_if_fail (entry_data, NULL);
 
-   text = gtk_entry_get_text (GTK_ENTRY (widget));
+   text = gtk_editable_get_text (GTK_EDITABLE (widget));
 
    if (text)
       return g_strdup (text);
@@ -1684,7 +1424,7 @@ cb_editlist_entry_reset (GimvEList *editlist,
    g_return_if_fail (GTK_IS_ENTRY (widget));
    g_return_if_fail (entry_data);
 
-   gtk_entry_set_text (GTK_ENTRY (widget), entry_data->init_string);
+   gtk_editable_set_text (GTK_EDITABLE (widget), entry_data->init_string);
 }
 
 
@@ -1693,14 +1433,11 @@ cb_editlist_entry_changed (GtkEntry *entry, gpointer data)
 {
    GimvEListEntryData *entry_data = data;
    GimvEList *editlist;
-   const gchar *text;
 
    g_return_if_fail (entry_data);
    g_return_if_fail (GIMV_IS_ELIST (entry_data->editlist));
 
    editlist = entry_data->editlist;
-
-   text = gtk_entry_get_text (entry);
 
    gimv_elist_edit_area_set_value_changed (editlist);
 }
@@ -1726,7 +1463,7 @@ cb_editlist_entry_confirm (GimvEList *editlist,
    GimvEListEntryData *entry_data = data;
    const gchar *text;
 
-   text = gtk_entry_get_text (GTK_ENTRY (entry_data->entry));
+   text = gtk_editable_get_text (GTK_EDITABLE (entry_data->entry));
    if (!entry_data->allow_empty && (!text || !*text)) {
       *flags |= GIMV_ELIST_CONFIRM_CANNOT_ADD;
       *flags |= GIMV_ELIST_CONFIRM_CANNOT_CHANGE;
@@ -1757,7 +1494,7 @@ gimv_elist_create_entry (GimvEList *editlist, gint column,
 
    entry_data->entry = entry = gtk_entry_new ();
 
-   gtk_entry_set_text (GTK_ENTRY (entry_data->entry), entry_data->init_string);
+   gtk_editable_set_text (GTK_EDITABLE (entry_data->entry), entry_data->init_string);
 
    gimv_elist_set_column_funcs (editlist,
                                 entry, column,
@@ -1767,21 +1504,12 @@ gimv_elist_create_entry (GimvEList *editlist, gint column,
                                 entry_data,
                                 editlist_entry_destroy);
 
-#if (GTK_MAJOR_VERSION >= 2)
    g_signal_connect (G_OBJECT (editlist), "action_confirm",
                      G_CALLBACK (cb_editlist_entry_confirm),
                      entry_data);
    g_signal_connect (G_OBJECT (entry),"changed",
                      G_CALLBACK (cb_editlist_entry_changed),
                      entry_data);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   gtk_signal_connect (GTK_OBJECT (editlist), "action_confirm",
-                       GTK_SIGNAL_FUNC (cb_editlist_entry_confirm),
-                       entry_data);
-   gtk_signal_connect (GTK_OBJECT (entry),"changed",
-                       GTK_SIGNAL_FUNC (cb_editlist_entry_changed),
-                       entry_data);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    gimv_elist_set_sensitive (editlist);
 
@@ -1817,9 +1545,9 @@ cb_editlist_check_button_set_data (GimvEList *editlist, GtkWidget *widget,
    if (row < 0) return;
 
    if (text && *text && !strcmp (text, button_data->true_string)) {
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
+      gimv_toggle_set_active (GTK_WIDGET (widget), TRUE);
    } else {
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), FALSE);
+      gimv_toggle_set_active (GTK_WIDGET (widget), FALSE);
    }
 }
 
@@ -1836,7 +1564,7 @@ cb_editlist_check_button_get_data (GimvEList *editlist,
    g_return_val_if_fail (GTK_IS_CHECK_BUTTON (widget), NULL);
    g_return_val_if_fail (button_data, NULL);
 
-   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)))
+   if (gimv_toggle_get_active (GTK_WIDGET (widget)))
       return g_strdup (button_data->true_string);
    else
       return g_strdup (button_data->false_string);
@@ -1853,8 +1581,7 @@ cb_editlist_check_button_reset (GimvEList *editlist,
    g_return_if_fail (GIMV_IS_ELIST (editlist));
    g_return_if_fail (GTK_IS_CHECK_BUTTON (widget));
 
-   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget),
-                                 button_data->init_value);
+   gimv_toggle_set_active (GTK_WIDGET (widget), button_data->init_value);
 }
 
 
@@ -1903,8 +1630,7 @@ gimv_elist_create_check_button (GimvEList *editlist, gint column,
    else
       check_button = gtk_check_button_new ();
 
-   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button),
-                                 button_data->init_value);
+   gimv_toggle_set_active (GTK_WIDGET (check_button), button_data->init_value);
 
    gimv_elist_set_column_funcs (GIMV_ELIST (editlist),
                                    check_button, column,
@@ -1914,15 +1640,9 @@ gimv_elist_create_check_button (GimvEList *editlist, gint column,
                                    button_data,
                                    editlist_check_button_destroy);
 
-#if (GTK_MAJOR_VERSION >= 2)
    g_signal_connect (G_OBJECT (check_button),"toggled",
                      G_CALLBACK (cb_editlist_check_button_toggled),
                      button_data);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   gtk_signal_connect (GTK_OBJECT (check_button),"toggled",
-                       GTK_SIGNAL_FUNC (cb_editlist_check_button_toggled),
-                       button_data);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    gimv_elist_set_sensitive (editlist);
 

@@ -23,6 +23,8 @@
 
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include <gmodule.h>
 
 #include "fileutil.h"
@@ -100,7 +102,7 @@ GIMV_PLUGIN_GET_IMPL(plugin_impl, GIMV_PLUGIN_THUMB_CACHE)
 GimvPluginInfo gimv_plugin_info =
 {
    if_version:    GIMV_PLUGIN_IF_VERSION,
-   name:          N_("Konqueror(KDE2.1.x or belower) thumbnail support"),
+   name:          N_("Konqueror (KDE 2.1.x or earlier) thumbnail support"),
    version:       "0.5.0",
    author:        N_("Takuro Ashie"),
    description:   NULL,
@@ -223,7 +225,7 @@ get_path (const gchar *filename, const gchar *cache_type)
    if (!image_name) goto ERROR;
 
    /* get dir name */
-   image_dir = g_dirname (abspath);
+   image_dir = g_path_get_dirname (abspath);
    if (!image_dir) goto ERROR;
 
    g_snprintf(buf, MAX_PATH_LEN, "%s/" KONQ_OLD_THUMBNAIL_DIR "/%s/%s",

@@ -30,11 +30,12 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <gtk/gtk.h>
-#include "gtk2-compat.h"
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
-#define GIMV_ELIST(obj)         GTK_CHECK_CAST (obj, gimv_elist_get_type (), GimvEList)
-#define GIMV_ELIST_CLASS(klass) GTK_CHECK_CLASS_CAST (klass, gimv_elist_get_type, GimvEListClass)
-#define GIMV_IS_ELIST(obj)      GTK_CHECK_TYPE (obj, gimv_elist_get_type ())
+#define GIMV_ELIST(obj)         G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_elist_get_type (), GimvEList)
+#define GIMV_ELIST_CLASS(klass) G_TYPE_CHECK_CLASS_CAST (klass, gimv_elist_get_type (), GimvEListClass)
+#define GIMV_IS_ELIST(obj)      G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_elist_get_type ())
 
 
 typedef struct GimvEList_Tag      GimvEList;
@@ -82,11 +83,11 @@ typedef void      (*GimvEListResetFn)        (GimvEList *editlist,
 typedef gboolean  (*GimvEListGetRowDataFn)   (GimvEList *editlist,
                                               GimvEListActionType type,
                                               gpointer     *rowdata,
-                                              GtkDestroyNotify *destroy_fn);
+                                              GDestroyNotify *destroy_fn);
 
 
 struct GimvEList_Tag {
-   GtkVBox      parent;
+   GtkBox      parent;
 
    /* public (read only) */
    GtkWidget   *clist;
@@ -113,15 +114,13 @@ struct GimvEList_Tag {
    GimvEListColumnFuncTable **column_func_tables;
    GimvEListGetRowDataFn      get_rowdata_fn;
 
-#if (GTK_MAJOR_VERSION >= 2)
    GHashTable *rowdata_table;
    GHashTable *rowdata_destroy_fn_table;
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 };
 
 
 struct GimvEListClass_Tag {
-   GtkVBoxClass parent_class;
+   GtkBoxClass parent_class;
 
    void     (*list_updated)       (GimvEList *editlist);
    void     (*edit_area_set_data) (GimvEList *editlist);
@@ -135,7 +134,7 @@ struct GimvEListClass_Tag {
 struct GimvEListColumnFuncTable_Tag {
    GtkWidget        *widget;
    gpointer          coldata;
-   GtkDestroyNotify  destroy_fn;
+   GDestroyNotify  destroy_fn;
 
    /* will be called when an item is selected (or unselected) */
    GimvEListSetDataFn        set_data_fn;
@@ -146,7 +145,7 @@ struct GimvEListColumnFuncTable_Tag {
 };
 
 
-GtkType       gimv_elist_get_type              (void);
+GType       gimv_elist_get_type              (void);
 GtkWidget    *gimv_elist_new                   (gint          colnum);
 GtkWidget    *gimv_elist_new_with_titles       (gint          colnum,
                                                 gchar        *titles[]);
@@ -184,7 +183,7 @@ void          gimv_elist_set_row_data          (GimvEList *editlist,
 void          gimv_elist_set_row_data_full     (GimvEList *editlist,
                                                 gint          row,
                                                 gpointer      data,
-                                                GtkDestroyNotify destroy_fn);
+                                                GDestroyNotify destroy_fn);
 gpointer      gimv_elist_get_row_data          (GimvEList *editlist,
                                                 gint          row);
 void          gimv_elist_unselect_all          (GimvEList *editlist);
@@ -197,7 +196,7 @@ void          gimv_elist_set_column_funcs      (GimvEList *editlist,
                                                 GimvEListGetDataFn get_data_fn,
                                                 GimvEListResetFn   reset_fn,
                                                 gpointer      coldata,
-                                                GtkDestroyNotify destroy_fn);
+                                                GDestroyNotify destroy_fn);
 void          gimv_elist_set_get_row_data_func (GimvEList *editlist,
                                                 GimvEListGetRowDataFn get_rowdata_func);
 void          gimv_elist_edit_area_set_value_changed

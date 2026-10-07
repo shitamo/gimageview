@@ -195,8 +195,8 @@ ImageSimilarityData *
 image_sim_new_from_thumb (GimvThumb *thumb)
 {
    GimvImage *image;
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
+   GdkTexture *pixmap;
+   GdkTexture *mask;
    ImageSimilarityData *data;
 
    g_return_val_if_fail (GIMV_IS_THUMB(thumb), NULL);
@@ -205,7 +205,7 @@ image_sim_new_from_thumb (GimvThumb *thumb)
 
    gimv_thumb_get_thumb (thumb, &pixmap, &mask)     ;
    if (!pixmap) return NULL;;
-   image = gimv_image_create_from_drawable (pixmap, 0, 0,
+   image = gimv_image_create_from_texture (pixmap, 0, 0,
                                             thumb->thumb_width,
                                             thumb->thumb_height);
 

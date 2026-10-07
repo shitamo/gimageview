@@ -1,0 +1,9 @@
+_build/
+debian/*.substvars
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/gimageview-dbgsym/
+debian/gimageview/
+debian/tmp/
+obj-*/

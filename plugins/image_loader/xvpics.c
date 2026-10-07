@@ -45,7 +45,7 @@ GIMV_PLUGIN_GET_IMPL(gimv_xvpics_loader, GIMV_PLUGIN_IMAGE_LOADER)
 GimvPluginInfo gimv_plugin_info =
 {
    if_version:    GIMV_PLUGIN_IF_VERSION,
-   name:          N_("XV thumbnail Image Loader"),
+   name:          N_("XV Thumbnail Image Loader"),
    version:       "0.1.1",
    author:        N_("Takuro Ashie"),
    description:   NULL,

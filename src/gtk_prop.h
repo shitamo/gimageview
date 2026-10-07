@@ -35,6 +35,8 @@
 
 #include <sys/types.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #include "gimv_image_info.h"
 

@@ -73,10 +73,7 @@ gimv_mplayer_image_loader_load_file (GimvImageLoader *loader, gpointer data)
    }
 
    mplayer = GIMV_MPLAYER (gimv_mplayer_new ());
-#ifdef USE_GTK2
-   g_object_ref (G_OBJECT (mplayer));
-   gtk_object_sink (GTK_OBJECT (mplayer));
-#endif /* USE_GTK2 */
+   g_object_ref_sink (G_OBJECT (mplayer));
    if (!gimv_mplayer_set_file (mplayer, filename)) goto ERROR0;
 
    len = gimv_mplayer_get_length (mplayer);
@@ -92,7 +89,7 @@ gimv_mplayer_image_loader_load_file (GimvImageLoader *loader, gpointer data)
 
    g_free (tmpfile);
  ERROR0:
-   gtk_widget_unref (GTK_WIDGET (mplayer));
+   g_object_unref (G_OBJECT (mplayer));
 
    return image;
 }

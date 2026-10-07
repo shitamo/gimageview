@@ -22,6 +22,9 @@
  */
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -156,7 +159,7 @@ get_dir (const gchar *dirname, GetDirFlags flags,
    if ((dp = opendir (dirname))) {
       while ((entry = readdir (dp))) {
          if (flags & GETDIR_ENABLE_CANCEL) {
-            while (gtk_events_pending()) gtk_main_iteration();
+            gimv_flush_events ();
             if (stop_getting_dir) break;
          }
 
@@ -223,7 +226,7 @@ get_dir (const gchar *dirname, GetDirFlags flags,
       while (list) {
          GList *tmp_filelist = NULL, *tmp_dirlist = NULL;
          if (flags & GETDIR_ENABLE_CANCEL) {
-            while (gtk_events_pending()) gtk_main_iteration();
+            gimv_flush_events ();
             if (stop_getting_dir) break;
          }
          get_dir ((const gchar *) list->data, tmp_flags,
@@ -383,6 +386,18 @@ link2abs (const gchar *path)
 
    if (!strcmp (path, "/")) return g_strdup (path);
 
+   /* realpath () follows links to links as well */
+   {
+      char *real = realpath (path, NULL);
+      if (real) {
+         retval = g_strdup (real);
+         free (real);
+         return retval;
+      }
+   }
+
+   /* fallback for paths that do not (fully) exist */
+
    dirs = g_strsplit (path, "/", -1);
    g_return_val_if_fail (dirs, g_strdup (path));
 
@@ -411,7 +426,6 @@ link2abs (const gchar *path)
             break;
          }
          *endchr = '\0';
-         /* FIXME: what about link to link? */
          tmpstr = g_strconcat (retval, "/", buf, NULL);
          g_free (retval);
          retval = tmpstr;
@@ -458,9 +472,9 @@ move_file_check_path (const gchar *from_path,
    if (lstat (from_path, from_st)) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't find source file :\n%s"),
+                     _("Can't find the source file:\n%s"),
                      from_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR;
    }
@@ -471,10 +485,10 @@ move_file_check_path (const gchar *from_path,
    if (!iswritable (dir)) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't move file : %s\n"
+                     _("Can't move file: %s\n"
                        "Permission denied: %s\n"),
                      from_path_internal, dir_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR;
    }
@@ -493,10 +507,10 @@ move_file_check_path (const gchar *from_path,
                                                     conf.charset_filename_mode);
 
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't move file : %s\n"
+                     _("Can't move file: %s\n"
                        "Permission denied: %s\n"),
                      from_path_internal, from_dir_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
 
          g_free (from_dir_internal);
       }
@@ -542,23 +556,23 @@ move_file_check_over_write (const gchar *from_path,
    {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Same file :\n%s"), to_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+                     _("Same file:\n%s"), to_path_internal);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR;
 
    }  else if (exist && *action == CONFIRM_ASK) {
       if (isdir (from_path)) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("File exist : %s"), to_path_internal);
-         gtkutil_message_dialog (_("ERROR!!"), error_message, window);
+                     _("File exists: %s"), to_path_internal);
+         gtkutil_message_dialog (_("ERROR!"), error_message, window);
 
       } else {
          g_snprintf (error_message, BUF_SIZE,
-                     _("The file exists : %s\n"
+                     _("The file exists: %s\n"
                        "Overwrite?"),
                      to_path_internal);
-         *action = gtkutil_overwrite_confirm_dialog (_("File exist!!"), error_message,
+         *action = gtkutil_overwrite_confirm_dialog (_("File exists!"), error_message,
                                                      to_path, from_path,
                                                      new_path, MAX_PATH_LEN,
                                                      ConfirmDialogMultipleFlag,
@@ -670,10 +684,10 @@ move_file (const gchar *from_path, const gchar *dir,
          if (remove (from_path) < 0) {   /* faild to remove file */
             if (show_error) {
                g_snprintf (error_message, BUF_SIZE,
-                           _("Faild to remove file :\n"
+                           _("Failed to remove file:\n"
                              "%s"),
                            from_path_internal);
-               gtkutil_message_dialog (_("Error!!"), error_message, window);
+               gtkutil_message_dialog (_("Error!"), error_message, window);
             }
             retval = FALSE;
             goto ERROR1;
@@ -691,11 +705,11 @@ move_file (const gchar *from_path, const gchar *dir,
    if (move_faild) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Faild to move file :\n"
-                       "From : %s\n"
-                       "To : %s"),
+                     _("Failed to move file:\n"
+                       "From: %s\n"
+                       "To: %s"),
                      from_path_internal, to_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       retval = FALSE;
    }
@@ -724,9 +738,9 @@ copy_dir_check_source (const gchar *from_dir, gboolean show_error,
    if (islink (from_dir)) {   /* check path is link or not */
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("%s is link!!.\n"),
+                     _("%s is a link!\n"),
                      from_dir_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       retval = FALSE;
       goto ERROR;
@@ -735,9 +749,9 @@ copy_dir_check_source (const gchar *from_dir, gboolean show_error,
    if (!file_exists (from_dir)) {   /* check path exists or not */
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't find source file :\n%s"),
+                     _("Can't find the source file:\n%s"),
                      from_dir_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       retval = FALSE;
       goto ERROR;
@@ -746,9 +760,9 @@ copy_dir_check_source (const gchar *from_dir, gboolean show_error,
    if (!isdir (from_dir)) {   /* check path is directory or not */
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("%s is not directory!!.\n"),
+                     _("%s is not a directory!\n"),
                      from_dir_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       retval = FALSE;
       goto ERROR;
@@ -785,11 +799,11 @@ copy_dir_check_dest (const gchar *from_path, const gchar *dirname,
    if (!iswritable (dirname)) {   /* check permission */
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't copy directory : %s\n"
+                     _("Can't copy directory: %s\n"
                        "Permission denied: %s\n"),
                      from_path_internal,
                      dirname_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       retval = FALSE;
       goto ERROR;
@@ -798,9 +812,9 @@ copy_dir_check_dest (const gchar *from_path, const gchar *dirname,
    if (file_exists (to_dir)) {   /* check dest path */
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("File exists!! : %s\n"),
+                     _("File exists: %s\n"),
                      to_dir_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       retval = FALSE;
       goto ERROR;
@@ -869,9 +883,9 @@ copy_dir (const gchar *from_path, const gchar *dir,
    filelist = node = get_dir_all_file (from_path);
    confirm = CONFIRM_YES_TO_ALL;
 
-   progress_win = gtkutil_create_progress_window (_("Copy directory"), "...",
+   progress_win = gtkutil_create_progress_window (_("Copy Directory"), "...",
                                                   &cancel, 300, -1, window);
-   gtk_grab_add (progress_win);
+   gimv_grab_add (progress_win);
    length = g_list_length (filelist);
 
    while (node) {
@@ -879,7 +893,7 @@ copy_dir (const gchar *from_path, const gchar *dir,
       gchar *filename = node->data;
       gchar *tmpstr;
 
-      while (gtk_events_pending()) gtk_main_iteration();
+      gimv_flush_events ();
 
       pos = g_list_position (filelist, node);
       progress = (gfloat) pos / (gfloat) length;
@@ -918,8 +932,8 @@ copy_dir (const gchar *from_path, const gchar *dir,
       node = g_list_next (node);
    }
 
-   gtk_grab_remove (progress_win);
-   gtk_widget_destroy (progress_win);
+   gimv_grab_remove (progress_win);
+   gimv_widget_destroy (progress_win);
 
    g_list_foreach (filelist, (GFunc) g_free, NULL);
    g_list_free (filelist);
@@ -982,9 +996,9 @@ copy_file_to_file (const gchar *from_path, const gchar *to_path,
    if (lstat (from_path, &from_st)) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't find source file :\n%s"),
+                     _("Can't find the source file:\n%s"),
                      from_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR;
    }
@@ -998,18 +1012,18 @@ copy_file_to_file (const gchar *from_path, const gchar *to_path,
    {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Same file :\n%s"),
+                     _("Same file:\n%s"),
                      to_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR;
 
    } else if (exist && *action == CONFIRM_ASK) {
       g_snprintf (error_message, BUF_SIZE,
-                  _("The file exists : %s\n"
+                  _("The file exists: %s\n"
                     "Overwrite?"),
                   to_path_internal);
-      *action = gtkutil_overwrite_confirm_dialog (_("File exist!!"), error_message,
+      *action = gtkutil_overwrite_confirm_dialog (_("File exists!"), error_message,
                                                   to_path, from_path,
                                                   new_path, MAX_PATH_LEN,
                                                   ConfirmDialogMultipleFlag,
@@ -1050,9 +1064,9 @@ copy_file_to_file (const gchar *from_path, const gchar *to_path,
    if (!from) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't open file for read :\n%s"),
+                     _("Can't open file for reading:\n%s"),
                      to_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR;
    }
@@ -1062,9 +1076,9 @@ copy_file_to_file (const gchar *from_path, const gchar *to_path,
       fclose (from);
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't open file for write :\n%s"),
+                     _("Can't open file for writing:\n%s"),
                      to_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR;
    }
@@ -1077,9 +1091,9 @@ copy_file_to_file (const gchar *from_path, const gchar *to_path,
 
          if (show_error) {
             g_snprintf (error_message, BUF_SIZE,
-                        _("An error occured while copying file :\n%s"),
+                        _("An error occurred while copying file:\n%s"),
                         to_path_internal);
-            gtkutil_message_dialog (_("Error!!"), error_message, window);
+            gtkutil_message_dialog (_("Error!"), error_message, window);
          }
          goto ERROR;
       }
@@ -1141,11 +1155,11 @@ copy_file (const gchar *from_path, const gchar *dir,
                                              conf.charset_auto_detect_fn,
                                              conf.charset_filename_mode);
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't copy file : %s\n"
+                     _("Can't copy file: %s\n"
                        "Permission denied: %s\n"),
                      from_path_internal, dir_internal);
 
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
 
          g_free (from_path_internal);
          g_free (dir_internal);
@@ -1195,9 +1209,9 @@ link_file (const gchar *from_path, const gchar *dir,
    if (lstat (from_path, &from_st)) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't find source file :\n%s"),
+                     _("Can't find the source file:\n%s"),
                      from_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR0;
    }
@@ -1208,10 +1222,10 @@ link_file (const gchar *from_path, const gchar *dir,
    if (!iswritable (dir)) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Can't create link : %s\n"
+                     _("Can't create link: %s\n"
                        "Permission denied: %s\n"),
                      from_path_internal, dir_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR0;
    }
@@ -1228,9 +1242,9 @@ link_file (const gchar *from_path, const gchar *dir,
    if (!lstat (to_path, &to_st)) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("File exist : %s"),
+                     _("File exists: %s"),
                      to_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR1;
    }
@@ -1240,11 +1254,11 @@ link_file (const gchar *from_path, const gchar *dir,
    if (link_faild) {
       if (show_error) {
          g_snprintf (error_message, BUF_SIZE,
-                     _("Faild to create link :\n"
-                       "From : %s\n"
-                       "To : %s"),
+                     _("Failed to create link:\n"
+                       "From: %s\n"
+                       "To: %s"),
                      from_path_internal, to_path_internal);
-         gtkutil_message_dialog (_("Error!!"), error_message, window);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
       }
       goto ERROR1;
    }
@@ -1421,7 +1435,7 @@ do_file_operate (const gchar *src_file,
    }
    case FILE_LINK:
       g_snprintf (message, BUF_SIZE,
-                  _("Creating Link %s ..."), src_file_internal);
+                  _("Creating link %s ..."), src_file_internal);
       gtkutil_progress_window_update (progress_win, _("Creating Links"),
                                       message, NULL, progress);
       result = link_file (src_file, dest_dir, TRUE, window);
@@ -1478,16 +1492,16 @@ files2dir (GList *filelist, const gchar *dir, FileOperateType action, GtkWindow 
     *****************/
    if (!file_exists (dir)) {
       g_snprintf (message, BUF_SIZE,
-                  _("Directory doesn't exist!!: %s"),
+                  _("Directory doesn't exist: %s"),
                   dir_internal);
-      gtkutil_message_dialog (_("Error!!"), message, window);
+      gtkutil_message_dialog (_("Error!"), message, window);
       goto ERROR;
    }
    if (!iswritable (dir)) {
       g_snprintf (message, BUF_SIZE,
-                  _("Permission denied!!: %s"),
+                  _("Permission denied: %s"),
                   dir_internal);
-      gtkutil_message_dialog (_("Error!!"), message, window);
+      gtkutil_message_dialog (_("Error!"), message, window);
       goto ERROR;
    }
 
@@ -1500,14 +1514,14 @@ files2dir (GList *filelist, const gchar *dir, FileOperateType action, GtkWindow 
    /* create progress window */
    progress_win = gtkutil_create_progress_window ("File Operation", "...",
                                                   &cancel, 300, -1, window);
-   gtk_grab_add (progress_win);
+   gimv_grab_add (progress_win);
 
    /* do file operation */
    length = g_list_length (filelist);
    for (node = filelist; node; node = g_list_next (node)) {
       src_file = node->data;
 
-      while (gtk_events_pending()) gtk_main_iteration();
+      gimv_flush_events ();
 
       pos = g_list_position (filelist, node);
       progress = (gfloat) pos / (gfloat) length;
@@ -1526,8 +1540,8 @@ files2dir (GList *filelist, const gchar *dir, FileOperateType action, GtkWindow 
       }
    }
 
-   gtk_grab_remove (progress_win);
-   gtk_widget_destroy (progress_win);
+   gimv_grab_remove (progress_win);
+   gimv_widget_destroy (progress_win);
 
    g_free (dest_dir);
    g_free (dir_internal);
@@ -1627,16 +1641,16 @@ delete_dir (const gchar *path, GtkWindow *window)
    exist = !lstat (path, &st);
    if (!exist) {
       g_snprintf (message, BUF_SIZE,
-                  _("Directory not exist : %s"), path_internal);
-      gtkutil_message_dialog (_("Error!!"), message, window);
+                  _("Directory doesn't exist: %s"), path_internal);
+      gtkutil_message_dialog (_("Error!"), message, window);
       goto ERROR;
    }
 
    /* check path is link or not */
    if (islink (path)) {
       g_snprintf (message, BUF_SIZE,
-                  _("%s is symbolic link.\n"
-                    "Remove link ?"), path_internal);
+                  _("%s is a symbolic link.\n"
+                    "Remove the link?"), path_internal);
       action = gtkutil_confirm_dialog (_("Confirm Deleting Directory"),
                                        message, 0, window);
       if (action == CONFIRM_YES) {
@@ -1647,8 +1661,7 @@ delete_dir (const gchar *path, GtkWindow *window)
 
    /* confirm */
    g_snprintf (message, BUF_SIZE,
-               _("Delete %s\n"
-                 "OK?"), path_internal);
+               _("Delete %s?"), path_internal);
    action = gtkutil_confirm_dialog (_("Confirm Deleting Directory"),
                                     message, 0, window);
    if (action != CONFIRM_YES) goto ERROR;
@@ -1657,8 +1670,8 @@ delete_dir (const gchar *path, GtkWindow *window)
    filelist = get_dir_all (path);
    if (filelist) {
       g_snprintf (message, BUF_SIZE,
-                  _("%s is not empty\n"
-                    "Delete all files under %s ?"),
+                  _("%s is not empty.\n"
+                    "Delete all files under %s?"),
                   path_internal, path_internal);
       action = gtkutil_confirm_dialog (_("Confirm Deleting Directory"),
                                        message, 0, window);
@@ -1667,7 +1680,7 @@ delete_dir (const gchar *path, GtkWindow *window)
       /* create progress bar */
       progress_win = gtkutil_create_progress_window ("Delete File", "Deleting Files",
                                                      &cancel, 300, -1, window);
-      gtk_grab_add (progress_win);
+      gimv_grab_add (progress_win);
 
       length = g_list_length (filelist);
       listnode = filelist;
@@ -1677,7 +1690,7 @@ delete_dir (const gchar *path, GtkWindow *window)
          /* update progress */
          pos = g_list_position (filelist, listnode);
          if ((pos % 50) == 0) {
-            while (gtk_events_pending()) gtk_main_iteration();
+            gimv_flush_events ();
 
             pos = g_list_position (filelist, listnode);
             progress = (gfloat) pos / (gfloat) length;
@@ -1706,8 +1719,8 @@ delete_dir (const gchar *path, GtkWindow *window)
          /* cancel */
          if (cancel) break;
       }
-      gtk_grab_remove (progress_win);
-      gtk_widget_destroy (progress_win);
+      gimv_grab_remove (progress_win);
+      gimv_widget_destroy (progress_win);
 
       g_list_foreach (filelist, (GFunc) g_free, NULL);
       g_list_free (filelist);
@@ -1716,13 +1729,13 @@ delete_dir (const gchar *path, GtkWindow *window)
    /* remove the directory */
    if (not_empty) {
       g_snprintf (message, BUF_SIZE,
-                  _("Faild to remove directory :\n"
+                  _("Failed to remove directory:\n"
                     "%s is not empty."), path_internal);
-      gtkutil_message_dialog (_("Error!!"), message, window);
+      gtkutil_message_dialog (_("Error!"), message, window);
    } else if (remove (path) < 0) {
       g_snprintf (message, BUF_SIZE,
-                  _("Faild to remove directory : %s"), path_internal);
-      gtkutil_message_dialog (_("Error!!"), message, window);
+                  _("Failed to remove directory: %s"), path_internal);
+      gtkutil_message_dialog (_("Error!"), message, window);
    }
 
 SUCCESS:
@@ -1754,8 +1767,7 @@ delete_files (GList *filelist, ConfirmType confirm, GtkWindow *window)
 
    if (dialog) {
       g_snprintf (message, BUF_SIZE,
-                  _("Delete these %d files.\n"
-                    "OK?"),
+                  _("Delete these %d files?"),
                   length);
       confirm = gtkutil_confirm_dialog (_("Confirm Deleting Files"),
                                         message, 0, window);
@@ -1769,7 +1781,7 @@ delete_files (GList *filelist, ConfirmType confirm, GtkWindow *window)
       progress_win = gtkutil_create_progress_window (_("Delete File"),
                                                      _("Deleting Files"),
                                                      &cancel, 300, -1, window);
-      gtk_grab_add (progress_win);
+      gimv_grab_add (progress_win);
    }
 
    node = filelist;
@@ -1784,7 +1796,7 @@ delete_files (GList *filelist, ConfirmType confirm, GtkWindow *window)
                                                 conf.charset_auto_detect_fn,
                                                 conf.charset_filename_mode);
 
-      while (gtk_events_pending()) gtk_main_iteration();
+      gimv_flush_events ();
 
       pos = g_list_position (filelist, node);
       progress = (gfloat) pos / (gfloat) length;
@@ -1804,8 +1816,8 @@ delete_files (GList *filelist, ConfirmType confirm, GtkWindow *window)
 
       if (!iswritable (dirname)) {
          g_snprintf (message, BUF_SIZE,
-                     _("Permission denied : %s"), dirname_internal);
-         gtkutil_message_dialog (_("Error!!"), message, window);
+                     _("Permission denied: %s"), dirname_internal);
+         gtkutil_message_dialog (_("Error!"), message, window);
 
       } else { /* remove file!! */
          gboolean success;
@@ -1823,9 +1835,9 @@ delete_files (GList *filelist, ConfirmType confirm, GtkWindow *window)
 
          if (!success) {
             g_snprintf (message, BUF_SIZE,
-                        _("Faild to delete file :\n%s"),
+                        _("Unable to delete file:\n%s"),
                         filename_internal);
-            gtkutil_message_dialog (_("Error!!"), message, window);
+            gtkutil_message_dialog (_("Error!"), message, window);
          }
       }
 
@@ -1841,8 +1853,8 @@ delete_files (GList *filelist, ConfirmType confirm, GtkWindow *window)
    }
 
    if (dialog && progress_win) {
-      gtk_grab_remove (progress_win);
-      gtk_widget_destroy (progress_win);
+      gimv_grab_remove (progress_win);
+      gimv_widget_destroy (progress_win);
    }
 
    return TRUE;
@@ -1862,12 +1874,12 @@ make_dir_dialog (const gchar *parent_dir, GtkWindow *window)
 
    if (!iswritable (parent_path)) {
       g_snprintf (error_message, BUF_SIZE,
-                  _("Permission denied : %s"), parent_path);
-      gtkutil_message_dialog (_("Error!!"), error_message, window);
+                  _("Permission denied: %s"), parent_path);
+      gtkutil_message_dialog (_("Error!"), error_message, window);
       goto ERROR0;
    }
 
-   dirname = gtkutil_popup_textentry (_("Make directory"),
+   dirname = gtkutil_popup_textentry (_("Make Directory"),
                                       _("New directory name: "),
                                       NULL, NULL, -1, 0, window);
    if (!dirname) goto ERROR0;
@@ -1881,11 +1893,11 @@ make_dir_dialog (const gchar *parent_dir, GtkWindow *window)
    if (exist) {
       if (isdir (path))
          g_snprintf (error_message, BUF_SIZE,
-                     _("Directory exist : %s"), path);
+                     _("Directory exists: %s"), path);
       else
          g_snprintf (error_message, BUF_SIZE,
-                     _("File exist : %s"), path);
-      gtkutil_message_dialog (_("Error!!"), error_message, window);
+                     _("File exists: %s"), path);
+      gtkutil_message_dialog (_("Error!"), error_message, window);
       g_free (path);
       goto ERROR1;
    }
@@ -1893,8 +1905,8 @@ make_dir_dialog (const gchar *parent_dir, GtkWindow *window)
    success = makedir (path);
    if (!success) {
       g_snprintf (error_message, BUF_SIZE,
-                  _("Faild to create directory : %s"), path);
-      gtkutil_message_dialog (_("Error!!"), error_message, window);
+                  _("Failed to create directory: %s"), path);
+      gtkutil_message_dialog (_("Error!"), error_message, window);
    }
 
  ERROR1:
@@ -1923,8 +1935,8 @@ rename_dir_dialog (const gchar *dir, GtkWindow *window)
    exist = !lstat (path, &st);
    if (!exist) {
       g_snprintf (message, BUF_SIZE,
-                  _("Directory not exist :%s"), path);
-      gtkutil_message_dialog (_("Error!!"), message, window);
+                  _("Directory doesn't exist: %s"), path);
+      gtkutil_message_dialog (_("Error!"), message, window);
       goto ERROR0;
    }
 
@@ -1933,7 +1945,7 @@ rename_dir_dialog (const gchar *dir, GtkWindow *window)
 
    /* popup rename directory dialog */
    src_file_internal = charset_locale_to_internal (g_basename (src_path));
-   dirname = gtkutil_popup_textentry (_("Rename directory"),
+   dirname = gtkutil_popup_textentry (_("Rename Directory"),
                                       _("New directory name: "),
                                       src_file_internal,
                                       NULL, -1, 0, window);
@@ -1948,8 +1960,8 @@ rename_dir_dialog (const gchar *dir, GtkWindow *window)
 
    if (rename (src_path, dest_path) < 0) {
       g_snprintf (message, BUF_SIZE,
-                  _("Faild to rename directory : %s"), src_path);
-      gtkutil_message_dialog (_("Error!!"), message, window);
+                  _("Failed to rename directory: %s"), src_path);
+      gtkutil_message_dialog (_("Error!"), message, window);
    } else {
       success = TRUE;
    }

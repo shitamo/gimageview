@@ -106,11 +106,10 @@ next_image (GimvImageView *iv,
       change_data->slideshow = slideshow;
       change_data->iw = iw;
       change_data->info = next->data;
-      gtk_idle_add_full (GTK_PRIORITY_DEFAULT,
-                         change_image_idle,
-                         NULL,
-                         change_data,
-                         (GtkDestroyNotify) g_free);
+      g_idle_add_full (G_PRIORITY_DEFAULT,
+                       change_image_idle,
+                       change_data,
+                       (GDestroyNotify) g_free);
       slideshow->current = next;
    }
 
@@ -147,11 +146,10 @@ prev_image (GimvImageView *iv,
       change_data->slideshow = slideshow;
       change_data->iw = iw;
       change_data->info = prev->data;
-      gtk_idle_add_full (GTK_PRIORITY_DEFAULT,
-                         change_image_idle,
-                         NULL,
-                         change_data,
-                         (GtkDestroyNotify) g_free);
+      g_idle_add_full (G_PRIORITY_DEFAULT,
+                       change_image_idle,
+                       change_data,
+                       (GDestroyNotify) g_free);
       slideshow->current = prev;
    }
 
@@ -180,11 +178,10 @@ nth_image (GimvImageView *iv,
    change_data->slideshow = slideshow;
    change_data->iw = iw;
    change_data->info = node->data;
-   gtk_idle_add_full (GTK_PRIORITY_DEFAULT,
-                      change_image_idle,
-                      NULL,
-                      change_data,
-                      (GtkDestroyNotify) g_free);
+   g_idle_add_full (G_PRIORITY_DEFAULT,
+                    change_image_idle,
+                    change_data,
+                    (GDestroyNotify) g_free);
    slideshow->current = node;
 
    return node;
@@ -200,7 +197,7 @@ remove_list (GimvImageView *iv, gpointer list_owner, gpointer data)
    g_return_if_fail (slideshow);
 
    /* free slide show data safely */
-   gtk_idle_add (idle_slideshow_delete, slideshow);
+   g_idle_add (idle_slideshow_delete, slideshow);
 }
 
 
@@ -213,7 +210,7 @@ cb_show_fullscreen (GimvImageWin *iw, GimvSlideShow *slideshow)
 static void
 cb_hide_fullscreen (GimvImageWin *iw, GimvSlideShow *slideshow)
 {
-   gtk_widget_destroy (GTK_WIDGET (iw));
+   gimv_widget_destroy (GTK_WIDGET (iw));
 }
 
 
@@ -241,13 +238,7 @@ gimv_slideshow_new (void)
 void
 gimv_slideshow_delete (GimvSlideShow *slideshow)
 {
-   GimvImageWin *iw;
-   GimvImageView *iv;
-
    g_return_if_fail (slideshow);
-
-   iw = slideshow->iw;
-   iv = iw->iv;
 
    g_list_foreach (slideshow->filelist, (GFunc) gimv_image_info_unref, NULL);
    g_list_free (g_list_first (slideshow->filelist));
@@ -296,7 +287,7 @@ gimv_slideshow_open_window (GimvSlideShow *slideshow)
    iv = iw->iv;
 
    /* override some parameters */
-   gtk_object_set(GTK_OBJECT(iv),
+   g_object_set (G_OBJECT (iv),
                   "x_scale",           conf.slideshow_img_scale,
                   "y_scale",           conf.slideshow_img_scale,
                   "default_zoom",      conf.slideshow_zoom,
@@ -350,12 +341,17 @@ gimv_slideshow_open_window (GimvSlideShow *slideshow)
                              remove_list,
                              iw);
 
-   gtk_signal_connect_after (GTK_OBJECT (iw), "show_fullscreen",
-                             GTK_SIGNAL_FUNC (cb_show_fullscreen), slideshow);
-   gtk_signal_connect_after (GTK_OBJECT (iw), "hide_fullscreen",
-                             GTK_SIGNAL_FUNC (cb_hide_fullscreen), slideshow);
+   g_signal_connect_after (G_OBJECT (iw), "show_fullscreen",
+                             G_CALLBACK (cb_show_fullscreen), slideshow);
+   g_signal_connect_after (G_OBJECT (iw), "hide_fullscreen",
+                             G_CALLBACK (cb_hide_fullscreen), slideshow);
 
-   gtk_widget_show (GTK_WIDGET (slideshow->iw));
+   /* GTK4: the fullscreen window is a normal toplevel now (GTK2 used a
+      popup window which stayed above everything); the image window would
+      cover it.  It isn't needed while the slide show is in full screen
+      mode (leaving full screen ends the slide show). */
+   if (!iw->fullscreen)
+      gtk_widget_show (GTK_WIDGET (slideshow->iw));
 
    return iw;
 }

@@ -245,7 +245,7 @@ plugin_prefs_write_file (const gchar *type)
 
    pluginrc = fopen (path, "w");
    if (!pluginrc) {
-      g_warning (_("Can't open plugin preference file for write."));
+      g_warning (_("Can't open the plugin preference file for writing."));
       goto ERROR;
    }
 
@@ -295,12 +295,17 @@ gimv_plugin_load_module (const gchar *filename, gint *error)
    /* load module */
    module =  g_module_open (filename, G_MODULE_BIND_LAZY);
    if (!module) {
-      /* FIXME: show message (return GError?) */
+      /* e.g. a missing library of a plugin: say which one instead of
+         silently dropping the feature */
+      g_warning ("GimvPlugin: cannot load %s: %s",
+                 filename, g_module_error ());
       return FALSE;
    }
    success = g_module_symbol (module, "gimv_plugin_info", (gpointer) &info);
-   if (!success) {
-      /* FIXME: show message (return GError?) */
+   if (!success || !info) {
+      g_warning ("GimvPlugin: %s is not a GImageView plugin: %s",
+                 filename, g_module_error ());
+      g_module_close (module);
       return FALSE;
    }
 
@@ -503,6 +508,60 @@ gimv_plugin_get_module_name (GModule *module)
    g_return_val_if_fail (success, NULL);
 
    return g_module_name (module);
+}
+
+
+const gchar *
+gimv_plugin_get_description (GModule *module)
+{
+   GimvPluginInfo *info;
+
+   g_return_val_if_fail (module, NULL);
+
+   if (!g_module_symbol (module, "gimv_plugin_info", (gpointer) &info))
+      return NULL;
+
+   return info->description;
+}
+
+
+/* the file extensions of the MIME types the plugin registers, separated by
+   spaces (NULL if none); free with g_free () */
+gchar *
+gimv_plugin_get_extensions (GModule *module)
+{
+   GimvPluginInfo *info;
+   GimvMimeTypeEntry *entry;
+   GPtrArray *exts;
+   guint i, size;
+   gint j;
+   gchar *ret = NULL;
+
+   g_return_val_if_fail (module, NULL);
+
+   if (!g_module_symbol (module, "gimv_plugin_info", (gpointer) &info))
+      return NULL;
+   if (!info->get_mime_type) return NULL;
+
+   exts = g_ptr_array_new ();
+   for (i = 0; info->get_mime_type (i, &entry, &size); i++) {
+      if (!entry || size <= 0) continue;
+      for (j = 0; j < entry->extensions_len; j++) {
+         const gchar *ext = entry->extensions[j];
+         guint k;
+         gboolean dup = FALSE;
+         for (k = 0; k < exts->len && !dup; k++)
+            dup = !g_ascii_strcasecmp (g_ptr_array_index (exts, k), ext);
+         if (!dup) g_ptr_array_add (exts, (gpointer) ext);
+      }
+   }
+   if (exts->len > 0) {
+      g_ptr_array_add (exts, NULL);
+      ret = g_strjoinv (" ", (gchar **) exts->pdata);
+   }
+   g_ptr_array_free (exts, TRUE);
+
+   return ret;
 }
 
 

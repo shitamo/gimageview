@@ -44,12 +44,14 @@
 #endif
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #define GIMV_TYPE_PREFS		        (gimv_prefs_get_type ())
-#define GIMV_PREFS(obj)            (GTK_CHECK_CAST (obj, gimv_prefs_get_type (), GimvPrefs))
-#define GIMV_PREFS_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_prefs_get_type, GimvPrefsClass))
-#define GIMV_IS_PREFS(obj)         (GTK_CHECK_TYPE (obj, gimv_prefs_get_type ()))
-#define GIMV_IS_PREFS_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_PREFS))
+#define GIMV_PREFS(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_prefs_get_type (), GimvPrefs))
+#define GIMV_PREFS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_prefs_get_type (), GimvPrefsClass))
+#define GIMV_IS_PREFS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_prefs_get_type ()))
+#define GIMV_IS_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_PREFS))
 
 
 typedef struct GimvPrefs_Tag      GimvPrefs;
@@ -71,7 +73,7 @@ typedef struct GimvPrefsList_Tag  GimvPrefsList;
 
 struct GimvPrefs_Tag
 {
-   GtkObject parent;
+   GimvObject parent;
 
    gboolean edit;
    gchar *file, *subfile;
@@ -90,7 +92,7 @@ struct GimvPrefsList_Tag
 
 struct GimvPrefsClass_Tag
 {
-   GtkObjectClass parent_class;
+   GimvObjectClass parent_class;
 
 	/* -- signals -- */
    void (*section_added)   (GimvPrefs *profile,
@@ -110,7 +112,7 @@ struct GimvPrefsClass_Tag
 };
 
 
-GtkType    gimv_prefs_get_type (void);
+GType    gimv_prefs_get_type (void);
 GimvPrefs *gimv_prefs_new      (void);
 
 

@@ -30,6 +30,7 @@
 
 #include "gimv_prefs_win.h"
 
-GtkWidget *prefs_movie_page (void);
+GtkWidget *prefs_movie_page  (void);
+gboolean   prefs_movie_apply (GimvPrefsWinAction action);
 
 #endif /* __PREFS_UI_MOVIE_H__ */

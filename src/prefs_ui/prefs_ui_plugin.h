@@ -29,6 +29,8 @@
 #endif
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include "gimv_prefs_win.h"
 
 GtkWidget *prefs_ui_plugin              (void);

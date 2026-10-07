@@ -97,8 +97,8 @@ detailview_prefs_ui(void)
    GIMV_PLUGIN_PREFS_GET_ALL (detailview, detailview_prefs_entry,
                               detailview_conf_pre, detailview_conf);
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
    for (i = 1; i < detailview_get_titles_num (); i++) {
       gchar *text = detailview_get_title (i);
@@ -114,7 +114,7 @@ detailview_prefs_ui(void)
                                        ',');
    g_list_free (list);
 
-   gtk_box_pack_start(GTK_BOX (main_vbox), frame, FALSE, TRUE, 0);
+   gimv_box_pack_start(GTK_BOX (main_vbox), frame, FALSE, TRUE, 0);
 
 
    /* show/hide column title */
@@ -122,9 +122,9 @@ detailview_prefs_ui(void)
                                          detailview_conf.show_title,
                                          gtkutil_get_data_from_toggle_cb,
                                          &detailview_conf.show_title);
-   gtk_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }

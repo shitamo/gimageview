@@ -33,6 +33,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #include "xbm.h"
 #include "gimv_plugin.h"

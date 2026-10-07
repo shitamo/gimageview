@@ -36,12 +36,23 @@
 #endif
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
 
+/*
+ *  GTK4 port:
+ *
+ *  GimvScrolled is a GtkWidget implementing GtkScrollable.  It keeps the
+ *  scroll offsets in sync with its adjustments and routes input to class
+ *  methods, so that subclasses (GimvZList, GimvZAlbum) do not have to deal
+ *  with GTK4 event controllers themselves.  Painting is done by the "draw"
+ *  class method with a cairo context in widget coordinates.
+ */
 
 #define GIMV_TYPE_SCROLLED            gimv_scrolled_get_type ()
-#define GIMV_SCROLLED(obj)            GTK_CHECK_CAST (obj, GIMV_TYPE_SCROLLED, GimvScrolled)
-#define GIMV_SCROLLED_CLASS(klass)    (GTK_CHECK_CLASS_CAST ((klass), GIMV_TYPE_SCROLLED, GimvScrolledClass))
-#define GIMV_IS_SCROLLED(obj)         GTK_CHECK_TYPE (obj, GIMV_TYPE_SCROLLED)
+#define GIMV_SCROLLED(obj)            G_TYPE_CHECK_INSTANCE_CAST (obj, GIMV_TYPE_SCROLLED, GimvScrolled)
+#define GIMV_SCROLLED_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GIMV_TYPE_SCROLLED, GimvScrolledClass))
+#define GIMV_SCROLLED_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GIMV_TYPE_SCROLLED, GimvScrolledClass))
+#define GIMV_IS_SCROLLED(obj)         G_TYPE_CHECK_INSTANCE_TYPE (obj, GIMV_TYPE_SCROLLED)
 #define GIMV_SCROLLED_X(scrolled, x)  (-GIMV_SCROLLED(scrolled)->x_offset + (x))
 #define GIMV_SCROLLED_Y(scrolled, y)  (-GIMV_SCROLLED(scrolled)->y_offset + (y))
 #define GIMV_SCROLLED_VX(scrolled, x) (GIMV_SCROLLED(scrolled)->x_offset + (x))
@@ -61,19 +72,20 @@ typedef enum
    GIMV_SCROLLED_AUTO_SCROLL_DND        = 1 << 3, /* for drag motion event */
    GIMV_SCROLLED_AUTO_SCROLL_MOTION     = 1 << 4, /* for motion notify event */
    GIMV_SCROLLED_AUTO_SCROLL_MOTION_ALL = 1 << 5, /* do not check whether button
-                                                was pressed or not */
+                                                     was pressed or not */
 } GimvScrolledAutoScrollFlags;
 
 struct _GimvScrolled {
-   GtkContainer   container;
+   GtkWidget      parent;
 
    gint           x_offset;
    gint           y_offset;
 
    GtkAdjustment *h_adjustment;
    GtkAdjustment *v_adjustment;
+   guint          hscroll_policy : 1;
+   guint          vscroll_policy : 1;
 
-   GdkGC         *copy_gc;
    guint          freeze_count;
 
    /* for auto scroll */
@@ -93,21 +105,41 @@ struct _GimvScrolled {
 
 
 struct _GimvScrolledClass {
-   GtkContainerClass parent_class;
+   GtkWidgetClass parent_class;
 
-   void              (*set_scroll_adjustments) (GtkWidget *widget, 
-                                                GtkAdjustment *hadjustment, 
-                                                GtkAdjustment *vadjustment);
-   void              (*adjust_adjustments)     (GimvScrolled *scrolled);
+   /* signal */
+   void     (*adjust_adjustments) (GimvScrolled    *scrolled);
+
+   /* painting (widget coordinates) */
+   void     (*draw)               (GimvScrolled    *scrolled,
+                                   cairo_t         *cr,
+                                   GdkRectangle    *area);
+
+   /* input; return TRUE to stop further processing */
+   gboolean (*button_press)       (GimvScrolled    *scrolled,
+                                   GimvEventButton *event);
+   gboolean (*button_release)     (GimvScrolled    *scrolled,
+                                   GimvEventButton *event);
+   gboolean (*motion_notify)      (GimvScrolled    *scrolled,
+                                   GimvEventMotion *event);
+   gboolean (*key_press)          (GimvScrolled    *scrolled,
+                                   GimvEventKey    *event);
+   void     (*focus_in)           (GimvScrolled    *scrolled);
+   void     (*focus_out)          (GimvScrolled    *scrolled);
+   void     (*drag_motion)        (GimvScrolled    *scrolled,
+                                   gint             x,
+                                   gint             y);
+   void     (*drag_leave)         (GimvScrolled    *scrolled);
 };
 
 
-GtkType    gimv_scrolled_get_type (void);
+GType      gimv_scrolled_get_type (void);
 
 void       gimv_scrolled_realize                      (GimvScrolled *scrolled);
 void       gimv_scrolled_unrealize                    (GimvScrolled *scrolled);
 void       gimv_scrolled_freeze                       (GimvScrolled *scrolled);
 void       gimv_scrolled_thawn                        (GimvScrolled *scrolled);
+void       gimv_scrolled_adjust_adjustments           (GimvScrolled *scrolled);
 void       gimv_scrolled_page_up                      (GimvScrolled *scrolled);
 void       gimv_scrolled_page_down                    (GimvScrolled *scrolled);
 void       gimv_scrolled_page_left                    (GimvScrolled *scrolled);

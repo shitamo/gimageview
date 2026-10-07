@@ -39,11 +39,11 @@ extern Config   *config_prechanged;
 
 
 static void
-cb_plugin_use_default_dir_list(GtkToggleButton *button, GtkWidget *widget)
+cb_plugin_use_default_dir_list(GtkWidget *button, GtkWidget *widget)
 {
    g_return_if_fail (GTK_IS_WIDGET(widget));
 
-   if (button->active) {
+   if (gimv_toggle_get_active (button)) {
       config_changed->plugin_use_default_search_dir_list = TRUE;
       gtk_widget_hide (widget);
    } else {
@@ -64,8 +64,8 @@ prefs_ui_plugin (void)
 {
    GtkWidget *main_vbox, *toggle, *frame;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
    frame = gimv_prefs_ui_dir_list_prefs (_("Directories list to search plugins"),
                                          _("Select plugin directory"),
@@ -77,11 +77,11 @@ prefs_ui_plugin (void)
                                          cb_plugin_use_default_dir_list,
                                          frame);
 
-   gtk_box_pack_start(GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
-   gtk_box_pack_start(GTK_BOX (main_vbox), frame, TRUE, TRUE, 0);
+   gimv_box_pack_start(GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start(GTK_BOX (main_vbox), frame, TRUE, TRUE, 0);
 
    gtk_widget_show (toggle);
-   gtk_widget_show_all (frame);
+   gimv_widget_show_all (frame);
    gtk_widget_show (main_vbox);
 
    if (config_changed->plugin_use_default_search_dir_list)
@@ -103,23 +103,19 @@ create_plugin_admin_widget (GList *plugin_list)
    gint i;
    gchar *titles[] = {N_("Plugin Name"), N_("Version"), N_("Module Name")};
    gint titles_num = sizeof (titles)/ sizeof (gchar *);
-   gchar *text[32];
+   const gchar *text[32];
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(hbox), 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 0);
 
-   scrollwin = gtk_scrolled_window_new (NULL, NULL);
+   scrollwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrollwin),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-   gtk_container_set_border_width(GTK_CONTAINER(scrollwin), 5);
-   gtk_box_pack_start (GTK_BOX (hbox), scrollwin, TRUE, TRUE, 0);
-   gtk_widget_set_usize (scrollwin, -1, 200);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrollwin), TRUE);
+   gimv_container_set_border_width (GTK_WIDGET (scrollwin), 5);
+   gimv_box_pack_start (GTK_BOX (hbox), scrollwin, TRUE, TRUE, 0);
+   gimv_widget_set_size (scrollwin, -1, 200);
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkListStore *store;
 
@@ -128,8 +124,9 @@ create_plugin_admin_widget (GList *plugin_list)
                                   G_TYPE_STRING,
                                   G_TYPE_STRING);
       clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-      gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (clist), TRUE);
-      gtk_container_add (GTK_CONTAINER (scrollwin), clist);
+      gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
+      /* GTK4: gtk_tree_view_set_rules_hint () removed (theme decides) */
+      gimv_container_add (GTK_WIDGET (scrollwin), clist);
 
       /* set columns */
       for (i = 0; i < titles_num; i++) {
@@ -165,27 +162,6 @@ create_plugin_admin_widget (GList *plugin_list)
                              -1);
       }
    }
-#else /* ENABLE_TREEVIEW */
-   clist = gtk_clist_new (titles_num);
-   for (i = 0; i < titles_num; i++) {
-      gtk_clist_set_column_title (GTK_CLIST (clist), i, _(titles[i]));
-      gtk_clist_set_column_auto_resize (GTK_CLIST (clist), i, TRUE);
-   }
-   gtk_clist_column_titles_show (GTK_CLIST (clist));
-   gtk_clist_set_selection_mode (GTK_CLIST (clist), GTK_SELECTION_SINGLE);
-   gtk_container_add (GTK_CONTAINER (scrollwin), clist);
-
-   /* set default value */
-   for (list = plugin_list; list; list = g_list_next (list)) {
-      GModule *module = list->data;
-
-      text[0] = _(gimv_plugin_get_name (module));
-      text[1] = _(gimv_plugin_get_version_string (module));
-      text[2] = _(gimv_plugin_get_module_name (module));
-
-      gtk_clist_append (GTK_CLIST (clist), text);
-   }
-#endif /* ENABLE_TREEVIEW */
 
    return hbox;
 }
@@ -196,8 +172,8 @@ create_plugin_admin_widget (GList *plugin_list)
    GtkWidget *main_vbox, *frame, *frame_vbox, *hbox;                            \
    GList *list;                                                                 \
                                                                                 \
-   main_vbox = gtk_vbox_new (FALSE, 0);                                         \
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);                 \
+   main_vbox = gimv_vbox_new (FALSE, 0);                                         \
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);                 \
                                                                                 \
    gimv_prefs_ui_create_frame (title,                                           \
                                frame, frame_vbox, main_vbox, TRUE);             \
@@ -205,9 +181,9 @@ create_plugin_admin_widget (GList *plugin_list)
    /* clist */                                                                  \
    list = gimv_plugin_get_list (plugin_type);                                   \
    hbox = create_plugin_admin_widget (list);                                    \
-   gtk_box_pack_start (GTK_BOX (frame_vbox), hbox, TRUE, TRUE, 0);              \
+   gimv_box_pack_start (GTK_BOX (frame_vbox), hbox, TRUE, TRUE, 0);              \
                                                                                 \
-   gtk_widget_show_all (main_vbox);                                             \
+   gimv_widget_show_all (main_vbox);                                             \
                                                                                 \
    return main_vbox;                                                            \
 }
@@ -246,13 +222,13 @@ prefs_ui_plugin_thumbnail (void)
 GtkWidget *
 prefs_ui_plugin_imageview (void)
 {
-   PREFS_PLUGIN_CREATE_ADMIN_PAGE(_("Image View Embeder Plugins"),
+   PREFS_PLUGIN_CREATE_ADMIN_PAGE(_("Image View Embedder Plugins"),
                                   GIMV_PLUGIN_IMAGEVIEW_EMBEDER);
 }
 GtkWidget *
 prefs_ui_plugin_thumbview (void)
 {
-   PREFS_PLUGIN_CREATE_ADMIN_PAGE(_("Thumbnail View Embeder Plugins"),
+   PREFS_PLUGIN_CREATE_ADMIN_PAGE(_("Thumbnail View Embedder Plugins"),
                                   GIMV_PLUGIN_THUMBVIEW_EMBEDER);
 }
 

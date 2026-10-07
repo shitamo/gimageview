@@ -43,13 +43,8 @@ struct DirViewPrivate_Tag {
    guint        button_action_id;
    guint        swap_com_id;       
 
-#ifdef ENABLE_TREEVIEW
    GtkTreePath *drag_tree_row;
    guint        adjust_tree_id;
-#else /* ENABLE_TREEVIEW */
-   gint         drag_tree_row;
-   guint        change_root_id;
-#endif /* ENABLE_TREEVIEW */
 };
 
 typedef enum {

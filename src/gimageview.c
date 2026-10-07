@@ -28,6 +28,8 @@
 #include <unistd.h>
 
 #include "gimageview.h"
+#include "gimv_color_scheme.h"
+#include "menu.h"
 
 #include "argparse.h"
 #include "charset.h"
@@ -86,6 +88,27 @@ gimv_filename_to_internal (const gchar *filename)
 }
 
 
+static void
+load_css_file (const gchar *filename, guint priority)
+{
+   GtkCssProvider *provider;
+   GdkDisplay *display;
+
+   if (!filename || !g_file_test (filename, G_FILE_TEST_IS_REGULAR))
+      return;
+
+   display = gdk_display_get_default ();
+   if (!display) return;
+
+   provider = gtk_css_provider_new ();
+   gtk_css_provider_load_from_path (provider, filename);
+   gtk_style_context_add_provider_for_display (display,
+                                               GTK_STYLE_PROVIDER (provider),
+                                               priority);
+   g_object_unref (provider);
+}
+
+
 void
 gimageview_init (gint *argc, gchar *argv[])
 {
@@ -94,29 +117,33 @@ gimageview_init (gint *argc, gchar *argv[])
    /* set locale */
    setlocale (LC_ALL, "");
    bindtextdomain (PACKAGE, LOCALEDIR);
-#ifdef USE_GTK2
    bind_textdomain_codeset (PACKAGE, "UTF-8");
-#endif
    textdomain (PACKAGE);
 
    /* Gtk Initialize */
-   gtk_set_locale();
-   gtk_init(argc, &argv);
-   g_snprintf (buf, MAX_PATH_LEN, "%s/%s", DATADIR, GIMV_GTK_RC);
-   gtk_rc_parse (buf);
+   /* GTK4: gtk_init () takes no arguments and doesn't parse the command
+      line any more: all arguments are handled by arg_parse (). */
+   g_set_prgname ("gimv");
+   g_set_application_name ("GImageView");
+   gtk_init ();
+
+   /* style: GTK4 has no gtkrc, load CSS files instead */
+   g_snprintf (buf, MAX_PATH_LEN, "%s/%s", DATADIR, GIMV_GTK_CSS);
+   load_css_file (buf, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
    g_snprintf (buf, MAX_PATH_LEN, "%s/%s/%s",
-               g_getenv ("HOME"), GIMV_RC_DIR, GIMV_GTK_RC);
-   gtk_rc_parse (buf);
+               g_getenv ("HOME"), GIMV_RC_DIR, GIMV_USER_GTK_CSS);
+   load_css_file (buf, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
    /* load config */
    prefs_load_config ();
+
+   /* light / dark colors (GTK4 port) */
+   gimv_color_scheme_apply ();
+
+   /* key bindings of the menus (GTK2: gtk_accel_map_load ()) */
    g_snprintf (buf, MAX_PATH_LEN, "%s/%s/%s", g_getenv("HOME"),
                GIMV_RC_DIR, GIMV_KEYACCEL_RC);
-#ifdef USE_GTK2
-   gtk_accel_map_load (buf);
-#else /* USE_GTK2 */
-   gtk_item_factory_parse_rc (buf);
-#endif /* USE_GTK2 */
+   gimv_accel_map_load (buf);
 
    /* gimv_image_init (); */
 
@@ -137,7 +164,6 @@ gimv_quit (void)
    GimvThumbWin *tw;
    GimvImageWin *iw;
    GList *node;
-   gchar buf[MAX_PATH_LEN];
 
    node = g_list_last (gimv_thumb_win_get_list());
 
@@ -157,17 +183,16 @@ gimv_quit (void)
 
    /* save config to disk */
    prefs_save_config ();
-   g_snprintf (buf, MAX_PATH_LEN, "%s/%s/%s",
-               g_getenv("HOME"), GIMV_RC_DIR, GIMV_KEYACCEL_RC);
-#ifdef USE_GTK2
-   gtk_accel_map_save (buf);
-#else /* USE_GTK2 */
-   gtk_item_factory_dump_rc (buf, NULL, TRUE);
-#endif /* USE_GTK2 */
+   {
+      gchar buf[MAX_PATH_LEN];
+      g_snprintf (buf, MAX_PATH_LEN, "%s/%s/%s", g_getenv("HOME"),
+                  GIMV_RC_DIR, GIMV_KEYACCEL_RC);
+      gimv_accel_map_save (buf);
+   }
 
    remove_temp_dir ();
 
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -227,14 +252,14 @@ idle_open_image_startup (gpointer data)
 
    if (!status) {
       if (!conf.startup_no_warning) {
-         g_warning (_("No image file is specified!!"));
+         g_warning (_("No image file specified!"));
          if (!conf.startup_read_dir)
-            g_warning (_("If you want to scan directory, use \"-d\" option."));
+            g_warning (_("To scan a directory, use the \"-d\" option."));
       }
       /* quit if no window opened */
       if (!gimv_thumb_win_get_list() && !gimv_image_win_get_list()) {
          if (!conf.startup_no_warning)
-            g_warning (_("No window is opened!! Quiting..."));
+            g_warning (_("No window is open! Quitting..."));
          quit_main = TRUE;
       }
    }
@@ -245,7 +270,7 @@ idle_open_image_startup (gpointer data)
    prefs_load_config ();
 
    if (quit_main)
-      gtk_main_quit ();
+      gimv_main_quit ();
 
    return FALSE;
 }
@@ -319,7 +344,7 @@ startup_slideshow (FilesLoader *files)
    arg_help (argv, stderr);
    */
 
-   gtk_init_add (idle_slideshow_startup, slideshow);
+   g_idle_add (idle_slideshow_startup, slideshow);
 
    files_loader_delete (files);
 }
@@ -327,13 +352,19 @@ startup_slideshow (FilesLoader *files)
 
 #ifdef ENABLE_SPLASH
 gint splash_timer_id;
+static GtkWidget *splash_window = NULL;
+static void splash_watch_toplevels (gboolean watch);
 
 static gboolean
 timeout_splash (GtkWidget *splash)
 {
    g_return_val_if_fail (splash, FALSE);
 
-   gtk_widget_destroy (splash);
+   if (splash_window == splash) {
+      splash_window = NULL;
+      splash_watch_toplevels (FALSE);
+   }
+   gimv_widget_destroy (splash);
    splash_timer_id = -1;
 
    return FALSE;
@@ -348,24 +379,91 @@ show_splash ()
 
    pixmap = gimv_icon_stock_get_widget ("gimageview");
 
-   window = gtk_window_new (GTK_WINDOW_POPUP);
-   gtk_widget_realize(window);
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-   gdk_window_set_decorations(window->window, 0);
+   window = gimv_popup_window_new ();
+   /* GTK4: windows can't be positioned (GTK_WIN_POS_CENTER); the window
+      is undecorated already */
+   gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
 
-   gtk_container_add(GTK_CONTAINER(window), pixmap);
+   gimv_container_add (GTK_WIDGET (window), pixmap);
    gimv_icon_stock_free_icon ("gimageview");
 
    gtk_widget_show(pixmap);
-   gtk_widget_show(window);
-   gdk_window_raise (window->window);
+   gtk_window_present (GTK_WINDOW (window));
+   splash_window = window;
+   splash_watch_toplevels (TRUE);
 
-   while (gtk_events_pending()) gtk_main_iteration();
+   gimv_flush_events ();
 
    splash_timer_id
-      = gtk_timeout_add (1500,
-                         (GtkFunction) timeout_splash,
+      = g_timeout_add (1500,
+                         (GSourceFunc) timeout_splash,
                          (gpointer) window);
+}
+
+
+/*
+ *  GTK4: the GTK2 splash was a popup (override-redirect) window that stayed
+ *  above the windows opened after it.  A GTK4 toplevel is covered by them,
+ *  so while the splash is shown, make it transient for each new window and
+ *  raise it again once that window is mapped.
+ */
+static gulong splash_toplevels_id = 0;
+
+static gboolean
+idle_splash_raise (gpointer data)
+{
+   if (splash_window)
+      gtk_window_present (GTK_WINDOW (splash_window));
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_splash_parent_mapped (GtkWidget *parent, gpointer data)
+{
+   g_idle_add (idle_splash_raise, NULL);
+}
+
+
+static void
+cb_splash_toplevels_changed (GListModel *toplevels, guint position,
+                             guint removed, guint added, gpointer data)
+{
+   guint i;
+
+   if (!splash_window) return;
+
+   for (i = position; i < position + added; i++) {
+      GtkWidget *win = g_list_model_get_item (toplevels, i);
+
+      if (win && win != splash_window && GTK_IS_WINDOW (win)
+          && !gtk_window_get_transient_for (GTK_WINDOW (win)))
+      {
+         if (!gtk_window_get_transient_for (GTK_WINDOW (splash_window)))
+            gtk_window_set_transient_for (GTK_WINDOW (splash_window),
+                                          GTK_WINDOW (win));
+         g_signal_connect_object (win, "map",
+                                  G_CALLBACK (cb_splash_parent_mapped),
+                                  splash_window, 0);
+      }
+      if (win) g_object_unref (win);
+   }
+}
+
+
+static void
+splash_watch_toplevels (gboolean watch)
+{
+   GListModel *toplevels = gtk_window_get_toplevels ();
+
+   if (watch && !splash_toplevels_id) {
+      splash_toplevels_id
+         = g_signal_connect (toplevels, "items-changed",
+                             G_CALLBACK (cb_splash_toplevels_changed), NULL);
+   } else if (!watch && splash_toplevels_id) {
+      g_signal_handler_disconnect (toplevels, splash_toplevels_id);
+      splash_toplevels_id = 0;
+   }
 }
 #endif
 
@@ -395,7 +493,8 @@ main (gint argc, gchar *argv[])
    arg_parse (argc, argv, &remaining);
 
 #ifdef ENABLE_SPLASH
-   show_splash ();
+   if (conf.startup_show_splash)
+      show_splash ();
 #endif
 
    /* open window if specified by config or argument */
@@ -405,6 +504,7 @@ main (gint argc, gchar *argv[])
    if (args_val.open_imagewin) {
       iw = gimv_image_win_open_window (NULL);
    }
+
 
    /* set FilesLoader struct data for opening files */
    files = get_files_from_argument (argc, argv, remaining);
@@ -424,11 +524,13 @@ main (gint argc, gchar *argv[])
 
    /* check filelist & dirlist and open image files */
    } else {
-      gtk_init_add (idle_open_image_startup, files);
+      g_idle_add (idle_open_image_startup, files);
    }
 
+   (void) iw;
+
    /* main roop */
-   gtk_main ();
+   gimv_main ();
 
    return 0;
 }

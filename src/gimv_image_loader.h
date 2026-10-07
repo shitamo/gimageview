@@ -28,7 +28,7 @@
 #  include "config.h"
 #endif
 
-#include <gtk/gtkobject.h>
+#include <gtk/gtk.h>
 
 #include "gimv_image.h"
 #include "gimv_image_info.h"
@@ -36,10 +36,10 @@
 
 
 #define GIMV_TYPE_IMAGE_LOADER            (gimv_image_loader_get_type ())
-#define GIMV_IMAGE_LOADER(obj)            (GTK_CHECK_CAST (obj, gimv_image_loader_get_type (), GimvImageLoader))
-#define GIMV_IMAGE_LOADER_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_image_loader_get_type, GimvImageLoaderClass))
-#define GIMV_IS_IMAGE_LOADER(obj)         (GTK_CHECK_TYPE (obj, gimv_image_loader_get_type ()))
-#define GIMV_IS_IMAGE_LOADER_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_LOADER))
+#define GIMV_IMAGE_LOADER(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_image_loader_get_type (), GimvImageLoader))
+#define GIMV_IMAGE_LOADER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_image_loader_get_type, GimvImageLoaderClass))
+#define GIMV_IS_IMAGE_LOADER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_image_loader_get_type ()))
+#define GIMV_IS_IMAGE_LOADER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_LOADER))
 
 
 typedef struct GimvImageLoader_Tag      GimvImageLoader;
@@ -55,7 +55,7 @@ typedef enum {
 
 struct GimvImageLoader_Tag
 {
-   GtkObject parent;
+   GimvObject parent;
 
    GimvImageInfo *info;
    GTimer        *timer;
@@ -66,7 +66,7 @@ struct GimvImageLoader_Tag
 
 struct GimvImageLoaderClass_Tag
 {
-   GtkObjectClass parent;
+   GimvObjectClass parent;
 
    void (*load_start)        (GimvImageLoader *loader);
    void (*progress_update)   (GimvImageLoader *loader);
@@ -105,7 +105,7 @@ typedef struct GimvImageLoaderPlugin_Tag
 /*
  *  used by client
  */
-GtkType      gimv_image_loader_get_type          (void);
+GType      gimv_image_loader_get_type          (void);
 GimvImageLoader
             *gimv_image_loader_new               (void);
 GimvImageLoader

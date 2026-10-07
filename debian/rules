@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-Dnls=true \
+		-Dexif=enabled \
+		-Dlibarchive=enabled \
+		-Djpeg=enabled \
+		-Dsvg=enabled \
+		-Dmng=enabled \
+		-Dwmf=enabled \
+		-Dgstreamer=enabled \
+		-Dxine=enabled \
+		-Dmplayer=true
+
+override_dh_auto_install:
+	dh_auto_install
+	# the license is in /usr/share/doc/gimageview/copyright
+	rm -f debian/gimageview/usr/share/gimageview/doc/text/ja/COPYING.ja
+	rm -f debian/gimageview/usr/share/gimageview/doc/text/en/COPYING

@@ -29,6 +29,7 @@
 #include "gimageview.h"
 
 #include "gimv_icon_stock.h"
+#include "menu.h"
 #include "gimv_image_win.h"
 #include "gimv_plugin.h"
 #include "gimv_thumb_win.h"
@@ -60,7 +61,7 @@ typedef struct _ConfParm
 typedef struct _KeyBindIfactory
 {
    gpointer keyconf;
-   GtkItemFactoryEntry *ifactory;
+   GimvMenuEntry *ifactory;
    gchar   *path;
 } KeyBindIfactory;
 
@@ -97,6 +98,8 @@ static ConfParam param_common [] = {
    {"fast_scale_down",          D_BOOL,   "FALSE", &conf.fast_scale_down},
    {"conv_rel_path_to_abs",     D_BOOL,   "TRUE", &conf.conv_rel_path_to_abs},
    {"iconset",                  D_STRING, DEFAULT_ICONSET, &conf.iconset},
+   {"use_theme_icons",          D_BOOL,   "TRUE",  &conf.use_theme_icons},
+   {"color_scheme",             D_ENUM,   "0",     &conf.color_scheme},
    {"textentry_font",           D_STRING,
     "-alias-fixed-medium-r-normal--14-*-*-*-*-*-*-*", &conf.textentry_font},
 
@@ -104,11 +107,7 @@ static ConfParam param_common [] = {
    {"charset_locale",           D_STRING, "default", &conf.charset_locale},
    {"charset_internal",         D_STRING, "default", &conf.charset_internal},
    {"charset_auto_detect_lang", D_ENUM,   "0",       &conf.charset_auto_detect_lang},
-#ifdef USE_GTK2
    {"charset_filename_mode",    D_ENUM,   "1",       &conf.charset_filename_mode},
-#else
-   {"charset_filename_mode",    D_ENUM,   "0",       &conf.charset_filename_mode},
-#endif
    {"charset_filename",         D_STRING, "default", &conf.charset_filename},
 
    /* filter */
@@ -122,6 +121,7 @@ static ConfParam param_startup [] = {
    {"startup_read_dir",           D_BOOL, "FALSE", &conf.startup_read_dir},
    {"startup_open_thumbwin",      D_BOOL, "FALSE", &conf.startup_open_thumbwin},
    {"startup_no_warning",         D_BOOL, "FALSE", &conf.startup_no_warning},
+   {"startup_show_splash",        D_BOOL, "TRUE",  &conf.startup_show_splash},
    {NULL, D_NULL, NULL, NULL}
 };
 
@@ -149,16 +149,19 @@ static ConfParam param_imageview [] = {
 
    {"imgview_default_zoom",       D_ENUM,   "3",       &conf.imgview_default_zoom},
    {"imgview_default_rotation",   D_ENUM,   "0",       &conf.imgview_default_rotation},
+   {"imgview_remember_rotation",  D_BOOL,   "TRUE",    &conf.imgview_remember_rotation},
    {"imgview_keep_aspect",        D_BOOL,   "TRUE",    &conf.imgview_keep_aspect},
+   {"imgview_alpha_checker",      D_BOOL,   "TRUE",    &conf.imgview_alpha_checker},
    {"imgview_scale",              D_FLOAT,  "100.0",   &conf.imgview_scale},
    {"imgview_buffer",             D_BOOL,   "FALSE",   &conf.imgview_buffer},
    {"imgview_scrollbar",          D_BOOL,   "TRUE",    &conf.imgview_scrollbar},
    {"imgview_player_visible",     D_ENUM,   "2",       &conf.imgview_player_visible},
    {"imgview_scroll_nolimit",     D_BOOL,   "FALSE",   &conf.imgview_scroll_nolimit},
    {"imgview_movie_continuance",  D_BOOL,   "FALSE",   &conf.imgview_movie_continuance},
+   {"imgview_movie_lock_mouse",   D_BOOL,   "FALSE",   &conf.imgview_movie_lock_mouse},
    {"movie_default_view_mode",    D_STRING, NULL,      &conf.movie_default_view_mode},
    {"imgview_mouse_button",       D_STRING,
-    "0,0,0,0; -1,-2,0,0; -2,0,0,0; 3,0,0,0; 2,0,0,0; 1,0,0,0",
+    "0,0,0,0; -1,-2,0,0; -2,0,0,0; 3,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0",
     &conf.imgview_mouse_button},
    {NULL, D_NULL, NULL, NULL}
 };
@@ -209,8 +212,9 @@ static ConfParam param_thumbview [] = {
    {"thumbview_show_archive",   D_BOOL,   "TRUE",  &conf.thumbview_show_archive},
 
    {"thumbview_mouse_button", D_STRING,
-    "3,0,0,0; -2,0,0,0; -3,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0",
+    "3,0,0,0; -2,0,0,0; -3,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0",
     &conf.thumbview_mouse_button},
+   {NULL, D_NULL, NULL, NULL}
 };
 
 static ConfParam param_thumbalbum [] = {
@@ -228,7 +232,7 @@ static ConfParam param_preview [] = {
    {"preview_player_visible",     D_ENUM, "2",     &conf.preview_player_visible},
    {"preview_buffer",             D_BOOL, "FALSE", &conf.preview_buffer},
    {"preview_mouse_button",       D_STRING,
-    "0,0,0,0; -1,-2,0,0; -4,0,0,0; 5,0,0,0; 2,0,0,0; 1,0,0,0",
+    "0,0,0,0; -1,-2,0,0; -4,0,0,0; 5,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0",
     &conf.preview_mouse_button},
    {NULL, D_NULL, NULL, NULL}
 };
@@ -245,7 +249,7 @@ static ConfParam param_dirview [] = {
    {"dirview_auto_expand",      D_BOOL,   "FALSE",  &conf.dirview_auto_expand},
    {"dirview_auto_expand_time", D_INT,    "500",    &conf.dirview_auto_expand_time},
    {"dirview_mouse_button",     D_STRING,
-    "1,0,0,0; 0,0,0,0; 1,0,0,0; 3,0,0,0; 0,0,0,0; 0,0,0,0",
+    "1,0,0,0; 0,0,0,0; 1,0,0,0; 3,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0",
     &conf.dirview_mouse_button},
    {NULL, D_NULL, NULL, NULL}
 };
@@ -308,7 +312,7 @@ static ConfParam param_dnd [] = {
 
 static ConfParam param_wallpaper [] = {
    {"wallpaper_menu", D_STRING,
-    "GNOME1,background-properties-capplet;GNOME2,gnome-background-properties;KDE,kcmshell background;KDE(RedHat8),kcmshell kde-background",
+    WALLPAPER_MENU_DEFAULT,
     &conf.wallpaper_menu},
    {NULL, D_NULL, NULL, NULL}
 };
@@ -330,7 +334,7 @@ static ConfParam param_progs [] = {
    {"progs[13]",   D_STRING, NULL,                        &conf.progs[13]},
    {"progs[14]",   D_STRING, NULL,                        &conf.progs[14]},
    {"progs[15]",   D_STRING, NULL,                        &conf.progs[15]},
-   {"web_browser", D_STRING, "mozilla %s",                &conf.web_browser},
+   {"web_browser", D_STRING, "xdg-open %s",               &conf.web_browser},
    {"text_viewer", D_STRING, "emacs",                     &conf.text_viewer},
    {"use_internal_text_viewer",  D_BOOL, "TRUE", &conf.text_viewer_use_internal},
    {"scripts_use_default_search_dir_list", D_BOOL,
@@ -521,7 +525,7 @@ prefs_load_rc (gchar *filename, PrefsSection *sections)
       gchar *tmpstr;
 
       g_warning (_("Can't open rc file: %s\n"
-                   "Use default setting ..."), rcfile);
+                   "Using the default settings..."), rcfile);
 
       tmpstr = conf.scripts_search_dir_list;
       conf.scripts_search_dir_list
@@ -567,6 +571,20 @@ prefs_load_config (void)
    for (i = 0; conf_files[i].filename; i++)
       prefs_load_rc (conf_files[i].filename, conf_files[i].sections);
 
+   /* GTK4 port: the old default "mozilla %s" -> the desktop's browser */
+   if (conf.web_browser && !strcmp (conf.web_browser, "mozilla %s")) {
+      g_free (conf.web_browser);
+      conf.web_browser = g_strdup ("xdg-open %s");
+   }
+
+   /* GTK4 port: the old wallpaper menu launched programs that are gone */
+   if (conf.wallpaper_menu
+       && !strcmp (conf.wallpaper_menu, WALLPAPER_MENU_OLD_DEFAULT))
+   {
+      g_free (conf.wallpaper_menu);
+      conf.wallpaper_menu = g_strdup (WALLPAPER_MENU_DEFAULT);
+   }
+
    gimv_plugin_prefs_read_files ();
 }
 
@@ -581,17 +599,17 @@ prefs_save_rc (gchar *filename, PrefsSection *sections)
    gchar dir[MAX_PATH_LEN], rcfile[MAX_PATH_LEN];
    FILE *gimvrc;
    gint i, j;
-   gchar *bool;
+   gchar *bool_str;
    struct stat st;
 
    g_snprintf (dir, MAX_PATH_LEN, "%s/%s", getenv("HOME"), GIMV_RC_DIR);
 
    if (stat(dir, &st)) {
       mkdir(dir, S_IRWXU);
-      g_warning (_("Directory \"%s\" not found. Created it ..."), dir);
+      g_warning (_("Directory \"%s\" not found. Creating it..."), dir);
    } else {
       if (!S_ISDIR(st.st_mode)) {
-         g_warning (_("\"%s\" found, but it's not directory. Abort creating ..."), dir);
+         g_warning (_("\"%s\" found, but it's not a directory. Not creating it."), dir);
          return;
       }
    }
@@ -600,7 +618,7 @@ prefs_save_rc (gchar *filename, PrefsSection *sections)
                GIMV_RC_DIR, filename);
    gimvrc = fopen (rcfile, "w");
    if (!gimvrc) {
-      g_warning (_("Can't open rc file for write."));
+      g_warning (_("Can't open rc file for writing."));
       return;
    }
 
@@ -626,10 +644,10 @@ prefs_save_rc (gchar *filename, PrefsSection *sections)
             break;
          case D_BOOL:
             if (*((gboolean *)param[i].data))
-               bool = "TRUE";
+               bool_str = "TRUE";
             else
-               bool = "FALSE";
-            fprintf (gimvrc, "%s=%s\n", param[i].keyname, bool);
+               bool_str = "FALSE";
+            fprintf (gimvrc, "%s=%s\n", param[i].keyname, bool_str);
             break;
          case D_ENUM:
             fprintf (gimvrc, "%s=%d\n", param[i].keyname,
@@ -658,28 +676,30 @@ prefs_save_config (void)
 }
 
 
+/*
+ *  The mouse button settings are groups separated by ';' (double click of
+ *  button 1, buttons 1 to 5, button 8 and button 9; settings saved by older
+ *  versions have only the first six), each with the action numbers for no
+ *  modifier, Shift, Control and Alt (negative: on release).
+ */
 gint
 prefs_mouse_get_num (gint button_id, gint mod_id, const gchar *string)
 {
-   gint i, j, num = 0;
+   gint num = 0;
    gchar **buttons, **mods;
 
-   g_return_val_if_fail (button_id >= 0 && button_id < 6, 0);
+   g_return_val_if_fail (button_id >= 0 && button_id < PREFS_MOUSE_BUTTON_IDS, 0);
    g_return_val_if_fail (mod_id >= 0 && mod_id < 4, 0);
    g_return_val_if_fail (string, 0);
 
-   buttons = g_strsplit (string, ";", 6);
+   buttons = g_strsplit (string, ";", PREFS_MOUSE_BUTTON_IDS);
    if (!buttons) return 0;
 
-   for (i = 0; i < 6; i++) {
-      mods = g_strsplit (buttons[i], ",", 4);
-      if (!mods) continue;
-      for (j = 0; j < 4; j++) {
-         if (i == button_id && j == mod_id) {
-            g_strstrip (mods[j]);
-            num = atoi (mods[j]);
-            break;
-         }
+   if ((gint) g_strv_length (buttons) > button_id) {
+      mods = g_strsplit (buttons[button_id], ",", 4);
+      if (mods && (gint) g_strv_length (mods) > mod_id) {
+         g_strstrip (mods[mod_id]);
+         num = atoi (mods[mod_id]);
       }
       g_strfreev (mods);
    }
@@ -691,17 +711,21 @@ prefs_mouse_get_num (gint button_id, gint mod_id, const gchar *string)
 
 
 gint
-prefs_mouse_get_num_from_event (GdkEventButton *event, const gchar *string)
+prefs_mouse_get_num_from_event (GimvEventButton *event, const gchar *string)
 {
    gint bid = 1, mid = 0;
    g_return_val_if_fail (event, 0);
 
    /* get button id */
-   if(event->type == GDK_2BUTTON_PRESS && event->button == 1)
+   if(event->type == GIMV_2BUTTON_PRESS && event->button == 1)
       bid = 0;
-   else
+   else if (event->button >= 1 && event->button <= 5)
       bid = event->button;
-   if (bid < 0 || bid > 5)
+   else if (event->button == 8)   /* side button "back" */
+      bid = 6;
+   else if (event->button == 9)   /* side button "forward" */
+      bid = 7;
+   else
       return 0;
 
    /* get modifier id */
@@ -709,7 +733,7 @@ prefs_mouse_get_num_from_event (GdkEventButton *event, const gchar *string)
       mid = 1;
    else if (event->state & GDK_CONTROL_MASK)
       mid = 2;
-   else if (event->state & GDK_MOD1_MASK)
+   else if (event->state & GDK_ALT_MASK)
       mid = 3;
    else
       mid = 0;

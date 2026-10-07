@@ -30,7 +30,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #include "auto_completion.h"
 #include "charset.h"
@@ -94,7 +95,7 @@ text_to_boolean (gchar *text)
 {
    g_return_val_if_fail (text && *text, FALSE);
 
-   if (!g_strcasecmp (text, "TRUE") || !g_strcasecmp (text, "ENABLE"))
+   if (!g_ascii_strcasecmp (text, "TRUE") || !g_ascii_strcasecmp (text, "ENABLE"))
       return TRUE;
    else
       return FALSE;
@@ -108,10 +109,18 @@ gtkutil_get_widget_area (GtkWidget    *widget,
    g_return_if_fail (widget);
    g_return_if_fail (area);
 
-   area->x       = widget->allocation.x;
-   area->y       = widget->allocation.y;
-   area->width   = widget->allocation.width;
-   area->height  = widget->allocation.height;
+   {
+      graphene_rect_t bounds;
+      GtkWidget *parent = gtk_widget_get_parent (widget);
+
+      area->x = area->y = 0;
+      if (parent && gtk_widget_compute_bounds (widget, parent, &bounds)) {
+         area->x = bounds.origin.x;
+         area->y = bounds.origin.y;
+      }
+   }
+   area->width   = gtk_widget_get_width (GTK_WIDGET (widget));
+   area->height  = gtk_widget_get_height (GTK_WIDGET (widget));
 
    /* FIXME? */
    area->x = 0;
@@ -135,11 +144,11 @@ gtkutil_create_check_button (const gchar *label_text, gboolean def_val,
    GtkWidget *toggle;
 
    toggle = gtk_check_button_new_with_label (_(label_text));
-   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(toggle), def_val);
+   gimv_toggle_set_active (GTK_WIDGET (toggle), def_val);
 
    if (func)
-      gtk_signal_connect (GTK_OBJECT (toggle), "toggled",
-                          GTK_SIGNAL_FUNC (func), data);
+      g_signal_connect (G_OBJECT (toggle), "toggled",
+                          G_CALLBACK (func), data);
 
    return toggle;
 }
@@ -150,16 +159,71 @@ gtkutil_create_toolbar (void)
 {
    GtkWidget *toolbar;
 
-#ifdef USE_GTK2
-   toolbar = gtk_toolbar_new ();
-#else /* USE_GTK2 */
-   toolbar = gtk_toolbar_new (GTK_ORIENTATION_HORIZONTAL, GTK_TOOLBAR_BOTH);
-   gtk_toolbar_set_button_relief(GTK_TOOLBAR(toolbar), GTK_RELIEF_NONE);
-   gtk_toolbar_set_space_style (GTK_TOOLBAR(toolbar), GTK_TOOLBAR_SPACE_LINE);
-   gtk_toolbar_set_space_size  (GTK_TOOLBAR(toolbar), 16);
-#endif /* USE_GTK2 */
+   /* GTK4: GtkToolbar is gone, a toolbar is a horizontal box of buttons */
+   toolbar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+   gtk_widget_add_css_class (toolbar, "gimv-toolbar");
+   gtk_widget_add_css_class (toolbar, "toolbar");
 
    return toolbar;
+}
+
+
+static void
+toolbar_item_set_style (GtkWidget *widget, gint style)
+{
+   GtkWidget *child;
+
+   if (GTK_IS_IMAGE (widget)) {
+      gtk_widget_set_visible (widget, style != 1);
+      return;
+   }
+   if (GTK_IS_LABEL (widget)) {
+      gtk_widget_set_visible (widget, style != 0);
+      return;
+   }
+   if (GTK_IS_BOX (widget)
+       && !gtk_widget_has_css_class (widget, "gimv-toolbar"))
+   {
+      gtk_orientable_set_orientation (GTK_ORIENTABLE (widget),
+                                      style == 3
+                                      ? GTK_ORIENTATION_HORIZONTAL
+                                      : GTK_ORIENTATION_VERTICAL);
+   }
+   /* don't touch arbitrary widgets (spin buttons, entries, ...) */
+   if (!GTK_IS_BUTTON (widget) && !GTK_IS_BOX (widget))
+      return;
+
+   for (child = gtk_widget_get_first_child (widget);
+        child;
+        child = gtk_widget_get_next_sibling (child))
+   {
+      toolbar_item_set_style (child, style);
+   }
+}
+
+
+/*
+ *  GTK4: replacement of gtk_toolbar_set_style () for toolbars created by
+ *  gtkutil_create_toolbar ().  Toolbar buttons are expected to contain a
+ *  GtkImage and/or a GtkLabel (optionally inside a GtkBox).
+ */
+void
+gtkutil_toolbar_set_style (GtkWidget *toolbar, gint style)
+{
+   GtkWidget *child;
+
+   g_return_if_fail (GTK_IS_WIDGET (toolbar));
+
+   g_object_set_data (G_OBJECT (toolbar), "gimv-toolbar-style",
+                      GINT_TO_POINTER (style));
+
+   for (child = gtk_widget_get_first_child (toolbar);
+        child;
+        child = gtk_widget_get_next_sibling (child))
+   {
+      if (GTK_IS_BUTTON (child) || GTK_IS_TOGGLE_BUTTON (child))
+         toolbar_item_set_style (child, style);
+   }
 }
 
 
@@ -168,31 +232,26 @@ gtkutil_create_spin_button (GtkAdjustment *adj)
 {
    GtkWidget *spinner = gtk_spin_button_new (adj, 0, 0);
    gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner), TRUE);
-#ifndef USE_GTK2
-   gtk_spin_button_set_shadow_type (GTK_SPIN_BUTTON (spinner),
-                                    GTK_SHADOW_NONE);
-#endif /* USE_GTK2 */
 
    return spinner;
 }
 
 
-GtkWidget *
+/*
+ *  GTK4: option menus are GtkDropDowns (see gimv_option_menu_new ()), their
+ *  items aren't widgets any more.  Returns the selected item object of the
+ *  drop down's model (a GtkStringObject for gimv_option_menu_new ()), which
+ *  can carry data set with g_object_set_data ().
+ */
+GObject *
 gtkutil_option_menu_get_current (GtkWidget *option_menu)
 {
-   g_return_val_if_fail (GTK_IS_OPTION_MENU (option_menu), NULL);
+   gpointer item;
 
-#ifdef USE_GTK2
-   {
-      GtkWidget *menu = gtk_option_menu_get_menu (GTK_OPTION_MENU (option_menu));
-      gint nth = gtk_option_menu_get_history (GTK_OPTION_MENU (option_menu));
-      GList *node = g_list_nth (GTK_MENU_SHELL (menu)->children, nth);
-      if (!node) return NULL;
-      return node->data;
-   }
-#else /* USE_GTK2 */
-   return GTK_OPTION_MENU (option_menu)->menu_item;
-#endif /* USE_GTK2 */
+   g_return_val_if_fail (GTK_IS_DROP_DOWN (option_menu), NULL);
+
+   item = gtk_drop_down_get_selected_item (GTK_DROP_DOWN (option_menu));
+   return item ? G_OBJECT (item) : NULL;
 }
 
 
@@ -263,7 +322,7 @@ static void
 cb_confirm_yes (GtkWidget *button, ConfirmType *type)
 {
    *type = CONFIRM_YES;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -271,7 +330,7 @@ static void
 cb_confirm_yes_to_all (GtkWidget *button, ConfirmType *type)
 {
    *type = CONFIRM_YES_TO_ALL;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -279,7 +338,7 @@ static void
 cb_confirm_no (GtkWidget *button, ConfirmType *type)
 {
    *type = CONFIRM_NO;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -287,7 +346,7 @@ static void
 cb_confirm_no_to_all (GtkWidget *button, ConfirmType *type)
 {
    *type = CONFIRM_NO_TO_ALL;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -295,7 +354,7 @@ static void
 cb_confirm_cancel (GtkWidget *button, ConfirmType *type)
 {
    *type = CONFIRM_CANCEL;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -311,83 +370,80 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
    window = gtk_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
+   else
+      gimv_window_set_default_transient (GTK_WINDOW (window));
    gtk_window_set_title (GTK_WINDOW (window), title); 
    gtk_window_set_default_size (GTK_WINDOW (window), 300, 120);
-   /* gtk_container_set_border_width (GTK_CONTAINER (GTK_DIALOG (window)->vbox), 5); */
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-   gtk_signal_connect (GTK_OBJECT (window), "delete_event",
-                       GTK_SIGNAL_FUNC (cb_dummy), NULL);
+   /* gimv_container_set_border_width (GTK_WIDGET (gimv_dialog_get_vbox (GTK_WIDGET (window))), 5); */
+   /* GTK4: window position can't be set */
+   gimv_event_connect (GTK_WIDGET (window), GIMV_EVENT_DELETE, G_CALLBACK (cb_dummy), NULL);
 
    /* message area */
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->vbox), vbox, TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (vbox), 15);
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox, TRUE, TRUE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (vbox), 15);
    gtk_widget_show (vbox);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
    gtk_widget_show (hbox);
 
    /* icon */
    icon = gimv_icon_stock_get_widget ("question");
-   gtk_box_pack_start (GTK_BOX (hbox), icon, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), icon, TRUE, TRUE, 0);
    gtk_widget_show (icon);
 
    /* message */
    label = gtk_label_new (message);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
    gtk_widget_show (label);
 
    /* buttons */
    button = gtk_button_new_with_label (_("Yes"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                        button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_confirm_yes),
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_confirm_yes),
                        &retval);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
    gtk_widget_show (button);
    gtk_widget_grab_focus (button);
 
    if (flags & ConfirmDialogMultipleFlag) {
       button = gtk_button_new_with_label (_("Yes to All"));
-      gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+      gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                           button, TRUE, TRUE, 0);
-      gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                          GTK_SIGNAL_FUNC (cb_confirm_yes_to_all),
+      g_signal_connect (G_OBJECT (button), "clicked",
+                          G_CALLBACK (cb_confirm_yes_to_all),
                           &retval);
-      GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
-      gtk_widget_show (button);
+         gtk_widget_show (button);
    }
 
    button = gtk_button_new_with_label (_("No"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                        button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_confirm_no),
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_confirm_no),
                        &retval);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
    gtk_widget_show (button);
 
    if (flags & ConfirmDialogMultipleFlag) {
       button = gtk_button_new_with_label (_("Cancel"));
-      gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+      gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                           button, TRUE, TRUE, 0);
-      gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                          GTK_SIGNAL_FUNC (cb_confirm_cancel),
+      g_signal_connect (G_OBJECT (button), "clicked",
+                          G_CALLBACK (cb_confirm_cancel),
                           &retval);
-      GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
-      gtk_widget_show (button);
+         gtk_widget_show (button);
    }
 
    gtk_widget_show (window);
 
-   gtk_grab_add (window);
-   gtk_main ();
-   gtk_grab_remove (window);
-   gtk_widget_destroy (window);
+   gimv_grab_add (window);
+   gimv_main ();
+   gimv_grab_remove (window);
+   gimv_widget_destroy (window);
 
    return retval;
 }
@@ -432,21 +488,28 @@ static void
 overwrite_confirm_rename (OverWriteDialog *dialog)
 {
    const gchar *filename_internal
-      = g_basename (gtk_entry_get_text (GTK_ENTRY (dialog->entry)));
+      = gtk_editable_get_text (GTK_EDITABLE (dialog->entry));
    gchar *dirname, *filename;
 
-   if (!filename_internal && *filename_internal) return;
+   if (filename_internal && strrchr (filename_internal, '/'))
+      filename_internal = strrchr (filename_internal, '/') + 1;
+   if (!filename_internal || !*filename_internal) return;
    g_return_if_fail (dialog->new_path && dialog->new_path_len > 0);
 
-   dirname = g_dirname (gimv_image_info_get_path (dialog->info1));
+   dirname = g_path_get_dirname (gimv_image_info_get_path (dialog->info1));
    g_return_if_fail (dirname);
-   if (!*dirname) g_free (dirname);
-   g_return_if_fail (*dirname);
+   if (!*dirname) {
+      g_free (dirname);
+      g_return_if_fail (FALSE);
+   }
 
    filename = charset_internal_to_locale (filename_internal);
    g_return_if_fail (filename);
-   if (!*filename) g_free (filename);
-   g_return_if_fail (*filename);
+   if (!*filename) {
+      g_free (dirname);
+      g_free (filename);
+      g_return_if_fail (FALSE);
+   }
 
    g_snprintf (dialog->new_path, dialog->new_path_len, "%s/%s",
                dirname, filename);
@@ -455,9 +518,9 @@ overwrite_confirm_rename (OverWriteDialog *dialog)
    if (file_exists (dialog->new_path)) {
       gchar error_message[BUF_SIZE];
       g_snprintf (error_message, BUF_SIZE,
-                  _("The file exists : %s"),
+                  _("The file exists: %s"),
                   dialog->new_path);
-      gtkutil_message_dialog (_("Error!!"), error_message,
+      gtkutil_message_dialog (_("Error!"), error_message,
                               GTK_WINDOW (dialog->window));
       g_free (dirname);
       g_free (filename);
@@ -469,7 +532,7 @@ overwrite_confirm_rename (OverWriteDialog *dialog)
 
    dialog->retval = CONFIRM_NO;
 
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -510,196 +573,191 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
    dialog.window = window = gtk_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
+   else
+      gimv_window_set_default_transient (GTK_WINDOW (window));
    gtk_window_set_title (GTK_WINDOW (window), title); 
    gtk_window_set_default_size (GTK_WINDOW (window), 300, 120);
-   /* gtk_container_set_border_width (GTK_CONTAINER (GTK_DIALOG (window)->vbox), 5); */
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-   gtk_signal_connect (GTK_OBJECT (window), "delete_event",
-                       GTK_SIGNAL_FUNC (cb_dummy), NULL);
+   /* gimv_container_set_border_width (GTK_WIDGET (gimv_dialog_get_vbox (GTK_WIDGET (window))), 5); */
+   /* GTK4: window position can't be set */
+   gimv_event_connect (GTK_WIDGET (window), GIMV_EVENT_DELETE, G_CALLBACK (cb_dummy), NULL);
 
    /* message area */
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->vbox), vbox, TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (vbox), 15);
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox, TRUE, TRUE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (vbox), 15);
    gtk_widget_show (vbox);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
    gtk_widget_show (hbox);
 
    /* icon */
    icon = gimv_icon_stock_get_widget ("question");
-   gtk_box_pack_start (GTK_BOX (hbox), icon, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), icon, TRUE, TRUE, 0);
    gtk_widget_show (icon);
 
    /* message */
    label = gtk_label_new (message);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
    gtk_widget_show (label);
 
    /* compare area */
    {
       /* show image buttons */
-      hbox = gtk_hbox_new (TRUE, 0);
-      gtk_box_pack_start (GTK_BOX (vbox),
+      hbox = gimv_hbox_new (TRUE, 0);
+      gimv_box_pack_start (GTK_BOX (vbox),
                           hbox, FALSE, FALSE, 2);
       gtk_widget_show (hbox);
 
       label = gtk_button_new_with_label (_("Show destination"));
-      gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
-      gtk_signal_connect (GTK_OBJECT (label), "clicked",
-                          GTK_SIGNAL_FUNC (cb_show_image1),
+      gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
+      g_signal_connect (G_OBJECT (label), "clicked",
+                          G_CALLBACK (cb_show_image1),
                           &dialog);
       gtk_widget_show (label);
 
       button = gtk_button_new_with_label (_("Show both images"));
       dialog.show_compare_button = button;
-      gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 2);
-      gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                          GTK_SIGNAL_FUNC (cb_show_compare),
+      gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 2);
+      g_signal_connect (G_OBJECT (button), "clicked",
+                          G_CALLBACK (cb_show_compare),
                           &dialog);
       gtk_widget_show (button);
 
       label = gtk_button_new_with_label (_("Show source"));
-      gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
-      gtk_signal_connect (GTK_OBJECT (label), "clicked",
-                          GTK_SIGNAL_FUNC (cb_show_image2),
+      gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
+      g_signal_connect (G_OBJECT (label), "clicked",
+                          G_CALLBACK (cb_show_image2),
                           &dialog);
       gtk_widget_show (label);
 
       /* view */
-      dialog.compare_area = hbox = gtk_hbox_new (TRUE, 0);
-      gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+      dialog.compare_area = hbox = gimv_hbox_new (TRUE, 0);
+      gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
       gtk_widget_show (hbox);
 
       /* destination */
-      vbox2 = gtk_vbox_new (FALSE, 0);
-      gtk_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 2);
+      vbox2 = gimv_vbox_new (FALSE, 0);
+      gimv_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 2);
       gtk_widget_show (vbox2);
 
       dialog.iv1 = gimv_image_view_new (NULL);
-      gtk_object_set (GTK_OBJECT (dialog.iv1),
+      g_object_set (G_OBJECT (dialog.iv1),
                       "default_zoom",     3,
                       "default_rotation", 0,
                       "keep_aspect",     TRUE,
                       NULL);
       gimv_image_view_hide_scrollbar (GIMV_IMAGE_VIEW (dialog.iv1));
-      gtk_widget_set_usize (dialog.iv1, -1, 150);
-      gtk_box_pack_start (GTK_BOX (vbox2), dialog.iv1, TRUE, TRUE, 0);
+      gimv_widget_set_size (dialog.iv1, -1, 150);
+      gimv_box_pack_start (GTK_BOX (vbox2), dialog.iv1, TRUE, TRUE, 0);
       gtk_widget_show (dialog.iv1);
 
       /* gimv_image_view_set_text (dialog.iv1, information) */
 
 
       /* source */
-      vbox2 = gtk_vbox_new (FALSE, 0);
-      gtk_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 2);
+      vbox2 = gimv_vbox_new (FALSE, 0);
+      gimv_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 2);
       gtk_widget_show (vbox2);
 
       dialog.iv2 = gimv_image_view_new (NULL);
-      gtk_object_set (GTK_OBJECT (dialog.iv2),
+      g_object_set (G_OBJECT (dialog.iv2),
                       "default_zoom",     3,
                       "default_rotation", 0,
                       "keep_aspect",     TRUE,
                       NULL);
       gimv_image_view_hide_scrollbar (GIMV_IMAGE_VIEW (dialog.iv2));
-      gtk_widget_set_usize (dialog.iv2, -1, 150);
-      gtk_box_pack_start (GTK_BOX (vbox2), dialog.iv2, TRUE, TRUE, 0);
+      gimv_widget_set_size (dialog.iv2, -1, 150);
+      gimv_box_pack_start (GTK_BOX (vbox2), dialog.iv2, TRUE, TRUE, 0);
       gtk_widget_show (dialog.iv2);
 
       /* gimv_image_view_set_text (dialog.iv2, information) */
    }
 
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area),
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))),
                        vbox, FALSE, FALSE, 0);
    gtk_widget_show (vbox);
 
    /* rename entry */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
    gtk_widget_show (hbox);
 
    dialog.entry = entry = gtk_entry_new ();
-   gtk_box_pack_start (GTK_BOX (hbox), entry, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (entry), "activate",
-                       GTK_SIGNAL_FUNC (cb_confirm_rename_enter), &dialog);
+   gimv_box_pack_start (GTK_BOX (hbox), entry, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (entry), "activate",
+                       G_CALLBACK (cb_confirm_rename_enter), &dialog);
    filename = charset_to_internal (g_basename (src_file),
                                    conf.charset_filename,
                                    conf.charset_auto_detect_fn,
                                    conf.charset_filename_mode);
-   gtk_entry_set_text (GTK_ENTRY (entry), filename);
+   gtk_editable_set_text (GTK_EDITABLE (entry), filename);
    g_free (filename);
    filename = NULL;
    gtk_widget_show (entry);
 
    button = gtk_button_new_with_label (_("Rename"));
-   gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_confirm_rename),
+   gimv_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_confirm_rename),
                        &dialog);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
    gtk_widget_show (button);
 
    /* buttons */
-   hbox = gtk_hbox_new (TRUE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox),
+   hbox = gimv_hbox_new (TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox),
                        hbox, TRUE, TRUE, 0);
    gtk_widget_show (hbox);
 
    button = gtk_button_new_with_label (_("Yes"));
-   gtk_box_pack_start (GTK_BOX (hbox),  button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_confirm_yes),
+   gimv_box_pack_start (GTK_BOX (hbox),  button, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_confirm_yes),
                        &dialog.retval);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
    gtk_widget_show (button);
    gtk_widget_grab_focus (button);
 
    if (flags & ConfirmDialogMultipleFlag) {
       button = gtk_button_new_with_label (_("Yes to All"));
-      gtk_box_pack_start (GTK_BOX (hbox),button, TRUE, TRUE, 0);
-      gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                          GTK_SIGNAL_FUNC (cb_confirm_yes_to_all),
+      gimv_box_pack_start (GTK_BOX (hbox),button, TRUE, TRUE, 0);
+      g_signal_connect (G_OBJECT (button), "clicked",
+                          G_CALLBACK (cb_confirm_yes_to_all),
                           &dialog.retval);
-      GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
-      gtk_widget_show (button);
+         gtk_widget_show (button);
    }
 
    button = gtk_button_new_with_label (_("Skip"));
-   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_confirm_no),
+   gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_confirm_no),
                        &dialog.retval);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
    gtk_widget_show (button);
 
    button = gtk_button_new_with_label (_("Skip all"));
-   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_confirm_no_to_all),
+   gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_confirm_no_to_all),
                        &dialog.retval);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
    gtk_widget_show (button);
 
    if (flags & ConfirmDialogMultipleFlag) {
       button = gtk_button_new_with_label (_("Cancel"));
-      gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-      gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                          GTK_SIGNAL_FUNC (cb_confirm_cancel),
+      gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+      g_signal_connect (G_OBJECT (button), "clicked",
+                          G_CALLBACK (cb_confirm_cancel),
                           &dialog.retval);
-      GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
-      gtk_widget_show (button);
+         gtk_widget_show (button);
    }
 
    gtk_widget_show (window);
 
-   gtk_grab_add (window);
-   gtk_main ();
-   gtk_grab_remove (window);
-   gtk_widget_destroy (window);
+   gimv_grab_add (window);
+   gimv_main ();
+   gimv_grab_remove (window);
+   gimv_widget_destroy (window);
 
    if (dialog.info1) gimv_image_info_unref (dialog.info1);
    if (dialog.info2) gimv_image_info_unref (dialog.info2);
@@ -717,7 +775,7 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
 static void
 cb_message_dialog_quit (GtkWidget *button, gpointer data)
 {
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -731,51 +789,51 @@ gtkutil_message_dialog (const gchar *title, const gchar *message, GtkWindow *par
    window = gtk_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
+   else
+      gimv_window_set_default_transient (GTK_WINDOW (window));
    gtk_window_set_title (GTK_WINDOW (window), title); 
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-   gtk_signal_connect (GTK_OBJECT (window), "delete_event",
-                       GTK_SIGNAL_FUNC (cb_dummy), NULL);
+   /* GTK4: window position can't be set */
+   gimv_event_connect (GTK_WIDGET (window), GIMV_EVENT_DELETE, G_CALLBACK (cb_dummy), NULL);
 
    /* message area */
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->vbox), vbox,
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox,
                        TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (vbox), 15);
+   gimv_container_set_border_width (GTK_WIDGET (vbox), 15);
    gtk_widget_show (vbox);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
    gtk_widget_show (hbox);
 
    /* icon */
    alert_icon = gimv_icon_stock_get_widget ("alert");
-   gtk_box_pack_start (GTK_BOX (hbox), alert_icon, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), alert_icon, TRUE, TRUE, 0);
    gtk_widget_show (alert_icon);
 
    /* message */
    label = gtk_label_new (message);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
    gtk_widget_show (label);
 
    /* button */
    button = gtk_button_new_with_label (_("OK"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                        button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_message_dialog_quit), NULL);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_message_dialog_quit), NULL);
    gtk_widget_show (button);
 
    gtk_widget_grab_focus (button);
 
    gtk_widget_show (window);
 
-   gtk_grab_add (window);
-   gtk_main ();
-   gtk_grab_remove (window);
-   gtk_widget_destroy (window);
+   gimv_grab_add (window);
+   gimv_main ();
+   gimv_grab_remove (window);
+   gimv_widget_destroy (window);
 }
 
 
@@ -802,8 +860,8 @@ gtkutil_progress_window_update (GtkWidget *window,
 
    g_return_if_fail (window);
 
-   label = gtk_object_get_data (GTK_OBJECT (window), "label");
-   progressbar = gtk_object_get_data (GTK_OBJECT (window), "progressbar");
+   label = g_object_get_data (G_OBJECT (window), "label");
+   progressbar = g_object_get_data (G_OBJECT (window), "progressbar");
 
    g_return_if_fail (label && progressbar);
 
@@ -812,10 +870,10 @@ gtkutil_progress_window_update (GtkWidget *window,
    if (message)
       gtk_label_set_text (GTK_LABEL (label), message);
    if (progress_text)
-      gtk_progress_set_format_string(GTK_PROGRESS (progressbar),
-                                     progress_text);
+      gtk_progress_bar_set_text (GTK_PROGRESS_BAR (progressbar),
+                                 progress_text);
    if (progress > 0.0 && progress < 1.0)
-      gtk_progress_bar_update (GTK_PROGRESS_BAR (progressbar), progress);
+      gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (progressbar), progress);
 }
 
 
@@ -838,42 +896,41 @@ gtkutil_create_progress_window (gchar *title, gchar *initial_message,
    window = gtk_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
-   gtk_container_border_width (GTK_CONTAINER (window), 3);
+   else
+      gimv_window_set_default_transient (GTK_WINDOW (window));
+   gimv_container_set_border_width (window, 3);
    gtk_window_set_title (GTK_WINDOW (window), title);
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
+   /* GTK4: window position can't be set */
    gtk_window_set_default_size (GTK_WINDOW (window), width, height);
-   gtk_signal_connect (GTK_OBJECT (window), "delete_event",
-                       GTK_SIGNAL_FUNC (cb_dummy), NULL);
+   gimv_event_connect (GTK_WIDGET (window), GIMV_EVENT_DELETE, G_CALLBACK (cb_dummy), NULL);
 
    /* message area */
-   vbox = gtk_vbox_new (FALSE, 5);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->vbox), vbox,
+   vbox = gimv_vbox_new (FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox,
                        TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (vbox), 5);
+   gimv_container_set_border_width (GTK_WIDGET (vbox), 5);
    gtk_widget_show (vbox);
 
    /* label */
    label = gtk_label_new (initial_message);
-   gtk_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
 
    /* progress bar */
    progressbar = gtk_progress_bar_new();
-   gtk_progress_set_show_text(GTK_PROGRESS(progressbar), TRUE);
-   gtk_box_pack_start (GTK_BOX (vbox), progressbar, FALSE, FALSE, 0);
+   gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar), TRUE);
+   gimv_box_pack_start (GTK_BOX (vbox), progressbar, FALSE, FALSE, 0);
 
    /* cancel button */
    button = gtk_button_new_with_label (_("Cancel"));
-   gtk_container_border_width (GTK_CONTAINER (button), 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), button,
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), button,
                        TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT(button), "clicked",
-                       GTK_SIGNAL_FUNC(cb_progress_win_cancel), cancel_pressed);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK(cb_progress_win_cancel), cancel_pressed);
 
-   gtk_object_set_data (GTK_OBJECT (window), "label", label);
-   gtk_object_set_data (GTK_OBJECT (window), "progressbar", progressbar);
+   g_object_set_data (G_OBJECT (window), "label", label);
+   g_object_set_data (G_OBJECT (window), "progressbar", progressbar);
 
-   gtk_widget_show_all (window);
+   gimv_widget_show_all (window);
 
    return window;
 }
@@ -889,7 +946,7 @@ static void
 cb_textpop_enter (GtkWidget *button, gboolean *ok_pressd)
 {
    *ok_pressd = TRUE;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -897,7 +954,7 @@ static void
 cb_textpop_ok_button (GtkWidget *button, gboolean *ok_pressd)
 {
    *ok_pressd = TRUE;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -905,20 +962,20 @@ static void
 cb_textpop_cancel_button (GtkWidget *button, gboolean *ok_pressd)
 {
    *ok_pressd = FALSE;
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
 static gint
 cb_textpop_key_press (GtkWidget   *widget, 
-                      GdkEventKey *event,
+                      GimvEventKey *event,
                       gboolean *ok_pressd)
 {
    const gchar *path;
    gchar *text;
    gint   n, len;
-   guint comp_key1, comp_key2;
-   GdkModifierType comp_mods1, comp_mods2;
+   guint comp_key1 = 0, comp_key2 = 0;
+   GdkModifierType comp_mods1 = 0, comp_mods2 = 0;
 
    if (akey.common_auto_completion1)
       gtk_accelerator_parse (akey.common_auto_completion1,
@@ -927,11 +984,11 @@ cb_textpop_key_press (GtkWidget   *widget,
       gtk_accelerator_parse (akey.common_auto_completion2,
                              &comp_key2, &comp_mods2);
 
-   if (event->keyval == GDK_Tab
+   if (event->keyval == GDK_KEY_Tab
        || (event->keyval == comp_key1 && (!comp_mods1 || (event->state & comp_mods1)))
        || (event->keyval == comp_key2 && (!comp_mods1 || (event->state & comp_mods2))))
    {
-      path = gtk_entry_get_text (GTK_ENTRY (widget));
+      path = gtk_editable_get_text (GTK_EDITABLE (widget));
       n = auto_compl_get_n_alternatives (path);
 
       if (n < 1) return TRUE;
@@ -940,11 +997,17 @@ cb_textpop_key_press (GtkWidget   *widget,
 
       if (n == 1) {
          auto_compl_hide_alternatives ();
-         gtk_entry_set_text (GTK_ENTRY (widget), text);
-         if (text[strlen(text) - 1] != '/')
-            gtk_entry_append_text (GTK_ENTRY (widget), "/");
+         if (*text && text[strlen(text) - 1] != '/') {
+            gchar *tmp = g_strconcat (text, "/", NULL);
+            gtk_editable_set_text (GTK_EDITABLE (widget), tmp);
+            g_free (tmp);
+         } else {
+            gtk_editable_set_text (GTK_EDITABLE (widget), text);
+         }
+         gtk_editable_set_position (GTK_EDITABLE (widget), -1);
       } else {
-         gtk_entry_set_text (GTK_ENTRY (widget), text);
+         gtk_editable_set_text (GTK_EDITABLE (widget), text);
+         gtk_editable_set_position (GTK_EDITABLE (widget), -1);
          auto_compl_show_alternatives (widget);
       }
 	 
@@ -954,9 +1017,9 @@ cb_textpop_key_press (GtkWidget   *widget,
 
    } else {
       switch (event->keyval) {
-      case GDK_Return:
-      case GDK_KP_Enter:
-         path = gtk_entry_get_text (GTK_ENTRY (widget));
+      case GDK_KEY_Return:
+      case GDK_KEY_KP_Enter:
+         path = gtk_editable_get_text (GTK_EDITABLE (widget));
 
          if (!isdir (path)) return FALSE;
 
@@ -968,14 +1031,14 @@ cb_textpop_key_press (GtkWidget   *widget,
          }
          g_free (text);
          break;
-      case GDK_Right:
-      case GDK_Left:
-      case GDK_Up:
-      case GDK_Down:
+      case GDK_KEY_Right:
+      case GDK_KEY_Left:
+      case GDK_KEY_Up:
+      case GDK_KEY_Down:
          break;
-      case GDK_Escape:
+      case GDK_KEY_Escape:
          *ok_pressd = FALSE;
-         gtk_main_quit ();
+         gimv_main_quit ();
          break;
       default:
          break;
@@ -1003,25 +1066,26 @@ gtkutil_popup_textentry (const gchar   *title,
    window = gtk_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
+   else
+      gimv_window_set_default_transient (GTK_WINDOW (window));
    gtk_window_set_title (GTK_WINDOW (window), title); 
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-   gtk_signal_connect (GTK_OBJECT (window), "delete_event",
-                       GTK_SIGNAL_FUNC (cb_dummy), NULL);
+   /* GTK4: window position can't be set */
+   gimv_event_connect (GTK_WIDGET (window), GIMV_EVENT_DELETE, G_CALLBACK (cb_dummy), NULL);
 
    /* main area */
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->vbox), vbox, TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (vbox), 5);
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox, TRUE, TRUE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (vbox), 5);
    gtk_widget_show (vbox);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
    gtk_widget_show (hbox);
 
    /* label */
    label = gtk_label_new (label_text);
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
    /* entry */
@@ -1030,61 +1094,58 @@ gtkutil_popup_textentry (const gchar   *title,
    else
       box = hbox;
 
-   combo = gtk_combo_new();
-   entry = GTK_COMBO (combo)->entry;
+   if (text_list) {
+      combo = gimv_combo_new();
+      entry = gimv_combo_get_entry (GTK_WIDGET (combo));
+      gimv_combo_set_popdown_strings (GTK_WIDGET (combo), text_list);
+   } else {
+      /* GTK4: a combo box without its button is just an entry */
+      combo = entry = gtk_entry_new ();
+   }
 
-   if (text_list)
-      gtk_combo_set_popdown_strings (GTK_COMBO (combo), text_list);
-   else
-      gtk_widget_hide (GTK_COMBO (combo)->button);
-
-   gtk_box_pack_start (GTK_BOX (box), combo, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (entry), "activate",
-                       GTK_SIGNAL_FUNC (cb_textpop_enter), &ok_pressed);
+   gimv_box_pack_start (GTK_BOX (box), combo, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (entry), "activate",
+                       G_CALLBACK (cb_textpop_enter), &ok_pressed);
    if (entry_text)
-      gtk_entry_set_text (GTK_ENTRY (entry), entry_text);
+      gtk_editable_set_text (GTK_EDITABLE (entry), entry_text);
    if (flags & TEXT_ENTRY_CURSOR_TOP)
-      gtk_entry_set_position (GTK_ENTRY (entry), 0);
+      gtk_editable_set_position (GTK_EDITABLE (entry), 0);
    if (entry_width > 0)
-      gtk_widget_set_usize (combo, entry_width, -1);
+      gimv_widget_set_size (combo, entry_width, -1);
    if (flags & TEXT_ENTRY_AUTOCOMP_PATH)
-      gtk_signal_connect_after (GTK_OBJECT(entry), "key-press-event",
-                                GTK_SIGNAL_FUNC(cb_textpop_key_press),
-                                &ok_pressed);
+      gimv_event_connect_after (GTK_WIDGET (entry), GIMV_EVENT_KEY_PRESS, G_CALLBACK(cb_textpop_key_press), &ok_pressed);
    gtk_widget_show (combo);
 
    if (flags & TEXT_ENTRY_NO_EDITABLE)
-      gtk_entry_set_editable (GTK_ENTRY (entry), FALSE);
+      gtk_editable_set_editable (GTK_EDITABLE (entry), FALSE);
 
    gtk_widget_grab_focus (entry);
 
    /* button */
    button = gtk_button_new_with_label (_("OK"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                        button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT(button), "clicked",
-                       GTK_SIGNAL_FUNC(cb_textpop_ok_button), &ok_pressed);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK(cb_textpop_ok_button), &ok_pressed);
    gtk_widget_show (button);
 
    button = gtk_button_new_with_label (_("Cancel"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                        button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT(button), "clicked",
-                       GTK_SIGNAL_FUNC(cb_textpop_cancel_button), &ok_pressed);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK(cb_textpop_cancel_button), &ok_pressed);
    gtk_widget_show (button);
 
    gtk_widget_show (window);
 
-   gtk_grab_add (window);
-   gtk_main ();
-   gtk_grab_remove (window);
+   gimv_grab_add (window);
+   gimv_main ();
+   gimv_grab_remove (window);
 
    if (ok_pressed)
-      str = g_strdup (gtk_entry_get_text (GTK_ENTRY (entry)));
+      str = g_strdup (gtk_editable_get_text (GTK_EDITABLE (entry)));
 
-   gtk_widget_destroy (window);
+   gimv_widget_destroy (window);
 
    return str;
 }
@@ -1095,72 +1156,79 @@ gtkutil_popup_textentry (const gchar   *title,
  *   modal file dialog
  *
  ******************************************************************************/
-static void
-cb_filesel_ok (GtkWidget *button, gboolean *retval)
-{
-   *retval = TRUE;
-   gtk_main_quit ();
-}
-
-
-static void
-cb_filesel_cancel (GtkWidget *button, gboolean *retval)
-{
-   *retval = FALSE;
-   gtk_main_quit ();
-}
-
-
 gchar *
 gtkutil_modal_file_dialog (const gchar   *title,
                            const gchar   *default_path,
                            ModalFileDialogFlags flags,
                            GtkWindow *parent)
 {
-   GtkWidget *filesel = gtk_file_selection_new (title);
-   GtkWidget *button;
+   GtkWidget *filesel;
+   GtkFileChooserAction action;
    gchar *filename = NULL;
-   gboolean retval = FALSE;
+   gint response;
 
-   if (parent)
-      gtk_window_set_transient_for (GTK_WINDOW (filesel), parent);
-
-   gtk_window_set_position (GTK_WINDOW (filesel), GTK_WIN_POS_CENTER);
-   gtk_signal_connect (GTK_OBJECT (filesel), "delete_event",
-                       GTK_SIGNAL_FUNC (cb_dummy), NULL);
-
-   button = GTK_FILE_SELECTION (filesel)->ok_button;
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_filesel_ok),
-                       &retval);
-   button = GTK_FILE_SELECTION (filesel)->cancel_button;
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_filesel_cancel),
-                       &retval);
-
-   if (default_path && *default_path)
-      gtk_file_selection_set_filename (GTK_FILE_SELECTION (filesel),
-                                       default_path);
-
+   /* GTK4: GtkFileSelection -> GtkFileChooserDialog.
+      MODAL_FILE_DIALOG_HIDE_FILEOP has no meaning any more. */
    if (flags & MODAL_FILE_DIALOG_DIR_ONLY)
-      gtk_widget_hide (GTK_FILE_SELECTION (filesel)->file_list->parent);
+      action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
+   else
+      action = GTK_FILE_CHOOSER_ACTION_SAVE;  /* allow any (new) file name */
 
-   if (flags & MODAL_FILE_DIALOG_HIDE_FILEOP)
-      gtk_file_selection_hide_fileop_buttons (GTK_FILE_SELECTION (filesel));
+   filesel = gtk_file_chooser_dialog_new (title, parent, action,
+                                          _("_Cancel"), GTK_RESPONSE_CANCEL,
+                                          _("_OK"),     GTK_RESPONSE_ACCEPT,
+                                          NULL);
+   gtk_dialog_set_default_response (GTK_DIALOG (filesel), GTK_RESPONSE_ACCEPT);
+   if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
+      gtk_file_chooser_set_create_folders (GTK_FILE_CHOOSER (filesel), TRUE);
 
-   gtk_widget_show (filesel);
+   if (default_path && *default_path) {
+      GFile *file = g_file_new_for_path (default_path);
 
-   gtk_grab_add (filesel);
-   gtk_main ();
+      if (g_file_test (default_path, G_FILE_TEST_IS_DIR)) {
+         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
+                                              file, NULL);
+      } else if (action == GTK_FILE_CHOOSER_ACTION_SAVE) {
+         GFile *parent_dir = g_file_get_parent (file);
+         gchar *basename = g_file_get_basename (file);
 
-   if (retval) {
-      const gchar *tmpstr;
-      tmpstr = gtk_file_selection_get_filename (GTK_FILE_SELECTION (filesel));
-      filename = g_strdup (tmpstr);
+         if (parent_dir && g_file_query_exists (parent_dir, NULL))
+            gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
+                                                 parent_dir, NULL);
+         if (basename && g_file_test (default_path, G_FILE_TEST_EXISTS)) {
+            gtk_file_chooser_set_file (GTK_FILE_CHOOSER (filesel), file, NULL);
+         } else if (basename) {
+            gchar *name = g_filename_to_utf8 (basename, -1, NULL, NULL, NULL);
+            if (name)
+               gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filesel),
+                                                  name);
+            g_free (name);
+         }
+         if (parent_dir) g_object_unref (parent_dir);
+         g_free (basename);
+      } else {
+         GFile *parent_dir = g_file_get_parent (file);
+         if (parent_dir && g_file_query_exists (parent_dir, NULL))
+            gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
+                                                 parent_dir, NULL);
+         if (parent_dir) g_object_unref (parent_dir);
+      }
+
+      g_object_unref (file);
    }
 
-   gtk_grab_remove (filesel);
-   gtk_widget_destroy (filesel);
+   response = gimv_dialog_run (GTK_DIALOG (filesel));
+
+   if (response == GTK_RESPONSE_ACCEPT) {
+      GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (filesel));
+      if (file) {
+         filename = g_file_get_path (file);
+         g_object_unref (file);
+      }
+   }
+
+   if (GTK_IS_WINDOW (filesel))
+      gimv_widget_destroy (filesel);
 
    return filename;
 }
@@ -1173,62 +1241,33 @@ gtkutil_modal_file_dialog (const gchar   *title,
  *
  ******************************************************************************/
 static void
-cb_colorsel_ok (GtkWidget *button, gboolean *retval)
-{
-   *retval = TRUE;
-   gtk_main_quit ();
-}
-
-
-static void
-cb_colorsel_cancel (GtkWidget *button, gboolean *retval)
-{
-   *retval = FALSE;
-   gtk_main_quit ();
-}
-
-
-static void
 cb_choose_color (GtkWidget *widget, gint color[3])
 {
-   GtkWidget *dialog, *button, *csel;
-   gboolean retval = FALSE;
-   gdouble selcol[4];
+   GtkWidget *dialog;
+   GdkRGBA rgba;
+   gint response;
 
    g_return_if_fail (color);
 
-   dialog = gtk_color_selection_dialog_new (_("Choose Color"));
-   selcol[0] = (gdouble) color[0] / 0xffff;
-   selcol[1] = (gdouble) color[1] / 0xffff;
-   selcol[2] = (gdouble) color[2] / 0xffff;
-   selcol[3] = 0.0;
-   csel = GTK_COLOR_SELECTION_DIALOG (dialog)->colorsel;     
-   gtk_color_selection_set_color (GTK_COLOR_SELECTION (csel), selcol);
-   gtk_signal_connect (GTK_OBJECT (dialog), "delete_event",
-                       GTK_SIGNAL_FUNC (cb_dummy), NULL);
+   /* GTK4: GtkColorSelectionDialog -> GtkColorChooserDialog */
+   dialog = gtk_color_chooser_dialog_new (_("Choose Color"),
+                                          GTK_WINDOW (gimv_widget_get_toplevel (widget)));
+   gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (dialog), FALSE);
+   rgba.red   = (gdouble) color[0] / 0xffff;
+   rgba.green = (gdouble) color[1] / 0xffff;
+   rgba.blue  = (gdouble) color[2] / 0xffff;
+   rgba.alpha = 1.0;
+   gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (dialog), &rgba);
 
-   button = GTK_COLOR_SELECTION_DIALOG (dialog)->ok_button;
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_colorsel_ok),
-                       &retval);
-   button = GTK_COLOR_SELECTION_DIALOG (dialog)->cancel_button;
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_colorsel_cancel),
-                       &retval);
-   button = GTK_COLOR_SELECTION_DIALOG (dialog)->help_button;
-   gtk_widget_hide (button);
-   gtk_widget_show (dialog);
-
-   gtk_grab_add (dialog);
-   gtk_main ();
-   if (retval) {
-      gtk_color_selection_get_color (GTK_COLOR_SELECTION (csel), selcol);
-      color[0] = selcol[0] * 0xffff;
-      color[1] = selcol[1] * 0xffff;
-      color[2] = selcol[2] * 0xffff;
+   response = gimv_dialog_run (GTK_DIALOG (dialog));
+   if (response == GTK_RESPONSE_OK) {
+      gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (dialog), &rgba);
+      color[0] = rgba.red   * 0xffff;
+      color[1] = rgba.green * 0xffff;
+      color[2] = rgba.blue  * 0xffff;
    }
-   gtk_grab_remove (dialog);
-   gtk_widget_destroy (dialog);
+   if (GTK_IS_WINDOW (dialog))
+      gimv_widget_destroy (dialog);
 }
 
 
@@ -1238,8 +1277,8 @@ gtkutil_color_sel_button (const gchar *label, gint color[3])
    GtkWidget *button;
 
    button = gtk_button_new_with_label (label);
-   gtk_signal_connect (GTK_OBJECT (button),"clicked",
-                       GTK_SIGNAL_FUNC (cb_choose_color),
+   g_signal_connect (G_OBJECT (button),"clicked",
+                       G_CALLBACK (cb_choose_color),
                        color);
 
    return button;
@@ -1267,7 +1306,7 @@ gtkutil_comp_casespel (gconstpointer data1, gconstpointer data2)
    const gchar *str1 = data1;
    const gchar *str2 = data2;
 
-   return g_strcasecmp (str1, str2);
+   return g_ascii_strcasecmp (str1, str2);
 }
 
 
@@ -1281,7 +1320,7 @@ gtkutil_get_data_from_toggle_cb (GtkWidget *toggle, gboolean *data)
 {
    g_return_if_fail (data);
 
-   *data = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(toggle));
+   *data = gimv_toggle_get_active (GTK_WIDGET (toggle));
 }
 
 
@@ -1290,7 +1329,7 @@ gtkutil_get_data_from_toggle_negative_cb (GtkWidget *toggle, gboolean *data)
 {
    g_return_if_fail (data);
 
-   *data = !(gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(toggle)));
+   *data = !(gimv_toggle_get_active (GTK_WIDGET (toggle)));
 }
 
 
@@ -1299,7 +1338,7 @@ gtkutil_get_data_from_adjustment_by_int_cb (GtkWidget *widget, gint *data)
 {
    g_return_if_fail (data);
 
-   *data = GTK_ADJUSTMENT(widget)->value;
+   *data = gtk_adjustment_get_value (GTK_ADJUSTMENT (widget));
 }
 
 
@@ -1308,5 +1347,5 @@ gtkutil_get_data_from_adjustment_by_float_cb (GtkWidget *widget, gfloat *data)
 {
    g_return_if_fail (data);
 
-   *data = GTK_ADJUSTMENT(widget)->value;
+   *data = gtk_adjustment_get_value (GTK_ADJUSTMENT (widget));
 }

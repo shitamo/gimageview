@@ -33,11 +33,7 @@
 #include "gimv_prefs_ui_utils.h"
 
 #define CONF_VO_DRIVER_KEY        "vo_driver"
-#ifdef GDK_WINDOWING_FB
-#  define CONF_VO_DRIVER          "fbdev"
-#else /* GDK_WINDOWING_FB */
 #  define CONF_VO_DRIVER          "default"
-#endif /* GDK_WINDOWING_FB */
 #define CONF_AO_DRIVER_KEY        "ao_driver"
 #define CONF_AO_DRIVER            "default"
 #define CONF_THUMBNAIL_ENABLE_KEY "thumbnail_enable"
@@ -197,7 +193,7 @@ gimv_prefs_mplayer_get_driver (const gchar *type)
 static void
 cb_vo_combo_changed (GtkEditable *editable, gpointer data)
 {
-   const gchar *text = gtk_entry_get_text (GTK_ENTRY (editable));
+   const gchar *text = gtk_editable_get_text (GTK_EDITABLE (editable));
 
    g_free (mconf.vo_driver);
    mconf.vo_driver = NULL;
@@ -210,7 +206,7 @@ cb_vo_combo_changed (GtkEditable *editable, gpointer data)
 static void
 cb_ao_combo_changed (GtkEditable *editable, gpointer data)
 {
-   const gchar *text = gtk_entry_get_text (GTK_ENTRY (editable));
+   const gchar *text = gtk_editable_get_text (GTK_EDITABLE (editable));
 
    g_free (mconf.ao_driver);
    mconf.ao_driver = NULL;
@@ -228,7 +224,7 @@ prefs_mplayer_page (void)
    GtkAdjustment *adj;
    const GList *list;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
+   main_vbox = gimv_vbox_new (FALSE, 0);
 
    mconf.vo_driver     = (gchar *) gimv_prefs_mplayer_get_driver("vo");
    mconf.vo_driver     = mconf.vo_driver ? g_strdup(mconf.vo_driver)
@@ -252,49 +248,45 @@ prefs_mplayer_page (void)
     **********************************************/
    gimv_prefs_ui_create_frame(_("Driver"), frame, vbox, main_vbox, FALSE);
 
-   alignment = gtk_alignment_new (0.0, 0.5, 0.0, 0.0);
-   gtk_box_pack_start (GTK_BOX (vbox), alignment, FALSE, FALSE, 0);
+   alignment = gimv_alignment_new (0.0, 0.5, 0.0, 0.0);
+   gimv_box_pack_start (GTK_BOX (vbox), alignment, FALSE, FALSE, 0);
    gtk_widget_show (alignment);
 
-   table = gtk_table_new (2, 2, FALSE);
-   gtk_container_add (GTK_CONTAINER (alignment), table);
+   table = gimv_table_new (2, 2, FALSE);
+   gimv_container_add (GTK_WIDGET (alignment), table);
    gtk_widget_show (table);
 
    /* video driver combo */
-   label = gtk_label_new (_("Video driver : "));
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 0, 1,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   label = gtk_label_new (_("Video driver: "));
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), label);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 0, 1, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (label);
 
-   vo_combo = gtk_combo_new ();
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), vo_combo);
-   gtk_table_attach (GTK_TABLE (table), alignment, 1, 2, 0, 1,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   vo_combo = gimv_combo_new ();
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), vo_combo);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 1, 2, 0, 1, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (vo_combo);
-   gtk_widget_set_usize (vo_combo, 100, -1);
+   gimv_widget_set_size (vo_combo, 100, -1);
 
    /* audio driver combo */
-   label = gtk_label_new (_("Audio driver : "));
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 1, 2,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   label = gtk_label_new (_("Audio driver: "));
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), label);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (label);
 
-   ao_combo = gtk_combo_new ();
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), ao_combo);
-   gtk_table_attach (GTK_TABLE (table), alignment, 1, 2, 1, 2,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   ao_combo = gimv_combo_new ();
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), ao_combo);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 1, 2, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (ao_combo);
-   gtk_widget_set_usize (ao_combo, 100, -1);
+   gimv_widget_set_size (ao_combo, 100, -1);
 
 
    /**********************************************
@@ -307,58 +299,53 @@ prefs_mplayer_page (void)
                                          mconf.thumb,
                                          gtkutil_get_data_from_toggle_cb,
                                          &mconf.thumb);
-   gtk_container_set_border_width (GTK_CONTAINER(toggle), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (toggle), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
    gtk_widget_show (toggle);
 
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 5);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_show (hbox);
-   label = gtk_label_new (_("Stream position : "));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   label = gtk_label_new (_("Stream position: "));
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
    adj = (GtkAdjustment *) gtk_adjustment_new (mconf.thumb_pos,
                                                0.0, 100.0, 0.01, 0.1, 0.0);
    spinner = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 70, -1);
+   gimv_widget_set_size(spinner, 70, -1);
    gtk_spin_button_set_digits (GTK_SPIN_BUTTON (spinner), 2);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_float_cb),
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_float_cb),
                        &mconf.thumb_pos);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
    gtk_widget_show (spinner);
 
    label = gtk_label_new (_("[%]"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
 
 
    /* for detecting drivers */
    mplayer = gimv_mplayer_new ();
-#ifdef USE_GTK2
-   g_object_ref (G_OBJECT (mplayer));
-   gtk_object_sink (GTK_OBJECT (mplayer));
-#endif /* USE_GTK2 */
+   g_object_ref_sink (G_OBJECT (mplayer));
 
    /* set drivers list */
    list = gimv_mplayer_get_video_out_drivers (GIMV_MPLAYER (mplayer), FALSE);
-   gtk_combo_set_popdown_strings (GTK_COMBO (vo_combo), (GList *) list);
+   gimv_combo_set_popdown_strings (GTK_WIDGET (vo_combo), (GList *) list);
    list = gimv_mplayer_get_audio_out_drivers (GIMV_MPLAYER (mplayer), FALSE);
-   gtk_combo_set_popdown_strings (GTK_COMBO (ao_combo), (GList *) list);
+   gimv_combo_set_popdown_strings (GTK_WIDGET (ao_combo), (GList *) list);
 
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO(vo_combo)->entry),
-                       mconf.vo_driver);
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO(ao_combo)->entry),
-                       mconf.ao_driver);
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (vo_combo))), mconf.vo_driver);
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (ao_combo))), mconf.ao_driver);
 
-   gtk_signal_connect (GTK_OBJECT (GTK_COMBO(vo_combo)->entry), "changed",
-                       GTK_SIGNAL_FUNC (cb_vo_combo_changed), NULL);
-   gtk_signal_connect (GTK_OBJECT (GTK_COMBO(ao_combo)->entry), "changed",
-                       GTK_SIGNAL_FUNC (cb_ao_combo_changed), NULL);
+   g_signal_connect (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (vo_combo))), "changed",
+                       G_CALLBACK (cb_vo_combo_changed), NULL);
+   g_signal_connect (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (ao_combo))), "changed",
+                       G_CALLBACK (cb_ao_combo_changed), NULL);
 
-   gtk_widget_unref (mplayer);
+   g_object_unref (mplayer);
 
    return main_vbox;
 }

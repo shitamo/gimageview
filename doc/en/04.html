@@ -1,0 +1,313 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>4. Toolbar</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="03.html" title="3. Menu Bar">
+<link rel="next" href="05.html" title="5. Mouse Menus">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">4. Toolbar</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="03.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="05.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="04"></a>4. Toolbar</h2></div></div>
+<p class="para">
+This section describes the buttons of the toolbars.  The numbers in the toolbar pictures match the numbers of the items.  For buttons that have the same function in the menu bar, see also the menu items (<a href="03.html" title="3. Menu Bar">section 3</a>).
+</p>
+<p class="para">
+The item names follow the tooltips shown when the pointer is on a button.
+</p>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-01"></a>4.1. Thumbnail Window</h3></div></div>
+<div class="figure"><img src="images/toolbar_thumbwin.png" width="600" height="72" alt="The toolbar of the thumbnail window">
+<p class="caption">The toolbar of the thumbnail window (default settings; the numbers match the items below)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="toolbar_open"></a><span class="toolnum">1</span> Open File</span></dt>
+<dd>
+<p class="para">
+The same as <a href="03.html#load_file" title="">[File | Open...]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="toolbar_prefs"></a><span class="toolnum">2</span> Preferences</span></dt>
+<dd>
+<p class="para">
+The same as <a href="03.html#options" title="">[Edit | Options...]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="toolbar_prev_page"></a><span class="toolnum">3</span> Go to previous page</span></dt>
+<dd>
+<p class="para">
+Makes the previous tab (one to the left) active.  The same as <a href="03.html#previous_page" title="">[Tab | Previous Page]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="toolbar_next_page"></a><span class="toolnum">4</span> Go to next page</span></dt>
+<dd>
+<p class="para">
+Makes the next tab (one to the right) active.  The same as <a href="03.html#next_page" title="">[Tab | Next Page]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="toolbar_reload"></a><span class="toolnum">5</span> Reload Cache</span></dt>
+<dd>
+<p class="para">
+The same as <a href="03.html#reload_cache" title="">[Edit | Reload Cache]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="toolbar_skip"></a><span class="toolnum">6</span> Skip creating the current thumbnail table</span></dt>
+<dd>
+<p class="para">
+While "<a href="05.html#mouse_directory_load_thumbnail_recursively" title="">Load Thumbnails Recursively</a>" of the directory view mouse menu runs, skips loading the thumbnails of the current directory.
+</p>
+<p class="para">
+A skipped tab (directory) shows only the file names.  It cannot be used while no thumbnails are being created.
+</p>
+</dd>
+<dt><span class="term"><a name="stop"></a><span class="toolnum">7</span> Stop creating thumbnails</span></dt>
+<dd>
+<p class="para">
+Stops "Load Thumbnails Recursively" of the directory view mouse menu completely.  It cannot be used while no thumbnails are being created.
+</p>
+</dd>
+<dt><span class="term"><a name="thumbnail_size"></a><span class="toolnum">8</span> Thumbnail Size</span></dt>
+<dd>
+<p class="para">
+Changes the thumbnail size.
+</p>
+<p class="para">
+Enter a value here and press Enter, then use "Reload Cache" or "Update All Thumbnails"; the thumbnails are then made in the new size.
+</p>
+<p class="para">
+To apply it with a shortcut key instead of the menu, press ESC to move the focus out of the size field first; otherwise the key is typed into the field.
+</p>
+<p class="para">
+The change applies only to the tab that was active.
+</p>
+<p class="para">
+For how the cache is reloaded, see "<a href="gimv_tips.html#gimv_tips_07" title="">The difference between Refresh List, Reload Cache and Update All Thumbnails</a>" in the Tips.
+</p>
+</dd>
+<dt><span class="term"><a name="location_entry"></a><span class="toolnum">9</span> Directory field</span></dt>
+<dd>
+<p class="para">
+Shows the path of the active tab.
+</p>
+<p class="para">
+When a directory that has no tab yet is entered here, a new tab is opened only if the directory contains images.  Tab completion can be used here.
+</p>
+</dd>
+<dt><span class="term"><a name="display_mode"></a><span class="toolnum">10</span> Display mode of the thumbnail view</span></dt>
+<dd>
+<p class="para">
+Changes the display mode of the active tab.  The setting applies only to the active tab.  These six can be chosen.  The pictures below show the thumbnail view of an enlarged window.
+</p>
+<p class="para">
+<b>Album</b>: the thumbnails are arranged in rows with the file name below each one.
+</p>
+<div class="figure"><img src="images/mode_album.png" width="598" height="418" alt="Album">
+<p class="caption">Album</p></div>
+
+<p class="para">
+<b>Album2</b>: small thumbnails with the file names, arranged from top to bottom.
+</p>
+<div class="figure"><img src="images/mode_album2.png" width="598" height="418" alt="Album2">
+<p class="caption">Album2</p></div>
+
+<p class="para">
+<b>Album3</b>: the file name, size and modification time beside each thumbnail, arranged from top to bottom and continued in the next column.
+</p>
+<div class="figure"><img src="images/mode_album3.png" width="598" height="418" alt="Album3">
+<p class="caption">Album3</p></div>
+
+<p class="para">
+<b>Detail</b>: a table of the file name, image size, size, type and so on.  The columns are chosen in [Preferences | Thumbnail Window | Thumbnail View | Detail View] (<a href="06.html#06-03-02-3" title="6.3.2.3. Detail View">section 6.3.2.3</a>).
+</p>
+<div class="figure"><img src="images/mode_detail.png" width="598" height="418" alt="Detail">
+<p class="caption">Detail</p></div>
+
+<p class="para">
+<b>Detail + Icon</b>: "Detail" with a small thumbnail at the start of each row.
+</p>
+<div class="figure"><img src="images/mode_detail_icon.png" width="598" height="418" alt="Detail + Icon">
+<p class="caption">Detail + Icon</p></div>
+
+<p class="para">
+<b>Detail + Thumbnail</b>: "Detail" with a thumbnail at the start of each row.
+</p>
+<div class="figure"><img src="images/mode_detail_thumb.png" width="598" height="418" alt="Detail + Thumbnail">
+<p class="caption">Detail + Thumbnail</p></div>
+
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-02"></a>4.2. Directory View</h3></div></div>
+<div class="figure"><img src="images/toolbar_dirview.png" width="200" height="61" alt="The toolbar of the directory view">
+<p class="caption">The toolbar of the directory view (the numbers match the items below)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="home"></a><span class="toolnum">1</span> Home</span></dt>
+<dd>
+<p class="para">
+Moves the cursor of the directory view to the home directory of the user and closes all trees.  The thumbnail view is not affected.
+</p>
+</dd>
+<dt><span class="term"><a name="directory_up"></a><span class="toolnum">2</span> Up</span></dt>
+<dd>
+<p class="para">
+Moves the top directory one level up.
+</p>
+<p class="para">
+This is useful after <a href="05.html#mouse_directory_go_to_here" title="">Go Here</a> of the mouse menu.
+</p>
+</dd>
+<dt><span class="term"><a name="directory_toolbar_reload"></a><span class="toolnum">3</span> Refresh</span></dt>
+<dd>
+<p class="para">
+Refreshes the directory view.
+</p>
+<p class="para">
+Used mainly to show directories created or deleted from the command line.
+</p>
+</dd>
+<dt><span class="term"><a name="directory_toolbar_show_dot_files"></a><span class="toolnum">4</span> Show/Hide dotfiles</span></dt>
+<dd>
+<p class="para">
+Shows or hides the dot directories in the directory view.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-03"></a>4.3. Image Window</h3></div></div>
+<div class="figure"><img src="images/toolbar_imagewin.png" width="716" height="68" alt="The toolbar of the image window">
+<p class="caption">The toolbar of the image window (default settings; the numbers match the items below)</p></div>
+<p class="para">
+Zooming (enlarging and reducing) and fitting the image window and image view are affected by <a href="06.html#Auto_resize_to_image_size" title="">Auto resize to image size</a> in [Preferences | Image Window]: depending on it, the image window is resized automatically or not.
+</p>
+<p class="para">
+When <a href="06.html#Keep_aspect_rario" title="">Keep aspect ratio</a> is set, the aspect ratio of the image view is kept when it is enlarged or reduced.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="imagewin_toolbar_open"></a><span class="toolnum">1</span> Open File</span></dt>
+<dd>
+<p class="para">
+The same as <a href="03.html#load_file" title="">[File | Open...]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="imagewin_toolbar_prefs"></a><span class="toolnum">2</span> Preferences</span></dt>
+<dd>
+<p class="para">
+The same as <a href="03.html#options" title="">[Edit | Options...]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="imagewin_toolbar_prev"></a><span class="toolnum">3</span> Previous Image</span></dt>
+<dd>
+<p class="para">
+The same as <a href="03.html#go_previous" title="">[Go | Previous]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="imagewin_toolbar_next"></a><span class="toolnum">4</span> Next Image</span></dt>
+<dd>
+<p class="para">
+The same as <a href="03.html#go_next" title="">[Go | Next]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="no_zoom"></a><span class="toolnum">5</span> No Zoom</span></dt>
+<dd>
+<p class="para">
+Shows the image view in the original size of the image (100%).
+</p>
+</dd>
+<dt><span class="term"><a name="zoom_in"></a><span class="toolnum">6</span> Zoom in</span></dt>
+<dd>
+<p class="para">
+Increases the scale of the image view by 5%.
+</p>
+</dd>
+<dt><span class="term"><a name="zoom_out"></a><span class="toolnum">7</span> Zoom out</span></dt>
+<dd>
+<p class="para">
+Decreases the scale of the image view by 5%.
+</p>
+</dd>
+<dt><span class="term"><a name="fit"></a><span class="toolnum">8</span> Zoom to fit</span></dt>
+<dd>
+<p class="para">
+Enlarges or reduces the image view to the size of the image window.
+</p>
+</dd>
+<dt><span class="term"><a name="x_scale"></a><span class="toolnum">9</span> X Scale / Y Scale</span></dt>
+<dd>
+<p class="para">
+Sets the scale (%) of the image view.
+</p>
+<p class="para">
+When the aspect ratio is kept, only the X scale is shown.  Otherwise the Y scale is shown to its right, and the X and Y scales can be set separately.
+</p>
+</dd>
+<dt><span class="term"><a name="zoom"></a><span class="toolnum">10</span> Zoom</span></dt>
+<dd>
+<p class="para">
+Zooms (enlarges or reduces) the image view to the values entered in the scale fields.
+</p>
+</dd>
+<dt><span class="term"><a name="rotate_image"></a><span class="toolnum">11</span> Rotate the image</span></dt>
+<dd>
+<p class="para">
+Chooses the orientation of the image: 0, 90 degrees clockwise, 180 or 90 degrees counterclockwise.
+</p>
+</dd>
+<dt><span class="term"><a name="fit_window_to_image"></a><span class="toolnum">12</span> Fit Window Size to Image</span></dt>
+<dd>
+<p class="para">
+Resizes the image window to the size of the image view.  The same as <a href="03.html#Fit_to_Image" title="">[View | Fit to Image]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="full_screen_toolbar"></a><span class="toolnum">13</span> Fullscreen</span></dt>
+<dd>
+<p class="para">
+Shows the image fullscreen.
+</p>
+<p class="para">
+Pressing the button again returns to the window.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="03.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="05.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">3. Menu Bar&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;5. Mouse Menus</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

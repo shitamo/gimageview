@@ -51,7 +51,7 @@ struct GimvCommentView_Tag
    GtkWidget *reset_button;
    GtkWidget *delete_button;
 
-   GtkAccelGroup *accel_group;
+   gpointer   accel_group;  /* GTK4: always NULL (mnemonics are used) */
 
    gboolean changed;
 

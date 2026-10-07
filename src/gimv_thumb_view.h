@@ -35,10 +35,10 @@
 
 
 #define GIMV_TYPE_THUMB_VIEW            (gimv_thumb_view_get_type ())
-#define GIMV_THUMB_VIEW(obj)            (GTK_CHECK_CAST (obj, gimv_thumb_view_get_type (), GimvThumbView))
-#define GIMV_THUMB_VIEW_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_thumb_view_get_type, GimvThumbViewClass))
-#define GIMV_IS_THUMB_VIEW(obj)         (GTK_CHECK_TYPE (obj, gimv_thumb_view_get_type ()))
-#define GIMV_IS_THUMB_VIEW_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_THUMB_VIEW))
+#define GIMV_THUMB_VIEW(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_thumb_view_get_type (), GimvThumbView))
+#define GIMV_THUMB_VIEW_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_thumb_view_get_type (), GimvThumbViewClass))
+#define GIMV_IS_THUMB_VIEW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_thumb_view_get_type ()))
+#define GIMV_IS_THUMB_VIEW_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_THUMB_VIEW))
 
 
 #define GIMV_THUMB_VIEW_DEFAULT_SUMMARY_MODE "Album"
@@ -79,7 +79,7 @@ typedef enum
 
 struct GimvThumbView_Tag
 {
-   GtkObject            parent;
+   GimvObject            parent;
 
    GList               *thumblist;
 
@@ -115,7 +115,7 @@ struct GimvThumbView_Tag
 
 struct GimvThumbViewClass_Tag
 {
-   GtkObjectClass parent_class;
+   GimvObjectClass parent_class;
 };
 
 
@@ -163,7 +163,7 @@ gchar        **gimv_thumb_view_get_summary_mode_labels
 GList         *gimv_thumb_view_get_summary_mode_list
                                                   (void);
 
-GtkType        gimv_thumb_view_get_type           (void);
+GType        gimv_thumb_view_get_type           (void);
 GimvThumbView *gimv_thumb_view_new                (void);
 gboolean       gimv_thumb_view_set_widget         (GimvThumbView    *tv,
                                                    GimvThumbWin     *tw,
@@ -185,6 +185,9 @@ gboolean       gimv_thumb_view_append_thumbnail   (GimvThumbView    *tv,
 void           gimv_thumb_view_change_summary_mode(GimvThumbView    *tv,
                                                    const gchar      *mode);
 void           gimv_thumb_view_clear              (GimvThumbView    *tv);
+/* GTK4 port: redraw the thumbnails of an image in all views (e.g. after its
+   comment was saved), matched by path */
+void           gimv_thumb_view_update_info        (GimvImageInfo    *info);
 void           gimv_thumb_view_refresh_thumbnail  (GimvThumbView    *tv,
                                                    GimvThumb        *thumb,
                                                    ThumbLoadType     type);
@@ -219,45 +222,45 @@ void           gimv_thumb_view_reset_tab_label    (GimvThumbView    *tv,
 GList         *gimv_thumb_view_get_list           (void);
 gboolean       gimv_thumb_view_thumb_button_press_cb
                                                   (GtkWidget        *widget,
-                                                   GdkEventButton   *event,
+                                                   GimvEventButton   *event,
                                                    GimvThumb        *thumb);
 gboolean       gimv_thumb_view_thumb_button_release_cb
                                                   (GtkWidget        *widget,
-                                                   GdkEventButton   *event,
+                                                   GimvEventButton   *event,
                                                    GimvThumb        *thumb);
 gboolean       gimv_thumb_view_thumb_key_press_cb (GtkWidget        *widget,
-                                                   GdkEventKey      *event,
+                                                   GimvEventKey      *event,
                                                    GimvThumb        *thumb);
 gboolean       gimv_thumb_view_thumb_key_release_cb
                                                   (GtkWidget        *widget,
-                                                   GdkEventKey      *event,
+                                                   GimvEventKey      *event,
                                                    GimvThumb        *thumb);
 gboolean       gimv_thumb_view_motion_notify_cb   (GtkWidget        *widget,
-                                                   GdkEventMotion   *event,
+                                                   GimvEventMotion   *event,
                                                    GimvThumb        *thumb);
 void           gimv_thumb_view_drag_begin_cb      (GtkWidget        *widget,
-                                                   GdkDragContext   *context,
+                                                   GimvDragContext   *context,
                                                    gpointer          data);
 void           gimv_thumb_view_drag_data_received_cb
                                                   (GtkWidget        *widget,
-                                                   GdkDragContext   *context,
+                                                   GimvDragContext   *context,
                                                    gint              x,
                                                    gint              y,
-                                                   GtkSelectionData *seldata,
+                                                   GimvSelectionData *seldata,
                                                    guint             info,
                                                    guint32           time,
                                                    gpointer          data);
 void           gimv_thumb_view_drag_data_get_cb   (GtkWidget        *widget,
-                                                   GdkDragContext   *context,
-                                                   GtkSelectionData *seldata,
+                                                   GimvDragContext   *context,
+                                                   GimvSelectionData *seldata,
                                                    guint             info,
                                                    guint             time,
                                                    gpointer          data);
 void           gimv_thumb_view_drag_end_cb        (GtkWidget        *widget,
-                                                   GdkDragContext   *drag_context,
+                                                   GimvDragContext   *drag_context,
                                                    gpointer          data);
 void           gimv_thumb_view_drag_data_delete_cb(GtkWidget        *widget,
-                                                   GdkDragContext   *drag_context,
+                                                   GimvDragContext   *drag_context,
                                                    gpointer          data);
 
 void           gimv_thumb_view_open_image         (GimvThumbView    *tv,
@@ -265,7 +268,7 @@ void           gimv_thumb_view_open_image         (GimvThumbView    *tv,
                                                    gint              type);
 void           gimv_thumb_view_popup_menu         (GimvThumbView    *tv,
                                                    GimvThumb        *thumb,
-                                                   GdkEventButton   *event);
+                                                   GimvEventButton   *event);
 void           gimv_thumb_view_file_operate       (GimvThumbView    *tv,
                                                    FileOperateType   type);
 void           gimv_thumb_view_rename_file        (GimvThumbView    *tv);

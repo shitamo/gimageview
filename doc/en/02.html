@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>2. Usage</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="01.html" title="1. Introduction">
+<link rel="next" href="03.html" title="3. Menu Bar">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">2. Usage</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="01.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="03.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="02"></a>2. Usage</h2></div></div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-01"></a>2.1. Command Line</h3></div></div>
+<p class="para">
+Typing a command like the following lets you view image files.
+</p>
+<pre class="screen">
+$ <b>gimv [image files...]</b>
+</pre>
+<div class="figure"><img src="images/imagewin.png" width="716" height="450" alt="Image Window">
+<p class="caption">Image Window (default settings)</p></div>
+<p class="para">
+Also, if you specify a directory name with the &quot;-d&quot; option as follows, all image files in the directory are opened as thumbnails in the thumbnail window.
+</p>
+<pre class="screen">
+$ <b>gimv -d [directory]</b>
+</pre>
+<div class="figure"><img src="images/thumbwin.png" width="600" height="450" alt="Thumbnail Window">
+<p class="caption">Thumbnail Window (default settings)</p></div>
+<p class="para">
+If you specify image file names and directory names mixed together as follows, image files are opened in the image window and directories in the thumbnail window.
+</p>
+<pre class="screen">
+$ <b>gimv -d hoge01.jpg ~/ ~/images images/hoge02.jpg\
+  /usr/share/pixmaps/ hogehoge.png ......</b>
+</pre>
+<p class="para">
+With the &quot;-t&quot; option, everything can be opened in the thumbnail window.
+</p>
+<p class="para">
+The other command line options are as follows.
+</p>
+<pre class="screen">
+$ <b>gimv -h</b>
+
+Copyright (C) 2001 Takuro Ashie
+Usage: gimv [OPTION...] [Image Files...]
+
+  -d, --directory          Scan a directory at startup
+  -R, --recursive          Scan directories recursively (use with &quot;-d&quot;)
+  -D, --scan-dot           Read dotfiles when scanning directories (use with &quot;-d&quot;)
+  -e, --ignore-ext         Ignore file name extension
+  -s, --scale=SCALE        Image scale in the image window [%]
+  -b, --buffer=ON/OFF      Keep the original image in memory
+  -M, --menubar            Show the menubar in the image window
+  -T, --toolbar            Show the toolbar in the image window
+  -I, --imagewin           Open an empty image window at startup
+  -w, --thumbwin           Open the thumbnail window at startup
+  -i, --imageview          Open all images in the image window
+  -t, --thumbview          Open all images in the thumbnail window
+  -S, --slideshow          Open the image files in a slideshow
+  -W, --wait=TIME          Slideshow interval (use with &quot;-S&quot;) [sec]
+  -v, --version            Print version information
+  -h, --help               Show this message
+</pre>
+<p class="para">
+To open a directory from the GUI, double-click it in the directory view, or type its path in the directory entry of the thumbnail window toolbar and press Enter (a new tab is opened only if the directory has images). You can also select directories in the file open dialog and press "Thumbnails of the selected files".
+</p>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="01.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="03.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">1. Introduction&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;3. Menu Bar</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

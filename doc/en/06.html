@@ -1,0 +1,795 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>6. Preferences</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="05.html" title="5. Mouse Menus">
+<link rel="next" href="07.html" title="7. Default Key Bindings">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">6. Preferences</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="05.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="07.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="06"></a>6. Preferences</h2></div></div>
+<p class="para">
+This section describes the items of the preferences dialog.
+</p>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-01"></a>6.1. Common</h3></div></div>
+<div class="figure"><img src="images/prefs_general.png" width="953" height="674" alt="[Preferences | Common] (default settings)">
+<p class="caption">[Preferences | Common] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="File_Open_Window"></a>File Open Window</span></dt>
+<dd>
+<p class="para">
+The window a file is opened in when it is given on the command line or chosen with "OK" in the file open dialog.
+</p>
+<p class="para">
+Where nothing like "Open in ... window" is specified, this setting decides the window.
+</p>
+</dd>
+<dt><span class="term"><a name="Directory_Open_Window"></a>Directory Open Window</span></dt>
+<dd>
+<p class="para">
+The window a directory given on the command line is opened in.
+</p>
+</dd>
+<dt><span class="term"><a name="Archive_Open_Window"></a>Archive Open Window</span></dt>
+<dd>
+<p class="para">
+The window an archive given on the command line is opened in.
+</p>
+</dd>
+<dt><span class="term"><a name="Scan_directories_recursively"></a>Scan directories recursively</span></dt>
+<dd>
+<p class="para">
+Directories given on the command line are always read recursively.
+</p>
+<p class="para">
+This is the same as the command line option -dR.
+</p>
+</dd>
+<dt><span class="term"><a name="Follow_symbolic_link"></a>Follow symbolic links / Do not follow symbolic links</span></dt>
+<dd>
+<p class="para">
+Whether directories that symbolic links point to are read when reading recursively.
+</p>
+</dd>
+<dt><span class="term"><a name="Interpolation_type_for_scaling"></a>Interpolation type for scaling</span></dt>
+<dd>
+<p class="para">
+The interpolation used when an image is scaled.  One of these four:
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Nearest: nearest neighbor.  The fastest, but the result is coarse.</p></li>
+<li><p class="para">Tiles: like Nearest when enlarging; averages the pixels when reducing.</p></li>
+<li><p class="para">Bilinear: bilinear interpolation.  A good balance of speed and quality.</p></li>
+<li><p class="para">Hyperbolic: the best quality, but slow.</p></li>
+</ul></div>
+</dd>
+<dt><span class="term"><a name="Color_scheme"></a>Color scheme</span></dt>
+<dd>
+<p class="para">
+The colors of the windows.  One of these three; the change is used at once (Apply or OK).  This item was added in the GTK 4 version (Desktop theme by default).
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Desktop theme: the theme chosen on the desktop (gtk-theme-name of GTK; on X11 the XSETTINGS value Net/ThemeName).  GTK 4 cannot read themes without a gtk-4.0 directory (themes for GTK 2/3) and shows the light Adwaita instead.  If the name of such a theme contains "dark" (Greybird-dark, for example), the dark Adwaita is used.</p></li>
+<li><p class="para">Light: light colors.  If the name of the theme ends with "-dark", the theme of the name without it is used, or Adwaita if GTK 4 cannot read that theme.</p></li>
+<li><p class="para">Dark: dark colors.  If the theme has no dark version (gtk-dark.css), the dark Adwaita is used.</p></li>
+</ul></div>
+<p class="para">
+If the environment variable GTK_THEME is set, GTK uses that theme and this item has no effect.  The icons of GImageView drawn only with black lines (Zoom, Show/Hide dotfiles, ...) are drawn with light lines in dark colors.
+</p>
+</dd>
+<dt><span class="term"><a name="Use_theme_icons"></a>Use icons of the desktop icon theme for buttons</span></dt>
+<dd>
+<p class="para">
+Toolbar and other buttons use icons of the desktop icon theme (Adwaita, Papirus, ...).  Buttons with no matching icon in the theme, and the icons of the directory tree, use the icons of GImageView.  Windows opened after the change use it.  This item was added in the GTK 4 version (on by default).
+</p>
+<p class="para">
+To use your own icons, put files named after the icons (back.png, zoom_in.svg, refresh.xpm, ...; PNG, SVG and XPM can be used) in ~/.gimv/icons/&lt;name&gt;/ and write that name as iconset= in ~/.gimv/gimvrc.  These icons take precedence over the icons of the theme.
+</p>
+</dd>
+<dt><span class="term"><a name="Open_thumbnail_window"></a>Open thumbnail window</span></dt>
+<dd>
+<p class="para">
+Whether a thumbnail window is always opened when GImageView starts.
+</p>
+</dd>
+<dt><span class="term"><a name="Ignore_directory"></a>Ignore directories</span></dt>
+<dd>
+<p class="para">
+Directories given as arguments are ignored.
+</p>
+</dd>
+<dt><span class="term"><a name="No_warning"></a>No warning</span></dt>
+<dd>
+<p class="para">
+Suppresses the warning messages shown when started from the command line.
+</p>
+</dd>
+<dt><span class="term"><a name="Show_splash_window"></a>Show splash window</span></dt>
+<dd>
+<p class="para">
+Whether the splash window (logo image) is shown at startup.  This item was added in the GTK 4 version.
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-01-01"></a>6.1.1. Filtering</h4></div></div>
+<div class="figure"><img src="images/prefs_filter.png" width="953" height="674" alt="[Preferences | Common | Filtering] (default settings)">
+<p class="caption">[Preferences | Common | Filtering] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="File_type"></a>File type</span></dt>
+<dd>
+<p class="para">
+The list of file name extensions and their file types (MIME types).  Files with an extension whose status is "Disable" are not read.
+</p>
+<p class="para">
+Enter an extension and a file type in the fields below the list and press "Add" to register a new pair.  A registered pair can be selected and changed ("Change") or deleted ("Delete").  Checking "Disable" disables the extension.  "System defined" pairs cannot be deleted.
+</p>
+</dd>
+<dt><span class="term"><a name="Read_dotfiles"></a>Read dotfiles</span></dt>
+<dd>
+<p class="para">
+Whether image files and directories whose names begin with "." are opened.  The directory view has its own setting (<a href="#06-03-03" title="6.3.3. Directory View">6.3.3</a>) and does not follow this one.
+</p>
+</dd>
+<dt><span class="term"><a name="Ignore file name extension"></a>Ignore file name extension</span></dt>
+<dd>
+<p class="para">
+Files are not distinguished by their extensions; all files are candidates for reading.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-01-02"></a>6.1.2. Character Set</h4></div></div>
+<div class="figure"><img src="images/prefs_charset.png" width="953" height="674" alt="[Preferences | Common | Character Set] (default settings)">
+<p class="caption">[Preferences | Common | Character Set] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Locale_character_set"></a>Locale character set</span></dt>
+<dd>
+<p class="para">
+The character set of the locale, used for the comments of images.
+</p>
+</dd>
+<dt><span class="term"><a name="Internal_character_set"></a>Internal character set</span></dt>
+<dd>
+<p class="para">
+The character set GImageView uses internally.
+</p>
+</dd>
+<dt><span class="term"><a name="Language_for_auto_detecting"></a>Language for auto detecting</span></dt>
+<dd>
+<p class="para">
+The language GImageView detects automatically.
+</p>
+</dd>
+<dt><span class="term"><a name="Character_set_of_file_name"></a>Character set of file names</span></dt>
+<dd>
+<p class="para">
+The character set used, for example, to display file names.  Choose from "Never convert", "Locale", "Auto detect" and "Any"; with "Any", enter the character set in the field to the right.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-02"></a>6.2. Image Window</h3></div></div>
+<div class="figure"><img src="images/prefs_imagewin.png" width="953" height="674" alt="[Preferences | Image Window] (default settings)">
+<p class="caption">[Preferences | Image Window] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Save_window_state_on_exit"></a>Save window state on exit</span></dt>
+<dd>
+<p class="para">
+The window size, the visibility of the bars and so on are saved on exit and used at the next start.  When this is off, "Initial window size" and the "Show/Hide" items set the initial state.
+</p>
+</dd>
+<dt><span class="term"><a name="Initial_window_size"></a>Initial window size</span></dt>
+<dd>
+<p class="para">
+The size (width and height) of a new image window.
+</p>
+</dd>
+<dt><span class="term"><a name="Auto_resize_to_image_size"></a>Auto resize to image size</span></dt>
+<dd>
+<p class="para">
+A new image window is resized to the size of the image automatically.
+</p>
+<p class="para">
+In detail: the image window is first created with the "Initial window size" above; then, when this option is on, it is resized to the size of the image.  Since this takes two steps, it takes more time.
+</p>
+</dd>
+<dt><span class="term"><a name="Open_each_file_in_separate_window"></a>Open each file in separate window</span></dt>
+<dd>
+<p class="para">
+A new image window is created for each file: as many image windows as files opened.  These windows are never shared.
+</p>
+</dd>
+<dt><span class="term"><a name="Raise_window_when_open_image_in_shared_window"></a>Raise the window when opening an image in the shared window</span></dt>
+<dd>
+<p class="para">
+The shared image window is raised when an image is opened with "Open in Shared Window" of the thumbnail mouse menu.
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_show_hide"></a>Menubar / Toolbar / Slideshow player / Statusbar / Scrollbar</span></dt>
+<dd>
+<p class="para">
+Whether each bar is shown in a new image window.  It can be set when <a href="#Save_window_state_on_exit">Save window state on exit</a> in [Preferences | Image Window] is off.
+</p>
+<p class="para">
+The scroll bars are shown only in the directions in which the image does not fit in the window.  When this item is off, they are not shown even then.
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_player_toolbar"></a>Player toolbar</span></dt>
+<dd>
+<p class="para">
+How the toolbar for playing movies and audio is shown: "Show", "Hide", or "Auto", which shows it only while a movie or audio file is shown.
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_bg_color"></a>Specify the background color</span></dt>
+<dd>
+<p class="para">
+When checked, the background of images is painted with the color chosen with "Choose Color".
+</p>
+</dd>
+<dt><span class="term"><a name="Alpha_checker"></a>Show a checkerboard behind transparent parts of images</span></dt>
+<dd>
+<p class="para">
+The background of images with transparency is shown as a gray checkerboard.  This item was added in the GTK 4 version (on by default).
+</p>
+</dd>
+<dt><span class="term"><a name="Fullscreen_bg_color"></a>Specify the background color in fullscreen</span></dt>
+<dd>
+<p class="para">
+When checked, the background in fullscreen is painted with the color chosen with "Choose Color".
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-02-01"></a>6.2.1. Image</h4></div></div>
+<div class="figure"><img src="images/prefs_imagewin_image.png" width="953" height="674" alt="[Preferences | Image Window | Image] (default settings)">
+<p class="caption">[Preferences | Image Window | Image] (default settings)</p></div>
+<p class="para">
+Settings for showing images in the image window.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Image_zoom"></a>Zoom</span></dt>
+<dd>
+<p class="para">
+The size an image is shown in.  One of:
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Default image scale: the "Default Image Scale" below.</p></li>
+<li><p class="para">Do not change: the scale of the image shown before.</p></li>
+<li><p class="para">Fit image to window: enlarges or reduces the image to the size of the window.</p></li>
+<li><p class="para">Fit image to window (zoom out only): reduces only images larger than the window (default).</p></li>
+<li><p class="para">Fit image to width / Fit image to height: fits the width or the height to the window.</p></li>
+</ul></div>
+</dd>
+<dt><span class="term"><a name="Image_rotation"></a>Rotation</span></dt>
+<dd>
+<p class="para">
+The orientation an image is shown in.  Besides 0, 90 degrees counterclockwise, 180 and 90 degrees clockwise, "Do not change" (the orientation of the image shown before) can be chosen.  When built with EXIF support, "Automatic EXIF" can be chosen too.
+</p>
+</dd>
+<dt><span class="term"><a name="Remember_rotation"></a>Remember the rotation of each image (saved with its comment)</span></dt>
+<dd>
+<p class="para">
+When an image is rotated, its orientation is saved where its comment is kept, and the image is shown in that orientation the next time it is opened.  This item was added in the GTK 4 version (on by default).
+</p>
+</dd>
+<dt><span class="term"><a name="Keep_aspect_rario"></a>Keep aspect ratio</span></dt>
+<dd>
+<p class="para">
+The aspect ratio (the ratio of width and height) is kept when an image is enlarged or reduced.
+</p>
+</dd>
+<dt><span class="term"><a name="Default_Image_Scale"></a>Default Image Scale</span></dt>
+<dd>
+<p class="para">
+The default scale of images.  It can be set when "Zoom" is "Default image scale" or "Do not change".
+</p>
+</dd>
+<dt><span class="term"><a name="Keep_original_image_on_memory"></a>Keep the original image in memory</span></dt>
+<dd>
+<p class="para">
+The image shown is kept in memory.  For the effect, see "<a href="gimv_tips.html#gimv_tips_05" title="">Making the image view draw faster</a>" in the Tips.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-02-02"></a>6.2.2. Mouse Buttons</h4></div></div>
+<div class="figure"><img src="images/prefs_imagewin_mouse.png" width="953" height="674" alt="[Preferences | Image Window | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Image Window | Mouse Buttons] (default settings)</p></div>
+<p class="para">
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
+</p>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-03"></a>6.3. Thumbnail Window</h3></div></div>
+<div class="figure"><img src="images/prefs_thumbwin.png" width="953" height="674" alt="[Preferences | Thumbnail Window] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Thumbwin_save_win_state"></a>Save window state on exit</span></dt>
+<dd>
+<p class="para">
+The window size, the layout, the visibility of each part and so on are saved on exit and used at the next start.  When this is off, "width", "height", "Default Layout" and the "Show/Hide" items set the initial state.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_size"></a>width / height</span></dt>
+<dd>
+<p class="para">
+The size of a new thumbnail window.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_layout"></a>Default Layout</span></dt>
+<dd>
+<p class="para">
+The arrangement of the views (directory, thumbnail and preview) in the thumbnail window: Layout0 to Layout4, or Custom.  These are the same as <a href="03.html#layout" title="">View | Layout</a> of the menu.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_show_hide"></a>Show/Hide</span></dt>
+<dd>
+<p class="para">
+Whether the directory view, the preview, the preview tab, the menu bar, the toolbar, the status bar and the tabs are shown in a new thumbnail window.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_player_toolbar"></a>Player toolbar</span></dt>
+<dd>
+<p class="para">
+How the toolbar for movies and audio in the preview is shown.  "Auto" shows it only while a movie or audio file is shown.
+</p>
+</dd>
+<dt><span class="term"><a name="Raise_window_when_opening_thumbnails"></a>Raise window when opening thumbnails</span></dt>
+<dd>
+<p class="para">
+Whether the window is raised when the thumbnails have been loaded.
+</p>
+<p class="para">
+This applies also to "Load Thumbnails Recursively": the thumbnail window is raised each time the thumbnails of a directory have been loaded.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_toolbar_style"></a>Toolbar Style</span></dt>
+<dd>
+<p class="para">
+Whether the toolbar buttons show an icon, text, or both.
+</p>
+</dd>
+<dt><span class="term"><a name="GUI_redraw_interval_while_loading"></a>GUI redraw interval while loading</span></dt>
+<dd>
+<p class="para">
+The thumbnail view is redrawn at this interval while thumbnails are created.
+</p>
+<p class="para">
+It is redrawn every this many files.  See also "<a href="gimv_tips.html#gimv_tips_01" title="">Making the thumbnail view finish drawing faster</a>" in the Tips.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_progress_detail"></a>Show detail of loading progress</span></dt>
+<dd>
+<p class="para">
+While thumbnails are loaded, the progress bar shows "loaded/total files" and the name of the file being loaded.
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-03-01"></a>6.3.1. Tab</h4></div></div>
+<div class="figure"><img src="images/prefs_tab.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Tab] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Tab] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Tab_Position"></a>Tab Position</span></dt>
+<dd>
+<p class="para">
+The position of the tabs of the window.
+</p>
+<p class="para">
+This item takes effect only when "Save window state on exit" in [Preferences | Thumbnail Window] is off.
+</p>
+</dd>
+<dt><span class="term"><a name="Move_to_new_tab_automatically"></a>Move to new tab automatically</span></dt>
+<dd>
+<p class="para">
+A new tab becomes the active tab.
+</p>
+</dd>
+<dt><span class="term"><a name="Show_close_button"></a>Show close button</span></dt>
+<dd>
+<p class="para">
+A close button is shown at the right end of each tab.
+</p>
+</dd>
+<dt><span class="term"><a name="Show_full_path"></a>Show full path</span></dt>
+<dd>
+<p class="para">
+Tabs normally show the full path.  Without this option they show only the name of the directory, which keeps the tabs narrow.
+</p>
+</dd>
+<dt><span class="term"><a name="pen_new_tab_whether_image_is_exist_or_not_in_the_directory"></a>Open a new tab even if the directory has no images</span></dt>
+<dd>
+<p class="para">
+A tab is opened also for a directory that has no images.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-03-02"></a>6.3.2. Thumbnail View</h4></div></div>
+<div class="figure"><img src="images/prefs_thumbview.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Thumbnail View] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Thumbview_show_hide"></a>Show/Hide</span></dt>
+<dd>
+<p class="para">
+Whether directories and archives are shown in the thumbnail view.
+</p>
+</dd>
+<dt><span class="term"><a name="Default_display_mode"></a>Default display mode</span></dt>
+<dd>
+<p class="para">
+The default display mode of the thumbnail window.  It can be set when <a href="#Thumbwin_save_win_state">Save window state on exit</a> in [Preferences | Thumbnail Window] is off.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumnail_Size"></a>Thumbnail Size</span></dt>
+<dd>
+<p class="para">
+The default thumbnail size.  It can be set when <a href="#Thumbwin_save_win_state">Save window state on exit</a> in [Preferences | Thumbnail Window] is off.
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="06-03-02-1"></a>6.3.2.1. Mouse Buttons</h5></div></div>
+<div class="figure"><img src="images/prefs_thumbview_mouse.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Thumbnail View | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View | Mouse Buttons] (default settings)</p></div>
+<p class="para">
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
+</p>
+</div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="06-03-02-2"></a>6.3.2.2. Album</h5></div></div>
+<div class="figure"><img src="images/prefs_album.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Thumbnail View | Album] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View | Album] (default settings)</p></div>
+<p class="para">
+Settings for the display modes "Album", "Album2" and "Album3".  For pictures of the display modes, see <a href="04.html#display_mode" title="">the display mode of the thumbnail view in section 4.1</a>.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Row_Spacing"></a>Row spacing</span></dt>
+<dd>
+<p class="para">
+The space between rows of thumbnails.
+</p>
+</dd>
+<dt><span class="term"><a name="Column_Spacing"></a>Column spacing</span></dt>
+<dd>
+<p class="para">
+The space between columns of thumbnails.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="06-03-02-3"></a>6.3.2.3. Detail View</h5></div></div>
+<div class="figure"><img src="images/prefs_detail.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Thumbnail View | Detail View] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View | Detail View] (default settings)</p></div>
+<p class="para">
+The columns shown in the display modes "Detail", "Detail + Icon" and "Detail + Thumbnail".  The items in "Displayed columns" on the right are shown.  "Add" and "Delete" move items, "Up" and "Down" change their order.  "Show column title" shows or hides the column titles.
+</p>
+<p class="para">
+The GTK 4 version adds the "Subject" and "Comment" (first line of the note) columns of the comments.  To show them, move them to the right pane.  When a comment is saved or deleted, the list shown is updated at once.  In the album view, the subject and the note of an image with a comment are shown as a tooltip when the mouse is over it.
+</p>
+</div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-03-03"></a>6.3.3. Directory View</h4></div></div>
+<div class="figure"><img src="images/prefs_dirview.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Directory View] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Directory View] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Dirview_show_toolbar"></a>Show toolbar</span></dt>
+<dd>
+<p class="para">
+The toolbar of the directory view is shown.
+</p>
+</dd>
+<dt><span class="term"><a name="Show_dot_file"></a>Show dotfiles</span></dt>
+<dd>
+<p class="para">
+Dotfiles (directories beginning with ".") and "." and ".." are shown in the directory view.
+</p>
+</dd>
+<dt><span class="term"><a name="show_dotfiles_1"></a>Show the "." directory even when dotfiles are hidden</span></dt>
+<dd>
+<p class="para">
+The "." directory is shown in the directory view even when "Show dotfiles" is off.
+</p>
+</dd>
+<dt><span class="term"><a name="show_dotfiles_2"></a>Show the ".." directory even when dotfiles are hidden</span></dt>
+<dd>
+<p class="para">
+The ".." directory is shown in the directory view even when "Show dotfiles" is off.
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="06-03-03-1"></a>6.3.3.1. Mouse Buttons</h5></div></div>
+<div class="figure"><img src="images/prefs_dirview_mouse.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Directory View | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Directory View | Mouse Buttons] (default settings)</p></div>
+<p class="para">
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
+</p>
+</div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-03-04"></a>6.3.4. Preview</h4></div></div>
+<div class="figure"><img src="images/prefs_preview.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Preview] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Preview] (default settings)</p></div>
+<p class="para">
+Settings for showing images in the preview.  "Zoom", "Rotation", "Keep aspect ratio", "Default Image Scale" and "Keep the original image in memory" mean the same as the items of the image window (<a href="#06-02-01" title="6.2.1. Image">6.2.1</a>).
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Show_scrollbar"></a>Show scrollbar</span></dt>
+<dd>
+<p class="para">
+The scroll bars are shown.  It can be set when <a href="#Thumbwin_save_win_state">Save window state on exit</a> in [Preferences | Thumbnail Window] is off.  They are shown only in the directions in which the image does not fit.
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="06-03-04-1"></a>6.3.4.1. Mouse Buttons</h5></div></div>
+<div class="figure"><img src="images/prefs_preview_mouse.png" width="953" height="674" alt="[Preferences | Thumbnail Window | Preview | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Preview | Mouse Buttons] (default settings)</p></div>
+<p class="para">
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
+</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-04"></a>6.4. Movie and Audio</h3></div></div>
+<div class="figure"><img src="images/prefs_movie.png" width="953" height="674" alt="[Preferences | Movie and Audio] (default settings)">
+<p class="caption">[Preferences | Movie and Audio] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Movie_default_view_mode"></a>Default view mode for movie and audio</span></dt>
+<dd>
+<p class="para">
+The plugin that plays movie and audio files (GStreamer, MPlayer or Xine, those that are built in).
+</p>
+</dd>
+<dt><span class="term"><a name="Movie_continuance"></a>Play the next file when a movie or audio file ends (continuous play)</span></dt>
+<dd>
+<p class="para">
+When playback ends, the next file is opened and played.  This item was added in the GTK 4 version (off by default).
+</p>
+</dd>
+<dt><span class="term"><a name="Movie_lock_mouse"></a>Ignore mouse actions for next/previous image, zoom, rotation and scrolling while a movie or audio file is playing</span></dt>
+<dd>
+<p class="para">
+Prevents mistakes during playback.  A popup menu assigned to a mouse button can still be used.  This item was added in the GTK 4 version (off by default).
+</p>
+</dd>
+</dl></div>
+<p class="para">
+The pages "GStreamer", "MPlayer" and "Xine" below it set whether the plugin makes thumbnails of movies and the position used for them (stream position).  The MPlayer and Xine pages also set the drivers.  A page is shown for each built-in plugin.
+</p>
+<div class="figure"><img src="images/prefs_gst.png" width="953" height="674" alt="[Preferences | Movie and Audio | GStreamer] (default settings)">
+<p class="caption">[Preferences | Movie and Audio | GStreamer] (default settings)</p></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-05"></a>6.5. Slideshow</h3></div></div>
+<div class="figure"><img src="images/prefs_slideshow.png" width="953" height="674" alt="[Preferences | Slideshow] (default settings)">
+<p class="caption">[Preferences | Slideshow] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Image_change_interval"></a>Image change interval</span></dt>
+<dd>
+<p class="para">
+The time each image is shown in a slideshow.
+</p>
+</dd>
+<dt><span class="term"><a name="Repeat_slide_show"></a>Repeat slideshow</span></dt>
+<dd>
+<p class="para">
+A slideshow normally ends after all images of the thumbnail view; with this option it starts over.
+</p>
+</dd>
+<dt><span class="term"><a name="Slideshow_image"></a>Image (Zoom / Rotation / Keep aspect ratio / Default Image Scale)</span></dt>
+<dd>
+<p class="para">
+Settings for showing images in a slideshow.  The items mean the same as those of the image window (<a href="#06-02-01" title="6.2.1. Image">6.2.1</a>).
+</p>
+</dd>
+<dt><span class="term"><a name="slide_show_Back_Ground"></a>Background</span></dt>
+<dd>
+<p class="para">
+When "Use specified color" is checked, the background of the slideshow is painted with the color chosen with "Choose Color".
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-06"></a>6.6. Thumbnail Cache</h3></div></div>
+<div class="figure"><img src="images/prefs_cache.png" width="953" height="674" alt="[Preferences | Thumbnail Cache] (default settings)">
+<p class="caption">[Preferences | Thumbnail Cache] (default settings)</p></div>
+<p class="para">
+The file formats of the thumbnail cache for reading and writing.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Cache_reading"></a>Cache reading</span></dt>
+<dd>
+<p class="para">
+Caches of the formats in "Cache type to use" on the right are searched from the top and read.  "Add" and "Delete" move items, "Up" and "Down" change their order.
+</p>
+</dd>
+<dt><span class="term"><a name="Cache_writing"></a>Cache writing</span></dt>
+<dd>
+<p class="para">
+The format of the cache saved when a thumbnail is made.  "Preferences" changes the settings of the chosen format.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-07"></a>6.7. Comment</h3></div></div>
+<div class="figure"><img src="images/prefs_comment.png" width="953" height="674" alt="[Preferences | Comment] (default settings)">
+<p class="caption">[Preferences | Comment] (default settings)</p></div>
+<p class="para">
+The keys used in comments and the character set.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Comment_keys"></a>Key Name Definition</span></dt>
+<dd>
+<p class="para">
+The list of the items (keys) of comments.  Keys whose "Status" is disabled are not used.  For keys with "Auto" enabled, the value is set from the image file automatically.  Keys with "Display" enabled are shown in the comment editor.  The fields below the list create, add, change and delete keys.
+</p>
+</dd>
+<dt><span class="term"><a name="Comment_charset"></a>Character set</span></dt>
+<dd>
+<p class="para">
+The character set of the comment files.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-08"></a>6.8. Search</h3></div></div>
+<div class="figure"><img src="images/prefs_search.png" width="953" height="674" alt="[Preferences | Search] (default settings)">
+<p class="caption">[Preferences | Search] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Search_accuracy"></a>Accuracy</span></dt>
+<dd>
+<p class="para">
+The accuracy of [Tools | Find Duplicates | Similarity].  The default is 0.97: images that match 97% or more are listed.  See "<a href="gimv_tips.html#gimv_tips_10" title="">Finding similar images</a>" for details.
+</p>
+</dd>
+<dt><span class="term"><a name="Search_result_behavior"></a>Behavior when selecting a thumbnail in the result window</span></dt>
+<dd>
+<p class="para">
+What happens when a thumbnail is selected in the result window: selecting the same thumbnail in the thumbnail view, showing the image in the preview, in a new window, or in the shared window - each can be turned on or off.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-09"></a>6.9. Drag and Drop</h3></div></div>
+<div class="figure"><img src="images/prefs_dnd.png" width="953" height="674" alt="[Preferences | Drag and Drop] (default settings)">
+<p class="caption">[Preferences | Drag and Drop] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Enable_DnD_to_external_proccess_Experimental"></a>Enable DnD to external processes (experimental)</span></dt>
+<dd>
+<p class="para">
+Enables drag and drop to other processes.
+</p>
+</dd>
+<dt><span class="term"><a name="Enable_DnD_from_extenal_proccess_Experimental"></a>Enable DnD from external processes (experimental)</span></dt>
+<dd>
+<p class="para">
+Enables drag and drop from other processes.
+</p>
+</dd>
+<dt><span class="term"><a name="Always_refresh_list_when_DnD_end"></a>Always refresh list when DnD ends</span></dt>
+<dd>
+<p class="para">
+The list is always refreshed when a drag and drop ends.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-10"></a>6.10. External Program</h3></div></div>
+<div class="figure"><img src="images/prefs_progs.png" width="953" height="674" alt="[Preferences | External Program] (default settings)">
+<p class="caption">[Preferences | External Program] (default settings)</p></div>
+<p class="para">
+The external programs GImageView uses.
+</p>
+<p class="para">
+"Image Viewer/Editor" is the list of programs shown in "Open in External Program" of the mouse menu.  Enter a program name and a command to add, change or delete an entry; "Up" and "Down" change the order.  When "Dialog" is checked, a dialog is shown before the program runs.
+</p>
+<p class="para">
+"Web Browser" opens the HTML documents and the manual of the Help menu.  %s is replaced with the path of the document.  The default of the GTK 4 version is xdg-open %s (the default browser of the desktop).  If the old default mozilla %s is saved, it is replaced with xdg-open %s automatically.
+</p>
+<p class="para">
+When "Use internal viewer" of "Text Viewer" is on, text documents are shown in the viewer built into GImageView.  It detects UTF-8, EUC-JP, Shift_JIS and ISO-2022-JP documents automatically.
+</p>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-10-1"></a>6.10.1. Scripts</h4></div></div>
+<div class="figure"><img src="images/prefs_scripts.png" width="953" height="674" alt="[Preferences | External Program | Scripts] (default settings)">
+<p class="caption">[Preferences | External Program | Scripts] (default settings)</p></div>
+<p class="para">
+The directories of the scripts GImageView uses.  When "Use default script search directories" is off, the directories can be specified.  "Show dialog before executing script" sets whether a dialog is shown before a script runs.
+</p>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-11"></a>6.11. Plugin</h3></div></div>
+<div class="figure"><img src="images/prefs_plugin.png" width="953" height="674" alt="[Preferences | Plugin] (default settings)">
+<p class="caption">[Preferences | Plugin] (default settings)</p></div>
+<p class="para">
+The directories GImageView searches for plugins.  When "Use default plugin search directories" is off, the directories can be specified.
+</p>
+<p class="para">
+The pages below it, "Image Loader", "Image Saver", "IO Stream", "Archiver", "Thumbnail", "Image View" and "Thumbnail View", list the plugins that are loaded.
+</p>
+<div class="figure"><img src="images/prefs_plugin_loader.png" width="953" height="674" alt="[Preferences | Plugin | Image Loader]">
+<p class="caption">[Preferences | Plugin | Image Loader] (the location in "Module name" depends on where it is installed)</p></div>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="05.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="07.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">5. Mouse Menus&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;7. Default Key Bindings</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

@@ -3,20 +3,15 @@
 Problems to be solved immediately.
 
   * Saving user defined layouts, and adding preference UI.
-  * Printing support using libgimp (implement as plugin).
-  * Save image orientation, and restore automatically when the image is opend.
   * Checking documents and translating to English.
   * Treatement of links in archive file.
   * Bookmark feature.
   * Refine movie feature.
-  * Enable to display comments on thumbnail view.
-  * Use system wide libexif if exists.
   * Treatement of meta data embeded in image files.
   * Enrich useful key bindings and preference UI.
   * Simple image editing feature (fetch codes from Electric Eyes?)
   * Managing thumbnail cache feature (remove needless cache, and so on).
   * Support other various image types.
-  * Support GStreamer.
   * Enable to display text on image view.
   * Enable to display thumbnail on file dialog.
   * Enable to save comments and thumbnail cache under image directory.

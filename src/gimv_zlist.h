@@ -39,10 +39,10 @@
 #include "gimv_scrolled.h"
 
 #define GIMV_TYPE_ZLIST            (gimv_zlist_get_type ())
-#define GIMV_ZLIST(widget)         (GTK_CHECK_CAST ((widget), GIMV_TYPE_ZLIST, GimvZList))
-#define GIMV_ZLIST_CLASS(klass)    (GTK_CHECK_CLASS_CAST ((klass), GIMV_TYPE_ZLIST, GimvZListClass))
-#define GIMV_IS_ZLIST(widget)      (GTK_CHECK_TYPE ((widget), GIMV_TYPE_ZLIST))
-#define GIMV_IS_ZLIST_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_ZLIST))
+#define GIMV_ZLIST(widget)         (G_TYPE_CHECK_INSTANCE_CAST ((widget), GIMV_TYPE_ZLIST, GimvZList))
+#define GIMV_ZLIST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GIMV_TYPE_ZLIST, GimvZListClass))
+#define GIMV_IS_ZLIST(widget)      (G_TYPE_CHECK_INSTANCE_TYPE ((widget), GIMV_TYPE_ZLIST))
+#define GIMV_IS_ZLIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_ZLIST))
 
 enum {
    GIMV_ZLIST_HORIZONTAL        = 1 << 1,
@@ -83,21 +83,31 @@ struct _GimvZList
    gint                   anchor;
 
    GimvZListRegionSelectMode  region_select;
-   GdkGC                 *region_line_gc;
    GList                 *selection_mask;
 
    gint                   cell_x_pad, cell_y_pad;
    gint                   x_pad, y_pad;
 
    GtkWidget             *entered_cell;
+
+   /* GTK4: replaces the explicit pointer grab of GTK2 (button 1 is held
+      down on the list, GTK4 delivers the motion events implicitly) */
+   gboolean               button_pressed;
 };
 
+/*
+ *  GTK4 port: the cell drawing methods get the cairo context of the
+ *  widget's snapshot (widget coordinates).  They are only called from the
+ *  "draw" method of GimvScrolled; to repaint a cell, call
+ *  gimv_zlist_draw_cell () which queues a redraw.
+ */
 struct _GimvZListClass
 {
    GimvScrolledClass parent_class;
 
    void    (*clear)             (GimvZList      *list);
    void    (*cell_draw)         (GimvZList      *list,
+                                 cairo_t        *cr,
                                  gpointer        cell,
                                  GdkRectangle   *cell_area,
                                  GdkRectangle   *area);
@@ -105,9 +115,11 @@ struct _GimvZListClass
                                  gpointer        cell,
                                  GtkRequisition *requisition);
    void    (*cell_draw_focus)   (GimvZList      *list,
+                                 cairo_t        *cr,
                                  gpointer        cell,
                                  GdkRectangle   *cell_area);
    void    (*cell_draw_default) (GimvZList      *list,
+                                 cairo_t        *cr,
                                  gpointer        cell,
                                  GdkRectangle   *cell_area);
    void    (*cell_select)       (GimvZList      *list,
@@ -117,7 +129,7 @@ struct _GimvZListClass
 };
 
 
-GtkType    gimv_zlist_get_type                    (void);
+GType      gimv_zlist_get_type                    (void);
 
 void       gimv_zlist_construct                   (GimvZList        *list,
                                                    gint              flags);

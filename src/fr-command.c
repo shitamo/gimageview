@@ -24,16 +24,17 @@
 
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include "fileutil.h"
 #include "fr-process.h"
 #include "fr-command.h"
 #include "gimv_image_info.h"
-#include "gtk2-compat.h"
 
 
 static void fr_command_class_init  (FRCommandClass *class);
 static void fr_command_init        (FRCommand *afile);
-static void fr_command_destroy     (GtkObject *object);
+static void fr_command_destroy     (GimvObject *object);
 
 
 enum {
@@ -43,8 +44,11 @@ enum {
 };
 
 
-static GtkObjectClass *parent_class = NULL;
+static GimvObjectClass *parent_class = NULL;
 static guint fr_command_signals[LAST_SIGNAL] = { 0 };
+
+
+G_DEFINE_TYPE (FRCommand, fr_command, GIMV_TYPE_OBJECT)
 
 
 static void
@@ -83,30 +87,30 @@ base_fr_command_extract (FRCommand *comm,
 static void 
 fr_command_class_init (FRCommandClass *class)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   parent_class = gtk_type_class (GTK_TYPE_OBJECT);
-   object_class = (GtkObjectClass*) class;
+   parent_class = g_type_class_peek_parent (class);
+   object_class = (GimvObjectClass*) class;
 
    fr_command_signals[START] =
-      gtk_signal_new ("start",
-                      GTK_RUN_LAST,
-                      GTK_CLASS_TYPE (object_class),
-                      GTK_SIGNAL_OFFSET (FRCommandClass, start),
-                      gtk_marshal_NONE__INT,
-                      GTK_TYPE_NONE, 1,
-                      GTK_TYPE_INT);
+      g_signal_new ("start",
+                    G_TYPE_FROM_CLASS (object_class),
+                    G_SIGNAL_RUN_LAST,
+                    G_STRUCT_OFFSET (FRCommandClass, start),
+                    NULL, NULL,
+                    g_cclosure_marshal_VOID__INT,
+                    G_TYPE_NONE, 1,
+                    G_TYPE_INT);
    fr_command_signals[DONE] =
-      gtk_signal_new ("done",
-                      GTK_RUN_LAST,
-                      GTK_CLASS_TYPE (object_class),
-                      GTK_SIGNAL_OFFSET (FRCommandClass, done),
-                      gtk_marshal_NONE__INT_INT,
-                      GTK_TYPE_NONE, 2,
-                      GTK_TYPE_INT,
-                      GTK_TYPE_INT);
-   gtk_object_class_add_signals (object_class, fr_command_signals, 
-                                 LAST_SIGNAL);
+      g_signal_new ("done",
+                    G_TYPE_FROM_CLASS (object_class),
+                    G_SIGNAL_RUN_LAST,
+                    G_STRUCT_OFFSET (FRCommandClass, done),
+                    NULL, NULL,
+                    g_cclosure_marshal_generic,
+                    G_TYPE_NONE, 2,
+                    G_TYPE_INT,
+                    G_TYPE_INT);
 
    object_class->destroy = fr_command_destroy;
 
@@ -125,8 +129,8 @@ fr_command_start (FRProcess *process,
                   gpointer data)
 {
    FRCommand *comm = FR_COMMAND (data);
-   gtk_signal_emit (GTK_OBJECT (comm), fr_command_signals[START], 
-                    comm->action);
+   g_signal_emit (G_OBJECT (comm), fr_command_signals[START], 0,
+                  comm->action);
 }
 
 
@@ -137,9 +141,9 @@ fr_command_done (FRProcess *process,
 {
    FRCommand *comm = FR_COMMAND (data);
    comm->file_list = g_list_reverse (comm->file_list);
-   gtk_signal_emit (GTK_OBJECT (comm), fr_command_signals[DONE], 
-                    comm->action, 
-                    error);
+   g_signal_emit (G_OBJECT (comm), fr_command_signals[DONE], 0,
+                  comm->action,
+                  error);
 }
 
 
@@ -149,15 +153,12 @@ fr_command_init (FRCommand *comm)
    comm->filename = NULL;
    comm->file_list = NULL;
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (comm));
-   gtk_object_sink (GTK_OBJECT (comm));
-#endif
+   g_object_ref_sink (G_OBJECT (comm));
 }
 
 
 static void 
-fr_command_destroy (GtkObject *object)
+fr_command_destroy (GimvObject *object)
 {
    FRCommand* comm;
 
@@ -167,44 +168,25 @@ fr_command_destroy (GtkObject *object)
    comm = FR_COMMAND (object);
    if (comm->filename != NULL)
       g_free (comm->filename);
+   comm->filename = NULL;
 
    if (comm->file_list != NULL) {
       g_list_foreach (comm->file_list, 
                       (GFunc) gimv_image_info_unref_with_archive, 
                       NULL);
       g_list_free (comm->file_list);
+      comm->file_list = NULL;
    }
 
-   gtk_signal_disconnect_by_data (GTK_OBJECT (comm->process), comm);
-   gtk_object_unref (GTK_OBJECT (comm->process));
+   if (comm->process) {
+      g_signal_handlers_disconnect_by_data (G_OBJECT (comm->process), comm);
+      g_object_unref (G_OBJECT (comm->process));
+      comm->process = NULL;
+   }
 
    /* Chain up */
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (* GTK_OBJECT_CLASS (parent_class)->destroy) (object);
-}
-
-
-GtkType
-fr_command_get_type ()
-{
-   static guint fr_command_type = 0;
-
-   if (!fr_command_type) {
-      GtkTypeInfo fr_command_info = {
-         "FRCommand",
-         sizeof (FRCommand),
-         sizeof (FRCommandClass),
-         (GtkClassInitFunc) fr_command_class_init,
-         (GtkObjectInitFunc) fr_command_init,
-         /* reserved_1 */ NULL,
-         /* reserved_2 */ NULL,
-         (GtkClassInitFunc) NULL,
-      };
-      fr_command_type = gtk_type_unique (gtk_object_get_type(),
-                                         &fr_command_info);
-   }
-
-   return fr_command_type;
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (* GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
@@ -215,13 +197,13 @@ fr_command_construct (FRCommand *comm,
 {
    fr_command_set_filename (comm, fr_command_name);
 
-   gtk_object_ref (GTK_OBJECT (process));
+   g_object_ref (G_OBJECT (process));
    comm->process = process;
-   gtk_signal_connect (GTK_OBJECT (comm->process), "start",
-                       GTK_SIGNAL_FUNC (fr_command_start),
+   g_signal_connect (G_OBJECT (comm->process), "start",
+                       G_CALLBACK (fr_command_start),
                        comm);
-   gtk_signal_connect (GTK_OBJECT (comm->process), "done",
-                       GTK_SIGNAL_FUNC (fr_command_done),
+   g_signal_connect (G_OBJECT (comm->process), "done",
+                       G_CALLBACK (fr_command_done),
                        comm);
 }
 
@@ -261,7 +243,7 @@ fr_command_list (FRCommand *comm)
    }
 
    comm->action = FR_ACTION_LIST;
-   FR_COMMAND_CLASS (GTK_OBJECT_GET_CLASS (comm))->list (comm);
+   FR_COMMAND_CLASS (G_OBJECT_GET_CLASS (comm))->list (comm);
 }
 
 
@@ -272,7 +254,7 @@ fr_command_add (FRCommand *comm,
                 gboolean update)
 {
    comm->action = FR_ACTION_ADD;
-   FR_COMMAND_CLASS (GTK_OBJECT_GET_CLASS (comm))->add (comm, 
+   FR_COMMAND_CLASS (G_OBJECT_GET_CLASS (comm))->add (comm, 
                                                         file_list,
                                                         base_dir,
                                                         update);
@@ -301,7 +283,7 @@ fr_command_delete (FRCommand *comm,
 
    } 
 
-   FR_COMMAND_CLASS (GTK_OBJECT_GET_CLASS (comm))->delete (comm, file_list);
+   FR_COMMAND_CLASS (G_OBJECT_GET_CLASS (comm))->delete (comm, file_list);
 
    if (free_file_list) {
       g_list_foreach (file_list, (GFunc) g_free, NULL);
@@ -319,7 +301,7 @@ fr_command_extract (FRCommand *comm,
                     gboolean junk_paths)
 {
    comm->action = FR_ACTION_EXTRACT;
-   FR_COMMAND_CLASS (GTK_OBJECT_GET_CLASS (comm))->extract (comm, 
+   FR_COMMAND_CLASS (G_OBJECT_GET_CLASS (comm))->extract (comm, 
                                                             file_list, 
                                                             dest_dir,
                                                             overwrite,

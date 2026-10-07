@@ -129,7 +129,7 @@ files_loader_delete (FilesLoader *files)
    }
 
    if (files->archive)
-      gtk_object_unref (GTK_OBJECT (files->archive));
+      g_object_unref (G_OBJECT (files->archive));
 
    loading_stop = FALSE;
 
@@ -198,46 +198,45 @@ files_loader_create_progress_window (FilesLoader *files)
    GtkWidget *button;
 
    /* create dialog window */
-   window = gtk_window_new(GTK_WINDOW_POPUP);
-   gtk_widget_realize (window);
-   gtk_container_border_width (GTK_CONTAINER (window), 3);
+   window = gimv_popup_window_new ();
+   gimv_container_set_border_width (window, 3);
    gtk_window_set_title (GTK_WINDOW (window), _("*Loading Image Files* - GImageView - "));
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_add (GTK_CONTAINER(window), vbox);
+   /* GTK4: gtk_window_set_position (GTK_WIN_POS_CENTER) is not available */
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_add (GTK_WIDGET (window), vbox);
 
    /* label */
-   label = gtk_label_new (_("Now Opening Image Files..."));
-   gtk_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
+   label = gtk_label_new (_("Opening image files..."));
+   gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
 
    /* progress bar */
    progressbar = gtk_progress_bar_new();
-   gtk_progress_set_show_text(GTK_PROGRESS(progressbar), TRUE);
-   gtk_box_pack_start (GTK_BOX (vbox), progressbar, FALSE, FALSE, 0);
+   gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (progressbar), TRUE);
+   gimv_box_pack_start (GTK_BOX (vbox), progressbar, FALSE, FALSE, 0);
 
    /* hbox */
-   hbox = gtk_hbox_new (TRUE, 0);
-   gtk_container_add (GTK_CONTAINER(vbox), hbox);
+   hbox = gimv_hbox_new (TRUE, 0);
+   gimv_container_add (GTK_WIDGET (vbox), hbox);
 
    /* cancel button */
    button = gtk_button_new_with_label (_("Skip"));
-   gtk_container_border_width (GTK_CONTAINER (button), 5);
-   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT(button), "clicked",
-                       GTK_SIGNAL_FUNC(cb_file_load_cancel), files);
+   gimv_container_set_border_width (button, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK(cb_file_load_cancel), files);
  
    /* stop button */
    button = gtk_button_new_with_label (_("Stop"));
-   gtk_container_border_width (GTK_CONTAINER (button), 5);
-   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT(button), "clicked",
-                       GTK_SIGNAL_FUNC(cb_file_load_stop), files);
+   gimv_container_set_border_width (button, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK(cb_file_load_stop), files);
 
 
    files->window = window;
    files->progressbar = progressbar;
 
-   gtk_widget_show_all (window);
+   gimv_widget_show_all (window);
 }
 
 
@@ -247,7 +246,7 @@ files_loader_destroy_progress_window (FilesLoader *files)
    g_return_if_fail (files);
 
    if (files->window)
-      gtk_widget_destroy (files->window);
+      gimv_widget_destroy (files->window);
 
    files->window      = NULL;
    files->progressbar = NULL;
@@ -262,9 +261,9 @@ files_loader_progress_update (FilesLoader *files,
    g_return_if_fail (files);
 
    if (files->progressbar) {
-      gdk_window_raise (files->window->window);
-      gtk_progress_bar_update (GTK_PROGRESS_BAR(files->progressbar), progress);
-      gtk_progress_set_format_string(GTK_PROGRESS(files->progressbar), text);
+      gtk_window_present (GTK_WINDOW (files->window));
+      gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(files->progressbar), progress);
+      gtk_progress_bar_set_text (GTK_PROGRESS_BAR(files->progressbar), text);
    }
 }
 
@@ -278,7 +277,7 @@ open_image_files_in_image_view (FilesLoader *files)
    gchar buf[32];
    GList *node;
 
-   while (gtk_events_pending()) gtk_main_iteration();
+   gimv_flush_events ();
 
    listnum = g_list_length (g_list_first(files->filelist));
 
@@ -312,7 +311,7 @@ open_image_files_in_image_view (FilesLoader *files)
 
       /* Open Archive File */
       if (fr_archive_utils_get_file_name_ext (filename)) {
-         g_print (_("The file is archive: %s\n"), filename);
+         g_print (_("The file is an archive: %s\n"), filename);
          open_archive_images (filename, NULL, NULL, LOAD_CACHE);
 
          /* open iamge window */
@@ -368,7 +367,7 @@ open_image_files_in_thumbnail_view (FilesLoader *files,
    /* select thumbnail window */
    tw_tmp = select_thumbnail_window (tw);
    if (conf.thumbwin_raise_window)
-      gdk_window_raise (GTK_WIDGET (tw_tmp)->window);
+      gtk_window_present (GTK_WINDOW (tw_tmp));
 
    /* select notebook page and open files */
    tv = gimv_thumb_win_find_thumbtable (tw_tmp, GIMV_THUMB_WIN_CURRENT_PAGE);
@@ -441,7 +440,7 @@ open_dir_images (const gchar   *dir,
       g_snprintf (error_message, BUF_SIZE,
                   _("Permission denied: %s"),
                   dir_internal);
-      gtkutil_message_dialog (_("Error!!"), error_message, window);
+      gtkutil_message_dialog (_("Error!"), error_message, window);
 
       g_free (dir_internal);
       g_free (dirname);
@@ -454,10 +453,10 @@ open_dir_images (const gchar   *dir,
    {
       gint pagenum;
       tw_tmp = tv->tw;
-      gdk_window_raise (GTK_WIDGET (tw_tmp)->window);
+      gtk_window_present (GTK_WINDOW (tw_tmp));
       pagenum = gtk_notebook_page_num (GTK_NOTEBOOK (tw_tmp->notebook),
                                        tv->container);
-      gtk_notebook_set_page (GTK_NOTEBOOK (tw_tmp->notebook), pagenum);
+      gtk_notebook_set_current_page (GTK_NOTEBOOK (tw_tmp->notebook), pagenum);
       if (!scan_subdir) {
          g_free (dirname);
          return THUMB_LOAD_DONE;
@@ -504,7 +503,7 @@ open_dir_images (const gchar   *dir,
    } else {
       tw_tmp = select_thumbnail_window (tw);
       if (conf.thumbwin_raise_window)
-         gdk_window_raise (GTK_WIDGET (tw_tmp)->window);
+         gtk_window_present (GTK_WINDOW (tw_tmp));
 
       if (tv_org)
          tv = tv_org;
@@ -549,16 +548,8 @@ FUNC_END:
 static gint
 progress_timeout (gpointer data)
 {
-   gfloat new_val;
-   GtkAdjustment *adj;
-
-   adj = GTK_PROGRESS (data)->adjustment;
-
-   new_val = adj->value + 1;
-   if (new_val > adj->upper)
-      new_val = adj->lower;
-
-   gtk_progress_set_value (GTK_PROGRESS (data), new_val);
+   /* GTK4: activity mode of GtkProgress -> gtk_progress_bar_pulse () */
+   gtk_progress_bar_pulse (GTK_PROGRESS_BAR (data));
 
    return (TRUE);
 }
@@ -584,19 +575,19 @@ cb_archive_action_performed (FRArchive *archive,
 
    if (error != FR_PROC_ERROR_NONE) {
       if (error == FR_PROC_ERROR_COMMAND_NOT_FOUND) {
-         gtkutil_message_dialog (_("Error!!"),
-                                 _("Command not found!!\n"),
+         gtkutil_message_dialog (_("Error!"),
+                                 _("Command not found!\n"),
                                  window);
       } else if (error == FR_PROC_ERROR_STOPPED) {
          gtkutil_message_dialog (_("Canceled"),
                                  _("Processing the archive file was\n"
-                                   "canceled by user."),
+                                   "canceled by the user."),
                                  window);
       } else {
-         g_print (_("An error occured while processing archive file...\n"));
-         gtkutil_message_dialog (_("Error!!"),
-                                 _("An error occured while processing\n"
-                                   "archive file..."),
+         g_print (_("An error occurred while processing the archive file.\n"));
+         gtkutil_message_dialog (_("Error!"),
+                                 _("An error occurred while processing\n"
+                                   "the archive file."),
                                  window);
       }
       goto ERROR;
@@ -611,7 +602,7 @@ cb_archive_action_performed (FRArchive *archive,
    }
 
 ERROR:
-   gtk_main_quit ();
+   gimv_main_quit ();
 }
 
 
@@ -620,7 +611,7 @@ cb_archive_destroy (FRArchive *archive,
                     gpointer data)
 {
    gchar *temp_dir;
-   temp_dir = gtk_object_get_data (GTK_OBJECT (archive), "temp-dir");
+   temp_dir = g_object_get_data (G_OBJECT (archive), "temp-dir");
 
    if (!temp_dir || !*temp_dir) return;
 
@@ -651,10 +642,10 @@ open_archive_images (const gchar *filename,
    if (!tv_org && tv) {
       gint pagenum;
       tw_tmp = tv->tw;
-      gdk_window_raise (GTK_WIDGET (tw_tmp)->window);
+      gtk_window_present (GTK_WINDOW (tw_tmp));
       pagenum = gtk_notebook_page_num (GTK_NOTEBOOK (tw_tmp->notebook),
                                        tv->container);
-      gtk_notebook_set_page (GTK_NOTEBOOK (tw_tmp->notebook), pagenum);
+      gtk_notebook_set_current_page (GTK_NOTEBOOK (tw_tmp->notebook), pagenum);
       return THUMB_LOAD_DONE;
    }
 
@@ -674,28 +665,28 @@ open_archive_images (const gchar *filename,
 
    /* set progress bar */
    if (tw) {
-      gtk_progress_set_activity_mode (GTK_PROGRESS (tw->progressbar), TRUE);
-      timer = gtk_timeout_add (50, (GtkFunction)progress_timeout, tw->progressbar);
+      gtk_progress_bar_pulse (GTK_PROGRESS_BAR (tw->progressbar));
+      timer = g_timeout_add (50, (GSourceFunc)progress_timeout, tw->progressbar);
    }
 
-   gtk_signal_connect (GTK_OBJECT (archive),
+   g_signal_connect (G_OBJECT (archive),
                        "start",
-                       GTK_SIGNAL_FUNC (cb_archive_action_started),
+                       G_CALLBACK (cb_archive_action_started),
                        NULL);
-   gtk_signal_connect (GTK_OBJECT (archive),
+   g_signal_connect (G_OBJECT (archive),
                        "done",
-                       GTK_SIGNAL_FUNC (cb_archive_action_performed),
+                       G_CALLBACK (cb_archive_action_performed),
                        tw);
-   gtk_signal_connect (GTK_OBJECT (archive),
+   g_signal_connect (G_OBJECT (archive),
                        "destroy",
-                       GTK_SIGNAL_FUNC (cb_archive_destroy),
+                       G_CALLBACK (cb_archive_destroy),
                        NULL);
 
    temp_dir = g_strconcat (get_temp_dir_name (),
                            FR_ARCHIVE (archive)->filename,
                            NULL);
-   gtk_object_set_data_full (GTK_OBJECT (archive), "temp-dir", temp_dir,
-                             (GtkDestroyNotify) g_free);
+   g_object_set_data_full (G_OBJECT (archive), "temp-dir", temp_dir,
+                             (GDestroyNotify) g_free);
 
    files = files_loader_new ();
    files->thumb_load_type = type;
@@ -713,15 +704,15 @@ open_archive_images (const gchar *filename,
    success = fr_archive_load (archive, filename);
    if (!success) {
       GtkWindow *window = tw_tmp ? GTK_WINDOW (tw_tmp) : NULL;
-      gtk_object_unref (GTK_OBJECT (archive));
-      /* gtk_object_remove_data (GTK_OBJECT (archive), "progress-bar"); */
-      gtkutil_message_dialog (_("Error!!"),
+      g_object_unref (G_OBJECT (archive));
+      /* g_object_set_data (G_OBJECT (archive), "progress-bar", NULL); */
+      gtkutil_message_dialog (_("Error!"),
                               _("Cannot load this archive file.\n"),
                               window);
       goto ERROR;
    }
 
-   gtk_main ();   /* wait */
+   gimv_main ();   /* wait */
 
    if (archive->process->error == FR_PROC_ERROR_NONE) {
       gimv_thumb_view_reload (tv, files, GIMV_THUMB_VIEW_MODE_ARCHIVE);
@@ -733,9 +724,8 @@ ERROR:
    /* unset progress bar */
    if (tw) {
       if (timer)
-         gtk_timeout_remove (timer);
-      gtk_progress_set_activity_mode (GTK_PROGRESS (tw->progressbar), FALSE);
-      gtk_progress_bar_update (GTK_PROGRESS_BAR(tw->progressbar), 0.0);
+         g_source_remove (timer);
+      gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(tw->progressbar), 0.0);
    }
    if (tw_tmp) {
       gimv_thumb_win_set_statusbar_page_info (tw_tmp,
@@ -758,7 +748,7 @@ open_dirs (FilesLoader *files, GimvThumbWin *tw,
       listnum = g_list_length (g_list_first(files->dirlist));
       for (i = 0; i < listnum; i++) {
 
-         while (gtk_events_pending()) gtk_main_iteration();
+         gimv_flush_events ();
 
          status = open_dir_images (files->dirlist->data, tw, NULL,
                                    type, scan_subdir);
@@ -823,21 +813,59 @@ open_images_dirs (GList *list, GimvThumbWin *tw,
 }
 
 
+/* GTK4: replacement of gtk_file_selection_get_selections () */
+static gchar **
+filebrowser_get_selections (GtkWidget *filebrowser)
+{
+   GListModel *model;
+   GPtrArray *array;
+   guint i, n;
+
+   model = gtk_file_chooser_get_files (GTK_FILE_CHOOSER (filebrowser));
+   if (!model) return NULL;
+
+   n = g_list_model_get_n_items (model);
+   array = g_ptr_array_new ();
+   for (i = 0; i < n; i++) {
+      GFile *file = g_list_model_get_item (model, i);
+      gchar *path = file ? g_file_get_path (file) : NULL;
+
+      if (path)
+         g_ptr_array_add (array, path);
+      if (file)
+         g_object_unref (file);
+   }
+   g_object_unref (model);
+
+   if (array->len == 0) {
+      g_ptr_array_free (array, TRUE);
+      return NULL;
+   }
+
+   g_ptr_array_add (array, NULL);
+   return (gchar **) g_ptr_array_free (array, FALSE);
+}
+
+
 static void
 filebrowser_open_files (FileSel *filesel, ImgWinType type)
 {
-   GtkFileSelection *fsel = GTK_FILE_SELECTION(filesel->filebrowser);
-
-#ifdef USE_GTK2
    FilesLoader *files;
    gint i;
-   gchar **path = gtk_file_selection_get_selections (fsel);
+   gchar **path = filebrowser_get_selections (filesel->filebrowser);
+   /* loading handles events: the dialog (and filesel) may be destroyed
+      meanwhile, so filesel is not used after this */
+   GimvThumbWin *tw = filesel->tw;
 
    if (!path) return;
 
    files = files_loader_new ();
 
    for (i = 0; path[i]; i++) {
+      /* directories: opened in tabs of their own below */
+      if (g_file_test (path[i], G_FILE_TEST_IS_DIR))
+         continue;
+
       if (!(conf.detect_filetype_by_ext)
           || gimv_image_detect_type_by_ext (path[i])
           || fr_archive_utils_get_file_name_ext (path[i]))
@@ -847,62 +875,35 @@ filebrowser_open_files (FileSel *filesel, ImgWinType type)
    }
 
    if (type == THUMBNAIL_WINDOW) {
-      files->status = THUMB_LOADING;
-      open_image_files_in_thumbnail_view (files, filesel->tw, NULL);
-   } else {
+      if (files->filelist) {
+         files->status = THUMB_LOADING;
+         open_image_files_in_thumbnail_view (files, tw, NULL);
+      }
+   } else if (files->filelist) {
       files->status = IMAGE_LOADING;
       open_image_files_in_image_view (files);
    }
 
    files_loader_delete (files);
 
-   g_strfreev (path);
-#else
-   GList *sel_list = NULL, *node;
-   gchar *path, *path_tail, *file;
-   FilesLoader *files;
+   /* GTK4 port: "Thumbnails of the selected files" also opens the selected
+      directories (each in a tab, as a double click in the directory view;
+      the GTK 4 file chooser enters a directory on OK instead of returning
+      it) */
+   if (type == THUMBNAIL_WINDOW) {
+      for (i = 0; path[i]; i++) {
+         if (!g_file_test (path[i], G_FILE_TEST_IS_DIR)) continue;
 
-   /* get directory path */
-   path = g_strdup(gtk_file_selection_get_filename(fsel));
-   if(!path) return;
-   path_tail = (gchar *) strrchr(path, '/');
-   if (path_tail) *(path_tail + 1) = '\0';
+         /* the thumbnail window may have been closed meanwhile */
+         if (tw && !g_list_find (gimv_thumb_win_get_list (), tw))
+            tw = NULL;
 
-   /* get selected files */
-   node = GTK_CLIST(fsel->file_list)->selection;
-   if (node) {
-      files = files_loader_new ();
-
-      while(node) {
-         gtk_clist_get_text(GTK_CLIST(fsel->file_list),
-                            GPOINTER_TO_INT(node->data), 0, &file);
-         file = g_strconcat(path, file, NULL);
-         if (!(conf.detect_filetype_by_ext)
-             || gimv_image_detect_type_by_ext (file)
-             || fr_archive_utils_get_file_name_ext (file))
-         {
-            files->filelist = g_list_append (files->filelist, file);
-         }
-
-         node = g_list_next(node);
+         open_dir_images (path[i], tw, NULL, LOAD_CACHE,
+                          conf.scan_dir_recursive);
       }
-
-      files->filelist = g_list_first (files->filelist);
-
-      if (type == THUMBNAIL_WINDOW) {
-         files->status = THUMB_LOADING;
-         open_image_files_in_thumbnail_view (files, filesel->tw, NULL);
-      } else {
-         files->status = IMAGE_LOADING;
-         open_image_files_in_image_view (files);
-      }
-
-      files_loader_delete (files);
    }
 
-   g_free (path);
-   g_list_free(sel_list);
-#endif
+   g_strfreev (path);
 }
 
 
@@ -917,7 +918,7 @@ cb_filebrowser_open_selected_files(GtkWidget *widget, FileSel *filesel)
    /* FIXME!! If filebrowser is destoryed before loading complete,
       this will cause segmentation fault */
    gtk_clist_unselect_all(GTK_CLIST (fsel->file_list));
-   gtk_entry_set_text(GTK_ENTRY(fsel->selection_entry), "");
+   gtk_editable_set_text (GTK_EDITABLE (fsel->selection_entry), "");
 #endif
 }
 
@@ -933,7 +934,7 @@ cb_filebrowser_add_thumbnail (GtkWidget *widget, FileSel *filesel)
    /* FIXME!! If filebrowser is destoryed before loading complete,
       this will cause segmentation fault */
    gtk_clist_unselect_all(GTK_CLIST (fsel->file_list));
-   gtk_entry_set_text(GTK_ENTRY (fsel->selection_entry), "");
+   gtk_editable_set_text (GTK_EDITABLE (fsel->selection_entry), "");
 #endif
 }
 
@@ -945,11 +946,21 @@ cb_filebrowser_ok_sel (GtkWidget *widget, FileSel *filesel)
    gchar *filename;
    struct stat st;
 
-   filename = g_strdup(gtk_file_selection_get_filename
-                       (GTK_FILE_SELECTION (filesel->filebrowser)));
+   {
+      GtkFileChooser *chooser = GTK_FILE_CHOOSER (filesel->filebrowser);
+      GFile *file = gtk_file_chooser_get_file (chooser);
+
+      /* GTK4: no selection -> use the current folder (GtkFileSelection
+         returned the directory in this case) */
+      if (!file)
+         file = gtk_file_chooser_get_current_folder (chooser);
+      filename = file ? g_file_get_path (file) : NULL;
+      if (file)
+         g_object_unref (file);
+   }
 
    if (!filename) {
-      g_print (_("File name not specified!!\n"));
+      g_print (_("No file name specified!\n"));
       return;
    }
 
@@ -971,7 +982,7 @@ cb_filebrowser_ok_sel (GtkWidget *widget, FileSel *filesel)
          if (info)
             iw = gimv_image_win_open_window_auto (info);
       } else {
-         g_print (_("Not an image (or unsupported) file!!\n"));
+         g_print (_("Not an image file (or an unsupported format)!\n"));
       }
    }
 
@@ -997,96 +1008,104 @@ cb_filebrowser_close (GtkWidget *widget, gpointer parent)
 }
 
 
+enum {
+   FILEBROWSER_RESPONSE_OPEN_SELECTED = 1,
+   FILEBROWSER_RESPONSE_ADD_THUMBNAIL  = 2
+};
+
+
+static void
+cb_filebrowser_response (GtkDialog *dialog, gint response, FileSel *filesel)
+{
+   switch (response) {
+   case GTK_RESPONSE_ACCEPT:
+      cb_filebrowser_ok_sel (GTK_WIDGET (dialog), filesel);
+      break;
+   case FILEBROWSER_RESPONSE_OPEN_SELECTED:
+      cb_filebrowser_open_selected_files (GTK_WIDGET (dialog), filesel);
+      break;
+   case FILEBROWSER_RESPONSE_ADD_THUMBNAIL:
+      cb_filebrowser_add_thumbnail (GTK_WIDGET (dialog), filesel);
+      break;
+   case GTK_RESPONSE_CANCEL:
+      gimv_widget_destroy (GTK_WIDGET (dialog));
+      break;
+   case GTK_RESPONSE_DELETE_EVENT:
+   default:
+      /* the window is destroyed by the default close handler */
+      break;
+   }
+}
+
+
 /*
  *  create_filebrowser:
  *     @ File open dialog (extend Gtk+'s original file open dialog widget)
  *
  *  parent : Pointer to parent window.
  *  Return : Pointer to new filebrowser.
+ *
+ *  GTK4: GtkFileSelection is gone, this is a non modal GtkFileChooserDialog
+ *        with multiple selection.  The extra buttons ("Open selected files",
+ *        "Thumbnail for selected files") are dialog buttons.
  */
 GtkWidget *
 create_filebrowser (gpointer parent)
 {
-   GtkWidget *filebrowser, *bbox, *add_selected, *add_all;
+   GtkWidget *filebrowser;
    FileSel *filesel;
 
-   filebrowser = gtk_file_selection_new(_("Load file(s)"));
-   gtk_signal_connect (GTK_OBJECT (filebrowser), "destroy",
-                       GTK_SIGNAL_FUNC(cb_filebrowser_close), parent);
+   filebrowser = gtk_file_chooser_dialog_new (_("Load file(s)"),
+                                              NULL,
+                                              GTK_FILE_CHOOSER_ACTION_OPEN,
+                                              NULL, NULL);
+   g_signal_connect (G_OBJECT (filebrowser), "destroy",
+                       G_CALLBACK(cb_filebrowser_close), parent);
 
    filesel = g_new0 (FileSel, 1);
    filesel->filebrowser = filebrowser;
    filesel->tw          = (GimvThumbWin *) parent;
-   gtk_object_set_data_full (GTK_OBJECT (filebrowser), "filesel",
-                             filesel, (GtkDestroyNotify) g_free);
+   g_object_set_data_full (G_OBJECT (filebrowser), "filesel",
+                             filesel, (GDestroyNotify) g_free);
 
    if (filesel->tw)
       gtk_window_set_transient_for (GTK_WINDOW (filebrowser),
                                     GTK_WINDOW (filesel->tw));
 
-#ifdef USE_GTK2
-   gtk_file_selection_set_select_multiple (GTK_FILE_SELECTION(filebrowser),
-                                           TRUE);
-#else
-   gtk_clist_set_selection_mode (
-      GTK_CLIST(GTK_FILE_SELECTION(filebrowser)->file_list),
-      GTK_SELECTION_EXTENDED);
-#endif
-   /*
-     gtk_signal_connect(
-     GTK_OBJECT(GTK_FILE_SELECTION(filebrowser)->selection_entry),
-     "changed", GTK_SIGNAL_FUNC(filebrowser_changed), filebrowser);
-   */
-   gtk_signal_connect(
-      GTK_OBJECT(GTK_FILE_SELECTION(filebrowser)->ok_button),
-      "clicked",
-      GTK_SIGNAL_FUNC(cb_filebrowser_ok_sel),
-      filesel);
-   gtk_signal_connect_object(
-      GTK_OBJECT(GTK_FILE_SELECTION(filebrowser)->cancel_button),
-      "clicked", GTK_SIGNAL_FUNC(gtk_widget_destroy),
-      GTK_OBJECT(filebrowser));
+   gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (filebrowser),
+                                         TRUE);
 
-   bbox = gtk_hbutton_box_new();
-   gtk_button_box_set_layout(GTK_BUTTON_BOX(bbox), GTK_BUTTONBOX_END);
-   gtk_button_box_set_spacing(GTK_BUTTON_BOX(bbox), 0);
-   gtk_box_pack_end(GTK_BOX(GTK_FILE_SELECTION(filebrowser)->action_area),
-                    bbox, TRUE, TRUE, 0);
+   /* GtkFileSelection started in the current directory, GtkFileChooser
+      would show "Recent" */
+   {
+      gchar *cwd = g_get_current_dir ();
+      GFile *folder = g_file_new_for_path (cwd);
+      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filebrowser),
+                                           folder, NULL);
+      g_object_unref (folder);
+      g_free (cwd);
+   }
 
-   add_selected  = gtk_button_new_with_label(_("Open selected files"));
-   gtk_box_pack_start(GTK_BOX(bbox), add_selected, FALSE, FALSE, 0);
-   gtk_signal_connect(GTK_OBJECT(add_selected),
-                      "clicked",
-                      GTK_SIGNAL_FUNC(cb_filebrowser_open_selected_files),
-                      filesel);
+   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
+                          _("Open selected files"),
+                          FILEBROWSER_RESPONSE_OPEN_SELECTED);
+   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
+                          _("Thumbnails of the selected files"),
+                          FILEBROWSER_RESPONSE_ADD_THUMBNAIL);
+   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
+                          GIMV_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
+                          GIMV_STOCK_OK, GTK_RESPONSE_ACCEPT);
+   gtk_dialog_set_default_response (GTK_DIALOG (filebrowser),
+                                    GTK_RESPONSE_ACCEPT);
 
-   add_all = gtk_button_new_with_label(_("Thumbnail for selected files"));
-   gtk_box_pack_start(GTK_BOX(bbox), add_all, FALSE, FALSE, 0);
-   gtk_signal_connect(GTK_OBJECT(add_all),
-                      "clicked",
-                      GTK_SIGNAL_FUNC (cb_filebrowser_add_thumbnail),
-                      filesel);
-   gtk_widget_show_all(bbox);
-
-#if 0
-   /*
-    * 2004-06-17 Takuro Ashie <ashie@homa.ne.jp>
-    * This code causes clash on latest Gtk+2.
-    */
-   /*
-    * Change the Cancel buttons caption to Close.
-    */
-   label = gtk_label_new(_("Close"));
-   gtk_misc_set_alignment(GTK_MISC(label), 0.5, 0.5);
-   gtk_container_remove(GTK_CONTAINER(GTK_FILE_SELECTION(filebrowser)->cancel_button),
-                        gtk_container_children(GTK_CONTAINER(GTK_FILE_SELECTION(filebrowser)->cancel_button))->data);
-   gtk_container_add(GTK_CONTAINER(GTK_FILE_SELECTION(filebrowser)->cancel_button), label);
-   gtk_widget_show(label);
-#endif
+   g_signal_connect (G_OBJECT (filebrowser), "response",
+                     G_CALLBACK (cb_filebrowser_response),
+                     filesel);
 
    gtk_widget_show(filebrowser);
 
-   gimv_icon_stock_set_window_icon (filebrowser->window, "nfolder");
+   gimv_icon_stock_set_window_icon (filebrowser, "nfolder");
 
    return filebrowser;
 }

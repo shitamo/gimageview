@@ -25,7 +25,6 @@
 
 #ifdef ENABLE_SVG
 
-#ifdef HAVE_GDK_PIXBUF
 
 #include <stdio.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
@@ -111,7 +110,6 @@ svg_load_image (GimvImageLoader *loader, gpointer data)
       h_scale = 1.0;
    }
 
-#ifdef USE_GTK2
    {
       GError *error;
       pixbuf = rsvg_pixbuf_from_file_at_zoom (filename,
@@ -119,18 +117,6 @@ svg_load_image (GimvImageLoader *loader, gpointer data)
                                               h_scale,
                                               &error);
    }
-#else /* USE_GTK2 */
-   {
-      FILE *file;
-
-      file = fopen (filename, "r");
-      if (!file) return NULL;
-
-      pixbuf = rsvg_render_file (file, MIN (w_scale, h_scale));
-
-      fclose (file);
-   }
-#endif /* USE_GTK2 */
 
    if (pixbuf) {
       image = gimv_image_new ();
@@ -142,13 +128,4 @@ svg_load_image (GimvImageLoader *loader, gpointer data)
    }
 }
 
-#else /* HAVE_GDK_PIXBUF */
-
-GimvImage *
-svg_load_image (GimvImageLoader *loader, gpointer data)
-{
-   return NULL;
-}
-
-#endif /* HAVE_GDK_PIXBUF */
 #endif /* ENABLE_SVG */

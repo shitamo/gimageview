@@ -27,16 +27,16 @@
 #include "gimageview.h"
 
 #define GIMV_TYPE_COMMENT            (gimv_comment_get_type ())
-#define GIMV_COMMENT(obj)            (GTK_CHECK_CAST ((obj), GIMV_TYPE_COMMENT, GimvComment))
-#define GIMV_COMMENT_CLASS(klass)    (GTK_CHECK_CLASS_CAST ((klass), TYPE_COMMENT, GimvCommentClass))
-#define GIMV_IS_COMMENT(obj)         (GTK_CHECK_TYPE ((obj), GIMV_TYPE_COMMENT))
-#define GIMV_IS_COMMENT_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_COMMENT))
+#define GIMV_COMMENT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), GIMV_TYPE_COMMENT, GimvComment))
+#define GIMV_COMMENT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GIMV_TYPE_COMMENT, GimvCommentClass))
+#define GIMV_IS_COMMENT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GIMV_TYPE_COMMENT))
+#define GIMV_IS_COMMENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_COMMENT))
 
 typedef struct GimvCommentClass_Tag GimvCommentClass;
 
 struct GimvComment_Tag
 {
-   GtkObject      parent;
+   GimvObject      parent;
 
    gchar         *filename;
    GimvImageInfo *info;        /* 1:1 relation */
@@ -46,7 +46,7 @@ struct GimvComment_Tag
 };
 
 struct GimvCommentClass_Tag {
-   GtkObjectClass parent_class;
+   GimvObjectClass parent_class;
 
    /* -- Signals -- */
    void (*file_saved)   (GimvComment   *comment,
@@ -72,7 +72,7 @@ typedef struct GimvCommentDataEntry_Tag
 } GimvCommentDataEntry;
 
 
-GtkType      gimv_comment_get_type                 (void);
+GType      gimv_comment_get_type                 (void);
 
 GimvComment *gimv_comment_get_from_image_info      (GimvImageInfo *info);
 
@@ -84,6 +84,17 @@ GList       *gimv_comment_get_data_entry_list      (void);
 
 gchar       *gimv_comment_get_path                 (const gchar *img_path);
 gchar       *gimv_comment_find_file                (const gchar *img_path);
+
+/* GTK4 port: subject and note of an image's comment for the thumbnail
+   views (newly allocated, NULL if empty); FALSE if the image has no comment
+   file.  Cheap when there is none (no GimvComment is created). */
+gboolean     gimv_comment_get_summary              (GimvImageInfo *info,
+                                                    gchar        **subject,
+                                                    gchar        **note);
+/* the first non-empty line of text, at most max_chars characters
+   ("..." appended when cut); newly allocated, NULL if none */
+gchar       *gimv_comment_first_line               (const gchar   *text,
+                                                    gint           max_chars);
 GimvCommentDataEntry
             *gimv_comment_data_entry_find_template_by_key (const gchar *key);
 GimvCommentDataEntry
@@ -103,6 +114,15 @@ void          gimv_comment_data_entry_delete        (GimvCommentDataEntry *entry
 gboolean      gimv_comment_update_note              (GimvComment *comment,
                                                      gchar       *note);
 gboolean      gimv_comment_save_file                (GimvComment *comment);
+
+/* rotation of the image view kept in the comment file (hidden key
+   GIMV_COMMENT_ROTATION_KEY, degrees clockwise).  0 - 3 as
+   GimvImageViewOrientation (1 = 90 degrees counterclockwise) */
+#define GIMV_COMMENT_ROTATION_KEY "X-GImageView-Rotation"
+gboolean      gimv_comment_get_rotation             (GimvImageInfo *info,
+                                                     gint          *orientation);
+void          gimv_comment_set_rotation             (GimvImageInfo *info,
+                                                     gint           orientation);
 void          gimv_comment_delete_file              (GimvComment *comment);
 
 #endif /* __GIMV_COMMENT_H__ */

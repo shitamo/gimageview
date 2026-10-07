@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>GImageView User's Manual</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="next" href="01.html" title="1. Introduction">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">GImageView User's Manual</th></tr>
+<tr>
+<td width="20%" align="left">&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="01.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="article">
+<div class="titlepage">
+<div><h1 class="title">
+<a name="index"></a>GImageView User's Manual</h1></div>
+<div>
+<h3 class="author">Takuro Ahie</h3>
+<div class="affiliation"><div class="address"><p><tt>&lt;<a href="mailto:ashie@homa.ne.jp">ashie@homa.ne.jp</a>&gt;</tt></p></div></div>
+<h3 class="author">Nyan2</h3>
+<div class="affiliation"><div class="address"><p><tt>&lt;<a href="mailto:t-nyan2@nifty.com">t-nyan2@nifty.com</a>&gt;</tt></p></div></div>
+</div>
+<div><div class="abstract">
+<p><b>Abstract</b></p>
+<p class="para">
+GImageView User's Manual for GImageView version 0.2.27+gtk4 (GTK 4 version)
+   </p>
+</div></div>
+<hr>
+</div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl>
+<dt>1. <a href="01.html">Introduction</a>
+</dt>
+<dd><dl>
+<dt>1.1. <a href="01.html#01-01">What Is This?</a>
+</dt>
+<dt>1.2. <a href="01.html#01-02">Features</a>
+</dt>
+<dt>1.3. <a href="01.html#01-03">System Requirements</a>
+</dt>
+<dt>1.4. <a href="01.html#01-04">Getting GImageView</a>
+</dt>
+<dt>1.5. <a href="01.html#01-05">Installation</a>
+</dt>
+</dl></dd>
+<dt>2. <a href="02.html">Usage</a>
+</dt>
+<dd><dl><dt>2.1. <a href="02.html#02-01">Command Line</a>
+</dt></dl></dd>
+<dt>3. <a href="03.html">Menu Bar</a>
+</dt>
+<dd><dl>
+<dt>3.1. <a href="03.html#03-01">File</a>
+</dt>
+<dt>3.2. <a href="03.html#03-02">Edit</a>
+</dt>
+<dt>3.3. <a href="03.html#03-03">View</a>
+</dt>
+<dt>3.4. <a href="03.html#03-04">Tab</a>
+</dt>
+<dt>3.5. <a href="03.html#03-05">Action</a>
+</dt>
+<dt>3.6. <a href="03.html#03-06">Tools</a>
+</dt>
+<dt>3.7. <a href="03.html#03-07">Go</a>
+</dt>
+<dt>3.8. <a href="03.html#03-08">Movie</a>
+</dt>
+<dt>3.9. <a href="03.html#03-09">Help</a>
+</dt>
+</dl></dd>
+<dt>4. <a href="04.html">Toolbar</a>
+</dt>
+<dd><dl>
+<dt>4.1. <a href="04.html#04-01">Thumbnail Window</a>
+</dt>
+<dt>4.2. <a href="04.html#04-02">Directory View</a>
+</dt>
+<dt>4.3. <a href="04.html#04-03">Image Window</a>
+</dt>
+</dl></dd>
+<dt>5. <a href="05.html">Mouse Menus</a>
+</dt>
+<dd><dl>
+<dt>5.1. <a href="05.html#05-01">Thumbnail View</a>
+</dt>
+<dt>5.2. <a href="05.html#05-02">Tab</a>
+</dt>
+<dt>5.3. <a href="05.html#05-03">Directory View</a>
+</dt>
+<dt>5.4. <a href="05.html#05-04">Preview</a>
+</dt>
+<dt>5.5. <a href="05.html#05-05">Image View</a>
+</dt>
+</dl></dd>
+<dt>6. <a href="06.html">Preferences</a>
+</dt>
+<dd><dl>
+<dt>6.1. <a href="06.html#06-01">General</a>
+</dt>
+<dt>6.2. <a href="06.html#06-02">Image Window</a>
+</dt>
+<dt>6.3. <a href="06.html#06-03">Thumbnail Window</a>
+</dt>
+<dt>6.4. <a href="06.html#06-04">Movie and Audio</a>
+</dt>
+<dt>6.5. <a href="06.html#06-05">Slideshow</a>
+</dt>
+<dt>6.6. <a href="06.html#06-06">Thumbnail Cache</a>
+</dt>
+<dt>6.7. <a href="06.html#06-07">Comment</a>
+</dt>
+<dt>6.8. <a href="06.html#06-08">Search</a>
+</dt>
+<dt>6.9. <a href="06.html#06-09">Drag and Drop</a>
+</dt>
+<dt>6.10. <a href="06.html#06-10">External Program</a>
+</dt>
+<dt>6.11. <a href="06.html#06-11">Plugin</a>
+</dt>
+</dl></dd>
+<dt>7. <a href="07.html">Default Key Bindings</a>
+</dt>
+<dd><dl>
+<dt>7.1. <a href="07.html#07-01">Common</a>
+</dt>
+<dt>7.2. <a href="07.html#07-02">Thumbnail Window</a>
+</dt>
+<dt>7.3. <a href="07.html#07-03">Thumbnail Window / Thumbnail View</a>
+</dt>
+<dt>7.4. <a href="07.html#07-04">Thumbnail Window / Preview</a>
+</dt>
+<dt>7.5. <a href="07.html#07-05">Image Window</a>
+</dt>
+<dt>7.6. <a href="07.html#07-06">Mouse</a>
+</dt>
+</dl></dd>
+<dt>8. <a href="gimv_faq.html">GImageView FAQ</a>
+</dt>
+<dd><dl>
+<dt>8.1. <a href="gimv_faq.html#gimv_faq_01">Getting, Installing and Starting</a>
+</dt>
+<dt>8.2. <a href="gimv_faq.html#gimv_faq_02">Operation and Settings</a>
+</dt>
+<dt>8.3. <a href="gimv_faq.html#gimv_faq_03">Thumbnail Window</a>
+</dt>
+<dt>8.4. <a href="gimv_faq.html#gimv_faq_04">Tab</a>
+</dt>
+<dt>8.5. <a href="gimv_faq.html#gimv_faq_05">Directory View</a>
+</dt>
+<dt>8.6. <a href="gimv_faq.html#gimv_faq_06">Thumbnail View</a>
+</dt>
+<dt>8.7. <a href="gimv_faq.html#gimv_faq_07">Image View</a>
+</dt>
+</dl></dd>
+<dt>9. <a href="gimv_tips.html">Tips</a>
+</dt>
+<dt>10. <a href="gimv_history.html">GImageView History</a>
+</dt>
+<dt>11. <a href="todo.html">ToDo</a>
+</dt>
+<dt>12. <a href="document.html">About This Document</a>
+</dt>
+<dd><dl>
+<dt>12.1. <a href="document.html#exclusion_clause">Disclaimer</a>
+</dt>
+<dt>12.2. <a href="document.html#end">Closing Remarks</a>
+</dt>
+<dt>12.3. <a href="document.html#document_copyright">Copyright notice</a>
+</dt>
+<dt>12.4. <a href="document.html#gpl_document">GNU General Public License</a>
+</dt>
+</dl></dd>
+</dl>
+<dl><dt><a href="changelog.html">Revision History</a></dt></dl>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">&#160;</td>
+<td width="20%" align="center">&#160;</td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="01.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">&#160;</td>
+<td width="20%" align="center">&#160;</td>
+<td width="40%" align="right">&#160;1. Introduction</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

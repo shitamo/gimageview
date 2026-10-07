@@ -25,14 +25,14 @@
 #define __GIMV_ICON_STOCK_H__
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
 
-#ifdef USE_GTK2
 #  include <gdk-pixbuf/gdk-pixbuf.h>
-#endif /* USE_GTK2 */
 
 
 #define DEFAULT_ICONSET "default"
@@ -46,11 +46,13 @@ typedef struct GimvIconStockEntry_Tag
 
 
 typedef struct GimvIcon_Tag {
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
-#ifdef USE_GTK2
+   GdkTexture *pixmap;
+   GdkTexture *mask;
    GdkPixbuf *pixbuf;
-#endif /* USE_GTK2 */
+   /* GTK4 port: for icons drawn only in grays (black line art), a paintable
+      that GtkImage draws inverted when the text color is light (dark
+      themes); NULL for other icons */
+   GdkPaintable *widget_paintable;
 } GimvIcon;
 
 
@@ -60,12 +62,10 @@ GtkWidget *gimv_icon_stock_get_widget         (const gchar *icon_name);
 void       gimv_icon_stock_change_widget_icon (GtkWidget   *widget,
                                                const gchar *icon_name);
 void       gimv_icon_stock_free_icon          (const gchar *icon_name);
-void       gimv_icon_stock_set_window_icon    (GdkWindow   *window,
+void       gimv_icon_stock_set_window_icon    (GtkWidget   *window,
                                                gchar       *name);
 
-#ifdef USE_GTK2
 GdkPixbuf *gimv_icon_stock_get_pixbuf         (const gchar *icon_name);
 void       gimv_icon_stock_free_pixbuf        (const gchar *icon_name);
-#endif /* USE_GTK2 */
 
 #endif /* __GIMV_ICON_STOCK_H__ */

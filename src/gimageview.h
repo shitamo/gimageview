@@ -29,7 +29,8 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #include "intl.h"
 
@@ -38,10 +39,12 @@
 #define GIMV_PROG_VERSION  "GImageView Version "VERSION
 #define GIMV_PROG_AUTHOR   "Takuro Ashie"
 #define GIMV_PROG_ADDRESS  "ashie@homa.ne.jp"
-#define GIMV_PROG_URI      "http://gtkmmviewer.sourceforge.net/"
+#define GIMV_PROG_URI      "https://github.com/ashie/gimageview"
 #define GIMV_RC_DIR        ".gimv"
 #define GIMV_RC            "gimvrc"
-#define GIMV_GTK_RC        "gtkrc"
+#define GIMV_GTK_RC        "gtkrc"       /* GTK4: not used any more */
+#define GIMV_GTK_CSS       "gimv.css"    /* in DATADIR */
+#define GIMV_USER_GTK_CSS  "gtk.css"     /* in ~/GIMV_RC_DIR */
 #define GIMV_KEYCONF_RC    "keyconf"
 #define GIMV_KEYACCEL_RC   "keyaccelrc"
 #define BUF_SIZE      4096

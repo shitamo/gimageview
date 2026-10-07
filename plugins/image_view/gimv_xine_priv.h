@@ -43,12 +43,9 @@
 #include <pthread.h>
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
-#if (GTK_MAJOR_VERSION == 1) && (GTK_MAJOR_VERION <= 2)
-#  ifndef GDK_WINDOWING_X11
-#     define GDK_WINDOWING_X11
-#  endif
-#endif
 
 #if defined (GDK_WINDOWING_X11)
 #  include <X11/Xlib.h>
@@ -56,10 +53,9 @@
 #  include <X11/cursorfont.h>
 #  include <X11/Xatom.h>
 #  include <X11/extensions/XShm.h>
-#  include <gdk/gdkx.h>
+#  include <gdk/x11/gdkx.h>
+#  include "gimv_x11_video_window.h"
 #  define GIMV_XINE_DEFAULT_VISUAL_TYPE XINE_VISUAL_TYPE_X11
-#elif defined (GDK_WINDOWING_FB)
-#  define GIMV_XINE_DEFAULT_VISUAL_TYPE XINE_VISUAL_TYPE_FB
 #else
 #  define GIMV_XINE_DEFAULT_VISUAL_TYPE XINE_VISUAL_TYPE_NONE
 #endif
@@ -97,20 +93,41 @@ struct GimvXinePrivate_Tag
    char                    *video_driver_id;
    char                    *audio_driver_id;
 
-   xine_vo_driver_t        *vo_driver;
-   xine_ao_driver_t        *ao_driver;
+   xine_video_port_t       *vo_driver;
+   xine_audio_port_t       *ao_driver;
 
    int                      xpos, ypos;
    int                      oldwidth, oldheight;
 
+   /* GTK4: widgets have no native windows any more.  On the X11 backend
+    * the video is drawn into an X child window of the toplevel surface
+    * (use_x11 == TRUE), on other backends xine's "raw" video driver hands
+    * RGB frames to us which are drawn as a GdkTexture. */
+   gboolean                 use_x11;
+   gint                     alloc_width, alloc_height;
+
 #if defined (GDK_WINDOWING_X11)
-   Display                 *display;
+   Display                 *display;       /* xine's own connection */
+   Display                 *gdk_display;   /* GDK's connection */
    int                      screen;
    Window                   video_window;
    int                      completion_event;
+   gulong                   xevent_id;
+   gint                     win_x, win_y, win_width, win_height;
+   gboolean                 win_mapped;
+   Colormap                 video_colormap;   /* GTK4 */
 
    pthread_t                thread;
 #endif /* defined (GDK_WINDOWING_X11) */
+
+   /* raw video output (non X11 backends) */
+   GMutex                   frame_lock;
+   guchar                  *frame_buf;
+   gint                     frame_width, frame_height;
+   gdouble                  frame_aspect;
+   gboolean                 frame_changed;
+   gboolean                 frame_idle_pending;
+   GdkTexture              *frame_texture;
 
    int                       post_video_num;
    xine_post_t              *post_video;

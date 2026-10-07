@@ -31,7 +31,7 @@
 #  include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 
 #ifdef ENABLE_MPLAYER
 
@@ -39,10 +39,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define GIMV_MPLAYER(obj)            (GTK_CHECK_CAST ((obj), gimv_mplayer_get_type (), GimvMPlayer))
-#define GIMV_MPLAYER_CLASS(klass)    (GTK_CHECK_CLASS_CAST ((klass), gimv_mplayer_get_type (), GimvMPlayerClass))
-#define GIMV_IS_MPLAYER(obj)         (GTK_CHECK_TYPE (obj, gimv_mplayer_get_type ()))
-#define GIMV_IS_MPLAYER_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), gimv_mplayer_get_type ()))
+#define GIMV_MPLAYER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), gimv_mplayer_get_type (), GimvMPlayer))
+#define GIMV_MPLAYER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), gimv_mplayer_get_type (), GimvMPlayerClass))
+#define GIMV_IS_MPLAYER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_mplayer_get_type ()))
+#define GIMV_IS_MPLAYER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), gimv_mplayer_get_type ()))
 
 
 #ifdef DATADIR
@@ -126,6 +126,14 @@ struct GimvMPlayer_Tag
 
    /* media info */
    GimvMPlayerMediaInfo media_info;
+
+   /* GTK4: widgets don't own native windows any more.  On the X11 backend
+    * an X child window of the toplevel surface is created and passed to
+    * mplayer with "-wid" (0 if not available). */
+   gulong             xid;
+   gulong             colormap;   /* GTK4: of the X video window */
+   gint               win_x, win_y, win_width, win_height;
+   gboolean           win_mapped;
 };
 
 struct GimvMPlayerClass_Tag
@@ -142,7 +150,7 @@ struct GimvMPlayerClass_Tag
 };
 
 
-GtkType           gimv_mplayer_get_type              (void);
+GType           gimv_mplayer_get_type              (void);
 GtkWidget        *gimv_mplayer_new                   (void);
 gboolean          gimv_mplayer_set_file              (GimvMPlayer  *player,
                                                       const gchar  *file);

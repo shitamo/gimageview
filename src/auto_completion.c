@@ -33,13 +33,7 @@
 
 #include <string.h>
 #include <gdk/gdk.h>
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtkentry.h>
-#include <gtk/gtkframe.h>
-#include <gtk/gtkclist.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtkwindow.h>
-#include <gtk/gtkscrolledwindow.h>
+#include <gtk/gtk.h>
 
 #include "auto_completion.h"
 #include "charset.h"
@@ -60,9 +54,7 @@ static GList *ac_alternatives   = NULL;
 static GtkWidget *ac_window     = NULL;
 static GtkWidget *ac_clist      = NULL;
 static GtkWidget *ac_entry      = NULL;
-#ifdef ENABLE_TREEVIEW
 static GtkListStore *ac_list_store = NULL;
-#endif /*  ENABLE_TREEVIEW */
 
 static void 
 ac_dir_free (void)
@@ -129,7 +121,8 @@ auto_compl_get_n_alternatives (const gchar *path)
 
    if (path == NULL) return 0;
 
-   filename = g_basename (path);
+   filename = strrchr (path, '/');
+   filename = filename ? filename + 1 : path;
    if (filename && filename[0] == '.') {
       show_dot = TRUE;
       flags = flags | GETDIR_READ_DOT;
@@ -140,7 +133,7 @@ auto_compl_get_n_alternatives (const gchar *path)
    if (strcmp (path, "/") == 0)
       dir = g_strdup ("/");
    else
-      dir = g_dirname (path);
+      dir = g_path_get_dirname (path);
 
    if (!isdir (dir)) {
       g_free (dir);
@@ -267,63 +260,107 @@ auto_compl_get_alternatives (void)
 }
 
 
+/*
+ *  GTK4: the list of alternatives was a popup window placed under the entry
+ *  with pointer and keyboard grabs.  Neither window positioning nor grabs
+ *  exist any more, so a GtkPopover attached to the entry is used instead
+ *  (it is closed automatically when clicking outside of it).
+ */
 static gboolean
-ac_window_button_press_cb (GtkWidget *widget,
-                           GdkEventButton *event,
-                           gpointer *data)
+ac_window_key_press_cb (GtkEventControllerKey *controller,
+                        guint keyval,
+                        guint keycode,
+                        GdkModifierType state,
+                        gpointer data)
 {
-   GtkWidget *event_widget;
-   gint x, y, w, h;
-    
-   event_widget = gtk_get_event_widget ((GdkEvent *)event);
+   GtkWidget *entry = ac_entry;
 
-   gdk_window_get_origin (ac_window->window, &x, &y);
-   gdk_window_get_size (ac_window->window, &w, &h);
-
-   /* Checks if the button press happened inside the window, 
-    * if not closes the window. */
-   if ((event->x >= 0) && (event->x <= w)
-       && (event->y  >= 0) && (event->y <= h)) {
-      /* In window. */
-      return FALSE;
-   }
-
-   auto_compl_hide_alternatives ();
-
-   return TRUE;
-}
-
-
-static gboolean
-ac_window_key_press_cb (GtkWidget *widget,
-                        GdkEventKey *event,
-                        gpointer *data)
-{
-   if (event->keyval == GDK_Escape) {
+   if (keyval == GDK_KEY_Escape) {
       auto_compl_hide_alternatives ();
       return TRUE;
    }
 
    /* allow keyboard navigation in the alternatives clist */
-   if (event->keyval == GDK_Up 
-       || event->keyval == GDK_Down 
-       || event->keyval == GDK_Page_Up 
-       || event->keyval == GDK_Page_Down 
-       || event->keyval == GDK_space)
+   if (keyval == GDK_KEY_Up
+       || keyval == GDK_KEY_Down
+       || keyval == GDK_KEY_Page_Up
+       || keyval == GDK_KEY_Page_Down
+       || keyval == GDK_KEY_space)
       return FALSE;
-    
-   if (event->keyval == GDK_Return) {
-      event->keyval = GDK_space;
-      return FALSE;
+
+   if (keyval == GDK_KEY_Return || keyval == GDK_KEY_KP_Enter) {
+      /* the selected row is already in the entry (see cursor_changed) */
+      auto_compl_hide_alternatives ();
+      return TRUE;
    }
 
    auto_compl_hide_alternatives ();
-   gtk_widget_event (ac_entry, (GdkEvent*) event);
+
+   /* pass the key to the entry */
+   if (entry) {
+      GtkWidget *target = entry;
+
+      if (GTK_IS_EDITABLE (entry)) {
+         GtkEditable *delegate = gtk_editable_get_delegate (GTK_EDITABLE (entry));
+         if (delegate) target = GTK_WIDGET (delegate);
+      }
+      if (GTK_IS_ENTRY (entry))
+         gtk_entry_grab_focus_without_selecting (GTK_ENTRY (entry));
+      else
+         gtk_widget_grab_focus (entry);
+      gtk_event_controller_key_forward (controller, target);
+   }
+
    return TRUE;
 }
 
 
-#ifdef ENABLE_TREEVIEW
+static void
+cb_ac_popover_closed (GtkPopover *popover, gpointer data)
+{
+   if (ac_entry && GTK_IS_ENTRY (ac_entry))
+      gtk_entry_grab_focus_without_selecting (GTK_ENTRY (ac_entry));
+}
+
+
+static void ac_window_destroy (void);
+
+static void
+cb_ac_entry_destroy (GtkWidget *entry, gpointer data)
+{
+   if (entry == ac_entry)
+      ac_window_destroy ();
+}
+
+
+static void
+ac_window_destroy (void)
+{
+   if (ac_entry)
+      g_signal_handlers_disconnect_by_func (ac_entry,
+                                            (gpointer) cb_ac_entry_destroy,
+                                            NULL);
+   if (ac_window)
+      gtk_widget_unparent (ac_window);   /* destroys the popover */
+
+   if (ac_list_store)
+      g_object_unref (ac_list_store);
+
+   ac_window = NULL;
+   ac_clist = NULL;
+   ac_list_store = NULL;
+   ac_entry = NULL;
+}
+
+
+static const gchar *
+ac_basename (const gchar *path)
+{
+   const gchar *p = strrchr (path, '/');
+   return p ? p + 1 : path;
+}
+
+
 static void
 cb_tree_cursor_changed (GtkTreeView *treeview, gpointer data)
 {
@@ -332,71 +369,61 @@ cb_tree_cursor_changed (GtkTreeView *treeview, gpointer data)
    GtkTreeIter iter;
    gchar *text, *full_path;
 
+   /* GTK4: also emitted while the tree view is disposed (without model) */
+   if (!gtk_tree_view_get_model (treeview)) return;
+
    g_return_if_fail (GTK_IS_TREE_VIEW (treeview));
 
+   if (!ac_entry) return;
+
    selection = gtk_tree_view_get_selection (treeview);
-   gtk_tree_selection_get_selected (selection, &model, &iter);
+   if (!gtk_tree_selection_get_selected (selection, &model, &iter)) return;
    gtk_tree_model_get (model, &iter,
                        0, &text,
                        -1);
    if (!text) return;
 
    full_path = g_strconcat (ac_dir, "/", text, NULL);
-   gtk_entry_set_text (GTK_ENTRY (ac_entry), full_path);
+   gtk_editable_set_text (GTK_EDITABLE (ac_entry), full_path);
 
    g_free (text);
    g_free (full_path);
 
    gtk_editable_set_position (GTK_EDITABLE (ac_entry), -1);
 }
-#else /* ENABLE_TREEVIEW */
-static void 
-ac_clist_select_row_cb (GtkCList *clist,
-                        gint row, 
-                        gint column,
-                        GdkEventButton *event,
-                        gpointer *data)
-{
-   gchar *text;
-   gchar *full_path;
-
-   auto_compl_hide_alternatives ();
-
-   gtk_clist_get_text (GTK_CLIST (ac_clist), row, column, &text);
-   full_path = g_strconcat (ac_dir, "/", text, NULL);
-   gtk_entry_set_text (GTK_ENTRY (ac_entry), full_path);
-   g_free (full_path);
-
-#ifdef USE_GTK2
-   gtk_editable_set_position (GTK_EDITABLE (ac_entry), -1);
-#endif
-}
-#endif /* ENABLE_TREEVIEW */
 
 
 /* displays a list of alternatives under the entry widget. */
 void
 auto_compl_show_alternatives (GtkWidget *entry)
 {
-   gint x, y, w, h;
    GList *scan;
-   gint n, width;
+   gint n;
+
+   g_return_if_fail (GTK_IS_WIDGET (entry));
+
+   /* the popover is attached to an entry: recreate it for another entry */
+   if (ac_window && ac_entry != entry)
+      ac_window_destroy ();
 
    if (ac_window == NULL) {
       GtkWidget *scroll;
-      GtkWidget *frame;
+      GtkEventController *key;
 
-      ac_window = gtk_window_new (GTK_WINDOW_POPUP);
+      ac_window = gtk_popover_new ();
+      gtk_popover_set_has_arrow (GTK_POPOVER (ac_window), FALSE);
+      gtk_popover_set_position (GTK_POPOVER (ac_window), GTK_POS_BOTTOM);
+      gtk_popover_set_autohide (GTK_POPOVER (ac_window), TRUE);
 
-#ifdef ENABLE_TREEVIEW
       {
          GtkTreeViewColumn *col;
          GtkCellRenderer *render;
 
          ac_list_store = gtk_list_store_new (1, G_TYPE_STRING);
          ac_clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (ac_list_store));
-         gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (ac_clist), TRUE);
+         /* GTK4: gtk_tree_view_set_rules_hint () removed */
          gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (ac_clist), FALSE);
+         gtk_tree_view_set_enable_search (GTK_TREE_VIEW (ac_clist), FALSE);
 
          col = gtk_tree_view_column_new();
          render = gtk_cell_renderer_text_new ();
@@ -405,56 +432,38 @@ auto_compl_show_alternatives (GtkWidget *entry)
 
          gtk_tree_view_append_column (GTK_TREE_VIEW (ac_clist), col);
       }
-#else /* ENABLE_TREEVIEW */
-      {
-         GdkFont *font;
-         gint row_height;
-         ac_clist = gtk_clist_new (1);
-         font = gtk_style_get_font (GTK_WIDGET (ac_clist)->style);
-         row_height = (font->ascent  + font->descent  + CLIST_ROW_PAD); 
-         gtk_clist_set_row_height (GTK_CLIST (ac_clist), row_height);
-      }
-#endif /* ENABLE_TREEVIEW */
 
-      scroll = gtk_scrolled_window_new (NULL, NULL);
+      scroll = gimv_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
+      gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scroll), TRUE);
 
-      frame = gtk_frame_new (NULL);
-      gtk_frame_set_shadow_type (GTK_FRAME (frame), GTK_SHADOW_ETCHED_IN);
+      gtk_popover_set_child (GTK_POPOVER (ac_window), scroll);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll), ac_clist);
 
-      gtk_container_add (GTK_CONTAINER (ac_window), frame);
-      gtk_container_add (GTK_CONTAINER (frame), scroll);
-      gtk_container_add (GTK_CONTAINER (scroll), ac_clist);
+      key = gtk_event_controller_key_new ();
+      gtk_event_controller_set_propagation_phase (key, GTK_PHASE_CAPTURE);
+      g_signal_connect (key, "key-pressed",
+                        G_CALLBACK (ac_window_key_press_cb), NULL);
+      gtk_widget_add_controller (ac_window, key);
 
-      gtk_signal_connect (GTK_OBJECT (ac_window),
-                          "button-press-event",
-                          GTK_SIGNAL_FUNC(ac_window_button_press_cb),
-                          NULL);
-      gtk_signal_connect (GTK_OBJECT (ac_window),
-                          "key-press-event",
-                          GTK_SIGNAL_FUNC(ac_window_key_press_cb),
-                          NULL);
+      g_signal_connect (ac_window, "closed",
+                        G_CALLBACK (cb_ac_popover_closed), NULL);
 
-#ifdef ENABLE_TREEVIEW
       g_signal_connect (G_OBJECT (ac_clist),
                         "cursor_changed",
                         G_CALLBACK (cb_tree_cursor_changed),
                         NULL);
-#else /* ENABLE_TREEVIEW */
-      gtk_signal_connect (GTK_OBJECT (ac_clist), 
-                          "select_row", 
-                          GTK_SIGNAL_FUNC(ac_clist_select_row_cb), 
-                          NULL);
-#endif /* ENABLE_TREEVIEW */
+
+      gtk_widget_set_parent (ac_window, entry);
+      g_signal_connect (entry, "destroy",
+                        G_CALLBACK (cb_ac_entry_destroy), NULL);
    }
 
    ac_entry = entry;
-   width = 0;
    n = 0;
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeIter iter;
 
@@ -463,7 +472,7 @@ auto_compl_show_alternatives (GtkWidget *entry)
       for (scan = ac_alternatives; scan; scan = scan->next) {
          gtk_list_store_append (ac_list_store, &iter);
          gtk_list_store_set (ac_list_store, &iter,
-                             0, g_basename (scan->data),
+                             0, ac_basename (scan->data),
                              -1);
 
          if (n == 0) {
@@ -482,56 +491,26 @@ auto_compl_show_alternatives (GtkWidget *entry)
          n++;
       }
    }
-#else /* ENABLE_TREEVIEW */
-   gtk_clist_freeze (GTK_CLIST (ac_clist));
-   gtk_clist_clear (GTK_CLIST (ac_clist));
 
-   for (scan = ac_alternatives; scan; scan = scan->next) {
-      gchar *text[] = {NULL, NULL};
+   /* GTK4: the popover is placed under the entry (no window positioning) */
+   gtk_widget_set_size_request (ac_window,
+                                MAX (gtk_widget_get_width (entry), 100), -1);
+   gtk_widget_set_size_request (gtk_popover_get_child (GTK_POPOVER (ac_window)),
+                                -1, 200);
+   gtk_popover_popup (GTK_POPOVER (ac_window));
 
-      text[0] = (gchar *) g_basename (scan->data);
-
-      gtk_clist_append (GTK_CLIST (ac_clist), text);
-      width = MAX (width,
-                   gdk_string_width (
-                      gtk_style_get_font (GTK_WIDGET (ac_clist)->style), 
-                      text[0]));
-
-      n++;
-   }
-
-   gtk_clist_set_column_width (GTK_CLIST (ac_clist), 0, width);
-   gtk_clist_thaw (GTK_CLIST (ac_clist));
-#endif /* ENABLE_TREEVIEW */
-
-   gdk_window_get_geometry (entry->window, &x, &y, &w, &h, NULL);
-   gdk_window_get_deskrelative_origin (entry->window, &x, &y);
-   gtk_widget_set_uposition (ac_window, x, y + h);
-   gtk_widget_set_usize (ac_window, w, 200);
-
-   gtk_widget_show_all (ac_window);
-   gdk_pointer_grab (ac_window->window, 
-                     TRUE,
-                     (GDK_POINTER_MOTION_MASK 
-                      | GDK_BUTTON_PRESS_MASK 
-                      | GDK_BUTTON_RELEASE_MASK),
-                     NULL, 
-                     NULL, 
-                     GDK_CURRENT_TIME);
-   gdk_keyboard_grab (ac_window->window,
-                      FALSE,
-                      GDK_CURRENT_TIME);
-   gtk_grab_add (ac_window);
+   /* focusing the tree view may move its cursor: don't touch the entry */
+   g_signal_handlers_block_by_func (ac_clist, (gpointer) cb_tree_cursor_changed,
+                                    NULL);
+   gtk_widget_grab_focus (ac_clist);
+   g_signal_handlers_unblock_by_func (ac_clist,
+                                      (gpointer) cb_tree_cursor_changed, NULL);
 }
 
 
 void
 auto_compl_hide_alternatives (void)
 {
-   if (ac_window && GTK_WIDGET_VISIBLE (ac_window)) {
-      gdk_pointer_ungrab (GDK_CURRENT_TIME);
-      gdk_keyboard_ungrab (GDK_CURRENT_TIME);
-      gtk_grab_remove (ac_window);
-      gtk_widget_hide (ac_window);
-   }
+   if (ac_window && gtk_widget_get_visible (GTK_WIDGET (ac_window)))
+      gtk_popover_popdown (GTK_POPOVER (ac_window));
 }

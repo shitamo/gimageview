@@ -11,7 +11,7 @@ msgstr ""
 "Last-Translator: Takuro Ashie <ashie@homa.ne.jp>\n"
 "Language-Team: Japanese <ashie@homa.ne.jp>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: etc/gimageview.desktop.in.h:1 plugins/thumbnail/gimv_thumb.c:84
@@ -20,82 +20,82 @@ msgstr "GImageView"
 
 #: etc/gimageview.desktop.in.h:2
 msgid "Image Viewer"
-msgstr "²èÁü±ÜÍ÷¥½¥Õ¥È"
+msgstr "ç”»åƒé–²è¦§ã‚½ãƒ•ãƒˆ"
 
 #. file load
 #: src/argparse.c:39
-msgid "Scan directory at start up"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤òÆÉ¤ß¹ş¤à"
+msgid "Scan a directory at startup"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’èª­ã¿è¾¼ã‚€"
 
 #: src/argparse.c:40
-msgid "Scan directory recursively (use with \"-d\")"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤òºÆµ¢Åª¤Ë¼èÆÀ(\"-d\"¤È¶¦¤Ë»ÈÍÑ)"
+msgid "Scan directories recursively (use with \"-d\")"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å†å¸°çš„ã«å–å¾—(\"-d\"ã¨å…±ã«ä½¿ç”¨)"
 
 #: src/argparse.c:41
-msgid "Read dotfile when scanning directory (use with \"-d\")"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êÁöºº»ş¤Ë¥É¥Ã¥È¥Õ¥¡¥¤¥ë¤âÆÉ¤ß¹ş¤à"
+msgid "Read dotfiles when scanning directories (use with \"-d\")"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªèµ°æŸ»æ™‚ã«ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚‚èª­ã¿è¾¼ã‚€"
 
 #. Ignore filename extension or not
 #: src/argparse.c:42 src/prefs_ui/prefs_ui_common.c:809
 msgid "Ignore file name extension"
-msgstr "³ÈÄ¥»Ò¤òÌµ»ë¤¹¤ë"
+msgstr "æ‹¡å¼µå­ã‚’ç„¡è¦–ã™ã‚‹"
 
 #. image window
 #: src/argparse.c:45
-msgid "Specify image scale on image window [%]"
-msgstr "¥¤¥á¡¼¥¸¥Ó¥å¡¼¤Ç¤Î²èÁü³ÈÂçÎ¨¤ò»ØÄê(%)"
+msgid "Image scale in the image window [%]"
+msgstr "ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã§ã®ç”»åƒæ‹¡å¤§ç‡ã‚’æŒ‡å®š(%)"
 
 #: src/argparse.c:46
-msgid "Keep original image on memory or not"
-msgstr "¸µ¤Î²èÁü¤ò¥á¥â¥ê¤ËÊİ»ı¤¹¤ë¤«Èİ¤«"
+msgid "Keep the original image in memory"
+msgstr "å…ƒã®ç”»åƒã‚’ãƒ¡ãƒ¢ãƒªã«ä¿æŒã™ã‚‹ã‹å¦ã‹"
 
 #: src/argparse.c:47
-msgid "Show menu bar on image view window"
-msgstr "¥¤¥á¡¼¥¸¥Ó¥å¡¼¤Ë¥á¥Ë¥å¡¼¥Ğ¡¼¤òÉ½¼¨"
+msgid "Show the menubar in the image window"
+msgstr "ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã«ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼ã‚’è¡¨ç¤º"
 
 #: src/argparse.c:48
-msgid "Show tool bar on image view window"
-msgstr "¥¤¥á¡¼¥¸¥Ó¥å¡¼¤Ë¥Ä¡¼¥ë¥Ğ¡¼¤òÉ½¼¨"
+msgid "Show the toolbar in the image window"
+msgstr "ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã«ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’è¡¨ç¤º"
 
 #.
 #: src/argparse.c:51
-msgid "Open empty image window at start up"
-msgstr "¶õ¤Î¥¤¥á¡¼¥¸¥¦¥£¥ó¥É¥¦¤ò³«¤¯"
+msgid "Open an empty image window at startup"
+msgstr "ç©ºã®ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‹ã"
 
 #: src/argparse.c:52
-msgid "Open thumbnail window at start up"
-msgstr "¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦¤ò³«¤¯"
+msgid "Open the thumbnail window at startup"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‹ã"
 
 #. default window
 #: src/argparse.c:55
-msgid "Open all images in imageview window"
-msgstr "Á´¤Æ¤Î²èÁü¤ò¥¤¥á¡¼¥¸¥Ó¥å¡¼¤Ç³«¤¯"
+msgid "Open all images in the image window"
+msgstr "å…¨ã¦ã®ç”»åƒã‚’ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã§é–‹ã"
 
 #: src/argparse.c:56
-msgid "Open all images in thumbnail window"
-msgstr "Á´¤Æ¤Î²èÁü¤ò¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼¤Ç³«¤¯"
+msgid "Open all images in the thumbnail window"
+msgstr "å…¨ã¦ã®ç”»åƒã‚’ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼ã§é–‹ã"
 
 #: src/argparse.c:57
-msgid "Open images files in slide show"
-msgstr "²èÁü¤ò¥¹¥é¥¤¥É¥·¥ç¡¼¤Ç³«¤¯"
+msgid "Open the image files in a slideshow"
+msgstr "ç”»åƒã‚’ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã§é–‹ã"
 
 #: src/argparse.c:58
-msgid "Interval of slideshow (use with \"-S\") [sec]"
-msgstr "¥¹¥é¥¤¥É¥·¥ç¡¼¤Î²èÁüÀÚÂØ¤¨´Ö³Ö (\"-S¤È¶¦¤Ë»ÈÍÑ\") [sec]"
+msgid "Slideshow interval (use with \"-S\") [sec]"
+msgstr "ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã®ç”»åƒåˆ‡æ›¿ãˆé–“éš” (\"-S\"ã¨å…±ã«ä½¿ç”¨) [sec]"
 
 #. etc
 #: src/argparse.c:61
-msgid "Print version infomation"
-msgstr "¥Ğ¡¼¥¸¥ç¥ó¾ğÊó¤òÉ½¼¨"
+msgid "Print version information"
+msgstr "ãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±ã‚’è¡¨ç¤º"
 
 #: src/argparse.c:62
 msgid "Show this message"
-msgstr "¤³¤Î¥á¥Ã¥»¡¼¥¸¤òÉ½¼¨"
+msgstr "ã“ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤º"
 
 #: src/argparse.c:141
 #, c-format
 msgid "Unknown option: \"-%s\"\n"
-msgstr "Ì¤ÃÎ¤Î¥ª¥×¥·¥ç¥ó: \"-%s\"\n"
+msgstr "æœªçŸ¥ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³: \"-%s\"\n"
 
 #: src/argparse.c:161
 msgid ""
@@ -117,34 +117,34 @@ msgid ""
 msgstr ""
 "Copyright (C) 2001 Takuro Ashie\n"
 "\n"
-"Usage: %s [¥ª¥×¥·¥ç¥ó...] [²èÁü¥Õ¥¡¥¤¥ëÌ¾...]\n"
+"Usage: %s [ã‚ªãƒ—ã‚·ãƒ§ãƒ³...] [ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«å...]\n"
 "\n"
 
 #. error
 #: src/argparse.c:261
 #, c-format
 msgid "Unknown option: \"--%s\"\n"
-msgstr "Ì¤ÃÎ¤Î¥ª¥×¥·¥ç¥ó: \"--%s\"\n"
+msgstr "æœªçŸ¥ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³: \"--%s\"\n"
 
 #: src/argparse.c:317
 #, c-format
 msgid "Unknown option: \"-%c\"\n"
-msgstr "Ì¤ÃÎ¤Î¥ª¥×¥·¥ç¥ó: \"-%c\"\n"
+msgstr "æœªçŸ¥ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³: \"-%c\"\n"
 
 #: src/charset.c:145 src/prefs_ui/prefs_ui_imagewin.c:138
 #: src/prefs_ui/prefs_ui_thumbwin.c:135 src/prefs_ui/prefs_ui_thumbwin.c:144
 #: src/prefs_ui/prefs_ui_thumbwin.c:154 src/prefs_ui/prefs_ui_thumbwin.c:168
 #: src/prefs_ui/prefs_ui_thumbwin.c:179
 msgid "None"
-msgstr "¤Ê¤·"
+msgstr "ãªã—"
 
 #: src/charset.c:146
 msgid "Japanese"
-msgstr "ÆüËÜ¸ì"
+msgstr "æ—¥æœ¬èª"
 
 #: src/compare_filesize.c:60
 msgid "File Size"
-msgstr "¥Õ¥¡¥¤¥ë¥µ¥¤¥º"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º"
 
 #: src/compare_md5.c:152
 msgid "md5sum"
@@ -152,19 +152,19 @@ msgstr "md5sum"
 
 #: src/compare_similar.c:305
 msgid "Similarity"
-msgstr "Îà»÷ÅÙ"
+msgstr "é¡ä¼¼åº¦"
 
 #: src/dirview.c:212
-msgid "/_Load Thumbnail"
-msgstr "/¥µ¥à¥Í¥¤¥ëÆÉ¤ß¹ş¤ß(_L)"
+msgid "/_Load Thumbnails"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«èª­ã¿è¾¼ã¿(_L)"
 
 #: src/dirview.c:213
-msgid "/Load Thumbnail re_cursively"
-msgstr "/¥µ¥à¥Í¥¤¥ë¤òºÆµ¢Åª¤ËÆÉ¤ß¹ş¤ß(_C)"
+msgid "/Load Thumbnails Re_cursively"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚’å†å¸°çš„ã«èª­ã¿è¾¼ã¿(_C)"
 
 #: src/dirview.c:214
-msgid "/Load Thumbnail recursively in _one tab"
-msgstr "/¥µ¥à¥Í¥¤¥ë¤ò1¥¿¥ÖÆâ¤ËºÆµ¢ÆÉ¤ß¹ş¤ß(_C)"
+msgid "/Load Thumbnails Recursively in _One Tab"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚’1ã‚¿ãƒ–å†…ã«å†å¸°èª­ã¿è¾¼ã¿(_C)"
 
 #: src/dirview.c:215 src/dirview.c:218 src/dirview.c:220 src/dnd.c:64
 #: src/dnd.c:68 src/gimv_image_view.c:281 src/gimv_image_view.c:283
@@ -178,33 +178,33 @@ msgid "/---"
 msgstr "/---"
 
 #: src/dirview.c:216
-msgid "/_Go to here"
-msgstr "/¥È¥Ã¥×¤ò¤³¤³¤ËÊÑ¹¹(_G)"
+msgid "/_Go Here"
+msgstr "/ãƒˆãƒƒãƒ—ã‚’ã“ã“ã«å¤‰æ›´(_G)"
 
 #: src/dirview.c:217
 msgid "/_Refresh Tree"
-msgstr "/¥Ä¥ê¡¼¹¹¿·(_R)"
+msgstr "/ãƒ„ãƒªãƒ¼æ›´æ–°(_R)"
 
 #: src/dirview.c:219 src/gimv_thumb_view.c:189
-msgid "/_Property..."
-msgstr "/¥×¥í¥Ñ¥Æ¥£(_P)..."
+msgid "/_Properties..."
+msgstr "/ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£(_P)..."
 
 #: src/dirview.c:221
 msgid "/_Make Directory..."
-msgstr "/¥Ç¥£¥ì¥¯¥È¥êºîÀ®(_M)..."
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä½œæˆ(_M)..."
 
 #: src/dirview.c:222
 msgid "/Re_name Directory..."
-msgstr "/¥Ç¥£¥ì¥¯¥È¥êÌ¾ÊÑ¹¹(_N)..."
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåå¤‰æ›´(_N)..."
 
 #: src/dirview.c:223
 msgid "/_Delete Directory..."
-msgstr "/¥Ç¥£¥ì¥¯¥È¥êºï½ü(_D)..."
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤(_D)..."
 
 #: src/dirview.c:1526 src/fileload.c:442 src/gimv_thumb_view.c:1079
 #, c-format
 msgid "Permission denied: %s"
-msgstr "µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó : %s"
+msgstr "è¨±å¯ãŒã‚ã‚Šã¾ã›ã‚“ : %s"
 
 #. gtk_object_remove_data (GTK_OBJECT (archive), "progress-bar");
 #: src/dirview.c:1529 src/exif_view.c:246 src/exif_view.c:253
@@ -227,54 +227,54 @@ msgstr "µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó : %s"
 #: plugins/image_view/image_view_xine.c:725
 #: plugins/image_view/image_view_xine.c:737
 #: plugins/image_view/image_view_xine.c:763
-msgid "Error!!"
-msgstr "¥¨¥é¡¼!!"
+msgid "Error!"
+msgstr "ã‚¨ãƒ©ãƒ¼!!"
 
 #: src/dirview.c:1988 src/dirview.c:1989 src/dirview.c:1990
 msgid "Home"
-msgstr "¥Û¡¼¥à"
+msgstr "ãƒ›ãƒ¼ãƒ "
 
 #: src/dirview.c:1998 src/dirview.c:1999 src/dirview.c:2000
 #: src/gimv_elist.c:985
 msgid "Up"
-msgstr "¾å¤Ø"
+msgstr "ä¸Šã¸"
 
 #: src/dirview.c:2008 src/dirview.c:2009 src/dirview.c:2010
 msgid "Refresh"
-msgstr "¹¹¿·"
+msgstr "æ›´æ–°"
 
 #: src/dirview.c:2018
-msgid "Dotfile"
-msgstr "¥É¥Ã¥È¥Õ¥¡¥¤¥ë"
+msgid "Dotfiles"
+msgstr "ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«"
 
 #: src/dirview.c:2019 src/dirview.c:2020
-msgid "Show/Hide dotfile"
-msgstr "¥É¥Ã¥È¥Õ¥¡¥¤¥ëÉ½¼¨/ÈóÉ½¼¨"
+msgid "Show/Hide dotfiles"
+msgstr "ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«è¡¨ç¤º/éè¡¨ç¤º"
 
 #: src/dnd.c:63
-msgid "/Open in new tab"
-msgstr "/¿·µ¬¥¿¥Ö¤Ç³«¤¯"
+msgid "/Open in New Tab"
+msgstr "/æ–°è¦ã‚¿ãƒ–ã§é–‹ã"
 
 #: src/dnd.c:65
 msgid "/Move"
-msgstr "/°ÜÆ°"
+msgstr "/ç§»å‹•"
 
 #: src/dnd.c:66
 msgid "/Copy"
-msgstr "/¥³¥Ô¡¼"
+msgstr "/ã‚³ãƒ”ãƒ¼"
 
 #: src/dnd.c:67
 msgid "/Symbolic Link"
-msgstr "/¥·¥ó¥Ü¥ê¥Ã¥¯¥ê¥ó¥¯"
+msgstr "/ã‚·ãƒ³ãƒœãƒªãƒƒã‚¯ãƒªãƒ³ã‚¯"
 
 #: src/dnd.c:69
 msgid "/Cancel"
-msgstr "/¥­¥ã¥ó¥»¥ë"
+msgstr "/ã‚­ãƒ£ãƒ³ã‚»ãƒ«"
 
 #: src/exif_view.c:147
 #, c-format
 msgid "%s EXIF data"
-msgstr "%s EXIF¥Ç¡¼¥¿"
+msgstr "%s EXIFãƒ‡ãƒ¼ã‚¿"
 
 #. button
 #.
@@ -286,19 +286,19 @@ msgstr "%s EXIF¥Ç¡¼¥¿"
 #.
 #: src/exif_view.c:159 src/fileload.c:1079
 msgid "Close"
-msgstr "ÊÄ¤¸¤ë"
+msgstr "é–‰ã˜ã‚‹"
 
 #: src/exif_view.c:239
 msgid "Tag"
-msgstr "¥¿¥°"
+msgstr "ã‚¿ã‚°"
 
 #: src/exif_view.c:239 src/gimv_comment_view.c:531
 msgid "Value"
-msgstr "ÃÍ"
+msgstr "å€¤"
 
 #: src/exif_view.c:246 src/exif_view.c:253
 msgid "EXIF data not found."
-msgstr "EXIF¥Ç¡¼¥¿¤ÏÂ¸ºß¤·¤Ş¤»¤ó¡¥"
+msgstr "EXIFãƒ‡ãƒ¼ã‚¿ã¯å­˜åœ¨ã—ã¾ã›ã‚“ï¼"
 
 #. Thumbnail page
 #. radio button
@@ -308,29 +308,29 @@ msgstr "EXIF¥Ç¡¼¥¿¤ÏÂ¸ºß¤·¤Ş¤»¤ó¡¥"
 #: src/exif_view.c:344 src/gimv_dupl_win.c:281
 #: plugins/image_view/prefs_mplayer.c:303 plugins/image_view/prefs_xine.c:256
 msgid "Thumbnail"
-msgstr "¥µ¥à¥Í¥¤¥ë"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«"
 
 #: src/fileload.c:204
 msgid "*Loading Image Files* - GImageView - "
-msgstr "*²èÁü¥Õ¥¡¥¤¥ë¥í¡¼¥ÉÃæ* - GImageView - "
+msgstr "*ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ãƒ­ãƒ¼ãƒ‰ä¸­* - GImageView - "
 
 #. label
 #: src/fileload.c:210
-msgid "Now Opening Image Files..."
-msgstr "²èÁü¥Õ¥¡¥¤¥ë¤ò¥í¡¼¥ÉÃæ ..."
+msgid "Opening image files..."
+msgstr "ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰ä¸­ ..."
 
 #. cancel button
 #: src/fileload.c:223 src/gimv_thumb_win.c:1609 src/gtk_prop.c:223
 #: src/gtkutils.c:671
 msgid "Skip"
-msgstr "¥¹¥­¥Ã¥×"
+msgstr "ã‚¹ã‚­ãƒƒãƒ—"
 
 #. stop button
 #. close button
 #: src/fileload.c:230 src/gimv_image_view.c:2192 src/gimv_image_view.c:2193
 #: src/gimv_image_win.c:1008 src/gimv_thumb_win.c:1621 src/gimv_dupl_win.c:306
 msgid "Stop"
-msgstr "Ãæ»ß"
+msgstr "ä¸­æ­¢"
 
 #: src/fileload.c:311 src/gfileutil.c:185 src/gfileutil.c:187
 #, c-format
@@ -339,65 +339,65 @@ msgstr "filename = %s\n"
 
 #: src/fileload.c:315
 #, c-format
-msgid "The file is archive: %s\n"
-msgstr "¤³¤Î¥Õ¥¡¥¤¥ë¤Ï¥¢¡¼¥«¥¤¥Ö¤Ç¤¹: %s\n"
+msgid "The file is an archive: %s\n"
+msgstr "ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã¯ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã§ã™: %s\n"
 
 #: src/fileload.c:496
 #, c-format
 msgid "No image files in this directory: %s\n"
-msgstr "¤³¤Î¥Ç¥£¥ì¥¯¥È¥ê¤Ë¤Ï²èÁü¥Õ¥¡¥¤¥ë¤¬Â¸ºß¤·¤Ş¤»¤ó: %s\n"
+msgstr "ã“ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ã¯ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ã¾ã›ã‚“: %s\n"
 
 #: src/fileload.c:588
-msgid "Command not found!!\n"
-msgstr "¥³¥Ş¥ó¥É¤¬Â¸ºß¤·¤Ş¤»¤ó\n"
+msgid "Command not found!\n"
+msgstr "ã‚³ãƒãƒ³ãƒ‰ãŒå­˜åœ¨ã—ã¾ã›ã‚“\n"
 
 #: src/fileload.c:591
 msgid "Canceled"
-msgstr "¥­¥ã¥ó¥»¥ë¤µ¤ì¤Ş¤·¤¿"
+msgstr "ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸ"
 
 #: src/fileload.c:592
 msgid ""
 "Processing the archive file was\n"
-"canceled by user."
+"canceled by the user."
 msgstr ""
-"¥¢¡¼¥«¥¤¥Ö¥Õ¥¡¥¤¥ë¤Î½èÍı¤Ï¥æ¡¼¥¶¡¼¤Ë¤è¤Ã¤Æ\n"
-"¥­¥ã¥ó¥»¥ë¤µ¤ì¤Ş¤·¤¿"
+"ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®å‡¦ç†ã¯ãƒ¦ãƒ¼ã‚¶ãƒ¼ã«ã‚ˆã£ã¦\n"
+"ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸ"
 
 #: src/fileload.c:596
-msgid "An error occured while processing archive file...\n"
-msgstr "¥¢¡¼¥«¥¤¥Ö¥Õ¥¡¥¤¥ë¤ò½èÍıÃæ¤Ë¥¨¥é¡¼¤¬È¯À¸¤·¤Ş¤·¤¿...\n"
+msgid "An error occurred while processing the archive file.\n"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‡¦ç†ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ...\n"
 
 #: src/fileload.c:598
 msgid ""
-"An error occured while processing\n"
-"archive file..."
+"An error occurred while processing\n"
+"the archive file."
 msgstr ""
-"¥¢¡¼¥«¥¤¥Ö¥Õ¥¡¥¤¥ë½èÍıÃæ¤Ë¥¨¥é¡¼¤¬\n"
-"È¯À¸¤·¤Ş¤·¤¿"
+"ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«å‡¦ç†ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒ\n"
+"ç™ºç”Ÿã—ã¾ã—ãŸ"
 
 #: src/fileload.c:719
 msgid "Cannot load this archive file.\n"
-msgstr "¤³¤Î¥¢¡¼¥«¥¤¥Ö¥Õ¥¡¥¤¥ë¤ò³«¤¯»ö¤¬¤Ç¤­¤Ş¤»¤ó\n"
+msgstr "ã“ã®ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãäº‹ãŒã§ãã¾ã›ã‚“\n"
 
 #: src/fileload.c:952
-msgid "File name not specified!!\n"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾¤¬»ØÄê¤µ¤ì¤Æ¤¤¤Ş¤»¤ó!!\n"
+msgid "No file name specified!\n"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«åãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“!!\n"
 
 #: src/fileload.c:974
-msgid "Not an image (or unsupported) file!!\n"
-msgstr "¥µ¥İ¡¼¥È¤µ¤ì¤Æ¤¤¤Ê¤¤·Á¼°¤Ç¤¹: %s\n"
+msgid "Not an image file (or an unsupported format)!\n"
+msgstr "ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„å½¢å¼ã§ã™: %s\n"
 
 #: src/fileload.c:1013
 msgid "Load file(s)"
-msgstr "¥Õ¥¡¥¤¥ë¤ò³«¤¯"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã"
 
 #: src/fileload.c:1056
 msgid "Open selected files"
-msgstr "ÁªÂò¤·¤¿¥Õ¥¡¥¤¥ë¤ò³«¤¯"
+msgstr "é¸æŠã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã"
 
 #: src/fileload.c:1063
-msgid "Thumbnail for selected files"
-msgstr "ÁªÂò¤·¤¿¥Õ¥¡¥¤¥ë¤Î¥µ¥à¥Í¥¤¥ë"
+msgid "Thumbnails of the selected files"
+msgstr "é¸æŠã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µãƒ ãƒã‚¤ãƒ«"
 
 #: src/gfileutil.c:152 src/gfileutil.c:154
 #, c-format
@@ -413,374 +413,350 @@ msgstr "dirname  = %s\n"
 #: src/gfileutil.c:1198
 #, c-format
 msgid ""
-"Can't find source file :\n"
+"Can't find the source file:\n"
 "%s"
 msgstr ""
-"¸µ¤Î¥Õ¥¡¥¤¥ë¤¬Â¸ºß¤·¤Ş¤»¤ó :\n"
+"å…ƒã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ã¾ã›ã‚“ :\n"
 "%s"
 
 #: src/gfileutil.c:474 src/gfileutil.c:496
 #, c-format
 msgid ""
-"Can't move file : %s\n"
+"Can't move file: %s\n"
 "Permission denied: %s\n"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¤ò°ÜÆ°¤Ç¤­¤Ş¤»¤ó : %s\n"
-"µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó : %s\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç§»å‹•ã§ãã¾ã›ã‚“ : %s\n"
+"è¨±å¯ãŒã‚ã‚Šã¾ã›ã‚“ : %s\n"
 
 #: src/gfileutil.c:545 src/gfileutil.c:1001
 #, c-format
 msgid ""
-"Same file :\n"
+"Same file:\n"
 "%s"
 msgstr ""
-"Æ±¤¸¥Õ¥¡¥¤¥ë¤Ç¤¹ :\n"
+"åŒã˜ãƒ•ã‚¡ã‚¤ãƒ«ã§ã™ :\n"
 "%s"
 
 #: src/gfileutil.c:553 src/gfileutil.c:1231 src/gfileutil.c:1887
 #, c-format
-msgid "File exist : %s"
-msgstr "¥Õ¥¡¥¤¥ë¤¬Â¸ºß¤·¤Ş¤¹ : %s"
+msgid "File exists: %s"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ã¾ã™ : %s"
 
 #: src/gfileutil.c:554
-msgid "ERROR!!"
-msgstr "¥¨¥é¡¼!!"
+msgid "ERROR!"
+msgstr "ã‚¨ãƒ©ãƒ¼!!"
 
 #: src/gfileutil.c:558 src/gfileutil.c:1009
 #, c-format
 msgid ""
-"The file exists : %s\n"
+"The file exists: %s\n"
 "Overwrite?"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¤ÏÂ¸ºß¤·¤Ş¤¹ : %s\n"
-"¾å½ñ¤­¤·¤Ş¤¹¤«?"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã¯å­˜åœ¨ã—ã¾ã™ : %s\n"
+"ä¸Šæ›¸ãã—ã¾ã™ã‹?"
 
 #: src/gfileutil.c:561 src/gfileutil.c:1012 src/gimv_thumb_view.c:2413
-msgid "File exist!!"
-msgstr "¥Õ¥¡¥¤¥ë¤ÏÂ¸ºß¤·¤Ş¤¹!!"
+msgid "File exists!"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã¯å­˜åœ¨ã—ã¾ã™!!"
 
 #: src/gfileutil.c:673
 #, c-format
 msgid ""
-"Faild to remove file :\n"
+"Failed to remove file:\n"
 "%s"
 msgstr ""
-"¥Õ¥¡¥¤¥ëºï½ü¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ :\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ã«å¤±æ•—ã—ã¾ã—ãŸ :\n"
 "%s"
 
 #: src/gfileutil.c:694
 #, c-format
 msgid ""
-"Faild to move file :\n"
-"From : %s\n"
-"To : %s"
+"Failed to move file:\n"
+"From: %s\n"
+"To: %s"
 msgstr ""
-"¥Õ¥¡¥¤¥ë°ÜÆ°¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ :\n"
-"°ÜÆ°¸µ : %s\n"
-"°ÜÆ°Àè : %s"
+"ãƒ•ã‚¡ã‚¤ãƒ«ç§»å‹•ã«å¤±æ•—ã—ã¾ã—ãŸ :\n"
+"ç§»å‹•å…ƒ : %s\n"
+"ç§»å‹•å…ˆ : %s"
 
 #: src/gfileutil.c:727
 #, c-format
-msgid "%s is link!!.\n"
-msgstr "%s ¤Ï¥ê¥ó¥¯¤Ç¤¹!!\n"
+msgid "%s is a link!\n"
+msgstr "%s ã¯ãƒªãƒ³ã‚¯ã§ã™!!\n"
 
 #: src/gfileutil.c:749
 #, c-format
-msgid "%s is not directory!!.\n"
-msgstr "%s ¤Ï¥Ç¥£¥ì¥¯¥È¥ê¤Ç¤Ï¤¢¤ê¤Ş¤»¤ó!!\n"
+msgid "%s is not a directory!\n"
+msgstr "%s ã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã§ã¯ã‚ã‚Šã¾ã›ã‚“!!\n"
 
 #: src/gfileutil.c:788
 #, c-format
 msgid ""
-"Can't copy directory : %s\n"
+"Can't copy directory: %s\n"
 "Permission denied: %s\n"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¤ò¥³¥Ô¡¼¤Ç¤­¤Ş¤»¤ó : %s\n"
-"µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó : %s\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚³ãƒ”ãƒ¼ã§ãã¾ã›ã‚“ : %s\n"
+"è¨±å¯ãŒã‚ã‚Šã¾ã›ã‚“ : %s\n"
 
 #: src/gfileutil.c:801
 #, c-format
-msgid "File exists!! : %s\n"
-msgstr "¥Õ¥¡¥¤¥ë¤¬Â¸ºß¤·¤Ş¤¹ : %s\n"
+msgid "File exists: %s\n"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ã¾ã™ : %s\n"
 
 #: src/gfileutil.c:872
-msgid "Copy directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤ò¥³¥Ô¡¼"
+msgid "Copy Directory"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ã‚³ãƒ”ãƒ¼"
 
 #: src/gfileutil.c:895 src/gfileutil.c:1389
 #, c-format
 msgid "Copying %s ..."
-msgstr "¥³¥Ô¡¼Ãæ %s ..."
+msgstr "ã‚³ãƒ”ãƒ¼ä¸­ %s ..."
 
 #: src/gfileutil.c:901
 msgid "Copying directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¥³¥Ô¡¼"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚³ãƒ”ãƒ¼"
 
 #: src/gfileutil.c:1053
 #, c-format
 msgid ""
-"Can't open file for read :\n"
+"Can't open file for reading:\n"
 "%s"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¤òÆÉ¤ß¹ş¤ßÍÑ¤Ë³«¤¯¤³¤È¤¬¤Ç¤­¤Ş¤»¤ó :\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã¿ç”¨ã«é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“ :\n"
 "%s"
 
 #: src/gfileutil.c:1065
 #, c-format
 msgid ""
-"Can't open file for write :\n"
+"Can't open file for writing:\n"
 "%s"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¤ò½ñ¤­¹ş¤ßÍÑ¤Ë³«¤¯¤³¤È¤¬¤Ç¤­¤Ş¤»¤ó :\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ›¸ãè¾¼ã¿ç”¨ã«é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“ :\n"
 "%s"
 
 #: src/gfileutil.c:1080
 #, c-format
 msgid ""
-"An error occured while copying file :\n"
+"An error occurred while copying file:\n"
 "%s"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¥³¥Ô¡¼Ãæ¤Ë¥¨¥é¡¼¤¬È¯À¸¤·¤Ş¤·¤¿ :\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã‚³ãƒ”ãƒ¼ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ :\n"
 "%s"
 
 #: src/gfileutil.c:1144
 #, c-format
 msgid ""
-"Can't copy file : %s\n"
+"Can't copy file: %s\n"
 "Permission denied: %s\n"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¤ò¥³¥Ô¡¼¤Ç¤­¤Ş¤»¤ó : %s\n"
-"µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó : %s\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚³ãƒ”ãƒ¼ã§ãã¾ã›ã‚“ : %s\n"
+"è¨±å¯ãŒã‚ã‚Šã¾ã›ã‚“ : %s\n"
 
 #: src/gfileutil.c:1211
 #, c-format
 msgid ""
-"Can't create link : %s\n"
+"Can't create link: %s\n"
 "Permission denied: %s\n"
 msgstr ""
-"¥ê¥ó¥¯¤òºîÀ®¤Ç¤­¤Ş¤»¤ó : %s\n"
-"µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó : %s\n"
+"ãƒªãƒ³ã‚¯ã‚’ä½œæˆã§ãã¾ã›ã‚“ : %s\n"
+"è¨±å¯ãŒã‚ã‚Šã¾ã›ã‚“ : %s\n"
 
 #: src/gfileutil.c:1243
 #, c-format
 msgid ""
-"Faild to create link :\n"
-"From : %s\n"
-"To : %s"
+"Failed to create link:\n"
+"From: %s\n"
+"To: %s"
 msgstr ""
-"¥ê¥ó¥¯¤ÎºîÀ®¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ :\n"
-"¥ê¥ó¥¯¸µ : %s\n"
-"¥ê¥ó¥¯Àè : %s"
+"ãƒªãƒ³ã‚¯ã®ä½œæˆã«å¤±æ•—ã—ã¾ã—ãŸ :\n"
+"ãƒªãƒ³ã‚¯å…ƒ : %s\n"
+"ãƒªãƒ³ã‚¯å…ˆ : %s"
 
 #: src/gfileutil.c:1368
 #, c-format
 msgid "Moving %s ..."
-msgstr "°ÜÆ°Ãæ %s ..."
+msgstr "ç§»å‹•ä¸­ %s ..."
 
 #: src/gfileutil.c:1369
 msgid "Moving files"
-msgstr "¥Õ¥¡¥¤¥ë°ÜÆ°"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ç§»å‹•"
 
 #: src/gfileutil.c:1390
 msgid "Copying files"
-msgstr "¥Õ¥¡¥¤¥ë¥³¥Ô¡¼"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚³ãƒ”ãƒ¼"
 
 #: src/gfileutil.c:1424
 #, c-format
-msgid "Creating Link %s ..."
-msgstr "¥ê¥ó¥¯ºîÀ®Ãæ %s ..."
+msgid "Creating link %s ..."
+msgstr "ãƒªãƒ³ã‚¯ä½œæˆä¸­ %s ..."
 
 #: src/gfileutil.c:1425
 msgid "Creating Links"
-msgstr "¥ê¥ó¥¯ºîÀ®Ãæ"
+msgstr "ãƒªãƒ³ã‚¯ä½œæˆä¸­"
 
 #: src/gfileutil.c:1481
 #, c-format
-msgid "Directory doesn't exist!!: %s"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤¬Â¸ºß¤·¤Ş¤»¤ó : %s"
-
-#: src/gfileutil.c:1488
-#, c-format
-msgid "Permission denied!!: %s"
-msgstr "µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó!!: %s"
+msgid "Directory doesn't exist: %s"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå­˜åœ¨ã—ã¾ã›ã‚“ : %s"
 
 #: src/gfileutil.c:1559
 msgid "Move files to..."
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤Ø°ÜÆ°"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ç§»å‹•"
 
 #: src/gfileutil.c:1560
 msgid "Move files to: "
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤Ø°ÜÆ° : "
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ç§»å‹• : "
 
 #: src/gfileutil.c:1563
 msgid "Copy files to..."
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥³¥Ô¡¼"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ã‚³ãƒ”ãƒ¼"
 
 #: src/gfileutil.c:1564
 msgid "Copy files to: "
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥³¥Ô¡¼ : "
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ã‚³ãƒ”ãƒ¼ : "
 
 #: src/gfileutil.c:1567
 msgid "Link files to..."
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥ê¥ó¥¯"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ãƒªãƒ³ã‚¯"
 
 #: src/gfileutil.c:1568
 msgid "Link files to: "
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥ê¥ó¥¯ : "
-
-#: src/gfileutil.c:1630
-#, c-format
-msgid "Directory not exist : %s"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤¬Â¸ºß¤·¤Ş¤»¤ó : %s"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ãƒªãƒ³ã‚¯ : "
 
 #: src/gfileutil.c:1638
 #, c-format
 msgid ""
-"%s is symbolic link.\n"
-"Remove link ?"
+"%s is a symbolic link.\n"
+"Remove the link?"
 msgstr ""
-"%s ¤Ï¥·¥ó¥Ü¥ê¥Ã¥¯¥ê¥ó¥¯¤Ç¤¹\n"
-"¥ê¥ó¥¯¤òºï½ü¤·¤Ş¤¹¤«?"
+"%s ã¯ã‚·ãƒ³ãƒœãƒªãƒƒã‚¯ãƒªãƒ³ã‚¯ã§ã™\n"
+"ãƒªãƒ³ã‚¯ã‚’å‰Šé™¤ã—ã¾ã™ã‹?"
 
 #: src/gfileutil.c:1640 src/gfileutil.c:1652 src/gfileutil.c:1663
 msgid "Confirm Deleting Directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êºï½ü ³ÎÇ§"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤ ç¢ºèª"
 
 #: src/gfileutil.c:1650
 #, c-format
-msgid ""
-"Delete %s\n"
-"OK?"
+msgid "Delete %s?"
 msgstr ""
-"%s ¤òºï½ü¤·¤Ş¤¹¡£\n"
-"¤è¤í¤·¤¤¤Ç¤¹¤«?"
+"%s ã‚’å‰Šé™¤ã—ã¾ã™ã€‚\n"
+"ã‚ˆã‚ã—ã„ã§ã™ã‹?"
 
 #: src/gfileutil.c:1660
 #, c-format
 msgid ""
-"%s is not empty\n"
-"Delete all files under %s ?"
+"%s is not empty.\n"
+"Delete all files under %s?"
 msgstr ""
-"%s ¤Ï¶õ¤Ç¤Ï¤¢¤ê¤Ş¤»¤ó\n"
-"%s °Ê²¼¤Î¥Õ¥¡¥¤¥ë¤òÁ´¤Æºï½ü¤·¤Ş¤¹¤«?"
+"%s ã¯ç©ºã§ã¯ã‚ã‚Šã¾ã›ã‚“\n"
+"%s ä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å…¨ã¦å‰Šé™¤ã—ã¾ã™ã‹?"
 
 #: src/gfileutil.c:1692 src/gfileutil.c:1793
 #, c-format
 msgid "Deleting %s ..."
-msgstr "ºï½üÃæ %s ..."
+msgstr "å‰Šé™¤ä¸­ %s ..."
 
 #: src/gfileutil.c:1719
 #, c-format
 msgid ""
-"Faild to remove directory :\n"
+"Failed to remove directory:\n"
 "%s is not empty."
 msgstr ""
-"¥Ç¥£¥ì¥¯¥È¥êºï½ü¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ :\n"
-"%s ¤Ï¶õ¤Ç¤Ï¤¢¤ê¤Ş¤»¤ó"
+"ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤ã«å¤±æ•—ã—ã¾ã—ãŸ :\n"
+"%s ã¯ç©ºã§ã¯ã‚ã‚Šã¾ã›ã‚“"
 
 #: src/gfileutil.c:1724
 #, c-format
-msgid "Faild to remove directory : %s"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êºï½ü¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ : %s"
+msgid "Failed to remove directory: %s"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤ã«å¤±æ•—ã—ã¾ã—ãŸ : %s"
 
 #: src/gfileutil.c:1757
 #, c-format
-msgid ""
-"Delete these %d files.\n"
-"OK?"
+msgid "Delete these %d files?"
 msgstr ""
-"¤³¤ì¤é %d ¥Õ¥¡¥¤¥ë¤òºï½ü¤·¤Ş¤¹¡£\n"
-"¤è¤í¤·¤¤¤Ç¤¹¤«?"
+"ã“ã‚Œã‚‰ %d ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¾ã™ã€‚\n"
+"ã‚ˆã‚ã—ã„ã§ã™ã‹?"
 
 #: src/gfileutil.c:1760
 msgid "Confirm Deleting Files"
-msgstr "¥Õ¥¡¥¤¥ëºï½ü ³ÎÇ§"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ ç¢ºèª"
 
 #: src/gfileutil.c:1769
 msgid "Delete File"
-msgstr "¥Õ¥¡¥¤¥ëºï½ü"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤"
 
 #: src/gfileutil.c:1770
 msgid "Deleting Files"
-msgstr "¥Õ¥¡¥¤¥ëºï½üÃæ"
-
-#: src/gfileutil.c:1807 src/gfileutil.c:1865
-#, c-format
-msgid "Permission denied : %s"
-msgstr "µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó : %s"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ä¸­"
 
 #: src/gfileutil.c:1826
 #, c-format
 msgid ""
-"Faild to delete file :\n"
+"Unable to delete file:\n"
 "%s"
 msgstr ""
-"¥Õ¥¡¥¤¥ëºï½ü¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ :\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ã«å¤±æ•—ã—ã¾ã—ãŸ :\n"
 "%s"
 
 #: src/gfileutil.c:1870
-msgid "Make directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êºîÀ®"
+msgid "Make Directory"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä½œæˆ"
 
 #: src/gfileutil.c:1871 src/gfileutil.c:1937
 msgid "New directory name: "
-msgstr "¿·µ¬¥Ç¥£¥ì¥¯¥È¥êÌ¾: "
+msgstr "æ–°è¦ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå: "
 
 #: src/gfileutil.c:1884
 #, c-format
-msgid "Directory exist : %s"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤¬Â¸ºß¤·¤Ş¤¹ : %s"
+msgid "Directory exists: %s"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå­˜åœ¨ã—ã¾ã™ : %s"
 
 #: src/gfileutil.c:1896
 #, c-format
-msgid "Faild to create directory : %s"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êºîÀ®¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ : %s"
-
-#: src/gfileutil.c:1926
-#, c-format
-msgid "Directory not exist :%s"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤¬Â¸ºß¤·¤Ş¤»¤ó : %s"
+msgid "Failed to create directory: %s"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä½œæˆã«å¤±æ•—ã—ã¾ã—ãŸ : %s"
 
 #: src/gfileutil.c:1936
-msgid "Rename directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êÌ¾ÊÑ¹¹"
+msgid "Rename Directory"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåå¤‰æ›´"
 
 #: src/gfileutil.c:1951
 #, c-format
-msgid "Faild to rename directory : %s"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êÌ¾ÊÑ¹¹¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ : %s"
+msgid "Failed to rename directory: %s"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåå¤‰æ›´ã«å¤±æ•—ã—ã¾ã—ãŸ : %s"
 
 #: src/gimageview.c:230
-msgid "No image file is specified!!"
-msgstr "²èÁü¥Õ¥¡¥¤¥ë¤¬»ØÄê¤µ¤ì¤Æ¤¤¤Ş¤»¤ó!!"
+msgid "No image file specified!"
+msgstr "ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“!!"
 
 #: src/gimageview.c:232
-msgid "If you want to scan directory, use \"-d\" option."
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤ò¥¹¥­¥ã¥ó¤·¤¿¤¤¾ì¹ç¤Ï \"-d\" ¤òÉÕ²Ã¤·¤Æ²¼¤µ¤¤"
+msgid "To scan a directory, use the \"-d\" option."
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ã‚¹ã‚­ãƒ£ãƒ³ã—ãŸã„å ´åˆã¯ \"-d\" ã‚’ä»˜åŠ ã—ã¦ä¸‹ã•ã„"
 
 #: src/gimageview.c:237
-msgid "No window is opened!! Quiting..."
-msgstr "¥¦¥£¥ó¥É¥¦¤¬³«¤«¤ì¤Æ¤¤¤Ş¤»¤ó!! ½ªÎ»¤·¤Ş¤¹..."
+msgid "No window is open! Quitting..."
+msgstr "ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒé–‹ã‹ã‚Œã¦ã„ã¾ã›ã‚“!! çµ‚äº†ã—ã¾ã™..."
 
 #: src/gimv_comment.c:74
 msgid "Subject"
-msgstr "ÂêÌ¾"
+msgstr "é¡Œå"
 
 #: src/gimv_comment.c:75
 msgid "Date"
-msgstr "ÆüÉÕ"
+msgstr "æ—¥ä»˜"
 
 #: src/gimv_comment.c:76
 msgid "Location"
-msgstr "¾ì½ê"
+msgstr "å ´æ‰€"
 
 #: src/gimv_comment.c:77
 msgid "Model"
-msgstr "¥â¥Ç¥ë"
+msgstr "ãƒ¢ãƒ‡ãƒ«"
 
 #: src/gimv_comment.c:78
 msgid "Comment Time"
-msgstr "¥³¥á¥ó¥ÈºîÀ®Æü»ş"
+msgstr "ã‚³ãƒ¡ãƒ³ãƒˆä½œæˆæ—¥æ™‚"
 
 #: src/gimv_comment.c:79
 msgid "URL"
@@ -788,79 +764,79 @@ msgstr "URL"
 
 #: src/gimv_comment.c:80
 msgid "Path in Archive"
-msgstr "¥¢¡¼¥«¥¤¥ÖÆâ¥Ñ¥¹"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–å†…ãƒ‘ã‚¹"
 
 #: src/gimv_comment.c:81 src/gimv_dupl_win.c:124
 msgid "Modification Time"
-msgstr "¹¹¿·Æü»ş"
+msgstr "æ›´æ–°æ—¥æ™‚"
 
 #: src/gimv_comment.c:82
 msgid "Image Type"
-msgstr "²èÁü¥¿¥¤¥×"
+msgstr "ç”»åƒã‚¿ã‚¤ãƒ—"
 
 #: src/gimv_comment.c:83
 msgid "Image Size"
-msgstr "²èÁü¥µ¥¤¥º"
+msgstr "ç”»åƒã‚µã‚¤ã‚º"
 
 #: src/gimv_comment.c:417
 msgid "Can't open comment file for read."
-msgstr "¥³¥á¥ó¥È¥Õ¥¡¥¤¥ë¤òÆÉ¤ß¹ş¤ßÍÑ¤Ë³«¤¯¤³¤È¤¬¤Ç¤­¤Ş¤»¤ó"
+msgstr "ã‚³ãƒ¡ãƒ³ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã¿ç”¨ã«é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“"
 
 #: src/gimv_comment.c:788 plugins/thumbnail/gimv_thumb.c:261
-msgid "cannot make dir\n"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤òºîÀ®¤Ç¤­¤Ş¤»¤ó\n"
+msgid "Cannot create the directory\n"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½œæˆã§ãã¾ã›ã‚“\n"
 
 #: src/gimv_comment.c:794
 msgid "Can't open comment file for write."
-msgstr "¥³¥á¥ó¥È¥Õ¥¡¥¤¥ë¤ò½ñ¤­¹ş¤ßÍÑ¤Ë³«¤¯¤³¤È¤¬¤Ç¤­¤Ş¤»¤ó"
+msgstr "ã‚³ãƒ¡ãƒ³ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ›¸ãè¾¼ã¿ç”¨ã«é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“"
 
 #: src/gimv_comment_view.c:531
 msgid "Key"
-msgstr "¥­¡¼"
+msgstr "ã‚­ãƒ¼"
 
 #: src/gimv_comment_view.c:533
 msgid "Data"
-msgstr "¥Ç¡¼¥¿"
+msgstr "ãƒ‡ãƒ¼ã‚¿"
 
 #: src/gimv_comment_view.c:618
 msgid "Key: "
-msgstr "¥­¡¼:"
+msgstr "ã‚­ãƒ¼:"
 
 #: src/gimv_comment_view.c:630
 msgid "Value: "
-msgstr "ÃÍ:"
+msgstr "å€¤:"
 
 #. "Note" page
 #: src/gimv_comment_view.c:674
 msgid "Note"
-msgstr "¥Î¡¼¥È"
+msgstr "ãƒãƒ¼ãƒˆ"
 
 #: src/gimv_comment_view.c:1101 src/gimv_comment_view.c:1104
 msgid "_Save"
-msgstr "ÊİÂ¸(_S)"
+msgstr "ä¿å­˜(_S)"
 
 #. GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
 #: src/gimv_comment_view.c:1112 src/gimv_comment_view.c:1115
 msgid "_Reset"
-msgstr "¥ê¥»¥Ã¥È(_R)"
+msgstr "ãƒªã‚»ãƒƒãƒˆ(_R)"
 
 #. GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
 #: src/gimv_comment_view.c:1123 src/gimv_comment_view.c:1126
 msgid "_Delete"
-msgstr "ºï½ü(_D)"
+msgstr "å‰Šé™¤(_D)"
 
 #: src/gimv_comment_view.c:1174
 #, c-format
 msgid "Edit Comment (%s)"
-msgstr "¥³¥á¥ó¥È¤òÊÔ½¸ (%s)"
+msgstr "ã‚³ãƒ¡ãƒ³ãƒˆã‚’ç·¨é›† (%s)"
 
 #: src/gimv_comment_view.c:1213 src/gimv_comment_view.c:1216
 msgid "_Prev"
-msgstr "Á°¤Ø(_P)"
+msgstr "å‰ã¸(_P)"
 
 #: src/gimv_comment_view.c:1224 src/gimv_comment_view.c:1227
 msgid "_Next"
-msgstr "¼¡¤Ø(_N)"
+msgstr "æ¬¡ã¸(_N)"
 
 #: src/gimv_image_view.c:277 src/gimv_image_view.c:296
 #: src/gimv_image_view.c:320 src/gimv_image_view.c:331
@@ -870,59 +846,59 @@ msgstr "/tear"
 
 #: src/gimv_image_view.c:278 src/gimv_image_win.c:305
 msgid "/_Zoom"
-msgstr "/¥º¡¼¥à(_Z)"
+msgstr "/ã‚ºãƒ¼ãƒ (_Z)"
 
 #: src/gimv_image_view.c:279 src/gimv_image_win.c:306
 msgid "/_Rotate"
-msgstr "/²óÅ¾(_R)"
+msgstr "/å›è»¢(_R)"
 
 #: src/gimv_image_view.c:280 src/gimv_image_win.c:307
 msgid "/Ignore _Alpha Channel"
-msgstr "/¥¢¥ë¥Õ¥¡¥Á¥ã¥ó¥Í¥ë¤òÌµ»ë"
+msgstr "/ã‚¢ãƒ«ãƒ•ã‚¡ãƒãƒ£ãƒ³ãƒãƒ«ã‚’ç„¡è¦–"
 
 #: src/gimv_image_view.c:282 src/gimv_image_win.c:294
 msgid "/M_ovie"
-msgstr "/Æ°²è(_O)"
+msgstr "/å‹•ç”»(_O)"
 
 #: src/gimv_image_view.c:284 src/gimv_image_win.c:319
-msgid "/_View modes"
-msgstr "/É½¼¨¥â¡¼¥É(_V)"
+msgid "/_View Modes"
+msgstr "/è¡¨ç¤ºãƒ¢ãƒ¼ãƒ‰(_V)"
 
 #: src/gimv_image_view.c:285
 msgid "/Show _Scrollbar"
-msgstr "/¥¹¥¯¥í¡¼¥ë¥Ğ¡¼¤òÉ½¼¨(_S)"
+msgstr "/ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼ã‚’è¡¨ç¤º(_S)"
 
 #: src/gimv_image_view.c:287
 msgid "/Create _Thumbnail"
-msgstr "/¥µ¥à¥Í¥¤¥ëºîÀ®(_T)"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ä½œæˆ(_T)"
 
 #: src/gimv_image_view.c:288
 msgid "/Memory _Buffer"
-msgstr "/¥á¥â¥ê¥Ğ¥Ã¥Õ¥¡(_B)"
+msgstr "/ãƒ¡ãƒ¢ãƒªãƒãƒƒãƒ•ã‚¡(_B)"
 
 #: src/gimv_image_view.c:297
 msgid "/Zoom _In"
-msgstr "/³ÈÂç(_I)"
+msgstr "/æ‹¡å¤§(_I)"
 
 #: src/gimv_image_view.c:298
 msgid "/Zoom _Out"
-msgstr "/½Ì¾®(_O)"
+msgstr "/ç¸®å°(_O)"
 
 #: src/gimv_image_view.c:299
 msgid "/_Fit to Window"
-msgstr "/¥¦¥£¥ó¥É¥¦¤ÎÂç¤­¤µ¤Ë¹ç¤ï¤»¤ë(_F)"
+msgstr "/ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•ã«åˆã‚ã›ã‚‹(_F)"
 
 #: src/gimv_image_view.c:300
 msgid "/_Fit _Width"
-msgstr "/Éı¤ò¹ç¤ï¤»¤ë(_W)"
+msgstr "/å¹…ã‚’åˆã‚ã›ã‚‹(_W)"
 
 #: src/gimv_image_view.c:301
 msgid "/_Fit _Height"
-msgstr "/¹â¤µ¤ò¹ç¤ï¤»¤ë(_H)"
+msgstr "/é«˜ã•ã‚’åˆã‚ã›ã‚‹(_H)"
 
 #: src/gimv_image_view.c:302
-msgid "/Keep _aspect ratio"
-msgstr "/¥¢¥¹¥Ú¥¯¥ÈÈæ¤òÊİ»ı(_A)"
+msgid "/Keep _Aspect Ratio"
+msgstr "/ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’ä¿æŒ(_A)"
 
 #: src/gimv_image_view.c:304
 msgid "/10%(_1)"
@@ -961,75 +937,75 @@ msgid "/200%(_9)"
 msgstr "/200%(_9)"
 
 #: src/gimv_image_view.c:321
-msgid "/Rotate 90 degrees CW"
-msgstr "/»ş·×²ó¤ê¤Ë90¡ë²óÅ¾"
+msgid "/Rotate 90 Degrees Clockwise"
+msgstr "/æ™‚è¨ˆå›ã‚Šã«90Â°å›è»¢"
 
 #: src/gimv_image_view.c:322
-msgid "/Rotate 90 degrees CCW"
-msgstr "/È¿»ş·×²ó¤ê¤Ë90¡ë²óÅ¾"
+msgid "/Rotate 90 Degrees Counterclockwise"
+msgstr "/åæ™‚è¨ˆå›ã‚Šã«90Â°å›è»¢"
 
 #: src/gimv_image_view.c:323
-msgid "/Rotate 180 degrees"
-msgstr "/180ÅÙ²óÅ¾"
+msgid "/Rotate 180 Degrees"
+msgstr "/180åº¦å›è»¢"
 
 #: src/gimv_image_view.c:332
 msgid "/_Play"
-msgstr "/ºÆÀ¸(_P)"
+msgstr "/å†ç”Ÿ(_P)"
 
 #: src/gimv_image_view.c:333
 msgid "/_Stop"
-msgstr "/Ää»ß(_S)"
+msgstr "/åœæ­¢(_S)"
 
 #: src/gimv_image_view.c:334
 msgid "/P_ause"
-msgstr "/°ì»şÄä»ß(_A)"
+msgstr "/ä¸€æ™‚åœæ­¢(_A)"
 
 #: src/gimv_image_view.c:335
 msgid "/_Forward"
-msgstr "/ÁáÁ÷¤ê(_F)"
+msgstr "/æ—©é€ã‚Š(_F)"
 
 #: src/gimv_image_view.c:336
 msgid "/_Reverse"
-msgstr "´¬Ìá¤·(_R)"
+msgstr "/å·»æˆ»ã—(_R)"
 
 #: src/gimv_image_view.c:338
-msgid "/_Continuance"
-msgstr "/Ï¢Â³ºÆÀ¸(_C)"
+msgid "/_Continuous Play"
+msgstr "/é€£ç¶šå†ç”Ÿ(_C)"
 
 #: src/gimv_image_view.c:340
 msgid "/_Eject"
-msgstr "¼è¤ê½Ğ¤·(_E)"
+msgstr "/å–ã‚Šå‡ºã—(_E)"
 
 #: src/gimv_image_view.c:2106
 #, c-format
-msgid "File not exist: %s\n"
-msgstr "¥Õ¥¡¥¤¥ë¤ÏÂ¸ºß¤·¤Ş¤»¤ó: %s\n"
+msgid "File doesn't exist: %s\n"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã¯å­˜åœ¨ã—ã¾ã›ã‚“: %s\n"
 
 #: src/gimv_image_view.c:2108
 #, c-format
-msgid "Not an image (or unsupported) file: %s\n"
-msgstr "¥µ¥İ¡¼¥È¤µ¤ì¤Æ¤¤¤Ê¤¤·Á¼°¤Ç¤¹: %s\n"
+msgid "Not an image file (or an unsupported format): %s\n"
+msgstr "ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„å½¢å¼ã§ã™: %s\n"
 
 #: src/gimv_image_view.c:2171
 msgid "RW"
-msgstr "Á°¤Ø"
+msgstr "å‰ã¸"
 
 #: src/gimv_image_view.c:2172
 msgid "Reverse"
-msgstr "´¬Ìá¤·"
+msgstr "å·»æˆ»ã—"
 
 #: src/gimv_image_view.c:2181 src/gimv_image_view.c:2182
 #: src/gimv_image_win.c:999
 msgid "Play"
-msgstr "ºÆÀ¸"
+msgstr "å†ç”Ÿ"
 
 #: src/gimv_image_view.c:2202
 msgid "FF"
-msgstr "¼¡¤Ø"
+msgstr "æ¬¡ã¸"
 
 #: src/gimv_image_view.c:2203
 msgid "Forward"
-msgstr "ÁáÁ÷¤ê"
+msgstr "æ—©é€ã‚Š"
 
 #: src/gimv_image_view.c:2212 src/gimv_image_view.c:2213
 msgid "Eject"
@@ -1037,270 +1013,270 @@ msgstr "Eject"
 
 #: src/gimv_image_view.h:40
 msgid "Default Image Viewer"
-msgstr "¥Ç¥Õ¥©¥ë¥È²èÁü¥Ó¥å¡¼¥¢"
+msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆç”»åƒãƒ“ãƒ¥ãƒ¼ã‚¢"
 
 #: src/gimv_image_win.c:273 src/gimv_thumb_win.c:380
 msgid "/_File"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)"
 
 #: src/gimv_image_win.c:274 src/gimv_thumb_win.c:381
 msgid "/_File/_Open..."
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/³«¤¯(_O)..."
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/é–‹ã(_O)..."
 
 #: src/gimv_image_win.c:275
 msgid "/_File/Open _Image Window"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¿·µ¬¥¤¥á¡¼¥¸¥¦¥£¥ó¥É¥¦(_I)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/æ–°è¦ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦(_I)"
 
 #: src/gimv_image_win.c:276
 msgid "/_File/Open _Thumbnail Window"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¿·µ¬¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦(_T)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/æ–°è¦ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦(_T)"
 
 #: src/gimv_image_win.c:277 src/gimv_image_win.c:279 src/gimv_thumb_win.c:385
 msgid "/_File/---"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/---"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/---"
 
 #: src/gimv_image_win.c:278
 msgid "/_File/Memory _Buffer"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¥á¥â¥ê¥Ğ¥Ã¥Õ¥¡(_B)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/ãƒ¡ãƒ¢ãƒªãƒãƒƒãƒ•ã‚¡(_B)"
 
 #: src/gimv_image_win.c:280
 msgid "/_File/_Close"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/ÊÄ¤¸¤ë(_C)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/é–‰ã˜ã‚‹(_C)"
 
 #: src/gimv_image_win.c:281 src/gimv_thumb_win.c:388
 msgid "/_File/_Quit"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/½ªÎ»(_Q)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/çµ‚äº†(_Q)"
 
 #: src/gimv_image_win.c:283 src/gimv_thumb_win.c:390
 msgid "/_Edit"
-msgstr "/ÊÔ½¸(_E)"
+msgstr "/ç·¨é›†(_E)"
 
 #: src/gimv_image_win.c:284
 msgid "/_Edit/Edit _Comment..."
-msgstr "/ÊÔ½¸(_E)/¥³¥á¥ó¥È¤òÊÔ½¸(_C)..."
+msgstr "/ç·¨é›†(_E)/ã‚³ãƒ¡ãƒ³ãƒˆã‚’ç·¨é›†(_C)..."
 
 #: src/gimv_image_win.c:285
 msgid "/_Edit/Scan E_XIF Data..."
-msgstr "/ÊÔ½¸(_E)/EXIF¥Ç¡¼¥¿¤ò¸¡º÷(_X)..."
+msgstr "/ç·¨é›†(_E)/EXIFãƒ‡ãƒ¼ã‚¿ã‚’æ¤œç´¢(_X)..."
 
 #: src/gimv_image_win.c:286
 msgid "/_Edit/Create _Thumbnail"
-msgstr "/ÊÔ½¸(_E)/¥µ¥à¥Í¥¤¥ëºîÀ®(_T)"
+msgstr "/ç·¨é›†(_E)/ã‚µãƒ ãƒã‚¤ãƒ«ä½œæˆ(_T)"
 
 #: src/gimv_image_win.c:287 src/gimv_thumb_win.c:393 src/gimv_thumb_win.c:397
 #: src/gimv_thumb_win.c:406
 msgid "/_Edit/---"
-msgstr "/ÊÔ½¸(_E)/---"
+msgstr "/ç·¨é›†(_E)/---"
 
 #: src/gimv_image_win.c:288 src/gimv_thumb_win.c:407
 msgid "/_Edit/_Options..."
-msgstr "/ÊÔ½¸(_E)/ÀßÄê(_O)..."
+msgstr "/ç·¨é›†(_E)/è¨­å®š(_O)..."
 
 #: src/gimv_image_win.c:290 src/gimv_thumb_win.c:409
 msgid "/_View"
-msgstr "/É½¼¨(_V)"
+msgstr "/è¡¨ç¤º(_V)"
 
 #: src/gimv_image_win.c:292
-msgid "/_Move"
-msgstr "/°ÜÆ°(_M)"
+msgid "/_Go"
+msgstr "/ç§»å‹•(_M)"
 
 #: src/gimv_image_win.c:296 src/gimv_thumb_win.c:448
 msgid "/_Help"
-msgstr "/¥Ø¥ë¥×(_H)"
+msgstr "/ãƒ˜ãƒ«ãƒ—(_H)"
 
 #: src/gimv_image_win.c:309 src/gimv_thumb_win.c:487
-msgid "/_Menu Bar"
-msgstr "/¥á¥Ë¥å¡¼¥Ğ¡¼(_M)"
+msgid "/_Menubar"
+msgstr "/ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼(_M)"
 
 #: src/gimv_image_win.c:310
-msgid "/_Tool Bar"
-msgstr "/¥Ä¡¼¥ë¥Ğ¡¼(_T)"
+msgid "/_Toolbar"
+msgstr "/ãƒ„ãƒ¼ãƒ«ãƒãƒ¼(_T)"
 
 #: src/gimv_image_win.c:311
-msgid "/Slide Show _Player"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥×¥ì¡¼¥ä(_P)"
+msgid "/Slideshow _Player"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ãƒ—ãƒ¬ãƒ¼ãƒ¤(_P)"
 
 #: src/gimv_image_win.c:312 src/gimv_thumb_win.c:490
-msgid "/St_atus Bar"
-msgstr "/¥¹¥Æ¡¼¥¿¥¹¥Ğ¡¼(_A)"
+msgid "/St_atusbar"
+msgstr "/ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼(_A)"
 
 #: src/gimv_image_win.c:313
-msgid "/_Scroll Bar"
-msgstr "/¥¹¥¯¥í¡¼¥ë¥Ğ¡¼(_S)"
+msgid "/_Scrollbar"
+msgstr "/ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼(_S)"
 
 #: src/gimv_image_win.c:314 src/gimv_thumb_win.c:493
 msgid "/_Player"
-msgstr "/¥×¥ì¡¼¥ä(_P)"
+msgstr "/ãƒ—ãƒ¬ãƒ¼ãƒ¤(_P)"
 
 #: src/gimv_image_win.c:315 src/gimv_thumb_win.c:494
 msgid "/_Player/_Show"
-msgstr "/¥×¥ì¡¼¥ä(_P)/É½¼¨(_S)"
+msgstr "/ãƒ—ãƒ¬ãƒ¼ãƒ¤(_P)/è¡¨ç¤º(_S)"
 
 #: src/gimv_image_win.c:316 src/gimv_thumb_win.c:495
 msgid "/_Player/_Hide"
-msgstr "/¥×¥ì¡¼¥ä(_P)/ÈóÉ½¼¨(_H)"
+msgstr "/ãƒ—ãƒ¬ãƒ¼ãƒ¤(_P)/éè¡¨ç¤º(_H)"
 
 #: src/gimv_image_win.c:317 src/gimv_thumb_win.c:496
 msgid "/_Player/_Auto"
-msgstr "/¥×¥ì¡¼¥ä(_P)/¼«Æ°(_A)"
+msgstr "/ãƒ—ãƒ¬ãƒ¼ãƒ¤(_P)/è‡ªå‹•(_A)"
 
 #: src/gimv_image_win.c:321
 msgid "/_Fit to Image"
-msgstr "²èÁü¤ÎÂç¤­¤µ¤Ë¹ç¤ï¤»¤ë(_F)"
+msgstr "/ç”»åƒã®å¤§ãã•ã«åˆã‚ã›ã‚‹(_F)"
 
 #: src/gimv_image_win.c:322 src/gimv_thumb_win.c:500
 msgid "/Ma_ximize"
-msgstr "/ºÇÂç²½(_X)"
+msgstr "/æœ€å¤§åŒ–(_X)"
 
 #: src/gimv_image_win.c:323
-msgid "/F_ull Screen"
-msgstr "/Á´²èÌÌ(_U)"
+msgid "/F_ullscreen"
+msgstr "/å…¨ç”»é¢(_U)"
 
 #: src/gimv_image_win.c:330
 msgid "/_Next"
-msgstr "¼¡¤Ø(_N)"
+msgstr "/æ¬¡ã¸(_N)"
 
 #: src/gimv_image_win.c:331
 msgid "/_Previous"
-msgstr "Á°¤Ø(_P)"
+msgstr "/å‰ã¸(_P)"
 
 #: src/gimv_image_win.c:332
 msgid "/_First"
-msgstr "/ºÇ½é¤Ø(_F)"
+msgstr "/æœ€åˆã¸(_F)"
 
 #: src/gimv_image_win.c:333
 msgid "/_Last"
-msgstr "/ºÇ¸å¤Ø(_L)"
+msgstr "/æœ€å¾Œã¸(_L)"
 
 #: src/gimv_image_win.c:577 src/gimv_thumb_win.c:751
 msgid "New Window"
-msgstr "¿·µ¬¥¦¥£¥ó¥É¥¦"
+msgstr "æ–°è¦ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦"
 
 #: src/gimv_image_win.c:789 src/prefs_ui/prefs_ui_imagewin.c:60
-msgid "90 degrees CCW"
-msgstr "90¡ëÈ¿»ş·×²ó¤ê"
+msgid "90 degrees counterclockwise"
+msgstr "90Â°åæ™‚è¨ˆå›ã‚Š"
 
 #: src/gimv_image_win.c:790 src/prefs_ui/prefs_ui_imagewin.c:59
 msgid "0 degrees"
-msgstr "0¡ë"
+msgstr "0Â°"
 
 #: src/gimv_image_win.c:791 src/prefs_ui/prefs_ui_imagewin.c:62
-msgid "90 degrees CW"
-msgstr "90¡ë»ş·×²ó¤ê"
+msgid "90 degrees clockwise"
+msgstr "90Â°æ™‚è¨ˆå›ã‚Š"
 
 #: src/gimv_image_win.c:792 src/prefs_ui/prefs_ui_imagewin.c:61
 msgid "180 degrees"
-msgstr "180¡ë"
+msgstr "180Â°"
 
 #: src/gimv_image_win.c:802 src/gimv_thumb_win.c:1550
 msgid "Open"
-msgstr "³«¤¯"
+msgstr "é–‹ã"
 
 #: src/gimv_image_win.c:803 src/gimv_image_win.c:804 src/gimv_thumb_win.c:1551
 #: src/gimv_thumb_win.c:1552
-msgid "File Open"
-msgstr "¥Õ¥¡¥¤¥ë¤ò³«¤¯"
+msgid "Open File"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã"
 
 #: src/gimv_image_win.c:812 src/gimv_thumb_win.c:1561
 msgid "Prefs"
-msgstr "ÀßÄê"
+msgstr "è¨­å®š"
 
 #: src/gimv_image_win.c:813 src/gimv_image_win.c:814 src/gimv_prefs_win.c:810
 #: src/gimv_thumb_win.c:1562 src/gimv_thumb_win.c:1563
 #: src/prefs_ui/prefs_ui_etc.c:582
-msgid "Preference"
-msgstr "ÀßÄê"
+msgid "Preferences"
+msgstr "è¨­å®š"
 
 #: src/gimv_image_win.c:824 src/gimv_image_win.c:990 src/gimv_thumb_win.c:1574
 msgid "Prev"
-msgstr "Á°"
+msgstr "å‰"
 
 #: src/gimv_image_win.c:825 src/gimv_image_win.c:826
 msgid "Previous Image"
-msgstr "Á°¤Î²èÁü"
+msgstr "å‰ã®ç”»åƒ"
 
 #: src/gimv_image_win.c:836 src/gimv_image_win.c:1017
 #: src/gimv_image_win.c:1018 src/gimv_thumb_win.c:1585
 msgid "Next"
-msgstr "¼¡"
+msgstr "æ¬¡"
 
 #: src/gimv_image_win.c:837 src/gimv_image_win.c:838
 msgid "Next Image"
-msgstr "¼¡¤Î²èÁü"
+msgstr "æ¬¡ã®ç”»åƒ"
 
 #: src/gimv_image_win.c:850 src/gimv_image_win.c:851 src/gimv_image_win.c:852
 msgid "No Zoom"
-msgstr "ÅùÇÜ"
+msgstr "ç­‰å€"
 
 #: src/gimv_image_win.c:860 src/gimv_image_win.c:861 src/gimv_image_win.c:862
 #: src/prefs_ui/prefs_ui_imagewin.c:142 src/prefs_ui/prefs_ui_thumbwin.c:185
 msgid "Zoom in"
-msgstr "³ÈÂç"
+msgstr "æ‹¡å¤§"
 
 #: src/gimv_image_win.c:870 src/gimv_image_win.c:871 src/gimv_image_win.c:872
 #: src/prefs_ui/prefs_ui_imagewin.c:143 src/prefs_ui/prefs_ui_thumbwin.c:186
 msgid "Zoom out"
-msgstr "½Ì¾®"
+msgstr "ç¸®å°"
 
 #: src/gimv_image_win.c:880 src/gimv_image_win.c:881 src/gimv_image_win.c:882
-msgid "Zoom fit"
-msgstr "¥Õ¥£¥Ã¥È"
+msgid "Zoom to fit"
+msgstr "ãƒ•ã‚£ãƒƒãƒˆ"
 
 #: src/gimv_image_win.c:900
 msgid "X Scale"
-msgstr "X¼´¥¹¥±¡¼¥ë"
+msgstr "Xè»¸ã‚¹ã‚±ãƒ¼ãƒ«"
 
 #: src/gimv_image_win.c:915
 msgid "Y Scale"
-msgstr "Y¼´¥¹¥±¡¼¥ë"
+msgstr "Yè»¸ã‚¹ã‚±ãƒ¼ãƒ«"
 
 #: src/gimv_image_win.c:921 src/gimv_image_win.c:922 src/gimv_image_win.c:923
 msgid "Zoom"
-msgstr "¥º¡¼¥à"
+msgstr "ã‚ºãƒ¼ãƒ "
 
 #: src/gimv_image_win.c:936
 msgid "Rotate"
-msgstr "²óÅ¾"
+msgstr "å›è»¢"
 
 #: src/gimv_image_win.c:936
 msgid "Rotate the image"
-msgstr "²èÁü¤ò²óÅ¾"
+msgstr "ç”»åƒã‚’å›è»¢"
 
 #: src/gimv_image_win.c:944
 msgid "Resize"
-msgstr "¥ê¥µ¥¤¥º"
+msgstr "ãƒªã‚µã‚¤ã‚º"
 
 #: src/gimv_image_win.c:945 src/gimv_image_win.c:946
 msgid "Fit Window Size to Image"
-msgstr "¥¦¥£¥ó¥É¥¦¤ÎÂç¤­¤µ¤ò²èÁü¤Ë¹ç¤ï¤»¤ë"
+msgstr "ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•ã‚’ç”»åƒã«åˆã‚ã›ã‚‹"
 
 #: src/gimv_image_win.c:955
 msgid "Full"
-msgstr "Á´²èÌÌ"
+msgstr "å…¨ç”»é¢"
 
 #: src/gimv_image_win.c:956 src/gimv_image_win.c:957
 msgid "Fullscreen"
-msgstr "Á´²èÌÌ"
+msgstr "å…¨ç”»é¢"
 
 #: src/gimv_image_win.c:981 src/gimv_image_win.c:982
 msgid "First"
-msgstr "ºÇ½é"
+msgstr "æœ€åˆ"
 
 #: src/gimv_image_win.c:991
 msgid "Previous"
 msgstr "Previous"
 
 #: src/gimv_image_win.c:1000
-msgid "Play Slide Show"
-msgstr "¥¹¥é¥¤¥É¥·¥ç¡¼³«»Ï"
+msgid "Play Slideshow"
+msgstr "ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼é–‹å§‹"
 
 #: src/gimv_image_win.c:1009
-msgid "Stop Slide Show"
-msgstr "¥¹¥é¥¤¥É¥·¥ç¡¼Ää»ß"
+msgid "Stop Slideshow"
+msgstr "ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼åœæ­¢"
 
 #: src/gimv_image_win.c:1026 src/gimv_image_win.c:1027
 msgid "Last"
-msgstr "ºÇ¸å"
+msgstr "æœ€å¾Œ"
 
 #: src/gimv_image_win.c:1138
 #, c-format
@@ -1350,7 +1326,7 @@ msgstr "(Buffer OFF)"
 
 #: src/gimv_prefs_ui_utils.c:124
 msgid "Normal"
-msgstr "ÉáÄÌ"
+msgstr "æ™®é€š"
 
 #: src/gimv_prefs_ui_utils.c:125
 msgid "Shift"
@@ -1367,190 +1343,190 @@ msgstr "Mod1"
 #: src/gimv_prefs_ui_utils.c:189
 #, c-format
 msgid "Mouse Button %d (Wheel up)"
-msgstr "¥Ş¥¦¥¹¥Ü¥¿¥ó %d (¥Û¥¤¡¼¥ë¥¢¥Ã¥×)"
+msgstr "ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ %d (ãƒ›ã‚¤ãƒ¼ãƒ«ã‚¢ãƒƒãƒ—)"
 
 #: src/gimv_prefs_ui_utils.c:191
 #, c-format
 msgid "Mouse Button %d (Wheel down)"
-msgstr "¥Ş¥¦¥¹¥Ü¥¿¥ó %d (¥Û¥¤¡¼¥ë¥À¥¦¥ó)"
+msgstr "ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ %d (ãƒ›ã‚¤ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³)"
 
 #: src/gimv_prefs_ui_utils.c:193
 #, c-format
 msgid "Mouse Button %d Double Click"
-msgstr "¥Ş¥¦¥¹¥Ü¥¿¥ó %d ¥À¥Ö¥ë¥¯¥ê¥Ã¥¯"
+msgstr "ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ %d ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯"
 
 #: src/gimv_prefs_ui_utils.c:196 src/prefs_ui/prefs_ui_thumbwin.c:125
 msgid "Left"
-msgstr "º¸"
+msgstr "å·¦"
 
 #: src/gimv_prefs_ui_utils.c:196
 msgid "Middle"
-msgstr "Ãæ"
+msgstr "ä¸­"
 
 #: src/gimv_prefs_ui_utils.c:196 src/prefs_ui/prefs_ui_thumbwin.c:126
 msgid "Right"
-msgstr "±¦"
+msgstr "å³"
 
 #: src/gimv_prefs_ui_utils.c:198
 #, c-format
 msgid "Mouse Button %d (%s)"
-msgstr "¥Ş¥¦¥¹¥Ü¥¿¥ó %d (%s)"
+msgstr "ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ %d (%s)"
 
 #: src/gimv_prefs_ui_utils.c:243
 msgid "Pressed"
-msgstr "¥×¥ì¥¹"
+msgstr "ãƒ—ãƒ¬ã‚¹"
 
 #: src/gimv_prefs_ui_utils.c:246
 msgid "Released"
-msgstr "¥ê¥ê¡¼¥¹"
+msgstr "ãƒªãƒªãƒ¼ã‚¹"
 
 #: src/gimv_prefs_ui_utils.c:386
-msgid "Select directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤òÁªÂò"
+msgid "Select Directory"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’é¸æŠ"
 
 #. show directory
 #: src/gimv_prefs_ui_utils.c:420 src/prefs_ui/prefs_ui_thumbwin.c:746
 msgid "Directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª"
 
 #: src/gimv_prefs_ui_utils.c:454
-msgid "Directory to add : "
-msgstr "ÄÉ²Ã¤¹¤ë¥Ç¥£¥ì¥¯¥È¥ê : "
+msgid "Directory to add: "
+msgstr "è¿½åŠ ã™ã‚‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª : "
 
 #: src/gimv_prefs_ui_utils.c:463
 msgid "Select"
-msgstr "ÁªÂò"
+msgstr "é¸æŠ"
 
 #: src/gimv_prefs_win.c:65
-msgid "/Infomation"
-msgstr "/¾ğÊó"
+msgid "/Information"
+msgstr "/æƒ…å ±"
 
 #: src/gimv_prefs_win.c:66
 msgid "/Common"
-msgstr "/°ìÈÌ"
+msgstr "/ä¸€èˆ¬"
 
 #: src/gimv_prefs_win.c:67
 msgid "/Common/Filtering"
-msgstr "/°ìÈÌ/¥Õ¥£¥ë¥¿"
+msgstr "/ä¸€èˆ¬/ãƒ•ã‚£ãƒ«ã‚¿"
 
 #: src/gimv_prefs_win.c:68
-msgid "/Common/Character set"
-msgstr "/°ìÈÌ/¥­¥ã¥é¥¯¥¿¡¼¥»¥Ã¥È"
+msgid "/Common/Character Set"
+msgstr "/ä¸€èˆ¬/ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚»ãƒƒãƒˆ"
 
 #: src/gimv_prefs_win.c:70
 msgid "/Image Window"
-msgstr "/¥¤¥á¡¼¥¸¥¦¥£¥ó¥É¥¦"
+msgstr "/ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦"
 
 #: src/gimv_prefs_win.c:71
 msgid "/Image Window/Image"
-msgstr "/¥¤¥á¡¼¥¸¥¦¥£¥ó¥É¥¦/²èÁü"
+msgstr "/ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ç”»åƒ"
 
 #: src/gimv_prefs_win.c:72
-msgid "/Image Window/Mouse Buttton"
-msgstr "/¥¤¥á¡¼¥¸¥¦¥£¥ó¥É¥¦/¥Ş¥¦¥¹¥Ü¥¿¥ó"
+msgid "/Image Window/Mouse Buttons"
+msgstr "/ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³"
 
 #: src/gimv_prefs_win.c:74
 msgid "/Thumbnail Window"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦"
 
 #.
 #. {N_("/Thumbnail Window/Toolbar"),   0, NULL, NULL, prefs_thumbview_toolbar_page, NULL},
 #.
 #: src/gimv_prefs_win.c:78
 msgid "/Thumbnail Window/Tab"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥¿¥Ö"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ã‚¿ãƒ–"
 
 #: src/gimv_prefs_win.c:79
 msgid "/Thumbnail Window/Thumbnail View"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼"
 
 #: src/gimv_prefs_win.c:80
-msgid "/Thumbnail Window/Thumbnail View/Mouse Buttton"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼/¥Ş¥¦¥¹¥Ü¥¿¥ó"
+msgid "/Thumbnail Window/Thumbnail View/Mouse Buttons"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼/ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³"
 
 #: src/gimv_prefs_win.c:81
 msgid "/Thumbnail Window/Thumbnail View/Album"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼/¥¢¥ë¥Ğ¥à"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼/ã‚¢ãƒ«ãƒãƒ "
 
 #: src/gimv_prefs_win.c:83
 msgid "/Thumbnail Window/Directory View"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼"
 
 #: src/gimv_prefs_win.c:84
-msgid "/Thumbnail Window/Directory View/Mouse Buttton"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼/¥Ş¥¦¥¹¥Ü¥¿¥ó"
+msgid "/Thumbnail Window/Directory View/Mouse Buttons"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼/ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³"
 
 #: src/gimv_prefs_win.c:85
 msgid "/Thumbnail Window/Preview"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥×¥ì¥Ó¥å¡¼"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼"
 
 #: src/gimv_prefs_win.c:86
-msgid "/Thumbnail Window/Preview/Mouse Buttton"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥×¥ì¥Ó¥å¡¼/¥Ş¥¦¥¹¥Ü¥¿¥ó"
+msgid "/Thumbnail Window/Preview/Mouse Buttons"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼/ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³"
 
 #: src/gimv_prefs_win.c:88
 msgid "/Movie and Audio"
-msgstr "/Æ°²è¤È²»À¼"
+msgstr "/å‹•ç”»ã¨éŸ³å£°"
 
 #: src/gimv_prefs_win.c:90
-msgid "/Slide Show"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼"
+msgid "/Slideshow"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼"
 
 #: src/gimv_prefs_win.c:91
 msgid "/Thumbnail Cache"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥­¥ã¥Ã¥·¥å"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚­ãƒ£ãƒƒã‚·ãƒ¥"
 
 #: src/gimv_prefs_win.c:92
 msgid "/Comment"
-msgstr "/¥³¥á¥ó¥È"
+msgstr "/ã‚³ãƒ¡ãƒ³ãƒˆ"
 
 #: src/gimv_prefs_win.c:93
 msgid "/Search"
-msgstr "/¸¡º÷"
+msgstr "/æ¤œç´¢"
 
 #: src/gimv_prefs_win.c:94
 msgid "/Drag and Drop"
-msgstr "/¥É¥é¥Ã¥° & ¥É¥í¥Ã¥×"
+msgstr "/ãƒ‰ãƒ©ãƒƒã‚° & ãƒ‰ãƒ­ãƒƒãƒ—"
 
 #: src/gimv_prefs_win.c:95
 msgid "/External Program"
-msgstr "/³°Éô¥×¥í¥°¥é¥à"
+msgstr "/å¤–éƒ¨ãƒ—ãƒ­ã‚°ãƒ©ãƒ "
 
 #: src/gimv_prefs_win.c:96
 msgid "/External Program/Scripts"
-msgstr "/³°Éô¥×¥í¥°¥é¥à/¥¹¥¯¥ê¥×¥È"
+msgstr "/å¤–éƒ¨ãƒ—ãƒ­ã‚°ãƒ©ãƒ /ã‚¹ã‚¯ãƒªãƒ—ãƒˆ"
 
 #: src/gimv_prefs_win.c:98
 msgid "/Plugin"
-msgstr "/¥×¥é¥°¥¤¥ó"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/gimv_prefs_win.c:99
 msgid "/Plugin/Image Loader"
-msgstr "/¥×¥é¥°¥¤¥ó/²èÁüÆÉ¤ß¹ş¤ß"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ç”»åƒèª­ã¿è¾¼ã¿"
 
 #: src/gimv_prefs_win.c:100
 msgid "/Plugin/Image Saver"
-msgstr "/¥×¥é¥°¥¤¥ó/²èÁüÊİÂ¸"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ç”»åƒä¿å­˜"
 
 #: src/gimv_prefs_win.c:101
 msgid "/Plugin/IO Stream"
-msgstr "/¥×¥é¥°¥¤¥ó/Æş½ĞÎÏ¥¹¥È¥ê¡¼¥à"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/å…¥å‡ºåŠ›ã‚¹ãƒˆãƒªãƒ¼ãƒ "
 
 #: src/gimv_prefs_win.c:102
 msgid "/Plugin/Archiver"
-msgstr "/¥×¥é¥°¥¤¥ó/¥¢¡¼¥«¥¤¥Ğ"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ã‚¢ãƒ¼ã‚«ã‚¤ãƒ"
 
 #: src/gimv_prefs_win.c:103
 msgid "/Plugin/Thumbnail"
-msgstr "/¥×¥é¥°¥¤¥ó/¥µ¥à¥Í¥¤¥ë"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ã‚µãƒ ãƒã‚¤ãƒ«"
 
 #: src/gimv_prefs_win.c:104
 msgid "/Plugin/Image View"
-msgstr "/¥×¥é¥°¥¤¥ó/¥¤¥á¡¼¥¸¥Ó¥å¡¼"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼"
 
 #: src/gimv_prefs_win.c:105
 msgid "/Plugin/Thumbnail View"
-msgstr "/¥×¥é¥°¥¤¥ó/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼"
 
 #. dialog buttons
 #. button
@@ -1559,399 +1535,399 @@ msgstr "/¥×¥é¥°¥¤¥ó/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼"
 #: src/gimv_prefs_win.c:863 src/gtkutils.c:763 src/gtkutils.c:1062
 #: src/help.c:728 src/prefs_ui/prefs_ui_etc.c:149
 msgid "OK"
-msgstr "Î»²ò"
+msgstr "äº†è§£"
 
 #: src/gimv_prefs_win.c:874
 msgid "Apply"
-msgstr "Å¬ÍÑ"
+msgstr "é©ç”¨"
 
 #. cancel button
 #: src/gimv_prefs_win.c:883 src/gtk_prop.c:204 src/gtkutils.c:375
 #: src/gtkutils.c:688 src/gtkutils.c:865 src/gtkutils.c:1070
 msgid "Cancel"
-msgstr "¥­¥ã¥ó¥»¥ë"
+msgstr "ã‚­ãƒ£ãƒ³ã‚»ãƒ«"
 
 #: src/gimv_thumb_win.c:382
 msgid "/_File/New _Image Window"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¿·µ¬¥¤¥á¡¼¥¸¥¦¥£¥ó¥É¥¦(_I)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/æ–°è¦ã‚¤ãƒ¡ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦(_I)"
 
 #: src/gimv_thumb_win.c:383
 msgid "/_File/New _Window"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¿·µ¬¥¦¥£¥ó¥É¥¦(_W)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/æ–°è¦ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦(_W)"
 
 #: src/gimv_thumb_win.c:384
 msgid "/_File/New _Tab"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¿·µ¬¥¿¥Ö(_T)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/æ–°è¦ã‚¿ãƒ–(_T)"
 
 #: src/gimv_thumb_win.c:386
 msgid "/_File/Close Ta_b"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¥¿¥Ö¤òÊÄ¤¸¤ë(_B)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/ã‚¿ãƒ–ã‚’é–‰ã˜ã‚‹(_B)"
 
 #: src/gimv_thumb_win.c:387
 msgid "/_File/_Close Window"
-msgstr "/¥Õ¥¡¥¤¥ë(_F)/¥¦¥£¥ó¥É¥¦¤òÊÄ¤¸¤ë(_C)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã‚‹(_C)"
 
 #: src/gimv_thumb_win.c:391
 msgid "/_Edit/_Select All"
-msgstr "/ÊÔ½¸(_E)/Á´¤ÆÁªÂò(_S)"
+msgstr "/ç·¨é›†(_E)/å…¨ã¦é¸æŠ(_S)"
 
 #: src/gimv_thumb_win.c:392
 msgid "/_Edit/U_nselect All"
-msgstr "/ÊÔ½¸(_E)/Á´¤ÆÁªÂò²ò½ü(N)"
+msgstr "/ç·¨é›†(_E)/å…¨ã¦é¸æŠè§£é™¤(N)"
 
 #: src/gimv_thumb_win.c:394
 msgid "/_Edit/_Refresh List"
-msgstr "/ÊÔ½¸(_E)/¥ê¥¹¥È¹¹¿·(_R)"
+msgstr "/ç·¨é›†(_E)/ãƒªã‚¹ãƒˆæ›´æ–°(_R)"
 
 #: src/gimv_thumb_win.c:395
 msgid "/_Edit/Reload _Cache"
-msgstr "/ÊÔ½¸(_E)/¥­¥ã¥Ã¥·¥åºÆÆÉ¹ş(_C)"
+msgstr "/ç·¨é›†(_E)/ã‚­ãƒ£ãƒƒã‚·ãƒ¥å†èª­è¾¼(_C)"
 
 #: src/gimv_thumb_win.c:396
-msgid "/_Edit/_Update All Thumbnail"
-msgstr "/ÊÔ½¸(_E)/Á´¤Æ¤Î¥µ¥à¥Í¥¤¥ë¤òºÆºîÀ®(_U)"
+msgid "/_Edit/_Update All Thumbnails"
+msgstr "/ç·¨é›†(_E)/å…¨ã¦ã®ã‚µãƒ ãƒã‚¤ãƒ«ã‚’å†ä½œæˆ(_U)"
 
 #.
 #. {N_("/_Edit/Clear cache for _this tab"), NULL,     cb_clear_cache,   CLEAR_CACHE_TAB, NULL},
 #.
 #: src/gimv_thumb_win.c:401
 msgid "/_Edit/R_ename..."
-msgstr "/ÊÔ½¸(_E)/¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹(_E)..."
+msgstr "/ç·¨é›†(_E)/ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´(_E)..."
 
 #: src/gimv_thumb_win.c:402
 msgid "/_Edit/Co_py Files To..."
-msgstr "/ÊÔ½¸(_E)/¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥³¥Ô¡¼(_P)..."
+msgstr "/ç·¨é›†(_E)/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ã‚³ãƒ”ãƒ¼(_P)..."
 
 #: src/gimv_thumb_win.c:403
 msgid "/_Edit/_Move Files To..."
-msgstr "/ÊÔ½¸(_E)/¥Ç¥£¥ì¥¯¥È¥ê¤Ø°ÜÆ°(_M)..."
+msgstr "/ç·¨é›†(_E)/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ç§»å‹•(_M)..."
 
 #: src/gimv_thumb_win.c:404
 msgid "/_Edit/_Link Files To..."
-msgstr "/ÊÔ½¸(_E)/¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥ê¥ó¥¯(_L)..."
+msgstr "/ç·¨é›†(_E)/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ãƒªãƒ³ã‚¯(_L)..."
 
 #: src/gimv_thumb_win.c:405
-msgid "/_Edit/Remo_ve file..."
-msgstr "/ÊÔ½¸(_E)/¥Õ¥¡¥¤¥ëºï½ü(_V)..."
+msgid "/_Edit/Remo_ve Files..."
+msgstr "/ç·¨é›†(_E)/ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤(_V)..."
 
 #: src/gimv_thumb_win.c:411 src/gimv_thumb_win.c:491
 msgid "/_Tab"
-msgstr "/¥¿¥Ö(_T)"
+msgstr "/ã‚¿ãƒ–(_T)"
 
 #: src/gimv_thumb_win.c:412
 msgid "/_Tab/_Tab Position"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤Î°ÌÃÖ(_T)"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã®ä½ç½®(_T)"
 
 #: src/gimv_thumb_win.c:413
 msgid "/_Tab/_Tab Position/_Top"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤Î°ÌÃÖ(_T)/¾å(_T)"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã®ä½ç½®(_T)/ä¸Š(_T)"
 
 #: src/gimv_thumb_win.c:414
 msgid "/_Tab/_Tab Position/_Bottom"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤Î°ÌÃÖ(_T)/²¼(_B)"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã®ä½ç½®(_T)/ä¸‹(_B)"
 
 #: src/gimv_thumb_win.c:415
 msgid "/_Tab/_Tab Position/_Left"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤Î°ÌÃÖ(_T)/º¸(_L)"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã®ä½ç½®(_T)/å·¦(_L)"
 
 #: src/gimv_thumb_win.c:416
 msgid "/_Tab/_Tab Position/_Right"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤Î°ÌÃÖ(_T)/±¦(_R)"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã®ä½ç½®(_T)/å³(_R)"
 
 #: src/gimv_thumb_win.c:417 src/gimv_thumb_win.c:422
 msgid "/_Tab/---"
-msgstr "/¥¿¥Ö(_T)/---"
+msgstr "/ã‚¿ãƒ–(_T)/---"
 
 #: src/gimv_thumb_win.c:418
 msgid "/_Tab/_First Page"
-msgstr "/¥¿¥Ö(_T)/ºÇ½é¤Î¥Ú¡¼¥¸(_F)"
+msgstr "/ã‚¿ãƒ–(_T)/æœ€åˆã®ãƒšãƒ¼ã‚¸(_F)"
 
 #: src/gimv_thumb_win.c:419
 msgid "/_Tab/_Last Page"
-msgstr "/¥¿¥Ö(_T)/ºÇ¸å¤Î¥Ú¡¼¥¸(_L)"
+msgstr "/ã‚¿ãƒ–(_T)/æœ€å¾Œã®ãƒšãƒ¼ã‚¸(_L)"
 
 #: src/gimv_thumb_win.c:420
 msgid "/_Tab/_Next Page"
-msgstr "/¥¿¥Ö(_T)/¼¡¤Î¥Ú¡¼¥¸(_N)"
+msgstr "/ã‚¿ãƒ–(_T)/æ¬¡ã®ãƒšãƒ¼ã‚¸(_N)"
 
 #: src/gimv_thumb_win.c:421
 msgid "/_Tab/_Previous Page"
-msgstr "/¥¿¥Ö(_T)/Á°¤Î¥Ú¡¼¥¸(_P)"
+msgstr "/ã‚¿ãƒ–(_T)/å‰ã®ãƒšãƒ¼ã‚¸(_P)"
 
 #: src/gimv_thumb_win.c:423
-msgid "/_Tab/Move tab for_ward"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤òÁ°Êı¤Ø°ÜÆ°(_W)"
+msgid "/_Tab/Move Tab For_ward"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã‚’å‰æ–¹ã¸ç§»å‹•(_W)"
 
 #: src/gimv_thumb_win.c:424
-msgid "/_Tab/Move tab _backward"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤ò¸åÊı¤Ø°ÜÆ°(_B)"
+msgid "/_Tab/Move Tab _Backward"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã‚’å¾Œæ–¹ã¸ç§»å‹•(_B)"
 
 #: src/gimv_thumb_win.c:425
-msgid "/_Tab/_Detach tab"
-msgstr "/¥¿¥Ö(_T)/¥¿¥Ö¤òÀÚ¤êÎ¥¤¹(_D)"
+msgid "/_Tab/_Detach Tab"
+msgstr "/ã‚¿ãƒ–(_T)/ã‚¿ãƒ–ã‚’åˆ‡ã‚Šé›¢ã™(_D)"
 
 #: src/gimv_thumb_win.c:427
 msgid "/_Action"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)"
 
 #: src/gimv_thumb_win.c:428
 msgid "/_Action/_Focus"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥Õ¥©¡¼¥«¥¹(_F)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ•ã‚©ãƒ¼ã‚«ã‚¹(_F)"
 
 #: src/gimv_thumb_win.c:429
 msgid "/_Action/_Focus/_Directory View"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥Õ¥©¡¼¥«¥¹(_F)/¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼(_D)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ•ã‚©ãƒ¼ã‚«ã‚¹(_F)/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼(_D)"
 
 #: src/gimv_thumb_win.c:430
 msgid "/_Action/_Focus/_Thumbnail View"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥Õ¥©¡¼¥«¥¹(_F)/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼(_T)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ•ã‚©ãƒ¼ã‚«ã‚¹(_F)/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼(_T)"
 
 #: src/gimv_thumb_win.c:431
 msgid "/_Action/_Focus/_Preview"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥Õ¥©¡¼¥«¥¹(_F)/¥×¥ì¥Ó¥å¡¼(_P)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ•ã‚©ãƒ¼ã‚«ã‚¹(_F)/ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼(_P)"
 
 #: src/gimv_thumb_win.c:432
 msgid "/_Action/_Focus/_Location Entry"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥Õ¥©¡¼¥«¥¹(_F)/¥í¥±¡¼¥·¥ç¥ó¥¨¥ó¥È¥ê(_L)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ•ã‚©ãƒ¼ã‚«ã‚¹(_F)/ãƒ­ã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚¨ãƒ³ãƒˆãƒª(_L)"
 
 #: src/gimv_thumb_win.c:434
 msgid "/_Action/_Directory View"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼(_D)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼(_D)"
 
 #: src/gimv_thumb_win.c:435
 msgid "/_Action/_Thumbnail View"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼(_T)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼(_T)"
 
 #: src/gimv_thumb_win.c:436
 msgid "/_Action/_Preview"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥×¥ì¥Ó¥å¡¼(_P)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼(_P)"
 
 #: src/gimv_thumb_win.c:437
 msgid "/_Action/_Preview/_Next"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥×¥ì¥Ó¥å¡¼(_P)/¼¡¤Ø(_N)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼(_P)/æ¬¡ã¸(_N)"
 
 #: src/gimv_thumb_win.c:438
 msgid "/_Action/_Preview/_Previous"
-msgstr "/¥¢¥¯¥·¥ç¥ó(_A)/¥×¥ì¥Ó¥å¡¼(_P)/Á°¤Ø(_P)"
+msgstr "/ã‚¢ã‚¯ã‚·ãƒ§ãƒ³(_A)/ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼(_P)/å‰ã¸(_P)"
 
 #: src/gimv_thumb_win.c:441
-msgid "/Too_l"
-msgstr "/¥Ä¡¼¥ë(_L)"
+msgid "/Too_ls"
+msgstr "/ãƒ„ãƒ¼ãƒ«(_L)"
 
 #: src/gimv_thumb_win.c:442
-msgid "/Too_l/_Clear all cache"
-msgstr "/¥Ä¡¼¥ë(_L)/Á´¤Æ¤Î¥­¥ã¥Ã¥·¥å¤ò¥¯¥ê¥¢(_A)"
+msgid "/Too_ls/_Clear All Caches"
+msgstr "/ãƒ„ãƒ¼ãƒ«(_L)/å…¨ã¦ã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’ã‚¯ãƒªã‚¢(_A)"
 
 #: src/gimv_thumb_win.c:443 src/gimv_thumb_win.c:445
-msgid "/Too_l/---"
-msgstr "/¥Ä¡¼¥ë(_L)/---"
+msgid "/Too_ls/---"
+msgstr "/ãƒ„ãƒ¼ãƒ«(_L)/---"
 
 #: src/gimv_thumb_win.c:444
-msgid "/Too_l/_Find duplicates"
-msgstr "/¥Ä¡¼¥ë(_L)/½ÅÊ£²èÁü¸¡º÷(_F)"
+msgid "/Too_ls/_Find Duplicates"
+msgstr "/ãƒ„ãƒ¼ãƒ«(_L)/é‡è¤‡ç”»åƒæ¤œç´¢(_F)"
 
 #: src/gimv_thumb_win.c:446
-msgid "/Too_l/_Wallpaper setting"
-msgstr "/¥Ä¡¼¥ë(_L)/ÊÉ»æÀßÄê(_W)"
+msgid "/Too_ls/Set as _Wallpaper"
+msgstr "/ãƒ„ãƒ¼ãƒ«(_L)/å£ç´™è¨­å®š(_W)"
 
 #: src/gimv_thumb_win.c:456
 msgid "/_Sort File List"
-msgstr "/¥Õ¥¡¥¤¥ë¥½¡¼¥È(_S)"
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ(_S)"
 
 #: src/gimv_thumb_win.c:457
 msgid "/_Layout"
-msgstr "/¥ì¥¤¥¢¥¦¥È(_L)"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ(_L)"
 
 #: src/gimv_thumb_win.c:458
 msgid "/_Layout/Layout_0"
-msgstr "/¥ì¥¤¥¢¥¦¥È/¥ì¥¤¥¢¥¦¥È_0"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ_0"
 
 #: src/gimv_thumb_win.c:459
 msgid "/_Layout/Layout_1"
-msgstr "/¥ì¥¤¥¢¥¦¥È/¥ì¥¤¥¢¥¦¥È_1"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ_1"
 
 #: src/gimv_thumb_win.c:460
 msgid "/_Layout/Layout_2"
-msgstr "/¥ì¥¤¥¢¥¦¥È/¥ì¥¤¥¢¥¦¥È_2"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ_2"
 
 #: src/gimv_thumb_win.c:461
 msgid "/_Layout/Layout_3"
-msgstr "/¥ì¥¤¥¢¥¦¥È/¥ì¥¤¥¢¥¦¥È_3"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ_3"
 
 #: src/gimv_thumb_win.c:462
 msgid "/_Layout/Layout_4"
-msgstr "/¥ì¥¤¥¢¥¦¥È/¥ì¥¤¥¢¥¦¥È_4"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ_4"
 
 #: src/gimv_thumb_win.c:463
 msgid "/_Layout/_Custom"
-msgstr "/¥ì¥¤¥¢¥¦¥È/¥«¥¹¥¿¥à(_C)"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ/ã‚«ã‚¹ã‚¿ãƒ (_C)"
 
 #: src/gimv_thumb_win.c:464
 msgid "/_Layout/---"
-msgstr "/¥ì¥¤¥¢¥¦¥È(_L)/---"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ(_L)/---"
 
 #: src/gimv_thumb_win.c:465
 msgid "/_Layout/Window _Composition"
-msgstr "/¥ì¥¤¥¢¥¦¥È(_L)/¥¦¥£¥ó¥É¥¦¹½À®"
+msgstr "/ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ(_L)/ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦æ§‹æˆ"
 
 #: src/gimv_thumb_win.c:469
 msgid "/S_lideshow"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼(_L)"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼(_L)"
 
 #: src/gimv_thumb_win.c:470
 msgid "/Slideshow Opt_ions"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(I)"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(I)"
 
 #: src/gimv_thumb_win.c:471
-msgid "/Slideshow Opt_ions/Start from the _first"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/ºÇ½é¤«¤é³«»Ï(_F)"
+msgid "/Slideshow Opt_ions/Start from the _First"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/æœ€åˆã‹ã‚‰é–‹å§‹(_F)"
 
 #: src/gimv_thumb_win.c:472
-msgid "/Slideshow Opt_ions/Start from the se_lected"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/ÁªÂò²èÁü¤«¤é³«»Ï(_L)"
+msgid "/Slideshow Opt_ions/Start from the Se_lected"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/é¸æŠç”»åƒã‹ã‚‰é–‹å§‹(_L)"
 
 #: src/gimv_thumb_win.c:474
-msgid "/Slideshow Opt_ions/_Random order"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/¥é¥ó¥À¥à½ç(_R)"
+msgid "/Slideshow Opt_ions/_Random Order"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/ãƒ©ãƒ³ãƒ€ãƒ é †(_R)"
 
 #: src/gimv_thumb_win.c:476 src/gimv_thumb_win.c:478
 msgid "/Slideshow Opt_ions/---"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/---"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/---"
 
 #: src/gimv_thumb_win.c:477
-msgid "/Slideshow Opt_ions/_Selected only"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/ÁªÂò²èÁü¤Î¤ß(_S)"
+msgid "/Slideshow Opt_ions/_Selected Only"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/é¸æŠç”»åƒã®ã¿(_S)"
 
 #: src/gimv_thumb_win.c:479
-msgid "/Slideshow Opt_ions/Images _and movies"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/²èÁü¤ÈÆ°²è(_A)"
+msgid "/Slideshow Opt_ions/Images _and Movies"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/ç”»åƒã¨å‹•ç”»(_A)"
 
 #: src/gimv_thumb_win.c:480
-msgid "/Slideshow Opt_ions/_Images only"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/²èÁü¤Î¤ß(_I)"
+msgid "/Slideshow Opt_ions/_Images Only"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/ç”»åƒã®ã¿(_I)"
 
 #: src/gimv_thumb_win.c:481
-msgid "/Slideshow Opt_ions/_Movies only"
-msgstr "/¥¹¥é¥¤¥É¥·¥ç¡¼¥ª¥×¥·¥ç¥ó(_I)/Æ°²è¤Î¤ß(_M)"
+msgid "/Slideshow Opt_ions/_Movies Only"
+msgstr "/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³(_I)/å‹•ç”»ã®ã¿(_M)"
 
 #: src/gimv_thumb_win.c:485
 msgid "/_Directory View"
-msgstr "/¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼(_D)"
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼(_D)"
 
 #: src/gimv_thumb_win.c:486
 msgid "/_Preview"
-msgstr "/¥×¥ì¥Ó¥å¡¼(_P)"
+msgstr "/ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼(_P)"
 
 #: src/gimv_thumb_win.c:488
-msgid "/T_ool Bar"
-msgstr "/¥Ä¡¼¥ë¥Ğ¡¼(_O)"
+msgid "/T_oolbar"
+msgstr "/ãƒ„ãƒ¼ãƒ«ãƒãƒ¼(_O)"
 
 #: src/gimv_thumb_win.c:489
-msgid "/Dir_View Tool Bar"
-msgstr "/¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼¥Ä¡¼¥ë¥Ğ¡¼(_V)"
+msgid "/Dir_View Toolbar"
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼ãƒ„ãƒ¼ãƒ«ãƒãƒ¼(_V)"
 
 #: src/gimv_thumb_win.c:492
 msgid "/Ta_b (Preview)"
-msgstr "/¥¿¥Ö (¥×¥ì¥Ó¥å¡¼)(_B)"
+msgstr "/ã‚¿ãƒ– (ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼)(_B)"
 
 #: src/gimv_thumb_win.c:509
 msgid "/by _Name"
-msgstr "/Ì¾Á°(_N)"
+msgstr "/åå‰(_N)"
 
 #: src/gimv_thumb_win.c:510
 msgid "/by _Access Time"
-msgstr "/»²¾ÈÆü»ş(_A)"
+msgstr "/å‚ç…§æ—¥æ™‚(_A)"
 
 #: src/gimv_thumb_win.c:511
 msgid "/by _Modification Time"
-msgstr "/¹¹¿·Æü»ş(_M)"
+msgstr "/æ›´æ–°æ—¥æ™‚(_M)"
 
 #: src/gimv_thumb_win.c:512
 msgid "/by _Change Time"
-msgstr "/¾õÂÖÊÑ¹¹Æü»ş(_C)"
+msgstr "/çŠ¶æ…‹å¤‰æ›´æ—¥æ™‚(_C)"
 
 #: src/gimv_thumb_win.c:513
 msgid "/by _Size"
-msgstr "/¥µ¥¤¥º(_S)"
+msgstr "/ã‚µã‚¤ã‚º(_S)"
 
 #: src/gimv_thumb_win.c:514
 msgid "/by _Type"
-msgstr "/¼ïÎà(_T)"
+msgstr "/ç¨®é¡(_T)"
 
 #: src/gimv_thumb_win.c:515
 msgid "/by Image _Width"
-msgstr "/²èÁüÉı(_W)"
+msgstr "/ç”»åƒå¹…(_W)"
 
 #: src/gimv_thumb_win.c:516
 msgid "/by Image _Height"
-msgstr "/²èÁü¹â¤µ(_H)"
+msgstr "/ç”»åƒé«˜ã•(_H)"
 
 #: src/gimv_thumb_win.c:517
 msgid "/by Image Ar_ea"
-msgstr "/²èÁüÌÌÀÑ(_E)"
+msgstr "/ç”»åƒé¢ç©(_E)"
 
 #: src/gimv_thumb_win.c:519
 msgid "/_Reverse Order"
-msgstr "/µÕ½ç(_R)"
+msgstr "/é€†é †(_R)"
 
 #: src/gimv_thumb_win.c:521
-msgid "/Case _insensitive"
-msgstr "/ÂçÊ¸»ú¾®Ê¸»ú¤ò¶èÊÌ¤·¤Ê¤¤(_I)"
+msgid "/Case _Insensitive"
+msgstr "/å¤§æ–‡å­—å°æ–‡å­—ã‚’åŒºåˆ¥ã—ãªã„(_I)"
 
 #: src/gimv_thumb_win.c:522
-msgid "/_Directory insensitive"
-msgstr "/¥Ç¥£¥ì¥¯¥È¥ê¤ò¶èÊÌ¤·¤Ê¤¤(_D)"
+msgid "/_Mix Directories and Files"
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’åŒºåˆ¥ã—ãªã„(_D)"
 
 #: src/gimv_thumb_win.c:654
 msgid " -Thumbnail Window-"
-msgstr "- ¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦ -"
+msgstr "- ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ -"
 
 #: src/gimv_thumb_win.c:935
 #, c-format
 msgid "Composition %d"
-msgstr "¹½À®%d"
+msgstr "æ§‹æˆ%d"
 
 #: src/gimv_thumb_win.c:1575 src/gimv_thumb_win.c:1576
 msgid "Go to previous page"
-msgstr "Á°¤Î¥Ú¡¼¥¸¤Ø"
+msgstr "å‰ã®ãƒšãƒ¼ã‚¸ã¸"
 
 #: src/gimv_thumb_win.c:1586 src/gimv_thumb_win.c:1587
 msgid "Go to next page"
-msgstr "¼¡¤Î¥Ú¡¼¥¸¤Ø"
+msgstr "æ¬¡ã®ãƒšãƒ¼ã‚¸ã¸"
 
 #: src/gimv_thumb_win.c:1598
 msgid "Reload"
-msgstr "ºÆÆÉ¹ş"
+msgstr "å†èª­è¾¼"
 
 #: src/gimv_thumb_win.c:1599 src/gimv_thumb_win.c:1600
 msgid "Reload Cache"
-msgstr "¥­¥ã¥Ã¥·¥åºÆÆÉ¹ş"
+msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥å†èª­è¾¼"
 
 #: src/gimv_thumb_win.c:1610 src/gimv_thumb_win.c:1611
-msgid "Skip creating current thumbnail table"
-msgstr "¸½¥Ú¡¼¥¸¤Î¥µ¥à¥Í¥¤¥ëºîÀ®¤ò¥¹¥­¥Ã¥×"
+msgid "Skip creating the current thumbnail table"
+msgstr "ç¾ãƒšãƒ¼ã‚¸ã®ã‚µãƒ ãƒã‚¤ãƒ«ä½œæˆã‚’ã‚¹ã‚­ãƒƒãƒ—"
 
 #: src/gimv_thumb_win.c:1622 src/gimv_thumb_win.c:1623
 msgid "Stop creating thumbnails"
-msgstr "¥µ¥à¥Í¥¤¥ëºîÀ®¤òÃæ»ß"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ä½œæˆã‚’ä¸­æ­¢"
 
 #: src/gimv_thumb_win.c:1639
 msgid "Thumbnail Size"
-msgstr "¥µ¥à¥Í¥¤¥ë¥µ¥¤¥º"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ã‚µã‚¤ã‚º"
 
 #: src/gimv_thumb_win.c:1649
 msgid "Quit"
-msgstr "½ªÎ»"
+msgstr "çµ‚äº†"
 
 #: src/gimv_thumb_win.c:1650 src/gimv_thumb_win.c:1651
 msgid "Exit this program"
-msgstr "¤³¤Î¥×¥í¥°¥é¥à¤ò½ªÎ»"
+msgstr "ã“ã®ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã‚’çµ‚äº†"
 
 #. create image view and attach to comment view notebook
 #. Show Preview or not
 #: src/gimv_thumb_win.c:2078 src/prefs_ui/prefs_ui_thumbwin.c:468
 msgid "Preview"
-msgstr "¥×¥ì¥Ó¥å¡¼"
+msgstr "ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼"
 
 #: src/gimv_thumb_win.c:3521
 msgid "Empty"
@@ -1978,7 +1954,7 @@ msgstr "Collection View"
 
 #: src/gimv_thumb_win.c:3589
 msgid "Loading in another tab..."
-msgstr "Â¾¤Î¥¿¥Ö¤Ç¥í¡¼¥ÉÃæ..."
+msgstr "ä»–ã®ã‚¿ãƒ–ã§ãƒ­ãƒ¼ãƒ‰ä¸­..."
 
 #: src/gimv_thumb_win.c:3597
 #, c-format
@@ -1987,95 +1963,90 @@ msgstr "%d/%d page  %d/%d files  %d/%d kB"
 
 #: src/gimv_thumb_win.c:3830
 msgid "New Tab"
-msgstr "¿·µ¬¥¿¥Ö"
+msgstr "æ–°è¦ã‚¿ãƒ–"
 
 #: src/gimv_thumb_win.c:3872
 #, c-format
-msgid "NewTab %d"
-msgstr "¿·µ¬¥¿¥Ö%d"
+msgid "New Tab %d"
+msgstr "æ–°è¦ã‚¿ãƒ–%d"
 
 #: src/gtk_prop.c:191
 msgid "Properties"
-msgstr "¥×¥í¥Ñ¥Æ¥£"
-
-#. ok and cancel buttons
-#: src/gtk_prop.c:203
-msgid "Ok"
-msgstr "Î»²ò"
+msgstr "ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£"
 
 #: src/gtk_prop.c:224
 msgid "All"
-msgstr "Á´¤Æ"
+msgstr "å…¨ã¦"
 
 #. date and size page
 #: src/gtk_prop.c:241
 msgid "Info"
-msgstr "¾ğÊó"
+msgstr "æƒ…å ±"
 
 #: src/gtk_prop.c:246
-msgid "Name :"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾ :"
+msgid "Name:"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å :"
 
 #: src/gtk_prop.c:283
-msgid "Type :"
-msgstr "¼ïÎà :"
+msgid "Type:"
+msgstr "ç¨®é¡ :"
 
 #: src/gtk_prop.c:305
 #, c-format
 msgid "%ld Bytes"
-msgstr "%ld ¥Ğ¥¤¥È"
+msgstr "%ld ãƒã‚¤ãƒˆ"
 
 #: src/gtk_prop.c:307
-msgid "Size :"
-msgstr "¥µ¥¤¥º :"
+msgid "Size:"
+msgstr "ã‚µã‚¤ã‚º :"
 
 #: src/gtk_prop.c:319
-msgid "Access Time :"
-msgstr "»²¾ÈÆü»ş :"
+msgid "Access Time:"
+msgstr "å‚ç…§æ—¥æ™‚ :"
 
 #: src/gtk_prop.c:331
-msgid "Modification Time :"
-msgstr "¹¹¿·Æü»ş :"
+msgid "Modification Time:"
+msgstr "æ›´æ–°æ—¥æ™‚ :"
 
 #: src/gtk_prop.c:343
-msgid "Change Time :"
-msgstr "¾õÂÖÊÑ¹¹Æü»ş :"
+msgid "Change Time:"
+msgstr "çŠ¶æ…‹å¤‰æ›´æ—¥æ™‚ :"
 
 #: src/gtk_prop.c:352
 msgid "Permissions"
-msgstr "¥Ñ¡¼¥ß¥Ã¥·¥ç¥ó"
+msgstr "ãƒ‘ãƒ¼ãƒŸãƒƒã‚·ãƒ§ãƒ³"
 
 #: src/gtk_prop.c:356 src/gtk_prop.c:483
-msgid "Owner :"
-msgstr "½êÍ­¼Ô :"
+msgid "Owner:"
+msgstr "æ‰€æœ‰è€… :"
 
 #: src/gtk_prop.c:357 src/gtk_prop.c:389 src/gtk_prop.c:420
 msgid "Read"
-msgstr "ÆÉ¤ß¹ş¤ß"
+msgstr "èª­ã¿è¾¼ã¿"
 
 #: src/gtk_prop.c:363 src/gtk_prop.c:395 src/gtk_prop.c:426
 msgid "Write"
-msgstr "½ñ¤­¹ş¤ß"
+msgstr "æ›¸ãè¾¼ã¿"
 
 #: src/gtk_prop.c:369 src/gtk_prop.c:401 src/gtk_prop.c:432
 msgid "Execute"
-msgstr "¼Â¹Ô"
+msgstr "å®Ÿè¡Œ"
 
 #: src/gtk_prop.c:375
 msgid "Set UID"
 msgstr "Set UID"
 
 #: src/gtk_prop.c:388 src/gtk_prop.c:494
-msgid "Group :"
-msgstr "¥°¥ë¡¼¥× :"
+msgid "Group:"
+msgstr "ã‚°ãƒ«ãƒ¼ãƒ— :"
 
 #: src/gtk_prop.c:407
 msgid "Set GID"
 msgstr "Set GID"
 
 #: src/gtk_prop.c:419
-msgid "Other :"
-msgstr "¤½¤ÎÂ¾ :"
+msgid "Others:"
+msgstr "ãã®ä»– :"
 
 #: src/gtk_prop.c:438
 msgid "Sticky"
@@ -2083,54 +2054,54 @@ msgstr "Sticky"
 
 #: src/gtk_prop.c:472
 msgid "Owner"
-msgstr "½êÍ­¼Ô"
+msgstr "æ‰€æœ‰è€…"
 
 #: src/gtk_prop.c:477 src/gtk_prop.c:488
 msgid "unknown"
-msgstr "ÉÔÌÀ"
+msgstr "ä¸æ˜"
 
 #. buttons
 #: src/gtkutils.c:344 src/gtkutils.c:652
 msgid "Yes"
-msgstr "¤Ï¤¤"
+msgstr "ã¯ã„"
 
 #: src/gtkutils.c:355 src/gtkutils.c:662
 msgid "Yes to All"
-msgstr "Á´¤Æ¤Ï¤¤"
+msgstr "å…¨ã¦ã¯ã„"
 
 #: src/gtkutils.c:365
 msgid "No"
-msgstr "¤¤¤¤¤¨"
+msgstr "ã„ã„ãˆ"
 
 #: src/gtkutils.c:458
 #, c-format
-msgid "The file exists : %s"
-msgstr "¥Õ¥¡¥¤¥ë¤¬Â¸ºß¤·¤Ş¤¹ : %s"
+msgid "The file exists: %s"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ã¾ã™ : %s"
 
 #: src/gtkutils.c:550
 msgid "Show destination"
-msgstr "¾å½ñ¤­Àè¤òÉ½¼¨"
+msgstr "ä¸Šæ›¸ãå…ˆã‚’è¡¨ç¤º"
 
 #: src/gtkutils.c:557
 msgid "Show both images"
-msgstr "Î¾Êı¤òÉ½¼¨"
+msgstr "ä¸¡æ–¹ã‚’è¡¨ç¤º"
 
 #: src/gtkutils.c:565
 msgid "Show source"
-msgstr "¾å½ñ¤­¸µ¤òÉ½¼¨"
+msgstr "ä¸Šæ›¸ãå…ƒã‚’è¡¨ç¤º"
 
 #: src/gtkutils.c:638
 msgid "Rename"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´"
 
 #: src/gtkutils.c:679
 msgid "Skip all"
-msgstr "Á´¤Æ¥¹¥­¥Ã¥×"
+msgstr "å…¨ã¦ã‚¹ã‚­ãƒƒãƒ—"
 
 #: src/gtkutils.c:1200 src/prefs_ui/prefs_ui_etc.c:989
 #: src/prefs_ui/prefs_ui_imagewin.c:351 src/prefs_ui/prefs_ui_imagewin.c:366
 msgid "Choose Color"
-msgstr "¿§ÁªÂò"
+msgstr "è‰²é¸æŠ"
 
 #: src/help.c:78
 #, c-format
@@ -2154,32 +2125,32 @@ msgid ""
 msgstr ""
 "Copyright (C) 2001 %s <%s>\n"
 "\n"
-"ËÜ¥×¥í¥°¥é¥à¤Ï¥Õ¥ê¡¼¡¦¥½¥Õ¥È¥¦¥§¥¢¤Ç¤¹¡£¤¢¤Ê¤¿¤Ï¡¢Free Software\n"
-"Foundation ¤¬¸øÉ½¤·¤¿GNU °ìÈÌ¸øÍ­»ÈÍÑµöÂú¤Î¡Ö¥Ğ¡¼¥¸¥ç¥ó£²¡×°¿¤¤\n"
-"¤Ï¤½¤ì°Ê¹ß¤Î³Æ¥Ğ¡¼¥¸¥ç¥ó¤ÎÃæ¤«¤é¤¤¤º¤ì¤«¤òÁªÂò¤·¡¢¤½¤Î¥Ğ¡¼¥¸¥ç¥ó\n"
-"¤¬Äê¤á¤ë¾ò¹à¤Ë½¾¤Ã¤ÆËÜ¥×¥í¥°¥é¥à¤òºÆÈÒÉÛ¤Ş¤¿¤ÏÊÑ¹¹¤¹¤ë¤³¤È¤¬¤Ç¤­\n"
-"¤Ş¤¹¡£\n"
+"æœ¬ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã¯ãƒ•ãƒªãƒ¼ãƒ»ã‚½ãƒ•ãƒˆã‚¦ã‚§ã‚¢ã§ã™ã€‚ã‚ãªãŸã¯ã€Free Software\n"
+"Foundation ãŒå…¬è¡¨ã—ãŸGNU ä¸€èˆ¬å…¬æœ‰ä½¿ç”¨è¨±è«¾ã®ã€Œãƒãƒ¼ã‚¸ãƒ§ãƒ³ï¼’ã€æˆ–ã„\n"
+"ã¯ãã‚Œä»¥é™ã®å„ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã®ä¸­ã‹ã‚‰ã„ãšã‚Œã‹ã‚’é¸æŠã—ã€ãã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³\n"
+"ãŒå®šã‚ã‚‹æ¡é …ã«å¾“ã£ã¦æœ¬ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã‚’å†é ’å¸ƒã¾ãŸã¯å¤‰æ›´ã™ã‚‹ã“ã¨ãŒã§ã\n"
+"ã¾ã™ã€‚\n"
 "\n"
-"ËÜ¥×¥í¥°¥é¥à¤ÏÍ­ÍÑ¤È¤Ï»×¤¤¤Ş¤¹¤¬¡¢ÈÒÉÛ¤Ë¤¢¤¿¤Ã¤Æ¤Ï¡¢»Ô¾ìÀ­µÚ¤ÓÆÃ\n"
-"ÄêÌÜÅªÅ¬¹çÀ­¤Ë¤Ä¤¤¤Æ¤Î°ÅÌÛ¤ÎÊİ¾Ú¤ò´Ş¤á¤Æ¡¢¤¤¤«¤Ê¤ëÊİ¾Ú¤â¹Ô¤Ê¤¤¤Ş\n"
-"¤»¤ó¡£¾ÜºÙ¤Ë¤Ä¤¤¤Æ¤ÏGNU °ìÈÌ¸øÍ­»ÈÍÑµöÂú½ñ¤ò¤ªÆÉ¤ß¤¯¤À¤µ¤¤¡£\n"
+"æœ¬ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã¯æœ‰ç”¨ã¨ã¯æ€ã„ã¾ã™ãŒã€é ’å¸ƒã«ã‚ãŸã£ã¦ã¯ã€å¸‚å ´æ€§åŠã³ç‰¹\n"
+"å®šç›®çš„é©åˆæ€§ã«ã¤ã„ã¦ã®æš—é»™ã®ä¿è¨¼ã‚’å«ã‚ã¦ã€ã„ã‹ãªã‚‹ä¿è¨¼ã‚‚è¡Œãªã„ã¾\n"
+"ã›ã‚“ã€‚è©³ç´°ã«ã¤ã„ã¦ã¯GNU ä¸€èˆ¬å…¬æœ‰ä½¿ç”¨è¨±è«¾æ›¸ã‚’ãŠèª­ã¿ãã ã•ã„ã€‚\n"
 "\n"
-"¤¢¤Ê¤¿¤Ï¡¢ËÜ¥×¥í¥°¥é¥à¤È°ì½ï¤ËGNU °ìÈÌ¸øÍ­»ÈÍÑµöÂú¤Î¼Ì¤·¤ò¼õ¤±¼è¤Ã\n"
-"¤Æ¤¤¤ë¤Ï¤º¤Ç¤¹¡£¤½¤¦¤Ç¤Ê¤¤¾ì¹ç¤Ï¡¢Free Software Foundation, Inc.,\n"
-"675 Mass Ave, Cambridge, MA 02111-1307, USA ¤Ø¼ê»æ¤ò½ñ¤¤¤Æ¤¯¤À\n"
-"¤µ¤¤¡£"
+"ã‚ãªãŸã¯ã€æœ¬ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã¨ä¸€ç·’ã«GNU ä¸€èˆ¬å…¬æœ‰ä½¿ç”¨è¨±è«¾ã®å†™ã—ã‚’å—ã‘å–ã£\n"
+"ã¦ã„ã‚‹ã¯ãšã§ã™ã€‚ãã†ã§ãªã„å ´åˆã¯ã€Free Software Foundation, Inc.,\n"
+"675 Mass Ave, Cambridge, MA 02111-1307, USA ã¸æ‰‹ç´™ã‚’æ›¸ã„ã¦ãã \n"
+"ã•ã„ã€‚"
 
 #: src/help.c:95
 msgid ""
-"Main Program :\n"
+"Main Program:\n"
 "    Takuro Ashie <ashie@homa.ne.jp>\n"
-"Document :\n"
+"Document:\n"
 "    Nyan2 <t-nyan2@nifty.com>\n"
-"Logo :\n"
+"Logo:\n"
 "    eins <eins@milk.freemail.ne.jp>\n"
-"Translate :\n"
+"Translation:\n"
 "\n"
-"Special Thanks :\n"
+"Special Thanks:\n"
 "    horam\n"
 "    TAM\n"
 "    Hiroyuki Komatsu\n"
@@ -2198,145 +2169,143 @@ msgid ""
 "    Christian Hammers\n"
 "    And all GImageView users"
 msgstr ""
-"¥á¥¤¥ó¥×¥í¥°¥é¥à :\n"
+"ãƒ¡ã‚¤ãƒ³ãƒ—ãƒ­ã‚°ãƒ©ãƒ  :\n"
 "    Takuro Ashie <ashie@homa.ne.jp>\n"
-"¥É¥­¥å¥á¥ó¥È :\n"
+"ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ :\n"
 "    Nyan2 <t-nyan2@nifty.com>\n"
-"¥í¥´ :\n"
+"ãƒ­ã‚´ :\n"
 "    eins <eins@milk.freemail.ne.jp>\n"
-"ËİÌõ :\n"
+"ç¿»è¨³ :\n"
 "    Takuro Ashie <ashie@homa.ne.jp>\n"
 "\n"
 "Special Thanks :\n"
-"    horam¤µ¤ó\n"
-"    TAM¤µ¤ó\n"
-"    ¾®¾¾¹°¹¬¤µ¤ó\n"
-"    ´äËÜ°ì¼ù¤µ¤ó\n"
-"    katsu¤µ¤ó\n"
-"    ¤³¡Á¤ê¤ó¤µ¤ó\n"
-"    ¤¸¤Ã¤µ¤Ş¤µ¤ó\n"
-"    ²¼¿¹¤µ¤ó\n"
-"    knee¤µ¤ó\n"
-"    matsu¤µ¤ó\n"
-"    Shlomi Fish¤µ¤ó\n"
-"    Jin Suh¤µ¤ó\n"
-"    MINAMI Hirokazu¤µ¤ó\n"
-"    Brent Baccala¤µ¤ó\n"
-"    Christian Hammers¤µ¤ó\n"
-"    ¤½¤·¤ÆÁ´¤Æ¤ÎGImageView¥æ¡¼¥¶¡¼¤Î³§ÍÍ"
+"    horamã•ã‚“\n"
+"    TAMã•ã‚“\n"
+"    å°æ¾å¼˜å¹¸ã•ã‚“\n"
+"    å²©æœ¬ä¸€æ¨¹ã•ã‚“\n"
+"    katsuã•ã‚“\n"
+"    ã“ã€œã‚Šã‚“ã•ã‚“\n"
+"    ã˜ã£ã•ã¾ã•ã‚“\n"
+"    ä¸‹æ£®ã•ã‚“\n"
+"    kneeã•ã‚“\n"
+"    matsuã•ã‚“\n"
+"    Shlomi Fishã•ã‚“\n"
+"    Jin Suhã•ã‚“\n"
+"    MINAMI Hirokazuã•ã‚“\n"
+"    Brent Baccalaã•ã‚“\n"
+"    Christian Hammersã•ã‚“\n"
+"    ãã—ã¦å…¨ã¦ã®GImageViewãƒ¦ãƒ¼ã‚¶ãƒ¼ã®çš†æ§˜"
 
 #: src/help.c:128
 msgid "/_Manual"
-msgstr "/¥Ş¥Ë¥å¥¢¥ë(_M)"
+msgstr "/ãƒãƒ‹ãƒ¥ã‚¢ãƒ«(_M)"
 
 #: src/help.c:129
 msgid "/_Document"
-msgstr "/¥É¥­¥å¥á¥ó¥È(_D)"
+msgstr "/ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ(_D)"
 
 #: src/help.c:130
 msgid "/_Document/_HTML"
-msgstr "/¥É¥­¥å¥á¥ó¥È(_D)/_HTML"
+msgstr "/ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ(_D)/_HTML"
 
 #: src/help.c:131
 msgid "/_Document/Plain _Text"
-msgstr "/¥É¥­¥å¥á¥ó¥È(_D)/¥×¥ì¡¼¥ó¥Æ¥­¥¹¥È(_T)"
+msgstr "/ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ(_D)/ãƒ—ãƒ¬ãƒ¼ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ(_T)"
 
 #: src/help.c:132
 msgid "/_About"
-msgstr "/GImageView¤Ë¤Ä¤¤¤Æ(_A)"
+msgstr "/GImageViewã«ã¤ã„ã¦(_A)"
 
 #: src/help.c:446
 #, c-format
 msgid ""
-"Plugin Name : %s\n"
-"Version : %s\n"
-"Author : %s\n"
-"\n"
+"Plugin Name: %s\n"
+"Version: %s\n"
+"Author: %s\n"
 msgstr ""
-"¥×¥é¥°¥¤¥óÌ¾ : %s\n"
-"¥Ğ¡¼¥¸¥ç¥ó : %s\n"
-"ºî¼Ô : %s\n"
-"\n"
+"ãƒ—ãƒ©ã‚°ã‚¤ãƒ³å : %s\n"
+"ãƒãƒ¼ã‚¸ãƒ§ãƒ³ : %s\n"
+"ä½œè€… : %s\n"
 
 #: src/help.c:524
 #, c-format
 msgid ""
-"Operating System : %s %s %s\n"
-"GTK+ version : %d.%d.%d\n"
+"Operating System: %s %s %s\n"
+"GTK version: %d.%d.%d\n"
 msgstr ""
-"¥ª¥Ú¥ì¡¼¥Æ¥£¥ó¥°¥·¥¹¥Æ¥à : %s %s %s\n"
-"GTK+¥Ğ¡¼¥¸¥ç¥ó : %d.%d.%d\n"
+"ã‚ªãƒšãƒ¬ãƒ¼ãƒ†ã‚£ãƒ³ã‚°ã‚·ã‚¹ãƒ†ãƒ  : %s %s %s\n"
+"GTK+ãƒãƒ¼ã‚¸ãƒ§ãƒ³ : %d.%d.%d\n"
 
 #: src/help.c:533
 #, c-format
-msgid "libmng version : %s\n"
-msgstr "libmng ¥Ğ¡¼¥¸¥ç¥ó : %s\n"
+msgid "libmng version: %s\n"
+msgstr "libmng ãƒãƒ¼ã‚¸ãƒ§ãƒ³ : %s\n"
 
 #: src/help.c:539
 #, c-format
-msgid "gdk-pixbuf version : %s\n"
-msgstr "gdk-pixbuf ¥Ğ¡¼¥¸¥ç¥ó : %s\n"
+msgid "gdk-pixbuf version: %s\n"
+msgstr "gdk-pixbuf ãƒãƒ¼ã‚¸ãƒ§ãƒ³ : %s\n"
 
 #: src/help.c:545
 #, c-format
-msgid "librsvg version : %s\n"
-msgstr "librsvg ¥Ğ¡¼¥¸¥ç¥ó : %s\n"
+msgid "librsvg version: %s\n"
+msgstr "librsvg ãƒãƒ¼ã‚¸ãƒ§ãƒ³ : %s\n"
 
 #: src/help.c:619
-msgid "Web Site: "
-msgstr "WEB¥µ¥¤¥È: "
+msgid "Website: "
+msgstr "WEBã‚µã‚¤ãƒˆ: "
 
 #: src/help.c:673
 msgid "License"
-msgstr "¥é¥¤¥»¥ó¥¹"
+msgstr "ãƒ©ã‚¤ã‚»ãƒ³ã‚¹"
 
 #: src/help.c:680
 msgid "Authors"
-msgstr "ºî¼Ô"
+msgstr "ä½œè€…"
 
 #: src/help.c:688
 msgid "System Info"
-msgstr "¥·¥¹¥Æ¥à¾ğÊó"
+msgstr "ã‚·ã‚¹ãƒ†ãƒ æƒ…å ±"
 
 #: src/help.c:695 plugins/image_loader/prefs_spi.c:225
 msgid "Plugin Info"
-msgstr "¥×¥é¥°¥¤¥ó¾ğÊó"
+msgstr "ãƒ—ãƒ©ã‚°ã‚¤ãƒ³æƒ…å ±"
 
 #: src/help.c:716
 #, c-format
 msgid "About %s"
-msgstr "%s ¤Ë¤Ä¤¤¤Æ"
+msgstr "%s ã«ã¤ã„ã¦"
 
 #: src/prefs.c:523
 #, c-format
 msgid ""
 "Can't open rc file: %s\n"
-"Use default setting ..."
+"Using the default settings..."
 msgstr ""
-"ÀßÄê¥Õ¥¡¥¤¥ë¤ò³«¤¯¤³¤È¤¬¤Ç¤­¤Ş¤»¤ó: %s\n"
-"¥Ç¥Õ¥©¥ë¥ÈÀßÄê¤ò»ÈÍÑ¤·¤Ş¤¹ ..."
+"è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“: %s\n"
+"ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¨­å®šã‚’ä½¿ç”¨ã—ã¾ã™ ..."
 
 #: src/prefs.c:591
 #, c-format
-msgid "Directory \"%s\" not found. Created it ..."
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê \"%s\" ¤¬¸«ÉÕ¤«¤ê¤Ş¤»¤ó¡£ºîÀ®¤·¤Ş¤¹ ..."
+msgid "Directory \"%s\" not found. Creating it..."
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª \"%s\" ãŒè¦‹ä»˜ã‹ã‚Šã¾ã›ã‚“ã€‚ä½œæˆã—ã¾ã™ ..."
 
 #: src/prefs.c:594
 #, c-format
-msgid "\"%s\" found, but it's not directory. Abort creating ..."
-msgstr "\"%s\" ¤Ï¥Ç¥£¥ì¥¯¥È¥ê¤Ç¤Ï¤¢¤ê¤Ş¤»¤ó¡£ ºîÀ®¤òÃæÃÇ¤·¤Ş¤¹ ..."
+msgid "\"%s\" found, but it's not a directory. Not creating it."
+msgstr "\"%s\" ã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ ä½œæˆã‚’ä¸­æ–­ã—ã¾ã™ ..."
 
 #: src/prefs.c:603
-msgid "Can't open rc file for write."
-msgstr "ÀßÄê¥Õ¥¡¥¤¥ë¤ò½ñ¤­¹ş¤ßÍÑ¤Ë³«¤¯¤³¤È¤¬¤Ç¤­¤Ş¤»¤ó"
+msgid "Can't open rc file for writing."
+msgstr "è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ›¸ãè¾¼ã¿ç”¨ã«é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“"
 
 #: src/prefs_ui/prefs_ui_common.c:71
 msgid "Image View"
-msgstr "¥¤¥á¡¼¥¸¥Ó¥å¡¼"
+msgstr "ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼"
 
 #: src/prefs_ui/prefs_ui_common.c:72
 msgid "Thumbnail View"
-msgstr "¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼"
 
 #: src/prefs_ui/prefs_ui_common.c:79
 msgid "Nearest"
@@ -2356,113 +2325,113 @@ msgstr "Hyperbolic"
 
 #: src/prefs_ui/prefs_ui_common.c:89
 msgid "Never convert"
-msgstr "ÊÑ´¹¤·¤Ê¤¤"
+msgstr "å¤‰æ›ã—ãªã„"
 
 #: src/prefs_ui/prefs_ui_common.c:90
 msgid "Locale"
-msgstr "¥í¥«¡¼¥ë"
+msgstr "ãƒ­ã‚«ãƒ¼ãƒ«"
 
 #: src/prefs_ui/prefs_ui_common.c:91
 msgid "Auto detect"
-msgstr "¼«Æ°¸¡½Ğ"
+msgstr "è‡ªå‹•æ¤œå‡º"
 
 #: src/prefs_ui/prefs_ui_common.c:92
 msgid "Any"
-msgstr "¤½¤ÎÂ¾"
+msgstr "ãã®ä»–"
 
 #: src/prefs_ui/prefs_ui_common.c:139 src/prefs_ui/prefs_ui_common.c:147
 #: src/prefs_ui/prefs_ui_common.c:154 src/prefs_ui/prefs_ui_etc.c:171
 #: src/prefs_ui/prefs_ui_etc.c:179 src/prefs_ui/prefs_ui_etc.c:186
 msgid "Error"
-msgstr "¥¨¥é¡¼"
+msgstr "ã‚¨ãƒ©ãƒ¼"
 
 #: src/prefs_ui/prefs_ui_common.c:140
 msgid ""
-"String includes invalid character!\n"
-"Only ASCII is available."
+"The string contains an invalid character!\n"
+"Only ASCII is allowed."
 msgstr ""
-"Ê¸»úÎó¤Ë¤Ï»ÈÍÑÉÔ²ÄÇ½¤ÊÊ¸»ú¤¬´Ş¤Ş¤ì¤Æ¤¤¤Ş¤¹!\n"
-"ASCIIÊ¸»ú¤Î¤ß¤¬»ÈÍÑ²ÄÇ½¤Ç¤¹¡¥"
+"æ–‡å­—åˆ—ã«ã¯ä½¿ç”¨ä¸å¯èƒ½ãªæ–‡å­—ãŒå«ã¾ã‚Œã¦ã„ã¾ã™!\n"
+"ASCIIæ–‡å­—ã®ã¿ãŒä½¿ç”¨å¯èƒ½ã§ã™ï¼"
 
 #: src/prefs_ui/prefs_ui_common.c:148 src/prefs_ui/prefs_ui_etc.c:180
 msgid "Sorry, cannot include \",\" character!"
-msgstr "\",\"¤ò´Ş¤á¤ë¤³¤È¤Ï¤Ç¤­¤Ş¤»¤ó!"
+msgstr "\",\"ã‚’å«ã‚ã‚‹ã“ã¨ã¯ã§ãã¾ã›ã‚“!"
 
 #: src/prefs_ui/prefs_ui_common.c:155 src/prefs_ui/prefs_ui_etc.c:187
 msgid "Sorry, cannot include \";\" character!"
-msgstr "\";\"¤ò´Ş¤á¤ë¤³¤È¤Ï¤Ç¤­¤Ş¤»¤ó!"
+msgstr "\";\"ã‚’å«ã‚ã‚‹ã“ã¨ã¯ã§ãã¾ã›ã‚“!"
 
 #: src/prefs_ui/prefs_ui_common.c:181 src/prefs_ui/prefs_ui_etc.c:400
 #, c-format
 msgid "\"%s\" is already defined."
-msgstr "\"%s\"¤Ï´û¤ËÄêµÁ¤µ¤ì¤Æ¤¤¤Ş¤¹¡¥"
+msgstr "\"%s\"ã¯æ—¢ã«å®šç¾©ã•ã‚Œã¦ã„ã¾ã™ï¼"
 
 #: src/prefs_ui/prefs_ui_common.c:243 src/prefs_ui/prefs_ui_common.c:281
 #: src/prefs_ui/prefs_ui_common.c:775 src/prefs_ui/prefs_ui_etc.c:682
 msgid "Enable"
-msgstr "Í­¸ú"
+msgstr "æœ‰åŠ¹"
 
 #: src/prefs_ui/prefs_ui_common.c:243 src/prefs_ui/prefs_ui_common.c:284
 #: src/prefs_ui/prefs_ui_common.c:774 src/prefs_ui/prefs_ui_common.c:775
 msgid "Disable"
-msgstr "Ìµ¸ú"
+msgstr "ç„¡åŠ¹"
 
 #: src/prefs_ui/prefs_ui_common.c:244 src/prefs_ui/prefs_ui_common.c:427
 #: src/prefs_ui/prefs_ui_etc.c:261 src/prefs_ui/prefs_ui_etc.c:430
 msgid "System defined"
-msgstr "¥·¥¹¥Æ¥àÄêµÁ"
+msgstr "ã‚·ã‚¹ãƒ†ãƒ å®šç¾©"
 
 #: src/prefs_ui/prefs_ui_common.c:288 src/prefs_ui/prefs_ui_common.c:430
 #: src/prefs_ui/prefs_ui_etc.c:259 src/prefs_ui/prefs_ui_etc.c:433
 msgid "User defined"
-msgstr "¥æ¡¼¥¶¡¼ÄêµÁ"
+msgstr "ãƒ¦ãƒ¼ã‚¶ãƒ¼å®šç¾©"
 
 #. *********************************************
 #. * Default Open Window Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:549
 msgid "Default Open Window"
-msgstr "¥¦¥£¥ó¥É¥¦¤ÎÀßÄê"
+msgstr "ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¨­å®š"
 
 #. File Open Window Selection
 #: src/prefs_ui/prefs_ui_common.c:561
 msgid "File Open Window"
-msgstr "¥Õ¥¡¥¤¥ë¤ò³«¤¯¥¦¥£¥ó¥É¥¦"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã‚¦ã‚£ãƒ³ãƒ‰ã‚¦"
 
 #. Directory Open Window Selection
 #: src/prefs_ui/prefs_ui_common.c:573
 msgid "Directory Open Window"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤ò³«¤¯¥¦¥£¥ó¥É¥¦"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’é–‹ãã‚¦ã‚£ãƒ³ãƒ‰ã‚¦"
 
 #. Archive Open Window Selection
 #: src/prefs_ui/prefs_ui_common.c:585
 msgid "Archive Open Window"
-msgstr "¥¢¡¼¥«¥¤¥Ö¤ò³«¤¯¥¦¥£¥ó¥É¥¦"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚’é–‹ãã‚¦ã‚£ãƒ³ãƒ‰ã‚¦"
 
 #. *********************************************
 #. * Scan Directory Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:601
-msgid "Directory scan"
-msgstr "¥Ç¥£¥ì¥¯¥È¥êÁöºº"
+msgid "Directory Scan"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªèµ°æŸ»"
 
 #. Ignore filename extension or not
 #: src/prefs_ui/prefs_ui_common.c:604
 msgid "Scan directories recursively"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤òºÆµ¢Åª¤Ë¼èÆÀ¤¹¤ë"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å†å¸°çš„ã«å–å¾—ã™ã‚‹"
 
 #. follow symbolic link
 #: src/prefs_ui/prefs_ui_common.c:611
-msgid "Follow symbolic link"
-msgstr "¥·¥ó¥Ü¥ê¥Ã¥¯¥ê¥ó¥¯Àè¤Î¥Ç¥£¥ì¥¯¥È¥ê¤òÆÉ¤ß¹ş¤à"
+msgid "Follow symbolic links"
+msgstr "ã‚·ãƒ³ãƒœãƒªãƒƒã‚¯ãƒªãƒ³ã‚¯å…ˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’èª­ã¿è¾¼ã‚€"
 
 #: src/prefs_ui/prefs_ui_common.c:615
-msgid "Do not follow symbolic link"
-msgstr "¥ê¥ó¥¯Àè¤Î¥Ç¥£¥ì¥¯¥È¥ê¤òÆÉ¤ß¹ş¤Ş¤Ê¤¤"
+msgid "Do not follow symbolic links"
+msgstr "ãƒªãƒ³ã‚¯å…ˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’èª­ã¿è¾¼ã¾ãªã„"
 
 #: src/prefs_ui/prefs_ui_common.c:624
-msgid "Do not follow link to parent directory"
-msgstr "¿Æ¥Ç¥£¥ì¥¯¥È¥ê¤Ø¤Î¥ê¥ó¥¯¤òÆÉ¤ß¹ş¤Ş¤Ê¤¤"
+msgid "Do not follow links to parent directories"
+msgstr "è¦ªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ã®ãƒªãƒ³ã‚¯ã‚’èª­ã¿è¾¼ã¾ãªã„"
 
 #. *********************************************
 #. * Image Frame
@@ -2470,240 +2439,245 @@ msgstr "¿Æ¥Ç¥£¥ì¥¯¥È¥ê¤Ø¤Î¥ê¥ó¥¯¤òÆÉ¤ß¹ş¤Ş¤Ê¤¤"
 #: src/prefs_ui/prefs_ui_common.c:652 src/prefs_ui/prefs_ui_etc.c:907
 #: src/prefs_ui/prefs_ui_imagewin.c:397 src/prefs_ui/prefs_ui_thumbwin.c:1024
 msgid "Image"
-msgstr "²èÁü"
+msgstr "ç”»åƒ"
 
 #: src/prefs_ui/prefs_ui_common.c:658
 msgid "Interpolation type for scaling"
-msgstr "¥¹¥±¡¼¥ê¥ó¥°»ş¤ÎÊä´ÖË¡"
+msgstr "ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°æ™‚ã®è£œé–“æ³•"
 
 #. *********************************************
 #. * Start up Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:669
-msgid "Start up"
-msgstr "µ¯Æ°»ş"
+msgid "Startup"
+msgstr "èµ·å‹•æ™‚"
 
 #. Open thumbnail window or not
 #: src/prefs_ui/prefs_ui_common.c:672
 msgid "Open thumbnail window"
-msgstr "¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦¤ò³«¤¯"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‹ã"
 
 #. Scan (or not) Directory
 #: src/prefs_ui/prefs_ui_common.c:679
-msgid "Ignore directory"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤òÌµ»ë¤¹¤ë"
+msgid "Ignore directories given on the command line"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ç„¡è¦–ã™ã‚‹"
 
 #. No warning
 #: src/prefs_ui/prefs_ui_common.c:686
 msgid "No warning"
-msgstr "·Ù¹ğ¤òÉ½¼¨¤·¤Ê¤¤"
+msgstr "è­¦å‘Šã‚’è¡¨ç¤ºã—ãªã„"
+
+#. Splash window
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Show splash window"
+msgstr "ã‚¹ãƒ—ãƒ©ãƒƒã‚·ãƒ¥ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤ºã™ã‚‹"
 
 #: src/prefs_ui/prefs_ui_common.c:710
 msgid "Extension"
-msgstr "³ÈÄ¥»Ò"
+msgstr "æ‹¡å¼µå­"
 
 #: src/prefs_ui/prefs_ui_common.c:710
 msgid "File Type"
-msgstr "¥Õ¥¡¥¤¥ë¥¿¥¤¥×"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚¿ã‚¤ãƒ—"
 
 #: src/prefs_ui/prefs_ui_common.c:710 src/prefs_ui/prefs_ui_etc.c:613
 msgid "Status"
-msgstr "¾õÂÖ"
+msgstr "çŠ¶æ…‹"
 
 #. *********************************************
 #. * Image Types Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:719
 msgid "File Types"
-msgstr "¥Õ¥¡¥¤¥ë¥¿¥¤¥×"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚¿ã‚¤ãƒ—"
 
 #: src/prefs_ui/prefs_ui_common.c:740
 msgid "Extension: "
-msgstr "³ÈÄ¥»Ò :"
+msgstr "æ‹¡å¼µå­ :"
 
 #: src/prefs_ui/prefs_ui_common.c:758
 msgid "File Type: "
-msgstr "¥Õ¥¡¥¤¥ë¥¿¥¤¥×: "
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚¿ã‚¤ãƒ—: "
 
 #. Ignore filename extension or not
 #: src/prefs_ui/prefs_ui_common.c:801
 msgid "Read dotfiles"
-msgstr "¥É¥Ã¥È¥Õ¥¡¥¤¥ë¤òÆÉ¤ß¹ş¤à"
+msgstr "ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã‚€"
 
 #. *********************************************
 #. * Common Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:838
 msgid "Common"
-msgstr "°ìÈÌ"
+msgstr "ä¸€èˆ¬"
 
 #: src/prefs_ui/prefs_ui_common.c:849
 msgid "Locale character set: "
-msgstr "¥í¥«¡¼¥ë¤Î¥­¥ã¥é¥¯¥¿¡¼¥»¥Ã¥È : "
+msgstr "ãƒ­ã‚«ãƒ¼ãƒ«ã®ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚»ãƒƒãƒˆ : "
 
 #: src/prefs_ui/prefs_ui_common.c:866
 msgid "Internal character set: "
-msgstr "ÆâÉô¥­¥ã¥é¥¯¥¿¡¼¥»¥Ã¥È : "
+msgstr "å†…éƒ¨ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚»ãƒƒãƒˆ : "
 
 #: src/prefs_ui/prefs_ui_common.c:882
 msgid "Language for auto detecting"
-msgstr "¼«Æ°¸¡½Ğ¤¹¤ë¸À¸ì"
+msgstr "è‡ªå‹•æ¤œå‡ºã™ã‚‹è¨€èª"
 
 #. *********************************************
 #. * Filename Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:893
 msgid "File name"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å"
 
 #: src/prefs_ui/prefs_ui_common.c:898
 msgid "Character set of file name"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾¤Î¥­¥ã¥é¥¯¥¿¡¼¥»¥Ã¥È"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«åã®ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚»ãƒƒãƒˆ"
 
 #: src/prefs_ui/prefs_ui_etc.c:140
-msgid "Preference - Cache Writing -"
-msgstr "ÀßÄê - ¥­¥ã¥Ã¥·¥å-½ñ¤­¹ş¤ß -"
+msgid "Preferences - Cache Writing -"
+msgstr "è¨­å®š - ã‚­ãƒ£ãƒƒã‚·ãƒ¥-æ›¸ãè¾¼ã¿ -"
 
 #: src/prefs_ui/prefs_ui_etc.c:172
 msgid ""
-"Key string includes invalid character!\n"
-"Only ASCII (except space) is available."
+"The key string contains an invalid character!\n"
+"Only ASCII (except space) is allowed."
 msgstr ""
-"¥­¡¼Ì¾¤Ï»ÈÍÑÉÔ²ÄÇ½¤ÊÊ¸»ú¤ò´Ş¤ó¤Ç¤¤¤Ş¤¹!\n"
-"¶õÇò¤ò½ü¤¯ASCIIÊ¸»ú¤Î¤ß¤¬»ÈÍÑ²ÄÇ½¤Ç¤¹¡¥"
+"ã‚­ãƒ¼åã¯ä½¿ç”¨ä¸å¯èƒ½ãªæ–‡å­—ã‚’å«ã‚“ã§ã„ã¾ã™!\n"
+"ç©ºç™½ã‚’é™¤ãASCIIæ–‡å­—ã®ã¿ãŒä½¿ç”¨å¯èƒ½ã§ã™ï¼"
 
 #: src/prefs_ui/prefs_ui_etc.c:193
 msgid "\"Key name\" must be defined."
-msgstr "¡Ö¥­¡¼Ì¾¡×¤ÏÄêµÁ¤·¤Ê¤±¤ì¤Ğ¤¤¤±¤Ş¤»¤ó¡¥"
+msgstr "ã€Œã‚­ãƒ¼åã€ã¯å®šç¾©ã—ãªã‘ã‚Œã°ã„ã‘ã¾ã›ã‚“ï¼"
 
 #: src/prefs_ui/prefs_ui_etc.c:199
 msgid "\"Display name\" must be defined."
-msgstr "¡ÖÉ½¼¨Ì¾¡×¤ÏÄêµÁ¤·¤Ê¤±¤ì¤Ğ¤¤¤±¤Ş¤»¤ó¡¥"
+msgstr "ã€Œè¡¨ç¤ºåã€ã¯å®šç¾©ã—ãªã‘ã‚Œã°ã„ã‘ã¾ã›ã‚“ï¼"
 
 #: src/prefs_ui/prefs_ui_etc.c:539
 msgid "Cache reading"
-msgstr "¥­¥ã¥Ã¥·¥åÆÉ¹ş"
+msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥èª­è¾¼"
 
 #: src/prefs_ui/prefs_ui_etc.c:540
 msgid "Available cache type"
-msgstr "ÍøÍÑ²ÄÇ½¤Ê¥­¥ã¥Ã¥·¥å¥¿¥¤¥×"
+msgstr "åˆ©ç”¨å¯èƒ½ãªã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒ—"
 
 #: src/prefs_ui/prefs_ui_etc.c:541
 msgid "Cache type to use"
-msgstr "»ÈÍÑ¤¹¤ë¥­¥ã¥Ã¥·¥å¥¿¥¤¥×"
+msgstr "ä½¿ç”¨ã™ã‚‹ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒ—"
 
 #. *********************************************
 #. *  Cache writing frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:553
 msgid "Cache writing"
-msgstr "¥­¥ã¥Ã¥·¥å½ñ¹ş"
+msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥æ›¸è¾¼"
 
 #: src/prefs_ui/prefs_ui_etc.c:562
-msgid "Cache type for save"
-msgstr "¥­¥ã¥Ã¥·¥å½ñ¹ş¥¿¥¤¥×"
+msgid "Cache type for saving"
+msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥æ›¸è¾¼ã‚¿ã‚¤ãƒ—"
 
 #: src/prefs_ui/prefs_ui_etc.c:611
 msgid "Key Name"
-msgstr "¥­¡¼Ì¾"
+msgstr "ã‚­ãƒ¼å"
 
 #: src/prefs_ui/prefs_ui_etc.c:612
 msgid "Displayed Name"
-msgstr "É½¼¨Ì¾"
+msgstr "è¡¨ç¤ºå"
 
 #: src/prefs_ui/prefs_ui_etc.c:614 src/prefs_ui/prefs_ui_etc.c:690
 #: src/prefs_ui/prefs_ui_imagewin.c:315 src/prefs_ui/prefs_ui_thumbwin.c:536
 msgid "Auto"
-msgstr "¼«Æ°"
+msgstr "è‡ªå‹•"
 
 #: src/prefs_ui/prefs_ui_etc.c:615 src/prefs_ui/prefs_ui_etc.c:698
 msgid "Display"
-msgstr "É½¼¨"
+msgstr "è¡¨ç¤º"
 
 #. *********************************************
 #. * Key Name definition frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:626
 msgid "Key Name Definition"
-msgstr "¥­¡¼ÄêµÁ"
+msgstr "ã‚­ãƒ¼å®šç¾©"
 
 #: src/prefs_ui/prefs_ui_etc.c:650
 msgid "Key Name: "
-msgstr "¥­¡¼Ì¾ : "
+msgstr "ã‚­ãƒ¼å : "
 
 #: src/prefs_ui/prefs_ui_etc.c:667
 msgid "Displayed Name: "
-msgstr "É½¼¨Ì¾ : "
+msgstr "è¡¨ç¤ºå : "
 
 #: src/prefs_ui/prefs_ui_etc.c:683 src/prefs_ui/prefs_ui_etc.c:691
 #: src/prefs_ui/prefs_ui_etc.c:699 src/prefs_ui/prefs_ui_progs.c:66
 #: src/prefs_ui/prefs_ui_progs.c:104 src/prefs_ui/prefs_ui_progs.c:259
 msgid "TRUE"
-msgstr "Í­¸ú"
+msgstr "æœ‰åŠ¹"
 
 #: src/prefs_ui/prefs_ui_etc.c:683 src/prefs_ui/prefs_ui_etc.c:691
 #: src/prefs_ui/prefs_ui_etc.c:699 src/prefs_ui/prefs_ui_progs.c:68
 #: src/prefs_ui/prefs_ui_progs.c:259
 msgid "FALSE"
-msgstr "Ìµ¸ú"
+msgstr "ç„¡åŠ¹"
 
 #. *********************************************
 #. * Charset Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:726
 msgid "Character set"
-msgstr "¥­¥ã¥é¥¯¥¿¡¼¥»¥Ã¥È"
+msgstr "ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚»ãƒƒãƒˆ"
 
 #: src/prefs_ui/prefs_ui_etc.c:732
 msgid "Character set: "
-msgstr "¥­¥ã¥é¥¯¥¿¡¼¥»¥Ã¥È : "
+msgstr "ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚»ãƒƒãƒˆ : "
 
 #. *********************************************
 #. *  Find duplicates
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:768
-msgid "Find duplicates"
-msgstr "½ÅÊ£²èÁü¸¡º÷"
+msgid "Find Duplicates"
+msgstr "é‡è¤‡ç”»åƒæ¤œç´¢"
 
 #: src/prefs_ui/prefs_ui_etc.c:775 src/gimv_dupl_win.c:122
 msgid "Accuracy"
-msgstr "ÀºÅÙ"
+msgstr "ç²¾åº¦"
 
 #. *********************************************
 #. *  Behabior of selecting
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:790
-msgid "Behabior when select thumbnail on result window"
-msgstr "¸¡º÷·ë²Ì¥¦¥£¥ó¥É¥¦¤Î¥µ¥à¥Í¥¤¥ëÁªÂò»ş¤ÎµóÆ°"
+msgid "Behavior when selecting a thumbnail in the result window"
+msgstr "æ¤œç´¢çµæœã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚µãƒ ãƒã‚¤ãƒ«é¸æŠæ™‚ã®æŒ™å‹•"
 
 #: src/prefs_ui/prefs_ui_etc.c:797
-msgid "Select the thumbnail on thumbnail view"
-msgstr "¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼¤Î¥µ¥à¥Í¥¤¥ë¤òÁªÂò"
+msgid "Select the thumbnail in the thumbnail view"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼ã®ã‚µãƒ ãƒã‚¤ãƒ«ã‚’é¸æŠ"
 
 #: src/prefs_ui/prefs_ui_etc.c:803
 msgid "Show the image in preview"
-msgstr "²èÁü¤ò¥×¥ì¥Ó¥å¡¼¤ËÉ½¼¨"
+msgstr "ç”»åƒã‚’ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã«è¡¨ç¤º"
 
 #: src/prefs_ui/prefs_ui_etc.c:809
 msgid "Show the image in new window"
-msgstr "²èÁü¤ò¿·µ¬¥¦¥£¥ó¥É¥¦¤ËÉ½¼¨"
+msgstr "ç”»åƒã‚’æ–°è¦ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«è¡¨ç¤º"
 
 #: src/prefs_ui/prefs_ui_etc.c:815
 msgid "Show the image in shared window"
-msgstr "²èÁü¤ò¶¦Í­¥¦¥£¥ó¥É¥¦¤ËÉ½¼¨"
+msgstr "ç”»åƒã‚’å…±æœ‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«è¡¨ç¤º"
 
 #: src/prefs_ui/prefs_ui_etc.c:851
 msgid "Image change interval"
-msgstr "²èÁü¤òÀÚ¤êÂØ¤¨¤ë´Ö³Ö"
+msgstr "ç”»åƒã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹é–“éš”"
 
 #: src/prefs_ui/prefs_ui_etc.c:863 plugins/image_view/prefs_xine.c:311
 msgid "[sec]"
-msgstr "[ÉÃ]"
+msgstr "[ç§’]"
 
 #. repeat
 #: src/prefs_ui/prefs_ui_etc.c:867
-msgid "Repeat slide show"
-msgstr "·«¤êÊÖ¤¹"
+msgid "Repeat slideshow"
+msgstr "ç¹°ã‚Šè¿”ã™"
 
 #. *********************************************
 #. * Show/Hide Frame
@@ -2719,28 +2693,28 @@ msgstr "·«¤êÊÖ¤¹"
 #: src/prefs_ui/prefs_ui_thumbwin.c:445 src/prefs_ui/prefs_ui_thumbwin.c:740
 #: src/prefs_ui/prefs_ui_thumbwin.c:848
 msgid "Show/Hide"
-msgstr "É½¼¨/ÈóÉ½¼¨"
+msgstr "è¡¨ç¤º/éè¡¨ç¤º"
 
 #. Show Menubar or not
 #: src/prefs_ui/prefs_ui_etc.c:880
 msgid "Show menubar"
-msgstr "¥á¥Ë¥å¡¼¥Ğ¡¼¤òÉ½¼¨"
+msgstr "ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼ã‚’è¡¨ç¤º"
 
 #. Show Toolbar or not
 #. show/hide toolbar
 #: src/prefs_ui/prefs_ui_etc.c:886 src/prefs_ui/prefs_ui_thumbwin.c:851
 msgid "Show toolbar"
-msgstr "¥Ä¡¼¥ë¥Ğ¡¼¤òÉ½¼¨"
+msgstr "ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’è¡¨ç¤º"
 
 #. Show Player toolbar or not
 #: src/prefs_ui/prefs_ui_etc.c:892
 msgid "Show player toolbar"
-msgstr "¥×¥ì¡¼¥ä¥Ä¡¼¥ë¥Ğ¡¼¤òÉ½¼¨"
+msgstr "ãƒ—ãƒ¬ãƒ¼ãƒ¤ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’è¡¨ç¤º"
 
 #. Show Statusbar or not
 #: src/prefs_ui/prefs_ui_etc.c:898
 msgid "Show statusbar"
-msgstr "¥¹¥Æ¡¼¥¿¥¹¥Ğ¡¼¤òÉ½¼¨"
+msgstr "ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼ã‚’è¡¨ç¤º"
 
 #. Zoom menu
 #. Default zoom action menu
@@ -2748,7 +2722,7 @@ msgstr "¥¹¥Æ¡¼¥¿¥¹¥Ğ¡¼¤òÉ½¼¨"
 #: src/prefs_ui/prefs_ui_etc.c:916 src/prefs_ui/prefs_ui_imagewin.c:406
 #: src/prefs_ui/prefs_ui_thumbwin.c:1033
 msgid "Zoom:"
-msgstr "¥º¡¼¥à:"
+msgstr "ã‚ºãƒ¼ãƒ :"
 
 #. Rotate menu
 #. Rotate on image change
@@ -2756,17 +2730,12 @@ msgstr "¥º¡¼¥à:"
 #: src/prefs_ui/prefs_ui_etc.c:931 src/prefs_ui/prefs_ui_imagewin.c:421
 #: src/prefs_ui/prefs_ui_thumbwin.c:1048
 msgid "Rotation:"
-msgstr "²óÅ¾:"
-
-#. Keep Aspect Ratio
-#: src/prefs_ui/prefs_ui_etc.c:946
-msgid "Keep aspect rario"
-msgstr "¥¢¥¹¥Ú¥¯¥ÈÈæ¤òÊİ»ı"
+msgstr "å›è»¢:"
 
 #: src/prefs_ui/prefs_ui_etc.c:956 src/prefs_ui/prefs_ui_imagewin.c:446
 #: src/prefs_ui/prefs_ui_thumbwin.c:1076
 msgid "Default Image Scale"
-msgstr "¥Ç¥Õ¥©¥ë¥È¤Î²èÁü³ÈÂçÎ¨"
+msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ç”»åƒæ‹¡å¤§ç‡"
 
 #: src/prefs_ui/prefs_ui_etc.c:967 src/prefs_ui/prefs_ui_imagewin.c:457
 #: src/prefs_ui/prefs_ui_thumbwin.c:1086
@@ -2777,470 +2746,465 @@ msgstr "%"
 #. * Back Ground Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:977 src/prefs_ui/prefs_ui_imagewin.c:338
-msgid "Back Ground"
-msgstr "ÇØ·Ê"
+msgid "Background"
+msgstr "èƒŒæ™¯"
 
 #: src/prefs_ui/prefs_ui_etc.c:983
 msgid "Use specified color"
-msgstr "»ØÄê¿§¤ò»È¤¦"
+msgstr "æŒ‡å®šè‰²ã‚’ä½¿ã†"
 
 #. *********************************************
 #. *  File Operation frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:1019
 msgid "File operation"
-msgstr "¥Õ¥¡¥¤¥ëÁàºî"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«æ“ä½œ"
 
 #. Drag and Drop to external proccess
 #: src/prefs_ui/prefs_ui_etc.c:1022
-msgid "Enable DnD to external proccess (Experimental)"
-msgstr "³°Éô¥×¥í¥»¥¹¤Ø¤Î DnD ¤òÍ­¸ú (¼Â¸³ÃÊ³¬)"
+msgid "Enable DnD to external programs (experimental)"
+msgstr "å¤–éƒ¨ãƒ—ãƒ­ã‚»ã‚¹ã¸ã® DnD ã‚’æœ‰åŠ¹ (å®Ÿé¨“æ®µéš)"
 
 #. Drag and Drop from external proccess
 #: src/prefs_ui/prefs_ui_etc.c:1029
-msgid "Enable DnD from extenal proccess (Experimental)"
-msgstr "³°Éô¥×¥í¥»¥¹¤«¤é¤Î DnD ¤òÍ­¸ú (¼Â¸³ÃÊ³¬)"
+msgid "Enable DnD from external programs (experimental)"
+msgstr "å¤–éƒ¨ãƒ—ãƒ­ã‚»ã‚¹ã‹ã‚‰ã® DnD ã‚’æœ‰åŠ¹ (å®Ÿé¨“æ®µéš)"
 
 #. Always refresh list when DnD end
 #: src/prefs_ui/prefs_ui_etc.c:1036
-msgid "Always refresh list when DnD end"
-msgstr "DnD ½ªÎ»»ş¤Ë¾ï¤Ë¥ê¥¹¥È¤ò¹¹¿·¤¹¤ë"
+msgid "Always refresh the list after DnD"
+msgstr "DnD çµ‚äº†æ™‚ã«å¸¸ã«ãƒªã‚¹ãƒˆã‚’æ›´æ–°ã™ã‚‹"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:63 src/prefs_ui/prefs_ui_imagewin.c:72
 msgid "Do not change"
-msgstr "ÊÑ¹¹¤·¤Ê¤¤"
+msgstr "å¤‰æ›´ã—ãªã„"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:65
 msgid "Automatic EXIF"
-msgstr "EXIF¥Ç¡¼¥¿¤Ë±ş¤¸¤ë"
+msgstr "EXIFãƒ‡ãƒ¼ã‚¿ã«å¿œã˜ã‚‹"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:71
 msgid "Default image scale"
-msgstr "¥Ç¥Õ¥©¥ë¥È¤Î²èÁü³ÈÂçÎ¨"
+msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ç”»åƒæ‹¡å¤§ç‡"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:73
 msgid "Fit image to window"
-msgstr "¥¦¥£¥ó¥É¥¦¤ÎÂç¤­¤µ¤Ë¹ç¤ï¤»¤ë"
+msgstr "ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•ã«åˆã‚ã›ã‚‹"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:74
 msgid "Fit image to window (zoom out only)"
-msgstr "¥¦¥£¥ó¥É¥¦¤ÎÂç¤­¤µ¤Ë¹ç¤ï¤»¤ë(³ÈÂç¤·¤Ê¤¤)"
+msgstr "ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•ã«åˆã‚ã›ã‚‹(æ‹¡å¤§ã—ãªã„)"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:75
 msgid "Fit image to width"
-msgstr "²èÁü¤ò¥Õ¥ì¡¼¥àÉı¤Ë¹ç¤ï¤»¤ë"
+msgstr "ç”»åƒã‚’ãƒ•ãƒ¬ãƒ¼ãƒ å¹…ã«åˆã‚ã›ã‚‹"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:76
 msgid "Fit image to height"
-msgstr "²èÁü¤ò¥Õ¥ì¡¼¥à¹â¤µ¤Ë¹ç¤ï¤»¤ë"
+msgstr "ç”»åƒã‚’ãƒ•ãƒ¬ãƒ¼ãƒ é«˜ã•ã«åˆã‚ã›ã‚‹"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:139 src/prefs_ui/prefs_ui_thumbwin.c:180
 msgid "Next image"
-msgstr "¼¡¤Î²èÁü"
+msgstr "æ¬¡ã®ç”»åƒ"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:140 src/prefs_ui/prefs_ui_thumbwin.c:181
 msgid "Previous image"
-msgstr "Á°¤Î²èÁü"
+msgstr "å‰ã®ç”»åƒ"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:141 src/prefs_ui/prefs_ui_thumbwin.c:155
 #: src/prefs_ui/prefs_ui_thumbwin.c:171 src/prefs_ui/prefs_ui_thumbwin.c:184
 msgid "Popup menu"
-msgstr "¥İ¥Ã¥×¥¢¥Ã¥×¥á¥Ë¥å¡¼"
+msgstr "ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:144 src/prefs_ui/prefs_ui_thumbwin.c:187
 msgid "Fit image size to frame"
-msgstr "²èÁü¤ò¥Õ¥ì¡¼¥à¤Ë¹ç¤ï¤»¤ë"
+msgstr "ç”»åƒã‚’ãƒ•ãƒ¬ãƒ¼ãƒ ã«åˆã‚ã›ã‚‹"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:145 src/prefs_ui/prefs_ui_thumbwin.c:188
 msgid "Rotate CCW"
-msgstr "È¿»ş·×²ó¤ê¤Ë²óÅ¾"
+msgstr "åæ™‚è¨ˆå›ã‚Šã«å›è»¢"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:146 src/prefs_ui/prefs_ui_thumbwin.c:189
 msgid "Rotate CW"
-msgstr "»ş·×²ó¤ê¤Ë²óÅ¾"
+msgstr "æ™‚è¨ˆå›ã‚Šã«å›è»¢"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:147 src/prefs_ui/prefs_ui_thumbwin.c:190
-msgid "Open navigate window"
-msgstr "¥Ê¥Ó¥²¡¼¥È¥¦¥£¥ó¥É¥¦¤ò³«¤¯"
+msgid "Open the navigation window"
+msgstr "ãƒŠãƒ“ã‚²ãƒ¼ãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‹ã"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:148 src/prefs_ui/prefs_ui_thumbwin.c:191
 msgid "Scroll up"
-msgstr "¾å¤Ø¥¹¥¯¥í¡¼¥ë"
+msgstr "ä¸Šã¸ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:149 src/prefs_ui/prefs_ui_thumbwin.c:192
 msgid "Scroll down"
-msgstr "²¼¤Ø¥¹¥¯¥í¡¼¥ë"
+msgstr "ä¸‹ã¸ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:150 src/prefs_ui/prefs_ui_thumbwin.c:193
 msgid "Scroll left"
-msgstr "º¸¤Ø¥¹¥¯¥í¡¼¥ë"
+msgstr "å·¦ã¸ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:151 src/prefs_ui/prefs_ui_thumbwin.c:194
 msgid "Scroll right"
-msgstr "±¦¤Ø¥¹¥¯¥í¡¼¥ë"
+msgstr "å³ã¸ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«"
 
 #. *********************************************
 #. * Window Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_imagewin.c:175 src/prefs_ui/prefs_ui_thumbwin.c:399
 msgid "Window"
-msgstr "¥¦¥£¥ó¥É¥¦"
+msgstr "ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦"
 
 #. Save window state on exit
 #: src/prefs_ui/prefs_ui_imagewin.c:178 src/prefs_ui/prefs_ui_thumbwin.c:402
 msgid "Save window state on exit"
-msgstr "½ªÎ»»ş¤Ë¥¦¥£¥ó¥É¥¦¤Î¾õÂÖ¤òÊİÂ¸¤¹¤ë"
+msgstr "çµ‚äº†æ™‚ã«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®çŠ¶æ…‹ã‚’ä¿å­˜ã™ã‚‹"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:189
 msgid "Initial window size: "
-msgstr "¥¦¥£¥ó¥É¥¦¤Î½é´ü¥µ¥¤¥º"
+msgstr "ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆæœŸã‚µã‚¤ã‚º"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:192 src/prefs_ui/prefs_ui_thumbwin.c:412
 msgid "width"
-msgstr "Éı"
+msgstr "å¹…"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:204 src/prefs_ui/prefs_ui_thumbwin.c:423
 msgid "height"
-msgstr "¹â¤µ"
+msgstr "é«˜ã•"
 
 #. Auto resize window to image size
 #: src/prefs_ui/prefs_ui_imagewin.c:217
 msgid "Auto resize to image size"
-msgstr "¼«Æ°Åª¤Ë²èÁü¤Î¥µ¥¤¥º¤Ë¥ê¥µ¥¤¥º¤¹¤ë"
+msgstr "è‡ªå‹•çš„ã«ç”»åƒã®ã‚µã‚¤ã‚ºã«ãƒªã‚µã‚¤ã‚ºã™ã‚‹"
 
 #. Open New Window or not
 #: src/prefs_ui/prefs_ui_imagewin.c:224
 msgid "Open each file in separate window"
-msgstr "¥Õ¥¡¥¤¥ë¤´¤È¤ËÊÌ¤Î¥¦¥£¥ó¥É¥¦¤ò³«¤¯"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã”ã¨ã«åˆ¥ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‹ã"
 
 #. Raise window or not
 #: src/prefs_ui/prefs_ui_imagewin.c:231
-msgid "Raise window when open image in shared window"
-msgstr "¶¦Í­¥¦¥£¥ó¥É¥¦¤Ç³«¤¯¤È¤­¤Ï¡¢Á°ÌÌ¤Ë½Ğ¤¹"
+msgid "Raise the window when opening an image in the shared window"
+msgstr "å…±æœ‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§é–‹ãã¨ãã¯ã€å‰é¢ã«å‡ºã™"
 
 #. Show Menubar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:255 src/prefs_ui/prefs_ui_thumbwin.c:484
 msgid "Menubar"
-msgstr "¥á¥Ë¥å¡¼¥Ğ¡¼"
+msgstr "ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼"
 
 #. Show Toolbar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:263 src/prefs_ui/prefs_ui_thumbwin.c:492
 msgid "Toolbar"
-msgstr "¥Ä¡¼¥ë¥Ğ¡¼"
+msgstr "ãƒ„ãƒ¼ãƒ«ãƒãƒ¼"
 
 #. Show Player toolbar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:271
-msgid "Slide show player"
-msgstr "¥¹¥é¥¤¥É¥·¥ç¡¼¥×¥ì¡¼¥ä"
+msgid "Slideshow player"
+msgstr "ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼ãƒ—ãƒ¬ãƒ¼ãƒ¤"
 
 #. Show Statusbar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:279 src/prefs_ui/prefs_ui_thumbwin.c:500
 msgid "Statusbar"
-msgstr "¥¹¥Æ¡¼¥¿¥¹¥Ğ¡¼"
+msgstr "ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼"
 
 #. Show Scrollbar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:287
 msgid "Scrollbar"
-msgstr "¥¹¥¯¥í¡¼¥ë¥Ğ¡¼"
+msgstr "ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼"
 
 #. player
 #: src/prefs_ui/prefs_ui_imagewin.c:295 src/prefs_ui/prefs_ui_thumbwin.c:516
-msgid "Player toolbar :"
-msgstr "¥×¥ì¡¼¥ä¥Ä¡¼¥ë¥Ğ¡¼ :"
+msgid "Player toolbar:"
+msgstr "ãƒ—ãƒ¬ãƒ¼ãƒ¤ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ :"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:299 src/prefs_ui/prefs_ui_thumbwin.c:520
 msgid "Show"
-msgstr "É½¼¨"
+msgstr "è¡¨ç¤º"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:307 src/prefs_ui/prefs_ui_thumbwin.c:528
 msgid "Hide"
-msgstr "ÈóÉ½¼¨"
+msgstr "éè¡¨ç¤º"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:345
-msgid "Specify back ground color"
-msgstr "ÇØ·Ê¿§¤ò»ØÄê"
+msgid "Specify the background color"
+msgstr "èƒŒæ™¯è‰²ã‚’æŒ‡å®š"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:360
-msgid "Specify back ground color of fullscreen"
-msgstr "¥Õ¥ë¥¹¥¯¥ê¡¼¥ó¤ÎÇØ·Ê¿§¤ò»ØÄê"
+msgid "Specify the background color in fullscreen"
+msgstr "ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã®èƒŒæ™¯è‰²ã‚’æŒ‡å®š"
 
 #. Keep Aspect Ratio
 #: src/prefs_ui/prefs_ui_imagewin.c:436 src/prefs_ui/prefs_ui_thumbwin.c:1066
 msgid "Keep aspect ratio"
-msgstr "¥¢¥¹¥Ú¥¯¥ÈÈæ¤òÊİ»ı"
-
-#. keep original image on memory or not
-#: src/prefs_ui/prefs_ui_imagewin.c:461 src/prefs_ui/prefs_ui_thumbwin.c:1098
-msgid "Keep original image on memory"
-msgstr "¸µ¤Î²èÁü¤ò¥á¥â¥ê¤ËÊİ»ı¤¹¤ë"
+msgstr "ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’ä¿æŒ"
 
 #: src/prefs_ui/prefs_ui_movie.c:91
 msgid "Default view mode for movie and audio: "
-msgstr "Æ°²è¤È²»À¼ÍÑ¤Î¥Ç¥Õ¥©¥ë¥ÈÉ½¼¨¥â¡¼¥É : "
+msgstr "å‹•ç”»ã¨éŸ³å£°ç”¨ã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¡¨ç¤ºãƒ¢ãƒ¼ãƒ‰ : "
 
 #: src/prefs_ui/prefs_ui_movie.c:108
 msgid "No movie plugins are available."
-msgstr "ÍøÍÑ²ÄÇ½¤ÊÆ°²èÍÑ¥×¥é¥°¥¤¥ó¤¬Â¸ºß¤·¤Ş¤»¤ó"
+msgstr "åˆ©ç”¨å¯èƒ½ãªå‹•ç”»ç”¨ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“"
 
 #: src/prefs_ui/prefs_ui_plugin.c:70
 msgid "Directories list to search plugins"
-msgstr "¥×¥é¥°¥¤¥ó¤ò¸¡º÷¤¹¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Î¥ê¥¹¥È"
+msgstr "ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚’æ¤œç´¢ã™ã‚‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ãƒªã‚¹ãƒˆ"
 
 #: src/prefs_ui/prefs_ui_plugin.c:71
 msgid "Select plugin directory"
-msgstr "¥×¥é¥°¥¤¥ó¥Ç¥£¥ì¥¯¥È¥ê¤òÁªÂò"
+msgstr "ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’é¸æŠ"
 
 #: src/prefs_ui/prefs_ui_plugin.c:75
 msgid "Use default directories list to search plugins"
-msgstr "¥Ç¥Õ¥©¥ë¥È¤Î¥×¥é¥°¥¤¥ó¸¡º÷¥Ç¥£¥ì¥¯¥È¥ê¤ò»ÈÍÑ"
+msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ãƒ—ãƒ©ã‚°ã‚¤ãƒ³æ¤œç´¢ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½¿ç”¨"
 
 #: src/prefs_ui/prefs_ui_plugin.c:104
 msgid "Plugin Name"
-msgstr "¥×¥é¥°¥¤¥óÌ¾"
+msgstr "ãƒ—ãƒ©ã‚°ã‚¤ãƒ³å"
 
 #: src/prefs_ui/prefs_ui_plugin.c:104
 msgid "Version"
-msgstr "¥Ğ¡¼¥¸¥ç¥ó"
+msgstr "ãƒãƒ¼ã‚¸ãƒ§ãƒ³"
 
 #: src/prefs_ui/prefs_ui_plugin.c:104
 msgid "Module Name"
-msgstr "¥â¥¸¥å¡¼¥ëÌ¾"
+msgstr "ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«å"
 
 #: src/prefs_ui/prefs_ui_plugin.c:219
 msgid "Image Loader Plugins"
-msgstr "²èÁüÆÉ¤ß¹ş¤ß¥×¥é¥°¥¤¥ó"
+msgstr "ç”»åƒèª­ã¿è¾¼ã¿ãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/prefs_ui/prefs_ui_plugin.c:225
 msgid "Image Saver Plugins"
-msgstr "²èÁüÊİÂ¸¥×¥é¥°¥¤¥ó"
+msgstr "ç”»åƒä¿å­˜ãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/prefs_ui/prefs_ui_plugin.c:231
 msgid "IO Stream Plugins"
-msgstr "Æş½ĞÎÏ¥¹¥È¥ê¡¼¥à¥×¥é¥°¥¤¥ó"
+msgstr "å…¥å‡ºåŠ›ã‚¹ãƒˆãƒªãƒ¼ãƒ ãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/prefs_ui/prefs_ui_plugin.c:237
 msgid "Archiver Plugins"
-msgstr "¥¢¡¼¥«¥¤¥Ğ¥×¥é¥°¥¤¥ó"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/prefs_ui/prefs_ui_plugin.c:243
 msgid "Thumbnail Cache Plugins"
-msgstr "¥µ¥à¥Í¥¤¥ë¥­¥ã¥Ã¥·¥å¥×¥é¥°¥¤¥ó"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/prefs_ui/prefs_ui_plugin.c:249
-msgid "Image View Embeder Plugins"
-msgstr "¥¤¥á¡¼¥¸¥Ó¥å¡¼¥×¥é¥°¥¤¥ó"
+msgid "Image View Embedder Plugins"
+msgstr "ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/prefs_ui/prefs_ui_plugin.c:255
-msgid "Thumbnail View Embeder Plugins"
-msgstr "¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼¥×¥é¥°¥¤¥ó"
+msgid "Thumbnail View Embedder Plugins"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼ãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: src/prefs_ui/prefs_ui_progs.c:192
 msgid "Program Name"
-msgstr "¥×¥í¥°¥é¥àÌ¾"
+msgstr "ãƒ—ãƒ­ã‚°ãƒ©ãƒ å"
 
 #: src/prefs_ui/prefs_ui_progs.c:193
 msgid "Command"
-msgstr "¥³¥Ş¥ó¥É"
+msgstr "ã‚³ãƒãƒ³ãƒ‰"
 
 #: src/prefs_ui/prefs_ui_progs.c:194 src/prefs_ui/prefs_ui_progs.c:258
 msgid "Dialog"
-msgstr "¥À¥¤¥¢¥í¥°"
+msgstr "ãƒ€ã‚¤ã‚¢ãƒ­ã‚°"
 
 #. *********************************************
 #. *  Viewer/Editor frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_progs.c:209
 msgid "Graphic Viewer/Editor"
-msgstr "²èÁü¥Ó¥å¡¼¥¢/¥¨¥Ç¥£¥¿"
+msgstr "ç”»åƒãƒ“ãƒ¥ãƒ¼ã‚¢/ã‚¨ãƒ‡ã‚£ã‚¿"
 
 #: src/prefs_ui/prefs_ui_progs.c:230
 msgid "Program Name: "
-msgstr "¥×¥í¥°¥é¥àÌ¾: "
+msgstr "ãƒ—ãƒ­ã‚°ãƒ©ãƒ å: "
 
 #: src/prefs_ui/prefs_ui_progs.c:245 src/prefs_ui/prefs_ui_progs.c:272
 #: src/prefs_ui/prefs_ui_progs.c:300
 msgid "Command: "
-msgstr "¥³¥Ş¥ó¥É: "
+msgstr "ã‚³ãƒãƒ³ãƒ‰: "
 
 #. *********************************************
 #. *  Web Browser frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_progs.c:266
 msgid "Web Browser"
-msgstr "WEB¥Ö¥é¥¦¥¶"
+msgstr "WEBãƒ–ãƒ©ã‚¦ã‚¶"
 
 #. *********************************************
 #. *  Text Viewer frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_progs.c:287
 msgid "Text Viewer"
-msgstr "¥Æ¥­¥¹¥È¥Ó¥å¡¼¥¢"
+msgstr "ãƒ†ã‚­ã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚¢"
 
 #. use internal text viewer or not
 #: src/prefs_ui/prefs_ui_progs.c:291
 msgid "Use internal viewer"
-msgstr "ÆâÉô¥Ó¥å¡¼¥¢¤ò»È¤¦"
+msgstr "å†…éƒ¨ãƒ“ãƒ¥ãƒ¼ã‚¢ã‚’ä½¿ã†"
 
 #: src/prefs_ui/prefs_ui_progs.c:334
 msgid "Directories list to search scripts"
-msgstr "¥¹¥¯¥ê¥×¥È¤ò¸¡º÷¤¹¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Î¥ê¥¹¥È"
+msgstr "ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’æ¤œç´¢ã™ã‚‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ãƒªã‚¹ãƒˆ"
 
 #: src/prefs_ui/prefs_ui_progs.c:335
 msgid "Select scripts directory"
-msgstr "¥¹¥¯¥ê¥×¥È¥Ç¥£¥ì¥¯¥È¥ê¤òÁªÂò"
+msgstr "ã‚¹ã‚¯ãƒªãƒ—ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’é¸æŠ"
 
 #: src/prefs_ui/prefs_ui_progs.c:339
 msgid "Use default directories list to search scripts"
-msgstr "¥Ç¥Õ¥©¥ë¥È¤Î¥¹¥¯¥ê¥×¥È¸¡º÷¥Ç¥£¥ì¥¯¥È¥ê¤ò»ÈÍÑ"
+msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆæ¤œç´¢ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½¿ç”¨"
 
 #. Show dialog
 #: src/prefs_ui/prefs_ui_progs.c:348
-msgid "Show dialog befor execute script"
-msgstr "¥¹¥¯¥ê¥×¥È¼Â¹ÔÁ°¤Ë¥À¥¤¥¢¥í¥°¤òÉ½¼¨"
+msgid "Show a dialog before executing a script"
+msgstr "ã‚¹ã‚¯ãƒªãƒ—ãƒˆå®Ÿè¡Œå‰ã«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º"
 
 #. *********************************************
 #. * Thumbnail Album Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_thumbalbum.c:47 src/thumbnail_view_album.c:70
 msgid "Album"
-msgstr "¥¢¥ë¥Ğ¥à"
+msgstr "ã‚¢ãƒ«ãƒãƒ "
 
 #. Row Spacing spinner
 #: src/prefs_ui/prefs_ui_thumbalbum.c:60
 msgid "Row Spacing"
-msgstr "¹Ô´Ö¤Î¶õÇò"
+msgstr "è¡Œé–“ã®ç©ºç™½"
 
 #. Column Spacing spinner
 #: src/prefs_ui/prefs_ui_thumbalbum.c:74
 msgid "Column Spacing"
-msgstr "Îó´Ö¤Î¶õÇò"
+msgstr "åˆ—é–“ã®ç©ºç™½"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:106
 msgid "Layout0"
-msgstr "¥ì¥¤¥¢¥¦¥È0"
+msgstr "ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ0"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:107
 msgid "Layout1"
-msgstr "¥ì¥¤¥¢¥¦¥È1"
+msgstr "ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ1"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:108
 msgid "Layout2"
-msgstr "¥ì¥¤¥¢¥¦¥È2"
+msgstr "ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ2"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:109
 msgid "Layout3"
-msgstr "¥ì¥¤¥¢¥¦¥È3"
+msgstr "ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ3"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:110
 msgid "Layout4"
-msgstr "¥ì¥¤¥¢¥¦¥È4"
+msgstr "ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ4"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:111
 msgid "Custom"
-msgstr "¥«¥¹¥¿¥à"
+msgstr "ã‚«ã‚¹ã‚¿ãƒ "
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:117 src/gimv_dupl_win.c:288
 msgid "Icon"
-msgstr "¥¢¥¤¥³¥ó"
+msgstr "ã‚¢ã‚¤ã‚³ãƒ³"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:118
 msgid "Text"
-msgstr "¥Æ¥­¥¹¥È"
+msgstr "ãƒ†ã‚­ã‚¹ãƒˆ"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:119
 msgid "Both"
-msgstr "Î¾Êı"
+msgstr "ä¸¡æ–¹"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:127
 msgid "Top"
-msgstr "¾å"
+msgstr "ä¸Š"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:128
 msgid "Bottom"
-msgstr "²¼"
+msgstr "ä¸‹"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:136
 msgid "Solid"
-msgstr "¼ÂÀş"
+msgstr "å®Ÿç·š"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:137
 msgid "Dotted"
-msgstr "ÅÀÀş"
+msgstr "ç‚¹ç·š"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:138
 msgid "Tabbed"
-msgstr "¥¿¥Ö"
+msgstr "ã‚¿ãƒ–"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:145
 msgid "Square"
-msgstr "»Í³Ñ"
+msgstr "å››è§’"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:146
 msgid "Triangle"
-msgstr "»°³Ñ"
+msgstr "ä¸‰è§’"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:147
 msgid "Circular"
-msgstr "´İ"
+msgstr "ä¸¸"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:156
 msgid "Open (Auto select window)"
-msgstr "³«¤¯(Window¤ò¼«Æ°ÁªÂò)"
+msgstr "é–‹ã(Windowã‚’è‡ªå‹•é¸æŠ)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:157
 msgid "Open (Auto & Force)"
-msgstr "³«¤¯(¼«Æ° & ¶¯À©)"
+msgstr "é–‹ã(è‡ªå‹• & å¼·åˆ¶)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:158
 msgid "Open in preview"
-msgstr "¥×¥ì¥Ó¥å¡¼¤Ç³«¤¯"
+msgstr "ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã§é–‹ã"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:159
 msgid "Open in preview (Force)"
-msgstr "¥×¥ì¥Ó¥å¡¼¤Ç³«¤¯ (¶¯À©)"
+msgstr "ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã§é–‹ã (å¼·åˆ¶)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:160 src/prefs_ui/prefs_ui_thumbwin.c:183
 msgid "Open in new window"
-msgstr "¿·µ¬¥¦¥£¥ó¥É¥¦¤Ç³«¤¯"
+msgstr "æ–°è¦ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§é–‹ã"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:161 src/prefs_ui/prefs_ui_thumbwin.c:182
 msgid "Open in shared window"
-msgstr "¶¦Í­¥¦¥£¥ó¥É¥¦¤Ç³«¤¯"
+msgstr "å…±æœ‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§é–‹ã"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:162
 msgid "Open in shared window (Force)"
-msgstr "¶¦Í­¥¦¥£¥ó¥É¥¦¤Ç³«¤¯ (¶¯À©)"
+msgstr "å…±æœ‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§é–‹ã (å¼·åˆ¶)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:169
 msgid "Load thumbnails"
-msgstr "¥µ¥à¥Í¥¤¥ëÆÉ¤ß¹ş¤ß"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«èª­ã¿è¾¼ã¿"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:170
 msgid "Load thumbnails recursively"
-msgstr "¥µ¥à¥Í¥¤¥ë¤òºÆµ¢Åª¤ËÆÉ¤ß¹ş¤ß"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ã‚’å†å¸°çš„ã«èª­ã¿è¾¼ã¿"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:172
 msgid "Change top directory"
-msgstr "¥È¥Ã¥×¥Ç¥£¥ì¥¯¥È¥ê¤òÊÑ¹¹"
+msgstr "ãƒˆãƒƒãƒ—ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å¤‰æ›´"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:173
 msgid "Load recursively in a tab"
-msgstr "1¥¿¥ÖÆâ¤ËºÆµ¢ÆÉ¤ß¹ş¤ß"
+msgstr "1ã‚¿ãƒ–å†…ã«å†å¸°èª­ã¿è¾¼ã¿"
 
 #. Toolbar Style
 #: src/prefs_ui/prefs_ui_thumbwin.c:435
 msgid "Default Layout"
-msgstr "¥ì¥¤¥¢¥¦¥È"
+msgstr "ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ"
 
 #. Show Directory or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:460
 msgid "Directory view"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼"
+msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼"
 
 #. Show Preview Tab or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:476
 msgid "Preview Tab"
-msgstr "¥×¥ì¥Ó¥å¡¼¥¿¥Ö"
+msgstr "ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã‚¿ãƒ–"
 
 #. Show Tab or not
 #. *********************************************
@@ -3248,343 +3212,339 @@ msgstr "¥×¥ì¥Ó¥å¡¼¥¿¥Ö"
 #. *********************************************
 #: src/prefs_ui/prefs_ui_thumbwin.c:508 src/prefs_ui/prefs_ui_thumbwin.c:660
 msgid "Tab"
-msgstr "¥¿¥Ö"
+msgstr "ã‚¿ãƒ–"
 
 #. Raise window or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:557
 msgid "Raise window when opening thumbnails"
-msgstr "¥µ¥à¥Í¥¤¥ë¤ò³«¤¯¤È¤­¤Ë¥¦¥£¥ó¥É¥¦¤òÁ°ÌÌ¤Ë½Ğ¤¹"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ã‚’é–‹ãã¨ãã«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’å‰é¢ã«å‡ºã™"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:570
 msgid "Toolbar Style"
-msgstr "¥Ä¡¼¥ë¥Ğ¡¼¤Î¥¹¥¿¥¤¥ë"
+msgstr "ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã®ã‚¹ã‚¿ã‚¤ãƒ«"
 
 #. "Loading" frame
 #: src/prefs_ui/prefs_ui_thumbwin.c:580
 msgid "Loading"
-msgstr "¥í¡¼¥Ç¥£¥ó¥°"
+msgstr "ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:587
 msgid "GUI redraw interval while loading: Every"
-msgstr "¥í¡¼¥Ç¥£¥ó¥°»ş¤ÎºÆÉÁ²è¤Î´Ö³Ö: "
+msgstr "ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°æ™‚ã®å†æç”»ã®é–“éš”: "
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:598
 msgid "files"
-msgstr "¥Õ¥¡¥¤¥ëËè"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«æ¯"
 
 #. show detail of progress
 #: src/prefs_ui/prefs_ui_thumbwin.c:602
 msgid "Show detail of loading progress"
-msgstr "¥í¡¼¥Ç¥£¥ó¥°¤Î¾ÜºÙ¾ğÊó¤òÉ½¼¨"
+msgstr "ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ã®è©³ç´°æƒ…å ±ã‚’è¡¨ç¤º"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:627
 msgid "Not implemented yet."
-msgstr "Ì¤¼ÂÁõ"
+msgstr "æœªå®Ÿè£…"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:665
 msgid "Tab Position"
-msgstr "¥¿¥Ö¤Î°ÌÃÖ"
+msgstr "ã‚¿ãƒ–ã®ä½ç½®"
 
 #. Move to new tab automatically or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:678
 msgid "Move to new tab automatically"
-msgstr "¼«Æ°Åª¤Ë¿·µ¬¥¿¥Ö¤Ë°ÜÆ°¤¹¤ë"
+msgstr "è‡ªå‹•çš„ã«æ–°è¦ã‚¿ãƒ–ã«ç§»å‹•ã™ã‚‹"
 
 #. show tab close button
 #: src/prefs_ui/prefs_ui_thumbwin.c:685
 msgid "Show close button"
-msgstr "¥¯¥í¡¼¥º¥Ü¥¿¥ó¤òÉ½¼¨"
+msgstr "ã‚¯ãƒ­ãƒ¼ã‚ºãƒœã‚¿ãƒ³ã‚’è¡¨ç¤º"
 
 #. show full path in tab
 #: src/prefs_ui/prefs_ui_thumbwin.c:695
 msgid "Show full path"
-msgstr "¥Õ¥ë¥Ñ¥¹¤òÉ½¼¨¤¹¤ë"
+msgstr "ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’è¡¨ç¤ºã™ã‚‹"
 
 #. force open tab
 #: src/prefs_ui/prefs_ui_thumbwin.c:705
-msgid "Open new tab whether image is exist or not in the directory"
-msgstr "²èÁü¤¬Â¸ºß¤·¤Ê¤¤¥Ç¥£¥ì¥¯¥È¥ê¤ò»ØÄê¤·¤¿¾ì¹ç¤â¥¿¥Ö¤ò³«¤¯"
+msgid "Open a new tab even if the directory has no images"
+msgstr "ç”»åƒãŒå­˜åœ¨ã—ãªã„ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®šã—ãŸå ´åˆã‚‚ã‚¿ãƒ–ã‚’é–‹ã"
 
 #. show archive
 #: src/prefs_ui/prefs_ui_thumbwin.c:753
 msgid "Archive"
-msgstr "¥¢¡¼¥«¥¤¥Ö"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:766
 msgid "Default display mode"
-msgstr "¥Ç¥Õ¥©¥ë¥ÈÉ½¼¨¥â¡¼¥É"
-
-#: src/prefs_ui/prefs_ui_thumbwin.c:782
-msgid "Thumnail Size"
-msgstr "¥µ¥à¥Í¥¤¥ë¥µ¥¤¥º"
+msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¡¨ç¤ºãƒ¢ãƒ¼ãƒ‰"
 
 #. show/hide dot file
 #: src/prefs_ui/prefs_ui_thumbwin.c:858
-msgid "Show dot file"
-msgstr "¥É¥Ã¥È¥Õ¥¡¥¤¥ë¤òÉ½¼¨"
+msgid "Show dotfiles"
+msgstr "ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¡¨ç¤º"
 
 #. show/hide dot file
 #: src/prefs_ui/prefs_ui_thumbwin.c:865
-msgid "Show \".\" directory whether hide dotfile or not."
-msgstr "¥É¥Ã¥È¥Õ¥¡¥¤¥ë¤ò±£¤·¤Æ¤¤¤ë¾ì¹ç¤â \".\" ¥Ç¥£¥ì¥¯¥È¥ê¤òÉ½¼¨¤¹¤ë"
+msgid "Show the \".\" directory even when dotfiles are hidden"
+msgstr "ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’éš ã—ã¦ã„ã‚‹å ´åˆã‚‚ \".\" ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¡¨ç¤ºã™ã‚‹"
 
 #. show/hide dot file
 #: src/prefs_ui/prefs_ui_thumbwin.c:872
-msgid "Show \"..\" directory whether hide dotfile or not."
-msgstr "¥É¥Ã¥È¥Õ¥¡¥¤¥ë¤ò±£¤·¤Æ¤¤¤ë¾ì¹ç¤â \"..\" ¥Ç¥£¥ì¥¯¥È¥ê¤òÉ½¼¨¤¹¤ë"
+msgid "Show the \"..\" directory even when dotfiles are hidden"
+msgstr "ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’éš ã—ã¦ã„ã‚‹å ´åˆã‚‚ \"..\" ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¡¨ç¤ºã™ã‚‹"
 
 #. *********************************************
 #. * Style Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_thumbwin.c:889
 msgid "Style"
-msgstr "¥¹¥¿¥¤¥ë"
+msgstr "ã‚¹ã‚¿ã‚¤ãƒ«"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:895
 msgid "Tree line style"
-msgstr "¥Ä¥ê¡¼¥é¥¤¥ó¤Î¥¹¥¿¥¤¥ë"
+msgstr "ãƒ„ãƒªãƒ¼ãƒ©ã‚¤ãƒ³ã®ã‚¹ã‚¿ã‚¤ãƒ«"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:907
 msgid "Tree expander style"
-msgstr "¥Ä¥ê¡¼Å¸³«¥¢¥¤¥³¥ó¤Î¥¹¥¿¥¤¥ë"
+msgstr "ãƒ„ãƒªãƒ¼å±•é–‹ã‚¢ã‚¤ã‚³ãƒ³ã®ã‚¹ã‚¿ã‚¤ãƒ«"
 
 #. *********************************************
 #. * Drag and Drop Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_thumbwin.c:919
 msgid "Drag and Drop"
-msgstr "¥É¥é¥Ã¥° & ¥É¥í¥Ã¥×"
+msgstr "ãƒ‰ãƒ©ãƒƒã‚° & ãƒ‰ãƒ­ãƒƒãƒ—"
 
 #. auto scroll
 #: src/prefs_ui/prefs_ui_thumbwin.c:922
 msgid "Enable auto scroll."
-msgstr "¥ª¡¼¥È¥¹¥¯¥í¡¼¥ë¤òÍ­¸ú¤Ë¤¹¤ë"
+msgstr "ã‚ªãƒ¼ãƒˆã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚’æœ‰åŠ¹ã«ã™ã‚‹"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:932
 msgid "Auto scroll interval"
-msgstr "¥ª¡¼¥È¥¹¥¯¥í¡¼¥ë¤Î´Ö³Ö"
+msgstr "ã‚ªãƒ¼ãƒˆã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã®é–“éš”"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:944 src/prefs_ui/prefs_ui_thumbwin.c:970
 msgid "[ms]"
-msgstr "[¥ß¥êÉÃ]"
+msgstr "[ãƒŸãƒªç§’]"
 
 #. auto expand
 #: src/prefs_ui/prefs_ui_thumbwin.c:948
 msgid "Enable auto expand directory tree."
-msgstr "¥Ä¥ê¡¼¤ò¼«Æ°Åª¤ËÅ¸³«¤¹¤ë"
+msgstr "ãƒ„ãƒªãƒ¼ã‚’è‡ªå‹•çš„ã«å±•é–‹ã™ã‚‹"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:958
 msgid "Lag time for auto expand"
-msgstr "¥Ä¥ê¡¼¤ò¼«Æ°Å¸³«¤¹¤ë¤Ş¤Î¤Ç»ş´Ö"
+msgstr "ãƒ„ãƒªãƒ¼ã‚’è‡ªå‹•å±•é–‹ã™ã‚‹ã¾ã®ã§æ™‚é–“"
 
 #. Show Scrollbar or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:1090
 msgid "Show scrollbar"
-msgstr "¥¹¥¯¥í¡¼¥ë¥Ğ¡¼¤òÉ½¼¨"
+msgstr "ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼ã‚’è¡¨ç¤º"
 
 #: src/gimv_dupl_win.c:121 src/thumbnail_view_album.c:790
 #: plugins/thumbnail_view/detailview.c:121
 msgid "Name"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å"
 
 #: src/gimv_dupl_win.c:123 plugins/thumbnail_view/detailview.c:122
 msgid "Size (byte)"
-msgstr "¥µ¥¤¥º (¥Ğ¥¤¥È)"
+msgstr "ã‚µã‚¤ã‚º (ãƒã‚¤ãƒˆ)"
 
 #. window
 #: src/gimv_dupl_win.c:181
-msgid "Find Duplicates - result"
-msgstr "½ÅÊ£²èÁü¸¡º÷ - ·ë²Ì"
+msgid "Find Duplicates - Results"
+msgstr "é‡è¤‡ç”»åƒæ¤œç´¢ - çµæœ"
 
 #. Select All
 #: src/gimv_dupl_win.c:297
 msgid "Select All"
-msgstr "Á´¤ÆÁªÂò"
+msgstr "å…¨ã¦é¸æŠ"
 
 #: src/gimv_dupl_win.c:409
 msgid "Finding similar images..."
-msgstr "½ÅÊ£²èÁü¤ò¸¡º÷Ãæ..."
+msgstr "é‡è¤‡ç”»åƒã‚’æ¤œç´¢ä¸­..."
 
 #: src/gimv_dupl_win.c:426
 msgid "Completed"
-msgstr "´°Î»"
+msgstr "å®Œäº†"
 
 #: src/text_viewer.c:71
 #, c-format
 msgid "Can't open text file: %s\n"
-msgstr "¥Æ¥­¥¹¥È¥Õ¥¡¥¤¥ë¤ò³«¤¯¤³¤È¤¬¤Ç¤­¤Ş¤»¤ó : %s\n"
+msgstr "ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ãã“ã¨ãŒã§ãã¾ã›ã‚“ : %s\n"
 
 #: src/text_viewer.c:117
 msgid "File Name: "
-msgstr "¥Õ¥¡¥¤¥ëÌ¾: "
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å: "
 
 #: src/gimv_thumb_view.c:180
 msgid "/_Open"
-msgstr "/³«¤¯(_O)"
+msgstr "/é–‹ã(_O)"
 
 #: src/gimv_thumb_view.c:181
 msgid "/Open in New _Window"
-msgstr "/¿·µ¬¥¦¥£¥ó¥É¥¦¤Ç³«¤¯(_W)"
+msgstr "/æ–°è¦ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§é–‹ã(_W)"
 
 #: src/gimv_thumb_view.c:182
 msgid "/Open in S_hared Window"
-msgstr "/¶¦Í­¥¦¥£¥ó¥É¥¦¤Ç³«¤¯(_H)"
+msgstr "/å…±æœ‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§é–‹ã(_H)"
 
 #: src/gimv_thumb_view.c:183
 msgid "/Open in E_xternal Program"
-msgstr "/³°Éô¥×¥í¥°¥é¥à¤Ç³«¤¯(_X)"
+msgstr "/å¤–éƒ¨ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ã(_X)"
 
 #: src/gimv_thumb_view.c:184
 msgid "/_Scripts"
-msgstr "/¥¹¥¯¥ê¥×¥È(_S)"
+msgstr "/ã‚¹ã‚¯ãƒªãƒ—ãƒˆ(_S)"
 
 #: src/gimv_thumb_view.c:186
 msgid "/_Update Thumbnail"
-msgstr "¥µ¥à¥Í¥¤¥ëºÆºîÀ®(_U)"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«å†ä½œæˆ(_U)"
 
 #: src/gimv_thumb_view.c:187
 msgid "/Remo_ve from List"
-msgstr "¥ê¥¹¥È¤«¤éºï½ü(_V)"
+msgstr "/ãƒªã‚¹ãƒˆã‹ã‚‰å‰Šé™¤(_V)"
 
 #: src/gimv_thumb_view.c:191
 msgid "/Scan E_XIF Data..."
-msgstr "/EXIF¥Ç¡¼¥¿¤ò¸¡º÷(_X)..."
+msgstr "/EXIFãƒ‡ãƒ¼ã‚¿ã‚’æ¤œç´¢(_X)..."
 
 #: src/gimv_thumb_view.c:193
 msgid "/_Edit Comment..."
-msgstr "/¥³¥á¥ó¥È¤òÊÔ½¸(_C)..."
+msgstr "/ã‚³ãƒ¡ãƒ³ãƒˆã‚’ç·¨é›†(_C)..."
 
 #: src/gimv_thumb_view.c:195
 msgid "/Re_name..."
-msgstr "/¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹(_N)..."
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´(_N)..."
 
 #: src/gimv_thumb_view.c:196
 msgid "/_Copy Files To..."
-msgstr "/¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥³¥Ô¡¼(_C)..."
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ã‚³ãƒ”ãƒ¼(_C)..."
 
 #: src/gimv_thumb_view.c:197
 msgid "/_Move Files To..."
-msgstr "/¥Ç¥£¥ì¥¯¥È¥ê¤Ø°ÜÆ°(_M)..."
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ç§»å‹•(_M)..."
 
 #: src/gimv_thumb_view.c:198
 msgid "/_Link Files To..."
-msgstr "/¥Ç¥£¥ì¥¯¥È¥ê¤Ø¥ê¥ó¥¯(_L)..."
+msgstr "/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ãƒªãƒ³ã‚¯(_L)..."
 
 #: src/gimv_thumb_view.c:199
-msgid "/_Remove file..."
-msgstr "¥Õ¥¡¥¤¥ëºï½ü(_R)..."
+msgid "/_Remove Files..."
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤(_R)..."
 
 #: src/gimv_thumb_view.c:478
 msgid "Execute command"
-msgstr "¥³¥Ş¥ó¥É¤ò¼Â¹Ô"
+msgstr "ã‚³ãƒãƒ³ãƒ‰ã‚’å®Ÿè¡Œ"
 
 #: src/gimv_thumb_view.c:479 src/gimv_thumb_view.c:548
 msgid "Please enter options:"
-msgstr "¥ª¥×¥·¥ç¥ó¤òÆşÎÏ¤·¤Æ²¼¤µ¤¤ :"
+msgstr "ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚’å…¥åŠ›ã—ã¦ä¸‹ã•ã„ :"
 
 #: src/gimv_thumb_view.c:547
 msgid "Execute script"
-msgstr "¥¹¥¯¥ê¥×¥È¤ò¼Â¹Ô"
+msgstr "ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’å®Ÿè¡Œ"
 
 #: src/gimv_thumb_view.c:1016
-msgid "No files specified!!"
-msgstr "¥Õ¥¡¥¤¥ë¤¬»ØÄê¤µ¤ì¤Æ¤¤¤Ş¤»¤ó!!"
+msgid "No files specified!"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“!!"
 
 #: src/gimv_thumb_view.c:2378
-msgid "Rename a file"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹"
+msgid "Rename a File"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´"
 
 #: src/gimv_thumb_view.c:2379
 msgid "New file name: "
-msgstr "¿·µ¬¥Õ¥¡¥¤¥ëÌ¾: "
+msgstr "æ–°è¦ãƒ•ã‚¡ã‚¤ãƒ«å: "
 
 #: src/gimv_thumb_view.c:2407
 #, c-format
 msgid ""
-"File exist : %s\n"
+"File exists: %s\n"
 "\n"
 "Overwrite?"
 msgstr ""
-"¥Õ¥¡¥¤¥ë¤ÏÂ¸ºß¤·¤Ş¤¹ : %s\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«ã¯å­˜åœ¨ã—ã¾ã™ : %s\n"
 "\n"
-"¾å½ñ¤­¤·¤Ş¤¹¤«?"
+"ä¸Šæ›¸ãã—ã¾ã™ã‹?"
 
 #: src/gimv_thumb_view.c:2429
 #, c-format
 msgid ""
-"Faild to rename file :\n"
+"Failed to rename file:\n"
 "%s"
 msgstr ""
-"¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ :\n"
+"ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´ã«å¤±æ•—ã—ã¾ã—ãŸ :\n"
 "%s"
 
 #: src/gimv_thumb_view.c:2448
 #, c-format
-msgid "Faild to rename cache file :%s\n"
-msgstr "¥­¥ã¥Ã¥·¥å¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ : %s\n"
+msgid "Failed to rename cache file: %s\n"
+msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´ã«å¤±æ•—ã—ã¾ã—ãŸ : %s\n"
 
 #: src/gimv_thumb_view.c:2458
 #, c-format
-msgid "Faild to rename comment file :%s\n"
-msgstr "¥³¥á¥ó¥È¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹¤Ë¼ºÇÔ¤·¤Ş¤·¤¿ : %s\n"
+msgid "Failed to rename comment file: %s\n"
+msgstr "ã‚³ãƒ¡ãƒ³ãƒˆãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´ã«å¤±æ•—ã—ã¾ã—ãŸ : %s\n"
 
 #: src/gimv_thumb_view.c:3659 src/gimv_thumb_view.c:3735
 #, c-format
 msgid "Collection %d"
-msgstr "¥³¥ì¥¯¥·¥ç¥ó %d"
+msgstr "ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³ %d"
 
 #: src/gimv_thumb_view.c:3729
 #, c-format
 msgid "%s (Collection)"
-msgstr "%s (¥³¥ì¥¯¥·¥ç¥ó)"
+msgstr "%s (ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³)"
 
 #: src/thumbnail_view_album.c:86
 msgid "Album 2"
-msgstr "¥¢¥ë¥Ğ¥à2"
+msgstr "ã‚¢ãƒ«ãƒãƒ 2"
 
 #: src/thumbnail_view_album.c:102
 msgid "Album 3"
-msgstr "¥¢¥ë¥Ğ¥à3"
+msgstr "ã‚¢ãƒ«ãƒãƒ 3"
 
 #: src/thumbnail_view_album.c:716
 #, c-format
-msgid "Name : %s"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾ : %s"
+msgid "Name: %s"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å : %s"
 
 #: src/thumbnail_view_album.c:735
 #, c-format
-msgid "Size : %s bytes"
-msgstr "¥µ¥¤¥º : %s ¥Ğ¥¤¥È"
+msgid "Size: %s bytes"
+msgstr "ã‚µã‚¤ã‚º : %s ãƒã‚¤ãƒˆ"
 
 #: src/thumbnail_view_album.c:737
 #, c-format
 msgid "%s bytes"
-msgstr "%s ¥Ğ¥¤¥È"
+msgstr "%s ãƒã‚¤ãƒˆ"
 
 #: src/thumbnail_view_album.c:753
-msgid "Time : "
-msgstr "»ş´Ö : "
+msgid "Time: "
+msgstr "æ™‚é–“ : "
 
 #: src/thumbnail_view_album.c:772
 #, c-format
 msgid "Type: %s"
-msgstr "¼ïÎà : %s"
+msgstr "ç¨®é¡ : %s"
 
 #: src/thumbnail_view_album.c:791
 msgid "Size"
-msgstr "¥µ¥¤¥º"
+msgstr "ã‚µã‚¤ã‚º"
 
 #: src/thumbnail_view_album.c:792
 msgid "Time"
-msgstr "»ş´Ö"
+msgstr "æ™‚é–“"
 
 #: src/thumbnail_view_album.c:793 plugins/thumbnail_view/detailview.c:123
 msgid "Type"
-msgstr "¥Õ¥¡¥¤¥ë¥¿¥¤¥×"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚¿ã‚¤ãƒ—"
 
 #: plugins/archiver/lha-ext.c:52
 msgid "LHA archive support"
-msgstr "LHA¥¢¡¼¥«¥¤¥Ö¥µ¥İ¡¼¥È"
+msgstr "LHAã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/archiver/lha-ext.c:54 plugins/archiver/rar-ext.c:54
 #: plugins/archiver/tar-ext.c:89 plugins/archiver/zip-ext.c:57
@@ -3609,24 +3569,24 @@ msgstr "Takuro Ashie"
 
 #: plugins/archiver/rar-ext.c:52
 msgid "RAR archive support"
-msgstr "RAR¥¢¡¼¥«¥¤¥Ö¥µ¥İ¡¼¥È"
+msgstr "RARã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/archiver/tar-ext.c:87
 msgid "TAR archive support"
-msgstr "TAR¥¢¡¼¥«¥¤¥Ö¥µ¥İ¡¼¥È"
+msgstr "TARã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/archiver/zip-ext.c:55
 msgid "ZIP archive support"
-msgstr "ZIP¥¢¡¼¥«¥¤¥Ö¥µ¥İ¡¼¥È"
+msgstr "ZIPã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/image_loader/bmp.c:101 plugins/image_loader/bmp.c:108
 #: plugins/image_loader/bmp.c:115
 msgid "Windows Bitmap Image"
-msgstr ""
+msgstr "Windows ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ç”»åƒ"
 
 #: plugins/image_loader/bmp.c:128
 msgid "Windows Bitmap Image Loader"
-msgstr "Windows Bitmap²èÁü¥í¡¼¥À"
+msgstr "Windows Bitmapç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/imlib_loader.c:84
 #: plugins/image_loader/imlib_loader.c:91
@@ -3635,245 +3595,245 @@ msgstr "Windows Bitmap²èÁü¥í¡¼¥À"
 #: plugins/image_loader/pixbuf_loader.c:128
 #: plugins/image_loader/pixbuf_loader.c:135
 msgid "The BMP image format"
-msgstr ""
+msgstr "BMP ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:105
 #: plugins/image_loader/pixbuf_loader.c:142
 msgid "The GIF image format"
-msgstr ""
+msgstr "GIF ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:112
 #: plugins/image_loader/pixbuf_loader.c:156
 msgid "The JPEG image format"
-msgstr ""
+msgstr "JPEG ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:119
 #: plugins/image_loader/pixbuf_loader.c:163
 msgid "The PNG image format"
-msgstr ""
+msgstr "PNG ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:126
 #: plugins/image_loader/pixbuf_loader.c:170
 msgid "Portable Any Map Image"
-msgstr ""
+msgstr "Portable Any Map ç”»åƒ"
 
 #: plugins/image_loader/imlib_loader.c:133
 #: plugins/image_loader/pixbuf_loader.c:177
 msgid "The PBM image format"
-msgstr ""
+msgstr "PBM ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:140
 #: plugins/image_loader/pixbuf_loader.c:184
 msgid "The PGM image format"
-msgstr ""
+msgstr "PGM ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:147
 #: plugins/image_loader/pixbuf_loader.c:191
 msgid "The PPM image format"
-msgstr ""
+msgstr "PPM ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:154
 #: plugins/image_loader/pixbuf_loader.c:219
 msgid "The TIFF image format"
-msgstr ""
+msgstr "TIFF ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:161
 #: plugins/image_loader/pixbuf_loader.c:240
 msgid "The XPM image format"
-msgstr ""
+msgstr "XPM ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/imlib_loader.c:174
 msgid "Imlib1 Image Loader"
-msgstr "Imlib1 ²èÁü¥í¡¼¥À"
+msgstr "Imlib1 ç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/mag.c:91
 msgid "MAG Image Loader"
-msgstr "MAG²èÁü¥í¡¼¥À"
+msgstr "MAGç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/mng.c:134
 msgid "MNG Image Loader"
-msgstr "MNG²èÁü¥í¡¼¥À"
+msgstr "MNGç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/pcx.c:90
 msgid "PCX Image Loader"
-msgstr "PCX²èÁü¥í¡¼¥À"
+msgstr "PCXç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/pixbuf_loader.c:114
 msgid "The ANI image format"
-msgstr ""
+msgstr "ANI ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/pixbuf_loader.c:149
 msgid "The ICO image format"
-msgstr ""
+msgstr "ICO ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/pixbuf_loader.c:198
 #: plugins/image_loader/pixbuf_loader.c:205
 msgid "The Sun raster image format"
-msgstr ""
+msgstr "Sun ãƒ©ã‚¹ã‚¿ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/pixbuf_loader.c:212
 msgid "The Targa image format"
-msgstr ""
+msgstr "Targa ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/pixbuf_loader.c:226
 msgid "The WBMP image format"
-msgstr ""
+msgstr "WBMP ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/pixbuf_loader.c:233
 msgid "The XBM image format"
-msgstr ""
+msgstr "XBM ç”»åƒå½¢å¼"
 
 #: plugins/image_loader/pixbuf_loader.c:253
 msgid "GdkPixbuf Image Loader"
-msgstr "GdkPixbuf ²èÁü¥í¡¼¥À"
+msgstr "GdkPixbuf ç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/png_loader.c:74
 msgid "PNG Image Loader"
-msgstr "PNG²èÁü¥í¡¼¥À"
+msgstr "PNGç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/prefs_spi.c:60
 msgid "/Plugin/Susie plugin"
-msgstr "/¥×¥é¥°¥¤¥ó/Susie¥×¥é¥°¥¤¥ó"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/Susieãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: plugins/image_loader/prefs_spi.c:68
 msgid "/Plugin/Susie plugin/Import filter"
-msgstr "/¥×¥é¥°¥¤¥ó/Susie¥×¥é¥°¥¤¥ó/¥¤¥ó¥İ¡¼¥È¥Õ¥£¥ë¥¿"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/Susieãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ã‚¤ãƒ³ãƒãƒ¼ãƒˆãƒ•ã‚£ãƒ«ã‚¿"
 
 #: plugins/image_loader/prefs_spi.c:76
 msgid "/Plugin/Susie plugin/Archive extractor"
-msgstr "/¥×¥é¥°¥¤¥ó/Susie¥×¥é¥°¥¤¥ó/¥¢¡¼¥«¥¤¥Ö¥¨¥¯¥¹¥È¥é¥¯¥¿"
+msgstr "/ãƒ—ãƒ©ã‚°ã‚¤ãƒ³/Susieãƒ—ãƒ©ã‚°ã‚¤ãƒ³/ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚¨ã‚¯ã‚¹ãƒˆãƒ©ã‚¯ã‚¿"
 
 #: plugins/image_loader/prefs_spi.c:192
 msgid "Directories list to search susie plugins"
-msgstr "Susie¥×¥é¥°¥¤¥ó¤ò¸¡º÷¤¹¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Î¥ê¥¹¥È"
+msgstr "Susieãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚’æ¤œç´¢ã™ã‚‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ãƒªã‚¹ãƒˆ"
 
 #: plugins/image_loader/prefs_spi.c:193
 msgid "Select susie plugin directory"
-msgstr "Susie¥×¥é¥°¥¤¥ó¤Î¥Ç¥£¥ì¥¯¥È¥ê¤òÁªÂò"
+msgstr "Susieãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’é¸æŠ"
 
 #: plugins/image_loader/prefs_spi.c:197
 msgid "Use default directories list to search susie plugins"
-msgstr "¥Ç¥Õ¥©¥ë¥È¤ÎSusie¥×¥é¥°¥¤¥ó¸¡º÷¥Ç¥£¥ì¥¯¥È¥ê¤ò»ÈÍÑ"
+msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®Susieãƒ—ãƒ©ã‚°ã‚¤ãƒ³æ¤œç´¢ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½¿ç”¨"
 
 #: plugins/image_loader/prefs_spi.c:225
 msgid "File Name"
-msgstr "¥Õ¥¡¥¤¥ëÌ¾"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«å"
 
 #: plugins/image_loader/prefs_spi.c:316
 msgid "Import filters"
-msgstr "¥¤¥ó¥İ¡¼¥È¥Õ¥£¥ë¥¿"
+msgstr "ã‚¤ãƒ³ãƒãƒ¼ãƒˆãƒ•ã‚£ãƒ«ã‚¿"
 
 #: plugins/image_loader/prefs_spi.c:339
 msgid "Archive Extractor"
-msgstr "¥¢¡¼¥«¥¤¥Ö¥¨¥¯¥¹¥È¥é¥¯¥¿"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚¨ã‚¯ã‚¹ãƒˆãƒ©ã‚¯ã‚¿"
 
 #: plugins/image_loader/spi_image_loader.c:51
 msgid "Susie Plugin Image Loader"
-msgstr "Susie¥×¥é¥°¥¤¥ó²èÁü¥í¡¼¥À"
+msgstr "Susieãƒ—ãƒ©ã‚°ã‚¤ãƒ³ç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/svg.c:78
 msgid "SVG Image Loader"
-msgstr "SVG²èÁü¥í¡¼¥À"
+msgstr "SVGç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/tga.c:110
 msgid "TGA Image Loader"
-msgstr "TGA²èÁü¥í¡¼¥À"
+msgstr "TGAç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/wmf.c:78
 msgid "WMF Image Loader"
-msgstr "WMF²èÁü¥í¡¼¥À"
+msgstr "WMFç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/xbm.c:90
 msgid "XBM Image Loader"
-msgstr "XBM²èÁü¥í¡¼¥À"
+msgstr "XBMç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/xcf.c:268
 msgid "XCF Image Loader"
-msgstr "XCF²èÁü¥í¡¼¥À"
+msgstr "XCFç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_loader/xvpics.c:48
-msgid "XV thumbnail Image Loader"
-msgstr "XV¥µ¥à¥Í¥¤¥ë²èÁü¥í¡¼¥À"
+msgid "XV Thumbnail Image Loader"
+msgstr "XVã‚µãƒ ãƒã‚¤ãƒ«ç”»åƒãƒ­ãƒ¼ãƒ€"
 
 #: plugins/image_saver/png_saver.c:47
 msgid "PNG Image Saver"
-msgstr "PNG²èÁü¥»¡¼¥Ğ"
+msgstr "PNGç”»åƒã‚»ãƒ¼ãƒ"
 
 #: plugins/image_saver/pnm_saver.c:49
 msgid "PNM Image Saver"
-msgstr "PNM²èÁü¥»¡¼¥Ğ"
+msgstr "PNMç”»åƒã‚»ãƒ¼ãƒ"
 
 #: plugins/image_saver/xvpics_saver.c:47
 msgid "XVPICS Image Saver"
-msgstr "XVPICS²èÁü¥»¡¼¥Ğ"
+msgstr "XVPICSç”»åƒã‚»ãƒ¼ãƒ"
 
 #: plugins/image_view/image_view_mplayer.c:77
 msgid "Movie Player (MPlayer)"
-msgstr "Æ°²è (MPlayer)"
+msgstr "å‹•ç”» (MPlayer)"
 
 #: plugins/image_view/image_view_mplayer.c:238
-msgid "MPlayer Embeder & Movie Frame Loader"
-msgstr "MPlayerËä¤á¹ş¤ß & Æ°²è¥Õ¥ì¡¼¥àÆÉ¤ß¹ş¤ß"
+msgid "MPlayer Embedder & Movie Frame Loader"
+msgstr "MPlayeråŸ‹ã‚è¾¼ã¿ & å‹•ç”»ãƒ•ãƒ¬ãƒ¼ãƒ èª­ã¿è¾¼ã¿"
 
 #: plugins/image_view/image_view_xine.c:102
 msgid "Movie Player (Xine)"
-msgstr "Æ°²è (Xine)"
+msgstr "å‹•ç”» (Xine)"
 
 #: plugins/image_view/image_view_xine.c:263
-msgid "Xine Embeder & Movie Frame Loader"
-msgstr "XineËä¤á¹ş¤ß & Æ°²è¥Õ¥ì¡¼¥àÆÉ¤ß¹ş¤ß"
+msgid "Xine Embedder & Movie Frame Loader"
+msgstr "XineåŸ‹ã‚è¾¼ã¿ & å‹•ç”»ãƒ•ãƒ¬ãƒ¼ãƒ èª­ã¿è¾¼ã¿"
 
 #: plugins/image_view/image_view_xine.c:725
 msgid "Please stop first."
-msgstr "¤Ş¤º¤ÏÄä»ß¤µ¤»¤Æ²¼¤µ¤¤"
+msgstr "ã¾ãšã¯åœæ­¢ã•ã›ã¦ä¸‹ã•ã„"
 
 #: plugins/image_view/image_view_xine.c:737
 msgid "No available plugin found."
-msgstr "Í­¸ú¤Ê¥×¥é¥°¥¤¥ó¤Ï¸«¤Ä¤«¤ê¤Ş¤»¤ó¤Ç¤·¤¿"
+msgstr "æœ‰åŠ¹ãªãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã¯è¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ"
 
 #: plugins/image_view/image_view_xine.c:742
 msgid "Available plugins"
-msgstr "ÍøÍÑ²ÄÇ½¤Ê¥×¥é¥°¥¤¥ó"
+msgstr "åˆ©ç”¨å¯èƒ½ãªãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
 
 #: plugins/image_view/image_view_xine.c:742
 msgid "Plugin: "
-msgstr "¥×¥é¥°¥¤¥ó: "
+msgstr "ãƒ—ãƒ©ã‚°ã‚¤ãƒ³: "
 
 #: plugins/image_view/image_view_xine.c:763
 msgid "No available MRL found."
-msgstr "Í­¸ú¤ÊMRL¤Ï¸«¤Ä¤«¤ê¤Ş¤»¤ó¤Ç¤·¤¿"
+msgstr "æœ‰åŠ¹ãªMRLã¯è¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ"
 
 #: plugins/image_view/prefs_mplayer.c:69
 msgid "/Movie and Audio/MPlayer"
-msgstr "/Æ°²è¤È²»À¼/MPlayer"
+msgstr "/å‹•ç”»ã¨éŸ³å£°/MPlayer"
 
 #. *********************************************
 #. * Driver Frame
 #. *********************************************
 #: plugins/image_view/prefs_mplayer.c:253
 msgid "Driver"
-msgstr "¥É¥é¥¤¥Ğ"
+msgstr "ãƒ‰ãƒ©ã‚¤ãƒ"
 
 #. video driver combo
 #: plugins/image_view/prefs_mplayer.c:264 plugins/image_view/prefs_xine.c:187
 #: plugins/image_view/prefs_xine.c:215
-msgid "Video driver : "
-msgstr "¥Ó¥Ç¥ª¥É¥é¥¤¥Ğ : "
+msgid "Video driver: "
+msgstr "ãƒ“ãƒ‡ã‚ªãƒ‰ãƒ©ã‚¤ãƒ : "
 
 #. audio driver combo
 #: plugins/image_view/prefs_mplayer.c:282 plugins/image_view/prefs_xine.c:197
 #: plugins/image_view/prefs_xine.c:233
-msgid "Audio driver : "
-msgstr "¥ª¡¼¥Ç¥£¥ª¥É¥é¥¤¥Ğ : "
+msgid "Audio driver: "
+msgstr "ã‚ªãƒ¼ãƒ‡ã‚£ã‚ªãƒ‰ãƒ©ã‚¤ãƒ : "
 
 #. use this feature or not
 #: plugins/image_view/prefs_mplayer.c:306
 msgid "Enable creating thumbnail of movie using MPlayer"
-msgstr "MPlayer¤ò»ÈÍÑ¤·¤ÆÆ°²è¤Î¥µ¥à¥Í¥¤¥ë¤òºîÀ®¤¹¤ë"
+msgstr "MPlayerã‚’ä½¿ç”¨ã—ã¦å‹•ç”»ã®ã‚µãƒ ãƒã‚¤ãƒ«ã‚’ä½œæˆã™ã‚‹"
 
 #: plugins/image_view/prefs_mplayer.c:318 plugins/image_view/prefs_xine.c:273
-msgid "Stream position : "
-msgstr "¥¹¥È¥ê¡¼¥à¤Î°ÌÃÖ : "
+msgid "Stream position: "
+msgstr "ã‚¹ãƒˆãƒªãƒ¼ãƒ ã®ä½ç½® : "
 
 #: plugins/image_view/prefs_mplayer.c:332 plugins/image_view/prefs_xine.c:287
 msgid "[%]"
@@ -3881,47 +3841,47 @@ msgstr "[%]"
 
 #: plugins/image_view/prefs_xine.c:45
 msgid "/Movie and Audio/Xine"
-msgstr "/Æ°²è¤È²»À¼/Xine"
+msgstr "/å‹•ç”»ã¨éŸ³å£°/Xine"
 
 #. *********************************************
 #. * Driver Frame
 #. *********************************************
 #: plugins/image_view/prefs_xine.c:177
 msgid "Driver (Not implemented yet)"
-msgstr "¥É¥é¥¤¥Ğ (Ì¤¼ÂÁõ)"
+msgstr "ãƒ‰ãƒ©ã‚¤ãƒ (æœªå®Ÿè£…)"
 
 #. use this feature or not
 #: plugins/image_view/prefs_xine.c:260
 msgid "Enable creating thumbnail of movie using Xine"
-msgstr "Xine¤ò»ÈÍÑ¤·¤ÆÆ°²è¤Î¥µ¥à¥Í¥¤¥ë¤òºîÀ®¤¹¤ë"
+msgstr "Xineã‚’ä½¿ç”¨ã—ã¦å‹•ç”»ã®ã‚µãƒ ãƒã‚¤ãƒ«ã‚’ä½œæˆã™ã‚‹"
 
 #: plugins/image_view/prefs_xine.c:297
-msgid "Delay time to create thumbnail from starting play : "
-msgstr "ºÆÀ¸³«»Ï¤«¤é¥µ¥à¥Í¥¤¥ëºîÀ®¤Ş¤Ç¤ÎÃÙ±ä»ş´Ö : "
+msgid "Delay before creating a thumbnail after playback starts: "
+msgstr "å†ç”Ÿé–‹å§‹ã‹ã‚‰ã‚µãƒ ãƒã‚¤ãƒ«ä½œæˆã¾ã§ã®é…å»¶æ™‚é–“ : "
 
 #: plugins/io_stream/gimv_bz_io.c:57
 msgid "BZIP2 Compressed Stream Support"
-msgstr "BZIP2°µ½Ì¥¹¥È¥ê¡¼¥à¥µ¥İ¡¼¥È"
+msgstr "BZIP2åœ§ç¸®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/io_stream/gimv_gzip_io.c:64
 msgid "GZIP Compressed Stream Support"
-msgstr "GZIP°µ½Ì¥¹¥È¥ê¡¼¥à¥µ¥İ¡¼¥È"
+msgstr "GZIPåœ§ç¸®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/ee.c:83
 msgid "Electric Eyes (Preview)"
-msgstr "Electric Eyes (¥×¥ì¥Ó¥å¡¼)"
+msgstr "Electric Eyes (ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼)"
 
 #: plugins/thumbnail/ee.c:89
 msgid "Electric Eyes (Icon)"
-msgstr "Electric Eyes (¥¢¥¤¥³¥ó)"
+msgstr "Electric Eyes (ã‚¢ã‚¤ã‚³ãƒ³)"
 
 #: plugins/thumbnail/ee.c:95
 msgid "Electric Eyes (Mini)"
-msgstr "Electric Eyes (¥ß¥Ë)"
+msgstr "Electric Eyes (ãƒŸãƒ‹)"
 
 #: plugins/thumbnail/ee.c:107
 msgid "Electric Eyes thumbnail support"
-msgstr "Electric Eyes¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgstr "Electric Eyesã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/ee.c:187 plugins/thumbnail/gqview.c:242
 #: plugins/thumbnail/konqueror-old.c:189
@@ -3931,19 +3891,19 @@ msgstr "save cache: %s\n"
 
 #: plugins/thumbnail/gimv_thumb.c:97
 msgid "GImageView thumbnail support"
-msgstr "GImageView¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgstr "GImageViewã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/gimv_thumb.c:247
-msgid "image size invalid\n"
-msgstr "²èÁü¥µ¥¤¥º¤¬ÉÔÀµ¤Ç¤¹\n"
+msgid "Invalid image size\n"
+msgstr "ç”»åƒã‚µã‚¤ã‚ºãŒä¸æ­£ã§ã™\n"
 
 #: plugins/thumbnail/gimv_thumb.c:254
-msgid "cache size invalid\n"
-msgstr "¥­¥ã¥Ã¥·¥å¥µ¥¤¥º¤¬ÉÔÀµ¤Ç¤¹\n"
+msgid "Invalid cache size\n"
+msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚µã‚¤ã‚ºãŒä¸æ­£ã§ã™\n"
 
 #: plugins/thumbnail/gimv_thumb.c:380
-msgid "GImageVIew thumbnail size"
-msgstr "GImageView¥µ¥à¥Í¥¤¥ë¥µ¥¤¥º"
+msgid "GImageView thumbnail size"
+msgstr "GImageViewã‚µãƒ ãƒã‚¤ãƒ«ã‚µã‚¤ã‚º"
 
 #: plugins/thumbnail/gqview.c:93
 msgid "GQview"
@@ -3951,43 +3911,43 @@ msgstr "GQview"
 
 #: plugins/thumbnail/gqview.c:105
 msgid "GQview thumbnail support"
-msgstr "GQview¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgstr "GQviewã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/gqview.c:326
 msgid "GQview thumbnail size"
-msgstr "GQview¥µ¥à¥Í¥¤¥ë¥µ¥¤¥º"
+msgstr "GQviewã‚µãƒ ãƒã‚¤ãƒ«ã‚µã‚¤ã‚º"
 
 #: plugins/thumbnail/konqueror-old.c:79
 msgid "Konqueror old (Large)"
-msgstr "¸Å¤¤Konqueror (Âç)"
+msgstr "å¤ã„Konqueror (å¤§)"
 
 #: plugins/thumbnail/konqueror-old.c:85
 msgid "Konqueror old (Medium)"
-msgstr "¸Å¤¤Konqueror (Ãæ)"
+msgstr "å¤ã„Konqueror (ä¸­)"
 
 #: plugins/thumbnail/konqueror-old.c:91
 msgid "Konqueror old (Small)"
-msgstr "¸Å¤¤Konqueror (¾®)"
+msgstr "å¤ã„Konqueror (å°)"
 
 #: plugins/thumbnail/konqueror-old.c:103
-msgid "Konqueror(KDE2.1.x or belower) thumbnail support"
-msgstr "Konqueror(KDE2.1.x°ÊÁ°)¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgid "Konqueror (KDE 2.1.x or earlier) thumbnail support"
+msgstr "Konqueror(KDE2.1.xä»¥å‰)ã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/konqueror.c:81
 msgid "Konqueror (Large)"
-msgstr "Konqueror (Âç)"
+msgstr "Konqueror (å¤§)"
 
 #: plugins/thumbnail/konqueror.c:87
 msgid "Konqueror (Medium)"
-msgstr "Konqueror (Ãæ)"
+msgstr "Konqueror (ä¸­)"
 
 #: plugins/thumbnail/konqueror.c:93
 msgid "Konqueror (Small)"
-msgstr "Konqueror (¾®)"
+msgstr "Konqueror (å°)"
 
 #: plugins/thumbnail/konqueror.c:106
-msgid "Konqueror(KDE2.2 or higher) thumbnail support"
-msgstr "Konqueror(KDE2.2°Ê¹ß)¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgid "Konqueror (KDE 2.2 or later) thumbnail support"
+msgstr "Konqueror(KDE2.2ä»¥é™)ã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/nautilus.c:65
 msgid "Nautilus"
@@ -3995,7 +3955,7 @@ msgstr "Nautilus"
 
 #: plugins/thumbnail/nautilus.c:76
 msgid "Nautilus thumbnail support"
-msgstr "Nautilus¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgstr "Nautilusã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/nautilus-2.0.c:67
 msgid "Nautilus-2.0"
@@ -4003,114 +3963,390 @@ msgstr "Nautilus-2.0"
 
 #: plugins/thumbnail/nautilus-2.0.c:78
 msgid "Nautilus-2.0 thumbnail support"
-msgstr "Nautilus-2.0¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgstr "Nautilus-2.0ã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail/xvpics.c:70
 msgid "XV thumbnail"
-msgstr "XV¥µ¥à¥Í¥¤¥ë"
+msgstr "XVã‚µãƒ ãƒã‚¤ãƒ«"
 
 #: plugins/thumbnail/xvpics.c:81
 msgid "XV thumbnail support"
-msgstr "XV¥µ¥à¥Í¥¤¥ë¥µ¥İ¡¼¥È"
+msgstr "XVã‚µãƒ ãƒã‚¤ãƒ«ã‚µãƒãƒ¼ãƒˆ"
 
 #: plugins/thumbnail_view/detailview.c:41
 msgid "Detail"
-msgstr "¾ÜºÙ"
+msgstr "è©³ç´°"
 
 #: plugins/thumbnail_view/detailview.c:57
 msgid "Detail + Icon"
-msgstr "¾ÜºÙ + ¥¢¥¤¥³¥ó"
+msgstr "è©³ç´° + ã‚¢ã‚¤ã‚³ãƒ³"
 
 #: plugins/thumbnail_view/detailview.c:73
 msgid "Detail + Thumbnail"
-msgstr "¾ÜºÙ + ¥µ¥à¥Í¥¤¥ë"
+msgstr "è©³ç´° + ã‚µãƒ ãƒã‚¤ãƒ«"
 
 #: plugins/thumbnail_view/detailview.c:94
 msgid "Thumbnail View Detail Mode"
-msgstr "¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼ ¾ÜºÙ¥â¡¼¥É"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼ è©³ç´°ãƒ¢ãƒ¼ãƒ‰"
 
 #: plugins/thumbnail_view/detailview.c:124
 msgid "Cache type"
-msgstr "¥­¥ã¥Ã¥·¥å¥¿¥¤¥×"
+msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒ—"
 
 #: plugins/thumbnail_view/detailview.c:125
 msgid "Access time"
-msgstr "»²¾ÈÆü»ş"
+msgstr "å‚ç…§æ—¥æ™‚"
 
 #: plugins/thumbnail_view/detailview.c:126
 msgid "Modification time"
-msgstr "¹¹¿·Æü»ş"
+msgstr "æ›´æ–°æ—¥æ™‚"
 
 #: plugins/thumbnail_view/detailview.c:127
 msgid "Change time"
-msgstr "¾õÂÖÊÑ¹¹Æü»ş"
+msgstr "çŠ¶æ…‹å¤‰æ›´æ—¥æ™‚"
 
 #: plugins/thumbnail_view/detailview.c:128
 msgid "User"
-msgstr "¥æ¡¼¥¶¡¼"
+msgstr "ãƒ¦ãƒ¼ã‚¶ãƒ¼"
 
 #: plugins/thumbnail_view/detailview.c:129
 msgid "Group"
-msgstr "¥°¥ë¡¼¥×"
+msgstr "ã‚°ãƒ«ãƒ¼ãƒ—"
 
 #: plugins/thumbnail_view/detailview.c:130
 msgid "Mode"
-msgstr "¥â¡¼¥É"
+msgstr "ãƒ¢ãƒ¼ãƒ‰"
 
 #: plugins/thumbnail_view/detailview.c:131
 msgid "Image size"
-msgstr "²èÁü¥µ¥¤¥º"
+msgstr "ç”»åƒã‚µã‚¤ã‚º"
 
 #: plugins/thumbnail_view/detailview.c:335
-msgid "Unknwon"
-msgstr "ÉÔÌÀ"
+msgid "Unknown"
+msgstr "ä¸æ˜"
 
 #: plugins/thumbnail_view/detailview_prefs.c:56
 msgid "/Thumbnail Window/Thumbnail View/Detail View"
-msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼/¾ÜºÙ¥Ó¥å¡¼"
+msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼/è©³ç´°ãƒ“ãƒ¥ãƒ¼"
 
 #: plugins/thumbnail_view/detailview_prefs.c:108
 msgid "Column Order"
-msgstr "¥³¥é¥à¤Î½ç½ø"
+msgstr "ã‚³ãƒ©ãƒ ã®é †åº"
 
 #: plugins/thumbnail_view/detailview_prefs.c:109
 msgid "Possible columns"
-msgstr "ÍøÍÑ²ÄÇ½¥³¥é¥à"
+msgstr "åˆ©ç”¨å¯èƒ½ã‚³ãƒ©ãƒ "
 
 #: plugins/thumbnail_view/detailview_prefs.c:110
 msgid "Displayed columns"
-msgstr "É½¼¨¤¹¤ë¥³¥é¥à"
+msgstr "è¡¨ç¤ºã™ã‚‹ã‚³ãƒ©ãƒ "
 
 #. show/hide column title
 #: plugins/thumbnail_view/detailview_prefs.c:121
 msgid "Show Column Title"
-msgstr "¥³¥é¥à¥¿¥¤¥È¥ë¤òÉ½¼¨¤¹¤ë"
+msgstr "ã‚³ãƒ©ãƒ ã‚¿ã‚¤ãƒˆãƒ«ã‚’è¡¨ç¤ºã™ã‚‹"
 
 #: src/gimv_elist.c:997
 msgid "Down"
-msgstr "²¼¤Ø"
+msgstr "ä¸‹ã¸"
 
 #: src/gimv_elist.c:1024
 msgid "New"
-msgstr "¿·µ¬"
+msgstr "æ–°è¦"
 
 #: src/gimv_elist.c:1028
 msgid "Add"
-msgstr "ÄÉ²Ã"
+msgstr "è¿½åŠ "
 
 #: src/gimv_elist.c:1032
 msgid "Change"
-msgstr "ÊÑ¹¹"
+msgstr "å¤‰æ›´"
 
 #: src/gimv_elist.c:1036
 msgid "Delete"
-msgstr "ºï½ü"
+msgstr "å‰Šé™¤"
+
+msgid "Image loaders"
+msgstr "ç”»åƒãƒ­ãƒ¼ãƒ€"
+
+msgid "Image savers"
+msgstr "ç”»åƒã‚»ãƒ¼ãƒ"
+
+msgid "I/O streams"
+msgstr "å…¥å‡ºåŠ›ã‚¹ãƒˆãƒªãƒ¼ãƒ "
+
+msgid "Archivers"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ"
+
+msgid "Thumbnail caches"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ã‚­ãƒ£ãƒƒã‚·ãƒ¥"
+
+msgid "Movie and audio players"
+msgstr "å‹•ç”»ãƒ»éŸ³å£°ãƒ—ãƒ¬ãƒ¼ãƒ¤"
+
+msgid "Thumbnail views"
+msgstr "ã‚µãƒ ãƒã‚¤ãƒ«è¡¨ç¤º"
+
+msgid "Description: %s\n"
+msgstr "èª¬æ˜ : %s\n"
+
+msgid "Extensions: %s\n"
+msgstr "æ‹¡å¼µå­ : %s\n"
+
+msgid "PNM Image Loader"
+msgstr "PNMç”»åƒãƒ­ãƒ¼ãƒ€"
+
+msgid "Sun Raster Image Loader"
+msgstr "Sun Rasterç”»åƒãƒ­ãƒ¼ãƒ€"
+
+msgid "WBMP Image Loader"
+msgstr "WBMPç”»åƒãƒ­ãƒ¼ãƒ€"
+
+msgid "XPM Image Loader"
+msgstr "XPMç”»åƒãƒ­ãƒ¼ãƒ€"
+
+msgid "PBM, PGM and PPM images (ASCII and binary)"
+msgstr "PBMãƒ»PGMãƒ»PPM ç”»åƒ (ãƒ†ã‚­ã‚¹ãƒˆå½¢å¼ã¨ãƒã‚¤ãƒŠãƒªå½¢å¼)"
+
+msgid "Sun raster images (1, 8, 24 and 32 bits, RLE)"
+msgstr "Sun raster ç”»åƒ (1ãƒ»8ãƒ»24ãƒ»32 ãƒ“ãƒƒãƒˆã€RLE åœ§ç¸®)"
+
+msgid "Wireless bitmap (WBMP type 0) images"
+msgstr "WBMP ç”»åƒ (ã‚¿ã‚¤ãƒ— 0)"
+
+msgid "X PixMap (XPM3) images"
+msgstr "X PixMap (XPM3) ç”»åƒ"
+
+msgid "Formats of the installed gdk-pixbuf loaders"
+msgstr "ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ã‚‹ gdk-pixbuf ãƒ­ãƒ¼ãƒ€ã®å½¢å¼"
+
+msgid "Plays movies and audio with MPlayer"
+msgstr "MPlayer ã§å‹•ç”»ãƒ»éŸ³å£°ã‚’å†ç”Ÿ"
+
+msgid "Plays movies and audio with xine-lib 1.2"
+msgstr "xine-lib 1.2 ã§å‹•ç”»ãƒ»éŸ³å£°ã‚’å†ç”Ÿ"
+
+msgid "_Close"
+msgstr "é–‰ã˜ã‚‹(_C)"
+
+msgid "Comment"
+msgstr "ã‚³ãƒ¡ãƒ³ãƒˆ"
+
+msgid "Can't open the plugin preference file for writing."
+msgstr "ãƒ—ãƒ©ã‚°ã‚¤ãƒ³è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ›¸ãè¾¼ã¿ç”¨ã«é–‹ã‘ã¾ã›ã‚“ã€‚"
+
+msgid "JPEG Image Loader"
+msgstr "JPEG ç”»åƒãƒ­ãƒ¼ãƒ€"
+
+msgid "Post audio plugin"
+msgstr "éŸ³å£°ãƒã‚¹ãƒˆãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
+
+msgid "Post audio plugin to use for streams without video"
+msgstr "æ˜ åƒã®ãªã„ã‚¹ãƒˆãƒªãƒ¼ãƒ ã§ä½¿ã†éŸ³å£°ãƒã‚¹ãƒˆãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
+
+msgid "Post video plugin"
+msgstr "æ˜ åƒãƒã‚¹ãƒˆãƒ—ãƒ©ã‚°ã‚¤ãƒ³"
+
+msgid "Takuro Ashie, shitamo"
+msgstr "Takuro Ashie, shitamo"
+
+msgid "_Cancel"
+msgstr "ã‚­ãƒ£ãƒ³ã‚»ãƒ«(_C)"
+
+msgid "_OK"
+msgstr "äº†è§£(_O)"
+
+msgid "shitamo"
+msgstr "shitamo"
+
+msgid "_Apply"
+msgstr "é©ç”¨(_A)"
+
+msgid "_Yes"
+msgstr "ã¯ã„(_Y)"
+
+msgid "_No"
+msgstr "ã„ã„ãˆ(_N)"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Movie Player (GStreamer)"
+msgstr "å‹•ç”» (GStreamer)"
+
+#: plugins/image_view/image_view_gst.c
+msgid "GStreamer Embedder & Movie Frame Loader"
+msgstr "GStreameråŸ‹ã‚è¾¼ã¿ & å‹•ç”»ãƒ•ãƒ¬ãƒ¼ãƒ èª­ã¿è¾¼ã¿"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Plays movies and audio with GStreamer"
+msgstr "GStreamer ã§å‹•ç”»ãƒ»éŸ³å£°ã‚’å†ç”Ÿ"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Enable creating thumbnail of movie using GStreamer"
+msgstr "GStreamerã‚’ä½¿ç”¨ã—ã¦å‹•ç”»ã®ã‚µãƒ ãƒã‚¤ãƒ«ã‚’ä½œæˆã™ã‚‹"
+
+#: plugins/image_view/image_view_gst.c
+msgid "/Movie and Audio/GStreamer"
+msgstr "/å‹•ç”»ã¨éŸ³å£°/GStreamer"
+
+#: plugins/image_view/image_view_gst.c
+msgid ""
+"A GStreamer plugin for this format may not be installed (gstreamer1.0-"
+"plugins-good, -bad, -ugly, gstreamer1.0-libav)."
+msgstr ""
+"ã“ã®å½¢å¼ã‚’æ‰±ã† GStreamer ã®ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãŒã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ãªã„å¯èƒ½æ€§ãŒã‚"
+"ã‚Šã¾ã™ (gstreamer1.0-plugins-good, -bad, -ugly, gstreamer1.0-libav)ã€‚"
+
+#: plugins/image_view/image_view_gst.c
+msgid "GStreamer: the \"playbin\" element is not available."
+msgstr "GStreamer: \"playbin\" ã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆãŒä½¿ãˆã¾ã›ã‚“ã€‚"
+
+#: plugins/archiver/libarchive-ext.c
+msgid "Archive support (libarchive)"
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–å¯¾å¿œ (libarchive)"
+
+#: plugins/archiver/libarchive-ext.c
+msgid "Reads zip, rar, 7z, lha, tar and other archives with libarchive"
+msgstr "zipã€rarã€7zã€lhaã€tar ãªã©ã®ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚’ libarchive ã§èª­ã¿è¾¼ã‚€"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Icons"
+msgstr "ã‚¢ã‚¤ã‚³ãƒ³"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Use icons of the desktop icon theme for buttons"
+msgstr "ãƒœã‚¿ãƒ³ã«ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—ã®ã‚¢ã‚¤ã‚³ãƒ³ãƒ†ãƒ¼ãƒã®ã‚¢ã‚¤ã‚³ãƒ³ã‚’ä½¿ã†"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Windows opened after the change use it."
+msgstr "å¤‰æ›´å¾Œã«é–‹ã„ãŸã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‹ã‚‰åæ˜ ã•ã‚Œã¾ã™ã€‚"
+
+msgid "Set as Wallpaper"
+msgstr "å£ç´™ã«è¨­å®š"
+
+msgid "Cannot extract the image from the archive."
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‹ã‚‰ç”»åƒã‚’å±•é–‹ã§ãã¾ã›ã‚“ã€‚"
+
+msgid "Cannot load the image."
+msgstr "ç”»åƒã‚’èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã€‚"
+
+#, c-format
+msgid "Cannot write %s:\n%s"
+msgstr "%s ã«æ›¸ãè¾¼ã‚ã¾ã›ã‚“:\n%s"
+
+#, c-format
+msgid "Failed to set the wallpaper (%s):\nthe command was not found (not installed?).\n\n%s"
+msgstr "å£ç´™ã‚’è¨­å®šã§ãã¾ã›ã‚“ã§ã—ãŸ (%s):\nã‚³ãƒãƒ³ãƒ‰ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ (ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ã¾ã™ã‹?)ã€‚\n\n%s"
+
+#, c-format
+msgid "Failed to set the wallpaper (%s):\n%s\n\n%s"
+msgstr "å£ç´™ã‚’è¨­å®šã§ãã¾ã›ã‚“ã§ã—ãŸ (%s):\n%s\n\n%s"
+
+msgid "Select an image first."
+msgstr "å…ˆã«ç”»åƒã‚’é¸æŠã—ã¦ä¸‹ã•ã„ã€‚"
+
+#, c-format
+msgid "No wallpaper command for this desktop (%s).\nChoose one from the menu, or add one to \"wallpaper_menu\" in ~/.gimv/gimvrc."
+msgstr "ã“ã®ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ— (%s) ç”¨ã®å£ç´™ã‚³ãƒãƒ³ãƒ‰ãŒã‚ã‚Šã¾ã›ã‚“ã€‚\nãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‹ã‚‰é¸ã¶ã‹ã€~/.gimv/gimvrc ã® \"wallpaper_menu\" ã«è¿½åŠ ã—ã¦ä¸‹ã•ã„ã€‚"
+
+msgid "This Desktop"
+msgstr "ã“ã®ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—"
+
+msgid "/_Print..."
+msgstr "/å°åˆ·(_P)..."
+
+msgid "/_File/_Print..."
+msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/å°åˆ·(_P)..."
+
+#, c-format
+msgid "Cannot load %s"
+msgstr "%s ã‚’èª­ã¿è¾¼ã‚ã¾ã›ã‚“"
+
+msgid "_Fit to the page"
+msgstr "ç”¨ç´™ã«åˆã‚ã›ã‚‹(_F)"
+
+msgid "_Resolution:"
+msgstr "è§£åƒåº¦(_R):"
+
+msgid "dpi (at most the page size)"
+msgstr "dpi (ç”¨ç´™ã‚ˆã‚Šå¤§ããã¯ã—ãªã„)"
+
+msgid "Turn the image to the _orientation of the page"
+msgstr "ç”¨ç´™ã®å‘ãã«åˆã‚ã›ã¦ç”»åƒã‚’å›è»¢ã™ã‚‹(_O)"
+
+msgid "Print the file _name"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å°åˆ·ã™ã‚‹(_N)"
+
+msgid "Print"
+msgstr "å°åˆ·"
+
+msgid "Printing failed."
+msgstr "å°åˆ·ã«å¤±æ•—ã—ã¾ã—ãŸã€‚"
+
+msgid "There are no images to print."
+msgstr "å°åˆ·ã§ãã‚‹ç”»åƒãŒã‚ã‚Šã¾ã›ã‚“ã€‚"
+
+msgid "Select images to print."
+msgstr "å°åˆ·ã™ã‚‹ç”»åƒã‚’é¸æŠã—ã¦ä¸‹ã•ã„ã€‚"
+
+msgid "/_Checkerboard Behind Transparency"
+msgstr "/é€ééƒ¨åˆ†ã‚’å¸‚æ¾æ¨¡æ§˜ã§è¡¨ç¤º(_C)"
+
+msgid "Show a checkerboard behind transparent parts of images"
+msgstr "ç”»åƒã®é€ééƒ¨åˆ†ã‚’å¸‚æ¾æ¨¡æ§˜ã§è¡¨ç¤ºã™ã‚‹"
+
+msgid "Play the next file when a movie or audio file ends (continuous play)"
+msgstr "å‹•ç”»ãƒ»éŸ³å£°ã®å†ç”ŸãŒçµ‚ã‚ã£ãŸã‚‰æ¬¡ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å†ç”Ÿã™ã‚‹ (é€£ç¶šå†ç”Ÿ)"
+
+msgid "Ignore mouse actions for next/previous image, zoom, rotation and scrolling while a movie or audio file is playing"
+msgstr "å‹•ç”»ãƒ»éŸ³å£°ã®å†ç”Ÿä¸­ã¯ã€ãƒã‚¦ã‚¹ã§ã®æ¬¡/å‰ã®ç”»åƒãƒ»æ‹¡å¤§ç¸®å°ãƒ»å›è»¢ãƒ»ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚’ç„¡åŠ¹ã«ã™ã‚‹"
+
+msgid "Cannot extract the file from the archive."
+msgstr "ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‹ã‚‰ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å±•é–‹ã§ãã¾ã›ã‚“ã€‚"
+
+msgid "Remember the rotation of each image (saved with its comment)"
+msgstr "ç”»åƒã”ã¨ã«å›è»¢ã—ãŸå‘ãã‚’è¦šãˆã‚‹ (ã‚³ãƒ¡ãƒ³ãƒˆã¨ä¸€ç·’ã«ä¿å­˜)"
+
+msgid "Read the image size of at most"
+msgstr "ç”»åƒã‚µã‚¤ã‚ºã‚’èª­ã‚€ã®ã¯æœ€å¤§"
+
+msgid "files per list (0: never; the others show it once opened)"
+msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã¾ã§ (0: èª­ã¾ãªã„ï¼æ®‹ã‚Šã¯é–‹ã„ãŸæ™‚ã«è¡¨ç¤º)"
+
+#: src/gimv_prefs_ui_utils.c:196
+#, c-format
+msgid "Mouse Button %d (Back)"
+msgstr "ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ %d (æˆ»ã‚‹)"
+
+#: src/gimv_prefs_ui_utils.c:198
+#, c-format
+msgid "Mouse Button %d (Forward)"
+msgstr "ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ %d (é€²ã‚€)"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Appearance"
+msgstr "å¤–è¦³"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Color scheme"
+msgstr "é…è‰²"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Desktop theme"
+msgstr "ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—ã®ãƒ†ãƒ¼ãƒ"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Light"
+msgstr "ãƒ©ã‚¤ãƒˆ"
+
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Dark"
+msgstr "ãƒ€ãƒ¼ã‚¯"
 
 #~ msgid "Xine Embeder"
-#~ msgstr "XineËä¤á¹ş¤ß"
+#~ msgstr "XineåŸ‹ã‚è¾¼ã¿"
 
 #~ msgid "/Rotate -90 deg"
-#~ msgstr "/-90ÅÙ"
+#~ msgstr "/-90åº¦"
 
 #~ msgid "-90"
 #~ msgstr "-90"
@@ -4125,254 +4361,254 @@ msgstr "ºï½ü"
 #~ msgstr "180"
 
 #~ msgid "Do not zoom in when fit to window automatically."
-#~ msgstr "¼«Æ°Åª¤Ë¥µ¥¤¥º¤ò¹ç¤ï¤»¤ëºİ¤Ë³ÈÂç¤·¤Ê¤¤"
+#~ msgstr "è‡ªå‹•çš„ã«ã‚µã‚¤ã‚ºã‚’åˆã‚ã›ã‚‹éš›ã«æ‹¡å¤§ã—ãªã„"
 
 #~ msgid "Default Zoom: "
-#~ msgstr "¥Ç¥Õ¥©¥ë¥È¤Î¥º¡¼¥àÊıË¡: "
+#~ msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ã‚ºãƒ¼ãƒ æ–¹æ³•: "
 
 #~ msgid "Default Rotation: "
-#~ msgstr "¥Ç¥Õ¥©¥ë¥È¤Î²óÅ¾ÊıË¡: "
+#~ msgstr "ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®å›è»¢æ–¹æ³•: "
 
 #~ msgid "Auto resize to window size"
-#~ msgstr "¼«Æ°Åª¤Ë¥¦¥£¥ó¥É¥¦¤ÎÂç¤­¤µ¤Ë¹ç¤ï¤»¤ë"
+#~ msgstr "è‡ªå‹•çš„ã«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•ã«åˆã‚ã›ã‚‹"
 
 #~ msgid "Auto resize to window size when opening"
-#~ msgstr "¥Õ¥¡¥¤¥ë¥ª¡¼¥×¥ó»ş¤Ë¥¦¥£¥ó¥É¥¦¤Î¥µ¥¤¥º¤Ë¹ç¤ï¤»¤ë"
+#~ msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚ªãƒ¼ãƒ—ãƒ³æ™‚ã«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚µã‚¤ã‚ºã«åˆã‚ã›ã‚‹"
 
 #~ msgid "Auto resize to frame size when open image"
-#~ msgstr "¥Õ¥¡¥¤¥ë¥ª¡¼¥×¥ó»ş¤Ë¥Õ¥ì¡¼¥à¤Î¥µ¥¤¥º¤Ë¹ç¤ï¤»¤ë"
+#~ msgstr "ãƒ•ã‚¡ã‚¤ãƒ«ã‚ªãƒ¼ãƒ—ãƒ³æ™‚ã«ãƒ•ãƒ¬ãƒ¼ãƒ ã®ã‚µã‚¤ã‚ºã«åˆã‚ã›ã‚‹"
 
 #~ msgid "/_File/_New Collection"
-#~ msgstr "/¥Õ¥¡¥¤¥ë(_F)/¿·µ¬¥³¥ì¥¯¥·¥ç¥ó(_N)"
+#~ msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/æ–°è¦ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³(_N)"
 
 #~ msgid "Rename Mode"
-#~ msgstr "¥ê¥Í¡¼¥à¥â¡¼¥É"
+#~ msgstr "ãƒªãƒãƒ¼ãƒ ãƒ¢ãƒ¼ãƒ‰"
 
 #~ msgid "Thumbnail View Thumbnail Mode"
-#~ msgstr "¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼ ¥µ¥à¥Í¥¤¥ë¥â¡¼¥É"
+#~ msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼ ã‚µãƒ ãƒã‚¤ãƒ«ãƒ¢ãƒ¼ãƒ‰"
 
 #~ msgid ""
 #~ "File not exist!!:\n"
 #~ "%s"
 #~ msgstr ""
-#~ "¥Õ¥¡¥¤¥ë¤ÏÂ¸ºß¤·¤Ş¤»¤ó!!:\n"
+#~ "ãƒ•ã‚¡ã‚¤ãƒ«ã¯å­˜åœ¨ã—ã¾ã›ã‚“!!:\n"
 #~ "%s"
 
 #~ msgid ""
 #~ "Permission denied!!:\n"
 #~ "%s"
 #~ msgstr ""
-#~ "µö²Ä¤¬¤¢¤ê¤Ş¤»¤ó!!:\n"
+#~ "è¨±å¯ãŒã‚ã‚Šã¾ã›ã‚“!!:\n"
 #~ "%s"
 
 #~ msgid ""
 #~ "File exist!!:\n"
 #~ "%s"
 #~ msgstr ""
-#~ "¥Õ¥¡¥¤¥ë¤ÏÂ¸ºß¤·¤Ş¤¹!!\n"
+#~ "ãƒ•ã‚¡ã‚¤ãƒ«ã¯å­˜åœ¨ã—ã¾ã™!!\n"
 #~ "%s"
 
 #~ msgid "Faild to rename!!"
-#~ msgstr "¥Õ¥¡¥¤¥ëÌ¾ÊÑ¹¹¤Ë¼ºÇÔ¤·¤Ş¤·¤¿!!"
+#~ msgstr "ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´ã«å¤±æ•—ã—ã¾ã—ãŸ!!"
 
 #~ msgid "List (Icon)"
-#~ msgstr "¥ê¥¹¥È (¥¢¥¤¥³¥ó)"
+#~ msgstr "ãƒªã‚¹ãƒˆ (ã‚¢ã‚¤ã‚³ãƒ³)"
 
 #~ msgid "List (Thumbnail)"
-#~ msgstr "¥ê¥¹¥È (¥µ¥à¥Í¥¤¥ë)"
+#~ msgstr "ãƒªã‚¹ãƒˆ (ã‚µãƒ ãƒã‚¤ãƒ«)"
 
 #~ msgid "Thumbnail View List Mode"
-#~ msgstr "¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼ ¥ê¥¹¥È¥â¡¼¥É"
+#~ msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼ ãƒªã‚¹ãƒˆãƒ¢ãƒ¼ãƒ‰"
 
 #~ msgid "/Thumbnail Window/Thumbnail View/List View"
-#~ msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼/¥ê¥¹¥È¥Ó¥å¡¼"
+#~ msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼/ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼"
 
 #~ msgid "Data Order on List View (Thumbnail)"
-#~ msgstr "¥ê¥¹¥È(¥µ¥à¥Í¥¤¥ë)¤ÇÉ½¼¨¤¹¤ë¥Ç¡¼¥¿"
+#~ msgstr "ãƒªã‚¹ãƒˆ(ã‚µãƒ ãƒã‚¤ãƒ«)ã§è¡¨ç¤ºã™ã‚‹ãƒ‡ãƒ¼ã‚¿"
 
 #~ msgid "Possible data"
-#~ msgstr "ÍøÍÑ²ÄÇ½¤Ê¹àÌÜ"
+#~ msgstr "åˆ©ç”¨å¯èƒ½ãªé …ç›®"
 
 #~ msgid "Displayed data"
-#~ msgstr "É½¼¨¤¹¤ë¹àÌÜ"
+#~ msgstr "è¡¨ç¤ºã™ã‚‹é …ç›®"
 
 #~ msgid "/Thumbnail Window/Thumbnail View/Thumbnail Table"
-#~ msgstr "/¥µ¥à¥Í¥¤¥ë¥¦¥£¥ó¥É¥¦/¥µ¥à¥Í¥¤¥ë¥Ó¥å¡¼/¥µ¥à¥Í¥¤¥ë¥Æ¡¼¥Ö¥ë"
+#~ msgstr "/ã‚µãƒ ãƒã‚¤ãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ“ãƒ¥ãƒ¼/ã‚µãƒ ãƒã‚¤ãƒ«ãƒ†ãƒ¼ãƒ–ãƒ«"
 
 #~ msgid "Thumbnail Table"
-#~ msgstr "¥µ¥à¥Í¥¤¥ë¥Æ¡¼¥Ö¥ë"
+#~ msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒ†ãƒ¼ãƒ–ãƒ«"
 
 #~ msgid "Minimum Columns"
-#~ msgstr "Îó¿ô¤ÎºÇ¾®ÃÍ"
+#~ msgstr "åˆ—æ•°ã®æœ€å°å€¤"
 
 #~ msgid "Maximum Columns"
-#~ msgstr "Îó¿ô¤ÎºÇÂçÃÍ"
+#~ msgstr "åˆ—æ•°ã®æœ€å¤§å€¤"
 
 #~ msgid "Centering"
-#~ msgstr "¥»¥ó¥¿¥ê¥ó¥°¤¹¤ë"
+#~ msgstr "ã‚»ãƒ³ã‚¿ãƒªãƒ³ã‚°ã™ã‚‹"
 
 #~ msgid "Thumbnail Button"
-#~ msgstr "¥µ¥à¥Í¥¤¥ë¥Ü¥¿¥ó"
+#~ msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ãƒœã‚¿ãƒ³"
 
 #~ msgid "Minimum Border Width"
-#~ msgstr "±ïÉı¤ÎºÇ¾®ÃÍ"
+#~ msgstr "ç¸å¹…ã®æœ€å°å€¤"
 
 #~ msgid "270"
 #~ msgstr "270"
 
 #~ msgid "IFD 0"
-#~ msgstr "¥á¥¤¥ó¾ğÊó 0"
+#~ msgstr "ãƒ¡ã‚¤ãƒ³æƒ…å ± 0"
 
 #~ msgid "IFD 1"
-#~ msgstr "¥á¥¤¥ó¾ğÊó 1"
+#~ msgstr "ãƒ¡ã‚¤ãƒ³æƒ…å ± 1"
 
 #~ msgid "Exif IFD"
-#~ msgstr "¥µ¥Ö¾ğÊó"
+#~ msgstr "ã‚µãƒ–æƒ…å ±"
 
 #~ msgid "GPS IFD"
-#~ msgstr "GPSÂ¬Äê¾ğÊó"
+#~ msgstr "GPSæ¸¬å®šæƒ…å ±"
 
 #~ msgid "Interoperability"
-#~ msgstr "ExifR98¾ğÊó"
+#~ msgstr "ExifR98æƒ…å ±"
 
 #~ msgid "Clear"
-#~ msgstr "¥¯¥ê¥¢"
+#~ msgstr "ã‚¯ãƒªã‚¢"
 
 #~ msgid "There is no duplicating image."
-#~ msgstr "½ÅÊ£¤¹¤ë²èÁü¤Ï¤¢¤ê¤Ş¤»¤ó¡¥"
+#~ msgstr "é‡è¤‡ã™ã‚‹ç”»åƒã¯ã‚ã‚Šã¾ã›ã‚“ï¼"
 
 #~ msgid "/Movie/MPlayer"
-#~ msgstr "/Æ°²è/MPlayer"
+#~ msgstr "/å‹•ç”»/MPlayer"
 
 #~ msgid "/Movie/Xine"
-#~ msgstr "/Æ°²è/Xine"
+#~ msgstr "/å‹•ç”»/Xine"
 
 #~ msgid "BZ Compressed Stream Support"
-#~ msgstr "BZ°µ½Ì¥¹¥È¥ê¡¼¥à¥µ¥İ¡¼¥È"
+#~ msgstr "BZåœ§ç¸®ã‚¹ãƒˆãƒªãƒ¼ãƒ ã‚µãƒãƒ¼ãƒˆ"
 
 #~ msgid "/Movie"
-#~ msgstr "/Æ°²è"
+#~ msgstr "/å‹•ç”»"
 
 #~ msgid "Image Types"
-#~ msgstr "²èÁü¥¿¥¤¥×"
+#~ msgstr "ç”»åƒã‚¿ã‚¤ãƒ—"
 
 #~ msgid "Image Type: "
-#~ msgstr "²èÁü¥¿¥¤¥× :"
+#~ msgstr "ç”»åƒã‚¿ã‚¤ãƒ— :"
 
 #~ msgid "Thumbnail2"
-#~ msgstr "¥µ¥à¥Í¥¤¥ë2"
+#~ msgstr "ã‚µãƒ ãƒã‚¤ãƒ«2"
 
 #~ msgid "List2 (Icon)"
-#~ msgstr "¥ê¥¹¥È2 (¥¢¥¤¥³¥ó)"
+#~ msgstr "ãƒªã‚¹ãƒˆ2 (ã‚¢ã‚¤ã‚³ãƒ³)"
 
 #~ msgid "List2 (Thumbnail)"
-#~ msgstr "¥ê¥¹¥È2 (¥µ¥à¥Í¥¤¥ë)"
+#~ msgstr "ãƒªã‚¹ãƒˆ2 (ã‚µãƒ ãƒã‚¤ãƒ«)"
 
 #~ msgid "/_Focus"
-#~ msgstr "/¥Õ¥©¡¼¥«¥¹(_F)"
+#~ msgstr "/ãƒ•ã‚©ãƒ¼ã‚«ã‚¹(_F)"
 
 #~ msgid "/_View modes/_Image"
-#~ msgstr "/É½¼¨¥â¡¼¥É(_V)/²èÁü(_I)"
+#~ msgstr "/è¡¨ç¤ºãƒ¢ãƒ¼ãƒ‰(_V)/ç”»åƒ(_I)"
 
 #~ msgid "/_View modes/Movie(_Xine)"
-#~ msgstr "/É½¼¨¥â¡¼¥É(_V)/Æ°²è(_Xine)"
+#~ msgstr "/è¡¨ç¤ºãƒ¢ãƒ¼ãƒ‰(_V)/å‹•ç”»(_Xine)"
 
 #~ msgid "/Search _media..."
-#~ msgstr "/¥á¥Ç¥£¥¢¤ò¸¡º÷(_M)..."
+#~ msgstr "/ãƒ¡ãƒ‡ã‚£ã‚¢ã‚’æ¤œç´¢(_M)..."
 
 #~ msgid "Pause"
-#~ msgstr "°ì»şÄä»ß"
+#~ msgstr "ä¸€æ™‚åœæ­¢"
 
 #~ msgid "Xine version : %s\n"
-#~ msgstr "Xine ¥Ğ¡¼¥¸¥ç¥ó : %s\n"
+#~ msgstr "Xine ãƒãƒ¼ã‚¸ãƒ§ãƒ³ : %s\n"
 
 #~ msgid "/_Edit/Clear cache for _this tab"
-#~ msgstr "/ÊÔ½¸(_E)/¤³¤Î¥¿¥Ö¤Î¥­¥ã¥Ã¥·¥å¤ò¥¯¥ê¥¢(_T)"
+#~ msgstr "/ç·¨é›†(_E)/ã“ã®ã‚¿ãƒ–ã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’ã‚¯ãƒªã‚¢(_T)"
 
 #, fuzzy
 #~ msgid "Sorry, cannot include \"%c\" character!"
-#~ msgstr "\",\"¤ò´Ş¤á¤ë¤³¤È¤Ï¤Ç¤­¤Ş¤»¤ó!"
+#~ msgstr "\",\"ã‚’å«ã‚ã‚‹ã“ã¨ã¯ã§ãã¾ã›ã‚“!"
 
 #~ msgid "List View"
-#~ msgstr "¥ê¥¹¥È¥Ó¥å¡¼"
+#~ msgstr "ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼"
 
 #~ msgid "Detail View"
-#~ msgstr "¾ÜºÙ¥Ó¥å¡¼"
+#~ msgstr "è©³ç´°ãƒ“ãƒ¥ãƒ¼"
 
 #~ msgid "Directory View"
-#~ msgstr "¥Ç¥£¥ì¥¯¥È¥ê¥Ó¥å¡¼"
+#~ msgstr "ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ“ãƒ¥ãƒ¼"
 
 #~ msgid "Scripts"
-#~ msgstr "¥¹¥¯¥ê¥×¥È"
+#~ msgstr "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ"
 
 #~ msgid "Open in New Collection"
-#~ msgstr "¿·µ¬¥³¥ì¥¯¥·¥ç¥ó¤Ç³«¤¯"
+#~ msgstr "æ–°è¦ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³ã§é–‹ã"
 
 #~ msgid "Set expander to all directory (Fast)"
-#~ msgstr "Á´¤Æ¤Î¥Ç¥£¥ì¥¯¥È¥ê¤Ë¥Ä¥ê¡¼Å¸³«¥¢¥¤¥³¥ó¤ò¥»¥Ã¥È¤¹¤ë(¹âÂ®)"
+#~ msgstr "å…¨ã¦ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ãƒ„ãƒªãƒ¼å±•é–‹ã‚¢ã‚¤ã‚³ãƒ³ã‚’ã‚»ãƒƒãƒˆã™ã‚‹(é«˜é€Ÿ)"
 
 #~ msgid "/_Full Screen"
-#~ msgstr "/Á´²èÌÌ(_F)"
+#~ msgstr "/å…¨ç”»é¢(_F)"
 
 #, fuzzy
 #~ msgid "/_Repeat"
-#~ msgstr "/²óÅ¾(_R)"
+#~ msgstr "/å›è»¢(_R)"
 
 #~ msgid "MRL: "
 #~ msgstr "MRL: "
 
 #~ msgid "/_Movie"
-#~ msgstr "/Æ°²è(_M)"
+#~ msgstr "/å‹•ç”»(_M)"
 
 #~ msgid "/_FF"
-#~ msgstr "/ÁáÁ÷¤ê(_F)"
+#~ msgstr "/æ—©é€ã‚Š(_F)"
 
 #, fuzzy
 #~ msgid "/_Movie/_Stop"
-#~ msgstr "/°ÜÆ°(_M)"
+#~ msgstr "/ç§»å‹•(_M)"
 
 #, fuzzy
 #~ msgid "/_Movie/_Pause"
-#~ msgstr "/°ÜÆ°(_M)"
+#~ msgstr "/ç§»å‹•(_M)"
 
 #~ msgid "/_Property"
-#~ msgstr "/¥×¥í¥Ñ¥Æ¥£(_P)"
+#~ msgstr "/ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£(_P)"
 
 #~ msgid "/Property"
-#~ msgstr "/¥×¥í¥Ñ¥Æ¥£"
+#~ msgstr "/ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£"
 
 #~ msgid "/_Edit/Options"
-#~ msgstr "/ÊÔ½¸(_E)/ÀßÄê"
+#~ msgstr "/ç·¨é›†(_E)/è¨­å®š"
 
 #~ msgid "/Menu Bar"
-#~ msgstr "/¥á¥Ë¥å¡¼¥Ğ¡¼"
+#~ msgstr "/ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼"
 
 #~ msgid "/Status Bar"
-#~ msgstr "/¥¹¥Æ¡¼¥¿¥¹¥Ğ¡¼"
+#~ msgstr "/ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼"
 
 #~ msgid "/Tab"
-#~ msgstr "/¥¿¥Ö"
+#~ msgstr "/ã‚¿ãƒ–"
 
 #~ msgid "/S_tatus Bar"
-#~ msgstr "/¥¹¥Æ¡¼¥¿¥¹¥Ğ¡¼(_T)"
+#~ msgstr "/ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼(_T)"
 
 #~ msgid "Insert"
-#~ msgstr "ÁŞÆş"
+#~ msgstr "æŒ¿å…¥"
 
 #~ msgid "Motorola"
-#~ msgstr "¥â¥È¥í¡¼¥é"
+#~ msgstr "ãƒ¢ãƒˆãƒ­ãƒ¼ãƒ©"
 
 #~ msgid "Intel"
-#~ msgstr "¥¤¥ó¥Æ¥ë"
+#~ msgstr "ã‚¤ãƒ³ãƒ†ãƒ«"
 
 #~ msgid "Other"
-#~ msgstr "¤½¤ÎÂ¾"
+#~ msgstr "ãã®ä»–"
 
 #~ msgid "Uncompressed"
-#~ msgstr "Ì¤°µ½Ì"
+#~ msgstr "æœªåœ§ç¸®"
 
 #~ msgid "JPEG compression"
-#~ msgstr "JPEG°µ½Ì"
+#~ msgstr "JPEGåœ§ç¸®"
 
 #~ msgid "DSC"
 #~ msgstr "DSC"
@@ -4400,52 +4636,52 @@ msgstr "ºï½ü"
 
 #, fuzzy
 #~ msgid "reserved"
-#~ msgstr "¥×¥ì¥¹"
+#~ msgstr "ãƒ—ãƒ¬ã‚¹"
 
 #~ msgid "Not defined"
-#~ msgstr "Ì¤ÄêµÁ"
+#~ msgstr "æœªå®šç¾©"
 
 #, fuzzy
 #~ msgid "Daylight"
-#~ msgstr "±¦"
+#~ msgstr "å³"
 
 #~ msgid "Inch"
-#~ msgstr "¥¤¥ó¥Á"
+#~ msgstr "ã‚¤ãƒ³ãƒ"
 
 #, fuzzy
 #~ msgid "Manual"
-#~ msgstr "/¥Ş¥Ë¥å¥¢¥ë(_M)"
+#~ msgstr "/ãƒãƒ‹ãƒ¥ã‚¢ãƒ«(_M)"
 
 #, fuzzy
 #~ msgid "Normal program"
-#~ msgstr "³°Éô¥×¥í¥°¥é¥à"
+#~ msgstr "å¤–éƒ¨ãƒ—ãƒ­ã‚°ãƒ©ãƒ "
 
 #~ msgid "top - left"
-#~ msgstr "¾å - º¸"
+#~ msgstr "ä¸Š - å·¦"
 
 #~ msgid "top - right"
-#~ msgstr "¾å - ±¦"
+#~ msgstr "ä¸Š - å³"
 
 #~ msgid "bottom - right"
-#~ msgstr "²¼ - ±¦"
+#~ msgstr "ä¸‹ - å³"
 
 #~ msgid "bottom - left"
-#~ msgstr "²¼ - º¸"
+#~ msgstr "ä¸‹ - å·¦"
 
 #~ msgid "left - top"
-#~ msgstr "º¸ - ¾å"
+#~ msgstr "å·¦ - ä¸Š"
 
 #~ msgid "right - top"
-#~ msgstr "±¦ - ¾å"
+#~ msgstr "å³ - ä¸Š"
 
 #~ msgid "right - bottom"
-#~ msgstr "±¦ - ²¼"
+#~ msgstr "å³ - ä¸‹"
 
 #~ msgid "left - bottom"
-#~ msgstr "º¸ - ²¼"
+#~ msgstr "å·¦ - ä¸‹"
 
 #~ msgid "centered"
-#~ msgstr "Ãæ¿´"
+#~ msgstr "ä¸­å¿ƒ"
 
 #~ msgid "YCbCr4:2:2"
 #~ msgstr "YCbCr4:2:2"
@@ -4463,51 +4699,51 @@ msgstr "ºï½ü"
 #~ msgstr "sRGB"
 
 #~ msgid "Compression"
-#~ msgstr "°µ½Ì"
+#~ msgstr "åœ§ç¸®"
 
 #, fuzzy
 #~ msgid "Document Name"
-#~ msgstr "/¥É¥­¥å¥á¥ó¥È(_D)"
+#~ msgstr "/ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ(_D)"
 
 #~ msgid "Image Description"
-#~ msgstr "²èÁü¥¿¥¤¥È¥ë"
+#~ msgstr "ç”»åƒã‚¿ã‚¤ãƒˆãƒ«"
 
 #~ msgid "Manufacturer"
-#~ msgstr "¥á¡¼¥«¡¼Ì¾"
+#~ msgstr "ãƒ¡ãƒ¼ã‚«ãƒ¼å"
 
 #, fuzzy
 #~ msgid "Strip Offsets"
-#~ msgstr "¥¹¥¯¥ê¥×¥È"
+#~ msgstr "ã‚¹ã‚¯ãƒªãƒ—ãƒˆ"
 
 #~ msgid "Orientation"
-#~ msgstr "²èÁÇ¤ÎÊÂ¤Ó"
+#~ msgstr "ç”»ç´ ã®ä¸¦ã³"
 
 #~ msgid "Resolution Unit"
-#~ msgstr "²òÁüÅÙÃ±°Ì"
+#~ msgstr "è§£åƒåº¦å˜ä½"
 
 #, fuzzy
 #~ msgid "Date and Time"
-#~ msgstr "¹¹¿·Æü»ş"
+#~ msgstr "æ›´æ–°æ—¥æ™‚"
 
 #, fuzzy
 #~ msgid "YCbCr Positioning"
-#~ msgstr "¥¿¥Ö¤Î°ÌÃÖ"
+#~ msgstr "ã‚¿ãƒ–ã®ä½ç½®"
 
 #, fuzzy
 #~ msgid "Exif Version"
-#~ msgstr "¥Ğ¡¼¥¸¥ç¥ó"
+#~ msgstr "ãƒãƒ¼ã‚¸ãƒ§ãƒ³"
 
 #, fuzzy
 #~ msgid "User Comment"
-#~ msgstr "¥³¥á¥ó¥È"
+#~ msgstr "ã‚³ãƒ¡ãƒ³ãƒˆ"
 
 #, fuzzy
 #~ msgid "Color Space"
-#~ msgstr "Îó´Ö¤Î¶õÇò"
+#~ msgstr "åˆ—é–“ã®ç©ºç™½"
 
 #, fuzzy
 #~ msgid "Scene Type"
-#~ msgstr "¥­¥ã¥Ã¥·¥å¥¿¥¤¥×"
+#~ msgstr "ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒ—"
 
 #~ msgid "Alt"
 #~ msgstr "Alt"
@@ -4524,236 +4760,236 @@ msgstr "ºï½ü"
 #~ "Copyright (C) 2001 %s <%s>\n"
 
 #~ msgid "No image files specified!!\n"
-#~ msgstr "²èÁü¥Õ¥¡¥¤¥ë¤¬»ØÄê¤µ¤ì¤Æ¤¤¤Ş¤»¤ó!!\n"
+#~ msgstr "ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«ãŒæŒ‡å®šã•ã‚Œã¦ã„ã¾ã›ã‚“!!\n"
 
 #~ msgid "Not implemented yet ;-("
-#~ msgstr "Ì¤¼ÂÁõ ;-("
+#~ msgstr "æœªå®Ÿè£… ;-("
 
 #~ msgid "Use GImageView cache."
-#~ msgstr "GImageView¤Î¥­¥ã¥Ã¥·¥å¤ò»ÈÍÑ"
+#~ msgstr "GImageViewã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’ä½¿ç”¨"
 
 #~ msgid "Use Nautilus cache."
-#~ msgstr "Nautilus¤Î¥­¥ã¥Ã¥·¥å¤ò»ÈÍÑ"
+#~ msgstr "Nautilusã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’ä½¿ç”¨"
 
 #~ msgid "Use Konqueror cache (Large)"
-#~ msgstr "Konqueror¤Î¥­¥ã¥Ã¥·¥å(Âç)¤ò»ÈÍÑ"
+#~ msgstr "Konquerorã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥(å¤§)ã‚’ä½¿ç”¨"
 
 #~ msgid "Use Konqueror cache (Medium)"
-#~ msgstr "Konqueror¤Î¥­¥ã¥Ã¥·¥å(Ãæ)¤ò»ÈÍÑ"
+#~ msgstr "Konquerorã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥(ä¸­)ã‚’ä½¿ç”¨"
 
 #~ msgid "Use Konqueror cache (Small)"
-#~ msgstr "Konqueror¤Î¥­¥ã¥Ã¥·¥å(¾®)¤ò»ÈÍÑ"
+#~ msgstr "Konquerorã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥(å°)ã‚’ä½¿ç”¨"
 
 #~ msgid "Use GQview cache"
-#~ msgstr "GQview¤Î¥­¥ã¥Ã¥·¥å¤ò»ÈÍÑ"
+#~ msgstr "GQviewã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’ä½¿ç”¨"
 
 #~ msgid "Use Electric Eyes cache (Preview)"
-#~ msgstr "Electric Eyes¤Î¥­¥ã¥Ã¥·¥å(¥×¥ì¥Ó¥å¡¼)¤ò»ÈÍÑ"
+#~ msgstr "Electric Eyesã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥(ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼)ã‚’ä½¿ç”¨"
 
 #~ msgid "Use Electric Eyes cache (Icon)"
-#~ msgstr "Electric Eyes¤Î¥­¥ã¥Ã¥·¥å(¥¢¥¤¥³¥ó)¤ò»ÈÍÑ"
+#~ msgstr "Electric Eyesã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥(ã‚¢ã‚¤ã‚³ãƒ³)ã‚’ä½¿ç”¨"
 
 #~ msgid "Use Electric Eyes cache (Mini)"
-#~ msgstr "Electric Eyes¤Î¥­¥ã¥Ã¥·¥å(¥ß¥Ë)¤ò»ÈÍÑ"
+#~ msgstr "Electric Eyesã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥(ãƒŸãƒ‹)ã‚’ä½¿ç”¨"
 
 #~ msgid "Enable Picview fix"
-#~ msgstr "PicviewÍÑ¤Î½¤Àµ¤òÍ­¸ú"
+#~ msgstr "Picviewç”¨ã®ä¿®æ­£ã‚’æœ‰åŠ¹"
 
 #~ msgid "Use XV thumbnail"
-#~ msgstr "XV¤Î¥­¥ã¥Ã¥·¥å¤ò»ÈÍÑ"
+#~ msgstr "XVã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’ä½¿ç”¨"
 
 #~ msgid "/_Help/_About"
-#~ msgstr "/¥Ø¥ë¥×(_H)/GImageView¤Ë¤Ä¤¤¤Æ"
+#~ msgstr "/ãƒ˜ãƒ«ãƒ—(_H)/GImageViewã«ã¤ã„ã¦"
 
 #~ msgid "Right click for tab list"
-#~ msgstr "±¦¥¯¥ê¥Ã¥¯¤Ç¥¿¥Ö¥ê¥¹¥È¤òÉ½¼¨"
+#~ msgstr "å³ã‚¯ãƒªãƒƒã‚¯ã§ã‚¿ãƒ–ãƒªã‚¹ãƒˆã‚’è¡¨ç¤º"
 
 #~ msgid ""
 #~ "%s is directory!!.\n"
 #~ "Not support copying directoryat this version of GImageView."
 #~ msgstr ""
-#~ "%s ¤Ï¥Ç¥£¥ì¥¯¥È¥ê¤Ç¤¹!!\n"
-#~ "¤³¤Î¥Ğ¡¼¥¸¥ç¥ó¤Ç¤Ï¥Ç¥£¥ì¥¯¥È¥ê¤Î¥³¥Ô¡¼¤Ï¥µ¥İ¡¼¥È¤·¤Æ¤¤¤Ş¤»¤ó"
+#~ "%s ã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã§ã™!!\n"
+#~ "ã“ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã§ã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ã‚³ãƒ”ãƒ¼ã¯ã‚µãƒãƒ¼ãƒˆã—ã¦ã„ã¾ã›ã‚“"
 
 #~ msgid ""
 #~ "%s is directory!!.\n"
 #~ "\n"
 #~ "Not support copying directory at this version of GImageView."
 #~ msgstr ""
-#~ "%s ¤Ï¥Ç¥£¥ì¥¯¥È¥ê¤Ç¤¹!!\n"
-#~ "¤³¤Î¥Ğ¡¼¥¸¥ç¥ó¤Ç¤Ï¥Ç¥£¥ì¥¯¥È¥ê¤Î¥³¥Ô¡¼¤Ï¥µ¥İ¡¼¥È¤·¤Æ¤¤¤Ş¤»¤ó"
+#~ "%s ã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã§ã™!!\n"
+#~ "ã“ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã§ã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ã‚³ãƒ”ãƒ¼ã¯ã‚µãƒãƒ¼ãƒˆã—ã¦ã„ã¾ã›ã‚“"
 
 #~ msgid "/Image Buffer"
-#~ msgstr "/²èÁü¥Ğ¥Ã¥Õ¥¡"
+#~ msgstr "/ç”»åƒãƒãƒƒãƒ•ã‚¡"
 
 #~ msgid "Refresh List"
-#~ msgstr "¥ê¥¹¥È¹¹¿·"
+#~ msgstr "ãƒªã‚¹ãƒˆæ›´æ–°"
 
 #~ msgid "Refresh list"
-#~ msgstr "¥ê¥¹¥È¹¹¿·"
+#~ msgstr "ãƒªã‚¹ãƒˆæ›´æ–°"
 
 #~ msgid "ICON"
-#~ msgstr "¥¢¥¤¥³¥ó"
+#~ msgstr "ã‚¢ã‚¤ã‚³ãƒ³"
 
 #~ msgid "TEXT"
-#~ msgstr "¥Æ¥­¥¹¥È"
+#~ msgstr "ãƒ†ã‚­ã‚¹ãƒˆ"
 
 #~ msgid "BOTH"
-#~ msgstr "Î¾Êı"
+#~ msgstr "ä¸¡æ–¹"
 
 #~ msgid "LEFT"
-#~ msgstr "º¸"
+#~ msgstr "å·¦"
 
 #~ msgid "RIGHT"
-#~ msgstr "±¦"
+#~ msgstr "å³"
 
 #~ msgid "TOP"
-#~ msgstr "¾å"
+#~ msgstr "ä¸Š"
 
 #~ msgid "BOTTOM"
-#~ msgstr "²¼"
+#~ msgstr "ä¸‹"
 
 #~ msgid "/_Edit/Cut out current page"
-#~ msgstr "/ÊÔ½¸(_E)/¸½ºß¤Î¥Ú¡¼¥¸¤òÀÚ¤ê½Ğ¤¹"
+#~ msgstr "/ç·¨é›†(_E)/ç¾åœ¨ã®ãƒšãƒ¼ã‚¸ã‚’åˆ‡ã‚Šå‡ºã™"
 
 #~ msgid "[pixel]"
 #~ msgstr "[pixel]"
 
 #~ msgid "/_Preference"
-#~ msgstr "/ÀßÄê(_P)"
+#~ msgstr "/è¨­å®š(_P)"
 
 #~ msgid "/_Preference/Options"
-#~ msgstr "/ÀßÄê(_P)/¥ª¥×¥·¥ç¥ó"
+#~ msgstr "/è¨­å®š(_P)/ã‚ªãƒ—ã‚·ãƒ§ãƒ³"
 
 #~ msgid "/_File/Open"
-#~ msgstr "/¥Õ¥¡¥¤¥ë(_F)/³«¤¯"
+#~ msgstr "/ãƒ•ã‚¡ã‚¤ãƒ«(_F)/é–‹ã"
 
 #~ msgid "Use .xvpic"
-#~ msgstr ".xvpic¤ò»ÈÍÑ"
+#~ msgstr ".xvpicã‚’ä½¿ç”¨"
 
 #, fuzzy
 #~ msgid "Skip creating current thumbanil table"
-#~ msgstr "¥µ¥à¥Í¥¤¥ëºîÀ®¤òÃæ»ß"
+#~ msgstr "ã‚µãƒ ãƒã‚¤ãƒ«ä½œæˆã‚’ä¸­æ­¢"
 
 #~ msgid "/_View/tear"
-#~ msgstr "/É½¼¨(_V)/tear"
+#~ msgstr "/è¡¨ç¤º(_V)/tear"
 
 #~ msgid "/_View/Zoom"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ "
 
 #~ msgid "/_View/Zoom/tear"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/tear"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /tear"
 
 #~ msgid "/_View/Zoom/Zoom In"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/³ÈÂç"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /æ‹¡å¤§"
 
 #~ msgid "/_View/Zoom/Zoom Out"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/½Ì¾®"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /ç¸®å°"
 
 #~ msgid "/_View/Zoom/Fit to Window"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/¥¦¥£¥ó¥É¥¦¤ÎÂç¤­¤µ¤Ë¹ç¤ï¤»¤ë"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¤§ãã•ã«åˆã‚ã›ã‚‹"
 
 #~ msgid "/_View/Zoom/Keep aspect ratio"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/¥¢¥¹¥Ú¥¯¥ÈÈæ¤òÊİ»ı"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’ä¿æŒ"
 
 #~ msgid "/_View/Zoom/---"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/---"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /---"
 
 #~ msgid "/_View/Zoom/10%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/10%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /10%"
 
 #~ msgid "/_View/Zoom/25%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/25%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /25%"
 
 #~ msgid "/_View/Zoom/50%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/50%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /50%"
 
 #~ msgid "/_View/Zoom/75%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/75%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /75%"
 
 #~ msgid "/_View/Zoom/100%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/100%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /100%"
 
 #~ msgid "/_View/Zoom/125%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/125%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /125%"
 
 #~ msgid "/_View/Zoom/150%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/150%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /150%"
 
 #~ msgid "/_View/Zoom/175%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/175%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /175%"
 
 #~ msgid "/_View/Zoom/200%"
-#~ msgstr "/É½¼¨(_V)/¥º¡¼¥à/200%"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚ºãƒ¼ãƒ /200%"
 
 #~ msgid "/_View/Rotate"
-#~ msgstr "/É½¼¨(_V)/²óÅ¾"
+#~ msgstr "/è¡¨ç¤º(_V)/å›è»¢"
 
 #~ msgid "/_View/Rotate/tear"
-#~ msgstr "/É½¼¨(_V)/²óÅ¾/tear"
+#~ msgstr "/è¡¨ç¤º(_V)/å›è»¢/tear"
 
 #~ msgid "/_View/Rotate/Rotate 90 deg"
-#~ msgstr "/É½¼¨(_V)/²óÅ¾/90ÅÙ"
+#~ msgstr "/è¡¨ç¤º(_V)/å›è»¢/90åº¦"
 
 #~ msgid "/_View/Rotate/Rotate -90 deg"
-#~ msgstr "/É½¼¨(_V)/²óÅ¾/-90ÅÙ"
+#~ msgstr "/è¡¨ç¤º(_V)/å›è»¢/-90åº¦"
 
 #~ msgid "/_View/Rotate/Rotate 180 deg"
-#~ msgstr "/É½¼¨(_V)/²óÅ¾/180ÅÙ"
+#~ msgstr "/è¡¨ç¤º(_V)/å›è»¢/180åº¦"
 
 #~ msgid "/_View/---"
-#~ msgstr "/É½¼¨(_V)/---"
+#~ msgstr "/è¡¨ç¤º(_V)/---"
 
 #~ msgid "/_View/Menu Bar"
-#~ msgstr "/É½¼¨(_V)/¥á¥Ë¥å¡¼¥Ğ¡¼"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼"
 
 #~ msgid "/_View/Status Bar"
-#~ msgstr "/É½¼¨(_V)/¥¹¥Æ¡¼¥¿¥¹¥Ğ¡¼"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼"
 
 #~ msgid "/_View/Scroll Bar"
-#~ msgstr "/É½¼¨(_V)/¥¹¥¯¥í¡¼¥ë¥Ğ¡¼"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼"
 
 #~ msgid "/_View/Full Screen"
-#~ msgstr "/É½¼¨(_V)/Á´²èÌÌ"
+#~ msgstr "/è¡¨ç¤º(_V)/å…¨ç”»é¢"
 
 #~ msgid "/Zoom/Zoom In"
-#~ msgstr "/¥º¡¼¥à/³ÈÂç"
+#~ msgstr "/ã‚ºãƒ¼ãƒ /æ‹¡å¤§"
 
 #~ msgid "/Zoom/Keep aspect ratio"
-#~ msgstr "/¥º¡¼¥à/¥¢¥¹¥Ú¥¯¥ÈÈæ¤òÊİ»ı"
+#~ msgstr "/ã‚ºãƒ¼ãƒ /ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’ä¿æŒ"
 
 #~ msgid "/Close"
-#~ msgstr "/ÊÄ¤¸¤ë"
+#~ msgstr "/é–‰ã˜ã‚‹"
 
 #~ msgid "/_View/Sort File List/by Name"
-#~ msgstr "/É½¼¨(_V)/¥Õ¥¡¥¤¥ë¥½¡¼¥È/Ì¾Á°"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ/åå‰"
 
 #~ msgid "/_View/Sort File List/by Access Time"
-#~ msgstr "/É½¼¨(_V)/¥Õ¥¡¥¤¥ë¥½¡¼¥È/»²¾ÈÆü»ş"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ/å‚ç…§æ—¥æ™‚"
 
 #~ msgid "/_View/Sort File List/by Change Time"
-#~ msgstr "/É½¼¨(_V)/¥Õ¥¡¥¤¥ë¥½¡¼¥È/¾õÂÖÊÑ¹¹Æü»ş"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ/çŠ¶æ…‹å¤‰æ›´æ—¥æ™‚"
 
 #~ msgid "/_View/Sort File List/by Size"
-#~ msgstr "/É½¼¨(_V)/¥Õ¥¡¥¤¥ë¥½¡¼¥È/¥µ¥¤¥º"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ/ã‚µã‚¤ã‚º"
 
 #~ msgid "/_View/Sort File List/by Type"
-#~ msgstr "/É½¼¨(_V)/¥Õ¥¡¥¤¥ë¥½¡¼¥È/¼ïÎà"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ/ç¨®é¡"
 
 #~ msgid "/_View/Sort File List/---"
-#~ msgstr "/É½¼¨(_V)/¥Õ¥¡¥¤¥ë¥½¡¼¥È/---"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ/---"
 
 #~ msgid "/_View/Sort File List/Reverse Order"
-#~ msgstr "/É½¼¨(_V)/¥Õ¥¡¥¤¥ë¥½¡¼¥È/µÕ½ç"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ•ã‚¡ã‚¤ãƒ«ã‚½ãƒ¼ãƒˆ/é€†é †"
 
 #~ msgid "/_View/Slideshow"
-#~ msgstr "/É½¼¨(_V)/¥¹¥é¥¤¥É¥·¥ç¡¼"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚¹ãƒ©ã‚¤ãƒ‰ã‚·ãƒ§ãƒ¼"
 
 #~ msgid "/_View/Tab"
-#~ msgstr "/É½¼¨(_V)/¥¿¥Ö"
+#~ msgstr "/è¡¨ç¤º(_V)/ã‚¿ãƒ–"
 
 #~ msgid "/Zoom/tear"
-#~ msgstr "/¥º¡¼¥à/tear"
+#~ msgstr "/ã‚ºãƒ¼ãƒ /tear"
 
 #~ msgid "/_View/Toggle Menubar"
-#~ msgstr "/É½¼¨(_V)/¥á¥Ë¥å¡¼¥Ğ¡¼¥È¥°¥ë"
+#~ msgstr "/è¡¨ç¤º(_V)/ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã‚°ãƒ«"

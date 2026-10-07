@@ -1,0 +1,22 @@
+gimageview (0.2.27+gtk4) unstable; urgency=medium
+
+  * GImageView 0.2.27 ported from GTK+ 2 to GTK 4, built with Meson.
+  * Initial Debian packaging.
+  * Removed: Susie plugin support, lib/dllloader, the bundled libexif and
+    MD5 code (the system libexif and GLib are used).
+  * New GStreamer movie plugin (playback in the image view, movie
+    thumbnails); archives are read with libarchive.
+  * New loaders for Sun raster, WBMP, PNM and XPM; formats of the
+    installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...).
+  * Printing, Set as Wallpaper, remembered rotation of each image,
+    checkerboard behind transparency, comments in the thumbnail view.
+  * Preferences: mouse side buttons (8, 9), color scheme (desktop theme,
+    light, dark), icons of the desktop icon theme, splash window.
+  * File open dialog: "Thumbnails of the selected files" also opens
+    selected folders.
+  * Manuals in Japanese and English with screenshots; the Help menu
+    shows English for languages without documents.  README in Markdown
+    (README.md).
+  * See NEWS for all changes.
+
+ -- shitamo <sitamo@gmail.com>  Wed, 07 Oct 2026 21:00:00 +0900

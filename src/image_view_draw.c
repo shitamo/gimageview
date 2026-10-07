@@ -32,12 +32,15 @@
 #include "prefs.h"
 
 
-static gboolean cb_image_configure         (GtkWidget         *widget,
-                                            GdkEventConfigure *event,
+static void     cb_image_resize            (GtkDrawingArea    *area,
+                                            gint               width,
+                                            gint               height,
                                             GimvImageView     *iv);
-static gboolean cb_image_expose            (GtkWidget         *widget,
-                                            GdkEventExpose    *event,
-                                            GimvImageView     *iv);
+static void     cb_image_draw              (GtkDrawingArea    *area,
+                                            cairo_t           *cr,
+                                            gint               width,
+                                            gint               height,
+                                            gpointer           data);
 
 /* virtual functions */
 static GtkWidget   *imageview_draw_create               (GimvImageView *iv);
@@ -103,6 +106,18 @@ cb_destroy (GtkWidget *widget, GimvImageView *iv)
 {
    g_return_if_fail (iv);
 
+   /* GTK4: the old draw area can be disposed well after another plugin
+      (e.g. a movie player) took over; don't reset its player status then */
+   if (iv->draw_area != widget) {
+      gpointer id_p = animation_id_table
+         ? g_hash_table_lookup (animation_id_table, iv) : NULL;
+      if (id_p) {
+         g_source_remove (GPOINTER_TO_UINT (id_p));
+         g_hash_table_remove (animation_id_table, iv);
+      }
+      return;
+   }
+
    imageview_animation_stop (iv);
 }
 
@@ -122,7 +137,7 @@ cb_load_end_create_thumbnail (GimvImageView *iv, GimvImageInfo *info,
    id_p = g_hash_table_lookup (create_thumbnail_id_table, iv);
    id = GPOINTER_TO_UINT (id_p);
    if (id > 0)
-      gtk_signal_disconnect (GTK_OBJECT (iv), id);
+      g_signal_handler_disconnect (G_OBJECT (iv), id);
    g_hash_table_remove (create_thumbnail_id_table, iv);
 
    if (cancel) return;
@@ -144,7 +159,7 @@ cb_load_end_create_thumbnail (GimvImageView *iv, GimvImageInfo *info,
 
    if (imcache) {
       gimv_image_unref (imcache);
-      gtk_signal_emit_by_name (GTK_OBJECT (iv),
+      g_signal_emit_by_name (G_OBJECT (iv),
                                "thumbnail_created",
                                iv->info);
    }
@@ -154,26 +169,26 @@ cb_load_end_create_thumbnail (GimvImageView *iv, GimvImageInfo *info,
 static void
 cb_draw_area_map (GtkWidget *widget, GimvImageView *iv)
 {
-   if (iv->bg_color) {
-      gimv_image_view_set_bg_color (iv,
-                                    iv->bg_color->red,
-                                    iv->bg_color->green,
-                                    iv->bg_color->blue);
-   }
+   /* the background color (iv->bg_color) is used by the draw function */
+   gtk_widget_queue_draw (widget);
 
    /* set cursor */
    if (!iv->cursor)
-      iv->cursor = cursor_get (iv->draw_area->window, CURSOR_HAND_OPEN);
-   gdk_window_set_cursor (iv->draw_area->window, iv->cursor);
+      iv->cursor = cursor_get (widget, CURSOR_HAND_OPEN);
+   gtk_widget_set_cursor (widget, iv->cursor);
 }
 
 
-static gboolean
-cb_image_configure (GtkWidget *widget, GdkEventConfigure *event, GimvImageView *iv)
+/* GTK4: "resize" of GtkDrawingArea replaces "configure_event" */
+static void
+cb_image_resize (GtkDrawingArea *area, gint w, gint h, GimvImageView *iv)
 {
    gint width, height;
    gint fwidth, fheight;
    gint x_pos, y_pos;
+
+   /* image loaded before this area had a size: fit it now */
+   if (gimv_image_view_frame_resized (iv)) return;
 
    gimv_image_view_get_view_position (iv, &x_pos, &y_pos);
    gimv_image_view_get_image_size (iv, &width, &height);
@@ -196,16 +211,19 @@ cb_image_configure (GtkWidget *widget, GdkEventConfigure *event, GimvImageView *
 
    gimv_image_view_set_view_position (iv, x_pos, y_pos);
    gimv_image_view_draw_image (iv);
-
-   return TRUE;
 }
 
 
-static gboolean
-cb_image_expose (GtkWidget *widget, GdkEventExpose *event, GimvImageView *iv)
+/* GTK4: draw function replaces "expose_event" */
+static void
+cb_image_draw (GtkDrawingArea *area, cairo_t *cr,
+               gint width, gint height, gpointer data)
 {
-   gimv_image_view_draw_image (iv);
-   return TRUE;
+   GimvImageView *iv = data;
+
+   if (!GIMV_IS_IMAGE_VIEW (iv)) return;
+
+   gimv_image_view_paint (iv, cr, width, height);
 }
 
 
@@ -236,7 +254,7 @@ timeout_animation (gpointer data)
 
    interval = gimv_anim_get_interval ((GimvAnim *) iv->image);
    if (interval > 0) {
-      guint timer = gtk_timeout_add (interval, timeout_animation, iv);
+      guint timer = g_timeout_add (interval, timeout_animation, iv);
       g_hash_table_insert (animation_id_table,
                            iv, GUINT_TO_POINTER (timer));
    } else {
@@ -267,7 +285,7 @@ idle_animation_play (gpointer data)
 
    interval = gimv_anim_get_interval ((GimvAnim *) iv->image);
    if (interval > 0) {
-      guint timer = gtk_timeout_add (interval, timeout_animation, iv);
+      guint timer = g_timeout_add (interval, timeout_animation, iv);
       g_hash_table_insert (animation_id_table,
                            iv, GUINT_TO_POINTER (timer));
       gimv_image_view_playable_set_status (iv, GimvImageViewPlayablePlay);
@@ -305,22 +323,21 @@ imageview_draw_create (GimvImageView *iv)
 
    widget = gtk_drawing_area_new ();
 
-   gtk_signal_connect       (GTK_OBJECT (widget), "destroy",
-                             GTK_SIGNAL_FUNC (cb_destroy), iv);
-   gtk_signal_connect_after (GTK_OBJECT (widget), "map",
-                             GTK_SIGNAL_FUNC (cb_draw_area_map), iv);
-   gtk_signal_connect       (GTK_OBJECT (widget), "configure_event",
-                             GTK_SIGNAL_FUNC (cb_image_configure), iv);
-   gtk_signal_connect       (GTK_OBJECT (widget), "expose_event",
-                             GTK_SIGNAL_FUNC (cb_image_expose), iv);
+   g_signal_connect       (G_OBJECT (widget), "destroy",
+                             G_CALLBACK (cb_destroy), iv);
+   g_signal_connect_after (G_OBJECT (widget), "map",
+                             G_CALLBACK (cb_draw_area_map), iv);
+   g_signal_connect       (G_OBJECT (widget), "resize",
+                           G_CALLBACK (cb_image_resize), iv);
+   gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (widget),
+                                   cb_image_draw, iv, NULL);
+   gtk_widget_set_hexpand (widget, TRUE);
+   gtk_widget_set_vexpand (widget, TRUE);
 
-   gtk_widget_add_events (widget,
-                          GDK_FOCUS_CHANGE
-                          | GDK_BUTTON_PRESS_MASK | GDK_2BUTTON_PRESS
-                          | GDK_KEY_PRESS | GDK_KEY_RELEASE
-                          | GDK_BUTTON_RELEASE_MASK
-                          | GDK_POINTER_MOTION_MASK
-                          | GDK_POINTER_MOTION_HINT_MASK);
+   /* set cursor */
+   if (!iv->cursor)
+      iv->cursor = cursor_get (widget, CURSOR_HAND_OPEN);
+   gtk_widget_set_cursor (widget, iv->cursor);
 
    return widget;
 }
@@ -336,9 +353,9 @@ imageview_draw_create_thumbnail (GimvImageView *iv, const gchar *cache_write_typ
       id_p = g_hash_table_lookup (create_thumbnail_id_table, iv);
       id = GPOINTER_TO_UINT (id_p);
       if (id > 0)
-         gtk_signal_disconnect (GTK_OBJECT (iv), id);
-      id = gtk_signal_connect (GTK_OBJECT (iv), "load_end",
-                               GTK_SIGNAL_FUNC (cb_load_end_create_thumbnail),
+         g_signal_handler_disconnect (G_OBJECT (iv), id);
+      id = g_signal_connect (G_OBJECT (iv), "load_end",
+                               G_CALLBACK (cb_load_end_create_thumbnail),
                                GINT_TO_POINTER (TRUE));
       g_hash_table_insert (create_thumbnail_id_table,
                            iv, GUINT_TO_POINTER (id));
@@ -364,7 +381,7 @@ static void
 imageview_animation_play (GimvImageView *iv)
 {
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
-   gtk_idle_add (idle_animation_play, iv);
+   g_idle_add (idle_animation_play, iv);
 }
 
 
@@ -400,7 +417,7 @@ imageview_animation_pause (GimvImageView *iv)
    id_p = g_hash_table_lookup (animation_id_table, iv);
    id = GPOINTER_TO_UINT (id_p);
    if (id > 0)
-      gtk_timeout_remove (id);
+      g_source_remove (id);
    g_hash_table_remove (animation_id_table, iv);
 
    imageview_playable_set_status (iv, GimvImageViewPlayablePause);
@@ -421,7 +438,7 @@ imageview_animation_stop (GimvImageView *iv)
    id_p = g_hash_table_lookup (animation_id_table, iv);
    id = GPOINTER_TO_UINT (id_p);
    if (id > 0)
-      gtk_timeout_remove (id);
+      g_source_remove (id);
    g_hash_table_remove (animation_id_table, iv);
 
    gimv_image_view_playable_set_status (iv, GimvImageViewPlayableStop);

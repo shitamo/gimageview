@@ -1,13 +1,13 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="ja">
 <head>
-<meta content="text/html; charset=EUC-JP" http-equiv="Content-Type">
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
 <title>8. GImageView FAQ</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
-<link rel="previous" href="07.html" title="7. �ǥե���� �����Х����">
+<link rel="previous" href="07.html" title="7. デフォルト キーバインド">
 <link rel="next" href="gimv_tips.html" title="9. Tips">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -16,9 +16,9 @@
 <tr><th colspan="3" align="center">8. GImageView FAQ</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="07.html">���Υڡ���</a>&#160;</td>
+<a accesskey="p" href="07.html">前のページ</a>&#160;</td>
 <th width="60%" align="center">&#160;</th>
-<td width="20%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">���Υڡ���</a>
+<td width="20%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">次のページ</a>
 </td>
 </tr>
 </table>
@@ -29,167 +29,176 @@
 <a name="gimv_faq"></a>8. GImageView FAQ</h2></div></div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="gimv_faq_01"></a>8.1. ������ˡ�����󥹥ȡ��롦��ư</h3></div></div>
+<a name="gimv_faq_01"></a>8.1. 入手方法・インストール・起動</h3></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_01-01"></a>CVS �Ǥ� configure ���ʤ��Τ�����</span></dt>
+<dt><span class="term"><a name="gimv_faq_01-01"></a>configure がないのだけど</span></dt>
 <dd><p class="para">
-�ѥå���������˴ޤޤ�롢autogen.sh ��¹Ԥ���ȡ�configure ���������졢��ưŪ��configure ��¹Ԥ���ޤ�����������automake��autoconf �Υѥå����������󥹥ȡ��뤵��Ƥ���ɬ�פ�����ޤ���
+GTK 4 版は configure (autoconf / automake) ではなく Meson でビルドします。手順は <a href="01.html#gimv_install" title="">インストール</a> を見て下さい。
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_01-02"></a>GImageView �Υ���ͥ��륦����ɥ�ñ�Τǵ�ư������</span></dt>
+<dt><span class="term"><a name="gimv_faq_01-02"></a>GImageView のサムネイルウィンドウ単体で起動したい</span></dt>
 <dd>
 <pre class="screen">
 $ <b>gimv -w</b>
 </pre>
 <p class="para">
-�Ȥ��Ƶ�ư���Ƥ���������<span class="emphasis"><i>[�Խ�������]��[���� | ��ư�� | ����ͥ��륦����ɥ��򳫤�]</i></span>�˥����å������äƤ����硢-w �ΰ����Ϥ���ޤ���
+として起動してください。<span class="emphasis"><i>[編集・設定]・[一般 | 起動時 | サムネイルウィンドウを開く]</i></span>にチェックが入っている場合、-w の引数はいりません。
 </p>
 <pre class="screen">
 $ <b>gimv</b>
 </pre>
 <p class="para">
-�����ǵ�ư���ޤ������θ�ϡ��ɤ���Ŭ���ʥǥ��쥯�ȥꡦ�ե�����򳫤����Ȥ����̤�ư���ޤ���
+だけで起動します。この後は、どこか適当なディレクトリ・ファイルを開くことで普通に動きます。
 </p>
 <p class="para">
-���������Ͽ�����硢gimv ��ñ�Τǻ��ꤷ�Ƥ��� OK �Ǥ���
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="gimv_faq_02"></a>8.2. �����ˡ������</h3></div></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_02-01"></a>�������Ƥ��륭���Х���ɤ��ѹ�������</span></dt>
-<dd>
-<p class="para">
-~/.gimv/keyconf ���Խ����Ƥ�������������ư������ͭ���ˤʤ�ޤ���â������˥塼��ɽ������륭���Х���ɤ����Ƥ��Ѥ��ޤ��󡣤������Ѥ���ˤϡ��������򤤤���ɬ�פ�����ޤ���
-</p>
-<p class="para">
-�����Х���ɤ��ѹ�������硢�ɤ�������ư�ˤʤ뤫�����ͤ���ʬ����ޤ���<span class="emphasis"><i>at your own risk</i></span> �Ǥ��ꤤ���ޤ���
+ランチャに登録する場合、gimv と単体で指定してやれば OK です。
 </p>
 </dd>
 </dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="gimv_faq_03"></a>8.3. ����ͥ��륦����ɥ�</h3></div></div>
+<a name="gimv_faq_02"></a>8.2. 操作方法・設定</h3></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_03-01"></a>���ơ������С���ɽ������Ƥ��롢&quot;**/** files&quot;�ΰ�̣��?</span></dt>
-<dd><p class="para">
-GImageView �ǳ����Ƥ���ե�����������ȡ�ɽ������Ƥ륿����β�������Ǥ������Υǥ�
-�쥯�ȥ겼�˰��Τ����Ĥβ����ե����뤬���뤫���Ǥ⤢��ޤ���
-</p></dd>
-<dt><span class="term"><a name="gimv_faq_03-02"></a>���ơ������С���ɽ������Ƥ��롢&quot;**/** kB&quot;�ΰ�̣��?</span></dt>
-<dd><p class="para">
-GImageView �ǳ����Ƥ���ե�����������̤ȡ�ɽ������Ƥ륿����β����������̤Ǥ������Υǥ�
-�쥯�ȥ�ľ���β��Υե����뤬���ɤΤ��餤�ǥ������򿩤äƤ���Τ��Τ뤳�Ȥ��Ǥ��ޤ���
-</p></dd>
-<dt><span class="term"><a name="gimv_faq_03-03"></a>���ơ������С���ɽ������Ƥ��롢&quot;**/** page&quot;�ΰ�̣��?</span></dt>
+<dt><span class="term"><a name="gimv_faq_02-01"></a>定義されているキーバインドを変更したい</span></dt>
 <dd>
 <p class="para">
-GImageView �ǳ����Ƥ��륿�֤������ȡ�����ɽ�����Ƥ��륿�֤��ֹ�Ǥ������������ĥ��֤򳫤��Ƥ���Τ��������Ƥ��륿�֤ϲ����ܤʤΤ���ʬ����ޤ���
+~/.gimv/keyconf を編集してください。次回起動時から有効になります。但し、メニューに表示されるキーバインドの内容は変わりません。
 </p>
 <p class="para">
-�������ǥ��쥯�ȥ�γ��ؤ�������п����ۤɡ����֤�ʸ������¿���ʤ�ޤ������ؤˤ�äƤϡ��ֲ��̤� 1���֤���ɽ���Ǥ��ʤ��פȤ������Ȥ⤢�����ޤ������Τ褦�ʻ������ơ������С��ο����ˤ�ä����Τ��İ����뤳�Ȥ��Ǥ��ޤ����ֹ�ϰ��ֺ�¦�� 1 �Ȥ��ơ�2,3,4...�ȤʤäƤ��ޤ������֤��Ĥ���С���ưŪ���ֹ椬�������ޤ���
-</p>
-</dd>
-<dt><span class="term"><a name="gimv_faq_03-04"></a>�ġ���С��α��ˤ��롢���ϥ���ȥ�Ϥɤ���äƻȤ���?</span></dt>
-<dd>
-<p class="para">
-���Хѥ��Ǥ����������ꤷ�ƤߤƲ��������ǥ��쥯�ȥ�ĥ꡼��(ɽ�������Ƥ���ФǤ����ġ�)���򤤤��Ȥˤʤ�Ȼפ��ޤ���
-</p>
-<p class="para">
-�����������ɤ��ΤǤ����������Ͽ���(�ʤ����ϴ�¸��)���֤򥳥ޥ�ɥ饤��Ū�˻��ꤹ���Ǥ����ǥ��쥯�ȥ�ӥ塼��ɽ�������Ƥʤ����Ǥ⡢�ե����륪���ץ��������������뤳�Ȥʤ��������˥��֤򳫤�����¸�Υ��֤˰�ư���뤳�Ȥ���ǽ�Ǥ���
-</p>
-<p class="para">
-�������ϥ���ȥ�Ǥϡ�TAB �����ˤ���䴰��ʹ���ޤ���bash �� tcsh �� zsh ��Ʊ����ʬ�ǤФ�Ф� TAB ���Ƥ�äƲ����������䤬1�Ĥ����ʤ���硢������䴰����ޤ������䤬¿�������硢���ϥ���ȥ겼�˸��䤬����ɽ������ޤ����������ϥ���ȥ�Ǥϡ�&quot;~/&quot;�Ȥ����桼���ۡ���ǥ��쥯�ȥ��û�������̵�뤵��ޤ���<span class="emphasis"><i>ɬ�������Хѥ��������</i></span>���Ʋ�������
-</p>
-<p class="para">
-�ޤ��������Ǹ��̤Υե��������ꤹ�뤳�ȤϽ���ޤ��󡣤������Ф��������䴰�⤭���ޤ���ñ��β������̥�����ɥ��ǳ���������硢��ö���Υǥ��쥯�ȥ�򥵥�ͥ���ɽ������������������ܥ��󥯥�å��亸���֥륯��å��ʤɤǳ����Ʋ�������
-</p>
-<p class="para">
-���ϥ���ȥ�˥ե����������ܤä���硢��������ե����������᤹(�����ܡ��ɥ��硼�ȥ��åȤ�ͭ���ˤ���)�ˤϡ��ʲ�����ˡ���äƲ�������
-</p>
-<div class="orderedlist"><ol type="1">
-<li><p class="para">�ǥ��쥯�ȥ�ӥ塼��ǡ��ɤä��Υǥ��쥯�ȥ�򺸥���å�����&quot;����&quot;���롣</p></li>
-<li><p class="para">����ͥ���ӥ塼�ǡ����餫�β����򥯥�å�(����������)���롣</p></li>
-<li><p class="para">���֤򥯥�å������̤Υ��֤˰�ư���롣</p></li>
-<li><p class="para">�ץ�ӥ塼������ɥ��Ǻ�����å�(�ʤ����ϡ�Shift+������å�)����ɽ�����Ѥ��롣</p></li>
-<li><p class="para">Esc �����򲡤���</p></li>
-</ol></div>
-<p class="para">
-GImageView �����̤Υ�����ɥ���(���Ȥ��� rxvt �Ȥ�)�˥ե����������ư�����Ƥ⡢GImageView ��Υե����������ڤ��ؤ��ޤ��󡣾�Ҥ����褦�ʡ����餫������Ԥ�ʤ��¤ꡢ���ϥ���ȥ꤫��ե����������ܤ뤳�ȤϤ���ޤ���Τǡ����դ��Ʋ�������
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="gimv_faq_04"></a>8.4. ����</h3></div></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_04-01"></a>���߳����Ƥ��륿�֤ΰ�����ɽ������ˤ�</span></dt>
-<dd><p class="para">
-���֤���ʬ�򱦥���å����Ƥ������������߳�����Ƥ��륿�֤ΰ�����ɽ������ޤ���Ǥ�դΥ��֤˰�ư���뤳�Ȥ�Ǥ��ޤ���
-</p></dd>
-<dt><span class="term"><a name="gimv_faq_04-02"></a>���֤Υե�ѥ�ɽ����ߤ��</span></dt>
-<dd><p class="para">
-<span class="emphasis"><i>[���� | ����ͥ��륦����ɥ� | ����]</i></span> �� &quot;�ե�ѥ���ɽ��(show full path)&quot;�Υ����å��򳰤��Ƥ����������ǥ��쥯�ȥ�̾���������֤�ɽ�������褦�ˤʤ�ޤ������λ��������Ƥ��륿�֤Υե�ѥ��ϡ����ơ������С���ɽ������Ƥ��ޤ��Τǡ�������ǳ�ǧ���Ƥ���������
-</p></dd>
-<dt><span class="term"><a name="gimv_faq_04-03"></a>���쥯����󥿥֤Ȥ�</span></dt>
-<dd>
-<p class="para">
-<span class="emphasis"><i>[�ե����� | �������쥯�����]</i></span> �����뤳�Ȥ�����ޤ����ޤ��ϡ��ɤ��Υ��֤Ǥ⤤���Τǲ��������򤷡�Ŭ���� DnD ���Ƥ���������
-</p>
-<p class="para">
-DnD ��˥塼������ޤ�����?
-</p>
-<p class="para">
-�����ǡ�<span class="emphasis"><i>[�������֤ǳ���]</i></span> ������Ǥ����������ɥ�å����Ƥ�������(ʣ���ξ��Ϥ��������)��������������(���쥯������̾�����դ��Ƥ��ޤ�)�ǳ�����ޤ���
-</p>
-<p class="para">
-��ä����쥯����󥿥֤˿������������ɲä���ˤϡ��ʲ�����ˡ������ޤ���
-</p>
-<div class="orderedlist"><ol type="1">
-<li><p class="para">���쥯����󥿥֤Υ��֤ν�ˡ�DnD����</p></li>
-<li><p class="para">���쥯����󥿥���Υ���ͥ���ӥ塼�� DnD ���� (���ξ�硢�̤Υ��ץꥱ������󤫡�2�Ĥ�ʹߤ�gimv�ˤʤ�ޤ�)</p></li>
-<li><p class="para">���쥯�����ڡ����򳫤������֤ǡ��ե����륪���ץ����������(�ġ���С��κ�ü�Υܥ���)����ե����� �����򤷡�&quot;���򤷤��ե�����Υ���ͥ���&quot;</p></li>
-</ol></div>
-<p class="para">
-�ʤ������쥯�����ڡ����ؤ� DnD �ϡ�DnD ��˥塼��ɽ�����줺�ˡ������ʤ�ե����뤬�ɲä���ޤ���
-</p>
-<p class="para">
-���쥯����󤷤���ϡ�Ǥ�եǥ��쥯�ȥ�˰�ư����ʤꡢ���ԡ�����ʤꤷ�ޤ��礦�����쥯����󤵤줿�����Ϥ���ǤҤȤޤȤޤꡢ�Ȥ���ޤ���Ctrl ����å���Ǥ�դβ����򥯥�å����ƹԤ����⡢���쥯����󥿥֤˰�ö���ᡢ�������Ф��ƥե���������Ԥä�������������������Ψ���ɤ��ʤ�Ȼפ��ޤ���
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="gimv_faq_05"></a>8.5. �ǥ��쥯�ȥ�ӥ塼</h3></div></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_05-01"></a>���󥽡��뤫��ǥ��쥯�ȥ�����䤷�����ˡ��ĥ꡼��ȿ�Ǥ�������ˡ</span></dt>
-<dd><p class="para">
-�ĥ꡼�ӥ塼���顢���䤷���ƥǥ��쥯�ȥ�� [�ĥ꡼����] ��Ԥ���ȿ�Ǥ���ޤ����ʤ����ĥ꡼�ӥ塼������å���˥塼���� [�ǥ��쥯�ȥ����] ��Ԥ��С�¨�¤�ȿ�Ǥ���뤿�ᡢ�������Ȥäƥǥ��쥯�ȥ�����䤷��������ñ�Ǥ���
-</p></dd>
-<dt><span class="term"><a name="gimv_faq_05-02"></a>�ǥ��쥯�ȥ�ӥ塼������å���˥塼��&quot;����ͥ����Ƶ�Ū���ɤ߹���&quot;�ˤĤ���</span></dt>
-<dd>
-<p class="para">
-���Υǥ��쥯�ȥ�ʲ���Ƶ�Ū���ɤ߹��ߤޤ���
-</p>
-<p class="para">
-���Υǥ��쥯�ȥ�ʲ�������Ÿ�������ƥǥ��쥯�ȥꤴ�Ȥ˥���ͥ��륿�֤��롢�Ȥ������ȤǤ����������ξ�����Ÿ������������������Ǥ����ĥ꡼�⤭�����Ÿ������ޤ���
-</p>
-<p class="para">
-��̤Υǥ��쥯�ȥ��(~/ľ���ʤ�)�ǺƵ�Ū�ɤ߹��ߤ��Ƥ��ޤ����ǥ��쥯�ȥ���ɤ߹��ߤ��ߤޤ�ʤ��ʤäƤ��ޤä���硢�ġ���С��Υ��ȥåץܥ���ǻߤ�뤫�������åץܥ���Ǥ��Υǥ��쥯�ȥ�����Ф��Ƥ������������λ�������� &quot;�����ǥ��󥰻��κ�����δֳ�&quot; ���礭��� ���ꤷ�Ƥ���ȡ�ȿ���������Ǥ���
-</p>
-</dd>
-<dt><span class="term"><a name="gimv_faq_05-03"></a>�ǥ��쥯�ȥ�ӥ塼�ˤ����.�ס�..�פȤ�</span></dt>
-<dd>
-<p class="para">
-���󤲤��������ޤ���
+メニューのショートカットキーは ~/.gimv/keyaccelrc で変更できます。終了時に全メニュー項目の行が書き出されるので、変更したい行の先頭の「;」を消して、キーを書き換えて下さい。例えば、サムネイルウィンドウの [ファイル | 開く] (標準は Ctrl + F) を F3 にするには、次のようにします。次回起動時から有効になります。
 </p>
 <pre class="screen">
-/home/��
+(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/File/Open..." "F3")
+</pre>
+<p class="para">
+なお、GTK+ 2 版でできた、メニュー項目にマウスを合わせたままキーを押してショートカットを変更する操作は、GTK 4 版ではできません。
+</p>
+<p class="para">
+キーバインドを変更した場合、どういう挙動になるかは当人しか分かりません。<span class="emphasis"><i>at your own risk</i></span> でお願いします。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_03"></a>8.3. サムネイルウィンドウ</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_03-01"></a>ステータスバーに表示されている、&quot;**/** files&quot;の意味は?</span></dt>
+<dd><p class="para">
+GImageView で開いているファイルの総数と、表示されてるタブ内の画像枚数です。そのディ
+レクトリ下に一体いくつの画像ファイルがあるか、でもあります。
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_03-02"></a>ステータスバーに表示されている、&quot;**/** kB&quot;の意味は?</span></dt>
+<dd><p class="para">
+GImageView で開いているファイルの総容量と、表示されてるタブ内の画像の総容量です。そのディ
+レクトリ直下の下のファイルが、どのくらいディスクを食っているのか知ることができます。
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_03-03"></a>ステータスバーに表示されている、&quot;**/** page&quot;の意味は?</span></dt>
+<dd>
+<p class="para">
+GImageView で開いているタブの総数と、現在表示しているタブの番号です。今、いくつタブを開いているのか、開いているタブは何番目なのかが分かります。
+</p>
+<p class="para">
+開いたディレクトリの階層が深ければ深いほど、タブの文字数が多くなります。階層によっては、「画面に 1タブしか表示できない」ということもあり得ます。このような時、ステータスバーの数字によって全体を把握することができます。番号は一番左側を 1 として、2,3,4...となっています。タブを閉じれば、自動的に番号が増減します。
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_faq_03-04"></a>ツールバーの右にある、入力エントリはどうやって使うの?</span></dt>
+<dd>
+<p class="para">
+絶対パスでいろいろ指定してみて下さい。ディレクトリツリーが(表示させていればですが……)面白いことになると思います。
+</p>
+<p class="para">
+非常に説明し辛いのですが、ここは新規(ないしは既存の)タブをコマンドライン的に指定する所です。ディレクトリビューを表示させてない場合でも、ファイルオープンダイアログに頼ることなく、新規にタブを開く、既存のタブに移動することが可能です。
+</p>
+<p class="para">
+この入力エントリでは、TAB キーによる補完が聞きます。bash や tcsh や zsh と同じ気分でばんばん TAB してやって下さい。候補が1つしかない場合、勝手に補完されます。候補が多数ある場合、入力エントリ下に候補が一覧表示されます。この入力エントリでは、&quot;~/&quot;というユーザホームディレクトリの短絡指定は無視されます。<span class="emphasis"><i>必ず、絶対パスから指定</i></span>して下さい。
+</p>
+<p class="para">
+また、ここで個別のファイルを指定することは出来ません。それらに対する入力補完もききません。単一の画像を別ウィンドウで開きたい場合、一旦そのディレクトリをサムネイル表示させ、そこから中ボタンクリックや左ダブルクリックなどで開いて下さい。
+</p>
+<p class="para">
+入力エントリにフォーカスが移った場合、そこからフォーカスを戻す(キーボードショートカットを有効にする)には、以下の方法を取って下さい。
+</p>
+<div class="orderedlist"><ol type="1">
+<li><p class="para">ディレクトリビュー上で、どっかのディレクトリを左クリックして&quot;選択&quot;する。</p></li>
+<li><p class="para">サムネイルビューで、何らかの画像をクリック(選択・選択解除)する。</p></li>
+<li><p class="para">タブをクリックし、別のタブに移動する。</p></li>
+<li><p class="para">プレビューウィンドウで左クリック(ないしは、Shift+左クリック)して表示を変える。</p></li>
+<li><p class="para">Esc キーを押す。</p></li>
+</ol></div>
+<p class="para">
+GImageView から別のウィンドウに(たとえば rxvt とか)にフォーカスを移動させても、GImageView 上のフォーカスは切り替わりません。上述したような、何らかの操作を行わない限り、入力エントリからフォーカスが移ることはありませんので、注意して下さい。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_04"></a>8.4. タブ</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_04-01"></a>現在開いているタブの一覧を表示するには</span></dt>
+<dd><p class="para">
+タブの部分を右クリックしてください。現在開かれているタブの一覧が表示されます。任意のタブに移動することもできます。
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_04-02"></a>タブのフルパス表示を止める</span></dt>
+<dd><p class="para">
+<span class="emphasis"><i>[設定 | サムネイルウィンドウ | タブ]</i></span> の &quot;フルパスを表示(show full path)&quot;のチェックを外してください。ディレクトリ名だけがタブに表示されるようになります。この時、開いているタブのフルパスは、ステータスバーに表示されていますので、そちらで確認してください。
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_04-03"></a>コレクションタブとは</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>[ファイル | 新規コレクション]</i></span> から作ることが出来ます。または、どこのタブでもいいので画像を選択し、適当に DnD してください。
+</p>
+<p class="para">
+DnD メニューが現れましたね?
+</p>
+<p class="para">
+そこで、<span class="emphasis"><i>[新規タブで開く]</i></span> を選んでください。ドラッグしていた画像(複数の場合はそれら全部)が、新しいタブ(コレクションと名前が付いています)で開かれます。
+</p>
+<p class="para">
+作ったコレクションタブに新しい画像を追加するには、以下の方法があります。
+</p>
+<div class="orderedlist"><ol type="1">
+<li><p class="para">コレクションタブのタブの所に、DnDする</p></li>
+<li><p class="para">コレクションタブ内のサムネイルビューに DnD する (この場合、別のアプリケーションか、2つめ以降のgimvになります)</p></li>
+<li><p class="para">コレクションページを開いた状態で、ファイルオープンダイアログ(ツールバーの左端のボタン)からファイル を選択し、&quot;選択したファイルのサムネイル&quot;</p></li>
+</ol></div>
+<p class="para">
+なお、コレクションページへの DnD は、DnD メニューが表示されずに、いきなりファイルが追加されます。
+</p>
+<p class="para">
+コレクションした後は、任意ディレクトリに移動するなり、コピーするなりしましょう。コレクションされた画像はそれでひとまとまり、とされます。Ctrl クリックで任意の画像をクリックして行くよりも、コレクションタブに一旦集め、それらに対してファイル操作を行った方が、画像の整理効率が良くなると思います。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="gimv_faq_05"></a>8.5. ディレクトリビュー</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_faq_05-01"></a>コンソールからディレクトリを増やした時に、ツリーに反映させる方法</span></dt>
+<dd><p class="para">
+ツリービューから、増やした親ディレクトリで [ツリー更新] を行えば反映されます。なお、ツリービュー右クリックメニューから [ディレクトリ作成] を行えば、即座に反映されるため、こちらを使ってディレクトリを増やした方が簡単です。
+</p></dd>
+<dt><span class="term"><a name="gimv_faq_05-02"></a>ディレクトリビュー右クリックメニュー、&quot;サムネイルを再帰的に読み込み&quot;について</span></dt>
+<dd>
+<p class="para">
+そのディレクトリ以下を再帰的に読み込みます。
+</p>
+<p class="para">
+そのディレクトリ以下を全て展開し、各ディレクトリごとにサムネイルタブを作る、ということです。ある一定の場所だけ展開する時に非常に便利です。ツリーもきちんと展開されます。
+</p>
+<p class="para">
+上位のディレクトリで(~/直下など)で再起的読み込みしてしまい、ディレクトリの読み込みが止まらなくなってしまった場合、ツールバーのストップボタンで止めるか、スキップボタンでそのディレクトリを飛ばしてください。この時、設定の &quot;ローディング時の再描画の間隔&quot; を大きめに 設定していると、反応が悪いです。
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_faq_05-03"></a>ディレクトリビューにある「.」「..」とは</span></dt>
+<dd>
+<p class="para">
+例を挙げて説明します。
+</p>
+<pre class="screen">
+/home/〜
     + cg
        + .
        + ..
@@ -202,21 +211,21 @@ DnD ��˥塼������ޤ�����?
        + tmp
 </pre>
 <p class="para">
-�ʤɤȤʤäƤ����Ȥ��ޤ��礦�������ǡ�(1)�Ρ�.�פ���֥륯��å�����ȡ�
+などとなっていたとしましょう。ここで、(1)の「.」をダブルクリックすると、
 </p>
 <pre class="screen">
-/home/��
+/home/〜
    + web
    + download
 </pre>
 <p class="para">
-�ȡ����Υǥ��쥯�ȥ꤬�롼�ȥǥ��쥯�ȥ�ˤʤ�ޤ�������ϡ��ǥ��쥯�ȥ�ӥ塼�α�����å���˥塼��<span class="emphasis"><i>[�ȥåפ򤳤����ѹ�]</i></span> ��Ʊ����̣�Ǥ���
+と、そのディレクトリがルートディレクトリになります。これは、ディレクトリビューの右クリックメニュー、<span class="emphasis"><i>[トップをここに変更]</i></span> と同じ意味です。
 </p>
 <p class="para">
-������(2)�Ρ�..�פ���֥륯��å����ޤ��ȡ�
+そして(2)の「..」をダブルクリックしますと、
 </p>
 <pre class="screen">
-/home/��
+/home/〜
    + desktop
    + favorite
    |    + web
@@ -224,49 +233,49 @@ DnD ��˥塼������ޤ�����?
    + tmp
 </pre>
 <p class="para">
-�ȡ����οƥǥ��쥯�ȥ꤬�롼�Ȥˤʤ�ޤ���
+と、その親ディレクトリがルートになります。
 </p>
 </dd>
-<dt><span class="term"><a name="gimv_faq_05-04"></a>���֥�����ɥ����顢�ǥ��쥯�ȥ�ӥ塼�ؤ� DnD �ǡ��ĥ꡼�μ�ưŸ�����ӥ塼�ξ岼������ư�����������Ԥ��ˤ�</span></dt>
+<dt><span class="term"><a name="gimv_faq_05-04"></a>タブウィンドウから、ディレクトリビューへの DnD で、ツリーの自動展開・ビューの上下方向自動スクロールを行うには</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>[���� | ����ͥ��륦����ɥ�]</i></span> �� <span class="emphasis"><i>[�ɥ�å�&amp;�ɥ��å�]</i></span> �Ρ�<span class="emphasis"><i>[�����ȥ���������]</i></span> �� <span class="emphasis"><i>[�ĥ꡼��ưŪ��Ÿ������]</i></span> �� ON �ˤ��Ƥ������������ꤷ���ÿ��ηв�ȶ��˾岼������ư���������롢�ĥ꡼��ưŸ����ǽ��Ư���ޤ���
+この設定 (<span class="emphasis"><i>[オートスクロール]</i></span> ・ <span class="emphasis"><i>[ツリーを自動的に展開する]</i></span>) は GTK+ 1.2 版だけのもので、GTK+ 2 版以降 (GTK 4 版を含む) にはありません。ドロップ先のディレクトリが閉じている場合は、あらかじめ展開しておいて下さい。
 </p></dd>
 </dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="gimv_faq_06"></a>8.6. ����ͥ���ӥ塼</h3></div></div>
+<a name="gimv_faq_06"></a>8.6. サムネイルビュー</h3></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_06-01"></a>��ư�����������ֻ��Υꥹ�ȥӥ塼��ˡ����ꤹ��</span></dt>
+<dt><span class="term"><a name="gimv_faq_06-01"></a>起動時、新規タブ時のリストビュー方法を固定する</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>[���� | ����ͥ��륦����ɥ� | ����ͥ���ӥ塼 | �ǥե����ɽ���⡼��]</i></span>�ˤƻ���Ǥ��ޤ�����������������ͭ���ˤ���ˤϡ��ֽ�λ���˥�����ɥ����֤���¸����פ��Υ�����å�(��¸���ʤ�)�Ǥ��뤳�Ȥ�ɬ�פǤ���
+<span class="emphasis"><i>[設定 | サムネイルウィンドウ | サムネイルビュー | デフォルト表示モード]</i></span>にて指定できます。ただし、ここを有効にするには、「終了時にウィンドウ状態を保存する」がノンチェック(保存しない)であることが必要です。
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_06-02"></a>����ͥ��뤬̯�˱����Ǥ�</span></dt>
+<dt><span class="term"><a name="gimv_faq_06-02"></a>サムネイルが妙に汚いです</span></dt>
 <dd><p class="para">
-�������㤤�Υ���ͥ��륭��å��夬�ɤ߹��ޤ�Ƥ����ǽ��������ޤ����Ȥꤢ��������
-��ͥ���ƺ�����¹Ԥ��Ƥ���������
+サイズ違いのサムネイルキャッシュが読み込まれている可能性があります。とりあえず、サ
+ムネイル再作成を実行してください。
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_06-03"></a>�����ΰ�����򡦲��</span></dt>
+<dt><span class="term"><a name="gimv_faq_06-03"></a>画像の一括選択・解除</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>[�Խ�]</i></span>��˥塼����ˤ���ޤ����ޥ�����˥塼�ˤϤ���ޤ��󡣥��硼�ȥ��åȤ�������Ƥ��Ƥ��ޤ��Τ�(Ctrl + A [N])�����ˤ����Ѥ������Ϥ������Ȥ����������Ǥ��礦��
+<span class="emphasis"><i>[編集]</i></span>メニューの中にあります。マウスメニューにはありません。ショートカットが割り当てられていますので(Ctrl + A [N])、頻繁に利用する方はそちらを使う方がいいでしょう。
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_06-04"></a>����ͥ���򥯥�å�(�ȥ���)���Ƥ⡢�����Ѥ��ޤ���</span></dt>
+<dt><span class="term"><a name="gimv_faq_06-04"></a>サムネイルをクリック(トグル)しても、色が変わりません</span></dt>
 <dd><p class="para">
-���򤷤��ݤο��ϡ����ߤ� gtk �Υơ��ޤ˰�¸���ޤ��������Ѥ��ʤ��Τϡ��ơ��ޤο�����Τ���Ȼפ��ޤ���¾�Υơ��ޤˤ��ƻ�ƤߤƤ���������
+選択した際の色は、現在の gtk のテーマに依存します。色が変わらないのは、テーマの色設定のためと思われます。他のテーマにして試してみてください。
 </p></dd>
 </dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="gimv_faq_07"></a>8.7. ���᡼���ӥ塼</h3></div></div>
+<a name="gimv_faq_07"></a>8.7. イメージビュー</h3></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_07-01"></a>�������ޥ�ɤˤĤ���</span></dt>
+<dt><span class="term"><a name="gimv_faq_07-01"></a>外部コマンドについて</span></dt>
 <dd>
 <p class="para">
-�̥�����ɥ��ˤ��������ɽ�����̤Υץ�������Ǥ���ޤ���
+別ウィンドウにおける画像表示を、別のプログラムに任せます。
 </p>
 <p class="para">
-�����ץ������ϡ�<span class="emphasis"><i>[���� | �����ץ������]</i></span> �����ꤷ�Ƥ������������ꥸ�ʥ�Υ�����ץȤʤɤ���Ͽ���뤳�Ȥ�Ǥ��ޤ���
+外部プログラムは、<span class="emphasis"><i>[設定 | 外部プログラム]</i></span> で設定してください。オリジナルのスクリプトなどを登録することもできます。
 </p>
 </dd>
 </dl></div>
@@ -277,14 +286,14 @@ DnD ��˥塼������ޤ�����?
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="07.html">���Υڡ���</a>&#160;</td>
-<td width="20%" align="center"><a accesskey="h" href="index.html">�ۡ���</a></td>
-<td width="40%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">���Υڡ���</a>
+<a accesskey="p" href="07.html">前のページ</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">ホーム</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">次のページ</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left">7. �ǥե���� �����Х����&#160;</td>
-<td width="20%" align="center"><a accesskey="u" href="index.html">������</a></td>
+<td width="40%" align="left">7. デフォルト キーバインド&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
 <td width="40%" align="right">&#160;9. Tips</td>
 </tr>
 </table>

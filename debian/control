@@ -1,0 +1,60 @@
+Source: gimageview
+Section: graphics
+Priority: optional
+Maintainer: shitamo <sitamo@gmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ gettext,
+ libarchive-dev,
+ libbz2-dev,
+ libexif-dev,
+ libgdk-pixbuf-2.0-dev,
+ libglib2.0-dev (>= 2.72),
+ libgstreamer-plugins-base1.0-dev,
+ libgstreamer1.0-dev,
+ libgtk-4-dev (>= 4.10),
+ libjpeg-dev,
+ libmng-dev,
+ libpng-dev,
+ librsvg2-dev,
+ libwmf-dev,
+ libxine2-dev,
+ meson (>= 0.60),
+ pkgconf,
+ zlib1g-dev,
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://github.com/ashie/gimageview
+
+Package: gimageview
+Architecture: any
+Depends:
+ gstreamer1.0-plugins-base,
+ ${misc:Depends},
+ ${shlibs:Depends},
+Recommends:
+ gstreamer1.0-plugins-good,
+ webp-pixbuf-loader,
+Suggests:
+ gstreamer1.0-libav,
+ gstreamer1.0-plugins-bad,
+ gstreamer1.0-plugins-ugly,
+ heif-gdk-pixbuf,
+ libavif-gdk-pixbuf,
+ libjxl-gdk-pixbuf,
+ lzop,
+ mplayer,
+Description: image viewer and thumbnail browser for GTK 4
+ GImageView (gimv) is an image viewer with a thumbnail browser: a directory
+ tree, tabbed thumbnail views (album and detail lists), a preview pane,
+ image windows with zoom, rotation, full screen and slide show, EXIF
+ display, comments, a duplicate finder and drag and drop file operations.
+ Movies and audio are played with GStreamer (or xine / MPlayer).
+ .
+ Images inside zip (cbz), rar (cbr), 7z, lha and tar archives can be
+ browsed (read with libarchive).  Thumbnail caches of other viewers
+ (GQview, Nautilus, Konqueror, xv, ...) can be read.  Formats such as WebP,
+ AVIF, HEIF and JPEG XL are shown when their gdk-pixbuf loaders are
+ installed.
+ .
+ This is a port of GImageView 0.2.27 from GTK+ 2 to GTK 4.

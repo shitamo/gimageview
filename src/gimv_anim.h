@@ -28,10 +28,10 @@
 
 
 #define GIMV_TYPE_ANIM            (gimv_anim_get_type ())
-#define GIMV_ANIM(obj)            (GTK_CHECK_CAST (obj, gimv_anim_get_type (), GimvAnim))
-#define GIMV_ANIM_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_anim_get_type, GimvAnimClass))
-#define GIMV_IS_ANIM(obj)         (GTK_CHECK_TYPE (obj, gimv_anim_get_type ()))
-#define GIMV_IS_ANIM_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_ANIM))
+#define GIMV_ANIM(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_anim_get_type (), GimvAnim))
+#define GIMV_ANIM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_anim_get_type (), GimvAnimClass))
+#define GIMV_IS_ANIM(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_anim_get_type ()))
+#define GIMV_IS_ANIM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_ANIM))
 
 
 typedef struct GimvAnim_Tag          GimvAnim;
@@ -67,7 +67,7 @@ struct GimvAnimFuncTable_Tag
 };
 
 
-GtkType    gimv_anim_get_type     (void);
+GType    gimv_anim_get_type     (void);
 GimvAnim  *gimv_anim_new          (void);
 
 /* public */

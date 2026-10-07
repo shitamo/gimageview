@@ -26,9 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/utsname.h>
-#if HAVE_GDK_PIXBUF
 #  include <gdk-pixbuf/gdk-pixbuf-features.h>
-#endif
 
 #include "charset.h"
 #include "fileutil.h"
@@ -55,19 +53,20 @@ typedef struct GimvInfoWin_Tag
 /* callback functions */
 static void cb_open_manual             (gpointer   data,
                                         guint      action,
-                                        GtkWidget *widget);
-static void cb_open_text               (GtkWidget *menuitem,
-                                        gchar     *filename);
+                                        GimvMenuItem *widget);
+static void cb_open_text               (GimvMenuItem *menuitem,
+                                        gpointer   filename);
 static void cb_gimv_info_win_ok_button (GtkWidget *widget,
                                         GtkWidget *window);
 static void cb_open_info               (gpointer   data,
                                         guint      action,
-                                        GtkWidget *widget);
+                                        GimvMenuItem *widget);
 
 /* other private functions */
 static gchar       *get_doc_dir_name     (const gchar *lang,
                                           const gchar *type);
-static GtkWidget   *get_dirlist_sub_menu (const gchar *dir,
+static GtkWidget   *get_dirlist_sub_menu (GtkWidget   *window,
+                                          const gchar *dir,
                                           gpointer     func,
                                           GList      **filelist);
 
@@ -92,15 +91,15 @@ N_("Copyright (C) 2001 %s <%s>\n\n"
    "MA 02111-1307, USA.");
 
 static gchar *authors = 
-N_("Main Program :\n"
+N_("Main Program:\n"
    "    Takuro Ashie <ashie@homa.ne.jp>\n"
-   "Document :\n"
+   "Document:\n"
    "    Nyan2 <t-nyan2@nifty.com>\n"
-   "Logo :\n"
+   "Logo:\n"
    "    eins <eins@milk.freemail.ne.jp>\n"
-   "Translate :\n"
+   "Translation:\n"
    "\n"
-   "Special Thanks :\n"
+   "Special Thanks:\n"
    "    horam\n"
    "    TAM\n"
    "    Hiroyuki Komatsu\n"
@@ -123,7 +122,7 @@ static gchar *system_info = NULL;
 
 static gchar *plugin_info = NULL;
 
-GtkItemFactoryEntry gimvhelp_menu_items[] =
+GimvMenuEntry gimvhelp_menu_items[] =
 {
    {N_("/_Manual"),               NULL, cb_open_manual, 0, NULL},
    {N_("/_Document"),             NULL, NULL,           0, "<Branch>"},
@@ -144,7 +143,7 @@ GList *text_filelist = NULL;
  *
  ******************************************************************************/
 static void
-cb_open_manual(gpointer data, guint action, GtkWidget *widget)
+cb_open_manual(gpointer data, guint action, GimvMenuItem *widget)
 {
    gchar *dir, manual[MAX_PATH_LEN], *cmd, buf[BUF_SIZE];
    dir = get_doc_dir_name (NULL, DOC_HTML_DIR);
@@ -160,8 +159,9 @@ cb_open_manual(gpointer data, guint action, GtkWidget *widget)
 
 
 static void
-cb_open_text (GtkWidget *menuitem, gchar *filename)
+cb_open_text (GimvMenuItem *menuitem, gpointer data)
 {
+   gchar *filename = data;
    gchar *cmd = NULL;
 
    g_return_if_fail (filename);
@@ -178,8 +178,9 @@ cb_open_text (GtkWidget *menuitem, gchar *filename)
 
 
 static void
-cb_open_html (GtkWidget *menuitem, gchar *filename)
+cb_open_html (GimvMenuItem *menuitem, gpointer data)
 {
+   gchar *filename = data;
    gchar buf[BUF_SIZE], *cmd;
 
    g_return_if_fail (filename);
@@ -217,52 +218,20 @@ set_copyleft_str (void)
    g_snprintf (buf, BUF_SIZE, _(license),
                GIMV_PROG_AUTHOR, GIMV_PROG_ADDRESS);
 
-#ifdef USE_GTK2
    {
       GtkTextBuffer *buffer;
 
       buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (info_win.text_box));
       gtk_text_buffer_set_text (buffer, "\0", -1);
    }
-#else
-   {
-      gint len;
 
-      gtk_text_set_point (GTK_TEXT (info_win.text_box), 0);
-      len = gtk_text_get_length (GTK_TEXT (info_win.text_box));
-
-      if (len > 0) {
-         gtk_text_forward_delete (GTK_TEXT (info_win.text_box), len);
-      }
-   }
-#endif
-
-   if (buf && *buf) {
-#ifdef USE_GTK2
+   if (*buf) {
       {
          GtkTextBuffer *buffer;
 
          buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (info_win.text_box));
          gtk_text_buffer_set_text (buffer, buf, -1);
       }
-#else
-      {
-         GdkFont *font;
-
-         if (conf.textentry_font && *conf.textentry_font)
-            font = gdk_fontset_load (conf.textentry_font);
-         else
-            font = NULL;
-
-         gtk_text_freeze (GTK_TEXT (info_win.text_box));
-         gtk_text_insert (GTK_TEXT (info_win.text_box),
-                          font, NULL, NULL, buf, strlen (buf));
-         gtk_text_thaw (GTK_TEXT (info_win.text_box));
-
-         if (font)
-            gdk_font_unref (font);
-      }
-#endif
    }
 }
 
@@ -272,58 +241,29 @@ cb_gimv_info_change_text (GtkWidget *widget, gchar *text)
 {
    g_return_if_fail (info_win.text_box);
 
+   /* GTK4: connected to "toggled" (radio buttons are GtkCheckButtons),
+      ignore the button that was deactivated */
+   if (!gimv_toggle_get_active (widget)) return;
+
    if (!text) {
       set_copyleft_str ();
       return;
    }
 
-#ifdef USE_GTK2
    {
       GtkTextBuffer *buffer;
 
       buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (info_win.text_box));
       gtk_text_buffer_set_text (buffer, "\0", -1);
    }
-#else
-   {
-      guint len;
-
-      gtk_text_set_point (GTK_TEXT (info_win.text_box), 0);
-      len = gtk_text_get_length (GTK_TEXT (info_win.text_box));
-
-      if (len > 0) {
-         gtk_text_forward_delete (GTK_TEXT (info_win.text_box), len);
-      }
-   }
-#endif
 
    if (text && *text) {
-#ifdef USE_GTK2
       {
          GtkTextBuffer *buffer;
 
          buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (info_win.text_box));
          gtk_text_buffer_set_text (buffer, text, -1);
       }
-#else
-      {   /********** convert charset **********/
-         GdkFont *font;
-
-         if (conf.textentry_font && *conf.textentry_font)
-            font = gdk_fontset_load (conf.textentry_font);
-         else
-            font = NULL;
-
-         gtk_text_freeze (GTK_TEXT (info_win.text_box));
-         gtk_text_insert (GTK_TEXT (info_win.text_box),
-                          font, NULL, NULL, _(text), strlen (text));
-         gtk_text_thaw (GTK_TEXT (info_win.text_box));
-
-         if (font)
-            gdk_font_unref (font);
-
-      }
-#endif
    }
 }
 
@@ -331,12 +271,12 @@ cb_gimv_info_change_text (GtkWidget *widget, gchar *text)
 static void
 cb_gimv_info_win_ok_button (GtkWidget *widget, GtkWidget *window)
 {
-   gtk_widget_destroy (window);
+   gimv_widget_destroy (window);
 }
 
 
 static void
-cb_open_info (gpointer data, guint action, GtkWidget *widget)
+cb_open_info (gpointer data, guint action, GimvMenuItem *widget)
 {
    gimvhelp_open_info_window ();
 }
@@ -350,57 +290,67 @@ cb_open_info (gpointer data, guint action, GtkWidget *widget)
 static gchar *
 get_doc_dir_name (const gchar *lang, const gchar *type)
 {
-   gchar *dir, *lang_fallback, *tmp;
+   const gchar * const *names;
+   gchar *dir;
+   gint i;
 
    g_return_val_if_fail (type && *type, NULL);
 
-   if (!lang)
-      lang = get_lang ();
+   /* the languages of the messages, e.g. ja_JP.UTF-8, ja_JP, ja, C
+      ($LANGUAGE, $LC_ALL, $LC_MESSAGES, $LANG) */
+   if (lang) {
+      dir = g_strconcat (DOCDIR, "/", type, "/", lang, NULL);
+      if (isdir (dir)) return dir;
+      g_free (dir);
+   }
 
-   dir = g_strconcat (DOCDIR, "/", type, "/", lang, NULL);
+   names = g_get_language_names ();
+   for (i = 0; names && names[i]; i++) {
+      dir = g_strconcat (DOCDIR, "/", type, "/", names[i], NULL);
+      if (isdir (dir)) return dir;
+      g_free (dir);
+   }
 
+   /* no documents in this language: English, or else the first language
+      that has them instead of an empty menu */
+   dir = g_strconcat (DOCDIR, "/", type, "/en", NULL);
    if (isdir (dir)) return dir;
+   g_free (dir);
 
-   lang_fallback = g_strdup (lang);
-   tmp = strchr (lang_fallback, '.');
-   if (tmp) {
-      *tmp = '\0';
-      g_free (dir);
-      dir = g_strconcat (DOCDIR, "/", type, "/", lang_fallback, NULL);
-      g_free (lang_fallback);
-      if (isdir (dir)) {
-         return dir;
+   {
+      gchar *base = g_strconcat (DOCDIR, "/", type, NULL);
+      GDir *gdir = g_dir_open (base, 0, NULL);
+      const gchar *name;
+      gchar *found = NULL;
+
+      while (gdir && (name = g_dir_read_name (gdir))) {
+         gchar *path = g_build_filename (base, name, NULL);
+         if (isdir (path) && (!found || strcmp (path, found) < 0)) {
+            g_free (found);
+            found = path;
+         } else {
+            g_free (path);
+         }
       }
-   } else {
-      g_free (lang_fallback);
+      if (gdir) g_dir_close (gdir);
+      g_free (base);
+      return found;
    }
-
-   if (strlen (lang) > 2 && lang[2] == '_') {
-      lang_fallback = g_strdup (lang);
-      lang_fallback[2] = '\0';
-      g_free (dir);
-      dir = g_strconcat (DOCDIR, "/", type, "/", lang_fallback, NULL);
-      g_free (lang_fallback);
-      if (isdir (dir)) {
-         return dir;
-      }
-   }
-
-   return NULL;
 }
 
 
 static GtkWidget *
-get_dirlist_sub_menu (const gchar *dir, gpointer func, GList **filelist)
+get_dirlist_sub_menu (GtkWidget *window, const gchar *dir, gpointer func,
+                      GList **filelist)
 {
-   GtkWidget *menu = NULL, *menuitem;
+   GtkWidget *menu = NULL;
    GList *node;
 
    g_return_val_if_fail (filelist, NULL);
 
    if (!dir) return NULL;;
 
-   menu = gtk_menu_new();
+   menu = gimv_menu_new (window);
 
    if (!*filelist)
       get_dir (dir, GETDIR_FOLLOW_SYMLINK, filelist, NULL);
@@ -412,12 +362,15 @@ get_dirlist_sub_menu (const gchar *dir, gpointer func, GList **filelist)
       node = g_list_next (node);
 
       if (!filename) continue;
+      /* GTK4 port: the style sheet is not a document */
+      if (g_str_has_suffix (filename, ".css")) continue;
 
-      menuitem = gtk_menu_item_new_with_label (g_basename(filename));
-      gtk_signal_connect (GTK_OBJECT (menuitem), "activate",
-                          GTK_SIGNAL_FUNC (func), filename);
-      gtk_menu_append (GTK_MENU (menu), menuitem);
-      gtk_widget_show (menuitem);
+      {
+         gchar *basename = g_path_get_basename (filename);
+         gimv_menu_append_item (menu, basename,
+                                (GimvMenuActivateFunc) func, filename);
+         g_free (basename);
+      }
 
    }
 
@@ -425,36 +378,59 @@ get_dirlist_sub_menu (const gchar *dir, gpointer func, GList **filelist)
 }
 
 
-static void
-help_plugin_info_append (GList *list)
+/* GTK4 port: plugins grouped by type, with their description and the file
+   extensions they handle */
+static const gchar *
+help_plugin_type_label (const gchar *type)
 {
-   GList *node;
-   gchar buf[BUF_SIZE];
+   if (!strcmp (type, GIMV_PLUGIN_IMAGE_LOADER))      return _("Image loaders");
+   if (!strcmp (type, GIMV_PLUGIN_IMAGE_SAVER))       return _("Image savers");
+   if (!strcmp (type, GIMV_PLUGIN_IO_STREAMER))       return _("I/O streams");
+   if (!strcmp (type, GIMV_PLUGIN_EXT_ARCHIVER))      return _("Archivers");
+   if (!strcmp (type, GIMV_PLUGIN_THUMB_CACHE))       return _("Thumbnail caches");
+   if (!strcmp (type, GIMV_PLUGIN_IMAGEVIEW_EMBEDER)) return _("Movie and audio players");
+   if (!strcmp (type, GIMV_PLUGIN_THUMBVIEW_EMBEDER)) return _("Thumbnail views");
+   return type;
+}
 
-   /* g_return_if_fail (list); */
+
+static void
+help_plugin_info_append (const gchar *type, GList *list)
+{
+   GString *str;
+   GList *node;
 
    if (!plugin_info)
       plugin_info = g_strdup ("");
 
    if (!list) return;
 
-   node = list;
-   while (node) {
-      GModule *module = node->data;
-      gchar *tmpstr;
-      g_snprintf (buf, BUF_SIZE,
-                  _("Plugin Name : %s\n"
-                    "Version : %s\n"
-                    "Author : %s\n\n"),
-                  gimv_plugin_get_name (module),
-                  gimv_plugin_get_version_string (module),
-                  gimv_plugin_get_author (module));
-      tmpstr = plugin_info;
-      plugin_info = g_strconcat (plugin_info, buf, NULL);
-      g_free (tmpstr);
+   str = g_string_new (plugin_info);
+   g_string_append_printf (str, "[%s]\n\n", help_plugin_type_label (type));
 
-      node = g_list_next (node);
+   for (node = list; node; node = g_list_next (node)) {
+      GModule *module = node->data;
+      const gchar *name   = gimv_plugin_get_name (module);
+      const gchar *author = gimv_plugin_get_author (module);
+      const gchar *desc   = gimv_plugin_get_description (module);
+      gchar *exts = gimv_plugin_get_extensions (module);
+
+      g_string_append_printf (str, _("Plugin Name: %s\n"
+                                     "Version: %s\n"
+                                     "Author: %s\n"),
+                              name ? _(name) : "",
+                              gimv_plugin_get_version_string (module),
+                              author ? _(author) : "");
+      if (desc && *desc)
+         g_string_append_printf (str, _("Description: %s\n"), _(desc));
+      if (exts)
+         g_string_append_printf (str, _("Extensions: %s\n"), exts);
+      g_string_append_c (str, '\n');
+      g_free (exts);
    }
+
+   g_free (plugin_info);
+   plugin_info = g_string_free (str, FALSE);
 }
 
 
@@ -466,8 +442,8 @@ help_plugin_info_append (GList *list)
 GtkWidget *
 gimvhelp_create_menu (GtkWidget *window)
 {
-   GtkWidget *menu = NULL, *menuitem = NULL, *html_submenu, *text_submenu;
-   GtkItemFactory *ifactory;
+   GtkWidget *menu = NULL, *html_submenu, *text_submenu;
+   GimvMenuItem *menuitem = NULL;
    guint n_menu_items;
    gchar *dir, manual[MAX_PATH_LEN];
 
@@ -477,7 +453,7 @@ gimvhelp_create_menu (GtkWidget *window)
                             n_menu_items, "<HelpSubMenu>", NULL);
 
    dir = get_doc_dir_name (NULL, DOC_HTML_DIR);
-   html_submenu = get_dirlist_sub_menu (dir, (gpointer) cb_open_html,
+   html_submenu = get_dirlist_sub_menu (window, dir, (gpointer) cb_open_html,
                                         &html_filelist);
    if (html_submenu)
       menu_set_submenu (menu, "/Document/HTML", html_submenu);
@@ -485,7 +461,7 @@ gimvhelp_create_menu (GtkWidget *window)
    dir = NULL;
 
    dir = get_doc_dir_name (NULL, DOC_TEXT_DIR);
-   text_submenu = get_dirlist_sub_menu (dir, (gpointer) cb_open_text,
+   text_submenu = get_dirlist_sub_menu (window, dir, (gpointer) cb_open_text,
                                         &text_filelist);
    if (text_submenu)
       menu_set_submenu (menu, "/Document/Plain Text", text_submenu);
@@ -496,9 +472,9 @@ gimvhelp_create_menu (GtkWidget *window)
    g_snprintf (manual, MAX_PATH_LEN, "%s/%s", dir, GIMV_MANUAL_FILE);
    g_free (dir);
    if (!file_exists(manual)) {
-      ifactory = gtk_item_factory_from_widget (menu);
-      menuitem  = gtk_item_factory_get_item (ifactory, "/Manual");
-      gtk_widget_set_sensitive (menuitem, FALSE);
+      menuitem  = gimv_menu_get_item (menu, "/Manual");
+      if (menuitem)
+         gimv_menu_item_set_sensitive (menuitem, FALSE);
    }
 
    return menu;
@@ -521,28 +497,27 @@ gimvhelp_create_info_widget (void)
    if (!system_info) {
       uname(&utsbuf);
       g_snprintf (buf, BUF_SIZE,
-                  _("Operating System : %s %s %s\n"
-                    "GTK+ version : %d.%d.%d\n"
+                  _("Operating System: %s %s %s\n"
+                    "GTK version: %d.%d.%d\n"
                     /* "libpng version : %s\n" */),
                   utsbuf.sysname, utsbuf.release, utsbuf.machine,
-                  gtk_major_version, gtk_minor_version, gtk_micro_version
+                  gtk_get_major_version (), gtk_get_minor_version (),
+                  gtk_get_micro_version ()
                   /*, png_get_header_ver (NULL)*/);
 #if 0
 #ifdef ENABLE_MNG
       g_snprintf (alt_string, sizeof (alt_string) / sizeof (gchar),
-                  _("libmng version : %s\n"),
+                  _("libmng version: %s\n"),
                   mng_version_text ());
       strncat (buf, alt_string, BUF_SIZE - strlen (buf));
 #endif
-#ifdef HAVE_GDK_PIXBUF
       g_snprintf (alt_string, sizeof (alt_string) / sizeof (gchar),
-                  _("gdk-pixbuf version : %s\n"),
+                  _("gdk-pixbuf version: %s\n"),
                   gdk_pixbuf_version);
       strncat (buf, alt_string, BUF_SIZE - strlen (buf));
-#endif
 #ifdef ENABLE_SVG
       g_snprintf (alt_string, sizeof (alt_string) / sizeof (gchar),
-                  _("librsvg version : %s\n"),
+                  _("librsvg version: %s\n"),
                   librsvg_version);
       strncat (buf, alt_string, BUF_SIZE - strlen (buf));
 #endif
@@ -559,41 +534,28 @@ gimvhelp_create_info_widget (void)
    }
 
    if (!plugin_info) {
-#if 0
       gint idx;
       const gchar *type;
 
-      for (idx = 0; (type = gimv_plugin_type_get (idx)) != NULL; idx++) {
-         GList *list = NULL;
-
-         list = gimv_plugin_get_list (type);
-         help_plugin_info_append (list);
-      }
-#else
-      {
-         GList *list = NULL;
-
-         list = gimv_plugin_get_list (NULL);
-         help_plugin_info_append (list);
-      }
-#endif
+      for (idx = 0; (type = gimv_plugin_type_get (idx)) != NULL; idx++)
+         help_plugin_info_append (type, gimv_plugin_get_list (type));
    }
 
    /* create content widget */
-   vbox = gtk_vbox_new (FALSE, 0);
+   vbox = gimv_vbox_new (FALSE, 0);
 
    frame = gtk_frame_new (NULL);
-   gtk_container_set_border_width(GTK_CONTAINER(frame), 0);
-   gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (frame), 0);
+   gimv_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
    gtk_widget_show (frame);
 
-   frame_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER(frame), 5);
-   gtk_container_add (GTK_CONTAINER (frame), frame_vbox);
+   frame_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (frame), 5);
+   gimv_container_add (GTK_WIDGET (frame), frame_vbox);
    gtk_widget_show (frame_vbox);
 
    logo = gimv_icon_stock_get_widget ("gimageview");
-   gtk_box_pack_start (GTK_BOX (frame_vbox), 
+   gimv_box_pack_start (GTK_BOX (frame_vbox), 
                        logo, FALSE, TRUE, 5);
    gimv_icon_stock_free_icon ("gimageview");
    gtk_widget_show (logo);
@@ -602,100 +564,87 @@ gimvhelp_create_info_widget (void)
 
    /* Program name & Copyright */ 
    label = gtk_label_new (_(GIMV_PROG_VERSION));
-   gtk_box_pack_start (GTK_BOX (tmpvbox), 
+   gimv_box_pack_start (GTK_BOX (tmpvbox), 
                        label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
    /* Web Site Button */
-   hbox1 = gtk_hbox_new (TRUE, 0);
-   gtk_box_pack_start (GTK_BOX (tmpvbox), 
+   hbox1 = gimv_hbox_new (TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (tmpvbox), 
                        hbox1, FALSE, FALSE, 0);
    gtk_widget_show (hbox1);
-   hbox2 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox1), 
+   hbox2 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), 
                        hbox2, TRUE, FALSE, 0);
    gtk_widget_show (hbox2);
 
-   label = gtk_label_new (_("Web Site: "));
-   gtk_box_pack_start (GTK_BOX (hbox2), 
+   label = gtk_label_new (_("Website: "));
+   gimv_box_pack_start (GTK_BOX (hbox2), 
                        label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
    button = gtk_button_new ();
-   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
+   gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
    label = gtk_label_new (GIMV_PROG_URI);
-   gtk_container_add (GTK_CONTAINER (button), label);
+   gimv_container_add (GTK_WIDGET (button), label);
    gtk_widget_show (label);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_progurl_clicked),
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_progurl_clicked),
                        GIMV_PROG_URI);
-   gtk_box_pack_start (GTK_BOX (hbox2), 
+   gimv_box_pack_start (GTK_BOX (hbox2), 
                        button, FALSE, FALSE, 0);
    gtk_widget_show (button);
 
    /* Infomation Text Box */
-   scrolledwin = gtk_scrolled_window_new (NULL, NULL);
+   scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    info_win.scrolled_win = scrolledwin;
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwin),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-   gtk_box_pack_start (GTK_BOX (vbox),
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
+   gimv_box_pack_start (GTK_BOX (vbox),
                        scrolledwin, TRUE, TRUE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (scrolledwin), 5);
+   gimv_container_set_border_width (GTK_WIDGET (scrolledwin), 5);
    gtk_widget_show (scrolledwin);
 
-#ifdef USE_GTK2
    text = gtk_text_view_new ();
-#else
-   text = gtk_text_new (gtk_scrolled_window_get_hadjustment
-                        (GTK_SCROLLED_WINDOW (scrolledwin)),
-                        gtk_scrolled_window_get_vadjustment
-                        (GTK_SCROLLED_WINDOW (scrolledwin)));
-#endif
-   gtk_container_add (GTK_CONTAINER (scrolledwin), text);
+   gimv_container_add (GTK_WIDGET (scrolledwin), text);
    info_win.text_box = text;
    set_copyleft_str ();
    gtk_widget_show (text);
 
    /* Radio Button */
-   hbox1 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), 
+   hbox1 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), 
                        hbox1, FALSE, FALSE, 0);
    gtk_widget_show (hbox1);
-   hbox2 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox1), 
+   hbox2 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), 
                        hbox2, TRUE, FALSE, 0);
    gtk_widget_show (hbox2);
 
-   radio = gtk_radio_button_new_with_label (NULL, _("License"));
-   gtk_signal_connect (GTK_OBJECT (radio), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_info_change_text), NULL);
-   gtk_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
+   radio = gimv_radio_button_new_with_label (NULL, _("License"));
+   g_signal_connect (G_OBJECT (radio), "toggled",
+                       G_CALLBACK (cb_gimv_info_change_text), NULL);
+   gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
    gtk_widget_show (radio);
 
-   radio = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio),
-                                                        _("Authors"));
-   gtk_signal_connect (GTK_OBJECT (radio), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_info_change_text),
+   radio = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio), _("Authors"));
+   g_signal_connect (G_OBJECT (radio), "toggled",
+                       G_CALLBACK (cb_gimv_info_change_text),
                        _(authors));
-   gtk_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
    gtk_widget_show (radio);
 
-   radio = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio),
-                                                        _("System Info"));
-   gtk_signal_connect (GTK_OBJECT (radio), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_info_change_text), system_info);
-   gtk_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
+   radio = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio), _("System Info"));
+   g_signal_connect (G_OBJECT (radio), "toggled",
+                       G_CALLBACK (cb_gimv_info_change_text), system_info);
+   gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
    gtk_widget_show (radio);
 
-   radio = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio),
-                                                        _("Plugin Info"));
-   gtk_signal_connect (GTK_OBJECT (radio), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_info_change_text), plugin_info);
-   gtk_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
+   radio = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio), _("Plugin Info"));
+   g_signal_connect (G_OBJECT (radio), "toggled",
+                       G_CALLBACK (cb_gimv_info_change_text), plugin_info);
+   gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
    gtk_widget_show (radio);
 
    return vbox;
@@ -711,33 +660,34 @@ gimvhelp_open_info_window (void)
    /* window */
    window = gtk_dialog_new ();
    info_win.window = window;
-   gtk_container_set_border_width (GTK_CONTAINER (GTK_DIALOG (window)->vbox), 0);
-   gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
+   gimv_container_set_border_width (GTK_WIDGET (gimv_dialog_get_vbox (GTK_WIDGET (window))), 0);
+   /* GTK4: window position (GTK_WIN_POS_CENTER) can't be set */
    g_snprintf (buf, BUF_SIZE, _("About %s"), GIMV_PROG_NAME);
-   gtk_window_set_wmclass(GTK_WINDOW(window), "about", "GImageView");
+   /* GTK4: gtk_window_set_wmclass () removed */
    gtk_window_set_title (GTK_WINDOW (window), buf); 
    gtk_window_set_default_size (GTK_WINDOW (window), 500, 400);
 
    /* main content */
    widget = gimvhelp_create_info_widget ();
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->vbox), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), 
                        widget, TRUE, TRUE, 0);
    gtk_widget_show (widget);
 
    /* OK Button */
    button = gtk_button_new_with_label (_("OK"));
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), 
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                        button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_info_win_ok_button),
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_gimv_info_win_ok_button),
                        window);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   gtk_window_set_default_widget (GTK_WINDOW (window), button);
    gtk_widget_show (button);
 
+   gimv_window_set_default_transient (GTK_WINDOW (window));
    gtk_widget_show (window);
-   gimv_icon_stock_set_window_icon (window->window, "gimv_icon");
+   gimv_icon_stock_set_window_icon (window, "gimv_icon");
 
    gtk_widget_grab_focus (button);
 
-   gtk_grab_add (window);
+   gimv_grab_add (window);
 }

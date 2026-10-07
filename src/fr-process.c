@@ -30,11 +30,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <glib.h>
-#include <gdk/gdk.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtksignal.h>
+#include <glib-object.h>
 #include "fr-process.h"
-#include "gtk2-compat.h"
 
 
 #define REFRESH_RATE 100
@@ -46,12 +43,15 @@ enum {
    LAST_SIGNAL
 };
 
-static GtkObjectClass *parent_class;
+static GimvObjectClass *parent_class;
 static guint fr_process_signals[LAST_SIGNAL] = { 0 };
 
 
+G_DEFINE_TYPE (FRProcess, fr_process, GIMV_TYPE_OBJECT)
+
+
 static void
-fr_process_destroy (GtkObject *object)
+fr_process_destroy (GimvObject *object)
 {
    FRProcess *fr_proc;
 
@@ -72,36 +72,36 @@ fr_process_destroy (GtkObject *object)
    }
 
    /* Chain up */
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (* GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (* GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
 static void
 fr_process_class_init (FRProcessClass *class)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   object_class = (GtkObjectClass *) class;
-   parent_class = gtk_type_class (gtk_object_get_type ());
+   object_class = (GimvObjectClass *) class;
+   parent_class = g_type_class_peek_parent (class);
 
    fr_process_signals[START] =
-      gtk_signal_new ("start",
-                      GTK_RUN_LAST,
-                      GTK_CLASS_TYPE (object_class),
-                      GTK_SIGNAL_OFFSET (FRProcessClass, start),
-                      gtk_marshal_NONE__NONE,
-                      GTK_TYPE_NONE, 0);
+      g_signal_new ("start",
+                    G_TYPE_FROM_CLASS (object_class),
+                    G_SIGNAL_RUN_LAST,
+                    G_STRUCT_OFFSET (FRProcessClass, start),
+                    NULL, NULL,
+                    g_cclosure_marshal_VOID__VOID,
+                    G_TYPE_NONE, 0);
    fr_process_signals[DONE] =
-      gtk_signal_new ("done",
-                      GTK_RUN_LAST,
-                      GTK_CLASS_TYPE (object_class),
-                      GTK_SIGNAL_OFFSET (FRProcessClass, done),
-                      gtk_marshal_NONE__INT,
-                      GTK_TYPE_NONE, 1,
-                      GTK_TYPE_INT);
-   gtk_object_class_add_signals (object_class, fr_process_signals, 
-                                 LAST_SIGNAL);
+      g_signal_new ("done",
+                    G_TYPE_FROM_CLASS (object_class),
+                    G_SIGNAL_RUN_LAST,
+                    G_STRUCT_OFFSET (FRProcessClass, done),
+                    NULL, NULL,
+                    g_cclosure_marshal_VOID__INT,
+                    G_TYPE_NONE, 1,
+                    G_TYPE_INT);
 
    object_class->destroy = fr_process_destroy;
    class->done = NULL;
@@ -129,35 +129,7 @@ fr_process_init (FRProcess *fr_proc)
 
    fr_proc->use_standard_locale = TRUE;
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (fr_proc));
-   gtk_object_sink (GTK_OBJECT (fr_proc));
-#endif
-}
-
-
-GtkType
-fr_process_get_type (void)
-{
-   static GtkType fr_process_type = 0;
-
-   if (! fr_process_type) {
-      GtkTypeInfo fr_process_info = {
-         "FRProcess",
-         sizeof (FRProcess),
-         sizeof (FRProcessClass),
-         (GtkClassInitFunc) fr_process_class_init,
-         (GtkObjectInitFunc) fr_process_init,
-         NULL, /* reserved_1 */
-         NULL, /* reserved_2 */
-         (GtkClassInitFunc) NULL
-      };
-
-      fr_process_type = gtk_type_unique (gtk_object_get_type (), 
-                                         &fr_process_info);
-   }
-
-   return fr_process_type;
+   g_object_ref_sink (G_OBJECT (fr_proc));
 }
 
 
@@ -165,7 +137,7 @@ FRProcess *
 fr_process_new (void)
 {
    FRProcess *fr_proc;
-   fr_proc = FR_PROCESS (gtk_type_new (fr_process_get_type ()));
+   fr_proc = FR_PROCESS (g_object_new (FR_TYPE_PROCESS, NULL));
    return fr_proc;
 }
 
@@ -299,8 +271,8 @@ start_current_command (FRProcess *fr_proc)
 
    if (pipe (pipe_fd) < 0) {
       fr_proc->error = FR_PROC_ERROR_PIPE;
-      gtk_signal_emit (GTK_OBJECT (fr_proc), 
-                       fr_process_signals[DONE],
+      g_signal_emit (G_OBJECT (fr_proc),
+                       fr_process_signals[DONE], 0,
                        fr_proc->error);
       return;
    }
@@ -312,8 +284,8 @@ start_current_command (FRProcess *fr_proc)
       close (pipe_fd[1]);
 
       fr_proc->error = FR_PROC_ERROR_FORK;
-      gtk_signal_emit (GTK_OBJECT (fr_proc), 
-                       fr_process_signals[DONE],
+      g_signal_emit (G_OBJECT (fr_proc),
+                       fr_process_signals[DONE], 0,
                        fr_proc->error);
 
       return;
@@ -375,7 +347,7 @@ start_current_command (FRProcess *fr_proc)
    fcntl (fr_proc->output_fd, F_SETFL, O_NONBLOCK);
 
    fr_proc->not_processed = 0;
-   fr_proc->log_timeout = gtk_timeout_add (REFRESH_RATE, 
+   fr_proc->log_timeout = g_timeout_add (REFRESH_RATE, 
                                            check_child,
                                            fr_proc);
 }
@@ -408,7 +380,7 @@ check_child (gpointer data)
 
    /* Remove check. */
 
-   gtk_timeout_remove (fr_proc->log_timeout);
+   g_source_remove (fr_proc->log_timeout);
    fr_proc->log_timeout = -1;
    fr_proc->command_pid = 0;
 
@@ -436,8 +408,8 @@ check_child (gpointer data)
 
    fr_proc->running = FALSE;
 
-   gtk_signal_emit (GTK_OBJECT (fr_proc), 
-                    fr_process_signals[DONE],
+   g_signal_emit (G_OBJECT (fr_proc),
+                    fr_process_signals[DONE], 0,
                     fr_proc->error);
 
    return FALSE;
@@ -471,8 +443,8 @@ fr_process_start (FRProcess *fr_proc,
       fr_proc->row_output = NULL;
    }
 
-   gtk_signal_emit (GTK_OBJECT (fr_proc), 
-                    fr_process_signals[START]);
+   g_signal_emit (G_OBJECT (fr_proc),
+                    fr_process_signals[START], 0);
 
    fr_proc->current_command = 0;
    start_current_command (fr_proc);
@@ -490,7 +462,7 @@ fr_process_stop (FRProcess *fr_proc)
       return;
 
    if (fr_proc->log_timeout != -1) {
-      gtk_timeout_remove (fr_proc->log_timeout);
+      g_source_remove (fr_proc->log_timeout);
       fr_proc->log_timeout = -1;
    }
 
@@ -503,7 +475,7 @@ fr_process_stop (FRProcess *fr_proc)
    fr_proc->running = FALSE;
 
    fr_proc->error = FR_PROC_ERROR_STOPPED;
-   gtk_signal_emit (GTK_OBJECT (fr_proc), 
-                    fr_process_signals[DONE],
+   g_signal_emit (G_OBJECT (fr_proc),
+                    fr_process_signals[DONE], 0,
                     fr_proc->error);
 }

@@ -28,13 +28,14 @@
 
 #include "gimv_image_view.h"
 #include "gimv_thumb_view.h"
+#include "menu.h"
 
 
 #define GIMV_TYPE_THUMB_WIN            (gimv_thumb_win_get_type ())
-#define GIMV_THUMB_WIN(obj)            (GTK_CHECK_CAST (obj, gimv_thumb_win_get_type (), GimvThumbWin))
-#define GIMV_THUMB_WIN_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_thumb_win_get_type, GimvThumbWinClass))
-#define GIMV_IS_THUMB_WIN(obj)         (GTK_CHECK_TYPE (obj, gimv_thumb_win_get_type ()))
-#define GIMV_IS_THUMB_WIN_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_THUMB_WIN))
+#define GIMV_THUMB_WIN(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_thumb_win_get_type (), GimvThumbWin))
+#define GIMV_THUMB_WIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_thumb_win_get_type (), GimvThumbWinClass))
+#define GIMV_IS_THUMB_WIN(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_thumb_win_get_type ()))
+#define GIMV_IS_THUMB_WIN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_THUMB_WIN))
 
 
 #define GIMV_THUMB_WIN_MIN_THUMB_SIZE 4
@@ -138,45 +139,45 @@ struct GimvThumbWin_Tag
 
    struct    /* menuitems */
    {
-      GtkWidget *file;
-      GtkWidget *edit;
-      GtkWidget *view;
-      GtkWidget *tool;
+      GimvMenuItem *file;
+      GimvMenuItem *edit;
+      GimvMenuItem *view;
+      GimvMenuItem *tool;
 
-      GtkWidget *dirview;
-      GtkWidget *preview;
-      GtkWidget *menubar;
-      GtkWidget *toolbar;
-      GtkWidget *dir_toolbar;
-      GtkWidget *statusbar;
-      GtkWidget *tab;
-      GtkWidget *preview_tab;
-      GtkWidget *fullscr;
+      GimvMenuItem *dirview;
+      GimvMenuItem *preview;
+      GimvMenuItem *menubar;
+      GimvMenuItem *toolbar;
+      GimvMenuItem *dir_toolbar;
+      GimvMenuItem *statusbar;
+      GimvMenuItem *tab;
+      GimvMenuItem *preview_tab;
+      GimvMenuItem *fullscr;
 
-      GtkWidget *layout[6];
+      GimvMenuItem *layout[6];
 
-      GtkWidget *select;
-      GtkWidget *unselect;
-      GtkWidget *refresh;
-      GtkWidget *reload;
-      GtkWidget *recreate;
+      GimvMenuItem *select;
+      GimvMenuItem *unselect;
+      GimvMenuItem *refresh;
+      GimvMenuItem *reload;
+      GimvMenuItem *recreate;
 
-      GtkWidget *rename;
-      GtkWidget *copy;
-      GtkWidget *move;
-      GtkWidget *link;
-      GtkWidget *delete;
+      GimvMenuItem *rename;
+      GimvMenuItem *copy;
+      GimvMenuItem *move;
+      GimvMenuItem *link;
+      GimvMenuItem *delete;
 
-      GtkWidget *find_sim;
+      GimvMenuItem *find_sim;
 
-      GtkWidget *sort_name;
-      GtkWidget *sort_access;
-      GtkWidget *sort_time;
-      GtkWidget *sort_change;
-      GtkWidget *sort_size;
-      GtkWidget *sort_type;
-      GtkWidget *sort_width, *sort_height, *sort_area;
-      GtkWidget *sort_rev, *sort_case, *sort_dir;
+      GimvMenuItem *sort_name;
+      GimvMenuItem *sort_access;
+      GimvMenuItem *sort_time;
+      GimvMenuItem *sort_change;
+      GimvMenuItem *sort_size;
+      GimvMenuItem *sort_type;
+      GimvMenuItem *sort_width, *sort_height, *sort_area;
+      GimvMenuItem *sort_rev, *sort_case, *sort_dir;
    } menuitem;
 
    struct    /* buttons in toolbar */
@@ -219,10 +220,6 @@ struct GimvThumbWin_Tag
    /* File open dialog */
    GtkWidget *open_dialog;
 
-#ifdef USE_GTK2
-   GSList *accel_group_list;
-#endif
-
    GimvThumbWinPriv *priv;
 };
 
@@ -234,7 +231,7 @@ struct GimvThumbWinClass_Tag
 
 
 GList       *gimv_thumb_win_get_list                  (void);
-GtkType      gimv_thumb_win_get_type                  (void);
+GType      gimv_thumb_win_get_type                  (void);
 
 GtkWidget   *gimv_thumb_win_new                       (void);
 GimvThumbWin
@@ -251,8 +248,10 @@ void         gimv_thumb_win_set_sensitive             (GimvThumbWin   *tw,
                                                        GimvThumbwinStatus status);
 void         gimv_thumb_win_set_tab_label_text        (GtkWidget *page_container,
                                                        const gchar    *title);
+#define GIMV_TAB_STATE_NORMAL  0
+#define GIMV_TAB_STATE_LOADING 1
 void         gimv_thumb_win_set_tab_label_state       (GtkWidget *page_container,
-                                                       GtkStateType    state);
+                                                       gint            state);
 GimvThumbView
             *gimv_thumb_win_create_new_tab            (GimvThumbWin   *tw);
 GtkWidget   *gimv_thumb_win_detach_tab                (GimvThumbWin   *tw_dest,
@@ -285,10 +284,8 @@ void          gimv_thumb_win_save_state               (GimvThumbWin   *tw);
 /* FIXMEEEEEEEEEEEEEEEEEE!! (TOT */
 void         gimv_thumb_win_notebook_drag_src_unset   (GimvThumbWin   *tw);
 void         gimv_thumb_win_notebook_drag_src_reset   (GimvThumbWin   *tw);
-#ifdef USE_GTK2
 void         gimv_thumb_win_remove_key_accel          (GimvThumbWin   *tw);
 void         gimv_thumb_win_reset_key_accel           (GimvThumbWin   *tw);
-#endif /* USE_GTK2 */
 /* END FIXMEEEEEEEEEEEEEEEEEE!! (TOT */
 
 #endif /* __GIMV_THUMB_WIN_H__ */

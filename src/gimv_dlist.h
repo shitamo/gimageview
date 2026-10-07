@@ -29,10 +29,12 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
-#define GIMV_DLIST(obj)         GTK_CHECK_CAST (obj, gimv_dlist_get_type (), GimvDList)
-#define GIMV_DLIST_CLASS(klass) GTK_CHECK_CLASS_CAST (klass, gimv_dlist_get_type, GimvDListClass)
-#define GIMV_IS_DLIST(obj)      GTK_CHECK_TYPE (obj, gimv_dlist_get_type ())
+#define GIMV_DLIST(obj)         G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_dlist_get_type (), GimvDList)
+#define GIMV_DLIST_CLASS(klass) G_TYPE_CHECK_CLASS_CAST (klass, gimv_dlist_get_type, GimvDListClass)
+#define GIMV_IS_DLIST(obj)      G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_dlist_get_type ())
 
 
 typedef struct GimvDList_Tag      GimvDList;
@@ -40,7 +42,7 @@ typedef struct GimvDListClass_Tag GimvDListClass;
 
 
 struct GimvDList_Tag {
-   GtkHBox     parent;
+   GtkBox     parent;
 
    /* public (read only) */
    GtkWidget   *clist1;
@@ -62,7 +64,7 @@ struct GimvDList_Tag {
 
 
 struct GimvDListClass_Tag {
-   GtkHBoxClass parent_class;
+   GtkBoxClass parent_class;
 
 #if 0
    gboolean (*available_list_updated) (GimvDList *dslist); /* need?*/
@@ -76,7 +78,7 @@ struct GimvDListClass_Tag {
  *  "enabled" or "clist2" means right side CList (or TreeView).
  */
 
-GtkType       gimv_dlist_get_type              (void);
+GType       gimv_dlist_get_type              (void);
 
 GtkWidget    *gimv_dlist_new                   (const gchar  *clist1_title,
                                                 const gchar  *clist2_title);

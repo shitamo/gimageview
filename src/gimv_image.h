@@ -28,10 +28,10 @@
 
 
 #define GIMV_TYPE_IMAGE            (gimv_image_get_type ())
-#define GIMV_IMAGE(obj)            (GTK_CHECK_CAST (obj, gimv_image_get_type (), GimvImage))
-#define GIMV_IMAGE_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_image_get_type, GimvImageClass))
-#define GIMV_IS_IMAGE(obj)         (GTK_CHECK_TYPE (obj, gimv_image_get_type ()))
-#define GIMV_IS_IMAGE_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE))
+#define GIMV_IMAGE(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_image_get_type (), GimvImage))
+#define GIMV_IMAGE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_image_get_type (), GimvImageClass))
+#define GIMV_IS_IMAGE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_image_get_type ()))
+#define GIMV_IS_IMAGE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE))
 
 
 typedef struct GimvImage_Tag      GimvImage;
@@ -72,7 +72,7 @@ typedef enum {
 
 struct GimvImage_Tag
 {
-   GtkObject      parent;
+   GimvObject      parent;
 
    gpointer       image;   /* library dependent data */
    GimvImageAngle angle;
@@ -84,11 +84,11 @@ struct GimvImage_Tag
 
 struct GimvImageClass_Tag
 {
-   GtkObjectClass parent_class;
+   GimvObjectClass parent_class;
 };
 
 
-GtkType      gimv_image_get_type             (void);
+GType      gimv_image_get_type             (void);
 
 const gchar *gimv_image_detect_type_by_ext   (const gchar  *str);
 GimvImage   *gimv_image_load_file            (const gchar  *filename,
@@ -100,7 +100,7 @@ GimvImage   *gimv_image_create_from_data     (guchar       *data,
                                               gint          width,
                                               gint          height,
                                               gboolean      alpha);
-GimvImage   *gimv_image_create_from_drawable (GdkDrawable  *drawable,
+GimvImage   *gimv_image_create_from_texture  (GdkTexture   *texture,
                                               gint          x,
                                               gint          y,
                                               gint          width,
@@ -111,10 +111,10 @@ GimvImage   *gimv_image_rotate_180           (GimvImage    *src_image);
 GimvImage   *gimv_image_rotate               (GimvImage    *src_image,
                                               GimvImageAngle abs_angle);
 void         gimv_image_get_pixmap_and_mask  (GimvImage    *image,
-                                              GdkPixmap   **pixmap_return,
-                                              GdkBitmap   **mask_return);
-void         gimv_image_free_pixmap_and_mask (GdkPixmap    *pixmap,
-                                              GdkBitmap    *mask);
+                                              GdkTexture   **pixmap_return,
+                                              GdkTexture   **mask_return);
+void         gimv_image_free_pixmap_and_mask (GdkTexture    *pixmap,
+                                              GdkTexture    *mask);
 gboolean     gimv_image_is_scalable          (GimvImage    *image);
 GimvImage   *gimv_image_scale                (GimvImage    *src_image,
                                               gint          width,
@@ -125,8 +125,8 @@ GimvImage   *gimv_image_scale_down           (GimvImage    *image,
 void         gimv_image_scale_get_pixmap     (GimvImage    *src_image,
                                               gint          width,
                                               gint          height,
-                                              GdkPixmap   **pixmap_return,
-                                              GdkBitmap   **mask_return);
+                                              GdkTexture   **pixmap_return,
+                                              GdkTexture   **mask_return);
 void         gimv_image_get_size             (GimvImage    *image,
                                               gint         *width,
                                               gint         *height);

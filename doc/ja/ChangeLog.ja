@@ -4,62 +4,62 @@
 
 2004-12-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_thumb_win.[ch], po/ja.po: б╓е╣ещеде╔е╖ечб╝еке╫е╖ечеєб╫дЄ─╔▓├
+	* src/gimv_thumb_win.[ch], po/ja.po: уАМуВ╣уГйуВдуГЙуВ╖уГзуГ╝уВкуГЧуВ╖уГзуГ│уАНуВТш┐╜хКа
 
 2004-12-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_image_win.c: е╣ещеде╔е╖ечб╝д╟бд╕╜║▀д╬е╒ебедеыдм╞░▓шд╟║╞└╕├цд╬
-	╛ь╣чд╧╝бд╬е╒ебедеыд╪░▄╞░д╖д╩дддшджд╦д╖д┐бе
-	д│д╬е╤е├е┴д╧Christian Hammers <lathspell@users.sourceforge.net>д╡дєдм
-	┤є┬гд╖д╞дпдьд▐д╖д┐бедвдъдмд╚дж!
+	* src/gimv_image_win.c: уВ╣уГйуВдуГЙуВ╖уГзуГ╝уБзя╝МчП╛хЬиуБоуГХуВбуВдуГлуБМхЛХчФ╗уБзхЖНчФЯф╕нуБо
+	ха┤хРИуБпцмбуБоуГХуВбуВдуГлуБ╕чз╗хЛХуБЧуБкуБДуВИуБЖуБлуБЧуБЯя╝О
+	уБУуБоуГСуГГуГБуБпChristian Hammers <lathspell@users.sourceforge.net>уБХуВУуБМ
+	хпДш┤ИуБЧуБжуБПуВМуБ╛уБЧуБЯя╝ОуБВуВКуБМуБиуБЖ!
 
 2004-12-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_thumb_win.c: ещеєе└ер╜чд╬е╣ещеде╔е╖ечб╝дЄ─╔▓├.
-	д│д╬е╤е├е┴д╧Christian Hammers <lathspell@users.sourceforge.net>д╡дєдм
-	┤є┬гд╖д╞дпдьд▐д╖д┐бедвдъдмд╚дж!
+	* src/gimv_thumb_win.c: уГйуГ│уГАуГащаЖуБоуВ╣уГйуВдуГЙуВ╖уГзуГ╝уВТш┐╜хКа.
+	уБУуБоуГСуГГуГБуБпChristian Hammers <lathspell@users.sourceforge.net>уБХуВУуБМ
+	хпДш┤ИуБЧуБжуБПуВМуБ╛уБЧуБЯя╝ОуБВуВКуБМуБиуБЖ!
 
 2004-12-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dirview2.c: ┴к┬Єе╟егеьепе╚еъдме╙ехб╝╞тд╦двды╛ь╣чд╧е╟егеьепе╚еъе╙ех
-	б╝дЄ╝л╞░┼кд╦е╣епеэб╝еыд╖д╩дддшджд╦д╖д┐
+	* src/dirview2.c: щБ╕цКЮуГЗуВгуГмуВпуГИуГкуБМуГУуГеуГ╝хЖЕуБлуБВуВЛха┤хРИуБпуГЗуВгуГмуВпуГИуГкуГУуГе
+	уГ╝уВТшЗкхЛХчЪДуБлуВ╣уВпуГнуГ╝уГлуБЧуБкуБДуВИуБЖуБлуБЧуБЯ
 	Thank you for your suggestion! > sholmif
 
 2004-12-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_image_view.c: ╞▒д╕е╒ебедеыдм╞▒д╕е╡ере═едеые╙ехб╝д╦▓┐┼┘дт╜╨╕╜
-	д╣дые╨е░дЄ╜д└╡ (Bug #1073316 Thanks reporting > shlomif).
+	* src/gimv_image_view.c: хРМуБШуГХуВбуВдуГлуБМхРМуБШуВ╡уГауГНуВдуГлуГУуГеуГ╝уБлф╜Хх║жуВВхЗ║чП╛
+	уБЩуВЛуГРуВ░уВТф┐оцнг (Bug #1073316 Thanks reporting > shlomif).
 
 2004-12-20 Takuro Ashie <ashie@homa.ne.jp>
 
 	* plugins/archiver/tar-ext.c, plugins/archiver/zip-ext.c:
-	▓Є┼рд╣дые╒ебедеыд╬е╤е╣дЄеие╣е▒б╝е╫д╣дыдшджд╦д╖д┐
+	шзгхЗНуБЩуВЛуГХуВбуВдуГлуБоуГСуВ╣уВТуВиуВ╣уВ▒уГ╝уГЧуБЩуВЛуВИуБЖуБлуБЧуБЯ
 	(Bug #908528 & #1074746. Thanks reporting > magnade and nobody)	
 
 2004-10-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_dupl_finder.c: д╣д▐дєбд╗╚дже╧е├е╖ех┤╪┐Ї┤╓░удид╞д┐...
+	* src/gimv_dupl_finder.c: уБЩуБ╛уВУя╝Мф╜┐уБЖуГПуГГуВ╖уГещЦвцХ░щЦУщБХуБИуБжуБЯ...
 
 2004-10-04 Takuro Ashie <ashie@homa.ne.jp>
 
 	* plugins/image_view/Makefile.am, plugins/image_view/image_view_xine.c:
 	  plugins/image_view/xine_image_loader.[ch],
 	  plugins/image_view/prefs_xine.[ch], po/ja.po:
-	Xine▓ш┴№еэб╝е└дЄ─╔▓├
-	* plugins/image_view/prefs_mplayer.c: е│есеєе╚дЄ╜д└╡
+	XineчФ╗хГПуГнуГ╝уГАуВТш┐╜хКа
+	* plugins/image_view/prefs_mplayer.c: уВ│уГбуГ│уГИуВТф┐оцнг
 
 2004-10-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* plugins/image_view/gimv_xine_priv.c: ╞░▓ше╡ере═едеы║ю└о╗■д╬епеще├е╖ех
-	е╨е░дЄ╜д└╡
+	* plugins/image_view/gimv_xine_priv.c: хЛХчФ╗уВ╡уГауГНуВдуГлф╜ЬцИРцЩВуБоуВпуГйуГГуВ╖уГе
+	уГРуВ░уВТф┐оцнг
 
 2004-10-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_image_win.c: б╓е║б╝ерб╫└▀─ъдмб╓╩╤╣╣д╖д╩ддб╫д╦└▀─ъд╡дьд╞дддыд╚
-	днд╦б╓╝л╞░┼кд╦▓ш┴№д╬е╡еде║д╦╣чдяд╗дыб╫╡б╟╜дм└╡д╖дп╞░║юд╖д╞ддд╩длд├д┐д╬дЄ
-	╜д└╡
-	* src/gtkutils.c: ╛х╜ёдн│╬╟зе└едевеэе░д╬едесб╝е╕е╙ехб╝д╬╝л╞░е╣е▒б╝еы╡б╟╜
-	дм└╡д╖дп╞░║юд╖д╞ддд╩длд├д┐д╬дЄ╜д└╡
+	* src/gimv_image_win.c: уАМуВ║уГ╝уГауАНшинхоЪуБМуАМхдЙцЫ┤уБЧуБкуБДуАНуБлшинхоЪуБХуВМуБжуБДуВЛуБи
+	уБНуБлуАМшЗкхЛХчЪДуБлчФ╗хГПуБоуВ╡уВдуВ║уБлхРИуВПуБЫуВЛуАНцйЯшГ╜уБМцнгуБЧуБПхЛХф╜ЬуБЧуБжуБДуБкуБЛуБгуБЯуБоуВТ
+	ф┐оцнг
+	* src/gtkutils.c: ф╕КцЫ╕уБНчв║шкНуГАуВдуВвуГнуВ░уБоуВдуГбуГ╝уВ╕уГУуГеуГ╝уБошЗкхЛХуВ╣уВ▒уГ╝уГлцйЯшГ╜
+	уБМцнгуБЧуБПхЛХф╜ЬуБЧуБжуБДуБкуБЛуБгуБЯуБоуВТф┐оцнг
 
 2004-09-29 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -67,42 +67,42 @@
 
 2004-09-29 Takuro Ashie <ashie@homa.ne.jp>
 
-        * po/ja.po, src/help.c: "Special Thanks"дЄ╣╣┐╖
+        * po/ja.po, src/help.c: "Special Thanks"уВТцЫ┤цЦ░
 
 22004-09-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_image_win.c: gtk_object_class_add_signals()дЄ─╔▓├
-	* src/gimv_thumb_view.c: GListд╬╟╦▓їд╬д┐дсд╦g_list_foreach()дЄ╗╚═╤д╖д╞
-	ддд┐д╬дЄ╜д└╡
+	* src/gimv_image_win.c: gtk_object_class_add_signals()уВТш┐╜хКа
+	* src/gimv_thumb_view.c: GListуБоча┤хгКуБоуБЯуВБуБлg_list_foreach()уВТф╜┐чФиуБЧуБж
+	уБДуБЯуБоуВТф┐оцнг
 
 2004-09-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_thumb_view.c: е╜б╝е╚дм▓їдьд╞ддд┐д╬дЄ╜д└╡
+	* src/gimv_thumb_view.c: уВ╜уГ╝уГИуБМхгКуВМуБжуБДуБЯуБоуВТф┐оцнг
 
 2004-09-29 Takuro Ashie <ashie@homa.ne.jp>
 
 	* po/ja.po, src/gimv_image_view, src/gimv_image_win.c:
-	▓є┼╛еще┘еы╩╕╗·╬єдЄ╩╤╣╣(б╓╚┐╗■╖╫▓єдъб╫д╚б╓╗■╖╫▓єдъб╫)
-	* src/prefs.c: е╟е╒ейеые╚д╬е║б╝ере┐еде╫дЄ╜д└╡
+	хЫЮш╗вуГйуГЩуГлцЦЗхнЧхИЧуВТхдЙцЫ┤(уАМхПНцЩВшиИхЫЮуВКуАНуБиуАМцЩВшиИхЫЮуВКуАН)
+	* src/prefs.c: уГЗуГХуВйуГлуГИуБоуВ║уГ╝уГауВ┐уВдуГЧуВТф┐оцнг
 
 2004-09-29 Takuro Ashie <ashie@homa.ne.jp>
 
 	* po/ja.po, src/gimv_image_view.c, src/prefs_ui//prefs_ui_etc.c,
 	  src/prefs_ui/prefs_ui_imagewin.c, src/prefs_ui/prefs_ui_thumbwin.c:
-	е╟е╒ейеые╚е║б╝ер & ▓є┼╛д╦б╓╩╤╣╣д╖д╩ддб╫дЄ─╔▓├
+	уГЗуГХуВйуГлуГИуВ║уГ╝уГа & хЫЮш╗вуБлуАМхдЙцЫ┤уБЧуБкуБДуАНуВТш┐╜хКа
 
 2004-09-28 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/plugins/rar-ext.c, src/plugins/zip-ext.c:
-	е│е▀е├епевб╝еледе╓═╤д╦ ".cbr" ╡┌д╙ ".cbz" │╚─е╗╥дЄ─╔▓├
+	уВ│уГЯуГГуВпуВвуГ╝уВлуВдуГЦчФиуБл ".cbr" хПКуБ│ ".cbz" цЛбх╝╡хнРуВТш┐╜хКа
 
 2004-09-22 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/exif_view.c, src/gimv_comment_view.c, src/gimv_dlist.c,
 	  src/gimv_elist.c, src/gimv_prefs_win.c, src/help.c,
 	  src/prefs_ui/prefs_ui_plugin.c:
-	Gtk+-1.2д╟е│еєе╤едеыд╣дыд╚днд╦gtk_scrolled_window_set_shadow_type()дЄ
-	║я╜№д╣дыдшджд╦д╖д┐бе
+	Gtk+-1.2уБзуВ│уГ│уГСуВдуГлуБЩуВЛуБиуБНуБлgtk_scrolled_window_set_shadow_type()уВТ
+	хЙКщЩдуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2004-09-22 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -110,63 +110,63 @@
 	  src/gimv_slideshow.c, src/gimv_thumb_win.c, src/gtkutils.c,
 	  src/prefs.[ch], src/prefs_ui/prefs_ui_etc.c,
 	  src/prefs_ui/prefs_ui_imagewin.c, src/prefs_ui/prefs_ui_thumbwin.c:
-	б╓ежегеєе╔ежд╬┬чднд╡д╦╣чдяд╗дыб╫╡б╟╜дЄ▓■┴▒бе
-	е╤е├е┴─є╢бд╦┤╢╝╒ > Brent Baccala <baccala@users.sourceforge.net>д╡дє
+	уАМуВжуВгуГ│уГЙуВжуБохдзуБНуБХуБлхРИуВПуБЫуВЛуАНцйЯшГ╜уВТцФ╣хЦДя╝О
+	уГСуГГуГБцПРф╛ЫуБлцДЯшмЭ > Brent Baccala <baccala@users.sourceforge.net>уБХуВУ
 
 	* plugins/image_view/prefs_mplayer.c, plugins/image_view/prefs_xine.c,
 	  po/fr.po, po/ja.po, src/dirview2.c, src/exif_view.c,
 	  src/gimv_comment_view.c, src/gimv_dlist.c, src/gimv_elist.c,
 	  src/gimv_prefs_win.c:
-	┤Ўд─длд╬└▀─ъе┌б╝е╕д╬еьедевеже╚дЄ└░═¤бее╖еуе╔еже┐еде╫дЄ╩╤╣╣бе
+	х╣╛уБдуБЛуБошинхоЪуГЪуГ╝уВ╕уБоуГмуВдуВвуВжуГИуВТцХ┤чРЖя╝ОуВ╖уГгуГЙуВжуВ┐уВдуГЧуВТхдЙцЫ┤я╝О
 
 2004-09-21 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/prefs_ui/prefs_ui_imagewin.c: The bug that
-	float├═д╦┬╨д╖д╞gtkutil_get_data_from_adjustment_by_int_cbдЄ╗╚═╤д╖д╞ддд┐
-	д╬дЄ╜д└╡бе
-	д┤╩є╣Ёд╦┤╢╝╒ > Brent Baccala <baccala@users.sourceforge.net>д╡дє
+	floatхАдуБлхп╛уБЧуБжgtkutil_get_data_from_adjustment_by_int_cbуВТф╜┐чФиуБЧуБжуБДуБЯ
+	уБоуВТф┐оцнгя╝О
+	уБФха▒хСКуБлцДЯшмЭ > Brent Baccala <baccala@users.sourceforge.net>уБХуВУ
 
 2004-09-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* po/fr.po, po/ja.po, src/argparse.c, src/gimv_image_view.c: typoдЄ╜д└╡
-	д┤╩є╣Ёд╦┤╢╝╒ > Brent Baccala <baccala@users.sourceforge.net>д╡дє
+	* po/fr.po, po/ja.po, src/argparse.c, src/gimv_image_view.c: typoуВТф┐оцнг
+	уБФха▒хСКуБлцДЯшмЭ > Brent Baccala <baccala@users.sourceforge.net>уБХуВУ
 
-	* src/gimv_image_view.c: б╓еве╣е┌епе╚дЄ╩▌╗¤б╫д╦е┴езе├епдм╞■д├д╞ддды╗■д╦
-	б╓ежегеєе╔ежд╬┬чднд╡д╦╣чдяд╗дыб╫дм└╡д╖дп╞░║юд╖д╞ддд╩длд├д┐д╬дЄ╜д└╡
-	д┤╩є╣Ёд╦┤╢╝╒ > Brent Baccala <baccala@users.sourceforge.net>д╡дє
+	* src/gimv_image_view.c: уАМуВвуВ╣уГЪуВпуГИуВТф┐ЭцМБуАНуБлуГБуВзуГГуВпуБМхЕеуБгуБжуБДуВЛцЩВуБл
+	уАМуВжуВгуГ│уГЙуВжуБохдзуБНуБХуБлхРИуВПуБЫуВЛуАНуБМцнгуБЧуБПхЛХф╜ЬуБЧуБжуБДуБкуБЛуБгуБЯуБоуВТф┐оцнг
+	уБФха▒хСКуБлцДЯшмЭ > Brent Baccala <baccala@users.sourceforge.net>уБХуВУ
 
 2004-09-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ┬┐дпд╬е│еєе╤едеы╗■д╬╖┘╣ЁдЄ╜д└╡
+	* хдЪуБПуБоуВ│уГ│уГСуВдуГлцЩВуБошнжхСКуВТф┐оцнг
 	* src/dirview2.c, plugin/thumbnail_view/detailview2.c:
-	е╗еьепе╖ечеєдм╩╤▓╜д╣дыд╬дЄ╦╔д░д┐дсбдб╓scroll-eventб╫д╟
-	б╓button-press-eventб╫дфб╓button-release-eventб╫дЄеие▀ехеьб╝е╚д╣дыд╬дЄ
-	╟╤╗▀д╖д┐
+	уВ╗уГмуВпуВ╖уГзуГ│уБМхдЙхМЦуБЩуВЛуБоуВТщШ▓уБРуБЯуВБя╝МуАМscroll-eventуАНуБз
+	уАМbutton-press-eventуАНуВДуАМbutton-release-eventуАНуВТуВиуГЯуГеуГмуГ╝уГИуБЩуВЛуБоуВТ
+	х╗ГцнвуБЧуБЯ
 
 2004-08-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gimageview.spec.in: ║╟┐╖д╬RPMд╟еъе╙еые╔д╦╝║╟╘д╣дыд╬дЄ╜д└╡
-	д█╩є╣Ёд╦┤╢╝╒ > Yukichi <shfukuzawa@jcom.home.ne.jp>д╡дє
+	* gimageview.spec.in: цЬАцЦ░уБоRPMуБзуГкуГУуГлуГЙуБлхд▒цХЧуБЩуВЛуБоуВТф┐оцнг
+	уБ╗ха▒хСКуБлцДЯшмЭ > Yukichi <shfukuzawa@jcom.home.ne.jp>уБХуВУ
 
 2004-08-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* po/ja.po: ╣╣┐╖
+	* po/ja.po: цЫ┤цЦ░
 
 2004-07-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_thumb_view.c: ┴░▓єд╬╜д└╡д╟еиеєе╨е░д╖д╞ддд┐д╬дЄ╜д└╡
-	* src/thumbnail_view_album.c: ║┘длдд╜д└╡
+	* src/gimv_thumb_view.c: хЙНхЫЮуБоф┐оцнгуБзуВиуГ│уГРуВ░уБЧуБжуБДуБЯуБоуВТф┐оцнг
+	* src/thumbnail_view_album.c: ч┤░уБЛуБДф┐оцнг
 
 2004-07-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_thumb_view.c: е╡ере═едеыд╬е╜б╝е╞егеєе░дм▓їдьд╞ддд┐д╬дЄ╜д└╡
+	* src/gimv_thumb_view.c: уВ╡уГауГНуВдуГлуБоуВ╜уГ╝уГЖуВгуГ│уВ░уБМхгКуВМуБжуБДуБЯуБоуВТф┐оцнг
 
 2004-06-22 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/dirview.h, src/dirview.c, src/dirview2.c:
-	║о═Ёд╣дыд┐дсбдDirViewд╬б╓windowб╫есеєе╨дЄ╟╤╗▀беDirViewдлдщ╡п╞░д╡дьдые╞ен
-	е╣е╚еиеєе╚еъе└едевеэе░дЄе╚е├е╫еье┘еыежегеєе╔ежд╬transientд╚д╩дыдшджд╦д╖
-	д┐бе╕ц╩є╣Ёд╦┤╢╝╒ > ten10д╡дє
+	ц╖╖ф╣▒уБЩуВЛуБЯуВБя╝МDirViewуБоуАМwindowуАНуГбуГ│уГРуВТх╗Гцнвя╝ОDirViewуБЛуВЙш╡╖хЛХуБХуВМуВЛуГЖуВн
+	уВ╣уГИуВиуГ│уГИуГкуГАуВдуВвуГнуВ░уВТуГИуГГуГЧуГмуГЩуГлуВжуВгуГ│уГЙуВжуБоtransientуБиуБкуВЛуВИуБЖуБлуБЧ
+	уБЯя╝Ох╛бха▒хСКуБлцДЯшмЭ > ten10уБХуВУ
 
 2004-06-21 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -175,27 +175,27 @@
 
 2004-06-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/fileload.c: ║╟┐╖д╬Gtk+2д╟д╧епеще├е╖ехдЄ░·дн╡пд│д╣д┐дсбдб╓Cancelб╫
-	еще┘еыдЄб╓Closeб╫еще┘еыд╦╩╤╣╣д╣дые│б╝е╔дЄ╟╤╗▀д╖д┐
+	* src/fileload.c: цЬАцЦ░уБоGtk+2уБзуБпуВпуГйуГГуВ╖уГеуВТх╝ХуБНш╡╖уБУуБЩуБЯуВБя╝МуАМCancelуАН
+	уГйуГЩуГлуВТуАМCloseуАНуГйуГЩуГлуБлхдЙцЫ┤уБЩуВЛуВ│уГ╝уГЙуВТх╗ГцнвуБЧуБЯ
 
 2004-05-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dirview2: Gtk+-2.4д╟д╬е│еєе╤едеы═╤д╦бдGTK_DISABLE_DEPRECATEDдЄ║я╜№
+	* src/dirview2: Gtk+-2.4уБзуБоуВ│уГ│уГСуВдуГлчФиуБля╝МGTK_DISABLE_DEPRECATEDуВТхЙКщЩд
 
 2004-05-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_zlist.c: ежеге╕езе├е╚дмmapд╡дьд┐╗■д╦╞т═╞дЄ╣╣┐╖д╣дыдшджд╦д╖д┐
+	* src/gimv_zlist.c: уВжуВгуВ╕уВзуГГуГИуБМmapуБХуВМуБЯцЩВуБлхЖЕхо╣уВТцЫ┤цЦ░уБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2004-05-23 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/gimv_zalbum.c, src/gimv_zalbum.h, src/thumbnail_view_album.c:
-	есетеъб╝еъб╝епдЄ╜д└╡
+	уГбуГвуГкуГ╝уГкуГ╝уВпуВТф┐оцнг
 
 2004-04-11 Takuro Ashie <ashie@homa.ne.jp>
 
 	* plugins/thumbnail_view/detailview.c, src/dirview.c, src/dirview2.c,
 	  src/fileload.[ch], src/gimv_thumb_view.[ch], src/gimv_thumb_win.[ch]:
-	GimvThumbViewд╬APIдЄд╡дщд╦└░═¤
+	GimvThumbViewуБоAPIуВТуБХуВЙуБлцХ┤чРЖ
 
 2004-04-11 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -206,28 +206,28 @@
 	  plugins/thumbnail_view/detailview2.c,
 	  src/gimv_thumb_view.[ch], src/gimv_thumb_win.[ch], src/prefs.c,
 	  src/prefs_ui/prefs_ui_thumbwin.c:
-	GimvThumbViewд╬┬┐дпд╬API╡┌д╙╞т╔Ї╡є╞░дЄ└░═¤	
+	GimvThumbViewуБохдЪуБПуБоAPIхПКуБ│хЖЕщГицМЩхЛХуВТцХ┤чРЖ	
 
 2004-04-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_zlist.h: едеєе╟еєе╚дЄ╜д└╡
+	* src/gimv_zlist.h: уВдуГ│уГЗуГ│уГИуВТф┐оцнг
 
 2004-04-11 Takuro Ashie <ashie@homa.ne.jp>
 
 	* plugins/thumbnail_view/detailview.[ch],
 	  plugins/thumbnail_view/detailview2.c,
 	  src/gimv_thumb_view.[ch], src/thumbnail_view_album.c:
-	GimvThumbViewPluginд╬APIдЄ└░═¤
+	GimvThumbViewPluginуБоAPIуВТцХ┤чРЖ
 
 2004-04-10 Takuro Ashie <ashie@homa.ne.jp>
 
 	* plugins/thumbnail_view/detailview.c, src/gimv_thumb_view.[ch],
 	  src/gimv_thumb_win.c, src/thumbnail_view_album.c:
-	б╓resizeб╫▓╛┴█┤╪┐ЇдЄ║я╜№
+	уАМresizeуАНф╗оцГ│щЦвцХ░уВТхЙКщЩд
 
 2004-04-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dirview2.c: е╗е╤еьб╝е┐б╝д╪д╬е╒ебедеые╔еэе├е╫дЄ═▐└й
+	* src/dirview2.c: уВ╗уГСуГмуГ╝уВ┐уГ╝уБ╕уБоуГХуВбуВдуГлуГЙуГнуГГуГЧуВТцКСхИ╢
 
 2004-04-10 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -235,18 +235,18 @@
 	  src/plugins/icon_widget.[ch], src/plugins/listview.c.[ch],
 	  src/plugins/listview_prefs.[ch], src/plugins/thumbtable.[ch],
 	  src/plugins/thumbtable_prefs.[ch]:
-	╕┼дд╝┬┴їдЄ║я╜№
+	хПдуБДхоЯшгЕуВТхЙКщЩд
 
 2004-04-10 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/gimv_thumb_view.[ch], src/gimv_thumb_win.c:
-	GimvThumbViewд╬есеєе╨б╝д╬дддпд─длдЄGimvThumbViewPrivд╦░▄╞░
+	GimvThumbViewуБоуГбуГ│уГРуГ╝уБоуБДуБПуБдуБЛуВТGimvThumbViewPrivуБлчз╗хЛХ
 
 2004-04-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_thumb_view.c: ╕эд├д┐╖┐е┴езе├епдЄ╜д└╡
-	* src/gimv_thumb_win.c: е╡ере═едеыежегеєе╔ежд╬еьедевеже╚╩╤╣╣╗■д╦дддпд─дл
-	д╬еке╓е╕езепе╚д╬╖┐е┴езе├епдЄ╣╘дждшджд╦д╖д┐
+	* src/gimv_thumb_view.c: шкдуБгуБЯхЮЛуГБуВзуГГуВпуВТф┐оцнг
+	* src/gimv_thumb_win.c: уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБоуГмуВдуВвуВжуГИхдЙцЫ┤цЩВуБлуБДуБПуБдуБЛ
+	уБоуВкуГЦуВ╕уВзуВпуГИуБохЮЛуГБуВзуГГуВпуВТшбМуБЖуВИуБЖуБлуБЧуБЯ
 
 2004-04-10 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -255,8 +255,8 @@
 	  plugins/thumbnail_view/listview.[ch],
 	  plugins/thumbnail_view/thumbtable.[ch],
 	  src/gimv_dupl_win.h, src/gimv_thumb_view.[ch]:
-	дддпд─длд╬APIдЄбд║╟╜щд╬░·┐Їд╟GimvThumbViewдЄ╝їд▒╝шдыдшджд╦╩╤╣╣бе
-	д╜д╬┬╛║┘длдд╜д└╡бе
+	уБДуБПуБдуБЛуБоAPIуВТя╝МцЬАхИЭуБох╝ХцХ░уБзGimvThumbViewуВТхПЧуБСхПЦуВЛуВИуБЖуБлхдЙцЫ┤я╝О
+	уБЭуБоф╗Цч┤░уБЛуБДф┐оцнгя╝О
 
 2004-04-09 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -279,25 +279,25 @@
 	  src/gimv_thumb_view.[ch],
 	  src/gimv_thumb_win.c,
 	  src/thumbnail_view_album.c:
-	GimvThumbViewдЄGtkObject▓╜
+	GimvThumbViewуВТGtkObjectхМЦ
 
 2004-04-08 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/gimv_image_view.h, src/gimv_thumb_view.h:
-	е╫еще░едеєедеєе┐б╝е╒езб╝е╣е╨б╝е╕ечеєдЄ╛хд▓бдедеєе╟еєе╚дЄ╜д└╡
+	уГЧуГйуВ░уВдуГ│уВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уГРуГ╝уВ╕уГзуГ│уВТф╕КуБТя╝МуВдуГ│уГЗуГ│уГИуВТф┐оцнг
 	* src/gimv_thumb_view.c, src/prefs_ui/prefs_ui_thumbwin.c:
-	║┘длдд╜д└╡
+	ч┤░уБЛуБДф┐оцнг
 
 2004-04-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_view.[ch]: ║я╜№
+	* src/thumbnail_view.[ch]: хЙКщЩд
 	* plugins/thumbnail_view/detailview.[ch],
 	  plugins/thumbnail_view/listview.[ch],
 	  plugins/thumbnail_view/thumbtable.[ch],
 	  src/Makefile.am, src/dnd.c, src/fileload.c, src/gimv_dupl_win.h,
 	  src/gimv_thumb.c, src/gimv_thumb_view.[ch], src/gimv_thumb_win.[ch],
 	  src/thumbnail_view_albubum.c, src/prefs_ui/prefs_ui_thumbwin.c:
-	src/thumbnail_view.[ch]дЄsrc/gimv_thumb_view.[ch]д╦╩╤╣╣
+	src/thumbnail_view.[ch]уВТsrc/gimv_thumb_view.[ch]уБлхдЙцЫ┤
 
 2004-04-08 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -312,12 +312,12 @@
 	  src/gimv_dupl_win.[ch], src/gimv_plugin.c, src/gimv_thumb.[ch],
 	  src/gimv_thumb_win.[ch], src/thumbnail_view.[ch],
 	  src/thumbnail_view_album.c, src/prefs_ui/prefs_ui_thumbwin.c:
-	ThumbViewд╦б╓Gimvб╫е╫еье╒еге├епе╣дЄ─╔▓├
+	ThumbViewуБлуАМGimvуАНуГЧуГмуГХуВгуГГуВпуВ╣уВТш┐╜хКа
 
 2004-04-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_view.c: б╓thumb->selected == selectб╫д╬дшджд╩╝░д╧┤э╕▒
-	(TRUEд╬╛ь╣ч)д╩д╬д╟╜д└╡
+	* src/thumbnail_view.c: уАМthumb->selected == selectуАНуБоуВИуБЖуБкх╝ПуБпхН▒щЩ║
+	(TRUEуБоха┤хРИ)уБкуБоуБзф┐оцнг
 
 2004-04-08 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -332,49 +332,49 @@
 	  src/compare_md5.c, src/compare_similar.c, src/gfileutil.c,
 	  src/gimv_dupl_finder.c, src/gimv_dupl_win.c, src/gimv_thumb.[ch],
 	  src/thumbnail_view.[ch]:
-	GimvThumbдЄGtkObject▓╜
+	GimvThumbуВТGtkObjectхМЦ
 
 2004-04-07 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/gimv_image_win.c:
-	д┤дсдєд╩д╡ддбд┴░▓єд╬╩╤╣╣д╧д╚д╞д─дтд╩дп┤╓░уд├д╞д▐д╖д┐...
+	уБФуВБуВУуБкуБХуБДя╝МхЙНхЫЮуБохдЙцЫ┤уБпуБиуБжуБдуВВуБкуБПщЦУщБХуБгуБжуБ╛уБЧуБЯ...
 
 2004-04-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_image_win.c: е╣ещеде╔е╖ечб╝д╬▓ш┴№└┌дъ┬╪ди┤╓│╓дм0д╬╛ь╣чд╧бв
-	▓ш┴№дЄ╝л╞░┼кд╦└┌дъ┬╪дид╩дддшджд╦д╖д┐ (Debian bug #219213).
-	еье▌б╝е╚двдъдмд╚дж! > Sudarshan Koushik <nsud@lycos.com>д╡дє
+	* src/gimv_image_win.c: уВ╣уГйуВдуГЙуВ╖уГзуГ╝уБочФ╗хГПхИЗуВКцЫ┐уБИщЦУщЪФуБМ0уБоха┤хРИуБпуАБ
+	чФ╗хГПуВТшЗкхЛХчЪДуБлхИЗуВКцЫ┐уБИуБкуБДуВИуБЖуБлуБЧуБЯ (Debian bug #219213).
+	уГмуГЭуГ╝уГИуБВуВКуБМуБиуБЖ! > Sudarshan Koushik <nsud@lycos.com>уБХуВУ
 
 2004-04-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_thumb_win.c: б╓▓ш┴№║я╜№б╫═╤д╬е█е├е╚енб╝дЄ─╔▓├
+	* src/gimv_thumb_win.c: уАМчФ╗хГПхЙКщЩдуАНчФиуБоуГЫуГГуГИуВнуГ╝уВТш┐╜хКа
 	(Debian bug #198178).
-	еье▌б╝е╚двдъдмд╚дж! > Christian Hammers <ch@debian.org>д╡дє
+	уГмуГЭуГ╝уГИуБВуВКуБМуБиуБЖ! > Christian Hammers <ch@debian.org>уБХуВУ
 
 2004-03-20 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/gimv_prefs_win.c:
-	Gkt+2д╟е│еєе╤едеыд╖д┐╛ь╣чд╬OKе▄е┐еєд╬░╠├╓дЄ╩╤╣╣
+	Gkt+2уБзуВ│уГ│уГСуВдуГлуБЧуБЯха┤хРИуБоOKуГЬуВ┐уГ│уБоф╜Нч╜оуВТхдЙцЫ┤
 
 2004-03-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╣ещеде╔е╖ечб╝д╟д╬▓ш┴№│╚┬ч╬ид╬└▀─ъдЄ─╔▓├
+	* уВ╣уГйуВдуГЙуВ╖уГзуГ╝уБзуБочФ╗хГПцЛбхдзчОЗуБошинхоЪуВТш┐╜хКа
 
 2004-03-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GimvImageWinдлдщEXIFе╙ехб╝дЄ│лд▒дыдшджд╦д╖д┐
+	* GimvImageWinуБЛуВЙEXIFуГУуГеуГ╝уВТщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯ
 
 2004-03-07 Takuro Ashie <ashie@homa.ne.jp>
 
 	* configure.in
 	* lib/dllloader/pe_image.c:
-	asm/ldt.h╞тд╬user_descдЄе┴езе├епд╣дыдшджд╦д╖д┐
+	asm/ldt.hхЖЕуБоuser_descуВТуГБуВзуГГуВпуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2004-03-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	*"GtkType"д╬┬хдядъд╦"guint"дЄ╗╚═╤д╖д╞ддд┐▓╒╜ъдЄ╜д└╡
-	(sizeof(guint)д╚sizeof(GtkType)д╧┤─╢нд╦дшд├д╞е╡еде║дм░█д╩ды)
-	Tomoya TAKA <tomoya@olive.plala.or.jp>д╡дєThanks!
+	*"GtkType"уБоф╗гуВПуВКуБл"guint"уВТф╜┐чФиуБЧуБжуБДуБЯчоЗцЙАуВТф┐оцнг
+	(sizeof(guint)уБиsizeof(GtkType)уБпчТ░хвГуБлуВИуБгуБжуВ╡уВдуВ║уБМчХ░уБкуВЛ)
+	Tomoya TAKA <tomoya@olive.plala.or.jp>уБХуВУThanks!
 
 2004-02-29 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -382,33 +382,33 @@
 
 2004-02-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-1.2д╟д╬е│еєе╤едеыеиещб╝дЄ╜д└╡
+	* Gtk+-1.2уБзуБоуВ│уГ│уГСуВдуГлуВиуГйуГ╝уВТф┐оцнг
 
 2004-02-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Xineramaе╡е▌б╝е╚дЄ─╔▓├
+	* XineramaуВ╡уГЭуГ╝уГИуВТш┐╜хКа
 
 2004-02-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ▓ш┴№▓є┼╛еще┘еыдЄ╩╤╣╣(270┼┘дЄ-90┼┘д╪)
+	* чФ╗хГПхЫЮш╗вуГйуГЩуГлуВТхдЙцЫ┤(270х║жуВТ-90х║жуБ╕)
 
 2004-02-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MPlayerе╡е▌б╝е╚дЄ║╟┐╖д╬MPlayerд╦╣чдяд╗д╞╜д└╡бе
-	(д┤╩є╣Ёд╦┤╢╝╒ > tkunze <tkunze@users.sourceforge.net> д╡дє)
+	* MPlayerуВ╡уГЭуГ╝уГИуВТцЬАцЦ░уБоMPlayerуБлхРИуВПуБЫуБжф┐оцнгя╝О
+	(уБФха▒хСКуБлцДЯшмЭ > tkunze <tkunze@users.sourceforge.net> уБХуВУ)
 
 2004-02-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GimvPrefsдЄ╝┬┴їбе
+	* GimvPrefsуВТхоЯшгЕя╝О
 
 2003-09-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│есеєе╚е╙ехб╝д╬е╣епеэб╝еыежегеєе╔ежд╬е▌еъе╖б╝дЄ GTK_POLICY_AUTOMATIC
-	д╦╩╤╣╣бе
-	* ┴к┬Єе╒ебедеыдм╩╤╣╣д╡дьд┐д╚днд╦бде│есеєе╚еъе╣е╚д╬║╟╜щд╬еведе╞ердЄе╒ейб╝
-	еле╣д╣дыдшджд╦д╖д┐бе
-	* е│есеєе╚енб╝д╬typoдЄ╜д└╡бе
-	(д┤╩є╣Ёд╦┤╢╝╒ > дфд▐д└двдндщ <akira@arika.org> д╡дє)
+	* уВ│уГбуГ│уГИуГУуГеуГ╝уБоуВ╣уВпуГнуГ╝уГлуВжуВгуГ│уГЙуВжуБоуГЭуГкуВ╖уГ╝уВТ GTK_POLICY_AUTOMATIC
+	уБлхдЙцЫ┤я╝О
+	* щБ╕цКЮуГХуВбуВдуГлуБМхдЙцЫ┤уБХуВМуБЯуБиуБНуБля╝МуВ│уГбуГ│уГИуГкуВ╣уГИуБоцЬАхИЭуБоуВвуВдуГЖуГауВТуГХуВйуГ╝
+	уВлуВ╣уБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уВ│уГбуГ│уГИуВнуГ╝уБоtypoуВТф┐оцнгя╝О
+	(уБФха▒хСКуБлцДЯшмЭ > уВДуБ╛уБауБВуБНуВЙ <akira@arika.org> уБХуВУ)
 
 2003-08-14 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -416,123 +416,123 @@
 
 2003-08-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* б╓╝л╞░┼кд╦е╡еде║дЄ╣чдяд╗ды║▌д╦│╚┬чд╖д╩ддб╫дм═н╕·д╬╗■д╦╛яд╦б╓╜╠╛од╬д▀б╫
-	дм┼м═╤д╡дьд╞д╖д▐дже╨е░дЄ╜д└╡бед│д╬└▀─ъд╧▓ш┴№└┌┬╪ди╗■д╬д▀д╦┼м═╤д╡дьдыбе
-	* б╓╔¤дЄ╣чдяд╗дыб╫д╚б╓╣тд╡дЄ╣чдяд╗дыб╫дЄ─╔▓├
+	* уАМшЗкхЛХчЪДуБлуВ╡уВдуВ║уВТхРИуВПуБЫуВЛщЪЫуБлцЛбхдзуБЧуБкуБДуАНуБМцЬЙхК╣уБоцЩВуБлх╕╕уБлуАМч╕ох░ПуБоуБ┐уАН
+	уБМщБйчФиуБХуВМуБжуБЧуБ╛уБЖуГРуВ░уВТф┐оцнгя╝ОуБУуБошинхоЪуБпчФ╗хГПхИЗцЫ┐уБИцЩВуБоуБ┐уБлщБйчФиуБХуВМуВЛя╝О
+	* уАМх╣ЕуВТхРИуВПуБЫуВЛуАНуБиуАМщлШуБХуВТхРИуВПуБЫуВЛуАНуВТш┐╜хКа
 
 2003-08-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* libexif д╚ dlllaoder дЄ $(top_srcdir)/lib д╦░▄╞░бе
-	* libexifдЄ0.5.11д╦еве├е╫е╟б╝е╚бе
+	* libexif уБи dlllaoder уВТ $(top_srcdir)/lib уБлчз╗хЛХя╝О
+	* libexifуВТ0.5.11уБлуВвуГГуГЧуГЗуГ╝уГИя╝О
 
 2003-08-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡бе
+	* ч┤░уБЛуБДф┐оцнгя╝О
 
 2003-07-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╞б╝е╓еыд╟д╬е─б╝еые┴е├е╫д╬е╒ебедеые╡еде║д╬╔╜╝ие╒ейб╝е▐е├е╚дЄ
-	╜д└╡бе(Debian bug #198178)
+	* уВ╡уГауГНуВдуГлуГЖуГ╝уГЦуГлуБзуБоуГДуГ╝уГлуГБуГГуГЧуБоуГХуВбуВдуГлуВ╡уВдуВ║уБошбичд║уГХуВйуГ╝уГЮуГГуГИуВТ
+	ф┐оцнгя╝О(Debian bug #198178)
 
 2003-07-25 MINAMI Hirokazu <h_minami@users.sourceforge.net>
 
-	* "property/bgimage" DnD е┐б╝е▓е├е╚дЄ─╔▓├.
+	* "property/bgimage" DnD уВ┐уГ╝уВ▓уГГуГИуВТш┐╜хКа.
 
 2003-07-25 MINAMI Hirokazu <h_minami@users.sourceforge.net>
 
-	* uri-listд╬е╒ейб╝е▐е├е╚дЄ╜д└╡ (Bug #773491).
+	* uri-listуБоуГХуВйуГ╝уГЮуГГуГИуВТф┐оцнг (Bug #773491).
 
 2003-07-25 sheepman <sheepman@tcn.zaq.ne.jp>
 
-	* JPEGеэб╝е└д╬2╜┼е╨е░дЄ╜д└╡бе
+	* JPEGуГнуГ╝уГАуБо2щЗНуГРуВ░уВТф┐оцнгя╝О
 
 2003-07-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GimvImage д╚ GimvAnim дЄ GtkObject д╦╩╤╣╣
+	* GimvImage уБи GimvAnim уВТ GtkObject уБлхдЙцЫ┤
 
 2003-07-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* plugins/image_view/gimv_mplayer.c: е╒ебедеыд╬╕б╜╨(&║╞└╕)д╦╝║╟╘д╣ды╗Ўдм
-	двды╠ф┬ъдЄ╜д└╡
+	* plugins/image_view/gimv_mplayer.c: уГХуВбуВдуГлуБоцдЬхЗ║(&хЖНчФЯ)уБлхд▒цХЧуБЩуВЛф║ЛуБМ
+	уБВуВЛхХПщбМуВТф┐оцнг
 
 2003-07-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* plugins/image_view/gimv_mplayer.c: xvе╔ещеде╨╗╚═╤╗■д╦╢п└й┼кд╦▓ш┴№
-	е╡еде║дЄе╒еьб╝ерд╦╣чдяд╗дыд┐дсд╦бд║╞└╕─╛╕хд╦windowе╡еде║дЄ╩╤╣╣д╣дыдшдж
-	д╦д╖д┐бее╜е╒е╚ежезеве╣е▒б╝еъеєе░д╧x11е╔ещеде╨╗╚═╤╗■д╬д▀д╦╗╚дждшджд╦д╖д┐бе
-	дддпд─длд╬еиещб╝е╧еєе╔еъеєе░дЄ─╔▓├д╖д┐бе
+	* plugins/image_view/gimv_mplayer.c: xvуГЙуГйуВдуГРф╜┐чФицЩВуБлх╝╖хИ╢чЪДуБлчФ╗хГП
+	уВ╡уВдуВ║уВТуГХуГмуГ╝уГауБлхРИуВПуБЫуВЛуБЯуВБуБля╝МхЖНчФЯчЫ┤х╛МуБлwindowуВ╡уВдуВ║уВТхдЙцЫ┤уБЩуВЛуВИуБЖ
+	уБлуБЧуБЯя╝ОуВ╜уГХуГИуВжуВзуВвуВ╣уВ▒уГ╝уГкуГ│уВ░уБпx11уГЙуГйуВдуГРф╜┐чФицЩВуБоуБ┐уБлф╜┐уБЖуВИуБЖуБлуБЧуБЯя╝О
+	уБДуБПуБдуБЛуБоуВиуГйуГ╝уГПуГ│уГЙуГкуГ│уВ░уВТш┐╜хКауБЧуБЯя╝О
 	* plugins/image_saver/*.[ch]
 	* plugins/thumbnail/*.[ch]
 	* src/gimv_image.[ch]
-	* src/gimv_image_saver.[ch]: GimvImageSaverдЄеъе╒ебепе┐еъеєе░
+	* src/gimv_image_saver.[ch]: GimvImageSaverуВТуГкуГХуВбуВпуВ┐уГкуГ│уВ░
 
 2003-07-13 Takuro Ashie <ashie@homa.ne.jp>
 
     * configure.in
 	* plugins/image_view/gimv_xine.[ch]
 	* plugins/image_view/gimv_xine_priv.h
-	* plugins/image_view/image_view_xine.c: 0.9.xе╡е▌б╝е╚дЄ║я╜№
+	* plugins/image_view/image_view_xine.c: 0.9.xуВ╡уГЭуГ╝уГИуВТхЙКщЩд
 
 2003-07-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_image_loader.c: └°║▀┼кд╩епеще├е╖ехе╨е░дЄ╜д└╡
-	* src/gimv_image_saver.[ch]: еъе╒ебепе┐еъеєе░(╠д┤░└о)
+	* src/gimv_image_loader.c: ц╜ЬхЬичЪДуБкуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
+	* src/gimv_image_saver.[ch]: уГкуГХуВбуВпуВ┐уГкуГ│уВ░(цЬкхоМцИР)
 
 2003-07-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_nav_win.c: gtk_object_class_add_signals()дЄ─╔▓├д╖╦║дьд╞ддд┐д╬дЄ
-	╜д└╡бе
+	* src/gimv_nav_win.c: gtk_object_class_add_signals()уВТш┐╜хКауБЧх┐ШуВМуБжуБДуБЯуБоуВТ
+	ф┐оцнгя╝О
 
 2003-07-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_image_loader.[ch]: GTimerдЄ─╔▓├бе
+	* src/gimv_image_loader.[ch]: GTimerуВТш┐╜хКая╝О
 
 2003-07-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dirview2.c: есетеъеъб╝епдЄ╜д└╡
+	* src/dirview2.c: уГбуГвуГкуГкуГ╝уВпуВТф┐оцнг
 
 2003-07-06 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/comment.[ch]
 	* src/commnet_view.[ch]
-	* src/gimv_cellrendererpixmap.[ch]: ║я╜№
+	* src/gimv_cellrendererpixmap.[ch]: хЙКщЩд
 	* src/gimv_comment.[ch]
 	* src/gimv_comment_view.[ch]
-	* src/gimv_cell_pixmap.[ch]: ╛х╡не╒ебедеыдшдъеъе═б╝ер
+	* src/gimv_cell_pixmap.[ch]: ф╕КшиШуГХуВбуВдуГлуВИуВКуГкуГНуГ╝уГа
 
 2003-07-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/comment_view.[ch]: UIд╬║┘длдд╜д└╡
-	* src/image_info.c: Commentд╬еъе╒ебеьеєе╣ележеєе╚дм╢╕д├д╞ддд┐е╨е░дЄ╜д└╡
-	* src/gimageview.c: ║┘длдд╜д└╡
-	* src/gimv_thumb_win.c: "еъе╣е╚╣╣┐╖"д╬енб╝евепе╗ещеьб╝е┐б╝дЄ
-	"Ctrl + Shift + R" д╦╩╤╣╣
-	* po/ja.po: ╣╣┐╖
+	* src/comment_view.[ch]: UIуБоч┤░уБЛуБДф┐оцнг
+	* src/image_info.c: CommentуБоуГкуГХуВбуГмуГ│уВ╣уВлуВжуГ│уГИуБМчЛВуБгуБжуБДуБЯуГРуВ░уВТф┐оцнг
+	* src/gimageview.c: ч┤░уБЛуБДф┐оцнг
+	* src/gimv_thumb_win.c: "уГкуВ╣уГИцЫ┤цЦ░"уБоуВнуГ╝уВвуВпуВ╗уГйуГмуГ╝уВ┐уГ╝уВТ
+	"Ctrl + Shift + R" уБлхдЙцЫ┤
+	* po/ja.po: цЫ┤цЦ░
 
 2003-07-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/fileutil.c: е╟егеьепе╚еъ║ю└о╗■д╦е╤е╣╠╛╦Ў╚°д╬е╣еще├е╖ехдЄ║я╜№бе
-	(Thanks! > Douglas Brebner <douglas+mail@fang.demon.co.uk>д╡дє)бе
+	* src/fileutil.c: уГЗуВгуГмуВпуГИуГкф╜ЬцИРцЩВуБлуГСуВ╣хРНцЬлх░╛уБоуВ╣уГйуГГуВ╖уГеуВТхЙКщЩдя╝О
+	(Thanks! > Douglas Brebner <douglas+mail@fang.demon.co.uk>уБХуВУ)я╝О
 
 2003-07-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/nav_window.[ch]: ║я╜№
+	* src/nav_window.[ch]: хЙКщЩд
 	* src/gimv_image_view.[ch]
-	* src/gimv_nav_win.[ch]: navw_windowдшдъеъе═б╝ербеNavWindowдЄ
-	GimvNavWindowд╦╜д└╡д╖бдGtkObjectд╚д╖д╞║╞╝┬┴їбе
-	* src/gimv_image_win.c: gtk+-2.2░╩╣▀дЄ╗╚═╤╗■д╦gdk_window_fullscreen()дЄ
-	╗╚═╤д╣дыдшджд╦д╖д┐бе
-	gtk+-2.2 or laterбед╜д╬┬╛║┘длдд╜д└╡
-	* src/comment.h: ║┘длдд╜д└╡
+	* src/gimv_nav_win.[ch]: navw_windowуВИуВКуГкуГНуГ╝уГая╝ОNavWindowуВТ
+	GimvNavWindowуБлф┐оцнгуБЧя╝МGtkObjectуБиуБЧуБжхЖНхоЯшгЕя╝О
+	* src/gimv_image_win.c: gtk+-2.2ф╗ещЩНуВТф╜┐чФицЩВуБлgdk_window_fullscreen()уВТ
+	ф╜┐чФиуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	gtk+-2.2 or laterя╝ОуБЭуБоф╗Цч┤░уБЛуБДф┐оцнг
+	* src/comment.h: ч┤░уБЛуБДф┐оцнг
 
 2003-07-02 Takuro Ashie <ashie@homa.ne.jp>
 
 	* image_saver.[ch]
 	* thumbnail.[ch]
-	* thumbnail_support.[ch]: ║я╜№
+	* thumbnail_support.[ch]: хЙКщЩд
 	* gimv_image_saver.[ch]
 	* gimv_thumb.[ch]
-	* gimv_thumb_cache.[ch]: ╛х╡не╒ебедеыдшдъеъе═б╝ер
+	* gimv_thumb_cache.[ch]: ф╕КшиШуГХуВбуВдуГлуВИуВКуГкуГНуГ╝уГа
 	* plugins/image_saver/png_saver.c
 	* plugins/image_saver/pnm_saver.c
 	* plugins/image_saver/xvpics_saver.c
@@ -560,23 +560,23 @@
 	* src/image_view_draw.c
 	* src/thumbnail_view.c
 	* src/thumbnail_view.h
-	* src/prefs_ui/prefs_ui_etc.c: ImageSaver, Thumbnail, ThumbnailSupportдЄ
-	GimvImageSaver, GimvThumb, GimvThumbCacheд╦╜д└╡
+	* src/prefs_ui/prefs_ui_etc.c: ImageSaver, Thumbnail, ThumbnailSupportуВТ
+	GimvImageSaver, GimvThumb, GimvThumbCacheуБлф┐оцнг
 	* src/prefs.h
-	* src/gimv_scrolled.h: едеєе╟еєе╚дЄ╜д└╡
+	* src/gimv_scrolled.h: уВдуГ│уГЗуГ│уГИуВТф┐оцнг
 
 2003-06-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gimv_image_win.[ch]: GimvImageWin длдщ б╓slideshowб╫ есеєе╨дЄ║я╜№бе
-	б╓show_fullscreenб╫ д╚ б╓hide_screenб╫ е╖е░е╩еыдЄ─╔▓├
-	* slideshow.[ch]: ║я╜№
-	* gimv_slideshow.[ch]: ─╔▓├
+	* gimv_image_win.[ch]: GimvImageWin уБЛуВЙ уАМslideshowуАН уГбуГ│уГРуВТхЙКщЩдя╝О
+	уАМshow_fullscreenуАН уБи уАМhide_screenуАН уВ╖уВ░уГКуГлуВТш┐╜хКа
+	* slideshow.[ch]: хЙКщЩд
+	* gimv_slideshow.[ch]: ш┐╜хКа
 	* gimv_thumb_win.[ch]
-	* gimageview.c: SlideShow дЄ GimvSlideShow д╦еъе═б╝ер
+	* gimageview.c: SlideShow уВТ GimvSlideShow уБлуГкуГНуГ╝уГа
 
 2003-06-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/image_loader.[ch]: ║я╜№
+	* src/image_loader.[ch]: хЙКщЩд
 	* plugins/image_loader/bmp.[ch]
 	* plugins/image_loader/imlib_loader.[ch]
 	* plugins/image_loader/jpeg_loader.c
@@ -597,7 +597,7 @@
 	* src/exif_view.c
 	* src/gimv_image.c
 	* src/gimv_image_loader.[ch]
-	* src/thumbnail.c: ImageLoader дЄ GimvImageLoader д╦еъе═б╝ер
+	* src/thumbnail.c: ImageLoader уВТ GimvImageLoader уБлуГкуГНуГ╝уГа
 
 2003-06-11 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -605,44 +605,44 @@
 
 2003-06-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* plugins/image_view/jpeg_loader.c: есетеъеъб╝епдЄ╜д└╡
+	* plugins/image_view/jpeg_loader.c: уГбуГвуГкуГкуГ╝уВпуВТф┐оцнг
 
 2003-06-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* plugins/image_view/image_view_xine.c: е│еєе╤едеыеиещб╝дЄ╜д└╡
+	* plugins/image_view/image_view_xine.c: уВ│уГ│уГСуВдуГлуВиуГйуГ╝уВТф┐оцнг
 
 2003-06-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dirview.c: е│еєе╤едеыеиещб╝дЄ╜д└╡
+	* src/dirview.c: уВ│уГ│уГСуВдуГлуВиуГйуГ╝уВТф┐оцнг
 	* src/gimv_image_win.c
-	* src/gimv_image_view.c: екб╝е╚е╒еге├е╚┤╪╧вд╬е╨е░дЄ╜д└╡
+	* src/gimv_image_view.c: уВкуГ╝уГИуГХуВгуГГуГИщЦвщАгуБоуГРуВ░уВТф┐оцнг
 
 2003-06-11 Takuro Ashie <ashie@homa.ne.jp>
 
 	* NEW
-	* doc/ja/NEW.ja: typoдЄ╜д└╡
+	* doc/ja/NEW.ja: typoуВТф┐оцнг
 	* plugins/archiver/rar-ext.c
 	* plugins/archiver/tar-ext.c
 	* src/comment.[ch]
 	* src/gimageview.h
 	* src/gimv_image_view.c
 	* src/image_info.[ch]
-	* src/thumbnail_view.h: ImageInfoд╬едеєе┐б╝е╒езб╝е╣дЄ└░═¤
-	* src/thumbnail.c: GimvImageдЄ║я╜№
+	* src/thumbnail_view.h: ImageInfoуБоуВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уВТцХ┤чРЖ
+	* src/thumbnail.c: GimvImageуВТхЙКщЩд
 	* src/dirview.c
 	* src/driview2.c
 	* src/dirview_priv.h
-	* src/thumbnail_window.c: gtk_main_iteration()дЄ▓─╟╜д╩╕┬дъ╚Єд▒дыдшджд╦
-	╩╤╣╣
+	* src/thumbnail_window.c: gtk_main_iteration()уВТхПпшГ╜уБкщЩРуВКщБ┐уБСуВЛуВИуБЖуБл
+	хдЙцЫ┤
 
 2003-06-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gimv_image_view.[ch]: GimvImageViewдм╝┬┬╬▓╜д╡дьд╞ддд╩дд╗■д╦дт▓ш┴№дЄ
-	╔┴▓шд╣дыд╬дЄ═▐└й.
+	* gimv_image_view.[ch]: GimvImageViewуБМхоЯф╜УхМЦуБХуВМуБжуБДуБкуБДцЩВуБлуВВчФ╗хГПуВТ
+	цППчФ╗уБЩуВЛуБоуВТцКСхИ╢.
 	* gimv_image_win.[ch]
 	* slideshow.c
-	* thumbnail_view.c: GimvImageWinдЄGtkObjectд╦╩╤╣╣бее╣ещеде╔е╖ечб╝д╬
-	епеще├е╖ехе╨е░дЄ╜д└╡
+	* thumbnail_view.c: GimvImageWinуВТGtkObjectуБлхдЙцЫ┤я╝ОуВ╣уГйуВдуГЙуВ╖уГзуГ╝уБо
+	уВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
 
 2003-06-09 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -661,10 +661,10 @@
 	* src/thumbnail_window.[ch]
 	* src/prefs_ui/prefs_ui_imagewin.c
 	* src/prefs_ui/prefs_ui_movie.c
-	* src/prefs_ui/prefs_ui_thumbwin.c: ImageView д╚ ImageWindow дЄ
-	GimvImageView д╚ GimvImageWin д╦╜д└╡
+	* src/prefs_ui/prefs_ui_thumbwin.c: ImageView уБи ImageWindow уВТ
+	GimvImageView уБи GimvImageWin уБлф┐оцнг
 	* src/image_view.[ch]
-	* src/image_window.[ch]: ║я╜№
+	* src/image_window.[ch]: хЙКщЩд
 
 2003-06-04 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -676,12 +676,12 @@
 	* src/image_view.c
 	* src/thumbnail_window.c
 	* src/prefs_ui/prefs_ui_imagewin.c
-	* src/prefs_ui/prefs_ui_thumbwin.c: ╝л╞░▓є┼╛д╬└▀─ъдЄедесб╝е╕ежегеєе╔ежд╚
-	е╫еье╙ехб╝д╦╩м│ф
+	* src/prefs_ui/prefs_ui_thumbwin.c: шЗкхЛХхЫЮш╗вуБошинхоЪуВТуВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБи
+	уГЧуГмуГУуГеуГ╝уБлхИЖхЙ▓
 
 2003-06-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_plugin.h: е╫еще░едеєедеєе┐б╝е╒езб╝е╣е╨б╝е╕ечеєдЄ╣╣┐╖
+	* src/gimv_plugin.h: уГЧуГйуВ░уВдуГ│уВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уГРуГ╝уВ╕уГзуГ│уВТцЫ┤цЦ░
 	* src/gtkutils.c
 	* src/image_view.[ch]
 	* src/image_window.[ch]
@@ -689,26 +689,26 @@
 	* src/slideshow.c
 	* src/thumbnail_window.c
 	* src/prefs_ui/prefs_ui_imagewin.c
-	* src/prefs_ui/prefs_ui_thumbwin.c: ImageViewд╬едеєе┐б╝е╒езб╝е╣дЄ└░═¤
+	* src/prefs_ui/prefs_ui_thumbwin.c: ImageViewуБоуВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уВТцХ┤чРЖ
 
 2003-06-01 Frank Fischer <frank_fischer@gmx.de>
 
 	* src/image_view.c
-	* src/prefs_ui/prefs_ui_imagewin.c: EXIFе╟б╝е┐д╦┤Ёд┼ддд╞╝л╞░┼кд╦▓ш┴№дЄ
-	▓є┼╛д╣дыдшджд╦д╖д┐.
+	* src/prefs_ui/prefs_ui_imagewin.c: EXIFуГЗуГ╝уВ┐уБлхЯ║уБеуБДуБжшЗкхЛХчЪДуБлчФ╗хГПуВТ
+	хЫЮш╗вуБЩуВЛуВИуБЖуБлуБЧуБЯ.
 
 2003-06-01 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/comment.c
 	* src/gimv_mime_types.[ch]
-	* src/image_info.c: │╚─е╗╥д╬╚╜╩╠д╟┬ч╩╕╗·╛о╩╕╗·дЄ╢ш╩╠д╖д╞ддд┐е╨е░дЄ╜д└╡
+	* src/image_info.c: цЛбх╝╡хнРуБохИдхИеуБзхдзцЦЗхнЧх░ПцЦЗхнЧуВТхМ║хИеуБЧуБжуБДуБЯуГРуВ░уВТф┐оцнг
 	(Thanks! > Ricky Faulstich <Ricky@Faulstich.com>).
 
 2003-06-01 Takuro Ashie <ashie@homa.ne.jp>
 
 	* README
 	* doc/ja/README.ja
-	* src/thumbnail_window.c: typoдЄ╜д└╡.
+	* src/thumbnail_window.c: typoуВТф┐оцнг.
 	(Thanks! > Joseph Harnish <bigjoe@linuxmail.org>)
 
 2003-05-22 Takuro Ashie <ashie@homa.ne.jp>
@@ -717,36 +717,36 @@
 
 2003-05-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ImageViewд╬епеще├е╖ехе╨е░дЄ╜д└╡
+	* ImageViewуБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
 
 2003-05-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* SimilarWinд╚е╡ере═едеыежегеєе╔ежд╬еьедевеже╚╩╤╣╣д╬епеще├е╖ехе╨е░дЄ╜д└╡
-	* READMEд╚README.jpдЄ╣╣┐╖
+	* SimilarWinуБиуВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБоуГмуВдуВвуВжуГИхдЙцЫ┤уБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
+	* READMEуБиREADME.jpуВТцЫ┤цЦ░
 
 2003-05-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* plugins/image_view/gimv_mplayer.cд╬е│еєе╤едеыеиещб╝дЄ╜д└╡
+	* plugins/image_view/gimv_mplayer.cуБоуВ│уГ│уГСуВдуГлуВиуГйуГ╝уВТф┐оцнг
 
 2003-05-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│еєе╤едеыеиещб╝дЄ╜д└╡
-	Thanks! > ┐√├лд╡дє <sygaya@suri.it.okayama-u.ac.jp> & дфд▐д░д┴д╡дєбе
+	* уВ│уГ│уГСуВдуГлуВиуГйуГ╝уВТф┐оцнг
+	Thanks! > шПЕш░╖уБХуВУ <sygaya@suri.it.okayama-u.ac.jp> & уВДуБ╛уБРуБбуБХуВУя╝О
 
 2003-05-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* README д╚ TODO дЄ─╔▓├
-	* ║┘длдд╜д└╡
+	* README уБи TODO уВТш┐╜хКа
+	* ч┤░уБЛуБДф┐оцнг
 
 2003-05-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ImageViewд╬button_pressedбдbutton_released,бдbutton_clicked cb_funcsдЄ
-	Gtk+д╬е╖е░е╩еыд╚д╖д╞║╞╝┬┴ї
-	* SimilarWinдЄGtkObjectд╚д╖д╞║╞╝┬┴ї
+	* ImageViewуБоbutton_pressedя╝Мbutton_released,я╝Мbutton_clicked cb_funcsуВТ
+	Gtk+уБоуВ╖уВ░уГКуГлуБиуБЧуБжхЖНхоЯшгЕ
+	* SimilarWinуВТGtkObjectуБиуБЧуБжхЖНхоЯшгЕ
 
 2003-05-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╜б╝е╣е─еъб╝д╬еьедевеже╚дЄ╩╤╣╣
+	* уВ╜уГ╝уВ╣уГДуГкуГ╝уБоуГмуВдуВвуВжуГИуВТхдЙцЫ┤
 	* intltoolize.
 
 2003-05-19 Takuro Ashie <ashie@homa.ne.jp>
@@ -755,109 +755,109 @@
 
 2003-05-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕е╙ехб╝д╬е╣е▒б╝еъеєе░д╬е╨е░дЄ╜д└╡
-	* е╡ере═едеы║ю└одЄенеуеєе╗еы╜╨═шдыдшджд╦д╖д┐
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБоуВ╣уВ▒уГ╝уГкуГ│уВ░уБоуГРуВ░уВТф┐оцнг
+	* уВ╡уГауГНуВдуГлф╜ЬцИРуВТуВнуГгуГ│уВ╗уГлхЗ║цЭеуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-05-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* WMFеэб╝е└д╬е│еєе╤едеыеиещб╝дЄ╜д└╡
+	* WMFуГнуГ╝уГАуБоуВ│уГ│уГСуВдуГлуВиуГйуГ╝уВТф┐оцнг
 
 2003-05-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╣е▒б╝еще╓еыеэб╝е╟егеєе░дЄедесб╝е╕е╙ехб╝д╦╝┬┴їбе
-	е╣е▒б╝еые└ежеє╗■д╬JPEGеэб╝е╟егеєе░дм╣т┬о▓╜д╡дьд┐бе
-	* ║┘длдд╜д└╡
+	* уВ╣уВ▒уГ╝уГйуГЦуГлуГнуГ╝уГЗуВгуГ│уВ░уВТуВдуГбуГ╝уВ╕уГУуГеуГ╝уБлхоЯшгЕя╝О
+	уВ╣уВ▒уГ╝уГлуГАуВжуГ│цЩВуБоJPEGуГнуГ╝уГЗуВгуГ│уВ░уБМщлШщАЯхМЦуБХуВМуБЯя╝О
+	* ч┤░уБЛуБДф┐оцнг
 
 2003-05-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* 2╝я╬рд╬╜┼╩г▓ш┴№╕б║ўдЄ─╔▓├ (б╓md5sumб╫д╚б╓е╒ебедеые╡еде║б╫)
+	* 2чиощбЮуБощЗНшдЗчФ╗хГПцдЬч┤вуВТш┐╜хКа (уАМmd5sumуАНуБиуАМуГХуВбуВдуГлуВ╡уВдуВ║уАН)
 
 2003-05-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔ежд╬е─б╝еые╨б╝д╦▓є┼╛д╬едеєе╕е▒б╝е┐б╝дЄ─╔▓├
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБоуГДуГ╝уГлуГРуГ╝уБлхЫЮш╗вуБоуВдуГ│уВ╕уВ▒уГ╝уВ┐уГ╝уВТш┐╜хКа
 
 2003-05-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gtk_prop.c: popen(3)д╬┬хдядъд╦ fork(2) д╚ pipe(2) дЄ╗╚═╤д╣дыдшджд╦
-	д╖д┐
+	* src/gtk_prop.c: popen(3)уБоф╗гуВПуВКуБл fork(2) уБи pipe(2) уВТф╜┐чФиуБЩуВЛуВИуБЖуБл
+	уБЧуБЯ
 
 2003-05-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* б╓1е┐е╓╞тд╦║╞╡в╞╔д▀╣■д▀б╫дЄе▐еже╣евепе╖ечеєд╦└▀─ъд╟дндыдшджд╦д╖д┐
+	* уАМ1уВ┐уГЦхЖЕуБлхЖНх╕░шкнуБ┐ш╛╝уБ┐уАНуВТуГЮуВжуВ╣уВвуВпуВ╖уГзуГ│уБлшинхоЪуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-05-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╝л╞░┼кд╦е╒еьб╝ере╡еде║д╦╣чдяд╗ды╗■д╦бде║б╝ередеєд╖д╩дддшджд╦д╖д┐
-	(д│д╬╡є╞░д╧└▀─ъ▓─╟╜)
-	* ║┘длдде╨е░е╒еге├епе╣
+	* шЗкхЛХчЪДуБлуГХуГмуГ╝уГауВ╡уВдуВ║уБлхРИуВПуБЫуВЛцЩВуБля╝МуВ║уГ╝уГауВдуГ│уБЧуБкуБДуВИуБЖуБлуБЧуБЯ
+	(уБУуБоцМЩхЛХуБпшинхоЪхПпшГ╜)
+	* ч┤░уБЛуБДуГРуВ░уГХуВгуГГуВпуВ╣
 
 2003-05-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* JPEGеэб╝е└дЄ─╔▓├бее│б╝е╔д╬┬ч╚╛д╧libgnomeui-2.2.0.1дшдъ╟╥╝┌бе
+	* JPEGуГнуГ╝уГАуВТш┐╜хКая╝ОуВ│уГ╝уГЙуБохдзхНКуБпlibgnomeui-2.2.0.1уВИуВКцЛЭхАЯя╝О
 
 2003-05-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еще░едеєд╬еэб╝е╔╗■д╦е╫еще░едеєедеєе┐б╝е╒езб╝е╣д╬е╨б╝е╕ечеєдЄе┴езе├
-	епд╣дыдшджд╦д╖д┐
-	* GimvXineд╟еде┘еєе╚┤╞╗ы═╤д╬е╣еье├е╔дЄ└╕└од╣дыд╬дЄ╟╤╗▀д╖бд┬хдядъд╦еде┘еє
-	е╚е╒егеые┐дЄе╗е├е╚д╣дыдшджд╦д╖д┐
+	* уГЧуГйуВ░уВдуГ│уБоуГнуГ╝уГЙцЩВуБлуГЧуГйуВ░уВдуГ│уВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уБоуГРуГ╝уВ╕уГзуГ│уВТуГБуВзуГГ
+	уВпуБЩуВЛуВИуБЖуБлуБЧуБЯ
+	* GimvXineуБзуВдуГЩуГ│уГИчЫгшжЦчФиуБоуВ╣уГмуГГуГЙуВТчФЯцИРуБЩуВЛуБоуВТх╗ГцнвуБЧя╝Мф╗гуВПуВКуБлуВдуГЩуГ│
+	уГИуГХуВгуГлуВ┐уВТуВ╗уГГуГИуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-05-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеыдм║я╜№д╡дьд┐╗■д╦бде╡ере═едеыд╬е╒ейб╝еле╣дЄ┼м└┌д╩░╠├╓д╦е╗е├е╚д╣
-	дыд╦д╖д┐
+	* уГХуВбуВдуГлуБМхЙКщЩдуБХуВМуБЯцЩВуБля╝МуВ╡уГауГНуВдуГлуБоуГХуВйуГ╝уВлуВ╣уВТщБйхИЗуБкф╜Нч╜оуБлуВ╗уГГуГИуБЩ
+	уВЛуБлуБЧуБЯ
 
 2003-05-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ┴┤д╞д╬GtkTreeViewColumnдЄеъе╡еде║д╟дндыдшджд╦д╖д┐бе
-	* д╜д╬┬╛д╬║┘длдд╜д└╡
+	* хЕиуБжуБоGtkTreeViewColumnуВТуГкуВ╡уВдуВ║уБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уБЭуБоф╗ЦуБоч┤░уБЛуБДф┐оцнг
 
 2003-05-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* б╓е╣ещеде╔е╖ечб╝(┴к┬Єе╒ебедеы)б╫д╚б╓е╣ещеде╔е╖ечб╝ (┴к┬Єе╒ебедеыдлдщ)б╫
-	дЄ─╔▓├
+	* уАМуВ╣уГйуВдуГЙуВ╖уГзуГ╝(щБ╕цКЮуГХуВбуВдуГл)уАНуБиуАМуВ╣уГйуВдуГЙуВ╖уГзуГ╝ (щБ╕цКЮуГХуВбуВдуГлуБЛуВЙ)уАН
+	уВТш┐╜хКа
 
 2003-05-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╕▀┤╣└нд╬д┐дсбдGtk+2д╟е│еєе╤едеы╗■д╦д╧ scroll-event дЄ
-	button-press-eventд╦╦▌╠їд╣дыдшджд╦д╖д┐
+	* ф║ТцПЫцАзуБоуБЯуВБя╝МGtk+2уБзуВ│уГ│уГСуВдуГлцЩВуБлуБп scroll-event уВТ
+	button-press-eventуБлч┐╗ши│уБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-05-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ежегеєе╔еже║д╟е│еєе╤едеы╗■д╦бдеведе│еєдЄ╦фдс╣■дрдшджд╦д╖д┐
+	* уВжуВгуГ│уГЙуВжуВ║уБзуВ│уГ│уГСуВдуГлцЩВуБля╝МуВвуВдуВ│уГ│уВТхЯЛуВБш╛╝уВАуВИуБЖуБлуБЧуБЯ
 
 2003-04-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* widget/*.[ch] дЄ src/ ░╩▓╝д╦░▄╞░д╖бдб╓gimv_б╫е╫еье╒еге├епе╣дЄ─╔▓├.
+	* widget/*.[ch] уВТ src/ ф╗еф╕ЛуБлчз╗хЛХуБЧя╝МуАМgimv_уАНуГЧуГмуГХуВгуГГуВпуВ╣уВТш┐╜хКа.
 
 2003-04-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╛▄║┘е╙ехб╝д╬е│ещерд╬attributesдЄе╗е├е╚д╣дыдшджд╦д╖д┐
+	* шй│ч┤░уГУуГеуГ╝уБоуВ│уГйуГауБоattributesуВТуВ╗уГГуГИуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-04-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╬╔╜╝иетб╝е╔д╬еке╫е╖ечеєесе╦ехб╝дЄ╝┬║▌д╬╛ї┬╓д╦╞▒┤№д╣ды
-	дшджд╦д╖д┐
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБошбичд║уГвуГ╝уГЙуБоуВкуГЧуВ╖уГзуГ│уГбуГЛуГеуГ╝уВТхоЯщЪЫуБочК╢цЕЛуБлхРМцЬЯуБЩуВЛ
+	уВИуБЖуБлуБЧуБЯ
 
 2003-04-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MPlayerд╬└▀─ъдЄ $(datadir)/gimageview/mplayerrc д╟╛х╜ёднд╣дыдшджд╦д╖д┐бе
-	(╝чд╦MPlayerд╬GUI╡б╟╜д╚е╒еые╣епеъб╝еє╡б╟╜дЄ╢п└й┼кд╦╠╡╕·д╦д╣ды╠▄┼к)
+	* MPlayerуБошинхоЪуВТ $(datadir)/gimageview/mplayerrc уБзф╕КцЫ╕уБНуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	(ф╕╗уБлMPlayerуБоGUIцйЯшГ╜уБиуГХуГлуВ╣уВпуГкуГ╝уГ│цйЯшГ╜уВТх╝╖хИ╢чЪДуБлчДбхК╣уБлуБЩуВЛчЫочЪД)
 
 2003-04-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* екб╝е╟егек║╞└╕╗■д╦╗ы│╨╕·▓╠дЄ╔╜╝ид╣дыдшджд╦д╖д┐(Xine╗╚═╤╗■д╬д▀)
+	* уВкуГ╝уГЗуВгуВкхЖНчФЯцЩВуБлшжЦшжЪхК╣цЮЬуВТшбичд║уБЩуВЛуВИуБЖуБлуБЧуБЯ(Xineф╜┐чФицЩВуБоуБ┐)
 
 2003-04-09 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MIME╖┐дЄе╫еще░едеє┬жд╟╩▌╗¤д╟дндыдшджд╦д╖д┐
+	* MIMEхЮЛуВТуГЧуГйуВ░уВдуГ│хБ┤уБзф┐ЭцМБуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-04-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╬└▀─ъдЄ ~/.gimv/pluginrcд╦╩м╬е
-	* е╫еще░едеєедеєе┐б╝е╒езб╝е╣дЄ╜д└╡
-	* GimvMimeTypeдЄ─╔▓├
-	* ┤Ўд─длд╬е╒ебедеы╠╛дЄ╩╤╣╣
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБошинхоЪуВТ ~/.gimv/pluginrcуБлхИЖщЫв
+	* уГЧуГйуВ░уВдуГ│уВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уВТф┐оцнг
+	* GimvMimeTypeуВТш┐╜хКа
+	* х╣╛уБдуБЛуБоуГХуВбуВдуГлхРНуВТхдЙцЫ┤
 
 2003-04-05 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -866,61 +866,61 @@
 
 2003-04-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GimvMPlayerдЄX╠╡д╖д╟дте│еєе╤едеыд╟дндыдшджд╦д╖д┐бе
-	(linux-fbе╨е├епеиеєе╔д╟дтMPlayerдЄ╗╚═╤▓─╟╜д╦)
+	* GimvMPlayerуВТXчДбуБЧуБзуВВуВ│уГ│уГСуВдуГлуБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
+	(linux-fbуГРуГГуВпуВиуГ│уГЙуБзуВВMPlayerуВТф╜┐чФихПпшГ╜уБл)
 
 2003-04-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* pluginе╟егеьепе╚еъд╬┴░д╦srcе╟егеьепе╚еъдЄе│еєе╤едеыд╣дыдшджд╦д╖д┐
+	* pluginуГЗуВгуГмуВпуГИуГкуБохЙНуБлsrcуГЗуВгуГмуВпуГИуГкуВТуВ│уГ│уГСуВдуГлуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-04-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еще░едеєедеєе┐б╝е╒езб╝е╣дЄ╜д└╡
-	* б╓е╡ере═едеы2б╫етб╝е╔дЄб╓евеые╨ерб╫етб╝е╔д╦╠╛╛╬╩╤╣╣
+	* уГЧуГйуВ░уВдуГ│уВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уВТф┐оцнг
+	* уАМуВ╡уГауГНуВдуГл2уАНуГвуГ╝уГЙуВТуАМуВвуГлуГРуГауАНуГвуГ╝уГЙуБлхРНчз░хдЙцЫ┤
 
 2003-04-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimv_mplayer.c: ║┘длдд╜д└╡
+	* src/gimv_mplayer.c: ч┤░уБЛуБДф┐оцнг
 
 2003-04-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕е╙ехб╝╦фдс╣■д▀╡б╟╜дЄе╫еще░едеє▓╜
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝хЯЛуВБш╛╝уБ┐цйЯшГ╜уВТуГЧуГйуВ░уВдуГ│хМЦ
 
 2003-04-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GimvMPlayerд╬е╨е├е╒ебе╡еде║д╚еъе╒еье├е╖ехеьб╝е╚дЄ╩╤╣╣
-	* Xineе╙ехб╝д╬епеще├е╖ехе╨е░дЄ╜д└╡
+	* GimvMPlayerуБоуГРуГГуГХуВбуВ╡уВдуВ║уБиуГкуГХуГмуГГуВ╖уГеуГмуГ╝уГИуВТхдЙцЫ┤
+	* XineуГУуГеуГ╝уБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
 
 2003-03-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* б╓евепе╖ечеєб╫есе╦ехб╝дЄе╡ере═едеыежегеєе╔ежд╦─╔▓├
-	* е╡ере═едеыежегеєе╔ежд╬е╟егеьепе╚еъе╙ехб╝д╦енб╝е╨едеєе╔дЄ─╔▓├.
-	CTRL + Cursor Left, CTRL * Cursor Up: е╚е├е╫е╟егеьепе╚еъдЄ┐╞е╟егеьепе╚еъ
-	д╦╩╤╣╣
-	CTRL + Cursor Right, CTRL * Cursor Down: е╚е├е╫е╟егеьепе╚еъдЄ┴к┬Єе╟егеь
-	епе╚еъ
-	* б╓е╟е╒ейеые╚д╬Susieе╫еще░едеє╕б║ўе╟егеьепе╚еъдЄ╗╚═╤б╫д╚б╓е╟е╒ейеые╚д╬
-	е╣епеъе╫е╚╕б║ўе╟егеьепе╚еъдЄ╗╚═╤б╫еке╫е╖ечеєдЄ─╔▓├
-	* ║┘длдд╜д└╡
+	* уАМуВвуВпуВ╖уГзуГ│уАНуГбуГЛуГеуГ╝уВТуВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБлш┐╜хКа
+	* уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБоуГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБлуВнуГ╝уГРуВдуГ│уГЙуВТш┐╜хКа.
+	CTRL + Cursor Left, CTRL * Cursor Up: уГИуГГуГЧуГЗуВгуГмуВпуГИуГкуВТшжкуГЗуВгуГмуВпуГИуГк
+	уБлхдЙцЫ┤
+	CTRL + Cursor Right, CTRL * Cursor Down: уГИуГГуГЧуГЗуВгуГмуВпуГИуГкуВТщБ╕цКЮуГЗуВгуГм
+	уВпуГИуГк
+	* уАМуГЗуГХуВйуГлуГИуБоSusieуГЧуГйуВ░уВдуГ│цдЬч┤вуГЗуВгуГмуВпуГИуГкуВТф╜┐чФиуАНуБиуАМуГЗуГХуВйуГлуГИуБо
+	уВ╣уВпуГкуГЧуГИцдЬч┤вуГЗуВгуГмуВпуГИуГкуВТф╜┐чФиуАНуВкуГЧуВ╖уГзуГ│уВТш┐╜хКа
+	* ч┤░уБЛуБДф┐оцнг
 
 2003-03-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ▓ш┴№еэб╝е└д╚IOе╣е╚еъб╝е▐дЄе╫еще░едеєд╚д╖д╞║╞╝┬┴ї
-	* src/plugin.c: └░═¤
+	* чФ╗хГПуГнуГ╝уГАуБиIOуВ╣уГИуГкуГ╝уГЮуВТуГЧуГйуВ░уВдуГ│уБиуБЧуБжхЖНхоЯшгЕ
+	* src/plugin.c: цХ┤чРЖ
 
 2003-03-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* "--with-gtk2=gtk+-linux-fb-2.0"еке╫е╖ечеєд╟linux-fbе╨е├епеиеєе╔д╦┬╨д╖д╞
-	е│еєе╤едеыд╟дндыдшджд╦д╖д┐
-	* б╓е╟е╒ейеые╚д╬е╫еще░едеє╕б║ўе╟егеьепе╚еъдЄ╗╚═╤б╫еке╫е╖ечеєдЄ─╔▓├
+	* "--with-gtk2=gtk+-linux-fb-2.0"уВкуГЧуВ╖уГзуГ│уБзlinux-fbуГРуГГуВпуВиуГ│уГЙуБлхп╛уБЧуБж
+	уВ│уГ│уГСуВдуГлуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
+	* уАМуГЗуГХуВйуГлуГИуБоуГЧуГйуВ░уВдуГ│цдЬч┤вуГЗуВгуГмуВпуГИуГкуВТф╜┐чФиуАНуВкуГЧуВ╖уГзуГ│уВТш┐╜хКа
 
 2003-03-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* m4/gtk.m4: ─╔▓├
+	* m4/gtk.m4: ш┐╜хКа
 
 2003-03-30 Masahiro Sakai <s01397ms@sfc.keio.ac.jp>
 
-	* Cygwinе╤е├е┴дЄе▐б╝е╕
+	* CygwinуГСуГГуГБуВТуГЮуГ╝уВ╕
 
 2003-02-07 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -928,50 +928,50 @@
 
 2003-02-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MPlayer-0.90rc3д╟░ь╗■─ф╗▀╛ї┬╓дм╕б╜╨д╡дьд╩дд╠ф┬ъдЄ╜д└╡
+	* MPlayer-0.90rc3уБзф╕АцЩВхБЬцнвчК╢цЕЛуБМцдЬхЗ║уБХуВМуБкуБДхХПщбМуВТф┐оцнг
 
 2003-02-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ▓їдьд┐BitmapдЄ╞╔д▀╣■дрд╚е╒еъб╝е║д╣ды╠ф┬ъдЄ╜д└╡
-	(ддд─дтдвдъдмд╚дж :-) > Jin Suh <jinssuh@yahoo.com>)
+	* хгКуВМуБЯBitmapуВТшкнуБ┐ш╛╝уВАуБиуГХуГкуГ╝уВ║уБЩуВЛхХПщбМуВТф┐оцнг
+	(уБДуБдуВВуБВуВКуБМуБиуБЖ :-) > Jin Suh <jinssuh@yahoo.com>)
 
 2003-02-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MPlayerд╟е╡ере═едеы║ю└о╗■д╦еседеєеыб╝е╫дЄ▓єд╣дшджд╦д╖д┐
+	* MPlayerуБзуВ╡уГауГНуВдуГлф╜ЬцИРцЩВуБлуГбуВдуГ│уГлуГ╝уГЧуВТхЫЮуБЩуВИуБЖуБлуБЧуБЯ
 
 2003-01-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеы╛х╜ёдн╗■д╦▓ш┴№д╬╔╜╝и╡┌д╙еъе═б╝ердЄд╟дндыдшджд╦д╖д┐
-	* е└едевеэе░д╬ежегеєе╔ежд╬╜╨╕╜░╠├╓дЄ╜д└╡
+	* уГХуВбуВдуГлф╕КцЫ╕уБНцЩВуБлчФ╗хГПуБошбичд║хПКуБ│уГкуГНуГ╝уГауВТуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
+	* уГАуВдуВвуГнуВ░уБоуВжуВгуГ│уГЙуВжуБохЗ║чП╛ф╜Нч╜оуВТф┐оцнг
 
 2003-01-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MPlayerдЄ╗╚═╤д╖д╞е╡ере═едеыдЄ║ю└од╟дндыдшджд╦д╖д┐
+	* MPlayerуВТф╜┐чФиуБЧуБжуВ╡уГауГНуВдуГлуВТф╜ЬцИРуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
 
 2003-01-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╞░▓ш┤╪╧вд╬└▀─ъ═╤UIдЄ─╔▓├
-	* едесб╝е╕е╙ехб╝д╟└┼╗▀▓шд╬е╡ере═едеыдЄ║ю└од╟днд╩дпд╩д├д╞ддд┐╠ф┬ъдЄ╜д└╡
+	* хЛХчФ╗щЦвщАгуБошинхоЪчФиUIуВТш┐╜хКа
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБзщЭЩцнвчФ╗уБоуВ╡уГауГНуВдуГлуВТф╜ЬцИРуБзуБНуБкуБПуБкуБгуБжуБДуБЯхХПщбМуВТф┐оцнг
 
 2003-01-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* OS/2╖┴╝░д╬BitmapдЄ└╡д╖дп╞╔д▀д│дсд╩дде╨е░дЄ╜д└╡
+	* OS/2х╜вх╝ПуБоBitmapуВТцнгуБЧуБПшкнуБ┐уБУуВБуБкуБДуГРуВ░уВТф┐оцнг
 	(Thanks! > Jin Suh <jinssuh@yahoo.com>)
-	* Xine░═┬╕е│б╝е╔д╬║┘длдд╜д└╡
-	* Thorsten Schnier <thorsten@schnier.net>д╡дєдлдщд╬─є░╞д╟бд▓ш┴№└┌┬╪╗■д╦
-	▓ш┴№д╬▓є┼╛│╤┼┘дЄеъе╗е├е╚д╣дыдшджд╦д╖д┐бе
+	* Xineф╛ЭхнШуВ│уГ╝уГЙуБоч┤░уБЛуБДф┐оцнг
+	* Thorsten Schnier <thorsten@schnier.net>уБХуВУуБЛуВЙуБоцПРцбИуБзя╝МчФ╗хГПхИЗцЫ┐цЩВуБл
+	чФ╗хГПуБохЫЮш╗вшзТх║жуВТуГкуВ╗уГГуГИуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2003-01-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MPlayerе╡е▌б╝е╚дЄ─╔▓├
+	* MPlayerуВ╡уГЭуГ╝уГИуВТш┐╜хКа
 
 2003-01-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Xine░═┬╕д╬е│б╝е╔дЄimage_view.[ch]дшдъ╩м╬е
+	* Xineф╛ЭхнШуБоуВ│уГ╝уГЙуВТimage_view.[ch]уВИуВКхИЖщЫв
 
 2003-01-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еъе═б╝еретб╝е╔╞тд╬есетеъ2╜┼▓Є╩№е╨е░дЄ╜д└╡
+	* уГкуГНуГ╝уГауГвуГ╝уГЙхЖЕуБоуГбуГвуГк2щЗНшзгцФ╛уГРуВ░уВТф┐оцнг
 
 2003-01-13 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -979,25 +979,25 @@
 
 2003-01-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еьб╝ефд╬╔╜╝и/╚є╔╜╝иесе╦ехб╝дЄ─╔▓├
+	* уГЧуГмуГ╝уГдуБошбичд║/щЭЮшбичд║уГбуГЛуГеуГ╝уВТш┐╜хКа
 
 2003-01-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* xine-0.9д╟╔┴▓шдм├┘дпд╩д├д╞ддд┐╠ф┬ъдЄ╜д└╡бе
+	* xine-0.9уБзцППчФ╗уБМщБЕуБПуБкуБгуБжуБДуБЯхХПщбМуВТф┐оцнгя╝О
 
 2003-01-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* xine-0.9═╤GimvXineд╟е╖б╝епдм└╡д╖дп╞░║юд╖д╩дд╠ф┬ъдЄ╜д└╡бе
+	* xine-0.9чФиGimvXineуБзуВ╖уГ╝уВпуБМцнгуБЧуБПхЛХф╜ЬуБЧуБкуБДхХПщбМуВТф┐оцнгя╝О
 
 2003-01-10 Migrec <migrec@online.fr>
 
-	* po/fr.po: е╒ещеєе╣╕ьеле┐еэе░е╒ебедеыдЄ╣╣┐╖
+	* po/fr.po: уГХуГйуГ│уВ╣шкЮуВлуВ┐уГнуВ░уГХуВбуВдуГлуВТцЫ┤цЦ░
 
 2003-01-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╞░▓ш└ь═╤д╬е─б╝еые╨б╝дЄ─╔▓├бе░╩┴░д╬е╫еьб╝ефе─б╝еые╨б╝д╧е╣ещеде╔е╖ечб╝
-	└ь═╤д╦╩╤╣╣
-	* ╞░▓шд╬е╒еые╣епеъб╝еє╔╜╝идмд╟днд╩дде╨е░дЄ╜д└╡
+	* хЛХчФ╗х░ВчФиуБоуГДуГ╝уГлуГРуГ╝уВТш┐╜хКая╝Оф╗ехЙНуБоуГЧуГмуГ╝уГдуГДуГ╝уГлуГРуГ╝уБпуВ╣уГйуВдуГЙуВ╖уГзуГ╝
+	х░ВчФиуБлхдЙцЫ┤
+	* хЛХчФ╗уБоуГХуГлуВ╣уВпуГкуГ╝уГ│шбичд║уБМуБзуБНуБкуБДуГРуВ░уВТф┐оцнг
 
 2003-01-07 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1005,17 +1005,17 @@
 
 2003-01-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* John Mellor <John@Kungfu-tse.net>д╡дєдлдщд╬═╫╦╛д╟бд
-	WMF(Windows Meta File)еэб╝е└дЄ─╔▓├(libwmfд╦░═┬╕)бе
+	* John Mellor <John@Kungfu-tse.net>уБХуВУуБЛуВЙуБошжБцЬЫуБзя╝М
+	WMF(Windows Meta File)уГнуГ╝уГАуВТш┐╜хКа(libwmfуБлф╛ЭхнШ)я╝О
 
 2003-01-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъдм─╠╛яд╬е╟егеьепе╚еъетб╝е╔д╟екб╝е╫еєд╡дьд╞ддды╛ї┬╓д╟1е┐е╓
-	╞тд╪д╬║╞╡веэб╝е╔дмд╟днд╩дд╠ф┬ъдЄ╜д└╡
+	* уГЗуВгуГмуВпуГИуГкуБМщАЪх╕╕уБоуГЗуВгуГмуВпуГИуГкуГвуГ╝уГЙуБзуВкуГ╝уГЧуГ│уБХуВМуБжуБДуВЛчК╢цЕЛуБз1уВ┐уГЦ
+	хЖЕуБ╕уБохЖНх╕░уГнуГ╝уГЙуБМуБзуБНуБкуБДхХПщбМуВТф┐оцнг
 
 2003-01-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Xine-1 API д╦┬╨▒■ (HEADдшдъе╨е├епе▌б╝е╚)
+	* Xine-1 API уБлхп╛х┐Ь (HEADуВИуВКуГРуГГуВпуГЭуГ╝уГИ)
 
 2002-12-21 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1023,36 +1023,36 @@
 
 2002-12-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* seepman <sheepman@tcn.zaq.ne.jp>д╡дєдлдщд╬─є░╞д╟бд▓ш┴№└┌┬╪ди╗■д╦▓ш┴№д╬
-	╔╜╝и░╠├╓дЄеъе╗е├е╚д╣дыдшджд╦д╖д┐
+	* seepman <sheepman@tcn.zaq.ne.jp>уБХуВУуБЛуВЙуБоцПРцбИуБзя╝МчФ╗хГПхИЗцЫ┐уБИцЩВуБлчФ╗хГПуБо
+	шбичд║ф╜Нч╜оуВТуГкуВ╗уГГуГИуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-12-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╬е▌е├е╫еве├е╫есе╦ехб╝д╦б╓е╡ере═едеыдЄ1е┐е╓д╦║╞╡в╞╔
-	д▀╣■д▀б╫дЄ─╔▓├
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГЭуГГуГЧуВвуГГуГЧуГбуГЛуГеуГ╝уБлуАМуВ╡уГауГНуВдуГлуВТ1уВ┐уГЦуБлхЖНх╕░шкн
+	уБ┐ш╛╝уБ┐уАНуВТш┐╜хКа
 
 2002-12-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* └▀─ъд╦┤╪дядщд║╞░▓ш║╞└╕╜к╬╗╗■д╦╝л╞░┼кд╦╝бд╬▓ш┴№/╞░▓шд╦└┌дъ┬╪дяды╠ф┬ъдЄ
-	╜д└╡
+	* шинхоЪуБлщЦвуВПуВЙуБЪхЛХчФ╗хЖНчФЯч╡Вф║ЖцЩВуБлшЗкхЛХчЪДуБлцмбуБочФ╗хГП/хЛХчФ╗уБлхИЗуВКцЫ┐уВПуВЛхХПщбМуВТ
+	ф┐оцнг
 
 2002-12-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╟е└е╓еыепеъе├еп╗■д╦е▐еже╣еъеъб╝е╣еде┘еєе╚дм┼╧дщд╩дд
-	╗Ўдмдвды╠ф┬ъдЄ╜д└╡
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБзуГАуГЦуГлуВпуГкуГГуВпцЩВуБлуГЮуВжуВ╣уГкуГкуГ╝уВ╣уВдуГЩуГ│уГИуБМц╕буВЙуБкуБД
+	ф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнг
 
 2002-12-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еэе▒б╝е╖ечеєеиеєе╚еъдлдщ╞№╦▄╕ье╟егеьепе╚еъдЄ│лд▒д╩дпд╩д├д╞ддд┐╠ф┬ъдЄ
-	╜д└╡
+	* уГнуВ▒уГ╝уВ╖уГзуГ│уВиуГ│уГИуГкуБЛуВЙцЧецЬмшкЮуГЗуВгуГмуВпуГИуГкуВТщЦЛуБСуБкуБПуБкуБгуБжуБДуБЯхХПщбМуВТ
+	ф┐оцнг
 
 2002-12-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-2.1д╟е╡ере═едеы2етб╝е╔д╬е╣епеэб╝еые╨б╝дм└╡╛яд╦╡б╟╜д╖д╩дд╠ф┬ъдЄ╜д└╡
+	* Gtk+-2.1уБзуВ╡уГауГНуВдуГл2уГвуГ╝уГЙуБоуВ╣уВпуГнуГ╝уГлуГРуГ╝уБМцнгх╕╕уБлцйЯшГ╜уБЧуБкуБДхХПщбМуВТф┐оцнг
 
 2002-11-26 Takuro Ashie <ashie@homa.ne.jp>
 
-	* есетеъеъб╝епдЄ╜д└╡
+	* уГбуГвуГкуГкуГ╝уВпуВТф┐оцнг
 
 2002-11-24 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1060,42 +1060,42 @@
 
 2002-11-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеыежегеєе╔ежд╦б╓е─б╝еыб╫есе╦ехб╝дЄ─╔▓├
-	* б╓е─б╝еыб╫есе╦ехб╝длдщGNOME╡┌д╙KDEд╬╩╔╗ц└▀─ъдЄ╡п╞░д╟дндыдшджд╦д╖д┐бе
+	* уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБлуАМуГДуГ╝уГлуАНуГбуГЛуГеуГ╝уВТш┐╜хКа
+	* уАМуГДуГ╝уГлуАНуГбуГЛуГеуГ╝уБЛуВЙGNOMEхПКуБ│KDEуБохгБч┤ЩшинхоЪуВТш╡╖хЛХуБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-11-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* 32bitд╬BitmapдЄ╞╔д▀╣■дрд╚епеще├е╖ехд╣ды╠ф┬ъдЄ╜д└╡(Thanks! Jin Suh)
-	* едесб╝е╕е╙ехб╝д╦енб╝е╨едеєе╔дЄ─╔▓├
-	* едесб╝е╕е╙ехб╝д╬есе╦ехб╝д╦б╓евеые╒ебе┴еуеєе═еыдЄ╠╡╗ыб╫дЄ─╔▓├
+	* 32bitуБоBitmapуВТшкнуБ┐ш╛╝уВАуБиуВпуГйуГГуВ╖уГеуБЩуВЛхХПщбМуВТф┐оцнг(Thanks! Jin Suh)
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБлуВнуГ╝уГРуВдуГ│уГЙуВТш┐╜хКа
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБоуГбуГЛуГеуГ╝уБлуАМуВвуГлуГХуВбуГБуГгуГ│уГНуГлуВТчДбшжЦуАНуВТш┐╜хКа
 
 2002-11-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╕┼дде╡ере═едеыенеуе├е╖ехдЄ╝л╞░┼кд╦╣╣┐╖д╣дыдшджд╦д╖д┐бе
+	* хПдуБДуВ╡уГауГНуВдуГлуВнуГгуГГуВ╖уГеуВТшЗкхЛХчЪДуБлцЫ┤цЦ░уБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-11-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* DnD╗■д╦е╤б╝е▀е├е╖ечеєд╬╠╡дде╟егеьепе╚еъдЄ╗╪─ъд╖д┐╛ь╣чд╦╖┘╣Ёе└едевеэе░
-	дЄ╔╜╝ид╣дыдшджд╦д╖д┐бе
-	* ╕░╔╒дне╒ебеые└д╬еведе│еєдЄ─╔▓├(Pornviewдшдъ╟╥╝┌)бе
+	* DnDцЩВуБлуГСуГ╝уГЯуГГуВ╖уГзуГ│уБочДбуБДуГЗуВгуГмуВпуГИуГкуВТцМЗхоЪуБЧуБЯха┤хРИуБлшнжхСКуГАуВдуВвуГнуВ░
+	уВТшбичд║уБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* щН╡ф╗ШуБНуГХуВбуГлуГАуБоуВвуВдуВ│уГ│уВТш┐╜хКа(PornviewуВИуВКцЛЭхАЯ)я╝О
 
 2002-11-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* tar╞тд╬е╖еєе▄еъе├епеъеєепе╒ебедеыд╬╜ш═¤дЄ╜д└╡(д▐д└╔╘┤░┴┤)бе
+	* tarхЖЕуБоуВ╖уГ│уГЬуГкуГГуВпуГкуГ│уВпуГХуВбуВдуГлуБохЗжчРЖуВТф┐оцнг(уБ╛уБаф╕НхоМхЕи)я╝О
 
 2002-11-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╨е░е╒еге├епе╣
+	* уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-11-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* └▀─ъ┼м═╤╗■д╦б╓▓ш┴№дЄежегеєе╔еже╡еде║д╦╣чдяд╗дыб╫└▀─ъдЄ╚┐▒╟д╣дыдшджд╦
-	д╖д┐бе
+	* шинхоЪщБйчФицЩВуБлуАМчФ╗хГПуВТуВжуВгуГ│уГЙуВжуВ╡уВдуВ║уБлхРИуВПуБЫуВЛуАНшинхоЪуВТхПНцШауБЩуВЛуВИуБЖуБл
+	уБЧуБЯя╝О
 
 2002-11-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* TAMд╡дєдлдщд╬╗╪┼жд╟бд┼╕│ле╡еде║дм4MB░╩╛хд╬bzip2░╡╜╠е╒ебедеыдЄ│лд│дж
-	д╚д╣дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡
+	* TAMуБХуВУуБЛуВЙуБоцМЗцСШуБзя╝Мх▒ХщЦЛуВ╡уВдуВ║уБМ4MBф╗еф╕КуБоbzip2хЬзч╕оуГХуВбуВдуГлуВТщЦЛуБУуБЖ
+	уБиуБЩуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнг
 
 2002-11-16 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1103,32 +1103,32 @@
 
 2002-11-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Sholmi Fishд╡дєдлдщд╬╗╪┼жд╟бдб╓е╡ере═едеыб╫етб╝е╔д╦дкддд╞
-	е└е╓еыепеъе├еп╗■д╦е▐еже╣еъеъб╝е╣еде┘еєе╚дм┼╧дщд╩дд╠ф┬ъдЄ╜д└╡
+	* Sholmi FishуБХуВУуБЛуВЙуБоцМЗцСШуБзя╝МуАМуВ╡уГауГНуВдуГлуАНуГвуГ╝уГЙуБлуБКуБДуБж
+	уГАуГЦуГлуВпуГкуГГуВпцЩВуБлуГЮуВжуВ╣уГкуГкуГ╝уВ╣уВдуГЩуГ│уГИуБМц╕буВЙуБкуБДхХПщбМуВТф┐оцнг
 
 2002-11-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ▓ш┴№└┌┬╪ди╗■д╬▒■┼·└ндЄ▓■┴▒(HEADдшдъе▐б╝е╕)
-	* ║┘длдде╨е░е╒еге├епе╣
+	* чФ╗хГПхИЗцЫ┐уБИцЩВуБох┐ЬчнФцАзуВТцФ╣хЦД(HEADуВИуВКуГЮуГ╝уВ╕)
+	* ч┤░уБЛуБДуГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-11-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* matsuд╡дєдлдщд╬╗╪┼жд╟бд▒гд╖е╟егеьепе╚еъ▓╝д╟╡п╞░д╣дыд╚епеще├е╖ехд╣ды
-	е╨е░дЄ╜д└╡
+	* matsuуБХуВУуБЛуВЙуБоцМЗцСШуБзя╝МщЪауБЧуГЗуВгуГмуВпуГИуГкф╕ЛуБзш╡╖хЛХуБЩуВЛуБиуВпуГйуГГуВ╖уГеуБЩуВЛ
+	уГРуВ░уВТф┐оцнг
 
 2002-11-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/comment.c: есетеъеъб╝епдЄ╜д└╡
+	* src/comment.c: уГбуГвуГкуГкуГ╝уВпуВТф┐оцнг
 
 2002-11-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GtkTreeView╗╚═╤╗■д╦е│ещере┐еде╚еыд╬╔╜╝и/╚є╔╜╝и└▀─ъдм╠╡╗ыд╡дьд╞ддд┐е╨е░дЄ
-	╜д└╡
+	* GtkTreeViewф╜┐чФицЩВуБлуВ│уГйуГауВ┐уВдуГИуГлуБошбичд║/щЭЮшбичд║шинхоЪуБМчДбшжЦуБХуВМуБжуБДуБЯуГРуВ░уВТ
+	ф┐оцнг
 
 2002-11-09 Takuro Ashie <ashie@homa.ne.jp>
 
 	* widget/zalbum.c
-	* widget/zlist.c: ╠╡┬╠д╩╔┴▓шдЄ═▐└й
+	* widget/zlist.c: чДбщзДуБкцППчФ╗уВТцКСхИ╢
 
 2002-11-07 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1136,33 +1136,33 @@
 
 2002-11-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеые╖е╣е╞ердЄд▐д┐дмдые╒ебедеы░▄╞░д╦╝║╟╘д╖д┐╛ь╣чдт╕╡д╬е╒ебедеыдм
-	║я╜№д╡дьд╞д╖д▐дже╨е░дЄ╜д└╡
+	* уГХуВбуВдуГлуВ╖уВ╣уГЖуГауВТуБ╛уБЯуБМуВЛуГХуВбуВдуГлчз╗хЛХуБлхд▒цХЧуБЧуБЯха┤хРИуВВхЕГуБоуГХуВбуВдуГлуБМ
+	хЙКщЩдуБХуВМуБжуБЧуБ╛уБЖуГРуВ░уВТф┐оцнг
 
 2002-11-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╬е▐еже╣е▄е┐еє└▀─ъдЄ╩╤╣╣д╖д┐╛ь╣чд╦бдGtkCListежеге╕ез
-	е├е╚д╦е▐еже╣е▄е┐еєеде┘еєе╚дм┼╧дщд╩дд╗Ўдмдвды╠ф┬ъдЄ╜д└╡
-	* е╟егеьепе╚еъе╙ехб╝д╬ "." ╡┌д╙ ".." дм└╡д╖дп╞░║юд╖д╩дпд╩д├д╞ддд┐╠ф┬ъдЄ
-	╜д└╡
-	* еэб╝е╟егеєе░├цд╦е┌б╝е╕дЄ└┌┬╪дид┐║▌д╦ежеге╕езе├е╚д╬е╗еєе╖е╞еге╙е╞егдм└╡
-	д╖дп└┌дъ┬╪дяд├д╞ддд╩длд├д┐╠ф┬ъдЄ╜д└╡
-	* Gtk+2д╦дкддд╞бденб╝евепе╗ещеьб╝е┐д╟└▀─ъежегеєе╔еждЄ│лдпд╚═юд┴ды╠ф┬ъдЄ
-	╜д└╡
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГЮуВжуВ╣уГЬуВ┐уГ│шинхоЪуВТхдЙцЫ┤уБЧуБЯха┤хРИуБля╝МGtkCListуВжуВгуВ╕уВз
+	уГГуГИуБлуГЮуВжуВ╣уГЬуВ┐уГ│уВдуГЩуГ│уГИуБМц╕буВЙуБкуБДф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнг
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБо "." хПКуБ│ ".." уБМцнгуБЧуБПхЛХф╜ЬуБЧуБкуБПуБкуБгуБжуБДуБЯхХПщбМуВТ
+	ф┐оцнг
+	* уГнуГ╝уГЗуВгуГ│уВ░ф╕нуБлуГЪуГ╝уВ╕уВТхИЗцЫ┐уБИуБЯщЪЫуБлуВжуВгуВ╕уВзуГГуГИуБоуВ╗уГ│уВ╖уГЖуВгуГУуГЖуВгуБМцнг
+	уБЧуБПхИЗуВКцЫ┐уВПуБгуБжуБДуБкуБЛуБгуБЯхХПщбМуВТф┐оцнг
+	* Gtk+2уБлуБКуБДуБжя╝МуВнуГ╝уВвуВпуВ╗уГйуГмуГ╝уВ┐уБзшинхоЪуВжуВгуГ│уГЙуВжуВТщЦЛуБПуБишР╜уБбуВЛхХПщбМуВТ
+	ф┐оцнг
 
 2002-11-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* └▀─ъежегеєе╔ежд╟┤Ўд─длд╬ежеге╕езе├е╚дЄgtk_widget_showд╖д╞ддд╩длд├д┐д╬
-	дЄ╜д└╡
-	* ▓ш┴№е╡еде║дЄ╝л╞░┼кд╦ежегеєе╔еже╡еде║д╦╣чдяд╗ды└▀─ъдме╣ещеде╔е╖ечб╝д╟
-	╕─╩╠д╦└▀─ъд╟днд╩дпд╩д├д╞ддд┐╠ф┬ъдЄ╜д└╡
+	* шинхоЪуВжуВгуГ│уГЙуВжуБзх╣╛уБдуБЛуБоуВжуВгуВ╕уВзуГГуГИуВТgtk_widget_showуБЧуБжуБДуБкуБЛуБгуБЯуБо
+	уВТф┐оцнг
+	* чФ╗хГПуВ╡уВдуВ║уВТшЗкхЛХчЪДуБлуВжуВгуГ│уГЙуВжуВ╡уВдуВ║уБлхРИуВПуБЫуВЛшинхоЪуБМуВ╣уГйуВдуГЙуВ╖уГзуГ╝уБз
+	хАЛхИеуБлшинхоЪуБзуБНуБкуБПуБкуБгуБжуБДуБЯхХПщбМуВТф┐оцнг
 
 
 2002-11-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╟е╖еєе░еыепеъе├епд╦╡б╟╜дЄ│фдъ┼Ўд╞дыд╚└╡д╖дп╞░║юд╖д╩
-	дд╠ф┬ъдЄ╜д└╡
-	* $(top_srcdir)░╩│░д╬е╟егеьепе╚еъд╟е│еєе╤едеыд╟днд╩дд╠ф┬ъдЄ╜д└╡
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБзуВ╖уГ│уВ░уГлуВпуГкуГГуВпуБлцйЯшГ╜уВТхЙ▓уВКх╜УуБжуВЛуБицнгуБЧуБПхЛХф╜ЬуБЧуБк
+	уБДхХПщбМуВТф┐оцнг
+	* $(top_srcdir)ф╗ехдЦуБоуГЗуВгуГмуВпуГИуГкуБзуВ│уГ│уГСуВдуГлуБзуБНуБкуБДхХПщбМуВТф┐оцнг
 
 2002-11-04 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1170,18 +1170,18 @@
 
 2002-11-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеы┴р║ю╗■д╦бде╒ебедеы┴р║юд╦╝║╟╘д╖д╞дтенеуе├е╖ехе╒ебедеыд╚е│есеєе╚
-	е╒ебедеыдм░▄╞░/е│е╘б╝/еъеєепд╡дьд╞д╖д▐дж╠ф┬ъдЄ╜д└╡
-	* ░█д╩дые╒ебедеые╖е╣е╞ерд╪е╒ебедеыдЄ░▄╞░д╣ды╗■д╦бд╕╡д╬е╒ебедеыдЄ║я╜№д╣ды
-	дшджд╦╠сд╖д┐бе
+	* уГХуВбуВдуГлцУНф╜ЬцЩВуБля╝МуГХуВбуВдуГлцУНф╜ЬуБлхд▒цХЧуБЧуБжуВВуВнуГгуГГуВ╖уГеуГХуВбуВдуГлуБиуВ│уГбуГ│уГИ
+	уГХуВбуВдуГлуБМчз╗хЛХ/уВ│уГФуГ╝/уГкуГ│уВпуБХуВМуБжуБЧуБ╛уБЖхХПщбМуВТф┐оцнг
+	* чХ░уБкуВЛуГХуВбуВдуГлуВ╖уВ╣уГЖуГауБ╕уГХуВбуВдуГлуВТчз╗хЛХуБЩуВЛцЩВуБля╝МхЕГуБоуГХуВбуВдуГлуВТхЙКщЩдуБЩуВЛ
+	уВИуБЖуБлцИ╗уБЧуБЯя╝О
 
 2002-11-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еъе═б╝еретб╝е╔д╬е╒ебедеы╠╛еиеєе╚еъд╟енб╝евепе╗ещеьб╝е┐дм╠╡╕·д╦д╩дщд╩дд
-	╠ф┬ъдЄ╜д└╡(Gtk+-2.0)
-	* еъе═б╝еретб╝е╔д╟╩╕╗·е│б╝е╔дм└╡д╖дп╩╤┤╣д╡дьд╩дд╠ф┬ъдЄ╜д└╡(Gtk+-2.0)
-	* е╡ере═едеые╙ехб╝д╟е╡ере═едеыд╬е╒ейб╝еле╣░▄╞░дм└╡д╖дп╞░║юд╖д╩дд╠ф┬ъдЄ
-	╜д└╡(Gtk+2)
+	* уГкуГНуГ╝уГауГвуГ╝уГЙуБоуГХуВбуВдуГлхРНуВиуГ│уГИуГкуБзуВнуГ╝уВвуВпуВ╗уГйуГмуГ╝уВ┐уБМчДбхК╣уБлуБкуВЙуБкуБД
+	хХПщбМуВТф┐оцнг(Gtk+-2.0)
+	* уГкуГНуГ╝уГауГвуГ╝уГЙуБзцЦЗхнЧуВ│уГ╝уГЙуБМцнгуБЧуБПхдЙцПЫуБХуВМуБкуБДхХПщбМуВТф┐оцнг(Gtk+-2.0)
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБзуВ╡уГауГНуВдуГлуБоуГХуВйуГ╝уВлуВ╣чз╗хЛХуБМцнгуБЧуБПхЛХф╜ЬуБЧуБкуБДхХПщбМуВТ
+	ф┐оцнг(Gtk+2)
 
 2002-11-02 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1189,122 +1189,122 @@
 
 2002-10-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GtkTreeViewд╪д╬е▌б╝е╞егеєе░дЄ┤░╬╗
+	* GtkTreeViewуБ╕уБоуГЭуГ╝уГЖуВгуГ│уВ░уВТхоМф║Ж
 
 2002-10-28 Takuro Ashie <ashie@homa.ne.jp>
 
 	* dstack_list.[ch]
-	* editable_list.[ch]: Widget▓╜(├ц┼╙)
-	* е│б╝е╔└░═¤
+	* editable_list.[ch]: WidgetхМЦ(ф╕нщАФ)
+	* уВ│уГ╝уГЙцХ┤чРЖ
 
 2002-10-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еэе▒б╝е╖ечеєеиеєе╚еъд╟╞№╦▄╕ье╟егеьепе╚еъдЄ╝л╞░╩ф┤░д╟днд╩дд╠ф┬ъдЄ╜д└╡
+	* уГнуВ▒уГ╝уВ╖уГзуГ│уВиуГ│уГИуГкуБзцЧецЬмшкЮуГЗуВгуГмуВпуГИуГкуВТшЗкхЛХшгЬхоМуБзуБНуБкуБДхХПщбМуВТф┐оцнг
         (Gtk+2)
-	* └▀─ъежегеєе╔ежд╬е╚е├е╫е┌б╝е╕д╦б╓╛Ё╩єб╫дЄ─╔▓├
-	* └▀─ъежегеєе╔ежд╬е╩е╙е▓б╝е╖ечеєе─еъб╝/е╟егеьепе╚еъ└▀─ъ/е╫еще░едеє╛Ё╩є
-        ╔╜╝идЄGtkTreeViewд╦е▌б╝е╞егеєе░
-	* е│б╝е╔└░═¤
+	* шинхоЪуВжуВгуГ│уГЙуВжуБоуГИуГГуГЧуГЪуГ╝уВ╕уБлуАМцГЕха▒уАНуВТш┐╜хКа
+	* шинхоЪуВжуВгуГ│уГЙуВжуБоуГКуГУуВ▓уГ╝уВ╖уГзуГ│уГДуГкуГ╝/уГЗуВгуГмуВпуГИуГкшинхоЪ/уГЧуГйуВ░уВдуГ│цГЕха▒
+        шбичд║уВТGtkTreeViewуБлуГЭуГ╝уГЖуВгуГ│уВ░
+	* уВ│уГ╝уГЙцХ┤чРЖ
 
 2002-10-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│б╝е╔└░═¤
+	* уВ│уГ╝уГЙцХ┤чРЖ
 
 2002-10-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔еждЄ├▒╞╚д╟╡п╞░д╖д┐╛ь╣чд╦╔мд║е╡ере═едеыдм║ю└од╡дьд╞
-	д╖д▐дж╠ф┬ъдЄ╜д└╡
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВТхНШчЛмуБзш╡╖хЛХуБЧуБЯха┤хРИуБлх┐ЕуБЪуВ╡уГауГНуВдуГлуБМф╜ЬцИРуБХуВМуБж
+	уБЧуБ╛уБЖхХПщбМуВТф┐оцнг
 
 2002-10-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* б╓╛▄║┘б╫етб╝е╔д╬е╗еьепе╖ечеєд╬╡є╞░дЄ╩╤╣╣(Gtk+2)
+	* уАМшй│ч┤░уАНуГвуГ╝уГЙуБоуВ╗уГмуВпуВ╖уГзуГ│уБоцМЩхЛХуВТхдЙцЫ┤(Gtk+2)
 
 2002-10-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔еждЄ┴░╠╠д╦╜╨д╣╗■д╦е╒ейб╝еле╣д╡дьд╩дд╠ф┬ъдЄ╜д└╡бе
-	* б╓╛▄║┘б╫етб╝е╔д╬GtkTreeViewд╪д╬е▌б╝е╞егеєе░дЄ┤░╬╗бе
-	* GtkPixmapдЄGtkImageд╦░▄╣╘(Gtk+2╗╚═╤╗■)бе
-	* д╜д╬┬╛е╨е░е╒еге├епе╣бе
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВТхЙНщЭвуБлхЗ║уБЩцЩВуБлуГХуВйуГ╝уВлуВ╣уБХуВМуБкуБДхХПщбМуВТф┐оцнгя╝О
+	* уАМшй│ч┤░уАНуГвуГ╝уГЙуБоGtkTreeViewуБ╕уБоуГЭуГ╝уГЖуВгуГ│уВ░уВТхоМф║Жя╝О
+	* GtkPixmapуВТGtkImageуБлчз╗шбМ(Gtk+2ф╜┐чФицЩВ)я╝О
+	* уБЭуБоф╗ЦуГРуВ░уГХуВгуГГуВпуВ╣я╝О
 
 2002-10-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+2╗╚═╤╗■д╦едесб╝е╕ежегеєе╔ежд╬е╖б╝епе╨б╝дЄ┴р║юд╟днд╩дд╠ф┬ъдЄ╜д└╡
-	* б╓╛▄║┘б╫етб╝е╔дЄGtkTreeViewд╟║╞╝┬┴ї(├ц┼╙)
+	* Gtk+2ф╜┐чФицЩВуБлуВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБоуВ╖уГ╝уВпуГРуГ╝уВТцУНф╜ЬуБзуБНуБкуБДхХПщбМуВТф┐оцнг
+	* уАМшй│ч┤░уАНуГвуГ╝уГЙуВТGtkTreeViewуБзхЖНхоЯшгЕ(ф╕нщАФ)
 
 2002-10-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│есеєе╚е╙ехб╝/EXIFе╙ехб╝/╬р╗ў▓ш┴№╕б║ў╖ы▓╠ежегеєе╔ежд╬GtkClist/GtkCTree
-	дЄGtkTreeViewд╦░▄╣╘(Gtk+2╗╚═╤╗■)
+	* уВ│уГбуГ│уГИуГУуГеуГ╝/EXIFуГУуГеуГ╝/щбЮф╝╝чФ╗хГПцдЬч┤вч╡РцЮЬуВжуВгуГ│уГЙуВжуБоGtkClist/GtkCTree
+	уВТGtkTreeViewуБлчз╗шбМ(Gtk+2ф╜┐чФицЩВ)
 
 2002-10-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│б╝е╔└░═¤
+	* уВ│уГ╝уГЙцХ┤чРЖ
 
 2002-10-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Susieе╫еще░едеє▓єдъд╬е│б╝е╔дЄ└░═¤
-	* Susieе╫еще░едеє╕б║ўе╟егеьепе╚еъ└▀─ъ═╤д╬UIдЄ─╔▓├
+	* SusieуГЧуГйуВ░уВдуГ│хЫЮуВКуБоуВ│уГ╝уГЙуВТцХ┤чРЖ
+	* SusieуГЧуГйуВ░уВдуГ│цдЬч┤вуГЗуВгуГмуВпуГИуГкшинхоЪчФиуБоUIуВТш┐╜хКа
 
 2002-10-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ~/.gimv/gimvrcдЄеэе▒б╝еыд╬енеуещепе┐б╝е╗е├е╚д╟╜╨╬╧д╣дыдшджд╦д╖д┐бе
-	* ежегеєе╔еже┐еде╚еыдфе╣е╞б╝е┐е╣е╨б╝д╬енеуещепе┐б╝е╗е├е╚дЄ╞т╔Їенеуещепе┐
-	б╝е╗е├е╚д╦╩╤┤╣д╣дыдшджд╦д╖д┐бе
-	* ╬р╗ў▓ш┴№╕б║ўежегеєе╔ежд╦╔╜╝ид╣дые╞ене╣е╚дЄ╞т╔Їенеуещепе┐б╝е╗е├е╚д╦╩╤┤╣
-	д╣дыдшджд╦д╖д┐бе
-	* е│есеєе╚е╟б╝е┐д╬е╒ебедеы╠╛д╬╩╕╗·е│б╝е╔╩╤┤╣дм╕эд├д╞ддд┐╠ф┬ъдЄ╜д└╡бе
-	* е╟егеьепе╚еъе╙ехб╝д╬GtkTreeViewд╦дшды║╞╝┬┴їдЄ┤░╬╗бе
-	* е╒ебедеые│е╘б╝/░▄╞░/еъеєеп╗■д╬е└едевеэе░дЄGtkFileSelectionд╦╩╤╣╣бе
-	* ZAlbumежеге╕езе├е╚д╦дкддд╞е▐еые┴е╨еде╚╩╕╗·╬єдЄ╣═╬╕д╖д╞ддд╩длд├д┐╠ф┬ъдЄ
-	╜д└╡бе
-	* Gtk+2д╟е│еєе╤едеыд╖д┐╗■д╦бде╡ере═едеые╙ехб╝д╟е╞ене╣е╚д╬╔╜╝и░╠├╓дм╢╕д├
-	д╞ддд┐╠ф┬ъдЄ╜д└╡бе
-	* б╓╛▄║┘ + е╡ере═едеыб╫етб╝е╔д╦дкддд╞е╞ене╣е╚д╬╔╜╝и░╠├╓дмдкдлд╖длд├д┐╠ф
-	┬ъдЄ╜д└╡бе
-	* е│б╝е╔└░═¤
+	* ~/.gimv/gimvrcуВТуГнуВ▒уГ╝уГлуБоуВнуГгуГйуВпуВ┐уГ╝уВ╗уГГуГИуБзхЗ║хКЫуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уВжуВгуГ│уГЙуВжуВ┐уВдуГИуГлуВДуВ╣уГЖуГ╝уВ┐уВ╣уГРуГ╝уБоуВнуГгуГйуВпуВ┐уГ╝уВ╗уГГуГИуВТхЖЕщГиуВнуГгуГйуВпуВ┐
+	уГ╝уВ╗уГГуГИуБлхдЙцПЫуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* щбЮф╝╝чФ╗хГПцдЬч┤вуВжуВгуГ│уГЙуВжуБлшбичд║уБЩуВЛуГЖуВнуВ╣уГИуВТхЖЕщГиуВнуГгуГйуВпуВ┐уГ╝уВ╗уГГуГИуБлхдЙцПЫ
+	уБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уВ│уГбуГ│уГИуГЗуГ╝уВ┐уБоуГХуВбуВдуГлхРНуБоцЦЗхнЧуВ│уГ╝уГЙхдЙцПЫуБМшкдуБгуБжуБДуБЯхХПщбМуВТф┐оцнгя╝О
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоGtkTreeViewуБлуВИуВЛхЖНхоЯшгЕуВТхоМф║Жя╝О
+	* уГХуВбуВдуГлуВ│уГФуГ╝/чз╗хЛХ/уГкуГ│уВпцЩВуБоуГАуВдуВвуГнуВ░уВТGtkFileSelectionуБлхдЙцЫ┤я╝О
+	* ZAlbumуВжуВгуВ╕уВзуГГуГИуБлуБКуБДуБжуГЮуГлуГБуГРуВдуГИцЦЗхнЧхИЧуВТшАГцЕоуБЧуБжуБДуБкуБЛуБгуБЯхХПщбМуВТ
+	ф┐оцнгя╝О
+	* Gtk+2уБзуВ│уГ│уГСуВдуГлуБЧуБЯцЩВуБля╝МуВ╡уГауГНуВдуГлуГУуГеуГ╝уБзуГЖуВнуВ╣уГИуБошбичд║ф╜Нч╜оуБМчЛВуБг
+	уБжуБДуБЯхХПщбМуВТф┐оцнгя╝О
+	* уАМшй│ч┤░ + уВ╡уГауГНуВдуГлуАНуГвуГ╝уГЙуБлуБКуБДуБжуГЖуВнуВ╣уГИуБошбичд║ф╜Нч╜оуБМуБКуБЛуБЧуБЛуБгуБЯхХП
+	щбМуВТф┐оцнгя╝О
+	* уВ│уГ╝уГЙцХ┤чРЖ
 
 2002-10-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│е▐еєе╔ещедеєд╬е╪еые╫дЄеэе▒б╝еыд╬енеуещепе┐б╝е╗е├е╚д╟╜╨╬╧д╣дыдшджд╦д╖д┐
+	* уВ│уГЮуГ│уГЙуГйуВдуГ│уБоуГШуГлуГЧуВТуГнуВ▒уГ╝уГлуБоуВнуГгуГйуВпуВ┐уГ╝уВ╗уГГуГИуБзхЗ║хКЫуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-10-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡
+	* ч┤░уБЛуБДф┐оцнг
 
 2002-10-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* configure.inдЄ╜д└╡
-	* е╟егеьепе╚еъе╙ехб╝дЄGtkTreeViewд╟║╞╝┬┴ї│л╗╧
+	* configure.inуВТф┐оцнг
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уВТGtkTreeViewуБзхЖНхоЯшгЕщЦЛхзЛ
 
 2002-10-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* б╓енеуе├е╖ехдЄепеъевб╫есе╦ехб╝дЄ─╔▓├
-	* е╡ере═едеыенеуе├е╖ехдм┬╕║▀д╖д╩дд╛ї┬╓д╟▓ш┴№дЄ│лддд┐╗■д╦бденеуе├е╖ехдЄ
-	║ю└од╣дыдшджд╦д╖д┐бе
+	* уАМуВнуГгуГГуВ╖уГеуВТуВпуГкуВвуАНуГбуГЛуГеуГ╝уВТш┐╜хКа
+	* уВ╡уГауГНуВдуГлуВнуГгуГГуВ╖уГеуБМхнШхЬиуБЧуБкуБДчК╢цЕЛуБзчФ╗хГПуВТщЦЛуБДуБЯцЩВуБля╝МуВнуГгуГГуВ╖уГеуВТ
+	ф╜ЬцИРуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-10-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едеєе╟еєе╚дЄ╜д└╡
+	* уВдуГ│уГЗуГ│уГИуВТф┐оцнг
 
 2002-10-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔ежд╦б╓е│есеєе╚дЄ╩╘╜╕б╫есе╦ехб╝дЄ─╔▓├
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБлуАМуВ│уГбуГ│уГИуВТч╖ищЫЖуАНуГбуГЛуГеуГ╝уВТш┐╜хКа
 
 2002-10-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╟е╟егеьепе╚еъдЄ╔╜╝ид╖д┐╛ї┬╓д╟║╞╡веэб╝е╟егеєе░д╣дыд╚
-	╠╡╕┬еыб╝е╫д╦д╩ды╠ф┬ъдЄ╜д└╡
-	* $ID─╔▓├
-	* едеєе╟еєе╚╜д└╡
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБзуГЗуВгуГмуВпуГИуГкуВТшбичд║уБЧуБЯчК╢цЕЛуБзхЖНх╕░уГнуГ╝уГЗуВгуГ│уВ░уБЩуВЛуБи
+	чДбщЩРуГлуГ╝уГЧуБлуБкуВЛхХПщбМуВТф┐оцнг
+	* $IDш┐╜хКа
+	* уВдуГ│уГЗуГ│уГИф┐оцнг
 
 2002-09-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ┐╖д╖дде╜б╝е╚есе╦ехб╝дЄ─╔▓├
-	* SPIеэб╝е└д╟peimage_loadдм╝║╟╘д╖д┐д╚днд╦peimage_destroyдм╕╞д╨дьд╩дд
-	е╨е░дЄ╜д└╡(Thanks! ┤ф╦▄░ь╝∙д╡дє)
-	* е▐еже╣е▄е┐еє└▀─ъд╦ ║╕/├ц/▒ж д╬╔╜╡ндЄ─╔▓├(Thanks! kneeд╡дє)
-	* е╡ере═едеые╙ехб╝д╬е╡ере═едеы╔╜╝иетб╝е╔┤╪╧ве╜б╝е╣е╒ебедеыдЄ
-	$(top_srcdir)/plugins/thumbnail_view д╦░▄╞░
+	* цЦ░уБЧуБДуВ╜уГ╝уГИуГбуГЛуГеуГ╝уВТш┐╜хКа
+	* SPIуГнуГ╝уГАуБзpeimage_loadуБМхд▒цХЧуБЧуБЯуБиуБНуБлpeimage_destroyуБМхС╝уБ░уВМуБкуБД
+	уГРуВ░уВТф┐оцнг(Thanks! х▓йцЬмф╕Аци╣уБХуВУ)
+	* уГЮуВжуВ╣уГЬуВ┐уГ│шинхоЪуБл х╖ж/ф╕н/хП│ уБошбишиШуВТш┐╜хКа(Thanks! kneeуБХуВУ)
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБоуВ╡уГауГНуВдуГлшбичд║уГвуГ╝уГЙщЦвщАгуВ╜уГ╝уВ╣уГХуВбуВдуГлуВТ
+	$(top_srcdir)/plugins/thumbnail_view уБлчз╗хЛХ
 
 2002-09-22 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1312,53 +1312,53 @@
 
 2002-09-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟е╒ейеые╚д╬е╡ере═едеы╔╜╝иетб╝е╔дЄб╓е╡ере═едеы2б╫д╦╩╤╣╣
+	* уГЗуГХуВйуГлуГИуБоуВ╡уГауГНуВдуГлшбичд║уГвуГ╝уГЙуВТуАМуВ╡уГауГНуВдуГл2уАНуБлхдЙцЫ┤
 
 2002-09-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* dirview.c: е╡ере═едеы╞╔д▀╣■д▀║╤д▀д╬е╟егеьепе╚еъд╬╩╕╗·┐здЄе╧едещеде╚д╣
-	дыдшджд╦д╖д┐
+	* dirview.c: уВ╡уГауГНуВдуГлшкнуБ┐ш╛╝уБ┐ц╕ИуБ┐уБоуГЗуВгуГмуВпуГИуГкуБоцЦЗхнЧшЙ▓уВТуГПуВдуГйуВдуГИуБЩ
+	уВЛуВИуБЖуБлуБЧуБЯ
 
 2002-09-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* dirview.c: е╔еще├е░евеєе╔е╔еэе├е╫├цд╬е▐еже╣елб╝е╜еы─╛▓╝д╬╬єд╦┼м═╤д╣ды
-	е╣е┐едеыдЄGTK_STATE_PRELIGHTд╦╩╤╣╣
+	* dirview.c: уГЙуГйуГГуВ░уВвуГ│уГЙуГЙуГнуГГуГЧф╕нуБоуГЮуВжуВ╣уВлуГ╝уВ╜уГлчЫ┤ф╕ЛуБохИЧуБлщБйчФиуБЩуВЛ
+	уВ╣уВ┐уВдуГлуВТGTK_STATE_PRELIGHTуБлхдЙцЫ┤
 
 2002-09-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕е╙ехб╝д╦дшд├д╞║ю└од╡дьд┐е╡ере═едеыдме╡ере═едеые╙ехб╝д╦╚┐▒╟д╡
-	дьд╩дд╠ф┬ъдЄ╜д└╡
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБлуВИуБгуБжф╜ЬцИРуБХуВМуБЯуВ╡уГауГНуВдуГлуБМуВ╡уГауГНуВдуГлуГУуГеуГ╝уБлхПНцШауБХ
+	уВМуБкуБДхХПщбМуВТф┐оцнг
 
 2002-09-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеыежегеєе╔еж╡п╞░╗■д╦бд└▀─ъд╦┤╪дядщд║е╣епеэб╝еые╨б╝дм╔╜╝ид╡дь
-	ды╠ф┬ъдЄ╜д└╡
-	* д╜д╬┬╛║┘длдд╜д└╡
+	* уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжш╡╖хЛХцЩВуБля╝МшинхоЪуБлщЦвуВПуВЙуБЪуВ╣уВпуГнуГ╝уГлуГРуГ╝уБМшбичд║уБХуВМ
+	уВЛхХПщбМуВТф┐оцнг
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнг
 
 2002-09-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* PNGеэб╝е└дЄ─╔▓├
-	* б╓╛▄║┘б╫етб╝е╔д╟▓ш┴№е╡еде║дЄ╔╜╝ид╟дндыдшджд╦д╖д┐
-	* GImageView╞╚╝лд╬еэб╝е└д╟╞й▓с▓ш┴№д╬░╖дддмдкдлд╖дпд╩д├д╞ддд┐╠ф┬ъдЄ╜д└╡
-	* SPIеэб╝е└дЄ═н╕·д╦д╖д┐╗■д╦е│еєе╤едеыд╟днд╩дпд╩д├д╞ддд┐╠ф┬ъдЄ╜д└╡
-	(Thanks!▓╝┐╣д╡дє)
-	* д╜д╬┬╛║┘длдд╜д└╡
+	* PNGуГнуГ╝уГАуВТш┐╜хКа
+	* уАМшй│ч┤░уАНуГвуГ╝уГЙуБзчФ╗хГПуВ╡уВдуВ║уВТшбичд║уБзуБНуВЛуВИуБЖуБлуБЧуБЯ
+	* GImageViewчЛмшЗкуБоуГнуГ╝уГАуБзщАПщБОчФ╗хГПуБоцЙ▒уБДуБМуБКуБЛуБЧуБПуБкуБгуБжуБДуБЯхХПщбМуВТф┐оцнг
+	* SPIуГнуГ╝уГАуВТцЬЙхК╣уБлуБЧуБЯцЩВуБлуВ│уГ│уГСуВдуГлуБзуБНуБкуБПуБкуБгуБжуБДуБЯхХПщбМуВТф┐оцнг
+	(Thanks!ф╕ЛцгоуБХуВУ)
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнг
 
 2002-09-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╬е▐еже╣е▄е┐еє└▀─ъдЄ─╔▓├
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГЮуВжуВ╣уГЬуВ┐уГ│шинхоЪуВТш┐╜хКа
 
 2002-09-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ▓ш┴№еэб╝е└д╬╗┼══дЄ╩╤╣╣
+	* чФ╗хГПуГнуГ╝уГАуБоф╗ХцзШуВТхдЙцЫ┤
 
 2002-09-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔ежд╬╟╪╖╩┐здЄ└▀─ъд╟дндыдшджд╦д╖д┐
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБошГМцЩпшЙ▓уВТшинхоЪуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-09-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеы║ю└о┬о┼┘дЄ╕■╛х(║гд▐д╟дм├┘д╣до;-P)
+	* уВ╡уГауГНуВдуГлф╜ЬцИРщАЯх║жуВТхРСф╕К(ф╗КуБ╛уБзуБМщБЕуБЩуБО;-P)
 
 2002-09-02 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1366,126 +1366,126 @@
 
 2002-08-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╔енехесеєе╚д╬едеєе╣е╚б╝еые╟егеьепе╚еъдЄ╩╤╣╣
+	* уГЙуВнуГеуГбуГ│уГИуБоуВдуГ│уВ╣уГИуГ╝уГлуГЗуВгуГмуВпуГИуГкуВТхдЙцЫ┤
 
 2002-08-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔еждЄ▓ш┴№е╡еде║д╦е╒еге├е╚д╡д╗ды╗■д╦е╣епеэб╝еые╨б╝д╬
-	е╡еде║дт╣═╬╕д╣дыдшджд╦д╖д┐
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВТчФ╗хГПуВ╡уВдуВ║уБлуГХуВгуГГуГИуБХуБЫуВЛцЩВуБлуВ╣уВпуГнуГ╝уГлуГРуГ╝уБо
+	уВ╡уВдуВ║уВВшАГцЕоуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-08-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒еые╣епеъб╝еє╗■д╦е▐еже╣елб╝е╜еыдЄ╝л╞░┼кд╦▒гд╣дшджд╦д╖д┐
+	* уГХуГлуВ╣уВпуГкуГ╝уГ│цЩВуБлуГЮуВжуВ╣уВлуГ╝уВ╜уГлуВТшЗкхЛХчЪДуБлщЪауБЩуВИуБЖуБлуБЧуБЯ
 
 2002-08-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╣ещеде╔е╖ечб╝╗■д╬╟╪╖╩┐здм└╡д╖дп└▀─ъд╡дьд╩дд╠ф┬ъдЄ╜д└╡
+	* уВ╣уГйуВдуГЙуВ╖уГзуГ╝цЩВуБошГМцЩпшЙ▓уБМцнгуБЧуБПшинхоЪуБХуВМуБкуБДхХПщбМуВТф┐оцнг
 
 2002-08-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒еые╣епеъб╝еєд╦енб╝евепе╗ещеьб╝е┐дЄ─╔▓├
+	* уГХуГлуВ╣уВпуГкуГ╝уГ│уБлуВнуГ╝уВвуВпуВ╗уГйуГмуГ╝уВ┐уВТш┐╜хКа
 
 2002-08-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔ежд╬е╒еые╣епеъб╝еєд╬╗┼══дЄ╩╤╣╣
-	* ╜╛═шд╬е╒еые╣епеъб╝еєдЄб╓║╟┬ч▓╜б╫д╦╠╛╛╬╩╤╣╣
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБоуГХуГлуВ╣уВпуГкуГ╝уГ│уБоф╗ХцзШуВТхдЙцЫ┤
+	* х╛УцЭеуБоуГХуГлуВ╣уВпуГкуГ╝уГ│уВТуАМцЬАхдзхМЦуАНуБлхРНчз░хдЙцЫ┤
 
 2002-08-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡
+	* ч┤░уБЛуБДф┐оцнг
 
 2002-08-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/image_window.c: ▓ш┴№дме╗е├е╚д╡дьд╞ддд╩ддд╚днд╦ежегеєе╔еже╡еде║дЄ
-	▓ш┴№е╡еде║д╦╣чдяд╗ды╞░║юдЄд╣дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡
+	* src/image_window.c: чФ╗хГПуБМуВ╗уГГуГИуБХуВМуБжуБДуБкуБДуБиуБНуБлуВжуВгуГ│уГЙуВжуВ╡уВдуВ║уВТ
+	чФ╗хГПуВ╡уВдуВ║уБлхРИуВПуБЫуВЛхЛХф╜ЬуВТуБЩуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнг
 
 2002-08-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* configure.in: ╜д└╡
+	* configure.in: ф┐оцнг
 
 2002-08-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gimageview.spec.in: ╣╣┐╖
-	* ▓ш┴№еэб╝е└┤╪╧вд╬е╜б╝е╣е╒ебедеыдЄ $(top_srcdir)/plugins/image_loaderд╦
-	░▄╞░
+	* gimageview.spec.in: цЫ┤цЦ░
+	* чФ╗хГПуГнуГ╝уГАщЦвщАгуБоуВ╜уГ╝уВ╣уГХуВбуВдуГлуВТ $(top_srcdir)/plugins/image_loaderуБл
+	чз╗хЛХ
 
 2002-08-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ежеге╕езе├е╚┤╪╧вд╬е╜б╝е╣е╒ебедеыдЄ $(top_srcdir)/widget/д╦░▄╞░
+	* уВжуВгуВ╕уВзуГГуГИщЦвщАгуБоуВ╜уГ╝уВ╣уГХуВбуВдуГлуВТ $(top_srcdir)/widget/уБлчз╗хЛХ
 
 2002-08-26 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Nautilus-1.0.6╖┴╝░д╬е╡ере═едеы╜ёдн╣■д▀д╦┬╨▒■(1.0.4░╩┴░д╧╔╘╠└)
+	* Nautilus-1.0.6х╜вх╝ПуБоуВ╡уГауГНуВдуГлцЫ╕уБНш╛╝уБ┐уБлхп╛х┐Ь(1.0.4ф╗ехЙНуБпф╕НцШО)
 
 2002-08-26 Takuro Ashie <ashie@homa.ne.jp>
 
-	* configureд╟libmngд╬╡б╟╜дЄе┴езе├епд╣дыдшджд╦д╖д┐
+	* configureуБзlibmngуБоцйЯшГ╜уВТуГБуВзуГГуВпуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-08-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* link2abs дкдшд╙ file_util_conv_rel_path_to_abs (relpath2absд╦▓■╠╛)дЄ
-	╜д└╡
+	* link2abs уБКуВИуБ│ file_util_conv_rel_path_to_abs (relpath2absуБлцФ╣хРН)уВТ
+	ф┐оцнг
 
 2002-08-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Nautilus-2.0д╬е╡ере═едеыд╦┬╨▒■
+	* Nautilus-2.0уБоуВ╡уГауГНуВдуГлуБлхп╛х┐Ь
 
 2002-08-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* xvpicsе╡ере═едеыдЄ┬╛д╬е╫еэе░ещерд╟╞╔д▀╣■д▀▓─╟╜д╩╖┴╝░д╦д╩дыдшджд╦╜д└╡
-	* png_get_header_ver()д╬═н╠╡дЄconfigureд╟е┴езе├епд╣дыдшджд╦д╖д┐
+	* xvpicsуВ╡уГауГНуВдуГлуВТф╗ЦуБоуГЧуГнуВ░уГйуГауБзшкнуБ┐ш╛╝уБ┐хПпшГ╜уБкх╜вх╝ПуБлуБкуВЛуВИуБЖуБлф┐оцнг
+	* png_get_header_ver()уБоцЬЙчДбуВТconfigureуБзуГБуВзуГГуВпуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-08-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* librsvgд╬╕б╜╨дЄ▓■┴▒
+	* librsvgуБоцдЬхЗ║уВТцФ╣хЦД
 
 2002-08-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* енб╝евепе╗ещеьб╝е┐д╬╩╤╣╣дЄ╩▌┬╕д╣дыдшджд╦д╖д┐
+	* уВнуГ╝уВвуВпуВ╗уГйуГмуГ╝уВ┐уБохдЙцЫ┤уВТф┐ЭхнШуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-08-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/pixbuf_anim.[ch]: gimv_anim.cдшдъ╩м╬е
-	* src/pixbuf_loader.[ch]: pixbuf_utils.cдшдъ╩м╬е
+	* src/pixbuf_anim.[ch]: gimv_anim.cуВИуВКхИЖщЫв
+	* src/pixbuf_loader.[ch]: pixbuf_utils.cуВИуВКхИЖщЫв
 
 2002-08-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* б╓╝л╞░┼кд╦▓ш┴№е╡еде║д╦еъе╡еде║д╣дыб╫д╚б╓е╒ебедеыекб╝е╫еє╗■д╦ежегеєе╔
-	еже╡еде║дЄ▓ёдяд╗дыб╫д╬╬╛╩¤дмTrueд╬╗■д╦└╡д╖дп╞░║юд╖д╩дпд╩д├д╞ддд┐╠ф┬ъдЄ
-	╜д└╡
+	* уАМшЗкхЛХчЪДуБлчФ╗хГПуВ╡уВдуВ║уБлуГкуВ╡уВдуВ║уБЩуВЛуАНуБиуАМуГХуВбуВдуГлуВкуГ╝уГЧуГ│цЩВуБлуВжуВгуГ│уГЙ
+	уВжуВ╡уВдуВ║уВТф╝ЪуВПуБЫуВЛуАНуБоф╕бцЦ╣уБМTrueуБоцЩВуБлцнгуБЧуБПхЛХф╜ЬуБЧуБкуБПуБкуБгуБжуБДуБЯхХПщбМуВТ
+	ф┐оцнг
 
 2002-08-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* m4/gtk-2.0.m4: ║я╜№
-	* m4/pkg.m4: ─╔▓├
+	* m4/gtk-2.0.m4: хЙКщЩд
+	* m4/pkg.m4: ш┐╜хКа
 
 2002-08-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* SVGеэб╝е└д╬епеще├е╖ехе╨е░дЄ╜д└╡
-	* librsvg-2.0д╦┬╨▒■(Gtk+-2.0╗╚═╤╗■)
-	* еве╦есб╝е╖ечеєGIF╞╔д▀╣■д▀╗■д╬епеще├е╖ехе╨е░дЄ╜д└╡(Gtk+-2.0╗╚═╤╗■)
+	* SVGуГнуГ╝уГАуБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
+	* librsvg-2.0уБлхп╛х┐Ь(Gtk+-2.0ф╜┐чФицЩВ)
+	* уВвуГЛуГбуГ╝уВ╖уГзуГ│GIFшкнуБ┐ш╛╝уБ┐цЩВуБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг(Gtk+-2.0ф╜┐чФицЩВ)
 
 2002-08-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-2.0╗╚═╤╗■д╦gdk-pixbuf-1.0д╚2.0д╬╬╛╩¤дмеъеєепд╡дьды╠ф┬ъдЄ╜д└╡
-	* xml-i18n-toolsдЄ╣╣┐╖
+	* Gtk+-2.0ф╜┐чФицЩВуБлgdk-pixbuf-1.0уБи2.0уБоф╕бцЦ╣уБМуГкуГ│уВпуБХуВМуВЛхХПщбМуВТф┐оцнг
+	* xml-i18n-toolsуВТцЫ┤цЦ░
 
 2002-07-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* configure.inдЄ╜д└╡
+	* configure.inуВТф┐оцнг
 
 2002-07-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔еждЄекб╝е╫еє─╛╕хд╦╩─д╕дыд╚═юд┴ды╗Ўдмдвды╠ф┬ъдЄ╜д└╡
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВТуВкуГ╝уГЧуГ│чЫ┤х╛МуБлщЦЙуБШуВЛуБишР╜уБбуВЛф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнг
 
 2002-07-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* nsд╡дєдлдщд╬─є░╞д╟бведесб╝е╕ежегеєе╔еж╡┌д╙е╫еье╙ехб╝д╬е▐еже╣е▄е┐еє
-	└▀─ъд╦▓ш┴№д╬е╣епеэб╝еыдЄ─╔▓├
+	* nsуБХуВУуБЛуВЙуБоцПРцбИуБзуАБуВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжхПКуБ│уГЧуГмуГУуГеуГ╝уБоуГЮуВжуВ╣уГЬуВ┐уГ│
+	шинхоЪуБлчФ╗хГПуБоуВ╣уВпуГнуГ╝уГлуВТш┐╜хКа
 
 2002-07-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* libmngдм┬╕║▀д╖д╩дд╛ь╣чдтlibmng.hдЄincludeд╖д╞д╖д▐дж╠ф┬ъдЄ╜д└╡
+	* libmngуБМхнШхЬиуБЧуБкуБДха┤хРИуВВlibmng.hуВТincludeуБЧуБжуБЧуБ╛уБЖхХПщбМуВТф┐оцнг
 
 2002-07-01 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1493,50 +1493,50 @@
 
 2002-06-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* └▀─ъ->░ь╚╠->е╒егеые┐д╬║я╜№е▄е┐еєдм└╡д╖дп╞░║юд╖д╩дд╠ф┬ъдЄ╜д└╡
+	* шинхоЪ->ф╕АшИм->уГХуВгуГлуВ┐уБохЙКщЩдуГЬуВ┐уГ│уБМцнгуБЧуБПхЛХф╜ЬуБЧуБкуБДхХПщбМуВТф┐оцнг
 
 2002-06-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gzipдкдшд╙bzip2░╡╜╠д╬е╒ебедеыд╦▓╛┬╨▒■
+	* gzipуБКуВИуБ│bzip2хЬзч╕оуБоуГХуВбуВдуГлуБлф╗охп╛х┐Ь
 
 2002-06-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╦дкддд╞бв╔╜╝и╬╬░шд╦┤▐д▐дьдые╡ере═едеыдЄ═е└шд╖д╞
-	╞╔д▀д│дрдшджд╦д╖д┐бе
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБлуБКуБДуБжуАБшбичд║щаШхЯЯуБлхРлуБ╛уВМуВЛуВ╡уГауГНуВдуГлуВТхДкхЕИуБЧуБж
+	шкнуБ┐уБУуВАуВИуБЖуБлуБЧуБЯя╝О
 
 2002-06-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еве╦есб╝е╖ечеє▓ш┴№д╬▓є┼╛╗■д╬╔╘╢ё╣чдЄ╜д└╡
+	* уВвуГЛуГбуГ╝уВ╖уГзуГ│чФ╗хГПуБохЫЮш╗вцЩВуБоф╕НхЕ╖хРИуВТф┐оцнг
 
 2002-06-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MNG/JNGд╦┬╨▒■ (═╫libmng)
+	* MNG/JNGуБлхп╛х┐Ь (шжБlibmng)
 
 2002-06-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еве╦есб╝е╖ечеєGIFд╦┬╨▒■ (Gtk+-2.0)
+	* уВвуГЛуГбуГ╝уВ╖уГзуГ│GIFуБлхп╛х┐Ь (Gtk+-2.0)
 
 2002-06-16 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/help.c
-	* po/ja.po: typoдЄ╜д└╡
+	* po/ja.po: typoуВТф┐оцнг
 
 2002-06-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еве╦есб╝е╖ечеєGIFд╦┬╨▒■ (gdk-pixbuf╗╚═╤╗■д╬д▀)
+	* уВвуГЛуГбуГ╝уВ╖уГзуГ│GIFуБлхп╛х┐Ь (gdk-pixbufф╜┐чФицЩВуБоуБ┐)
 
 2002-06-09 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеы╠╛╩╤╣╣╗■д╦е│есеєе╚е╒ебедеыдмеъе═б╝ерд╡дьд╩дд╠ф┬ъдЄ╜д└╡
+	* уГХуВбуВдуГлхРНхдЙцЫ┤цЩВуБлуВ│уГбуГ│уГИуГХуВбуВдуГлуБМуГкуГНуГ╝уГауБХуВМуБкуБДхХПщбМуВТф┐оцнг
 
 2002-06-06 Guillaume Libersat <glibersat@linux62.com>
 
-	* po/fr.po: е╒ещеєе╣╕ьеле┐еэе░е╒ебедеыдЄ─╔▓├
+	* po/fr.po: уГХуГйуГ│уВ╣шкЮуВлуВ┐уГнуВ░уГХуВбуВдуГлуВТш┐╜хКа
 
 2002-06-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* jar, war, tar.lzo, tzoдм╟з╝▒д╡дьд╩дде╨е░дЄ╜д└╡
-	* ║┘длдд╜д└╡
+	* jar, war, tar.lzo, tzoуБМшкНшнШуБХуВМуБкуБДуГРуВ░уВТф┐оцнг
+	* ч┤░уБЛуБДф┐оцнг
 
 2002-05-31 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1544,107 +1544,107 @@
 
 2002-05-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеы╗╪─ъ╠╡д╖д╟┐╖╡медесб╝е╕ежегеєе╔еждЄ│лд▒дыдшджд╦д╖д┐бе
-	* COPYING.jp дЄ┐╖╠їд╦║╣д╖┬╪ди
+	* уГХуВбуВдуГлцМЗхоЪчДбуБЧуБзцЦ░шжПуВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВТщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* COPYING.jp уВТцЦ░ши│уБлх╖оуБЧцЫ┐уБИ
 
 2002-05-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* image_info_get_urlд╟╗▓╛╚ележеєе╚дм╢╕д├д╞ддд┐╠ф┬ъдЄ╜д└╡
-	* д╜д╬┬╛║┘длдд▓■╬╔
+	* image_info_get_urlуБзхПВчЕзуВлуВжуГ│уГИуБМчЛВуБгуБжуБДуБЯхХПщбМуВТф┐оцнг
+	* уБЭуБоф╗Цч┤░уБЛуБДцФ╣шЙп
 
 2002-05-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* екб╝е╚е╫еьедMRL╕б║ў╗■д╬е╨е░дЄ╜д└╡
-	* ImageView╝л┐╚дмеъе╣е╚дЄ╜ъ╗¤д╟дндыдшджд╦д╖д┐бе
-	* е╨е░╜д└╡
+	* уВкуГ╝уГИуГЧуГмуВдMRLцдЬч┤вцЩВуБоуГРуВ░уВТф┐оцнг
+	* ImageViewшЗкш║луБМуГкуВ╣уГИуВТцЙАцМБуБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уГРуВ░ф┐оцнг
 
 2002-05-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъдм╗╪─ъд╡дьд┐╛ь╣чд╦ -e еке╫е╖ечеєдм╞░║юд╖д╞ддд╩длд├д┐
-	╠ф┬ъдЄ╜д└╡
-	* PCXеэб╝е└дЄ╜д└╡
+	* уГЗуВгуГмуВпуГИуГкуБМцМЗхоЪуБХуВМуБЯха┤хРИуБл -e уВкуГЧуВ╖уГзуГ│уБМхЛХф╜ЬуБЧуБжуБДуБкуБЛуБгуБЯ
+	хХПщбМуВТф┐оцнг
+	* PCXуГнуГ╝уГАуВТф┐оцнг
 
 2002-05-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еье╙ехб╝дкдшд╙едесб╝е╕ежегеєе╔ежд╦╞░▓ш═╤д╬есе╦ехб╝дЄ─╔▓├
-	* ╞░▓шекб╝е╫еє╗■д╦едесб╝е╕ежегеєе╔ежд╬е╫еьб╝ефе─б╝еые╨б╝дЄ╞░▓шд╦
-	еве┐е├е┴д╣дыдшджд╦д╖д┐бе
-	* Xineд╬екб╝е╚е╫еьеде╫еще░едеєд╦▓╛┬╨▒■бе
+	* уГЧуГмуГУуГеуГ╝уБКуВИуБ│уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБлхЛХчФ╗чФиуБоуГбуГЛуГеуГ╝уВТш┐╜хКа
+	* хЛХчФ╗уВкуГ╝уГЧуГ│цЩВуБлуВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБоуГЧуГмуГ╝уГдуГДуГ╝уГлуГРуГ╝уВТхЛХчФ╗уБл
+	уВвуВ┐уГГуГБуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* XineуБоуВкуГ╝уГИуГЧуГмуВдуГЧуГйуВ░уВдуГ│уБлф╗охп╛х┐Ья╝О
 
 2002-05-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* configure.in: е╨е░е╒еге├епе╣
+	* configure.in: уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-05-26 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╞░▓шд╬╝л╞░е╡ере═едеы╩▌┬╕д╬├┘▒ф╗■┤╓└▀─ъдЄ─╔▓├бе
-	* Gtk+-2.0д╦дкддд╞еэе▒б╝е╖ечеєеиеєе╚еъд╟Enterдм╕·длд╩дде╨е░дЄ╜д└╡
-	* е╨е░е╒еге├епе╣
+	* хЛХчФ╗уБошЗкхЛХуВ╡уГауГНуВдуГлф┐ЭхнШуБощБЕх╗╢цЩВщЦУшинхоЪуВТш┐╜хКая╝О
+	* Gtk+-2.0уБлуБКуБДуБжуГнуВ▒уГ╝уВ╖уГзуГ│уВиуГ│уГИуГкуБзEnterуБМхК╣уБЛуБкуБДуГРуВ░уВТф┐оцнг
+	* уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-05-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еще░едеєе╟егеьепе╚еъд╬└▀─ъ═╤UIдм▓їдьд╞ддд┐д╬дЄ╜д└╡бе
+	* уГЧуГйуВ░уВдуГ│уГЗуВгуГмуВпуГИуГкуБошинхоЪчФиUIуБМхгКуВМуБжуБДуБЯуБоуВТф┐оцнгя╝О
 
 2002-05-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╞░▓шд╬е╡ере═едеыдЄ╩▌┬╕д╟дндыдшджд╦д╖д┐бе
+	* хЛХчФ╗уБоуВ╡уГауГНуВдуГлуВТф┐ЭхнШуБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-05-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеыдЄ╗╪─ъд╗д║д╦едесб╝е╕ежегеєе╔еждЄ│лдпд╚═юд┴ды╠ф┬ъдЄ╜д└╡бе
-	* ZAlbumежеге╕езе├е╚д╦дкддд╞бве╡ере═едеыдм░ьд─дт┬╕║▀д╖д╩дд╛ь╣чд╦
-	zalbum_set_min_pixmap_size()дЄе╗е├е╚д╖д╞ддд╞дт╠╡╗ыд╡дьды╠ф┬ъдЄ╜д└╡бе
+	* уГХуВбуВдуГлуВТцМЗхоЪуБЫуБЪуБлуВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВТщЦЛуБПуБишР╜уБбуВЛхХПщбМуВТф┐оцнгя╝О
+	* ZAlbumуВжуВгуВ╕уВзуГГуГИуБлуБКуБДуБжуАБуВ╡уГауГНуВдуГлуБМф╕АуБдуВВхнШхЬиуБЧуБкуБДха┤хРИуБл
+	zalbum_set_min_pixmap_size()уВТуВ╗уГГуГИуБЧуБжуБДуБжуВВчДбшжЦуБХуВМуВЛхХПщбМуВТф┐оцнгя╝О
 
 2002-05-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Xineд╪д╬┬╨▒■║ю╢╚бе
+	* XineуБ╕уБохп╛х┐Ьф╜Ьценя╝О
 
 2002-05-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* SVGд╦┬╨▒■ (librsvgд╦░═┬╕)
+	* SVGуБлхп╛х┐Ь (librsvgуБлф╛ЭхнШ)
 
 2002-05-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Tritesseд╡дєдлдщд╬─є░╞д╟бвPageDown,PageUp,Home,Endд╦▓ш┴№└┌дъ┬╪дидЄбв
-	елб╝е╜еыенб╝д╦▓ш┴№д╬е╤еєдЄ│фдъ┼Ўд╞д┐бе
+	* TritesseуБХуВУуБЛуВЙуБоцПРцбИуБзуАБPageDown,PageUp,Home,EndуБлчФ╗хГПхИЗуВКцЫ┐уБИуВТуАБ
+	уВлуГ╝уВ╜уГлуВнуГ╝уБлчФ╗хГПуБоуГСуГ│уВТхЙ▓уВКх╜УуБжуБЯя╝О
 
 2002-05-21 Takuro Ashie <ashie@homa.ne.jp>
 
 	* xml-i18n-toolize
-	* е╟е╣епе╚е├е╫е╒ебедеыдЄ─╔▓├бе
+	* уГЗуВ╣уВпуГИуГГуГЧуГХуВбуВдуГлуВТш┐╜хКая╝О
 
 2002-05-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ецб╝е╢б╝─ъ╡┴д╬е│есеєе╚дм╔╜╝ид╡дьд╩дд╠ф┬ъдЄ╜д└╡.
+	* уГжуГ╝уВ╢уГ╝хоЪч╛йуБоуВ│уГбуГ│уГИуБМшбичд║уБХуВМуБкуБДхХПщбМуВТф┐оцнг.
 
 2002-05-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-2.0д╪д╬е▌б╝е╞егеєе░║ю╢╚бе
+	* Gtk+-2.0уБ╕уБоуГЭуГ╝уГЖуВгуГ│уВ░ф╜Ьценя╝О
 
 2002-05-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╞б╝е╓еыд╬е╗еєе┐еъеєе░or║╕┤єд╗дЄ└┌дъ┬╪диды└▀─ъдЄ─╔▓├бе
+	* уВ╡уГауГНуВдуГлуГЖуГ╝уГЦуГлуБоуВ╗уГ│уВ┐уГкуГ│уВ░orх╖жхпДуБЫуВТхИЗуВКцЫ┐уБИуВЛшинхоЪуВТш┐╜хКая╝О
 
 2002-05-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-2.0д╪д╬е▌б╝е╞егеєе░║ю╢╚бе
-	* gtk_object_sink()дЄ╗╚═╤д╣дыдшджд╦д╖д┐бе
-	* б╓еъе╣е╚б╫етб╝е╔╡┌д╙б╓╛▄║┘б╫етб╝е╔д╟DnDдм═н╕·д╦д╩дщд╩дд╠ф┬ъдЄ╜д└╡бе
+	* Gtk+-2.0уБ╕уБоуГЭуГ╝уГЖуВгуГ│уВ░ф╜Ьценя╝О
+	* gtk_object_sink()уВТф╜┐чФиуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уАМуГкуВ╣уГИуАНуГвуГ╝уГЙхПКуБ│уАМшй│ч┤░уАНуГвуГ╝уГЙуБзDnDуБМцЬЙхК╣уБлуБкуВЙуБкуБДхХПщбМуВТф┐оцнгя╝О
 
 2002-05-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* katsuд╡дєдлдщд╬╗╪┼жд╟бвimlibд╚gdk-pixbufд╬╬╛╩¤д╦░═┬╕д╖д╞д╖д▐дж╠ф┬ъдЄ
-	╜д└╡бе
+	* katsuуБХуВУуБЛуВЙуБоцМЗцСШуБзуАБimlibуБиgdk-pixbufуБоф╕бцЦ╣уБлф╛ЭхнШуБЧуБжуБЧуБ╛уБЖхХПщбМуВТ
+	ф┐оцнгя╝О
 
 2002-05-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* DnD═╤д╬GtkTargetEntryд╬╟█╬єдЄsrc/dnd.cд╦╜╕╠є
+	* DnDчФиуБоGtkTargetEntryуБощЕНхИЧуВТsrc/dnd.cуБлщЫЖч┤Д
 
 2002-05-09 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ImageWindow, ImageView, SlideShowд╬е╒ебедеы▓єдъд╬едеєе┐б╝е╒езб╝е╣дЄ
-	е╒ебедеы╠╛длдщImageInfoд╦╩╤╣╣бе
-	е╒ебедеы╠╛д╦дшдыедеєе┐б╝е╒езб╝е╣д╧Obsolete░╖ддд╦бе
+	* ImageWindow, ImageView, SlideShowуБоуГХуВбуВдуГлхЫЮуВКуБоуВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уВТ
+	уГХуВбуВдуГлхРНуБЛуВЙImageInfoуБлхдЙцЫ┤я╝О
+	уГХуВбуВдуГлхРНуБлуВИуВЛуВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уБпObsoleteцЙ▒уБДуБля╝О
 
 2002-05-08 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1652,60 +1652,60 @@
 
 2002-05-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔еждЄ│лддд┐─╛╕хд╦╩─д╕дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡.
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВТщЦЛуБДуБЯчЫ┤х╛МуБлщЦЙуБШуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнг.
 
 2002-05-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ежегеєе╔еждфете╕ехб╝еы╦шд╦ежеге╕езе├е╚╠╛дЄ└▀─ъд╖д┐
-	д│дьд╦дшдъ$(datadir)/share/gtkrc дф ~/.gimv/gtkrc д╟е╣е┐едеыдЄ║┘длдп
-	└▀─ъ▓─╟╜бе
+	* уВжуВгуГ│уГЙуВжуВДуГвуВ╕уГеуГ╝уГлцпОуБлуВжуВгуВ╕уВзуГГуГИхРНуВТшинхоЪуБЧуБЯ
+	уБУуВМуБлуВИуВК$(datadir)/share/gtkrc уВД ~/.gimv/gtkrc уБзуВ╣уВ┐уВдуГлуВТч┤░уБЛуБП
+	шинхоЪхПпшГ╜я╝О
 
 2002-05-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gtkrc: ┐╖╡ме╒ебедеы
+	* gtkrc: цЦ░шжПуГХуВбуВдуГл
 	* Makefile.am
 	* src/Makefile.am
-	* src/gimageview.c: $(gimv_datadir)/gtkrc дЄ╞╔д▀╣■дрдшджд╦д╖д┐бе
+	* src/gimageview.c: $(gimv_datadir)/gtkrc уВТшкнуБ┐ш╛╝уВАуВИуБЖуБлуБЧуБЯя╝О
 	* src/thumbnail_view.c
-	* src/thumbnail_window.[ch]: еэб╝е╔├цд╬е┐е╓еще┘еыд╬╛ї┬╓дЄ╩╤▓╜д╡д╗ды
-	дшджд╦д╖д┐бе
+	* src/thumbnail_window.[ch]: уГнуГ╝уГЙф╕нуБоуВ┐уГЦуГйуГЩуГлуБочК╢цЕЛуВТхдЙхМЦуБХуБЫуВЛ
+	уВИуБЖуБлуБЧуБЯя╝О
 
 2002-05-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_view.c: е╡ере═едеые╡еде║дЄ╩╤╣╣д╖д╞длдщ╬р╗ў▓ш┴№╕б║ў╖ы▓╠
-	ежегеєе╔еждЄ╩─д╕дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡бе
+	* src/thumbnail_view.c: уВ╡уГауГНуВдуГлуВ╡уВдуВ║уВТхдЙцЫ┤уБЧуБжуБЛуВЙщбЮф╝╝чФ╗хГПцдЬч┤вч╡РцЮЬ
+	уВжуВгуГ│уГЙуВжуВТщЦЙуБШуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнгя╝О
 
 2002-05-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/scrolled.[ch]: екб╝е╚е╣епеэб╝еыдЄе▐еже╣░▄╞░╬╠д╦▒■д╕д╞▓├┬од╣ды
-	дшджд╦д╖д┐бе
+	* src/scrolled.[ch]: уВкуГ╝уГИуВ╣уВпуГнуГ╝уГлуВТуГЮуВжуВ╣чз╗хЛХщЗПуБлх┐ЬуБШуБжхКащАЯуБЩуВЛ
+	уВИуБЖуБлуБЧуБЯя╝О
 
 2002-05-03 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/prefs.[ch]
 	* src/thumbview_list.[ch]
 	* src/thumbview_table2.[ch]
-	* src/zlist.[ch]: еъе╣е╚2етб╝е╔дЄ╜д└╡бе
+	* src/zlist.[ch]: уГкуВ╣уГИ2уГвуГ╝уГЙуВТф┐оцнгя╝О
 
 2002-05-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/scrolled.c: ┐х╩┐╩¤╕■д╬екб╝е╚е╣епеэб╝еыдм╞░║юд╖д╩дд╠ф┬ъдЄ╜д└╡бе
-	екб╝е╚е╣епеэб╝еыд╬▓Є┴№┼┘дЄ╩╤╣╣д╟дндыдшджд╦д╖д┐бе
-	* src/zlist.c: е▐еже╣д╦дшды╚╧░╧┴к┬Єд╬е╤е╒ейб╝е▐еєе╣дЄ▓■┴▒(д╚дддждл╝ъ╚┤дн
-	д╖д╣доXD)бе
-	* src/thumbview_table2.c: екб╝е╚е╣епеэб╝еыд╬▓Є┴№┼┘дЄ╩╤╣╣бе
+	* src/scrolled.c: ц░┤х╣│цЦ╣хРСуБоуВкуГ╝уГИуВ╣уВпуГнуГ╝уГлуБМхЛХф╜ЬуБЧуБкуБДхХПщбМуВТф┐оцнгя╝О
+	уВкуГ╝уГИуВ╣уВпуГнуГ╝уГлуБошзгхГПх║жуВТхдЙцЫ┤уБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* src/zlist.c: уГЮуВжуВ╣уБлуВИуВЛчпДхЫ▓щБ╕цКЮуБоуГСуГХуВйуГ╝уГЮуГ│уВ╣уВТцФ╣хЦД(уБиуБДуБЖуБЛцЙЛцКЬуБН
+	уБЧуБЩуБОXD)я╝О
+	* src/thumbview_table2.c: уВкуГ╝уГИуВ╣уВпуГнуГ╝уГлуБошзгхГПх║жуВТхдЙцЫ┤я╝О
 
 2002-05-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* po/ja.po: ╣╣┐╖
-	* src/zalbum.[ch]: еще┘еыдЄ▓ш┴№д╬▒жд╦╔╜╝ид╟дндыдшджд╦д╖д┐бед╜д╬┬╛е╨е░╜д└╡.
-	* src/zlist.[ch]: ┐х╩┐еъе╣е╚д╬е╨е░дЄ╜д└╡бе┐х╩┐/┐т─╛еъе╣е╚дЄ┴ъ╕▀д╦└┌дъ┬╪ди
-	д╟дндыдшджд╦д╖д┐бе
-	* src/thumbview_table2.[ch]: б╓еъе╣е╚2б╫етб╝е╔дЄ─╔▓├
+	* po/ja.po: цЫ┤цЦ░
+	* src/zalbum.[ch]: уГйуГЩуГлуВТчФ╗хГПуБохП│уБлшбичд║уБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝ОуБЭуБоф╗ЦуГРуВ░ф┐оцнг.
+	* src/zlist.[ch]: ц░┤х╣│уГкуВ╣уГИуБоуГРуВ░уВТф┐оцнгя╝Оц░┤х╣│/хЮВчЫ┤уГкуВ╣уГИуВТчЫ╕ф║ТуБлхИЗуВКцЫ┐уБИ
+	уБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* src/thumbview_table2.[ch]: уАМуГкуВ╣уГИ2уАНуГвуГ╝уГЙуВТш┐╜хКа
 
 2002-04-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gimageview.spec.in: ns <cza06074@nifty.com> д╡дєдлдщд╬╗╪┼жд╟бдtypoдЄ╜д└╡
+	* gimageview.spec.in: ns <cza06074@nifty.com> уБХуВУуБЛуВЙуБоцМЗцСШуБзя╝МtypoуВТф┐оцнг
 
 2002-04-25 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1713,8 +1713,8 @@
 
 2002-04-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╜к╬╗╗■д╦едесб╝е╕ежегеєе╔ежд╬╛ї┬╓дЄ╩▌┬╕д╣ды└▀─ъдЄ─╔▓├бе
-	* е╟е╒ейеые╚└▀─ъд╬╕л─╛д╖бе
+	* ч╡Вф║ЖцЩВуБлуВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБочК╢цЕЛуВТф┐ЭхнШуБЩуВЛшинхоЪуВТш┐╜хКая╝О
+	* уГЗуГХуВйуГлуГИшинхоЪуБошжЛчЫ┤уБЧя╝О
 
 2002-04-20 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1722,120 +1722,120 @@
 
 2002-04-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* евб╝еледе╓етб╝е╔е┐е╓д╬е┐еде╚еыдте╟егеьепе╚еъ╠╛д╦д╩д├д╞д╖д▐дж╠ф┬ъдЄ
-	╜д└╡бе
-	* е╡ере═едеые╡еде║д╚╔╜╝иетб╝е╔дЄ╜к╬╗╗■д╦╩▌┬╕д╣дыдшджд╦д╖д┐бе
-	* е┐е╓╠╛д╦е╒еые╤е╣дЄ╔╜╝ид╣ды└▀─ъд╟евб╝еледе╓е╒ебедеыдЄ│лдпд╚═юд┴ды╠ф┬ъдЄ
-	╜д└╡
-	* д╜д╬┬╛║┘длдд╜д└╡бе
+	* уВвуГ╝уВлуВдуГЦуГвуГ╝уГЙуВ┐уГЦуБоуВ┐уВдуГИуГлуВВуГЗуВгуГмуВпуГИуГкхРНуБлуБкуБгуБжуБЧуБ╛уБЖхХПщбМуВТ
+	ф┐оцнгя╝О
+	* уВ╡уГауГНуВдуГлуВ╡уВдуВ║уБишбичд║уГвуГ╝уГЙуВТч╡Вф║ЖцЩВуБлф┐ЭхнШуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уВ┐уГЦхРНуБлуГХуГлуГСуВ╣уВТшбичд║уБЩуВЛшинхоЪуБзуВвуГ╝уВлуВдуГЦуГХуВбуВдуГлуВТщЦЛуБПуБишР╜уБбуВЛхХПщбМуВТ
+	ф┐оцнг
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнгя╝О
 
 2002-04-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е┐е╓е┐еде╚еыдм└▀─ъд╦┤╪дядщд║е╒еые╤е╣д╦д╩д├д╞д╖д▐дж╠ф┬ъдЄ╜д└╡бе
+	* уВ┐уГЦуВ┐уВдуГИуГлуБМшинхоЪуБлщЦвуВПуВЙуБЪуГХуГлуГСуВ╣уБлуБкуБгуБжуБЧуБ╛уБЖхХПщбМуВТф┐оцнгя╝О
 
 2002-04-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╬р╗ў▓ш┴№╕б║ў╖ы▓╠╔╜╝и═╤ежегеєе╔еждЄ─╔▓├.
+	* щбЮф╝╝чФ╗хГПцдЬч┤вч╡РцЮЬшбичд║чФиуВжуВгуГ│уГЙуВжуВТш┐╜хКа.
 
 2002-04-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* CommentдЄGtkObject▓╜
-	* е│есеєе╚е╒ебедеы╩▌┬╕╗■д╦бд╞▒░ье╒ебедеыд╦┬╨д╣дые│есеєе╚е╙ехб╝┤╓д╟е╟б╝е┐
-	дЄ╞▒┤№д╣дыдшджд╦д╖д┐бе
-	* е╡ере═едеые╙ехб╝д╬б╓┐╖╡межегеєе╔ежд╟│лдпб╫д╟еэб╝е╟егеєе░дЄенеуеєе╗еы
-	д╟днд╩длд├д┐╠ф┬ъдЄ╜д└╡.
-	* д╜д╬┬╛║┘длдд╜д└╡
+	* CommentуВТGtkObjectхМЦ
+	* уВ│уГбуГ│уГИуГХуВбуВдуГлф┐ЭхнШцЩВуБля╝МхРМф╕АуГХуВбуВдуГлуБлхп╛уБЩуВЛуВ│уГбуГ│уГИуГУуГеуГ╝щЦУуБзуГЗуГ╝уВ┐
+	уВТхРМцЬЯуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБоуАМцЦ░шжПуВжуВгуГ│уГЙуВжуБзщЦЛуБПуАНуБзуГнуГ╝уГЗуВгуГ│уВ░уВТуВнуГгуГ│уВ╗уГл
+	уБзуБНуБкуБЛуБгуБЯхХПщбМуВТф┐оцнг.
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнг
 
 2002-04-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│еєе▌б╝е═еєе╚DnD╗■д╦е╚е├е╫еье┘еыежегеєе╔еждм░█д╩ды╛ь╣чд╧ежеге╕езе├е╚
-	д╬╕Є┤╣дЄ═▐└йд╣дыдшджд╦д╖д┐бе
-	* QGview╖┴╝░е╡ере═едеыенеуе├е╖ех└▀─ъежегеєе╔ежд╬е╨е├е╒ебекб╝е╨б╝е╒еэб╝дЄ
-	╜д└╡
-	* е│есеєе╚е╙ехб╝дЄ╩╠ежегеєе╔ежд╟│лд▒дыдшджд╦д╖д┐бе
+	* уВ│уГ│уГЭуГ╝уГНуГ│уГИDnDцЩВуБлуГИуГГуГЧуГмуГЩуГлуВжуВгуГ│уГЙуВжуБМчХ░уБкуВЛха┤хРИуБпуВжуВгуВ╕уВзуГГуГИ
+	уБоф║дцПЫуВТцКСхИ╢уБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* QGviewх╜вх╝ПуВ╡уГауГНуВдуГлуВнуГгуГГуВ╖уГешинхоЪуВжуВгуГ│уГЙуВжуБоуГРуГГуГХуВбуВкуГ╝уГРуГ╝уГХуГнуГ╝уВТ
+	ф┐оцнг
+	* уВ│уГбуГ│уГИуГУуГеуГ╝уВТхИеуВжуВгуГ│уГЙуВжуБзщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-04-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.106 (дкд╜дщдп0.1.x║╟╜к╚╟)
+	* Version-0.1.106 (уБКуБЭуВЙуБП0.1.xцЬАч╡ВчЙИ)
 
 2002-04-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеые│е╘б╝/░▄╞░/еъеєеп╗■д╦е│есеєе╚е╒ебедеыдте│е╘б╝/░▄╞░/еъеєепд╣ды
-	дшджд╦д╖д┐бе
-	* ║┘длдде╨е░е╒еге├епе╣бе
+	* уГХуВбуВдуГлуВ│уГФуГ╝/чз╗хЛХ/уГкуГ│уВпцЩВуБлуВ│уГбуГ│уГИуГХуВбуВдуГлуВВуВ│уГФуГ╝/чз╗хЛХ/уГкуГ│уВпуБЩуВЛ
+	уВИуБЖуБлуБЧуБЯя╝О
+	* ч┤░уБЛуБДуГРуВ░уГХуВгуГГуВпуВ╣я╝О
 
 2002-04-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╩╕╗·е│б╝е╔╩╤┤╣д╬└▀─ъ═╤UIдЄ─╔▓├
-	* Gtk+-2.0╗╚═╤╗■д╧TextEntryд╬┬хдядъд╦TextViewдЄ╗╚═╤д╣дыдшджд╦д╖д┐бе
+	* цЦЗхнЧуВ│уГ╝уГЙхдЙцПЫуБошинхоЪчФиUIуВТш┐╜хКа
+	* Gtk+-2.0ф╜┐чФицЩВуБпTextEntryуБоф╗гуВПуВКуБлTextViewуВТф╜┐чФиуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-04-09 Takuro Ashie <ashie@homa.ne.jp>
 
-	* nl_langinfo(CODESET)бдlibcharsetд╬wrapper┤╪┐ЇдЄ║ю└о
-	* Gtk+-2.0░╩│░д╬╗■д╦д╧бвенеуещепе┐б╝е╗е├е╚д╬╩╤┤╣д╦д╧iconvдЄ─╛└▄┴р║юд╣ды
-	дшджд╦д╖д┐
-	* iconvд╬╠╡дд┤─╢нд╟д╧бв╞№╦▄╕ьд╦┤╪д╖д╞д╬д▀╝л┴░д╟е│б╝е╔╩╤┤╣дЄ╣╘дждшджд╦д╖д┐бе
-	* ╞№╦▄╕ьеэелб╝еыд╬╛ь╣чд╧е│есеєе╚е╒ебедеыдЄISO-2022-JPд╟╩▌┬╕д╣дыдшджд╦д╖д┐бе
+	* nl_langinfo(CODESET)я╝МlibcharsetуБоwrapperщЦвцХ░уВТф╜ЬцИР
+	* Gtk+-2.0ф╗ехдЦуБоцЩВуБлуБпуАБуВнуГгуГйуВпуВ┐уГ╝уВ╗уГГуГИуБохдЙцПЫуБлуБпiconvуВТчЫ┤цОецУНф╜ЬуБЩуВЛ
+	уВИуБЖуБлуБЧуБЯ
+	* iconvуБочДбуБДчТ░хвГуБзуБпуАБцЧецЬмшкЮуБлщЦвуБЧуБжуБоуБ┐шЗкхЙНуБзуВ│уГ╝уГЙхдЙцПЫуВТшбМуБЖуВИуБЖуБлуБЧуБЯя╝О
+	* цЧецЬмшкЮуГнуВлуГ╝уГлуБоха┤хРИуБпуВ│уГбуГ│уГИуГХуВбуВдуГлуВТISO-2022-JPуБзф┐ЭхнШуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-04-08 Takuro Ashie <ashie@homa.ne.jp>
 
-	* │╞е╒ебедеыд╬едеєе╣е╚б╝еые╟егеьепе╚еъд╦$(DESTDIR)дЄ─╔▓├
+	* хРДуГХуВбуВдуГлуБоуВдуГ│уВ╣уГИуГ╝уГлуГЗуВгуГмуВпуГИуГкуБл$(DESTDIR)уВТш┐╜хКа
 
 2002-04-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-2.0╗╚═╤╗■д╦бве╒ебедеы╠╛дЄUTF-8д╦╩╤┤╣д╣дыдшджд╦д╖д┐бе
+	* Gtk+-2.0ф╜┐чФицЩВуБлуАБуГХуВбуВдуГлхРНуВТUTF-8уБлхдЙцПЫуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-04-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеы2етб╝е╔д╟е╗еыдм└╡д╖дд░╠├╓д╦╔┴▓шд╡дьд╩дд╗Ўдмдвды╠ф┬ъдЄ╜д└╡бе
+	* уВ╡уГауГНуВдуГл2уГвуГ╝уГЙуБзуВ╗уГлуБМцнгуБЧуБДф╜Нч╜оуБлцППчФ╗уБХуВМуБкуБДф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнгя╝О
 
 2002-04-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.105 (│л╚п╚╟)
+	* Version-0.1.105 (щЦЛчЩ║чЙИ)
 
 2002-04-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡
-	* е╒ебедеы┴р║ю┤╪╧вд╬есе╦ехб╝дЄе╡ере═едеыежегеєе╔ежд╬еседеєесе╦ехб╝д╦─╔▓├
-	* е╡ере═едеыежегеєе╔ежд╬еседеєесе╦ехб╝д╬sensitivityдЄ╛ї╢╖д╦дшд├д╞
-	└┌дъ┬╪дидыдшджд╦д╖д┐(┬┐╛педеєе┴ен).
+	* ч┤░уБЛуБДф┐оцнг
+	* уГХуВбуВдуГлцУНф╜ЬщЦвщАгуБоуГбуГЛуГеуГ╝уВТуВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБоуГбуВдуГ│уГбуГЛуГеуГ╝уБлш┐╜хКа
+	* уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБоуГбуВдуГ│уГбуГЛуГеуГ╝уБоsensitivityуВТчК╢ц│БуБлуВИуБгуБж
+	хИЗуВКцЫ┐уБИуВЛуВИуБЖуБлуБЧуБЯ(хдЪх░СуВдуГ│уГБуВн).
 
 2002-03-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеыежегеєе╔ежд╬╣╜└одЄ╩╤╣╣д╟дндыдшджд╦д╖д┐бе
-	* ╝ч═╫д╩ежегеєе╔ежд╦еведе│еєдЄе╗е├е╚д╣дыдшджд╦д╖д┐бе
+	* уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБоцзЛцИРуВТхдЙцЫ┤уБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
+	* ф╕╗шжБуБкуВжуВгуГ│уГЙуВжуБлуВвуВдуВ│уГ│уВТуВ╗уГГуГИуБЩуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-03-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-1.2.8░╩┴░д╟DnD╗■д╦═юд┴ды╗Ўдмдвды╠ф┬ъдЄ╜д└╡
+	* Gtk+-1.2.8ф╗ехЙНуБзDnDцЩВуБлшР╜уБбуВЛф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнг
 
 2002-03-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеыежегеєе╔ежд╬│╞ежеге╕езе├е╚дЄDnDд╟╕Є┤╣д╟дндыдшджд╦д╖д┐бе
+	* уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБохРДуВжуВгуВ╕уВзуГГуГИуВТDnDуБзф║дцПЫуБзуБНуВЛуВИуБЖуБлуБЧуБЯя╝О
 
 2002-03-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ZListежеге╕езе├е╚д╬е▐еже╣е╔еще├е░д╦дшды╚╧░╧╗╪─ъ╡б╟╜дЄ╜д└╡бе
-	Controlе▐е╣епд╦дшдые╗еьепе╖ечеє╚┐┼╛╡б╟╜дкдшд╙Shiftе▐е╣епд╦дшды
-	е╗еьепе╖ечеє─╔▓├╡б╟╜дЄ─╔▓├бе
-	* ZListд╟е╒ейеєе╚д╬░╖дддм▓°д╖длд├д┐╠ф┬ъдЄ╜д└╡
-	* е╡ере═едеые╙ехб╝╣╣┐╖╗■д╦е╣епеэб╝еые╨б╝д╚╝┬║▌д╬╔╜╝идм░ь├╫д╖д╩дд╠ф┬ъдЄ
-	╜д└╡
-	* д╜д╬┬╛║┘длдд╜д└╡
+	* ZListуВжуВгуВ╕уВзуГГуГИуБоуГЮуВжуВ╣уГЙуГйуГГуВ░уБлуВИуВЛчпДхЫ▓цМЗхоЪцйЯшГ╜уВТф┐оцнгя╝О
+	ControlуГЮуВ╣уВпуБлуВИуВЛуВ╗уГмуВпуВ╖уГзуГ│хПНш╗вцйЯшГ╜уБКуВИуБ│ShiftуГЮуВ╣уВпуБлуВИуВЛ
+	уВ╗уГмуВпуВ╖уГзуГ│ш┐╜хКацйЯшГ╜уВТш┐╜хКая╝О
+	* ZListуБзуГХуВйуГ│уГИуБоцЙ▒уБДуБМцАкуБЧуБЛуБгуБЯхХПщбМуВТф┐оцнг
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝цЫ┤цЦ░цЩВуБлуВ╣уВпуГнуГ╝уГлуГРуГ╝уБихоЯщЪЫуБошбичд║уБМф╕АшЗ┤уБЧуБкуБДхХПщбМуВТ
+	ф┐оцнг
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнг
 
 2002-03-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ZListежеге╕езе├е╚д╦е▐еже╣е╔еще├е░д╦дшды╚╧░╧╗╪─ъ╡б╟╜дЄ─╔▓├
-	(╩°▓ї├цбе├пдл─╛д╖д╞(TOT).
+	* ZListуВжуВгуВ╕уВзуГГуГИуБлуГЮуВжуВ╣уГЙуГйуГГуВ░уБлуВИуВЛчпДхЫ▓цМЗхоЪцйЯшГ╜уВТш┐╜хКа
+	(х┤йхгКф╕ня╝Ошк░уБЛчЫ┤уБЧуБж(TOT).
 
 2002-03-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Scrolledежеге╕езе├е╚д╦екб╝е╚е╣епеэб╝еы╡б╟╜дЄ─╔▓├.
+	* ScrolledуВжуВгуВ╕уВзуГГуГИуБлуВкуГ╝уГИуВ╣уВпуГнуГ╝уГлцйЯшГ╜уВТш┐╜хКа.
 
 2002-03-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-2.0д╟е╣епеэб╝еы╗■д╦scrolledежеге╕езе├е╚дм└╡д╖дп╔┴▓шд╡дьд╩дд╠ф┬ъдЄ
-	╜д└╡бе
+	* Gtk+-2.0уБзуВ╣уВпуГнуГ╝уГлцЩВуБлscrolledуВжуВгуВ╕уВзуГГуГИуБМцнгуБЧуБПцППчФ╗уБХуВМуБкуБДхХПщбМуВТ
+	ф┐оцнгя╝О
 
 2002-03-27 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -1843,224 +1843,224 @@
 	* src/prefs_ui_etc.[ch]
 	* src/prefs_ui_imagewin.[ch]
 	* src/prefs_ui_plugin.[ch]
-	* src/prefs_ui_progs.[ch]: ┐╖╡ме╒ебедеыбеprefs_win.cдшдъ╩м╬ебе
+	* src/prefs_ui_progs.[ch]: цЦ░шжПуГХуВбуВдуГля╝Оprefs_win.cуВИуВКхИЖщЫвя╝О
 
 2002-03-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│есеєе╚д╬енб╝─ъ╡┴д╬└▀─ъ═╤UIдЄ┤░└о(?)д╡д╗д┐
+	* уВ│уГбуГ│уГИуБоуВнуГ╝хоЪч╛йуБошинхоЪчФиUIуВТхоМцИР(?)уБХуБЫуБЯ
 
 2002-03-26 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│есеєе╚е╙ехб╝д╬└°║▀┼кд╩е╨е░дЄ╜д└╡
-	* е╟егеьепе╚еъе╙ехб╝д╬е╚е├е╫е╟егеьепе╚еъ╩╤╣╣╗■д╬╡є╞░дЄ╩╤╣╣
-	* ZListежеге╕езе├е╚д╬cell_selectе╖е░е╩еыд╧бве╗еыд╪д╬е▌едеєе┐д╟д╧д╩дп
-	е╗еыд╬едеєе╟е├епе╣дЄ╩╓д╣дшджд╦д╖д┐
-	* ╛▄║┘╔╜╝ид╟д╬е▐еже╣е▄е┐еєд╦┬╨д╣ды╡є╞░дЄ╩╤╣╣
-	* ╛▄║┘╔╜╝ид╟е│ещере┐еде╚еыепеъе├епд╦дшдые╜б╝е╚╗■д╬е╜б╝е╚еведе╞ердм╔╜╝ид╚
-	░█д╩ды╠ф┬ъдЄ╜д└╡
-	* евб╝еледе╓екб╝е╫еє╗■д╦бвеъе╣е╚╝ш╞└┴░д╦е┐е╓дЄ╩─д╕дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡
+	* уВ│уГбуГ│уГИуГУуГеуГ╝уБоц╜ЬхЬичЪДуБкуГРуВ░уВТф┐оцнг
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГИуГГуГЧуГЗуВгуГмуВпуГИуГкхдЙцЫ┤цЩВуБоцМЩхЛХуВТхдЙцЫ┤
+	* ZListуВжуВгуВ╕уВзуГГуГИуБоcell_selectуВ╖уВ░уГКуГлуБпуАБуВ╗уГлуБ╕уБоуГЭуВдуГ│уВ┐уБзуБпуБкуБП
+	уВ╗уГлуБоуВдуГ│уГЗуГГуВпуВ╣уВТш┐ФуБЩуВИуБЖуБлуБЧуБЯ
+	* шй│ч┤░шбичд║уБзуБоуГЮуВжуВ╣уГЬуВ┐уГ│уБлхп╛уБЩуВЛцМЩхЛХуВТхдЙцЫ┤
+	* шй│ч┤░шбичд║уБзуВ│уГйуГауВ┐уВдуГИуГлуВпуГкуГГуВпуБлуВИуВЛуВ╜уГ╝уГИцЩВуБоуВ╜уГ╝уГИуВвуВдуГЖуГауБМшбичд║уБи
+	чХ░уБкуВЛхХПщбМуВТф┐оцнг
+	* уВвуГ╝уВлуВдуГЦуВкуГ╝уГЧуГ│цЩВуБлуАБуГкуВ╣уГИхПЦх╛ЧхЙНуБлуВ┐уГЦуВТщЦЙуБШуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнг
 
 2002-03-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕е╙ехб╝дЄ╩г╣чежеге╕езе├е╚▓╜
-	* едесб╝е╕е╙ехб╝д╬еъе╣е╚░▄╞░┤╪╧вд╬есе╦ехб╝/е▄е┐еєд╬sensitivityдЄ╛ї╢╖д╦
-	дшд├д╞└┌дъ┬╪дидыдшджд╦д╖д┐
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уВТшдЗхРИуВжуВгуВ╕уВзуГГуГИхМЦ
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБоуГкуВ╣уГИчз╗хЛХщЦвщАгуБоуГбуГЛуГеуГ╝/уГЬуВ┐уГ│уБоsensitivityуВТчК╢ц│БуБл
+	уВИуБгуБжхИЗуВКцЫ┐уБИуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-03-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│есеєе╚д╬енб╝еъе╣е╚д╬└▀─ъдЄ─╔▓├/GUIд╬╜д└╡
+	* уВ│уГбуГ│уГИуБоуВнуГ╝уГкуВ╣уГИуБошинхоЪуВТш┐╜хКа/GUIуБоф┐оцнг
 
 2002-03-23 Takuro Ashie <ashie@homa.ne.jp>
 
 	* plugins/archiver/Makefile.am
 	* plugins/image_saver/Makefile.am
-	* plugins/thumbnail/Makefile.am: е╫еще░едеєд╬едеєе╣е╚б╝еые╟егеьепе╚еъдм
-	libdirд╦д╩д├д╞ддд┐д╬дЄ╜д└╡
+	* plugins/thumbnail/Makefile.am: уГЧуГйуВ░уВдуГ│уБоуВдуГ│уВ╣уГИуГ╝уГлуГЗуВгуГмуВпуГИуГкуБМ
+	libdirуБлуБкуБгуБжуБДуБЯуБоуВТф┐оцнг
 	* Makefile.am
-	* doc/Makefile.am: е╔енехесеєе╚д╬едеєе╣е╚б╝еые╟егеьепе╚еъдЄgimv_docdirд╟
-	╗╪─ъд╣дыдшджд╦д╖д┐
-	* src/pixmaps/Makefile.am: еведе│еєд╬едеєе╣е╚б╝еые╟егеьепе╚еъдЄ
-	gimv_icondirд╟╗╪─ъд╣дыдшджд╦д╖д┐
-	* gimageview.spec.inдЄ╜д└╡
+	* doc/Makefile.am: уГЙуВнуГеуГбуГ│уГИуБоуВдуГ│уВ╣уГИуГ╝уГлуГЗуВгуГмуВпуГИуГкуВТgimv_docdirуБз
+	цМЗхоЪуБЩуВЛуВИуБЖуБлуБЧуБЯ
+	* src/pixmaps/Makefile.am: уВвуВдуВ│уГ│уБоуВдуГ│уВ╣уГИуГ╝уГлуГЗуВгуГмуВпуГИуГкуВТ
+	gimv_icondirуБзцМЗхоЪуБЩуВЛуВИуБЖуБлуБЧуБЯ
+	* gimageview.spec.inуВТф┐оцнг
 
 2002-03-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* configure.in: е╟е╒ейеые╚дЄgdk-pixbufд╦╩╤╣╣
-	EXIFе╡е▌б╝е╚дЄе╟е╒ейеые╚д╟═н╕·д╦д╩дыдшджд╦д╖д┐
+	* configure.in: уГЗуГХуВйуГлуГИуВТgdk-pixbufуБлхдЙцЫ┤
+	EXIFуВ╡уГЭуГ╝уГИуВТуГЗуГХуВйуГлуГИуБзцЬЙхК╣уБлуБкуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-03-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.104 (│л╚п╚╟)
+	* Version-0.1.104 (щЦЛчЩ║чЙИ)
 
 2002-03-23 Takuro Ashie <ashie@homa.ne.jp> 
  
-        * CVSд╪commitд╖╦║дьд╞ддд┐gettext┤╪╧ве╒ебедеыдЄ─╔▓├
+        * CVSуБ╕commitуБЧх┐ШуВМуБжуБДуБЯgettextщЦвщАгуГХуВбуВдуГлуВТш┐╜хКа
 
 2002-03-22 Takuro Ashie <ashie@homa.ne.jp> 
 
-        * е└едевеэе░ежегеєе╔ежд╧┴┤д╞е▐еже╣─╛▓╝д╦╜╨д╣дшджд╦д╖д┐
+        * уГАуВдуВвуГнуВ░уВжуВгуГ│уГЙуВжуБпхЕиуБжуГЮуВжуВ╣чЫ┤ф╕ЛуБлхЗ║уБЩуВИуБЖуБлуБЧуБЯ
 
 2002-03-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╔╜╝иетб╝е╔╩╤╣╣д╦евепе╗еыенб╝дЄ│фдъ┼Ўд╞д┐(Alt + 1б┴8)
+	* шбичд║уГвуГ╝уГЙхдЙцЫ┤уБлуВвуВпуВ╗уГлуВнуГ╝уВТхЙ▓уВКх╜УуБжуБЯ(Alt + 1уАЬ8)
 
 2002-03-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝╡┌д╙е╡ере═едеые╙ехб╝д╦дтShift + F10дЄ│фдъ┼Ўд╞д┐
-	* д╜д╬┬╛е╖ечб╝е╚еле├е╚енб╝дЄ└▀─ъ
-	* едесб╝е╕е╙ехб╝д╦дкддд╞бв│╚┬ч╜╠╛од╧├ц┐┤дЄ╕╟─ъд╖д╞╣╘дждшджд╦д╖д┐
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝хПКуБ│уВ╡уГауГНуВдуГлуГУуГеуГ╝уБлуВВShift + F10уВТхЙ▓уВКх╜УуБжуБЯ
+	* уБЭуБоф╗ЦуВ╖уГзуГ╝уГИуВлуГГуГИуВнуГ╝уВТшинхоЪ
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБлуБКуБДуБжуАБцЛбхдзч╕ох░ПуБпф╕нх┐ГуВТхЫ║хоЪуБЧуБжшбМуБЖуВИуБЖуБлуБЧуБЯ
 
 2002-03-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* "е╡ере═едеы2" етб╝е╔д╦дкддд╞е╒ебедеы┴к┬Єдм└╡д╖дп╣╘дядьд╩дд╠ф┬ъдЄ╜д└╡
-	* едесб╝е╕е╙ехб╝д╦дкддд╞ Shift + F10 д╟е▌е├е╫еве├е╫есе╦ехб╝дЄ│лдпдшджд╦
-	д╖д┐
+	* "уВ╡уГауГНуВдуГл2" уГвуГ╝уГЙуБлуБКуБДуБжуГХуВбуВдуГлщБ╕цКЮуБМцнгуБЧуБПшбМуВПуВМуБкуБДхХПщбМуВТф┐оцнг
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБлуБКуБДуБж Shift + F10 уБзуГЭуГГуГЧуВвуГГуГЧуГбуГЛуГеуГ╝уВТщЦЛуБПуВИуБЖуБл
+	уБЧуБЯ
 
 2002-03-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.103 (│л╚п╚╟)
+	* Version-0.1.103 (щЦЛчЩ║чЙИ)
 
 2002-03-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* "е╡ере═едеы2" етб╝е╔д╦дкддд╞е╒ебедеы┴к┬Єдм└╡д╖дп╣╘дядьд╩дд╗Ўдмдвдыд╬
-	д╟бве╟е╒ейеые╚дЄе╡ере═едеыетб╝е╔д╦╠сд╖д┐
+	* "уВ╡уГауГНуВдуГл2" уГвуГ╝уГЙуБлуБКуБДуБжуГХуВбуВдуГлщБ╕цКЮуБМцнгуБЧуБПшбМуВПуВМуБкуБДф║ЛуБМуБВуВЛуБо
+	уБзуАБуГЗуГХуВйуГлуГИуВТуВ╡уГауГНуВдуГлуГвуГ╝уГЙуБлцИ╗уБЧуБЯ
 
 2002-03-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.102 (│л╚п╚╟)
+	* Version-0.1.102 (щЦЛчЩ║чЙИ)
 
 2002-03-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕е╙ехб╝д╬е╣епеэб╝еые╨б╝╔╜╝и/╚є╔╜╝и═╤д╬енб╝└▀─ъдЄ─╔▓├
-	* ja.po╣╣┐╖
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБоуВ╣уВпуГнуГ╝уГлуГРуГ╝шбичд║/щЭЮшбичд║чФиуБоуВнуГ╝шинхоЪуВТш┐╜хКа
+	* ja.poцЫ┤цЦ░
 
 2002-03-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╩е╙е▓б╝е╚ежегеєе╔ежд╦дкддд╞│╞╝яе║б╝еренб╝дЄ╗╚═╤▓─╟╜д╖д┐
-	* е╩е╙е▓б╝е╚ежегеєе╔ежд╦дкддд╞елб╝е╜еыенб╝д╟╔╜╝и░╠├╓дЄ░▄╞░д╟дндыдшджд╦д╖д┐
-	* ╩ф┤░енб╝└▀─ъд╟╜д╛■енб╝дм└▀─ъд╡дьд╞ддд╩ддд╚└╡д╖дп╟з╝▒д╡дьд╩дде╨е░дЄ╜д└╡
+	* уГКуГУуВ▓уГ╝уГИуВжуВгуГ│уГЙуВжуБлуБКуБДуБжхРДчиоуВ║уГ╝уГауВнуГ╝уВТф╜┐чФихПпшГ╜уБЧуБЯ
+	* уГКуГУуВ▓уГ╝уГИуВжуВгуГ│уГЙуВжуБлуБКуБДуБжуВлуГ╝уВ╜уГлуВнуГ╝уБзшбичд║ф╜Нч╜оуВТчз╗хЛХуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
+	* шгЬхоМуВнуГ╝шинхоЪуБзф┐ощг╛уВнуГ╝уБМшинхоЪуБХуВМуБжуБДуБкуБДуБицнгуБЧуБПшкНшнШуБХуВМуБкуБДуГРуВ░уВТф┐оцнг
 
 2002-03-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔ежд╦е╩е╙е▓б╝е╚ежегеєе╔еждЄ─╔▓├
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБлуГКуГУуВ▓уГ╝уГИуВжуВгуГ│уГЙуВжуВТш┐╜хКа
 
 2002-03-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕е╙ехб╝д╬е╣епеэб╝еые╨б╝дЄ╔№│ш
-	* едесб╝е╕е╙ехб╝д╦е╩е╙е▓б╝е╚е▄е┐еєдЄ─╔▓├
-	* е╟егеьепе╚еъе╙ехб╝д╦дкддд╞бве╟е╒ейеые╚д╟д╧┴┤д╞д╬е╟егеьепе╚еъд╦
-	еиепе╣е╤еєе└б╝дЄе╗е├е╚д╣дыдшджд╦д╖д┐
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБоуВ╣уВпуГнуГ╝уГлуГРуГ╝уВТх╛йц┤╗
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБлуГКуГУуВ▓уГ╝уГИуГЬуВ┐уГ│уВТш┐╜хКа
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБлуБКуБДуБжуАБуГЗуГХуВйуГлуГИуБзуБпхЕиуБжуБоуГЗуВгуГмуВпуГИуГкуБл
+	уВиуВпуВ╣уГСуГ│уГАуГ╝уВТуВ╗уГГуГИуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-03-18 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/thumbview_table2.c
-	* src/zalbum.[ch]: е▐е╣епдЄе╗е├е╚д╟дндыдшджд╦д╖д┐
-	* src/thumbnail_view.c: е▌е├е╫еве├е╫есе╦ехб╝д╬Sensitivityд╬╜д└╡
+	* src/zalbum.[ch]: уГЮуВ╣уВпуВТуВ╗уГГуГИуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
+	* src/thumbnail_view.c: уГЭуГГуГЧуВвуГГуГЧуГбуГЛуГеуГ╝уБоSensitivityуБоф┐оцнг
 
 2002-03-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* libexif/Makefile.am: --enable-exifдм╠╡╕·д╬╛ь╣чд╦make distд╟е╒ебедеыдм
-	е╤е├е▒б╝е╕д╦┤▐д▐дьд╩дд╠ф┬ъдЄ╜д└╡
+	* libexif/Makefile.am: --enable-exifуБМчДбхК╣уБоха┤хРИуБлmake distуБзуГХуВбуВдуГлуБМ
+	уГСуГГуВ▒уГ╝уВ╕уБлхРлуБ╛уВМуБкуБДхХПщбМуВТф┐оцнг
 
 2002-03-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.101 (│л╚п╚╟)
+	* Version-0.1.101 (щЦЛчЩ║чЙИ)
 
 2002-03-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Thumbnail2етб╝е╔д╬║юдъ╣■д▀
-	* zlist╡┌д╙zalbumд╦╔м═╫д╩есе╜е├е╔дЄ─╔▓├
-	* zlist╡┌д╙zalbumежеге╕езе├е╚д╟┐╞епеще╣д╬е╟е╣е╚ещепе┐дЄ╕╞д╙╜╨д╖д╞ддд╩дд
-	╠ф┬ъдЄ╜д└╡
-	* scrolledбвzlistбвzalbumежеге╕езе├е╚дЄGtk2д╟е│еєе╤едеыд╟дндыдшджд╦╜д└╡
-	* д╜д╬┬╛бвscrolledбвzlistбвzalbumежеге╕езе├е╚д╬║┘длдд╜д└╡
+	* Thumbnail2уГвуГ╝уГЙуБоф╜ЬуВКш╛╝уБ┐
+	* zlistхПКуБ│zalbumуБлх┐ЕшжБуБкуГбуВ╜уГГуГЙуВТш┐╜хКа
+	* zlistхПКуБ│zalbumуВжуВгуВ╕уВзуГГуГИуБзшжкуВпуГйуВ╣уБоуГЗуВ╣уГИуГйуВпуВ┐уВТхС╝уБ│хЗ║уБЧуБжуБДуБкуБД
+	хХПщбМуВТф┐оцнг
+	* scrolledуАБzlistуАБzalbumуВжуВгуВ╕уВзуГГуГИуВТGtk2уБзуВ│уГ│уГСуВдуГлуБзуБНуВЛуВИуБЖуБлф┐оцнг
+	* уБЭуБоф╗ЦуАБscrolledуАБzlistуАБzalbumуВжуВгуВ╕уВзуГГуГИуБоч┤░уБЛуБДф┐оцнг
 
 2002-03-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Thumbnail2етб╝е╔д╟е╡ере═едеыдЄ╔╜╝ид╟дндыдшджд╦д╖д┐
+	* Thumbnail2уГвуГ╝уГЙуБзуВ╡уГауГНуВдуГлуВТшбичд║уБзуБНуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-03-16 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/scrolled.[ch]
 	* src/zalbum.[ch]
 	* src/zlist.[ch]
-	* src/thumbview_table2.[ch]: ┐╖╡ме╒ебедеы
-	* src/thumbnai_view.c: Thumbnail2етб╝е╔дЄ─╔▓├(├ц┼╙)
+	* src/thumbview_table2.[ch]: цЦ░шжПуГХуВбуВдуГл
+	* src/thumbnai_view.c: Thumbnail2уГвуГ╝уГЙуВТш┐╜хКа(ф╕нщАФ)
 
 2002-03-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╟е╟егеьепе╚еъдЄ╔╜╝ид╣ды└▀─ъд╬║▌д╦┐╞е╟егеьепе╚еъдт
-	╔╜╝ид╣дыдшджд╦д╖д┐
-	* е╡ере═едеые╞б╝е╓еыд╬╬є┐Їдм▓ш╠╠е╡еде║д╚╣чдяд╩дд╗Ўдмдвды╠ф┬ъдЄ╜д└╡
-	* ╩ф┤░енб╝дЄTAB░╩│░д╦дтдж2╝я╬р└▀─ъд╟дндыдшджд╦д╖д┐(keyconfе╒ебедеы╞тд╬
-	common_auto_completion1,2д╟└▀─ъ▓─╟╜)
-	* е╡ере═едеые╙ехб╝д╬е▐еже║е▄е┐еєд╦┬╨д╣ды╞░║юд╧бве│б╝еые╨е├еп┤╪┐ЇдЄ
-	╚┤д▒д╞длдщ╝┬╣╘д╣дыдшджд╦д╖д┐
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБзуГЗуВгуГмуВпуГИуГкуВТшбичд║уБЩуВЛшинхоЪуБощЪЫуБлшжкуГЗуВгуГмуВпуГИуГкуВВ
+	шбичд║уБЩуВЛуВИуБЖуБлуБЧуБЯ
+	* уВ╡уГауГНуВдуГлуГЖуГ╝уГЦуГлуБохИЧцХ░уБМчФ╗щЭвуВ╡уВдуВ║уБихРИуВПуБкуБДф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнг
+	* шгЬхоМуВнуГ╝уВТTABф╗ехдЦуБлуВВуБЖ2чиощбЮшинхоЪуБзуБНуВЛуВИуБЖуБлуБЧуБЯ(keyconfуГХуВбуВдуГлхЖЕуБо
+	common_auto_completion1,2уБзшинхоЪхПпшГ╜)
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБоуГЮуВжуВ║уГЬуВ┐уГ│уБлхп╛уБЩуВЛхЛХф╜ЬуБпуАБуВ│уГ╝уГлуГРуГГуВпщЦвцХ░уВТ
+	цКЬуБСуБжуБЛуВЙхоЯшбМуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-03-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│есеєе╚╞╔д▀╣■д▀╗■д╦ ":" дм╩г┐Їдвдыд╚├═дм┼╙├цд╟└┌дьдые╨е░дЄ╜д└╡
-	* е│есеєе╚е╙ехб╝д╬║юдъ╣■д▀
-	* │░╔Їе│е▐еєе╔╝┬╣╘╗■д╦бве│е▐еєе╔╩╕╗·╬єдЄ╩╘╜╕д╟дндыдшджд╦д╖д┐
-	* ja.po╣╣┐╖
+	* уВ│уГбуГ│уГИшкнуБ┐ш╛╝уБ┐цЩВуБл ":" уБМшдЗцХ░уБВуВЛуБихАдуБМщАФф╕нуБзхИЗуВМуВЛуГРуВ░уВТф┐оцнг
+	* уВ│уГбуГ│уГИуГУуГеуГ╝уБоф╜ЬуВКш╛╝уБ┐
+	* хдЦщГиуВ│уГЮуГ│уГЙхоЯшбМцЩВуБлуАБуВ│уГЮуГ│уГЙцЦЗхнЧхИЧуВТч╖ищЫЖуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
+	* ja.poцЫ┤цЦ░
 
 2002-03-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/comment.c: ┤╓░уд├д┐е╟е╒ейеые╚├═дЄе╗е├е╚д╖д╞ддд┐╠ф┬ъдЄ╜д└╡
-	* src/comment_view.c: енб╝╠╛д╧е│еєе▄д╟╞■╬╧д╣дыдшджд╦д╖д┐
+	* src/comment.c: щЦУщБХуБгуБЯуГЗуГХуВйуГлуГИхАдуВТуВ╗уГГуГИуБЧуБжуБДуБЯхХПщбМуВТф┐оцнг
+	* src/comment_view.c: уВнуГ╝хРНуБпуВ│уГ│уГЬуБзхЕехКЫуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-03-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* gettext-0.10.40д╦еве├е╫е╟б╝е╚
-	* IconWidgetд╬еще┘еы╩╕╗·╬єдмNULL╜к├╝д╖д╩дд╗Ўдмдвды╠ф┬ъдЄ╜д└╡
-	* Gtk+-2.0д╪д╬е▌б╝е╞егеєе░║ю╢╚
+	* gettext-0.10.40уБлуВвуГГуГЧуГЗуГ╝уГИ
+	* IconWidgetуБоуГйуГЩуГлцЦЗхнЧхИЧуБМNULLч╡ВчлпуБЧуБкуБДф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнг
+	* Gtk+-2.0уБ╕уБоуГЭуГ╝уГЖуВгуГ│уВ░ф╜Ьцен
 
 2002-03-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│есеєе╚е╟б╝е┐д╬╞├─ъд╬еиеєе╚еъд╦е╟е╒ейеые╚├═дЄ┴▐╞■д╟дндыдшджд╦д╖д┐
-	* Gtk+-2.0д╪д╬е▌б╝е╞егеєе░║ю╢╚
+	* уВ│уГбуГ│уГИуГЗуГ╝уВ┐уБочЙ╣хоЪуБоуВиуГ│уГИуГкуБлуГЗуГХуВйуГлуГИхАдуВТцМ┐хЕеуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
+	* Gtk+-2.0уБ╕уБоуГЭуГ╝уГЖуВгуГ│уВ░ф╜Ьцен
 
 2002-03-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Gtk+-2.0д╪д╬е▌б╝е╞егеєе░дЄ│л╗╧
+	* Gtk+-2.0уБ╕уБоуГЭуГ╝уГЖуВгуГ│уВ░уВТщЦЛхзЛ
 
 2002-03-12 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/prefs_win.c
 	* src/comment.c
-	* src/comment_view.c: е╟б╝е┐╣╜┬ддЄ╩╤╣╣
+	* src/comment_view.c: уГЗуГ╝уВ┐цзЛщАауВТхдЙцЫ┤
 
 2002-03-11 Takuro Ashie <ashie@homa.ne.jp>
 
 	* gimv.desktop
-	* src/pixmaps/gimv_icon.xpm: ┐╖╡ме╒ебедеы
+	* src/pixmaps/gimv_icon.xpm: цЦ░шжПуГХуВбуВдуГл
 	* Makefile.am
-	* src/pixmaps/Makefile.am: ┐╖╡ме╒ебедеыдЄ─╔▓├
-	* src/image_view.c: е╨е░е╒еге├епе╣
+	* src/pixmaps/Makefile.am: цЦ░шжПуГХуВбуВдуГлуВТш┐╜хКа
+	* src/image_view.c: уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-03-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.100 (│л╚п╚╟)
+	* Version-0.1.100 (щЦЛчЩ║чЙИ)
 
 2002-03-04 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/image_window.c
 	* src/dirview.c
-	* src/comment_view.c: е╨е░е╒еге├епе╣
+	* src/comment_view.c: уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-02-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.99 (│л╚п╚╟)
+	* Version-0.1.99 (щЦЛчЩ║чЙИ)
 
 2002-02-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ┤ф╦▄░ь╝∙д╡дєд╬╗╪┼жд╟бвINSTALL.jpд└д▒дмISO-2022-JPд╚д╩д├д╞ддд┐д╬дЄ
-	EUC-JPд╦┼¤░ь
-	* ║┘длдде╨е░е╒еге├епе╣
+	* х▓йцЬмф╕Аци╣уБХуВУуБоцМЗцСШуБзуАБINSTALL.jpуБауБСуБМISO-2022-JPуБиуБкуБгуБжуБДуБЯуБоуВТ
+	EUC-JPуБлч╡▒ф╕А
+	* ч┤░уБЛуБДуГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-02-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡/е╨е░е╒еге├епе╣
+	* ч┤░уБЛуБДф┐оцнг/уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-02-23 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2076,141 +2076,141 @@
 	* libexif/exif-utils.[ch]
 	* libexif/jpeg-data.[ch]
 	* libexif/jpeg-marker.[ch]
-	* src/exif_view.[ch]: ┐╖╡ме╒ебедеыбгEXIFе╡е▌б╝е╚дЄ─╔▓├бг
+	* src/exif_view.[ch]: цЦ░шжПуГХуВбуВдуГлуАВEXIFуВ╡уГЭуГ╝уГИуВТш┐╜хКауАВ
 
 2002-02-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* katsuд╡дєдлдщд╬╗╪┼жд╟бв┬╛д╬е╜е╒е╚д╟е╒ебедеыдЄ░▄╞░д╖д╞длдщ▓ш┴№дЄ│лд│джд╚
-	д╣дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡
-	* ╚╛╞й╠└▓ш┴№д╬╜ш═¤дЄ─╔▓├ (╟╪╖╩д╧╟Єд╟╕╟─ъ)
+	* katsuуБХуВУуБЛуВЙуБоцМЗцСШуБзуАБф╗ЦуБоуВ╜уГХуГИуБзуГХуВбуВдуГлуВТчз╗хЛХуБЧуБжуБЛуВЙчФ╗хГПуВТщЦЛуБУуБЖуБи
+	уБЩуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнг
+	* хНКщАПцШОчФ╗хГПуБохЗжчРЖуВТш┐╜хКа (шГМцЩпуБпчЩ╜уБзхЫ║хоЪ)
 
 2002-02-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/xcf.[ch]: ┐╖╡ме╒ебедеыбгxcfе╡е▌б╝е╚дЄ─╔▓├бг
+	* src/xcf.[ch]: цЦ░шжПуГХуВбуВдуГлуАВxcfуВ╡уГЭуГ╝уГИуВТш┐╜хКауАВ
 
 2002-02-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╛о╛╛д╡дєд╬╗╪┼жд╟бве╟егеьепе╚еъе╙ехб╝д╬╜щ┤№е╟егеьепе╚еъд╧елеьеєе╚
-	е╟егеьепе╚еъд╚д╩дыдшджд╦д╖д┐
-	* ░·┐Їд╦е╟егеьепе╚еъдм╗╪─ъд╡дьд╞ддды╛ь╣чд╧бв░·┐Їд╬║╟╕хд╬е╟егеьепе╚еъдм
-	е╟егеьепе╚еъе╙ехб╝д╬╜щ┤№е╟егеьепе╚еъд╚д╩дыдшджд╦д╖д┐
-	* ╛о╛╛д╡дєд╬╗╪┼жд╟бв╞▒░ье┐е╓д╪д╬DnDдЄ┤░┴┤д╦═▐╗▀д╣дыдшджд╦д╖д┐
-	* libtoolдЄ1.4.2д╦еве├е╫е╟б╝е╚бг
-	* acinclude.m4: ┐╖╡ме╒ебедеыбгlibtool.m4дЄе▐б╝е╕бг
+	* х░ПцЭ╛уБХуВУуБоцМЗцСШуБзуАБуГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБохИЭцЬЯуГЗуВгуГмуВпуГИуГкуБпуВлуГмуГ│уГИ
+	уГЗуВгуГмуВпуГИуГкуБиуБкуВЛуВИуБЖуБлуБЧуБЯ
+	* х╝ХцХ░уБлуГЗуВгуГмуВпуГИуГкуБМцМЗхоЪуБХуВМуБжуБДуВЛха┤хРИуБпуАБх╝ХцХ░уБоцЬАх╛МуБоуГЗуВгуГмуВпуГИуГкуБМ
+	уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБохИЭцЬЯуГЗуВгуГмуВпуГИуГкуБиуБкуВЛуВИуБЖуБлуБЧуБЯ
+	* х░ПцЭ╛уБХуВУуБоцМЗцСШуБзуАБхРМф╕АуВ┐уГЦуБ╕уБоDnDуВТхоМхЕиуБлцКСцнвуБЩуВЛуВИуБЖуБлуБЧуБЯ
+	* libtoolуВТ1.4.2уБлуВвуГГуГЧуГЗуГ╝уГИуАВ
+	* acinclude.m4: цЦ░шжПуГХуВбуВдуГлуАВlibtool.m4уВТуГЮуГ╝уВ╕уАВ
 
 2002-02-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.98 (│л╚п╚╟)
+	* Version-0.1.98 (щЦЛчЩ║чЙИ)
 
 2002-02-17 Takuro Ashie <ashie@homa.ne.jp>
 
-        * jissamaд╡дєдлдщд╬╗╪┼жд╟бве╡ере═едеыеэб╝е╔├цд╦еэе▒б╝е╖ечеєеиеєе╚еъдЄ
-        ┴р║юд╟днд╩дд╠ф┬ъдЄ╜д└╡
-        * ┼╖└ч╠╝б╣д╡дєд╬е╔енехесеєе╚дЄе▐б╝е╕
-	* horamд╡дєд╬╗╪┼жд╟бвINSTALL.jpд╬е╤е├е▒б╝е╕еєе░╧│дьдЄ╜д└╡
-	* horamд╡дєд╬╗╪┼жд╟бвgimageview.spec.inд╟еъе╙еые╔д╟днд╩дд╠ф┬ъдЄ╜д└╡
-	* е╪еые╫есе╦ехб╝д╬б╓е▐е╦ехевеыб╫д╟HTMLе╔енехесеєе╚дЄ│лдпдшджд╦д╖д┐
+        * jissamaуБХуВУуБЛуВЙуБоцМЗцСШуБзуАБуВ╡уГауГНуВдуГлуГнуГ╝уГЙф╕нуБлуГнуВ▒уГ╝уВ╖уГзуГ│уВиуГ│уГИуГкуВТ
+        цУНф╜ЬуБзуБНуБкуБДхХПщбМуВТф┐оцнг
+        * хдйф╗ЩхиШуАЕуБХуВУуБоуГЙуВнуГеуГбуГ│уГИуВТуГЮуГ╝уВ╕
+	* horamуБХуВУуБоцМЗцСШуБзуАБINSTALL.jpуБоуГСуГГуВ▒уГ╝уВ╕уГ│уВ░ц╝ПуВМуВТф┐оцнг
+	* horamуБХуВУуБоцМЗцСШуБзуАБgimageview.spec.inуБзуГкуГУуГлуГЙуБзуБНуБкуБДхХПщбМуВТф┐оцнг
+	* уГШуГлуГЧуГбуГЛуГеуГ╝уБоуАМуГЮуГЛуГеуВвуГлуАНуБзHTMLуГЙуВнуГеуГбуГ│уГИуВТщЦЛуБПуВИуБЖуБлуБЧуБЯ
 
 2002-02-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│е▐еєе╔ещедеєдлдщ─╛└▄е╣ещеде╔е╖ечб╝дЄ╡п╞░д╣ды║▌д╦бве╟егеьепе╚еъдЄ
-	╗╪─ъд╟дндыдшджд╦д╖д┐(-d╡┌д╙-Rеке╫е╖ечеє╗╚═╤╗■)
-	* jissamaд╡дєдлдщд╬╗╪┼жд╟бве╡ере═едеыеэб╝е╔├цд╦едесб╝е╕е╙ехб╝д╟▓ш┴№дЄ
-	┬╪дидыд╚е╒ебедеыдЄ│лд▒д╩дпд╩ды╗Ўдмдвдые╨е░дЄ╜д└╡
+	* уВ│уГЮуГ│уГЙуГйуВдуГ│уБЛуВЙчЫ┤цОеуВ╣уГйуВдуГЙуВ╖уГзуГ╝уВТш╡╖хЛХуБЩуВЛщЪЫуБлуАБуГЗуВгуГмуВпуГИуГкуВТ
+	цМЗхоЪуБзуБНуВЛуВИуБЖуБлуБЧуБЯ(-dхПКуБ│-RуВкуГЧуВ╖уГзуГ│ф╜┐чФицЩВ)
+	* jissamaуБХуВУуБЛуВЙуБоцМЗцСШуБзуАБуВ╡уГауГНуВдуГлуГнуГ╝уГЙф╕нуБлуВдуГбуГ╝уВ╕уГУуГеуГ╝уБзчФ╗хГПуВТ
+	цЫ┐уБИуВЛуБиуГХуВбуВдуГлуВТщЦЛуБСуБкуБПуБкуВЛф║ЛуБМуБВуВЛуГРуВ░уВТф┐оцнг
 
 2002-02-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.97 (│л╚п╚╟)
+	* Version-0.1.97 (щЦЛчЩ║чЙИ)
 
 2002-02-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* │╚─е╗╥└▀─ъдЄ─╔▓├
+	* цЛбх╝╡хнРшинхоЪуВТш┐╜хКа
 
 2002-02-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ╡п╞░╗■д╦е╣е╫еще├е╖ехдЄ╔╜╝ид╣дыдшджд╦д╖д┐(--disable-splashд╟off)
-	* едесб╝е╕ежегеєе╔ежд╦б╓░▄╞░б╫есе╦ехб╝дЄ─╔▓├
-	* Aboutежегеєе╔ежд╦еэе┤дЄ╔╜╝ид╣дыдшджд╦д╖д┐
+	* ш╡╖хЛХцЩВуБлуВ╣уГЧуГйуГГуВ╖уГеуВТшбичд║уБЩуВЛуВИуБЖуБлуБЧуБЯ(--disable-splashуБзoff)
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБлуАМчз╗хЛХуАНуГбуГЛуГеуГ╝уВТш┐╜хКа
+	* AboutуВжуВгуГ│уГЙуВжуБлуГнуВ┤уВТшбичд║уБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-02-12 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ┼╖└ч╠╝б╣д╡дєбвhoramд╡дєд╬specе╒ебедеыдЄе▐б╝е╕
+	* хдйф╗ЩхиШуАЕуБХуВУуАБhoramуБХуВУуБоspecуГХуВбуВдуГлуВТуГЮуГ╝уВ╕
 
 2002-02-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.96 (│л╚п╚╟)
+	* Version-0.1.96 (щЦЛчЩ║чЙИ)
 
 2002-02-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* FRArchiveд╚ImageInfoд╬╗▓╛╚┤╪╖╕дм╢╕д├д╞ддд┐╠ф┬ъд╬╜д└╡╧│дьдЄ╜д└╡
-	* icon_widgetд╬е╡еде║╖╫╗╗д╟епеще├е╖ехд╣дые╨е░дЄ╜д└╡
-	* ja.poдЄ╣╣┐╖
+	* FRArchiveуБиImageInfoуБохПВчЕзщЦвф┐ВуБМчЛВуБгуБжуБДуБЯхХПщбМуБоф┐оцнгц╝ПуВМуВТф┐оцнг
+	* icon_widgetуБоуВ╡уВдуВ║шиИчоЧуБзуВпуГйуГГуВ╖уГеуБЩуВЛуГРуВ░уВТф┐оцнг
+	* ja.poуВТцЫ┤цЦ░
 
 2002-02-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.95 (│л╚п╚╟)
+	* Version-0.1.95 (щЦЛчЩ║чЙИ)
 
 2002-02-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│е▐еєе╔ещедеєдлдщевб╝еледе╓е╒ебедеыдЄ╗╪─ъд╣дыд╚╕╟д▐дыд│д╚дмдвдые╨е░дЄ
-	╜д└╡бг
-	* д╜д╬┬╛║┘длдд─┤└░
-	* еведе│еєд╬╜д└╡
+	* уВ│уГЮуГ│уГЙуГйуВдуГ│уБЛуВЙуВвуГ╝уВлуВдуГЦуГХуВбуВдуГлуВТцМЗхоЪуБЩуВЛуБихЫ║уБ╛уВЛуБУуБиуБМуБВуВЛуГРуВ░уВТ
+	ф┐оцнгуАВ
+	* уБЭуБоф╗Цч┤░уБЛуБДшк┐цХ┤
+	* уВвуВдуВ│уГ│уБоф┐оцнг
 
 2002-02-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* TGA╖┴╝░д╬╞╔д▀╣■д▀дЄе╡е▌б╝е╚
+	* TGAх╜вх╝ПуБошкнуБ┐ш╛╝уБ┐уВТуВ╡уГЭуГ╝уГИ
 
 2002-02-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* -W (--wait) еке╫е╖ечеєд╟е╣ещеде╔е╖ечб╝д╬едеєе┐б╝е╨еыдЄ╗╪─ъд╟днды
-	дшджд╦д╖д┐
-	* ░·┐Їд╟евб╝еледе╓е╒ебедеыдЄ╗╪─ъд╖д┐д╚днд╦евб╝еледе╓е╒ебедеыдЄ
-	│лд▒дыдшджд╦д╖д┐(д▐д└д┴дчд├д╚Broken)
-	* е╒ебедеыекб╝е╫еєе└едевеэе░длдщевб╝еледе╓е╒ебедеыдЄ│лд▒дыдшджд╦д╖д┐
-	* FRArchiveд╚ImageInfoд╬╗▓╛╚┤╪╖╕дм╢╕д├д╞ддд┐е╨е░дЄ╜д└╡
+	* -W (--wait) уВкуГЧуВ╖уГзуГ│уБзуВ╣уГйуВдуГЙуВ╖уГзуГ╝уБоуВдуГ│уВ┐уГ╝уГРуГлуВТцМЗхоЪуБзуБНуВЛ
+	уВИуБЖуБлуБЧуБЯ
+	* х╝ХцХ░уБзуВвуГ╝уВлуВдуГЦуГХуВбуВдуГлуВТцМЗхоЪуБЧуБЯуБиуБНуБлуВвуГ╝уВлуВдуГЦуГХуВбуВдуГлуВТ
+	щЦЛуБСуВЛуВИуБЖуБлуБЧуБЯ(уБ╛уБауБбуВЗуБгуБиBroken)
+	* уГХуВбуВдуГлуВкуГ╝уГЧуГ│уГАуВдуВвуГнуВ░уБЛуВЙуВвуГ╝уВлуВдуГЦуГХуВбуВдуГлуВТщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯ
+	* FRArchiveуБиImageInfoуБохПВчЕзщЦвф┐ВуБМчЛВуБгуБжуБДуБЯуГРуВ░уВТф┐оцнг
 
 2002-02-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еъе╣е╚е╙ехб╝д╬└▀─ъдЄ─╔▓├
+	* уГкуВ╣уГИуГУуГеуГ╝уБошинхоЪуВТш┐╜хКа
 
 2002-02-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* евб╝еледе╓▓єдъд╬е│б╝е╔дЄfile-roler-0.5е┘б╝е╣д╦╣╣┐╖
-	* е│есеєе╚е╙ехб╝дЄ╜д└╡(├ц┼╙)
-	* е╫еще░едеє└▀─ъ╞╔д▀╣■д▀╗■д╬епеще├е╖ехе╨е░дЄ╜д└╡
+	* уВвуГ╝уВлуВдуГЦхЫЮуВКуБоуВ│уГ╝уГЙуВТfile-roler-0.5уГЩуГ╝уВ╣уБлцЫ┤цЦ░
+	* уВ│уГбуГ│уГИуГУуГеуГ╝уВТф┐оцнг(ф╕нщАФ)
+	* уГЧуГйуВ░уВдуГ│шинхоЪшкнуБ┐ш╛╝уБ┐цЩВуБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
 
 2002-02-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еще░едеєд╬└▀─ъдЄ ~/.gimv/pluginrc/ ░╩▓╝д╦╩▌┬╕д╣дыдшджд╦д╖д┐
+	* уГЧуГйуВ░уВдуГ│уБошинхоЪуВТ ~/.gimv/pluginrc/ ф╗еф╕ЛуБлф┐ЭхнШуБЩуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-01-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* MAGеэб╝е└дЄ▓╛╝┬┴ї
-	* aboutежегеєе╔еждЄ│лддд╞длдщ└▀─ъежегеєе╔еждЄ│лдпд╚епеще├е╖ехд╣дые╨е░дЄ
-	╜д└╡
+	* MAGуГнуГ╝уГАуВТф╗охоЯшгЕ
+	* aboutуВжуВгуГ│уГЙуВжуВТщЦЛуБДуБжуБЛуВЙшинхоЪуВжуВгуГ│уГЙуВжуВТщЦЛуБПуБиуВпуГйуГГуВ╖уГеуБЩуВЛуГРуВ░уВТ
+	ф┐оцнг
 
 2002-01-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еьб╝еєе╞ене╣е╚д╚╞▒══д╦бв($prefix)/share/gimageview/doc/html░╩▓╝дЄ
-	е╣енеуеєд╖д╞Helpесе╦ехб╝д╦─╔▓├д╣дыдшджд╦д╖д┐бг
+	* уГЧуГмуГ╝уГ│уГЖуВнуВ╣уГИуБихРМцзШуБлуАБ($prefix)/share/gimageview/doc/htmlф╗еф╕ЛуВТ
+	уВ╣уВнуГгуГ│уБЧуБжHelpуГбуГЛуГеуГ╝уБлш┐╜хКауБЩуВЛуВИуБЖуБлуБЧуБЯуАВ
 
 2002-01-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еьб╝ефе─б╝еые╨б╝д╦е╣ещеде╔е╖ечб╝дЄе╨едеєе╔
+	* уГЧуГмуГ╝уГдуГДуГ╝уГлуГРуГ╝уБлуВ╣уГйуВдуГЙуВ╖уГзуГ╝уВТуГРуВдуГ│уГЙ
 
 2002-01-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* едесб╝е╕ежегеєе╔ежд╦е╫еьб╝ефе─б╝еые╨б╝дЄ─╔▓├
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБлуГЧуГмуГ╝уГдуГДуГ╝уГлуГРуГ╝уВТш┐╜хКа
 
 2002-01-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/slideshow.[ch]: image_window.[ch]дшдъ╩м╬е
-	* src/dirview.c: е╚е├е╫е╟егеьепе╚еъ╩╤╣╣╗■д╬епеще├е╖ехе╨е░дЄ▓╛╜д└╡
+	* src/slideshow.[ch]: image_window.[ch]уВИуВКхИЖщЫв
+	* src/dirview.c: уГИуГГуГЧуГЗуВгуГмуВпуГИуГкхдЙцЫ┤цЩВуБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф╗оф┐оцнг
 	* src/dirview.[ch]
 	* src/thumbnail_view.[ch]
 	* src/menu.c
-	* src/gfileutil.c: есетеъеъб╝епдЄ╜д└╡
+	* src/gfileutil.c: уГбуГвуГкуГкуГ╝уВпуВТф┐оцнг
 	* src/pixmaps/next_t.xpm
 	* src/pixmaps/prev_t.xpm
 	* src/pixmaps/ff.xpm
@@ -2218,102 +2218,102 @@
 	* src/pixmaps/play.xpm
 	* src/pixmaps/pause.xpm
 	* src/pixmaps/stop2.xpm
-	* src/pixmaps/eject.xpm: ┐╖╡ме╒ебедеы
+	* src/pixmaps/eject.xpm: цЦ░шжПуГХуВбуВдуГл
 
 2002-01-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ейеые└дфевб╝еледе╓дм╔╜╝ид╡дьд╞дддые┐е╓д╟╬р╗ў▓ш┴№╕б║ўдЄ╣╘джд╚
-	епеще├е╖ехд╣дые╨е░дЄ╜д└╡
+	* уГХуВйуГлуГАуВДуВвуГ╝уВлуВдуГЦуБМшбичд║уБХуВМуБжуБДуВЛуВ┐уГЦуБзщбЮф╝╝чФ╗хГПцдЬч┤вуВТшбМуБЖуБи
+	уВпуГйуГГуВ╖уГеуБЩуВЛуГРуВ░уВТф┐оцнг
 
 2002-01-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╟д╬е▐еже╣е▄е┐еє└▀─ъ
-	* е╫еье╙ехб╝д╬└▀─ъдЄ─╔▓├
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБзуБоуГЮуВжуВ╣уГЬуВ┐уГ│шинхоЪ
+	* уГЧуГмуГУуГеуГ╝уБошинхоЪуВТш┐╜хКа
 
 2002-01-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/argparse.c: ├═╔╒днд╬еэеєе░еке╫е╖ечеєдм└╡д╖дп╟з╝▒д╡дьд╩дде╨е░дЄ╜д└╡
-	(Thanks!! ┤ф╦▄░ь╝∙д╡дє)
+	* src/argparse.c: хАдф╗ШуБНуБоуГнуГ│уВ░уВкуГЧуВ╖уГзуГ│уБМцнгуБЧуБПшкНшнШуБХуВМуБкуБДуГРуВ░уВТф┐оцнг
+	(Thanks!! х▓йцЬмф╕Аци╣уБХуВУ)
 
 2002-01-26 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еье╙ехб╝д╟д╬е▐еже╣е▄е┐еє└▀─ъ
-	* едесб╝е╕ежегеєе╔ежд╟д╬е▐еже╣е▄е┐еє└▀─ъ
+	* уГЧуГмуГУуГеуГ╝уБзуБоуГЮуВжуВ╣уГЬуВ┐уГ│шинхоЪ
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуБзуБоуГЮуВжуВ╣уГЬуВ┐уГ│шинхоЪ
 
 2002-01-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/prefs_ui_thumbwin.[ch]: prefs_win.[ch]длдщ╩м╬ебг
-	е╫еье╙ехб╝д╟д╬е▐еже╣е▄е┐еє└▀─ъ═╤UIдЄ─╔▓├
+	* src/prefs_ui_thumbwin.[ch]: prefs_win.[ch]уБЛуВЙхИЖщЫвуАВ
+	уГЧуГмуГУуГеуГ╝уБзуБоуГЮуВжуВ╣уГЬуВ┐уГ│шинхоЪчФиUIуВТш┐╜хКа
 
 2002-01-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╬▒жепеъе├епесе╦ехб╝д╦б╓е╣епеъе╫е╚б╫дЄ─╔▓├
-	* евб╝еледе╓е╒ебедеы╜ш═¤╗■д╬sensitive└┌┬╪ди╡┌д╙еиещб╝╜ш═¤
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБохП│уВпуГкуГГуВпуГбуГЛуГеуГ╝уБлуАМуВ╣уВпуГкуГЧуГИуАНуВТш┐╜хКа
+	* уВвуГ╝уВлуВдуГЦуГХуВбуВдуГлхЗжчРЖцЩВуБоsensitiveхИЗцЫ┐уБИхПКуБ│уВиуГйуГ╝хЗжчРЖ
 
 2002-01-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝д╬╔╜╝иетб╝е╔┤╔═¤дЄ╟█╬єдлдще╧е├е╖ехе╞б╝е╓еыд╦╩╤╣╣
-	* ░█д╩дые╒ебедеые╖е╣е╞ерд╪д╬е╒ебедеы/е╟егеьепе╚еъе│е╘б╝д╧бв
-	┴┤д╞е│е╘б╝д╦└┌┬╪дидыдшджд╦д╖д┐(░▄╞░╕╡д╬║я╜№д╧╟╤╗▀)
-	* едесб╝е╕ежегеєе╔ежекб╝е╫еє╗■д╦е╣е╞б╝е┐е╣е╨б╝дм├┘дьд╞╔╜╝ид╡дьды╠ф┬ъдЄ
-	╜д└╡
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБошбичд║уГвуГ╝уГЙчобчРЖуВТщЕНхИЧуБЛуВЙуГПуГГуВ╖уГеуГЖуГ╝уГЦуГлуБлхдЙцЫ┤
+	* чХ░уБкуВЛуГХуВбуВдуГлуВ╖уВ╣уГЖуГауБ╕уБоуГХуВбуВдуГл/уГЗуВгуГмуВпуГИуГкуВ│уГФуГ╝уБпуАБ
+	хЕиуБжуВ│уГФуГ╝уБлхИЗцЫ┐уБИуВЛуВИуБЖуБлуБЧуБЯ(чз╗хЛХхЕГуБохЙКщЩдуБпх╗Гцнв)
+	* уВдуГбуГ╝уВ╕уВжуВгуГ│уГЙуВжуВкуГ╝уГЧуГ│цЩВуБлуВ╣уГЖуГ╝уВ┐уВ╣уГРуГ╝уБМщБЕуВМуБжшбичд║уБХуВМуВЛхХПщбМуВТ
+	ф┐оцнг
 
 2002-01-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* PCXеэб╝е└д╬е╨е░дЄ╜д└╡
-	* BMPеэб╝е└дЄ▓╛╝┬┴ї
+	* PCXуГнуГ╝уГАуБоуГРуВ░уВТф┐оцнг
+	* BMPуГнуГ╝уГАуВТф╗охоЯшгЕ
 
 2002-01-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╟е─еъб╝╣╜├█├цд╧е╚е├е╫е╟егеьепе╚еъдЄ
-	╩╤╣╣д╟днд╩дддшджд╦д╖д┐
-	* е╫еще░едеє╕б║ўе╟егеьепе╚еъд╬└▀─ъдЄ─╔▓├
-	* е╨е░е╒еге├епе╣
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБзуГДуГкуГ╝цзЛчпЙф╕нуБпуГИуГГуГЧуГЗуВгуГмуВпуГИуГкуВТ
+	хдЙцЫ┤уБзуБНуБкуБДуВИуБЖуБлуБЧуБЯ
+	* уГЧуГйуВ░уВдуГ│цдЬч┤вуГЗуВгуГмуВпуГИуГкуБошинхоЪуВТш┐╜хКа
+	* уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-01-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* FRArchiveд╚ImageInfoд╬╗▓╛╚┤╪╖╕д╬╕л─╛д╖
-	* евб╝еледе╓е╒ебедеыдлдщд╬│╞╝я╛Ё╩єд╬╝ш╞└
-	* FRArchiveеке╓е╕езепе╚дм╛├дид┐╗■┼└д╟░ь╗■е╟егеьепе╚еъдЄ
-	║я╜№д╣дыдшджд╦д╖д┐
-	* б╓╕б║ўб╫└▀─ъдЄ─╔▓├
-	* д╜д╬┬╛║┘длдд─┤└░/е╨е░е╒еге├епе╣
+	* FRArchiveуБиImageInfoуБохПВчЕзщЦвф┐ВуБошжЛчЫ┤уБЧ
+	* уВвуГ╝уВлуВдуГЦуГХуВбуВдуГлуБЛуВЙуБохРДчиоцГЕха▒уБохПЦх╛Ч
+	* FRArchiveуВкуГЦуВ╕уВзуВпуГИуБМц╢ИуБИуБЯцЩВчВ╣уБзф╕АцЩВуГЗуВгуГмуВпуГИуГкуВТ
+	хЙКщЩдуБЩуВЛуВИуБЖуБлуБЧуБЯ
+	* уАМцдЬч┤вуАНшинхоЪуВТш┐╜хКа
+	* уБЭуБоф╗Цч┤░уБЛуБДшк┐цХ┤/уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-01-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд─┤└░/е╨е░е╒еге├епе╣
+	* ч┤░уБЛуБДшк┐цХ┤/уГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-01-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъдкдшд╙евб╝еледе╓д╬╔╜╝и/╚є╔╜╝идЄ└┌┬╪дидщдьдыдшджд╦д╖д┐бг
-	* ║┘длдд─┤└░┬┐┐Ї
+	* уГЗуВгуГмуВпуГИуГкуБКуВИуБ│уВвуГ╝уВлуВдуГЦуБошбичд║/щЭЮшбичд║уВТхИЗцЫ┐уБИуВЙуВМуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* ч┤░уБЛуБДшк┐цХ┤хдЪцХ░
 
 2002-01-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* евб╝еледе╓╞тд╬▓ш┴№д╬е╡ере═едеыенеуе├е╖ех╩▌┬╕д╦┬╨▒■(GImageView╖┴╝░д╬д▀)
-	* е╟егеьепе╚еъе╙ехб╝д╬е─еъб╝┼╕│леведе│еєд╧е─еъб╝дЄ│лддд╞длдще╗е├е╚д╣ды
-        дшджд╦д╖д┐бг
-	* д╜д╬┬╛е╨е░е╒еге├епе╣
+	* уВвуГ╝уВлуВдуГЦхЖЕуБочФ╗хГПуБоуВ╡уГауГНуВдуГлуВнуГгуГГуВ╖уГеф┐ЭхнШуБлхп╛х┐Ь(GImageViewх╜вх╝ПуБоуБ┐)
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГДуГкуГ╝х▒ХщЦЛуВвуВдуВ│уГ│уБпуГДуГкуГ╝уВТщЦЛуБДуБжуБЛуВЙуВ╗уГГуГИуБЩуВЛ
+        уВИуБЖуБлуБЧуБЯуАВ
+	* уБЭуБоф╗ЦуГРуВ░уГХуВгуГГуВпуВ╣
 
 2002-01-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еъе═б╝еретб╝е╔дЄ╝┬┴ї
+	* уГкуГНуГ╝уГауГвуГ╝уГЙуВТхоЯшгЕ
 
 2002-01-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╫еье╙ехб╝е┐е╓д╬╔╜╝и/╚є╔╜╝и
-	* евб╝еледе╓╞тд╬е╒ебедеыд╬│╚─е╗╥д╬╚╜╩╠
-	* thumbview_free дЄ thumbview_deleteд╦┼¤╣ч
-	* евб╝еледе╓╞те╒ебедеыд╬е╡ере═едеы║ю└од╦┬╨▒■
-	* ┤√д╦│лдлдьд╞дддые┐е╓д╬╕б║ўдм╡б╟╜д╖д╞ддд╩дд╠ф┬ъдЄ╜д└╡
+	* уГЧуГмуГУуГеуГ╝уВ┐уГЦуБошбичд║/щЭЮшбичд║
+	* уВвуГ╝уВлуВдуГЦхЖЕуБоуГХуВбуВдуГлуБоцЛбх╝╡хнРуБохИдхИе
+	* thumbview_free уВТ thumbview_deleteуБлч╡▒хРИ
+	* уВвуГ╝уВлуВдуГЦхЖЕуГХуВбуВдуГлуБоуВ╡уГауГНуВдуГлф╜ЬцИРуБлхп╛х┐Ь
+	* цЧвуБлщЦЛуБЛуВМуБжуБДуВЛуВ┐уГЦуБоцдЬч┤вуБМцйЯшГ╜уБЧуБжуБДуБкуБДхХПщбМуВТф┐оцнг
 
 2002-01-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ─╔▓├е╟б╝е┐дЄе╞ене╣е╚д╟╩▌┬╕д╟дндыдшджд╦д╖д┐
+	* ш┐╜хКауГЗуГ╝уВ┐уВТуГЖуВнуВ╣уГИуБзф┐ЭхнШуБзуБНуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-01-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╡ере═едеые╙ехб╝длдщевб╝еледе╓дЄ│лд▒дыдшджд╦д╖д┐
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБЛуВЙуВвуГ╝уВлуВдуГЦуВТщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯ
 
 2002-01-09 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2325,19 +2325,19 @@
 	* src/file-data.[ch]
 	* src/fr-archive.[ch]
 	* src/fr-command.[ch]
-	* src/fr-process.[ch]: ┐╖╡ме╒ебедеы
+	* src/fr-process.[ch]: цЦ░шжПуГХуВбуВдуГл
 	* configure.in
 	* plugin/Makefile.am
-	* src/plugin.[ch]: │░╔Їевб╝еледе╨е╫еще░едеєдЄ▓╛╝┬┴ї
+	* src/plugin.[ch]: хдЦщГиуВвуГ╝уВлуВдуГРуГЧуГйуВ░уВдуГ│уВТф╗охоЯшгЕ
 
 2002-01-08 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/Makefile.am
 	* src/thumbview_detail.c
-	* src/gimv_image.[ch]: ╜д└╡
-	* src/similar.[ch]: ┐╖╡ме╒ебедеы (GQviewдшдъ╟╥╝┌)
+	* src/gimv_image.[ch]: ф┐оцнг
+	* src/similar.[ch]: цЦ░шжПуГХуВбуВдуГл (GQviewуВИуВКцЛЭхАЯ)
 	* src/thumbnail_view.[ch]
-	* src/thumbnail_window.[ch]: ╬р╗ў▓ш┴№╕б║ў╡б╟╜дЄ╝┬┴ї
+	* src/thumbnail_window.[ch]: щбЮф╝╝чФ╗хГПцдЬч┤вцйЯшГ╜уВТхоЯшгЕ
 
 2002-01-07 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2346,72 +2346,72 @@
 	* plugins/image_saver/Makefile.am
 	* plugins/image_saver/png_saver.c
 	* plugins/image_saver/pnm_saver.c
-	* plugins/image_saver/xvpics_saver.c: image_saverдЄ╝┬┴ї
-	* src/pixbuf_utils.[ch]: ▓ш┴№╩▌┬╕═╤д╬┤╪┐ЇдЄ║я╜№
-	* src/help.c: е╖е╣е╞ер╛Ё╩єд╦libpngд╚gdk-pixbufд╬╛Ё╩єдЄ─╔▓├
+	* plugins/image_saver/xvpics_saver.c: image_saverуВТхоЯшгЕ
+	* src/pixbuf_utils.[ch]: чФ╗хГПф┐ЭхнШчФиуБощЦвцХ░уВТхЙКщЩд
+	* src/help.c: уВ╖уВ╣уГЖуГацГЕха▒уБлlibpngуБиgdk-pixbufуБоцГЕха▒уВТш┐╜хКа
 
 2002-01-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡
+	* ч┤░уБЛуБДф┐оцнг
 
 2002-01-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.3е╓ещеєе┴д╬╩╤╣╣дЄHEADд╦е▐б╝е╕
+	* Version-0.1.3уГЦуГйуГ│уГБуБохдЙцЫ┤уВТHEADуБлуГЮуГ╝уВ╕
 
 2001-01-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version 0.1.7 (Version-0.1.3е╓ещеєе┴бге╨е░е╒еге├епе╣еъеъб╝е╣)
+	* Version 0.1.7 (Version-0.1.3уГЦуГйуГ│уГБуАВуГРуВ░уГХуВгуГГуВпуВ╣уГкуГкуГ╝уВ╣)
 
 2002-01-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	(Version-0.1.3е╓ещеєе┴)
+	(Version-0.1.3уГЦуГйуГ│уГБ)
 	* src/prefs.[ch]
-	* src/prefs_win.c: ║╞╡в╝ш╞└╗■д╦еъеєепдЄ╞╔д▀╣■д▐д╩дд└▀─ъдЄ└▀─ъежегеєе╔еж
-  	д╦─╔▓├
-	* src/image_window.c: ▓ш┴№└┌┬╪ди├цд╦ежегеєе╔еждЄ╩─д╕дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡
+	* src/prefs_win.c: хЖНх╕░хПЦх╛ЧцЩВуБлуГкуГ│уВпуВТшкнуБ┐ш╛╝уБ╛уБкуБДшинхоЪуВТшинхоЪуВжуВгуГ│уГЙуВж
+  	уБлш┐╜хКа
+	* src/image_window.c: чФ╗хГПхИЗцЫ┐уБИф╕нуБлуВжуВгуГ│уГЙуВжуВТщЦЙуБШуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнг
 	* src/gfileutils.c
 	* po/POTFILES.in
-	* po/ja.po: ╣╣┐╖
+	* po/ja.po: цЫ┤цЦ░
 
 2001-12-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	(Version-0.1.3е╓ещеєе┴)
+	(Version-0.1.3уГЦуГйуГ│уГБ)
 	* src/dnd.c
 	* src/fileload.c
-        * src/dirview.c: е╟егеьепе╚еъе╙ехб╝д╟DnD╜к╬╗╗■д╦═юд┴ды╠ф┬ъдЄ╜д└╡бг
+        * src/dirview.c: уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБзDnDч╡Вф║ЖцЩВуБлшР╜уБбуВЛхХПщбМуВТф┐оцнгуАВ
         * src/gfileutil.c
- 	* src/prefs.[ch]: ║╞╡в╝ш╞└╗■д╦еъеєепдЄ╞╔д▀╣■д▐д╩дд└▀─ъдЄ─╔▓├бг
+ 	* src/prefs.[ch]: хЖНх╕░хПЦх╛ЧцЩВуБлуГкуГ│уВпуВТшкнуБ┐ш╛╝уБ╛уБкуБДшинхоЪуВТш┐╜хКауАВ
 
 2001-12-28 Takuro Ashie <ashie@homa.ne.jp>
 
-	(Version-0.1.3е╓ещеєе┴)
+	(Version-0.1.3уГЦуГйуГ│уГБ)
         * src/gimageview.c
 	* src/thumbnail_view.c
         * src/thumbnail_window.c
-	* src/thumbnail_view.c: е│еьепе╖ечеєе┐е╓д╪DnDд╟днд╩дд╠ф┬ъдЄ╜д└╡бг
-	есе╦ехб╝длдще│еьепе╖ечеєе┐е╓дЄ│лдпд╚┴р║юдм├едядьды╠ф┬ъдЄ╜д└╡бг
+	* src/thumbnail_view.c: уВ│уГмуВпуВ╖уГзуГ│уВ┐уГЦуБ╕DnDуБзуБНуБкуБДхХПщбМуВТф┐оцнгуАВ
+	уГбуГЛуГеуГ╝уБЛуВЙуВ│уГмуВпуВ╖уГзуГ│уВ┐уГЦуВТщЦЛуБПуБицУНф╜ЬуБМхекуВПуВМуВЛхХПщбМуВТф┐оцнгуАВ
 
 2001-12-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version 0.1.6 (Version-0.1.3е╓ещеєе┴бге╨е░е╒еге├епе╣еъеъб╝е╣)
+	* Version 0.1.6 (Version-0.1.3уГЦуГйуГ│уГБуАВуГРуВ░уГХуВгуГГуВпуВ╣уГкуГкуГ╝уВ╣)
 
 2001-12-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	(Version-0.1.3е╓ещеєе┴)
-	* ░·┐Їдм╗╪─ъд╡дьд╞ддд╩дд╛ь╣чд╧е╡ере═едеыежегеєе╔еждЄ│лдпдшджд╦д╖д┐
-	* еэб╝е╟егеєе░дЄенеуеєе╗еыд╟днд╩дд╗Ўдмдвды╠ф┬ъдЄ╜д└╡
-	* е╟е╒ейеые╚└▀─ъд╬╕л─╛д╖
-	* е╡ере═едеые╖еєе░еыепеъе├епд╦дшдые╒ебедеыекб╝е╫еє
-	* едесб╝е╕ежедеєе╔ежд╟д╬▓ш┴№┴ўдъд╦┬╨▒■
-	* д╜д╬┬╛╜д└╡/е╨е░е╒еге├епе╣
+	(Version-0.1.3уГЦуГйуГ│уГБ)
+	* х╝ХцХ░уБМцМЗхоЪуБХуВМуБжуБДуБкуБДха┤хРИуБпуВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуВТщЦЛуБПуВИуБЖуБлуБЧуБЯ
+	* уГнуГ╝уГЗуВгуГ│уВ░уВТуВнуГгуГ│уВ╗уГлуБзуБНуБкуБДф║ЛуБМуБВуВЛхХПщбМуВТф┐оцнг
+	* уГЗуГХуВйуГлуГИшинхоЪуБошжЛчЫ┤уБЧ
+	* уВ╡уГауГНуВдуГлуВ╖уГ│уВ░уГлуВпуГкуГГуВпуБлуВИуВЛуГХуВбуВдуГлуВкуГ╝уГЧуГ│
+	* уВдуГбуГ╝уВ╕уВжуВдуГ│уГЙуВжуБзуБочФ╗хГПщАБуВКуБлхп╛х┐Ь
+	* уБЭуБоф╗Цф┐оцнг/уГРуВ░уГХуВгуГГуВпуВ╣
 
 2001-12-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dither.[ch]: ┐╖╡ме╒ебедеы
-	* src/pixbuf_utils.[ch]: xvpics╖┴╝░д╬▓ш┴№╩▌┬╕д╦▓╛┬╨▒■
-	* plugins/xvpics.c: xvpics╖┴╝░д╬е╡ере═едеы╩▌┬╕д╦▓╛┬╨▒■
+	* src/dither.[ch]: цЦ░шжПуГХуВбуВдуГл
+	* src/pixbuf_utils.[ch]: xvpicsх╜вх╝ПуБочФ╗хГПф┐ЭхнШуБлф╗охп╛х┐Ь
+	* plugins/xvpics.c: xvpicsх╜вх╝ПуБоуВ╡уГауГНуВдуГлф┐ЭхнШуБлф╗охп╛х┐Ь
 	* src/image_info.[ch]
-	* src/thumbnail.[ch]: е╡ере═едеы┤╪╧вд╬┤╪┐ЇдЄthumbnail.[ch]д╦╠сд╣бг
+	* src/thumbnail.[ch]: уВ╡уГауГНуВдуГлщЦвщАгуБощЦвцХ░уВТthumbnail.[ch]уБлцИ╗уБЩуАВ
 	* plugins/ee.c
 	* plugins/gimv_thumb.c
 	* plugins/gqview.c
@@ -2420,7 +2420,7 @@
 	* plugins/nautilus.c
 	* src/thumbview_table.c
 	* src/prefs_win.c
-	* src/thumbnail_support.[ch]: ║┘длдд╜д└╡
+	* src/thumbnail_support.[ch]: ч┤░уБЛуБДф┐оцнг
 
 2001-12-22 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2429,168 +2429,168 @@
 	* src/thumbnail.[ch]
 	* src/thumbnvil_view.c
 	* src/thumbvuew_detail.c
-	* src/thumbnail_support.[ch]: енеуе├е╖ех┤╪╧в┤╪┐ЇдЄ┐╖╚╟д╦├╓дн┤╣дибг
+	* src/thumbnail_support.[ch]: уВнуГгуГГуВ╖уГещЦвщАгщЦвцХ░уВТцЦ░чЙИуБлч╜оуБНцПЫуБИуАВ
 
 2001-12-20 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/image_info.[ch]
-	* src/thumbnail_support.[ch]: енеуе├е╖ех╜ёдн╣■д▀┤╪┐ЇдЄ┐╖╚╟д╦├╓дн┤╣дибг
+	* src/thumbnail_support.[ch]: уВнуГгуГГуВ╖уГецЫ╕уБНш╛╝уБ┐щЦвцХ░уВТцЦ░чЙИуБлч╜оуБНцПЫуБИуАВ
 	* src/prefs.[ch]
-	* src/prefs_win.c: енеуе├е╖ех╜ёдн╣■д▀└▀─ъ═╤д╬едеєе┐б╝е╒езб╝е╣дЄ╩╤╣╣бг
+	* src/prefs_win.c: уВнуГгуГГуВ╖уГецЫ╕уБНш╛╝уБ┐шинхоЪчФиуБоуВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уВТхдЙцЫ┤уАВ
 
 2001-12-19 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/image_info.[ch]
-	* src/thumbnail_support.[ch]: енеуе├е╖ех╞╔д▀╣■д▀┤╪┐ЇдЄ┐╖╚╟д╦├╓дн┤╣дибг
+	* src/thumbnail_support.[ch]: уВнуГгуГГуВ╖уГешкнуБ┐ш╛╝уБ┐щЦвцХ░уВТцЦ░чЙИуБлч╜оуБНцПЫуБИуАВ
 	* src/prefs.[ch]
-	* src/prefs_win.c: енеуе├е╖ех╞╔д▀╣■д▀└▀─ъ═╤д╬едеєе┐б╝е╒езб╝е╣дЄ╩╤╣╣бг
+	* src/prefs_win.c: уВнуГгуГГуВ╖уГешкнуБ┐ш╛╝уБ┐шинхоЪчФиуБоуВдуГ│уВ┐уГ╝уГХуВзуГ╝уВ╣уВТхдЙцЫ┤уАВ
 
 2001-12-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_view.c: е╫еье╙ехб╝дф╢ж═нежегеєе╔еждм│лддд╞ддды╗■д╧
-	е╖еєе░еыепеъе├епд╟▓ш┴№дЄ│лдпдшджд╦д╖д┐бг
+	* src/thumbnail_view.c: уГЧуГмуГУуГеуГ╝уВДхЕ▒цЬЙуВжуВгуГ│уГЙуВжуБМщЦЛуБДуБжуБДуВЛцЩВуБп
+	уВ╖уГ│уВ░уГлуВпуГкуГГуВпуБзчФ╗хГПуВТщЦЛуБПуВИуБЖуБлуБЧуБЯуАВ
 	* src/prefs.[ch]
-	* src/prefs_win.c: WEBе╓ещеже╢д╬└▀─ъдЄ─╔▓├
-	* src/help.c: Aboutежегеєе╔ежд╟│╞╝я╛Ё╩єдЄ└┌┬╪дидщдьдыдшджд╦д╖д┐бг
-	GImageView WEBе╡еде╚д╬URLдЄепеъе├епд╟│лд▒дыдшджд╦д╖д┐бг
-	* src/thumbview_detail.c: есетеъеъб╝еп/епеще├е╖ехе╨е░дЄ╜д└╡
+	* src/prefs_win.c: WEBуГЦуГйуВжуВ╢уБошинхоЪуВТш┐╜хКа
+	* src/help.c: AboutуВжуВгуГ│уГЙуВжуБзхРДчиоцГЕха▒уВТхИЗцЫ┐уБИуВЙуВМуВЛуВИуБЖуБлуБЧуБЯуАВ
+	GImageView WEBуВ╡уВдуГИуБоURLуВТуВпуГкуГГуВпуБзщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* src/thumbview_detail.c: уГбуГвуГкуГкуГ╝уВп/уВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнг
 
 2001-12-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version-0.1.3е╓ещеєе┴д╬╩╤╣╣дЄHEADд╦е▐б╝е╕
+	* Version-0.1.3уГЦуГйуГ│уГБуБохдЙцЫ┤уВТHEADуБлуГЮуГ╝уВ╕
 
 2001-12-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/fileutil.c: есетеъеъб╝епдЄ╜д└╡бг
-	* src/dnd.c: ║┘длдд╜д└╡бг
+	* src/fileutil.c: уГбуГвуГкуГкуГ╝уВпуВТф┐оцнгуАВ
+	* src/dnd.c: ч┤░уБЛуБДф┐оцнгуАВ
 
 2001-12-16 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dnd.c: ║┘длдд╜д└╡бг(Version-0.1.3е╓ещеєе┴)
+	* src/dnd.c: ч┤░уБЛуБДф┐оцнгуАВ(Version-0.1.3уГЦуГйуГ│уГБ)
 
 2001-12-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* есетеъеъб╝епдЄ╜д└╡бг(Version-0.1.3е╓ещеєе┴)
+	* уГбуГвуГкуГкуГ╝уВпуВТф┐оцнгуАВ(Version-0.1.3уГЦуГйуГ│уГБ)
 
 2001-12-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* есетеъеъб╝епдЄ╜д└╡бг(Version-0.1.3е╓ещеєе┴)
+	* уГбуГвуГкуГкуГ╝уВпуВТф┐оцнгуАВ(Version-0.1.3уГЦуГйуГ│уГБ)
 
 2001-12-09 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Version 0.1.5 (Version-0.1.3е╓ещеєе┴бге╨е░е╒еге├епе╣еъеъб╝е╣)
+	* Version 0.1.5 (Version-0.1.3уГЦуГйуГ│уГБуАВуГРуВ░уГХуВгуГГуВпуВ╣уГкуГкуГ╝уВ╣)
 
 2001-12-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* есетеъеъб╝епдЄ╜д└╡ (Version-0.1.3е╓ещеєе┴)
+	* уГбуГвуГкуГкуГ╝уВпуВТф┐оцнг (Version-0.1.3уГЦуГйуГ│уГБ)
 
 2001-12-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡
+	* ч┤░уБЛуБДф┐оцнг
 
 2001-12-02 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/gfileutil.[ch]
-	* src/thumbnail_support.c: KDE-2.2е╡ере═едеые╡е▌б╝е╚дм═н╕·д╦д╩дщд╩дд
-	╠ф┬ъдЄ╜д└╡бг(Version-0.1.3е╓ещеєе┴)
+	* src/thumbnail_support.c: KDE-2.2уВ╡уГауГНуВдуГлуВ╡уГЭуГ╝уГИуБМцЬЙхК╣уБлуБкуВЙуБкуБД
+	хХПщбМуВТф┐оцнгуАВ(Version-0.1.3уГЦуГйуГ│уГБ)
 
 2001-11-28 Takuro Ashie <ashie@homa.ne.jp>
 
-        * Version-0.1.4 (Version-0.1.3е╓ещеєе┴бге╨е░е╒еге├епе╣еъеъб╝е╣)
+        * Version-0.1.4 (Version-0.1.3уГЦуГйуГ│уГБуАВуГРуВ░уГХуВгуГГуВпуВ╣уГкуГкуГ╝уВ╣)
 
 2001-11-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* еэе▒б╝е╖ечеєеиеєе╚еъд╬░╠├╓дЄ╩╤╣╣
+	* уГнуВ▒уГ╝уВ╖уГзуГ│уВиуГ│уГИуГкуБоф╜Нч╜оуВТхдЙцЫ┤
 
 2001-11-24 Takuro Ashie <ashie@homa.ne.jp>
 
-	* KDE-2.2╖┴╝░д╬е╡ере═едеыенеуе├е╖ехд╦╗├─ъ┬╨▒■ (Version-0.1.3е╓ещеєе┴)
-	* ║┘длдде╨е░е╒еге├епе╣(Version-0.1.3е╓ещеєе┴)
+	* KDE-2.2х╜вх╝ПуБоуВ╡уГауГНуВдуГлуВнуГгуГГуВ╖уГеуБлцЪлхоЪхп╛х┐Ь (Version-0.1.3уГЦуГйуГ│уГБ)
+	* ч┤░уБЛуБДуГРуВ░уГХуВгуГГуВпуВ╣(Version-0.1.3уГЦуГйуГ│уГБ)
 
 2001-11-22 Takruo Ashie <ashie@homa.ne.jp>
 
-	* src/fileutil.c: е╨е░е╒еге├епе╣
+	* src/fileutil.c: уГРуВ░уГХуВгуГГуВпуВ╣
 
 2001-11-21 Takruo Ashie <ashie@homa.ne.jp>
 
 	* gimv_image.c
-	* thumbnail_support.c: е╨е░е╒еге├епе╣
-	* dirview.c: е╖еєе▄еъе├епеъеєеп░╩▓╝д╬е╟егеьепе╚еъдЄ║я╜№д╟днд╩дд╠ф┬ъдЄ
-	╜д└╡бгесетеъеъб╝епдЄ╜д└╡бг
+	* thumbnail_support.c: уГРуВ░уГХуВгуГГуВпуВ╣
+	* dirview.c: уВ╖уГ│уГЬуГкуГГуВпуГкуГ│уВпф╗еф╕ЛуБоуГЗуВгуГмуВпуГИуГкуВТхЙКщЩдуБзуБНуБкуБДхХПщбМуВТ
+	ф┐оцнгуАВуГбуГвуГкуГкуГ╝уВпуВТф┐оцнгуАВ
 
 2001-11-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* енеуе├е╖ех╞╔д▀╣■д▀└▀─ъдм╚┐▒╟д╡дьд╩дде╨е░дЄ╜д└╡бг
-	* е╡ере═едеые╫еще░едеєд╦дшдые╡ере═едеы╩▌┬╕дЄ▓╛╝┬┴їбг
+	* уВнуГгуГГуВ╖уГешкнуБ┐ш╛╝уБ┐шинхоЪуБМхПНцШауБХуВМуБкуБДуГРуВ░уВТф┐оцнгуАВ
+	* уВ╡уГауГНуВдуГлуГЧуГйуВ░уВдуГ│уБлуВИуВЛуВ╡уГауГНуВдуГлф┐ЭхнШуВТф╗охоЯшгЕуАВ
 
 2001-11-18 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/plugin.c
 	* src/thumbnail_support.[ch]
 	* plugins/thumbnail/Makefile.am
-	* plugins/thumbnail/ee.c: ┐╖╡ме╒ебедеы
-	* plugins/thumbnail/gimv_thumb.c: ┐╖╡ме╒ебедеы
-	* plugins/thumbnail/gqview.c: ┐╖╡ме╒ебедеы
-	* plugins/thumbnail/konqueror-old.c: ┐╖╡ме╒ебедеы
-	* plugins/thumbnail/konqueror.c: ┐╖╡ме╒ебедеыбгTAMд╡дє─є╢бд╬е╤е├е┴дЄ┼м═╤
+	* plugins/thumbnail/ee.c: цЦ░шжПуГХуВбуВдуГл
+	* plugins/thumbnail/gimv_thumb.c: цЦ░шжПуГХуВбуВдуГл
+	* plugins/thumbnail/gqview.c: цЦ░шжПуГХуВбуВдуГл
+	* plugins/thumbnail/konqueror-old.c: цЦ░шжПуГХуВбуВдуГл
+	* plugins/thumbnail/konqueror.c: цЦ░шжПуГХуВбуВдуГлуАВTAMуБХуВУцПРф╛ЫуБоуГСуГГуГБуВТщБйчФи
 	* plugins/thumbnail/nautilus.c
-	* plugins/thumbnail/xvpics.c: ┐╖╡ме╒ебедеы
-	* е╡ере═едеые╫еще░едеєд╦дшдыеэб╝е╟егеєе░дЄ▓╛╝┬┴ї
+	* plugins/thumbnail/xvpics.c: цЦ░шжПуГХуВбуВдуГл
+	* уВ╡уГауГНуВдуГлуГЧуГйуВ░уВдуГ│уБлуВИуВЛуГнуГ╝уГЗуВгуГ│уВ░уВТф╗охоЯшгЕ
 
 2001-11-17 Teppei Tamra <tam-t@par.odn.ne.jp>
 
-	* src/md5.[ch]: ┐╖╡ме╒ебедеыбгKonquerorе╡ере═едеые╟егеьепе╚еъ╝ш╞└═╤бг
+	* src/md5.[ch]: цЦ░шжПуГХуВбуВдуГлуАВKonquerorуВ╡уГауГНуВдуГлуГЗуВгуГмуВпуГИуГкхПЦх╛ЧчФиуАВ
 
 2001-11-17 Takuro Ashie <ashie@homa.ne.jp>
 
 	* configure.in
-	* acconfig.h: ╜д└╡
+	* acconfig.h: ф┐оцнг
 	* config.sub
 	* libtool
 	* ltconfig
 	* ltmain.sh: libtoolize
-	* src/plugin.[ch]: ┐╖╡ме╒ебедеы
+	* src/plugin.[ch]: цЦ░шжПуГХуВбуВдуГл
 	* src/thumbnail_support.h
 	* plugins/Makefile.am
 	* plugins/thumbnail/Makefile.am
-	* plugins/thumbnail/nautilus.[ch]: е╫еще░едеє╞│╞■╜р╚ў
+	* plugins/thumbnail/nautilus.[ch]: уГЧуГйуВ░уВдуГ│х░ОхЕец║ЦхВЩ
 
 2001-11-16 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/prefs.[ch]
 	* src/prefs_win.c
-	* src/thumbview_detail.[ch]: е╟б╝е┐д╬╔╜╝и╜чдЄ╩╤╣╣д╟дндыдшджд╦д╖д┐бг
-	* src/image_info.c: е╨е░е╒еге├епе╣
+	* src/thumbview_detail.[ch]: уГЗуГ╝уВ┐уБошбичд║щаЖуВТхдЙцЫ┤уБзуБНуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* src/image_info.c: уГРуВ░уГХуВгуГГуВпуВ╣
 
 2001-11-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/prefs_win.c: └▀─ъежегеєе╔ежд╦е─еъб╝е╙ехб╝дЄ─╔▓├
+	* src/prefs_win.c: шинхоЪуВжуВгуГ│уГЙуВжуБлуГДуГкуГ╝уГУуГеуГ╝уВТш┐╜хКа
 
 2001-11-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbview_table.c: е╨е░е╒еге├епе╣
+	* src/thumbview_table.c: уГРуВ░уГХуВгуГГуВпуВ╣
 
 2001-11-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gtk_prop.[ch]: ┐╖╡ме╒ебедеы (XFceдшдъ╟╥╝┌)
+	* src/gtk_prop.[ch]: цЦ░шжПуГХуВбуВдуГл (XFceуВИуВКцЛЭхАЯ)
 	* src/dirview.c
-	* src/thumbnail_view.c: е╒ебедеые╫еэе╤е╞егежегеєе╔еждЄ─╔▓├
+	* src/thumbnail_view.c: уГХуВбуВдуГлуГЧуГнуГСуГЖуВгуВжуВгуГ│уГЙуВжуВТш┐╜хКа
 
 2001-11-13 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/dirview.c
 	* src/icon.c:
 	* src/pixmaps/Makefile.am
-	* src/pixmaps/folder-up.xpm: ┐╖╡ме╒ебедеы
-	* src/pixmaps/folder-go.xpm: ┐╖╡ме╒ебедеы
-	* src/pixmaps/folder-link.xpm: ┐╖╡ме╒ебедеы
-	* src/pixmaps/folder-link-open.xpm: ┐╖╡ме╒ебедеы
-	* еъеєеп═╤д╚ ".", ".." е╟егеьепе╚еъ═╤д╬еведе│еєдЄ║ю└о
+	* src/pixmaps/folder-up.xpm: цЦ░шжПуГХуВбуВдуГл
+	* src/pixmaps/folder-go.xpm: цЦ░шжПуГХуВбуВдуГл
+	* src/pixmaps/folder-link.xpm: цЦ░шжПуГХуВбуВдуГл
+	* src/pixmaps/folder-link-open.xpm: цЦ░шжПуГХуВбуВдуГл
+	* уГкуГ│уВпчФиуБи ".", ".." уГЗуВгуГмуВпуГИуГкчФиуБоуВвуВдуВ│уГ│уВТф╜ЬцИР
 
-2001-11-13 ┼╖└ч╠╝б╣ <t-nyan2@nifty.com>
+2001-11-13 хдйф╗ЩхиШуАЕ <t-nyan2@nifty.com>
 
 	* README.jp
-	* TIPS.jp: ╣╣┐╖
+	* TIPS.jp: цЫ┤цЦ░
 
 2001-11-12 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2600,9 +2600,9 @@
 	* src/thumbview_detail.[ch]
 	* src/thumbview_list.[ch]
 	* src/thumbview_tale.[ch]
-	* е╡ере═едеыдЄ═╫╡сд╖д╩дд╔╜╝иетб╝е╔д╟е┐е╓дЄ│лддд┐д╚днд╧бве╡ере═едеыдЄ
- 	  еэб╝е╔д╖д╩дддшджд╦д╖д┐(└▀─ъд╟└┌┬╪дидщдьдыдшджд╦д╣д┘дн)бг
-	*е┐е╓DnDд╬╜д└╡бг
+	* уВ╡уГауГНуВдуГлуВТшжБц▒ВуБЧуБкуБДшбичд║уГвуГ╝уГЙуБзуВ┐уГЦуВТщЦЛуБДуБЯуБиуБНуБпуАБуВ╡уГауГНуВдуГлуВТ
+ 	  уГнуГ╝уГЙуБЧуБкуБДуВИуБЖуБлуБЧуБЯ(шинхоЪуБзхИЗцЫ┐уБИуВЙуВМуВЛуВИуБЖуБлуБЩуБ╣уБН)уАВ
+	*уВ┐уГЦDnDуБоф┐оцнгуАВ
 
 2001-11-11 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2611,17 +2611,17 @@
 	* src/thumbnail_view.[ch]
 	* src/thumbview_detail.c
 	* src/thumbview_list.c
-	* src/thumbview_table.c: └┼┼кд╩е╡ере═едеы┤╪╧вд╬е╟б╝е┐дЄThumbnail╣╜┬д┬╬
-       длдщImageInfo╣╜┬д┬╬д╦░▄╞░бг
+	* src/thumbview_table.c: щЭЩчЪДуБкуВ╡уГауГНуВдуГлщЦвщАгуБоуГЗуГ╝уВ┐уВТThumbnailцзЛщАаф╜У
+       уБЛуВЙImageInfoцзЛщАаф╜УуБлчз╗хЛХуАВ
 
 2001-11-11 Takuro Ashie <ashie@homa.ne.jp>
 
         * src/auto-completion.c
-        * src/thumbnail_window.c: еэе▒б╝е╖ечеєеиеєе╚еъд╬е╨е░дЄ┤Ўд─дл╜д└╡
+        * src/thumbnail_window.c: уГнуВ▒уГ╝уВ╖уГзуГ│уВиуГ│уГИуГкуБоуГРуВ░уВТх╣╛уБдуБЛф┐оцнг
         * src/dnd.c
         * src/gfileutil.c
-        * src/thumbnail_view.[ch]: "Copy (Move) to..." дЄе▌е├е╫еве├е╫
-        есе╦ехб╝д╦─╔▓├бге▐еже╣е▄е┐еєдЄ▓бд╖д┐╗■д╦е┐е╓DnDдм╠╡╕·д╦д╩дыдшджд╦д╖д┐бг
+        * src/thumbnail_view.[ch]: "Copy (Move) to..." уВТуГЭуГГуГЧуВвуГГуГЧ
+        уГбуГЛуГеуГ╝уБлш┐╜хКауАВуГЮуВжуВ╣уГЬуВ┐уГ│уВТцК╝уБЧуБЯцЩВуБлуВ┐уГЦDnDуБМчДбхК╣уБлуБкуВЛуВИуБЖуБлуБЧуБЯуАВ
         
 2001-11-07 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2629,13 +2629,13 @@
 
 2001-11-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* thumview_detail.c: е╨е├е╒ебекб╝е╨б╝е╒еэб╝дЄ╜д└╡бг
+	* thumview_detail.c: уГРуГГуГХуВбуВкуГ╝уГРуГ╝уГХуГнуГ╝уВТф┐оцнгуАВ
 
 2001-11-06 Takuro Ashie <ashie@homa.ne.jp>
 
 	* thumbnail_view.c
-	* thumbnai_window.c: ┤─╢нд╦дшд├д╞д╧е╡ере═едеые╙ехб╝д╬е╣епеэб╝еые╨б╝дЄ
-	е╔еще├е░д╟днд╩дд╠ф┬ъдЄ╜д└╡бг
+	* thumbnai_window.c: чТ░хвГуБлуВИуБгуБжуБпуВ╡уГауГНуВдуГлуГУуГеуГ╝уБоуВ╣уВпуГнуГ╝уГлуГРуГ╝уВТ
+	уГЙуГйуГГуВ░уБзуБНуБкуБДхХПщбМуВТф┐оцнгуАВ
 
 2001-11-05 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2643,78 +2643,78 @@
 
 2001-11-04 Takuro Ashie <ashie@homa.ne.jp>
 
-	* README.jp: б╓║г╕хд╬╝чд╩═╜─ъб╫дЄ╣╣┐╖бгChangeLog─╔▓├бг░ь╔Ї╜д└╡
-	* TIPS.jp: ░ь╔Ї╜д└╡/е│есеєе╚╔╒▓├
+	* README.jp: уАМф╗Кх╛МуБоф╕╗уБкф║ИхоЪуАНуВТцЫ┤цЦ░уАВChangeLogш┐╜хКауАВф╕АщГиф┐оцнг
+	* TIPS.jp: ф╕АщГиф┐оцнг/уВ│уГбуГ│уГИф╗ШхКа
 
-2001-11-04 ┼╖└ч╠╝б╣ <t-nyan2@nifty.com>
+2001-11-04 хдйф╗ЩхиШуАЕ <t-nyan2@nifty.com>
 
 	* README.jp
-	* TIPS.jp: ╣╣┐╖
+	* TIPS.jp: цЫ┤цЦ░
 
 2001-11-04 Takuro Ashie <ashie@homa.ne.jp>
 
-        * "╛▄║┘"етб╝е╔д╟DnDдме╨е░ды╠ф┬ъдЄ╜д└╡
-	* д╜д╬┬╛е╨е░е╒еге├епе╣
+        * "шй│ч┤░"уГвуГ╝уГЙуБзDnDуБМуГРуВ░уВЛхХПщбМуВТф┐оцнг
+	* уБЭуБоф╗ЦуГРуВ░уГХуВгуГГуВпуВ╣
 
 2001-11-03 Takuro Ashie <ashie@homa.ne.jp>
 
-        * е╨е░е╒еге├епе╣
+        * уГРуВ░уГХуВгуГГуВпуВ╣
 
 2001-11-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* auto-completion.[ch]: е╔е├е╚е╒ебедеыд╬░╖дддЄ╜д└╡
+	* auto-completion.[ch]: уГЙуГГуГИуГХуВбуВдуГлуБоцЙ▒уБДуВТф┐оцнг
 	* dnd.h
-	* thumbnail_window.c: DnDд╦дшдые┐е╓д╬░▄╞░
-	* д╜д╬┬╛║┘длдд─┤└░/е╨е░е╒еге├епе╣
+	* thumbnail_window.c: DnDуБлуВИуВЛуВ┐уГЦуБочз╗хЛХ
+	* уБЭуБоф╗Цч┤░уБЛуБДшк┐цХ┤/уГРуВ░уГХуВгуГГуВпуВ╣
 
 2001-11-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* auto-completion.[ch]: gThumbдшдъ╟╥╝┌бв░ь╔Ї╜д└╡
-	* thumbnail_window.c: еэе▒б╝е╖ечеєеиеєе╚еъдЄ▓╛└▀├╓ (╝л╞░╩ф┤░д╬е╞е╣е╚)
-	* д╜д╬┬╛║┘длдд─┤└░/е╨е░е╒еге├епе╣
+	* auto-completion.[ch]: gThumbуВИуВКцЛЭхАЯуАБф╕АщГиф┐оцнг
+	* thumbnail_window.c: уГнуВ▒уГ╝уВ╖уГзуГ│уВиуГ│уГИуГкуВТф╗ошинч╜о (шЗкхЛХшгЬхоМуБоуГЖуВ╣уГИ)
+	* уБЭуБоф╗Цч┤░уБЛуБДшк┐цХ┤/уГРуВ░уГХуВгуГГуВпуВ╣
 
-2001-10-31 ┼╖└ч╠╝б╣ <t-nyan2@nifty.com>
+2001-10-31 хдйф╗ЩхиШуАЕ <t-nyan2@nifty.com>
 
 	* README.jp
-	* TIPS.jp: ╣╣┐╖
+	* TIPS.jp: цЫ┤цЦ░
 
 2001-10-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/text_viewer.[ch]: ┐╖╡ме╒ебедеы
-	* src/help.[ch]: е╪еые╫есе╦ехб╝длдще╞ене╣е╚е╔енехесеєе╚дЄ│лд▒дыдшджд╦
-	  д╖д┐бг(┤─╢н╩╤┐ЇдЄ╕лд╞╕└╕ь╦шд╦└┌┬╪ди)
-	* po/ja.po: ╣╣┐╖
-	* д╜д╬┬╛║┘длдд╜д└╡
+	* src/text_viewer.[ch]: цЦ░шжПуГХуВбуВдуГл
+	* src/help.[ch]: уГШуГлуГЧуГбуГЛуГеуГ╝уБЛуВЙуГЖуВнуВ╣уГИуГЙуВнуГеуГбуГ│уГИуВТщЦЛуБСуВЛуВИуБЖуБл
+	  уБЧуБЯуАВ(чТ░хвГхдЙцХ░уВТшжЛуБжшиАшкЮцпОуБлхИЗцЫ┐уБИ)
+	* po/ja.po: цЫ┤цЦ░
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнг
 
 2001-10-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* prefs_win.c: │░╔Їе│е▐еєе╔еъе╣е╚╩╘╜╕UIд╬╜д└╡
-	* thumbview_table.c: ┴к┬Є╗■д╬SHIFTе▐е╣еп
-	* gimageview.c: ~/.gimv/gtkrcдЄ╞╔д▀╣■дрдшджд╦д╖д┐бг
+	* prefs_win.c: хдЦщГиуВ│уГЮуГ│уГЙуГкуВ╣уГИч╖ищЫЖUIуБоф┐оцнг
+	* thumbview_table.c: щБ╕цКЮцЩВуБоSHIFTуГЮуВ╣уВп
+	* gimageview.c: ~/.gimv/gtkrcуВТшкнуБ┐ш╛╝уВАуВИуБЖуБлуБЧуБЯуАВ
 
 2001-10-29 Takuro Ashie <ashie@homa.ne.jp>
 
-	* prefs_win.c: │░╔Їе│е▐еєе╔еъе╣е╚╩╘╜╕UIд╬╜д└╡
+	* prefs_win.c: хдЦщГиуВ│уГЮуГ│уГЙуГкуВ╣уГИч╖ищЫЖUIуБоф┐оцнг
 
 2001-10-28 Takuro Ashie <ashie@homa.ne.jp>
 
 	* thumbnail_window.[ch]:
-	еьедевеже╚└┌┬╪ди╗■д╦бв┴┤д╞д╬┴р║юдЄ├едждшджд╦д╖д┐бг
-	* prefs_win.c: │░╔Їе│е▐еєе╔еъе╣е╚╩╘╜╕═╤GUIдЄ─╔▓├бг
-	* д╜д╬┬╛║┘длдд╜д└╡
+	уГмуВдуВвуВжуГИхИЗцЫ┐уБИцЩВуБлуАБхЕиуБжуБоцУНф╜ЬуВТхекуБЖуВИуБЖуБлуБЧуБЯуАВ
+	* prefs_win.c: хдЦщГиуВ│уГЮуГ│уГЙуГкуВ╣уГИч╖ищЫЖчФиGUIуВТш┐╜хКауАВ
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнг
 
 2001-10-27 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╜б╝е╣е╒ебедеы░═┬╕┤╪╖╕д╬╕л─╛д╖
-	* е╟егеьепе╚еъд╬е│е╘б╝д╦▓╛┬╨▒■
+	* уВ╜уГ╝уВ╣уГХуВбуВдуГлф╛ЭхнШщЦвф┐ВуБошжЛчЫ┤уБЧ
+	* уГЗуВгуГмуВпуГИуГкуБоуВ│уГФуГ╝уБлф╗охп╛х┐Ь
 
 2001-10-26 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ▓ш┴№╛Ё╩є┤╔═¤д╬░ь╕╡▓╜
+	* чФ╗хГПцГЕха▒чобчРЖуБоф╕АхЕГхМЦ
 
 2001-10-25 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ║┘длдд╜д└╡
+	* ч┤░уБЛуБДф┐оцнг
 
 2001-10-24 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -2722,293 +2722,293 @@
 	* src/dirview.[ch]
 	* src/prefs.[ch]
 	* src/prefs_win.c
-	* src/thumbnail_window.[ch]: еьедевеже╚▓єдъд╬е╨е░дЄ╜д└╡бг
-	│╞е╡ере═едеыежегеєе╔еж╦шд╦е┐е╓д╬░╠├╓дЄ╩╤╣╣д╟дндыдшджд╦д╖д┐бг
-	еседеєесе╦ехб╝д╦б╓е┐е╓б╫еле╞е┤еъдЄ─╔▓├бг
-	е╟егеьепе╚еъе╙ехб╝е─б╝еые╨б╝д╬╔╜╝и/╚є╔╜╝идЄ╞░┼кд╦└┌┬╪дидщдьдыдшджд╦д╖д┐бг
+	* src/thumbnail_window.[ch]: уГмуВдуВвуВжуГИхЫЮуВКуБоуГРуВ░уВТф┐оцнгуАВ
+	хРДуВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжцпОуБлуВ┐уГЦуБоф╜Нч╜оуВТхдЙцЫ┤уБзуБНуВЛуВИуБЖуБлуБЧуБЯуАВ
+	уГбуВдуГ│уГбуГЛуГеуГ╝уБлуАМуВ┐уГЦуАНуВлуГЖуВ┤уГкуВТш┐╜хКауАВ
+	уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уГДуГ╝уГлуГРуГ╝уБошбичд║/щЭЮшбичд║уВТхЛХчЪДуБлхИЗцЫ┐уБИуВЙуВМуВЛуВИуБЖуБлуБЧуБЯуАВ
 
 2001-10-23 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/gedo-paned.[ch]
 	* src/gedo-hpaned.[ch]
-	* src/gedo-vpaned.[ch]: ┐╖╡ме╒ебедеы (gThumbдшдъ╟╥╝┌)
+	* src/gedo-vpaned.[ch]: цЦ░шжПуГХуВбуВдуГл (gThumbуВИуВКцЛЭхАЯ)
 	* src/prefs.[ch]
-	* src/thumbnail_window.[ch]: е┌едеєежеге╕езе├е╚дЄ╩╤╣╣бг
-	еьедевеже╚дЄ╩╤╣╣д╟дндыдшджд╦д╖д┐бг
+	* src/thumbnail_window.[ch]: уГЪуВдуГ│уВжуВгуВ╕уВзуГГуГИуВТхдЙцЫ┤уАВ
+	уГмуВдуВвуВжуГИуВТхдЙцЫ┤уБзуБНуВЛуВИуБЖуБлуБЧуБЯуАВ
 
 2001-10-21 Takuro Ashie <ashie@homa.ne.jp>
 
 	* version-0.1.2-pre1
-	* е╟е╨е├е░═╤д╬еъеъб╝е╣
+	* уГЗуГРуГГуВ░чФиуБоуГкуГкуГ╝уВ╣
 
 2001-10-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* Electric Fenceд╟╚п╕лд╖д┐е╨е░дЄ╜д└╡бг
-	* │░╔Їе│е▐еєе╔д╟▓ш┴№дЄ│лд▒дыдшджд╦д╖д┐бг
-	* е╡ере═едеые╙ехб╝д╦дкддд╞бв├це▄е┐еєепеъе├епд╟▓ш┴№дЄ│лд▒дыдшджд╦д╖д┐бг
-	* е╫еье╙ехб╝║╕епеъе├епд╟╜ч┴ўдъбвShift + ║╕епеъе├епд╟╡╒┴ўдъбг
-	* ja.po╜д└╡
+	* Electric FenceуБзчЩ║шжЛуБЧуБЯуГРуВ░уВТф┐оцнгуАВ
+	* хдЦщГиуВ│уГЮуГ│уГЙуБзчФ╗хГПуВТщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБлуБКуБДуБжуАБф╕нуГЬуВ┐уГ│уВпуГкуГГуВпуБзчФ╗хГПуВТщЦЛуБСуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* уГЧуГмуГУуГеуГ╝х╖жуВпуГкуГГуВпуБзщаЖщАБуВКуАБShift + х╖жуВпуГкуГГуВпуБзщАЖщАБуВКуАВ
+	* ja.poф┐оцнг
 
 2001-10-19 Takuro Ashie <ashie@homa.ne.jp>
 
 	* configure.in
-	* src/icon.[ch]: ┐╖╡ме╒ебедеы
+	* src/icon.[ch]: цЦ░шжПуГХуВбуВдуГл
 	* src/image_window.c
 	* src/thumbnail_window.c
 	* src/dirview.c
 	* src/gtkutils.c
 	* src/gimageview.c
-	* src/pixmaps/Makefile.am: еведе│еє┤╔═¤д╬╕л─╛д╖
-	* src/thumbnail_view.c: е╨е░╜д└╡
+	* src/pixmaps/Makefile.am: уВвуВдуВ│уГ│чобчРЖуБошжЛчЫ┤уБЧ
+	* src/thumbnail_view.c: уГРуВ░ф┐оцнг
 
 2001-10-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/icon_widget.c: ║┘длдд╜д└╡бг
-	* src/thumbview_list.c: еъе╣е╚(е╡ере═едеы)е╙ехб╝дЄ─╔▓├бг
+	* src/icon_widget.c: ч┤░уБЛуБДф┐оцнгуАВ
+	* src/thumbview_list.c: уГкуВ╣уГИ(уВ╡уГауГНуВдуГл)уГУуГеуГ╝уВТш┐╜хКауАВ
 
 2001-10-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/icon_widget.[ch]: ╜д└╡бв╡б╟╜─╔▓├бг
-	* src/image_view.c: е▐е╣епдЄ╔┴▓шд╖д╞ддд╩длд├д┐╠ф┬ъдЄ╜д└╡бг
-	* src/thumbview_list.c: екб╝е╚е╣епеэб╝еы╡б╟╜─╔▓├бг
-	* src/thumbview_table.c: ║┘длдд╜д└╡бг
+	* src/icon_widget.[ch]: ф┐оцнгуАБцйЯшГ╜ш┐╜хКауАВ
+	* src/image_view.c: уГЮуВ╣уВпуВТцППчФ╗уБЧуБжуБДуБкуБЛуБгуБЯхХПщбМуВТф┐оцнгуАВ
+	* src/thumbview_list.c: уВкуГ╝уГИуВ╣уВпуГнуГ╝уГлцйЯшГ╜ш┐╜хКауАВ
+	* src/thumbview_table.c: ч┤░уБЛуБДф┐оцнгуАВ
 
 2001-10-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/icon_widget.[ch]: ╜д└╡бг
-	* src/thumbview_list.[ch]: еъе╣е╚е╙ехб╝дЄ╜д└╡/╡б╟╜─╔▓├бг
+	* src/icon_widget.[ch]: ф┐оцнгуАВ
+	* src/thumbview_list.[ch]: уГкуВ╣уГИуГУуГеуГ╝уВТф┐оцнг/цйЯшГ╜ш┐╜хКауАВ
 	* src/thumbnail_view.[ch]
-	* src/thumbview_table.[ch]: е│ещер┐Ї╖╫╗╗дЄ╜д└╡бг
+	* src/thumbview_table.[ch]: уВ│уГйуГацХ░шиИчоЧуВТф┐оцнгуАВ
 	* src/thhumbview_detail.[ch]
-	* src/tumbnail_window.c: е╫еье╙ехб╝д╦╣чдяд╗д╞е╡ере═едеые╙ехб╝д╬
-	е╗еьепе╖ечеє└┌┬╪ди/е╣епеэб╝еыдЄ╣╘дждшджд╦д╖д┐бг
-	* src/image_view.c: ╔┴▓ш═╤е╨е├е╒ебд╬┤╔═¤дЄ╜д└╡бг
+	* src/tumbnail_window.c: уГЧуГмуГУуГеуГ╝уБлхРИуВПуБЫуБжуВ╡уГауГНуВдуГлуГУуГеуГ╝уБо
+	уВ╗уГмуВпуВ╖уГзуГ│хИЗцЫ┐уБИ/уВ╣уВпуГнуГ╝уГлуВТшбМуБЖуВИуБЖуБлуБЧуБЯуАВ
+	* src/image_view.c: цППчФ╗чФиуГРуГГуГХуВбуБочобчРЖуВТф┐оцнгуАВ
 
 2001-10-12 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/thumbnail_view.c
-	* src/icon_widget.[ch]: ┐╖╡ме╒ебедеыбгgtk-seeд╬siconitem.[ch]дшдъбг
-	* src/thumbview_list.[ch]: ┐╖╡ме╒ебедеыбгеъе╣е╚е╙ехб╝дЄ─╔▓├бг
+	* src/icon_widget.[ch]: цЦ░шжПуГХуВбуВдуГлуАВgtk-seeуБоsiconitem.[ch]уВИуВКуАВ
+	* src/thumbview_list.[ch]: цЦ░шжПуГХуВбуВдуГлуАВуГкуВ╣уГИуГУуГеуГ╝уВТш┐╜хКауАВ
 
 2001-10-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/gimageview.c: main()дЄ└░═¤бг
+	* src/gimageview.c: main()уВТцХ┤чРЖуАВ
 
 2001-10-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╨б╝е╕ечеє 0.1.1
+	* уГРуГ╝уВ╕уГзуГ│ 0.1.1
 
 2001-10-05 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbview_table.c: е╒ейб╝еле╣д╬┼Ўд┐д├д╞дддые▄е┐еєд╦╣чдяд╗д╞е╣еп
-	еэб╝еыд╣дыдшджд╦д╖д┐бг═╛╩мд╩║╞╔┴▓шдЄ═▐└йбг
-	* src/thumbview_detail.c: │╞етб╝е╔д╟е╣епеэб╝еые╨б╝д╬░╠├╓дЄ╡н▓▒д╣дыдшдж
-	д╦д╖д┐бг
+	* src/thumbview_table.c: уГХуВйуГ╝уВлуВ╣уБох╜УуБЯуБгуБжуБДуВЛуГЬуВ┐уГ│уБлхРИуВПуБЫуБжуВ╣уВп
+	уГнуГ╝уГлуБЩуВЛуВИуБЖуБлуБЧуБЯуАВф╜ЩхИЖуБкхЖНцППчФ╗уВТцКСхИ╢уАВ
+	* src/thumbview_detail.c: хРДуГвуГ╝уГЙуБзуВ╣уВпуГнуГ╝уГлуГРуГ╝уБоф╜Нч╜оуВТшиШцЖ╢уБЩуВЛуВИуБЖ
+	уБлуБЧуБЯуАВ
 
 2001-10-04 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/dnd.c
 	* src/gtkutils.[ch]
-	* src/menu.c: е│б╝е╔└░═¤
+	* src/menu.c: уВ│уГ╝уГЙцХ┤чРЖ
 
-2001-10-04 ┼╖└ч╠╝б╣ <t-nyan2@nifty.com>
+2001-10-04 хдйф╗ЩхиШуАЕ <t-nyan2@nifty.com>
 
-	* README.jp: version-0.1.1═╤д╬README.jpдЄе▐б╝е╕
-	* TIPS.jp: ┐╖╡ме╒ебедеыбгREADMEд╬TipsдЄ╩╠е╒ебедеыд╦╩м╬е
+	* README.jp: version-0.1.1чФиуБоREADME.jpуВТуГЮуГ╝уВ╕
+	* TIPS.jp: цЦ░шжПуГХуВбуВдуГлуАВREADMEуБоTipsуВТхИеуГХуВбуВдуГлуБлхИЖщЫв
 
 2001-10-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* README.jp: ChangeLogдЄ╜д└╡
-	* src/dirview.c: ║┘длдд╜д└╡бг
+	* README.jp: ChangeLogуВТф┐оцнг
+	* src/dirview.c: ч┤░уБЛуБДф┐оцнгуАВ
 
 2001-10-02 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/argparse.[ch]
-	* src/gimageview.c: ░·┐Ї▓Є└╧╔ЇдЄ╜д└╡бг
-	* src/dirview.c: "." дф ".." е╟егеьепе╚еъд╟е─еъб╝╣╣┐╖дм╜╨═шд╞д╖д▐дж
-	╠ф┬ъдЄ╜д└╡бге╡е╓е╟егеьепе╚еъд╬╠╡дде╟егеьепе╚еъд╟е╟егеьепе╚еъдЄ║ю└о
-	д╖д╞дтбве─еъб╝дЄ┼╕│лд╟днд╩дд╠ф┬ъдЄ╜д└╡бге│б╝е╔└░═¤бг
+	* src/gimageview.c: х╝ХцХ░шзгцЮРщГиуВТф┐оцнгуАВ
+	* src/dirview.c: "." уВД ".." уГЗуВгуГмуВпуГИуГкуБзуГДуГкуГ╝цЫ┤цЦ░уБМхЗ║цЭеуБжуБЧуБ╛уБЖ
+	хХПщбМуВТф┐оцнгуАВуВ╡уГЦуГЗуВгуГмуВпуГИуГкуБочДбуБДуГЗуВгуГмуВпуГИуГкуБзуГЗуВгуГмуВпуГИуГкуВТф╜ЬцИР
+	уБЧуБжуВВуАБуГДуГкуГ╝уВТх▒ХщЦЛуБзуБНуБкуБДхХПщбМуВТф┐оцнгуАВуВ│уГ╝уГЙцХ┤чРЖуАВ
 
-2001-09-27  ┼╖└ч╠╝б╣ <t-nyan2@nifty.com>
+2001-09-27  хдйф╗ЩхиШуАЕ <t-nyan2@nifty.com>
 
-	* README.jp: ┼╖└ч╠╝б╣д╡дє─є╢бд╬ README.jp дЄе▐б╝е╕
+	* README.jp: хдйф╗ЩхиШуАЕуБХуВУцПРф╛ЫуБо README.jp уВТуГЮуГ╝уВ╕
 
 2001-09-26  Takuro Ashie <ashie@homa.ne.jp>
 
-	* ChangeLog.jp: ┐╖╡ме╒ебедеы
+	* ChangeLog.jp: цЦ░шжПуГХуВбуВдуГл
 
 2001-09-25  Takuro Ashie <ashie@homa.ne.jp>
 
-	* INSTALL.jp: ┐╖╡ме╒ебедеы
+	* INSTALL.jp: цЦ░шжПуГХуВбуВдуГл
 
 2001-09-24  Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/image_view.c: епеще├е╖ехе╨е░дЄ╜д└╡бг
+	* src/image_view.c: уВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнгуАВ
 	* src/pcx.[ch]
-	* src/xbm.[ch]: ┐╖╡ме╒ебедеыбгPCX╡┌д╙XBMеэб╝е└дЄ─╔▓├бг
+	* src/xbm.[ch]: цЦ░шжПуГХуВбуВдуГлуАВPCXхПКуБ│XBMуГнуГ╝уГАуВТш┐╜хКауАВ
 
 2001-09-23 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbview_detail.c: е╨е░╜д└╡бг
+	* src/thumbview_detail.c: уГРуВ░ф┐оцнгуАВ
 
 2001-09-22 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╟е╔еще├е░╜к╬╗╗■д╦еъе╣е╚дЄ╣╣┐╖д╣дыдшджд╦д╖д┐бг
-	* е╟егеьепе╚еъе╙ехб╝д╟е╔еще├е░├цд╦е╣епеэб╝еыд╟дндыдшджд╦д╖д┐бг
-	* е╟егеьепе╚еъе╙ехб╝д╟е╔еще├е░├цд╦е─еъб╝дЄ╝л╞░┼╕│лд╟дндыдшджд╦д╖д┐бг
-	* ┼╕│лд╡дьд╞ддд╩дде╬б╝е╔д╟╣╣┐╖дЄдлд▒дыд╚е╒еъб╝е║д╣дые╨е░дЄ╜д└╡
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБзуГЙуГйуГГуВ░ч╡Вф║ЖцЩВуБлуГкуВ╣уГИуВТцЫ┤цЦ░уБЩуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБзуГЙуГйуГГуВ░ф╕нуБлуВ╣уВпуГнуГ╝уГлуБзуБНуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБзуГЙуГйуГГуВ░ф╕нуБлуГДуГкуГ╝уВТшЗкхЛХх▒ХщЦЛуБзуБНуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* х▒ХщЦЛуБХуВМуБжуБДуБкуБДуГОуГ╝уГЙуБзцЫ┤цЦ░уВТуБЛуБСуВЛуБиуГХуГкуГ╝уВ║уБЩуВЛуГРуВ░уВТф┐оцнг
 
 2001-09-21 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъе╙ехб╝д╬еъе╣е╚╣╣┐╖╡б╣╜дЄ╩╤╣╣бг
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГкуВ╣уГИцЫ┤цЦ░цйЯцзЛуВТхдЙцЫ┤уАВ
 
 2001-09-20 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеы┴р║юд╧бв║╞═е└шд╡дьдыенеуе├е╖ехд╦┬╨д╖д╞дт╣╘дждшджд╦д╖д┐бг
-	* д╜д╬┬╛е╨е░╜д└╡бг
+	* уГХуВбуВдуГлцУНф╜ЬуБпуАБхЖНхДкхЕИуБХуВМуВЛуВнуГгуГГуВ╖уГеуБлхп╛уБЧуБжуВВшбМуБЖуВИуБЖуБлуБЧуБЯуАВ
+	* уБЭуБоф╗ЦуГРуВ░ф┐оцнгуАВ
 
 2001-09-19 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е│е▐еєе╔ещедеєдлдщд╬┴ъ┬╨е╤е╣╗╪─ъд╟╔╘╢ё╣чдмдвд├д┐╠ф┬ъдЄ╜д└╡
-	* DnD ╗■д╬е│еєе╞ене╣е╚есе╦ехб╝д╦ б╓┐╖╡ме┐е╓д╟│лдпб╫ дЄ─╔▓├
-	* е╟егеьепе╚еъе╙ехб╝длдщд╬е╔еще├е░д╦┬╨▒■
-	* е╟е╒ейеые╚д╬е╔еще├е░еведе│еєдЄ╩╤╣╣бг
-	* е╔еще├е░еведе╞ердм 1 е╒ебедеыд╬д▀д╬╛ь╣чд╧бве╔еще├е░еведе│еєд╦д╜д╬▓ш┴№
-	д╬еведе│еєдЄ═°═╤д╣дыдшджд╦д╖д┐бг
+	* уВ│уГЮуГ│уГЙуГйуВдуГ│уБЛуВЙуБочЫ╕хп╛уГСуВ╣цМЗхоЪуБзф╕НхЕ╖хРИуБМуБВуБгуБЯхХПщбМуВТф┐оцнг
+	* DnD цЩВуБоуВ│уГ│уГЖуВнуВ╣уГИуГбуГЛуГеуГ╝уБл уАМцЦ░шжПуВ┐уГЦуБзщЦЛуБПуАН уВТш┐╜хКа
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБЛуВЙуБоуГЙуГйуГГуВ░уБлхп╛х┐Ь
+	* уГЗуГХуВйуГлуГИуБоуГЙуГйуГГуВ░уВвуВдуВ│уГ│уВТхдЙцЫ┤уАВ
+	* уГЙуГйуГГуВ░уВвуВдуГЖуГауБМ 1 уГХуВбуВдуГлуБоуБ┐уБоха┤хРИуБпуАБуГЙуГйуГГуВ░уВвуВдуВ│уГ│уБлуБЭуБочФ╗хГП
+	уБоуВвуВдуВ│уГ│уВТхИйчФиуБЩуВЛуВИуБЖуБлуБЧуБЯуАВ
 
 2001-09-18 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╟егеьепе╚еъ║я╜№┤╪╧вд╬е╨е░дЄ╜д└╡бг
-	* е╣е╞б╝е┐е╣е╨б╝д╦╣ч╖╫е╒ебедеые╡еде║дЄ╔╜╝ибг
-	* д╜д╬┬╛║┘длдд╜д└╡бг
+	* уГЗуВгуГмуВпуГИуГкхЙКщЩдщЦвщАгуБоуГРуВ░уВТф┐оцнгуАВ
+	* уВ╣уГЖуГ╝уВ┐уВ╣уГРуГ╝уБлхРИшиИуГХуВбуВдуГлуВ╡уВдуВ║уВТшбичд║уАВ
+	* уБЭуБоф╗Цч┤░уБЛуБДф┐оцнгуАВ
 
 2001-09-17 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ┤Ё╦▄┼кд╩е╒ебедеы┴р║юбг
+	* хЯ║цЬмчЪДуБкуГХуВбуВдуГлцУНф╜ЬуАВ
 
 2001-09-15 Takuro Ashie <ashie@homa.ne.jp>
 
-	* │╚─е╗╥дЄ╠╡╗ыд╣дыеке╫е╖ечеєдЄ═н╕·д╦д╖д┐╛ї┬╓д╟еъе╒еье├е╖ехд╣дыд╚бв
-	е╟егеьепе╚еъдм╔╜╝ид╡дьд╞д╖д▐дж╠ф┬ъдЄ╜д└╡бг
-	* │░╔Їе╫еэе╗е╣д╚д╬ DnD дЄ═н╕·/╠╡╕·д╦д╣ды└▀─ъдЄ─╔▓├бг
-	* едесб╝е╕е╙ехб╝д╦е╔еэе├е╫д╖д┐╛ь╣чд╧бв░ь╦ч╠▄д╧д╜д╬ежегеєе╔ежд╦│лдп
-	(▓ш┴№дЄ├╓дн┤╣диды)дшджд╦д╖д┐бг
-	* е╡ере═едеые╙ехб╝д╬▒жепеъе├епесе╦ехб╝д╦ "е╒ебедеы║я╜№" дЄ─╔▓├бг
+	* цЛбх╝╡хнРуВТчДбшжЦуБЩуВЛуВкуГЧуВ╖уГзуГ│уВТцЬЙхК╣уБлуБЧуБЯчК╢цЕЛуБзуГкуГХуГмуГГуВ╖уГеуБЩуВЛуБиуАБ
+	уГЗуВгуГмуВпуГИуГкуБМшбичд║уБХуВМуБжуБЧуБ╛уБЖхХПщбМуВТф┐оцнгуАВ
+	* хдЦщГиуГЧуГнуВ╗уВ╣уБиуБо DnD уВТцЬЙхК╣/чДбхК╣уБлуБЩуВЛшинхоЪуВТш┐╜хКауАВ
+	* уВдуГбуГ╝уВ╕уГУуГеуГ╝уБлуГЙуГнуГГуГЧуБЧуБЯха┤хРИуБпуАБф╕АцЮЪчЫоуБпуБЭуБоуВжуВгуГ│уГЙуВжуБлщЦЛуБП
+	(чФ╗хГПуВТч╜оуБНцПЫуБИуВЛ)уВИуБЖуБлуБЧуБЯуАВ
+	* уВ╡уГауГНуВдуГлуГУуГеуГ╝уБохП│уВпуГкуГГуВпуГбуГЛуГеуГ╝уБл "уГХуВбуВдуГлхЙКщЩд" уВТш┐╜хКауАВ
 
 
 2001-09-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* DnD╕хд╬е╒ебедеы┴р║ю╗■д╦е╫еэе░еье╣е╨б╝дЄ╔╜╝и
-	* е╟егеьепе╚еъе╙ехб╝длдще└е╓еыепеъе├еп/├цепеъе├епд╟е╡ере═едеыдЄ
-	│лдп╗■д╦бв╩╠д╬ежегеєе╔еждм┴к┬Єд╡дьды╠ф┬ъдЄ╜д└╡
-	* ▓ш┴№е╒ебедеыдм╠╡дде╟егеьепе╚еъдЄ╗╪─ъд╖д┐╛ь╣чд╟дте┐е╓дЄ│лд▒дыдшджд╦
-	д╣дыеке╫е╖ечеєдЄ─╔▓├
+	* DnDх╛МуБоуГХуВбуВдуГлцУНф╜ЬцЩВуБлуГЧуГнуВ░уГмуВ╣уГРуГ╝уВТшбичд║
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБЛуВЙуГАуГЦуГлуВпуГкуГГуВп/ф╕нуВпуГкуГГуВпуБзуВ╡уГауГНуВдуГлуВТ
+	щЦЛуБПцЩВуБлуАБхИеуБоуВжуВгуГ│уГЙуВжуБМщБ╕цКЮуБХуВМуВЛхХПщбМуВТф┐оцнг
+	* чФ╗хГПуГХуВбуВдуГлуБМчДбуБДуГЗуВгуГмуВпуГИуГкуВТцМЗхоЪуБЧуБЯха┤хРИуБзуВВуВ┐уГЦуВТщЦЛуБСуВЛуВИуБЖуБл
+	уБЩуВЛуВкуГЧуВ╖уГзуГ│уВТш┐╜хКа
 
 2001-09-13 Takuro Ashie <ashie@homa.ne.jp>
 
-	* ░█д╩дые╒ебедеые╖е╣е╞ерд╪д╬е╒ебедеы░▄╞░д╦┬╨▒■
-	* е╒ебедеы┴р║ю╗■д╬еиещб╝╜ш═¤д╬╜д└╡/─╔▓├
-	* б╓┴┤д╞┴к┬Єб╫, б╓┴┤д╞┴к┬Є▓Є╜№б╫, б╓еъе╣е╚╣╣┐╖б╫дЄенб╝└▀─ъд╦─╔▓├
-	* е└едевеэе░д╧епеэб╝е║е▄е┐еєд╟╩─д╕дщдьд╩дддшджд╦д╖д┐
-	* б╓е│еьепе╖ечеєетб╝е╔б╫е┌б╝е╕д╪д╬е╔еэе├е╫
-	* е╡ере═едеыежегеєе╔ежд╬е╣е╞б╝е┐е╣е╨б╝д╦ е┌б╝е╕╚╓╣ц/е┌б╝е╕┐Ї дЄ╔╜╝и
+	* чХ░уБкуВЛуГХуВбуВдуГлуВ╖уВ╣уГЖуГауБ╕уБоуГХуВбуВдуГлчз╗хЛХуБлхп╛х┐Ь
+	* уГХуВбуВдуГлцУНф╜ЬцЩВуБоуВиуГйуГ╝хЗжчРЖуБоф┐оцнг/ш┐╜хКа
+	* уАМхЕиуБжщБ╕цКЮуАН, уАМхЕиуБжщБ╕цКЮшзгщЩдуАН, уАМуГкуВ╣уГИцЫ┤цЦ░уАНуВТуВнуГ╝шинхоЪуБлш┐╜хКа
+	* уГАуВдуВвуГнуВ░уБпуВпуГнуГ╝уВ║уГЬуВ┐уГ│уБзщЦЙуБШуВЙуВМуБкуБДуВИуБЖуБлуБЧуБЯ
+	* уАМуВ│уГмуВпуВ╖уГзуГ│уГвуГ╝уГЙуАНуГЪуГ╝уВ╕уБ╕уБоуГЙуГнуГГуГЧ
+	* уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБоуВ╣уГЖуГ╝уВ┐уВ╣уГРуГ╝уБл уГЪуГ╝уВ╕чХкхП╖/уГЪуГ╝уВ╕цХ░ уВТшбичд║
 
 2001-09-11 Takuro Ashie <ashie@homa.ne.jp>
 
-	* └▀─ъежегеєе╔ежд╦е╟егеьепе╚еъе╙ехб╝┤╪╧вд╬└▀─ъдЄ─╔▓├
-	* е╟егеьепе╚еъе╙ехб╝д╦е─б╝еые╨б╝дЄ─╔▓├
-	* е┐е╓е┐еде╚еыд╦е╒еые╤е╣дЄ╔╜╝ид╣дыдлбве╟егеьепе╚еъ╠╛д╬д▀дЄ╔╜╝ид╣дыдл
-	└▀─ъд╟дндыдшджд╦д╖д┐бг
+	* шинхоЪуВжуВгуГ│уГЙуВжуБлуГЗуВгуГмуВпуГИуГкуГУуГеуГ╝щЦвщАгуБошинхоЪуВТш┐╜хКа
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБлуГДуГ╝уГлуГРуГ╝уВТш┐╜хКа
+	* уВ┐уГЦуВ┐уВдуГИуГлуБлуГХуГлуГСуВ╣уВТшбичд║уБЩуВЛуБЛуАБуГЗуВгуГмуВпуГИуГкхРНуБоуБ┐уВТшбичд║уБЩуВЛуБЛ
+	шинхоЪуБзуБНуВЛуВИуБЖуБлуБЧуБЯуАВ
 
 2001-09-10 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╒ебедеы┴р║юеиещб╝╗■д╦е└едевеэе░ежегеєе╔еждЄ╔╜╝ид╣дыдшджд╦д╖д┐бг
+	* уГХуВбуВдуГлцУНф╜ЬуВиуГйуГ╝цЩВуБлуГАуВдуВвуГнуВ░уВжуВгуГ│уГЙуВжуВТшбичд║уБЩуВЛуВИуБЖуБлуБЧуБЯуАВ
 
 2001-09-09 Takuro Ashie <ashie@homa.ne.jp>
 
-	* GImageView╖┴╝░д╬е╡ере═едеы╩▌┬╕е╡еде║дЄ╩╤╣╣▓─╟╜д╦д╖д┐бг
-	* ║╕е▄е┐еєд╦дте╔еще├е░дЄ│фдъ┼Ўд╞д┐бг
-	* е┌б╝е╕└┌┬╪ди─╛╕хд╦е┐е╓дЄ╩─д╕дыд╚═юд┴ды╠ф┬ъдЄ╜д└╡бг
-	* е╟егеьепе╚еъе╙ехб╝д╬е▌е├е╫еве├е╫есе╦ехб╝д╦
-	б╓е╡ере═едеыдЄ║╞╡в┼кд╦╝ш╞└б╫дЄ─╔▓├бг
-	* е╟егеьепе╚еъе╙ехб╝д╬е╚е├е╫е╟егеьепе╚еъдЄ╩╤╣╣▓─╟╜д╦д╖д┐бг
-	* д╜д╬┬╛║┘длдд╩╤╣╣/╜д└╡бг
+	* GImageViewх╜вх╝ПуБоуВ╡уГауГНуВдуГлф┐ЭхнШуВ╡уВдуВ║уВТхдЙцЫ┤хПпшГ╜уБлуБЧуБЯуАВ
+	* х╖жуГЬуВ┐уГ│уБлуВВуГЙуГйуГГуВ░уВТхЙ▓уВКх╜УуБжуБЯуАВ
+	* уГЪуГ╝уВ╕хИЗцЫ┐уБИчЫ┤х╛МуБлуВ┐уГЦуВТщЦЙуБШуВЛуБишР╜уБбуВЛхХПщбМуВТф┐оцнгуАВ
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГЭуГГуГЧуВвуГГуГЧуГбуГЛуГеуГ╝уБл
+	уАМуВ╡уГауГНуВдуГлуВТхЖНх╕░чЪДуБлхПЦх╛ЧуАНуВТш┐╜хКауАВ
+	* уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБоуГИуГГуГЧуГЗуВгуГмуВпуГИуГкуВТхдЙцЫ┤хПпшГ╜уБлуБЧуБЯуАВ
+	* уБЭуБоф╗Цч┤░уБЛуБДхдЙцЫ┤/ф┐оцнгуАВ
 
 2001-09-07 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/prefs.c
 	* src/thumbnail_support.[ch]
-	* src/thumbview_detail.c: ╛▄║┘етб╝е╔д╦б╓енеуе├е╖ехе┐еде╫б╫д╬╔╜╝идЄ
-	─╔▓├бг
-	* src/menu.[ch]: menu_popup_modal () дЄ─╔▓├бг
-	gnome_popup_menu_do_popup_modal () ┴ъ┼Ўд╬┤╪┐Їбг
+	* src/thumbview_detail.c: шй│ч┤░уГвуГ╝уГЙуБлуАМуВнуГгуГГуВ╖уГеуВ┐уВдуГЧуАНуБошбичд║уВТ
+	ш┐╜хКауАВ
+	* src/menu.[ch]: menu_popup_modal () уВТш┐╜хКауАВ
+	gnome_popup_menu_do_popup_modal () чЫ╕х╜УуБощЦвцХ░уАВ
 
 2001-09-06 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/fileload.c: е╒ебедеые╓ещеже╢╞тд╬епеще├е╖ехе╨е░дЄ╜д└╡бг
+	* src/fileload.c: уГХуВбуВдуГлуГЦуГйуВжуВ╢хЖЕуБоуВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнгуАВ
 
 2001-09-04 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/dnd.[ch]
 	* src/thumbnail_view.[ch]
 	* src/thumbview_detail.c
-	* src/thumbview_table.c: DnDд╬┴ўдъ╝ъ┬ждте╡е▌б╝е╚бге╡ере═едеы┴к┬Є╛Ё╩єдЄ
-	┴┤╔╜╝иетб╝е╔д╟╞▒┤№д╣дыдшджд╦д╖д┐бг
-	* src/thumbnail_window.c: б╓еъе╣е╚╣╣┐╖б╫есе╦ехб╝дЄ─╔▓├бг
+	* src/thumbview_table.c: DnDуБощАБуВКцЙЛхБ┤уВВуВ╡уГЭуГ╝уГИуАВуВ╡уГауГНуВдуГлщБ╕цКЮцГЕха▒уВТ
+	хЕишбичд║уГвуГ╝уГЙуБзхРМцЬЯуБЩуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* src/thumbnail_window.c: уАМуГкуВ╣уГИцЫ┤цЦ░уАНуГбуГЛуГеуГ╝уВТш┐╜хКауАВ
 
 2001-09-03 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dnd.[ch]: ┐╖╡ме╒ебедеыбг
+	* src/dnd.[ch]: цЦ░шжПуГХуВбуВдуГлуАВ
 	* src/dirview.[ch]
 	* src/image_view.[ch]
 	* src/thumbnail_view.[ch]
 	* src/thumbview_detail.c
-	* src/thumbview_table.c: е╔еще├е░ & е╔еэе├е╫╡б╟╜дЄ─╔▓├
-	(╕╜║▀д╬╜ъбв╝їд▒╝ъ┬жд╬д▀д╬е╡е▌б╝е╚).
+	* src/thumbview_table.c: уГЙуГйуГГуВ░ & уГЙуГнуГГуГЧцйЯшГ╜уВТш┐╜хКа
+	(чП╛хЬиуБоцЙАуАБхПЧуБСцЙЛхБ┤уБоуБ┐уБоуВ╡уГЭуГ╝уГИ).
 
 2001-09-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╨б╝е╕ечеє 0.1.0
+	* уГРуГ╝уВ╕уГзуГ│ 0.1.0
 
 2001-09-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/prefs.c: ╜┼╩гд╖д╞ддд┐енб╝└▀─ъдЄ╜д└╡бг
-	* src/thumbview_detail.c: е│б╝е╔└░═¤бг║┘длдде╨е░╜д└╡бг
-	* src/thumbview_table.c: е│б╝е╔└░═¤бг
+	* src/prefs.c: щЗНшдЗуБЧуБжуБДуБЯуВнуГ╝шинхоЪуВТф┐оцнгуАВ
+	* src/thumbview_detail.c: уВ│уГ╝уГЙцХ┤чРЖуАВч┤░уБЛуБДуГРуВ░ф┐оцнгуАВ
+	* src/thumbview_table.c: уВ│уГ╝уГЙцХ┤чРЖуАВ
 
 2001-09-01 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/dirview.h: DirView ╣╜┬д┬╬дЄ─╔▓├ (д▐д└╠д╗╚═╤)бг
+	* src/dirview.h: DirView цзЛщАаф╜УуВТш┐╜хКа (уБ╛уБацЬкф╜┐чФи)уАВ
 	* src/dirview.c
 	* src/thumbnail_view.c
-	* src/thumbnail_window.[ch]: е│б╝е╔└░═¤бг
+	* src/thumbnail_window.[ch]: уВ│уГ╝уГЙцХ┤чРЖуАВ
 	
 2001-08-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_window.c: еседеєесе╦ехб╝д╦б╓е┐е╓░▄╞░б╫есе╦ехб╝дЄ─╔▓├бг
-	* src/thumbnail_view.[ch]: е╡ере═едеыд╬е▌е├е╫еве├е╫есе╦ехб╝д╦
-	б╓еъе╣е╚длдщ║я╜№б╫дЄ─╔▓├бг
-	popup menu. thumbview_free () дЄ╜д└╡бг.
-	* src/ja.po: ╣╣┐╖бг
+	* src/thumbnail_window.c: уГбуВдуГ│уГбуГЛуГеуГ╝уБлуАМуВ┐уГЦчз╗хЛХуАНуГбуГЛуГеуГ╝уВТш┐╜хКауАВ
+	* src/thumbnail_view.[ch]: уВ╡уГауГНуВдуГлуБоуГЭуГГуГЧуВвуГГуГЧуГбуГЛуГеуГ╝уБл
+	уАМуГкуВ╣уГИуБЛуВЙхЙКщЩдуАНуВТш┐╜хКауАВ
+	popup menu. thumbview_free () уВТф┐оцнгуАВ.
+	* src/ja.po: цЫ┤цЦ░уАВ
 	
 2001-08-30 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/help.c: е╫еэе░ещер╛Ё╩єежегеєе╔еждЄ╜д└╡бг
-	* src/thumbview_detail.c: ╛▄║┘етб╝е╔д╬е│ещере┐еде╚еые▄е┐еєд╦
-	е╜б╝е╚╡б╟╜дЄе╨едеєе╔бг
+	* src/help.c: уГЧуГнуВ░уГйуГацГЕха▒уВжуВгуГ│уГЙуВжуВТф┐оцнгуАВ
+	* src/thumbview_detail.c: шй│ч┤░уГвуГ╝уГЙуБоуВ│уГйуГауВ┐уВдуГИуГлуГЬуВ┐уГ│уБл
+	уВ╜уГ╝уГИцйЯшГ╜уВТуГРуВдуГ│уГЙуАВ
 	* src/prefs.c
-	* src/thumbnail_window.c: е╬б╝е╚е╓е├епд╦е▌е├е╫еве├е╫есе╦ехб╝дЄ─╔▓├бг
-	* configure.in: ║┘длдд╜д└╡бг
+	* src/thumbnail_window.c: уГОуГ╝уГИуГЦуГГуВпуБлуГЭуГГуГЧуВвуГГуГЧуГбуГЛуГеуГ╝уВТш┐╜хКауАВ
+	* configure.in: ч┤░уБЛуБДф┐оцнгуАВ
 
 2001-08-29 Takuro Ashie <ashie@homa.ne.jp>
 
 	* po/POTFILES.in
-	* po/ja.po: ╣╣┐╖
+	* po/ja.po: цЫ┤цЦ░
 
 2001-08-29 Takuro Ashie <ashie@homa.ne.jp>
 	* src/gimageview.c
-	* src/thumbnail_window.c: епеще├е╖ехе╨е░дЄ╜д└╡бг
-	╟█╬є disp_mode_labels дЄе╫еэе░ещер│л╗╧╗■д╦│╬╩▌д╣дыдшджд╦╩╤╣╣бг
+	* src/thumbnail_window.c: уВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнгуАВ
+	щЕНхИЧ disp_mode_labels уВТуГЧуГнуВ░уГйуГащЦЛхзЛцЩВуБлчв║ф┐ЭуБЩуВЛуВИуБЖуБлхдЙцЫ┤уАВ
 
 2001-08-29 Takuro Ashie <ashie@homa.ne.jp>
 
@@ -3019,160 +3019,160 @@
 	* src/prefs_win.c
 	* src/thumbnail_window.c
 	* src/thumbnail_view.c
-	* src/thumbnail_tanble.c: └▀─ъе╤ещесб╝е┐╠╛дЄ╩╤╣╣бг ┤Ўд─длд╬└▀─ъдЄ─╔▓├бг
+	* src/thumbnail_tanble.c: шинхоЪуГСуГйуГбуГ╝уВ┐хРНуВТхдЙцЫ┤уАВ х╣╛уБдуБЛуБошинхоЪуВТш┐╜хКауАВ
 
 2001-08-28 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/prefs.[ch]
 	* src/prefs_win.c
-	* src/thumbnail_window.c: ╜к╬╗╗■д╦е┌едеєе╡еде║дЄ╩▌┬╕бг
+	* src/thumbnail_window.c: ч╡Вф║ЖцЩВуБлуГЪуВдуГ│уВ╡уВдуВ║уВТф┐ЭхнШуАВ
 
 2001-08-28 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/thumbnail_view.c
-	* src/thumbnail_window.c: е╡ере═едеыеэб╝е╔╗■д╬ежеге╕езе├е╚д╬sensitivity
-	дЄ╩╤╣╣бг
+	* src/thumbnail_window.c: уВ╡уГауГНуВдуГлуГнуГ╝уГЙцЩВуБоуВжуВгуВ╕уВзуГГуГИуБоsensitivity
+	уВТхдЙцЫ┤уАВ
 
 2001-08-27 Takuro Ashie <ashie@homa.ne.jp>
 	* src/prefs.[ch]
 	* src/prefs_win.c
-	* src/thumbnail_window.c: ╜к╬╗╗■д╦е╡ере═едеыежегеєе╔ежд╬╛ї┬╓дЄ╩▌┬╕д╣ды
-	дшджд╦д╖д┐бг
+	* src/thumbnail_window.c: ч╡Вф║ЖцЩВуБлуВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБочК╢цЕЛуВТф┐ЭхнШуБЩуВЛ
+	уВИуБЖуБлуБЧуБЯуАВ
 
 2001-08-26 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/thumbnail_view.[ch]
 	* src/thumbnail_window.[ch]
 	* src/thumbview_table.[ch]
-	* src/thumbview_detal.[ch]: │╞е╡ере═едеы╔╜╝иетб╝е╔░═┬╕д╬е│б╝е╔дЄ╜д└╡бг
+	* src/thumbview_detal.[ch]: хРДуВ╡уГауГНуВдуГлшбичд║уГвуГ╝уГЙф╛ЭхнШуБоуВ│уГ╝уГЙуВТф┐оцнгуАВ
 
 2001-08-17 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/Makefile.am
-	* src/image_view.[ch]: ┐╖╡ме╒ебедеыбг
+	* src/image_view.[ch]: цЦ░шжПуГХуВбуВдуГлуАВ
 	* src/fileload.[ch]
-	* src/image_window.[ch]: image_viewете╕ехб╝еыдЄimage_view.[ch]д╦╩м╬ебг
+	* src/image_window.[ch]: image_viewуГвуВ╕уГеуГ╝уГлуВТimage_view.[ch]уБлхИЖщЫвуАВ
 	* src/thumbnail_window.[ch]
-	* src/thumbnail_view.[ch]: ▓ш┴№е╫еье╙ехб╝дЄ─╔▓├бг
-	* src/gimageview.[ch]: ║┘длдд╜д└╡бг
+	* src/thumbnail_view.[ch]: чФ╗хГПуГЧуГмуГУуГеуГ╝уВТш┐╜хКауАВ
+	* src/gimageview.[ch]: ч┤░уБЛуБДф┐оцнгуАВ
 	
 2001-08-14 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_window.c: е┐е╓епеэб╝е║е▄е┐еєдЄ─╔▓├бг
+	* src/thumbnail_window.c: уВ┐уГЦуВпуГнуГ╝уВ║уГЬуВ┐уГ│уВТш┐╜хКауАВ
 	* src/image_window.[ch]
 	* src/thumbnail_view.[ch]
 	* src/thumbnail_window.[ch]
 	* src/thumbview_list.[ch]
-	* src/thumbview_table.[ch]: ╬є╡є╖┐ ThumbDispMode дЄ║я╜№бгетб╝е╔дЄ
-	╗╪─ъд╣ды╛ь╣чд╧бвThumbDispModeд╟д╧д╩дпбвеще┘еыдЄ╗╚═╤д╣дыдшджд╦╩╤╣╣бг
+	* src/thumbview_table.[ch]: хИЧцМЩхЮЛ ThumbDispMode уВТхЙКщЩдуАВуГвуГ╝уГЙуВТ
+	цМЗхоЪуБЩуВЛха┤хРИуБпуАБThumbDispModeуБзуБпуБкуБПуАБуГйуГЩуГлуВТф╜┐чФиуБЩуВЛуВИуБЖуБлхдЙцЫ┤уАВ
 
 2001-08-13 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/fileload.c
-	* src/thumbnail_view.[ch]: е╟егеьепе╚еъекб╝е╫еєд╬╗┼══дЄ╩╤╣╣бг┤√д╦│лдлдь
-	д╞дддые╟егеьепе╚еъдЄ╗╪─ъд╖д┐╛ь╣чд╧бвд╜д╬е┌б╝е╕д╪░▄╞░д╣дыдшджд╦д╖д┐бг
-	* src/thumbnail_window.[ch]: е╟егеьепе╚еъе╙ехб╝д╬╔╜╝и/╚є╔╜╝идЄ╞░┼кд╦
-	└┌┬╪дидщдьдыдшджд╦╩╤╣╣бг
+	* src/thumbnail_view.[ch]: уГЗуВгуГмуВпуГИуГкуВкуГ╝уГЧуГ│уБоф╗ХцзШуВТхдЙцЫ┤уАВцЧвуБлщЦЛуБЛуВМ
+	уБжуБДуВЛуГЗуВгуГмуВпуГИуГкуВТцМЗхоЪуБЧуБЯха┤хРИуБпуАБуБЭуБоуГЪуГ╝уВ╕уБ╕чз╗хЛХуБЩуВЛуВИуБЖуБлуБЧуБЯуАВ
+	* src/thumbnail_window.[ch]: уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уБошбичд║/щЭЮшбичд║уВТхЛХчЪДуБл
+	хИЗцЫ┐уБИуВЙуВМуВЛуВИуБЖуБлхдЙцЫ┤уАВ
 
 2001-08-12 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/fileload.c
-	* src/image_window.[ch]: ▓ш┴№╔┴▓ш╡б╣╜дЄ╜д└╡бг
+	* src/image_window.[ch]: чФ╗хГПцППчФ╗цйЯцзЛуВТф┐оцнгуАВ
 
 2001-08-08 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/thumbnail.[ch]
 	* src/thumbview_detail.[ch]
-	* src/thumbview_table.ch[ch]: ─╔▓├бг
+	* src/thumbview_table.ch[ch]: ш┐╜хКауАВ
 	* fileutil.c: uid2str(), gid2str(), size2str(), time2sr(),
-	mode2str() дЄ G-thumBд╬е│б╝е╔длдщ╟╥╝┌бг (╛▄║┘етб╝е╔═╤)
-	* argparse.c: ║┘длдд╜д└╡бг
+	mode2str() уВТ G-thumBуБоуВ│уГ╝уГЙуБЛуВЙцЛЭхАЯуАВ (шй│ч┤░уГвуГ╝уГЙчФи)
+	* argparse.c: ч┤░уБЛуБДф┐оцнгуАВ
 	
 2001-08-07 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_table.[ch]: ║я╜№
-	* src/thumbnail_view.[ch]: thumbnail_table.[ch]дЄthumbnail_view.[ch]д╦
-	╩╤╣╣
-	* src/prefs_win.[ch]: ┐╖╡ме╒ебедеыбг
-	* src/thumbnail_widnow.c: еэб╝е╔├цд╧е╡ере═едеыежегеєе╔еждЄ╩─д╕дщдьд╩дд
-	дшджд╦д╖д┐бг
+	* src/thumbnail_table.[ch]: хЙКщЩд
+	* src/thumbnail_view.[ch]: thumbnail_table.[ch]уВТthumbnail_view.[ch]уБл
+	хдЙцЫ┤
+	* src/prefs_win.[ch]: цЦ░шжПуГХуВбуВдуГлуАВ
+	* src/thumbnail_widnow.c: уГнуГ╝уГЙф╕нуБпуВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуВТщЦЙуБШуВЙуВМуБкуБД
+	уВИуБЖуБлуБЧуБЯуАВ
 
 2001-08-06 Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/fileload.c
-	* src/thumbnail_table.[ch]: е╒ебедеыеэб╝е╟егеєе░╡б╣╜дЄ╜д└╡бг
-	* src/prefs.[ch]: еэб╝е╔├цд╬GUI╣╣┐╖┤╓│╓дЄ└▀─ъ▓─╟╜д╦д╖д┐бг
-	(еэб╝е╔╗■┤╓д╚GUIд╬▒■┼·└нд╬е╚еьб╝е╔еке╒).
+	* src/thumbnail_table.[ch]: уГХуВбуВдуГлуГнуГ╝уГЗуВгуГ│уВ░цйЯцзЛуВТф┐оцнгуАВ
+	* src/prefs.[ch]: уГнуГ╝уГЙф╕нуБоGUIцЫ┤цЦ░щЦУщЪФуВТшинхоЪхПпшГ╜уБлуБЧуБЯуАВ
+	(уГнуГ╝уГЙцЩВщЦУуБиGUIуБох┐ЬчнФцАзуБоуГИуГмуГ╝уГЙуВкуГХ).
 
 2001-08-02 Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╨б╝е╕ечеє 0.0.3 (0.0.2-branch)
-	* ║┘длдде╨е░╜д└╡.
+	* уГРуГ╝уВ╕уГзуГ│ 0.0.3 (0.0.2-branch)
+	* ч┤░уБЛуБДуГРуВ░ф┐оцнг.
 
 2001-07-31 Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/image_window.c: ║┘длдд╜д└╡бг
-	* src/listview.[ch]: ║┘длдд╜д└╡
+	* src/image_window.c: ч┤░уБЛуБДф┐оцнгуАВ
+	* src/listview.[ch]: ч┤░уБЛуБДф┐оцнг
 	* src/Makefile.am
 	* src/fileload.c
 	* src/thumbnail_tablel.[ch] 
-	* src/thumbnail_window.[ch]: е╡ере═едеые╞б╝е╓еыд╦┤╪д╣ды╡б╟╜дЄ
-	thumbnail_table.[ch]д╦╩м╬ебгб╓╛▄║┘ + е╡ере═едеыб╫╔╜╝идЄ─╔▓├бг
+	* src/thumbnail_window.[ch]: уВ╡уГауГНуВдуГлуГЖуГ╝уГЦуГлуБлщЦвуБЩуВЛцйЯшГ╜уВТ
+	thumbnail_table.[ch]уБлхИЖщЫвуАВуАМшй│ч┤░ + уВ╡уГауГНуВдуГлуАНшбичд║уВТш┐╜хКауАВ
 
 2001-07-30  Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/thumbnail_table.[ch]
-	* src/thumbnail_window.[ch]: е╒ебедеыеъе╣е╚е╙ехб╝дЄ─╔▓├бг
+	* src/thumbnail_window.[ch]: уГХуВбуВдуГлуГкуВ╣уГИуГУуГеуГ╝уВТш┐╜хКауАВ
 
 2001-07-29  Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/listview.[ch]
 	* src/thumbnail_widnow.c
 	* src/pixmaps/folder.xpm
-	* src/pixmaps/folder-open.xpm: е╟егеьепе╚еъе╙ехб╝дЄ─╔▓├бг
-	епеще├е╖ехе╨е░дЄ╜д└╡бг
+	* src/pixmaps/folder-open.xpm: уГЗуВгуГмуВпуГИуГкуГУуГеуГ╝уВТш┐╜хКауАВ
+	уВпуГйуГГуВ╖уГеуГРуВ░уВТф┐оцнгуАВ
 
 2001-07-28  Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╨б╝е╕ечеє 0.0.2
+	* уГРуГ╝уВ╕уГзуГ│ 0.0.2
 
 2001-07-28  Takuro Ashie <ashie@homa.ne.jp>
 
 	* configure.in
-	* acconfig.h: ║┘длдд╜д└╡бг
-	* po/ja.po: ja.po╣╣┐╖бг
-	* src/image_window.c: ежегеєе╔еже╡еде║д╬╖╫╗╗╦бдЄ╜д└╡.бг
+	* acconfig.h: ч┤░уБЛуБДф┐оцнгуАВ
+	* po/ja.po: ja.poцЫ┤цЦ░уАВ
+	* src/image_window.c: уВжуВгуГ│уГЙуВжуВ╡уВдуВ║уБошиИчоЧц│ХуВТф┐оцнг.уАВ
 
 2001-07-27  Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/image_window.c
 	* src/thumbnail_window.c
-	* src/prefs.[ch]: евепе╗еыенб╝д╬└▀─ъдЄ─╔▓├бгд╜д╬┬╛е╨е░╜д└╡бг
+	* src/prefs.[ch]: уВвуВпуВ╗уГлуВнуГ╝уБошинхоЪуВТш┐╜хКауАВуБЭуБоф╗ЦуГРуВ░ф┐оцнгуАВ
 
 2001-07-26  Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/thumbnail_window.[ch]: е╡ере═едеыежегеєе╔ежд╦е╒еые╣епеъб╝еє╔╜╝идЄ
-	─╔▓├
+	* src/thumbnail_window.[ch]: уВ╡уГауГНуВдуГлуВжуВгуГ│уГЙуВжуБлуГХуГлуВ╣уВпуГкуГ╝уГ│шбичд║уВТ
+	ш┐╜хКа
 
 2001-07-25  Takuro Ashie <ashie@homa.ne.jp>
 
 	* src/thumbnail_support.[ch]
-	* src/prefs.[ch]: GImageView╖┴╝░д╬е╡ере═едеыенеуе├е╖ех╩¤╝░дЄ─╔▓├бг
-	Nautilusе┐еде╫д╬е╡ере═едеыенеуе├е╖ех╜ёдн╣■д▀е╡е▌б╝е╚дЄ░ь╗■╠╡╕·д╦бг
+	* src/prefs.[ch]: GImageViewх╜вх╝ПуБоуВ╡уГауГНуВдуГлуВнуГгуГГуВ╖уГецЦ╣х╝ПуВТш┐╜хКауАВ
+	NautilusуВ┐уВдуГЧуБоуВ╡уГауГНуВдуГлуВнуГгуГГуВ╖уГецЫ╕уБНш╛╝уБ┐уВ╡уГЭуГ╝уГИуВТф╕АцЩВчДбхК╣уБлуАВ
 
 2001-07-23  Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/prefs.[ch]: gimvrcд╬е╒ейб╝е▐е├е╚дЄ╛пд╖╜д└╡бг
+	* src/prefs.[ch]: gimvrcуБоуГХуВйуГ╝уГЮуГГуГИуВТх░СуБЧф┐оцнгуАВ
 
 2001-07-23  Takuro Ashie <ashie@homa.ne.jp>
 
-	* src/file.[ch]: ║я╜№
-	* src/fileload.[ch]: ─╔▓├
+	* src/file.[ch]: хЙКщЩд
+	* src/fileload.[ch]: ш┐╜хКа
 	* po/POTFILES.in
 	* src/Makefile.am
 	* src/gimageview.c
 	* src/image_window.h
-	* src/thumbnail_window.[ch]: moved file.[ch]дЄfileload.[ch]д╦╩╤╣╣
+	* src/thumbnail_window.[ch]: moved file.[ch]уВТfileload.[ch]уБлхдЙцЫ┤
 
 2001-07-22  Takuro Ashie <ashie@homa.ne.jp>
 
@@ -3186,8 +3186,8 @@
 	* src/prefs.[ch]
 	* src/thumbnail_support.[ch]
 	* src/thumbnail_window.c
-	* src/gimv_image.[ch]: gdk-pixbufд╬╜д└╡бгgdk-pixbuf═╤д╦ppm╖┴╝░д╬
-	╩▌┬╕╡б╟╜дЄ─╔▓├бгthumbnail_support.[ch]дЄ└░═¤бг
+	* src/gimv_image.[ch]: gdk-pixbufуБоф┐оцнгуАВgdk-pixbufчФиуБлppmх╜вх╝ПуБо
+	ф┐ЭхнШцйЯшГ╜уВТш┐╜хКауАВthumbnail_support.[ch]уВТцХ┤чРЖуАВ
 
 2001-07-17  Takuro Ashie <ashie@homa.ne.jp>
 
@@ -3201,10 +3201,10 @@
 	* src/image_window.c
 	* src/thumbnail_support.[ch]
 	* src/thumbnail_window.c
-	* src/gimv_image.[ch]: gdk-pixbufе╡е▌б╝е╚дЄ─╔▓├.
+	* src/gimv_image.[ch]: gdk-pixbufуВ╡уГЭуГ╝уГИуВТш┐╜хКа.
 
 2001-07-01  Takuro Ashie <ashie@homa.ne.jp>
 
-	* е╨б╝е╕ечеє 0.0.1
+	* уГРуГ╝уВ╕уГзуГ│ 0.0.1
 
-	* ║╟╜щд╬еъеъб╝е╣.
+	* цЬАхИЭуБоуГкуГкуГ╝уВ╣.

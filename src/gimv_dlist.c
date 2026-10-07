@@ -26,7 +26,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "gtk2-compat.h"
 #include "intl.h" /* FIXME */
 
 
@@ -36,23 +35,15 @@ enum {
 };
 
 
-#if (GTK_MAJOR_VERSION >= 2)
 #define list_widget_get_row_num(widget) \
    gtk_tree_model_iter_n_children (gtk_tree_view_get_model (GTK_TREE_VIEW (widget)), NULL);
-#else
-#define list_widget_get_row_num(widget) GTK_CLIST (widget)->rows;
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
 
 static void       gimv_dlist_init                     (GimvDList *dslist);
 static void       gimv_dlist_class_init               (GimvDListClass *klass);
 
 /* object class functions */
-#if (GTK_MAJOR_VERSION >= 2)
 static void       gimv_dlist_finalize                 (GObject *object);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-static void       gimv_dlist_finalize                 (GtkObject *object);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
 /* private functions */
 static void       gimv_dlist_enabled_list_updated     (GimvDList *dslist);
@@ -61,16 +52,15 @@ static GtkWidget *gimv_dlist_create_list_widget       (GimvDList *dslist,
                                                        gboolean    reorderble);
 
 
-static GtkHBoxClass *parent_class = NULL;
-static gint gimv_dlist_signals[LAST_SIGNAL] = {0};
+static GtkBoxClass *parent_class = NULL;
+static guint gimv_dlist_signals[LAST_SIGNAL] = {0};
 
 
-GtkType
+GType
 gimv_dlist_get_type (void)
 {
-   static GtkType gimv_dlist_type = 0;
+   static GType gimv_dlist_type = 0;
 
-#if (GTK_MAJOR_VERSION >= 2)
    if (!gimv_dlist_type) {
       static const GTypeInfo gimv_dlist_info = {
          sizeof (GimvDListClass),
@@ -84,28 +74,11 @@ gimv_dlist_get_type (void)
          (GInstanceInitFunc) gimv_dlist_init,
       };
 
-      gimv_dlist_type = g_type_register_static (GTK_TYPE_HBOX,
+      gimv_dlist_type = g_type_register_static (GTK_TYPE_BOX,
                                                  "GimvDList",
                                                  &gimv_dlist_info,
                                                  0);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   if (!gimv_dlist_type) {
-      static const GtkTypeInfo gimv_dlist_info = {
-         "GimvDList",
-         sizeof (GimvDList),
-         sizeof (GimvDListClass),
-         (GtkClassInitFunc)  gimv_dlist_class_init,
-         (GtkObjectInitFunc) gimv_dlist_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_dlist_type = gtk_type_unique (gtk_hbox_get_type (),
-                                          &gimv_dlist_info);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    return gimv_dlist_type;
 }
@@ -128,28 +101,30 @@ gimv_dlist_init (GimvDList *dslist)
    dslist->clist2_selected = -1;
    dslist->clist2_dest_row = -1;
    dslist->available_list  = NULL;
+
+   gtk_orientable_set_orientation (GTK_ORIENTABLE (dslist),
+                                   GTK_ORIENTATION_HORIZONTAL);
 }
 
 
 static void
 gimv_dlist_class_init (GimvDListClass *klass)
 {
-   GtkObjectClass *object_class;
+   GObjectClass *gobject_class;
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_hbox_get_type ());
+   gobject_class = (GObjectClass *) klass;
+   parent_class = g_type_class_peek_parent (klass);
 
    gimv_dlist_signals[ENABLED_LIST_UPDATED_SIGNAL]
-      = gtk_signal_new ("enabled-list-updated",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvDListClass, enabled_list_updated),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("enabled-list-updated",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvDListClass, enabled_list_updated),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
-   gtk_object_class_add_signals (object_class, gimv_dlist_signals, LAST_SIGNAL);
-
-   OBJECT_CLASS_SET_FINALIZE_FUNC (klass, gimv_dlist_finalize);
+   gobject_class->finalize = gimv_dlist_finalize;
 }
 
 
@@ -160,11 +135,7 @@ gimv_dlist_class_init (GimvDListClass *klass)
  *
  *******************************************************************************/
 static void
-#ifdef USE_GTK2
 gimv_dlist_finalize (GObject *object)
-#else
-gimv_dlist_finalize (GtkObject *object)
-#endif
 {
    GimvDList *dslist = GIMV_DLIST (object);
 
@@ -172,7 +143,8 @@ gimv_dlist_finalize (GtkObject *object)
    g_list_free (dslist->available_list);
    dslist->available_list = NULL;
 
-   OBJECT_CLASS_FINALIZE_SUPER (parent_class, object);
+   if (G_OBJECT_CLASS (parent_class)->finalize)
+      G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
 
@@ -183,7 +155,6 @@ gimv_dlist_finalize (GtkObject *object)
  *
  *******************************************************************************/
 
-#if (GTK_MAJOR_VERSION >= 2)
 
 static void
 cb_gimv_dlist_cursor_changed (GtkTreeView *treeview, gpointer data)
@@ -194,6 +165,9 @@ cb_gimv_dlist_cursor_changed (GtkTreeView *treeview, gpointer data)
    GtkTreeIter iter;
    gint selected;
    gboolean success;
+
+   /* GTK4: also emitted while the tree view is disposed (without model) */
+   if (!gtk_tree_view_get_model (treeview)) return;
 
    g_return_if_fail (treeview);
    g_return_if_fail (dslist);
@@ -249,87 +223,6 @@ cb_gimv_dlist_row_deleted (GtkTreeModel *model,
    dslist->clist2_dest_row = -1;
 }
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-static void
-cb_gimv_dlist_select_row (GtkCList *clist, gint row, gint col,
-                          GdkEventButton *event, gpointer data)
-{
-   GimvDList *dslist = data;
-
-   g_return_if_fail (clist);
-   g_return_if_fail (data);
-
-   if (GTK_WIDGET (clist) == dslist->clist1)
-      dslist->clist1_selected = row;
-   else if (GTK_WIDGET (clist) == dslist->clist2)
-      dslist->clist2_selected = row;
-
-   gimv_dlist_set_sensitive (dslist);
-}
-
-
-static void
-cb_gimv_dlist_unselect_row (GtkCList *clist, gint row, gint col,
-                            GdkEventButton *event, gpointer data)
-{
-   GimvDList *dslist = data;
-
-   g_return_if_fail (clist);
-   g_return_if_fail (data);
-
-   if (GTK_WIDGET (clist) == dslist->clist1)
-      dslist->clist1_selected = -1;
-   else if (GTK_WIDGET (clist) == dslist->clist2)
-      dslist->clist2_selected = -1;
-
-   gimv_dlist_set_sensitive (dslist);
-}
-
-
-static gint
-idle_gimv_dlist_row_move (gpointer data)
-{
-   GimvDList *dslist = data;
-
-   gimv_dlist_enabled_list_updated (dslist);
-   gimv_dlist_set_sensitive (dslist);
-
-   return FALSE;
-}
-
-
-static void
-cb_gimv_dlist_row_move (GtkCList *clist, gint arg1, gint arg2, gpointer data)
-{
-   GimvDList *dslist = data;
-   gint src, dest = dslist->clist2_dest_row;
-   gint selected = dslist->clist2_selected;
-
-   if (dslist->clist2_dest_row >= 0) {
-      dest = dslist->clist2_dest_row;
-      src  = arg1 == dest ? arg2 : arg1;
-   } else {
-      src  = arg1;
-      dest = arg2;
-   }
-
-   if (selected >= 0) {
-      if (selected == src) {
-         dslist->clist2_selected = dest;
-      } else if (selected >= MIN (src, dest) && selected <= MAX (src, dest)) {
-         if (src < dest)
-            dslist->clist2_selected--;
-         else
-            dslist->clist2_selected++;
-      }
-   }
-
-   dslist->clist2_dest_row = -1;
-
-   gtk_idle_add (idle_gimv_dlist_row_move, dslist);
-}
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
 
 static void
@@ -340,7 +233,6 @@ cb_gimv_dlist_add_button_pressed (GtkButton *button, gpointer data)
 
    if (dslist->clist1_selected < 0) return;
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (dslist->clist1);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -354,16 +246,6 @@ cb_gimv_dlist_add_button_pressed (GtkButton *button, gpointer data)
 
       gtk_tree_model_get (model, &iter, 2, &idx, -1);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gpointer rowdata;
-      rowdata = gtk_clist_get_row_data (GTK_CLIST (dslist->clist1),
-                                        dslist->clist1_selected);
-
-      if (!rowdata) return;
-      idx = g_list_index (dslist->available_list, rowdata);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    gimv_dlist_column_add (dslist, idx);
 
@@ -380,7 +262,6 @@ cb_gimv_dlist_del_button_pressed (GtkButton *button, gpointer data)
 
    if (dslist->clist2_selected < 0) return;
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (dslist->clist2);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -394,16 +275,6 @@ cb_gimv_dlist_del_button_pressed (GtkButton *button, gpointer data)
 
       gtk_tree_model_get (model, &iter, 2, &idx, -1);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gpointer rowdata;
-      rowdata = gtk_clist_get_row_data (GTK_CLIST (dslist->clist2),
-                                        dslist->clist2_selected);
-      if (!rowdata) return;
-
-      idx = g_list_index (dslist->available_list, rowdata);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    gimv_dlist_column_del (dslist, idx);
 
@@ -425,7 +296,6 @@ cb_gimv_dlist_up_button_pressed (GtkButton *button, gpointer data)
 
    dslist->clist2_dest_row = dslist->clist2_selected - 1;
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (dslist->clist2);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -478,12 +348,6 @@ cb_gimv_dlist_up_button_pressed (GtkButton *button, gpointer data)
       /* clean */
       gtk_tree_path_free (treepath);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gtk_clist_swap_rows (GTK_CLIST (dslist->clist2), selected, selected - 1);
-      gtk_clist_moveto (GTK_CLIST (dslist->clist2), selected - 1, 0, 0, 0);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -500,7 +364,6 @@ cb_gimv_dlist_down_button_pressed (GtkButton *button, gpointer data)
 
    dslist->clist2_dest_row = dslist->clist2_selected + 1;
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (dslist->clist2);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -548,12 +411,6 @@ cb_gimv_dlist_down_button_pressed (GtkButton *button, gpointer data)
       /* clean */
       gtk_tree_path_free (treepath);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gtk_clist_swap_rows (GTK_CLIST (dslist->clist2), selected, selected + 1);
-      gtk_clist_moveto (GTK_CLIST (dslist->clist2), selected + 1, 0, 0, 0);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -568,8 +425,8 @@ gimv_dlist_enabled_list_updated (GimvDList *dslist)
 {
    g_return_if_fail (GIMV_IS_DLIST (dslist));
 
-   gtk_signal_emit (GTK_OBJECT (dslist),
-                    gimv_dlist_signals[ENABLED_LIST_UPDATED_SIGNAL]);
+   g_signal_emit (G_OBJECT (dslist),
+                  gimv_dlist_signals[ENABLED_LIST_UPDATED_SIGNAL], 0);
 }
 
 
@@ -618,7 +475,6 @@ gimv_dlist_create_list_widget (GimvDList *dslist, gboolean reorderble)
 {
    GtkWidget *clist;
 
-#if (GTK_MAJOR_VERSION >= 2)
 
    GtkListStore *store;
    GtkTreeViewColumn *col;
@@ -630,7 +486,7 @@ gimv_dlist_create_list_widget (GimvDList *dslist, gboolean reorderble)
                                G_TYPE_INT);
    clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
    dslist->clist2 = clist;
-   gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (clist), TRUE);
+   /* GTK4: gtk_tree_view_set_rules_hint () was removed (row striping is up to the theme) */
    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (clist), FALSE);
 
    if (reorderble)
@@ -653,28 +509,6 @@ gimv_dlist_create_list_widget (GimvDList *dslist, gboolean reorderble)
    gtk_tree_view_column_add_attribute (col, render, "text", 0);
    gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-   clist = dslist->clist2 = gtk_clist_new (1);
-   gtk_clist_set_selection_mode (GTK_CLIST (clist), GTK_SELECTION_SINGLE);
-   gtk_clist_set_column_auto_resize (GTK_CLIST (clist), 0, TRUE);
-
-   gtk_signal_connect (GTK_OBJECT (clist),"select_row",
-                       GTK_SIGNAL_FUNC (cb_gimv_dlist_select_row),
-                       dslist);
-   gtk_signal_connect (GTK_OBJECT (clist),"unselect_row",
-                       GTK_SIGNAL_FUNC (cb_gimv_dlist_unselect_row),
-                       dslist);
-
-   if (reorderble) {
-      gtk_clist_set_reorderable (GTK_CLIST (clist), TRUE);
-      gtk_clist_set_use_drag_icons (GTK_CLIST (clist), FALSE);
-      gtk_signal_connect (GTK_OBJECT (clist),"row_move",
-                          GTK_SIGNAL_FUNC (cb_gimv_dlist_row_move),
-                          dslist);
-   }
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    return clist;
 }
@@ -690,132 +524,121 @@ GtkWidget *
 gimv_dlist_new (const gchar *clist1_title,
                  const gchar *clist2_title)
 {
-#if (GTK_MAJOR_VERSION >= 2)
    GimvDList *dslist = g_object_new (gimv_dlist_get_type (), NULL);
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   GimvDList *dslist = gtk_type_new (gimv_dlist_get_type ());
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    GtkWidget *hbox = GTK_WIDGET (dslist);
    GtkWidget *vbox, *vbox1, *vbox2, *vbox3, *hseparator;
    GtkWidget *label, *scrollwin1, *scrollwin2, *clist, *button, *arrow;
 
    /* possible columns */
-   vbox1 = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
+   vbox1 = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
    gtk_widget_show (vbox1);
 
    label = gtk_label_new (clist1_title);
-   gtk_box_pack_start (GTK_BOX (vbox1), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox1), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
-   scrollwin1 = gtk_scrolled_window_new (NULL, NULL);
+   scrollwin1 = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin1),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrollwin1),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-   gtk_container_set_border_width(GTK_CONTAINER(scrollwin1), 5);
-   gtk_box_pack_start (GTK_BOX (vbox1), scrollwin1, TRUE, TRUE, 0);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrollwin1), TRUE);
+   gimv_container_set_border_width (GTK_WIDGET (scrollwin1), 5);
+   gimv_box_pack_start (GTK_BOX (vbox1), scrollwin1, TRUE, TRUE, 0);
    gtk_widget_show (scrollwin1);
 
    clist = dslist->clist1 = gimv_dlist_create_list_widget (dslist, FALSE);
-   gtk_container_add (GTK_CONTAINER (scrollwin1), clist);
+   gimv_container_add (GTK_WIDGET (scrollwin1), clist);
    gtk_widget_show (clist);
 
 
    /* add/delete buttons */
-   vbox3 = gtk_vbox_new (TRUE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox3, FALSE, FALSE, 0);
+   vbox3 = gimv_vbox_new (TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox3, FALSE, FALSE, 0);
    gtk_widget_show (vbox3);
 
-   vbox = gtk_vbox_new (TRUE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox3), vbox, FALSE, FALSE, 0);
+   vbox = gimv_vbox_new (TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox3), vbox, FALSE, FALSE, 0);
    gtk_widget_show (vbox);
 
    button = dslist->add_button = gtk_button_new ();
 #ifdef USE_ARROW
-   arrow = gtk_arrow_new (GTK_ARROW_RIGHT, GTK_SHADOW_NONE);
+   arrow = gimv_arrow_new (GTK_ARROW_RIGHT);
 #else /* USE_ARROW */
    arrow = gtk_label_new (_("Add"));
-   gtk_misc_set_alignment (GTK_MISC (arrow), 0.5, 0.5);
+   gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
-   gtk_container_add (GTK_CONTAINER (button), arrow);
+   gimv_container_add (GTK_WIDGET (button), arrow);
    gtk_widget_show (arrow);
-   gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
+   gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
    gtk_widget_show (button);
 
    button = dslist->del_button = gtk_button_new ();
 #ifdef USE_ARROW
-   arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
+   arrow = gimv_arrow_new (GTK_ARROW_LEFT);
 #else /* USE_ARROW */
    arrow = gtk_label_new (_("Delete"));
-   gtk_misc_set_alignment (GTK_MISC (arrow), 0.5, 0.5);
+   gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
-   gtk_container_add (GTK_CONTAINER (button), arrow);
+   gimv_container_add (GTK_WIDGET (button), arrow);
    gtk_widget_show (arrow);
-   gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
+   gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
    gtk_widget_show (button);
 
-   hseparator = gtk_hseparator_new ();
-   gtk_box_pack_start (GTK_BOX (vbox), hseparator, FALSE, FALSE, 2);
+   hseparator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
+   gimv_box_pack_start (GTK_BOX (vbox), hseparator, FALSE, FALSE, 2);
    gtk_widget_show (hseparator);
 
 
    /* move buttons */
    button = dslist->up_button = gtk_button_new ();
 #ifdef USE_ARROW
-   arrow = gtk_arrow_new (GTK_ARROW_UP, GTK_SHADOW_NONE);
+   arrow = gimv_arrow_new (GTK_ARROW_UP);
 #else /* USE_ARROW */
    arrow = gtk_label_new (_("Up"));
-   gtk_misc_set_alignment (GTK_MISC (arrow), 0.5, 0.5);
+   gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
-   gtk_container_add (GTK_CONTAINER (button), arrow);
+   gimv_container_add (GTK_WIDGET (button), arrow);
    gtk_widget_show (arrow);
-   gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
+   gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
    gtk_widget_show (button);
 
    button = dslist->down_button = gtk_button_new ();
 #ifdef USE_ARROW
-   arrow = gtk_arrow_new (GTK_ARROW_DOWN, GTK_SHADOW_NONE);
+   arrow = gimv_arrow_new (GTK_ARROW_DOWN);
 #else /* USE_ARROW */
    arrow = gtk_label_new (_("Down"));
-   gtk_misc_set_alignment (GTK_MISC (arrow), 0.5, 0.5);
+   gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
-   gtk_container_add (GTK_CONTAINER (button), arrow);
+   gimv_container_add (GTK_WIDGET (button), arrow);
    gtk_widget_show (arrow);
-   gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
+   gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
    gtk_widget_show (button);
 
 
    /* Use list */
-   vbox2 = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 0);
+   vbox2 = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 0);
    gtk_widget_show (vbox2);
 
    label = gtk_label_new (clist2_title);
-   gtk_box_pack_start (GTK_BOX (vbox2), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox2), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
-   scrollwin2 = gtk_scrolled_window_new (NULL, NULL);
+   scrollwin2 = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin2),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-#ifdef USE_GTK2
-   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrollwin2),
-                                       GTK_SHADOW_IN);
-#endif /* USE_GTK2 */
-   gtk_container_set_border_width(GTK_CONTAINER(scrollwin2), 5);
-   gtk_box_pack_start (GTK_BOX (vbox2), scrollwin2, TRUE, TRUE, 0);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrollwin2), TRUE);
+   gimv_container_set_border_width (GTK_WIDGET (scrollwin2), 5);
+   gimv_box_pack_start (GTK_BOX (vbox2), scrollwin2, TRUE, TRUE, 0);
    gtk_widget_show (scrollwin2);
 
    clist = dslist->clist2 = gimv_dlist_create_list_widget (dslist, TRUE);
-   gtk_container_add (GTK_CONTAINER (scrollwin2), clist);
+   gimv_container_add (GTK_WIDGET (scrollwin2), clist);
    dslist->clist2_rows = list_widget_get_row_num (clist);
    gtk_widget_show (clist);
 
 
-#if (GTK_MAJOR_VERSION >= 2)
 
    gtk_widget_set_size_request (scrollwin1, -1, 200);
    gtk_widget_set_size_request (scrollwin2, -1, 200);
@@ -840,32 +663,6 @@ gimv_dlist_new (const gchar *clist1_title,
                      G_CALLBACK (cb_gimv_dlist_down_button_pressed),
                      dslist);
 
-#else /* (GTK_MAJOR_VERSION >= 2) */
-
-   gtk_widget_set_usize (scrollwin1, -1, 200);
-   gtk_widget_set_usize (scrollwin2, -1, 200);
-
-#ifdef USE_ARROW
-   gtk_widget_set_usize (dslist->add_button,  20, 20);
-   gtk_widget_set_usize (dslist->del_button,  20, 20);
-   gtk_widget_set_usize (dslist->up_button,   20, 20);
-   gtk_widget_set_usize (dslist->down_button, 20, 20);
-#endif /* USE_ARROW */
-
-   gtk_signal_connect (GTK_OBJECT (dslist->add_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_dlist_add_button_pressed),
-                       dslist);
-   gtk_signal_connect (GTK_OBJECT (dslist->del_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_dlist_del_button_pressed),
-                       dslist);
-   gtk_signal_connect (GTK_OBJECT (dslist->up_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_dlist_up_button_pressed),
-                       dslist);
-   gtk_signal_connect (GTK_OBJECT (dslist->down_button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_gimv_dlist_down_button_pressed),
-                       dslist);
-
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    return hbox;
 }
@@ -884,7 +681,6 @@ gimv_dlist_append_available_item (GimvDList *dslist, const gchar *item)
    dslist->available_list = g_list_append (dslist->available_list, text);
    idx = g_list_index (dslist->available_list, text);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (clist));
       GtkListStore *store = GTK_LIST_STORE (model);
@@ -894,14 +690,6 @@ gimv_dlist_append_available_item (GimvDList *dslist, const gchar *item)
       gtk_list_store_set (store, &iter,
                           0, i18n_text, 1, text, 2, idx, -1);
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gint row;
-
-      row = gtk_clist_append (GTK_CLIST (clist), &i18n_text);
-      gtk_clist_set_row_data (GTK_CLIST (clist), row, text);
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 
    dslist->clist1_rows = list_widget_get_row_num (dslist->clist1);
    gimv_dlist_set_sensitive (dslist);
@@ -922,7 +710,6 @@ gimv_dlist_column_add (GimvDList *dslist, gint idx)
    i18n_text = _(text);
    g_return_if_fail (text);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview1 = GTK_TREE_VIEW (dslist->clist1);
       GtkTreeView *treeview2 = GTK_TREE_VIEW (dslist->clist2);
@@ -972,21 +759,6 @@ gimv_dlist_column_add (GimvDList *dslist, gint idx)
 
       g_signal_emit_by_name (G_OBJECT (treeview1), "cursor-changed");
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gint row1, row2;
-
-      row1 = gtk_clist_find_row_from_data (GTK_CLIST (dslist->clist1), text);
-      if (row1 < 0) return;
-
-      row2 = gtk_clist_append (GTK_CLIST (dslist->clist2), &i18n_text);
-      gtk_clist_set_row_data (GTK_CLIST (dslist->clist2), row2, text);
-      gtk_clist_remove (GTK_CLIST (dslist->clist1), row1);
-
-      dslist->clist1_rows = GTK_CLIST (dslist->clist1)->rows;
-      dslist->clist2_rows = GTK_CLIST (dslist->clist2)->rows;
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -1002,7 +774,6 @@ gimv_dlist_column_del (GimvDList *dslist, gint idx)
    i18n_text = _(text);
    g_return_if_fail (text);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview1 = GTK_TREE_VIEW (dslist->clist1);
       GtkTreeView *treeview2 = GTK_TREE_VIEW (dslist->clist2);
@@ -1061,44 +832,6 @@ gimv_dlist_column_del (GimvDList *dslist, gint idx)
 
       g_signal_emit_by_name (G_OBJECT (treeview2), "cursor-changed");
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   {
-      gint row1, row2;
-      gpointer rowdata;
-
-      row2 = gtk_clist_find_row_from_data (GTK_CLIST (dslist->clist2), text);
-      if (row2 < 0) return;
-
-      /* remove item from right side */
-      gtk_clist_freeze (GTK_CLIST (dslist->clist1));
-
-      row1 = gtk_clist_append (GTK_CLIST (dslist->clist1), &i18n_text);
-      gtk_clist_set_row_data (GTK_CLIST (dslist->clist1), row1, text);
-
-      while (row1 > 0) {
-         gint idx_prev;
-
-         rowdata = gtk_clist_get_row_data (GTK_CLIST (dslist->clist1), row1 - 1);
-         if (!rowdata) break;
-
-         idx_prev = g_list_index (dslist->available_list, rowdata);
-
-         if (idx < idx_prev) {
-            gtk_clist_swap_rows (GTK_CLIST (dslist->clist1), row1, row1 - 1);
-            row1--;
-         } else {
-            break;
-         }
-      }
-
-      gtk_clist_thaw (GTK_CLIST (dslist->clist1));
-
-      gtk_clist_remove (GTK_CLIST (dslist->clist2), row2);
-
-      dslist->clist1_rows = GTK_CLIST (dslist->clist1)->rows;
-      dslist->clist2_rows = GTK_CLIST (dslist->clist2)->rows;
-   }
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }
 
 
@@ -1149,7 +882,6 @@ gimv_dlist_get_enabled_row_text (GimvDList *dslist, gint row)
    g_return_val_if_fail (GIMV_IS_DLIST (dslist), NULL);
    g_return_val_if_fail (row >= 0 && row < dslist->clist2_rows, NULL);
 
-#if (GTK_MAJOR_VERSION >= 2)
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (dslist->clist2);
       GtkTreeModel *model = gtk_tree_view_get_model (treeview);
@@ -1164,10 +896,4 @@ gimv_dlist_get_enabled_row_text (GimvDList *dslist, gint row)
 
       return text;
    }
-#else /* (GTK_MAJOR_VERSION >= 2) */
-   text = gtk_clist_get_row_data (GTK_CLIST (dslist->clist2), row);
-   if (!text) return NULL;
-
-   return g_strdup (text);
-#endif /* (GTK_MAJOR_VERSION >= 2) */
 }

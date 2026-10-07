@@ -64,49 +64,93 @@ static struct {
 
 
 
+/* named cursors of the GTK4 cursor theme; the xbm data above is used to
+   build a fallback texture cursor */
+static const gchar *cursor_names[] = {
+   "grab",
+   "grabbing",
+   "none",
+};
+
+
+
+static GdkTexture *
+cursor_texture_from_xbm (CursorType type)
+{
+	GdkPixbuf *pixbuf;
+	GdkTexture *texture;
+	guchar *pixels, *p;
+	gint width, height, rowstride, bpl, x, y;
+
+	width  = cursors[type].data_width;
+	height = cursors[type].data_height;
+	bpl = (width + 7) / 8;
+
+	pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8, width, height);
+	pixels = gdk_pixbuf_get_pixels (pixbuf);
+	rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+
+	for (y = 0; y < height; y++) {
+		for (x = 0; x < width; x++) {
+			gint idx = y * bpl + x / 8;
+			gboolean fg   = (cursors[type].data[idx] >> (x % 8)) & 1;
+			gboolean mask = (cursors[type].mask[idx] >> (x % 8)) & 1;
+			guchar v = fg ? 0xff : 0x00;   /* fg: white, bg: black */
+
+			p = pixels + y * rowstride + x * 4;
+			p[0] = p[1] = p[2] = v;
+			p[3] = mask ? 0xff : 0x00;
+		}
+	}
+
+	texture = gdk_texture_new_for_pixbuf (pixbuf);
+	g_object_unref (pixbuf);
+
+	return texture;
+}
+
+
+
 /**
  * cursor_get:
- * @window: Window whose screen and colormap determine the cursor's.
+ * @widget: Widget the cursor will be used for (unused in GTK4, kept for API).
  * @type: A cursor type.
  * 
- * Creates a cursor.
+ * Creates a cursor.  Use it with gtk_widget_set_cursor().
  * 
  * Return value: The newly-created cursor.
  **/
 GdkCursor *
-cursor_get (GdkWindow *window, CursorType type)
+cursor_get (GtkWidget *widget, CursorType type)
 {
-	GdkBitmap *data;
-	GdkBitmap *mask;
-	GdkColor black, white;
-	GdkCursor *cursor;
+	GdkTexture *texture;
+	GdkCursor *fallback, *cursor;
 
-	g_return_val_if_fail (window != NULL, NULL);
 	g_return_val_if_fail (type >= 0 && type < CURSOR_NUM_CURSORS, NULL);
 
 	g_assert (cursors[type].data_width == cursors[type].mask_width);
 	g_assert (cursors[type].data_height == cursors[type].mask_height);
 
-	data = gdk_bitmap_create_from_data (window,
-                                       cursors[type].data,
-                                       cursors[type].data_width,
-                                       cursors[type].data_height);
-	mask = gdk_bitmap_create_from_data (window,
-                                       cursors[type].mask,
-                                       cursors[type].mask_width,
-                                       cursors[type].mask_height);
+	texture = cursor_texture_from_xbm (type);
+	fallback = gdk_cursor_new_from_texture (texture,
+                                           cursors[type].hot_x,
+                                           cursors[type].hot_y,
+                                           NULL);
+	g_object_unref (texture);
 
-	g_assert (data != NULL && mask != NULL);
+	cursor = gdk_cursor_new_from_name (cursor_names[type], fallback);
+	g_object_unref (fallback);
 
-	gdk_color_black (gdk_window_get_colormap (window), &black);
-	gdk_color_white (gdk_window_get_colormap (window), &white);
+	if (!cursor) {
+		texture = cursor_texture_from_xbm (type);
+		cursor = gdk_cursor_new_from_texture (texture,
+                                            cursors[type].hot_x,
+                                            cursors[type].hot_y,
+                                            NULL);
+		g_object_unref (texture);
+	}
 
-	cursor = gdk_cursor_new_from_pixmap (data, mask, &white, &black,
-                                        cursors[type].hot_x, cursors[type].hot_y);
 	g_assert (cursor != NULL);
-
-	gdk_bitmap_unref (data);
-	gdk_bitmap_unref (mask);
 
 	return cursor;
 }

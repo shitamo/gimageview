@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>1. Introduction</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="index.html" title="GImageView User's Manual">
+<link rel="next" href="02.html" title="2. Usage">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">1. Introduction</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="index.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="02.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="01"></a>1. <a name="first_impression"></a>Introduction</h2></div></div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="01-01"></a>1.1. <a name="whats_gimv"></a>What Is This?</h3></div></div>
+<p class="para">
+GImageView is an image viewer that runs on the X Window System, under development to break through the hopeless situation of viewing huge numbers of images (and movies).
+</p>
+<p class="para">
+This version (0.2.27+gtk4) is a port of GImageView 0.2.27 to GTK 4. It has been tested on the X Window System (X11). On Wayland, embedded movie playback with the MPlayer and xine plugins is not possible.
+</p>
+<p class="para">
+It is basically an image viewer, but since version 0.1.1 it also implements simple file operations by drag and drop (image management functions). Since 0.2.3 it also supports movie playback using xine or MPlayer (the GTK 4 version also supports GStreamer). The susie plugin, which was supported experimentally in 0.2.3, has been removed in the GTK 4 version.
+</p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="01-02"></a>1.2. <a name="characteristic"></a>Features</h3></div></div>
+<p class="para">
+GImageView has the following features.
+
+
+<div class="itemizedlist"><ul>
+<li><p class="para">Opening multiple directories at the same time, switching thumbnail views with tabs</p></li>
+<li><p class="para">Recursive loading of any directory; the root can be set</p></li>
+<li><p class="para">Low memory usage</p></li>
+<li><p class="para">Designed with careful consideration for use from the command line</p></li>
+<li><p class="para">Simple and flexible interface</p></li>
+<li><p class="para">Image management functions</p></li>
+<li><p class="para">Full slideshow support</p></li>
+<li><p class="para">Rich list view (supports multiple sort orders)</p></li>
+<li><p class="para">File operations by drag and drop</p></li>
+<li><p class="para">Support for many thumbnail cache formats (all read and write)
+   <div class="itemizedlist"><ul>
+<li><p class="para">GImageView (its own format, ~/.gimv/thumbnail)</p></li>
+<li><p class="para">Nautilus, Nautilus-2.0</p></li>
+<li><p class="para">Konqueror (also the old format)</p></li>
+<li><p class="para">GQview</p></li>
+<li><p class="para">Electric Eyes (Picview)</p></li>
+<li><p class="para">.xvpics</p></li>
+</ul></div>
+   The freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails) is not supported.
+  </p></li>
+<li>
+<p class="para">Supported image formats
+   <div class="itemizedlist"><ul>
+<li><p class="para">JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (gimv's own loaders)</p></li>
+<li><p class="para">PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP (gimv's own loaders; added in the GTK 4 version)</p></li>
+<li><p class="para">SVG (librsvg), MNG (libmng), WMF (libwmf)</p></li>
+<li><p class="para">Formats that gdk-pixbuf can read, such as GIF, TIFF and ICO</p></li>
+<li><p class="para">WebP, AVIF, HEIF, JPEG XL, etc. (when the corresponding gdk-pixbuf loaders are installed)</p></li>
+<li><p class="para">Animated GIF, MNG</p></li>
+</ul></div>
+  </p>
+<p class="para">
+   Files in formats for which no loader is available are not shown in the thumbnail list. The supported formats can be checked in "Plugin Info" in [Help | About].
+  </p>
+</li>
+<li>
+<p class="para">Supported archive formats
+   <div class="itemizedlist"><ul>
+<li><p class="para">LZH</p></li>
+<li><p class="para">ZIP (CBZ)</p></li>
+<li><p class="para">TAR (tar.gz, tar.bz2, tar.xz, tar.zst, etc.)</p></li>
+<li><p class="para">RAR (CBR)</p></li>
+<li><p class="para">7z (CB7)</p></li>
+</ul></div>
+  </p>
+<p class="para">
+   Archives are expanded as virtual directories. In the GTK 4 version, archives are read with libarchive (external commands such as lha and unzip are not used).
+  </p>
+</li>
+<li><p class="para">Supported movie formats
+   <div class="itemizedlist"><ul>
+<li><p class="para">MPEG, AVI, QuickTime, WMV/ASF, MP4, Matroska (mkv), WebM, FLV, Ogg, MPEG-TS, 3GP, etc.</p></li>
+<li><p class="para">MP3, WAV, Ogg, FLAC, AAC, etc. (audio)</p></li>
+</ul></div>
+  </p>
+<p class="para">
+   Playing movies and audio requires one of GStreamer, MPlayer or xine-lib. The formats that can actually be played depend on what each of them supports. For GStreamer, this depends on the installed plugins (gstreamer1.0-plugins-good, -bad, -ugly, gstreamer1.0-libav, etc.).
+  </p></li>
+</ul></div>
+</p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="01-03"></a>1.3. <a name="pc_require"></a>System Requirements</h3></div></div>
+<p class="para">
+The following are required to compile and run this program.
+<div class="itemizedlist"><ul>
+<li><p class="para">GTK 4.10 or later : <a href="https://www.gtk.org/" target="_top">https://www.gtk.org/</a></p></li>
+<li><p class="para">GLib 2.72 or later, gdk-pixbuf 2.0</p></li>
+<li><p class="para">Meson and Ninja (build time only)</p></li>
+<li><p class="para">X Window System (X11) (the environment it has been tested on). On Wayland, embedded movie playback with the MPlayer and xine plugins is not possible.</p></li>
+</ul></div>
+</p>
+<p class="para">
+In addition, the following libraries and programs, if present, extend the functionality.
+
+<div class="itemizedlist"><ul>
+<li><p class="para">libarchive : Archives (zip, rar, 7z, lha, tar, etc.) can be opened.</p></li>
+<li><p class="para">libjpeg : JPEG images are loaded faster.</p></li>
+<li><p class="para">libexif : EXIF information can be displayed, and images can be rotated automatically according to the EXIF orientation information.</p></li>
+<li><p class="para">librsvg : SVG images can be displayed.</p></li>
+<li><p class="para">libmng : MNG animations can be played.</p></li>
+<li><p class="para">libwmf : WMF images can be displayed.</p></li>
+<li><p class="para">GStreamer 1.16 or later, xine-lib 1.2 or later, or MPlayer : Movie and audio files can be played.</p></li>
+<li><p class="para">Additional gdk-pixbuf loaders (webp-pixbuf-loader, libavif-gdk-pixbuf, heif-gdk-pixbuf, libjxl-gdk-pixbuf, etc.) : WebP, AVIF, HEIF, JPEG XL, etc. can be displayed.</p></li>
+</ul></div>
+</p>
+<p class="para">
+The GTK 4 version has been tested on Debian (sid, GTK 4.24).
+</p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="01-04"></a>1.4. <a name="get_gimv"></a>Getting GImageView</h3></div></div>
+<p class="para">
+The original GImageView (up to 0.2.27) was published at the following location. It is no longer updated.
+
+
+<div class="itemizedlist"><ul>
+<li><p class="para"><a href="https://github.com/ashie/gimageview" target="_top">https://github.com/ashie/gimageview</a></p></li>
+</ul></div>
+</p>
+<p class="para">
+The GTK 4 version is a port based on 0.2.27.
+</p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="01-05"></a>1.5. <a name="gimv_install"></a>Installation</h3></div></div>
+<p class="para">
+The GTK 4 version is built with Meson. In the top directory of the source, do the following.
+</p>
+<pre class="screen">
+$ <b>meson setup _build --prefix=/usr/local</b>
+$ <b>ninja -C _build</b>
+$ <b>sudo ninja -C _build install</b>
+</pre>
+<p class="para">
+Each feature is enabled automatically if the library is present. To specify them explicitly, add options like the following to meson setup. See meson_options.txt for the list of options.
+</p>
+<pre class="screen">
+$ <b>meson setup _build -Dgstreamer=enabled -Dxine=enabled -Dsvg=enabled -Dexif=enabled -Dmplayer=true</b>
+</pre>
+<p class="para">
+On Debian, you can also build a package and install it.
+</p>
+<pre class="screen">
+$ <b>dpkg-buildpackage -us -uc -b</b>
+$ <b>sudo apt install ../gimageview_*.deb</b>
+</pre>
+<p class="para">
+The configuration files (~/.gimv) of the GTK+ 2 version can be used as they are. However, ~/.gimv/gtkrc is no longer used; instead, the appearance is changed with ~/.gimv/gtk.css.
+</p>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="index.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="02.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">GImageView User's Manual&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;2. Usage</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

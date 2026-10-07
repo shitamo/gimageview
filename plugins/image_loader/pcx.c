@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include "pcx.h"
 #include "gimv_plugin.h"
 

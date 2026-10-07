@@ -34,10 +34,10 @@
 
 
 #define GIMV_TYPE_NAV_WIN            (gimv_nav_win_get_type ())
-#define GIMV_NAV_WIN(obj)            (GTK_CHECK_CAST (obj, gimv_nav_win_get_type (), GimvNavWin))
-#define GIMV_NAV_WIN_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_nav_win_get_type, GimvNavWinClass))
-#define GIMV_IS_NAV_WIN(obj)         (GTK_CHECK_TYPE (obj, gimv_nav_win_get_type ()))
-#define GIMV_IS_NAV_WIN_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_NAV_WIN))
+#define GIMV_NAV_WIN(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_nav_win_get_type (), GimvNavWin))
+#define GIMV_NAV_WIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, GIMV_TYPE_NAV_WIN, GimvNavWinClass))
+#define GIMV_IS_NAV_WIN(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_nav_win_get_type ()))
+#define GIMV_IS_NAV_WIN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_NAV_WIN))
 
 
 #define GIMV_NAV_WIN_SIZE 128 /* Max size of the window. */
@@ -48,18 +48,24 @@ typedef struct GimvNavWinPriv_Tag  GimvNavWinPriv;
 typedef struct GimvNavWinClass_Tag GimvNavWinClass;
 
 
+/*
+ *  GTK4: GTK2 showed the navigator in a popup window under the pointer and
+ *  grabbed the pointer.  Toplevels can't be positioned in GTK4 and the
+ *  pointer stays grabbed by the widget which got the button press, so the
+ *  navigator is a widget shown in a GtkOverlay of the image view, and the
+ *  pointer events of the press on the navigator button are forwarded to it
+ *  (gimv_nav_win_pointer_motion (), gimv_nav_win_pointer_release ()).
+ */
 struct GimvNavWin_Tag
 {
-   GtkWindow parent;
+   GtkBox parent;
 
    GtkWidget *out_frame;
    GtkWidget *in_frame;
    GtkWidget *preview;
 
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
-
-   GdkGC *gc;
+   GdkTexture *pixmap;
+   GdkTexture *mask;
 
    gint x_root, y_root;
 
@@ -82,7 +88,7 @@ struct GimvNavWin_Tag
 
 struct GimvNavWinClass_Tag
 {
-   GtkWindowClass parent_class;
+   GtkBoxClass parent_class;
 
    /* signals */
    void (*move) (GimvNavWin *navwin,
@@ -91,22 +97,28 @@ struct GimvNavWinClass_Tag
 };
 
 
-GtkType    gimv_nav_win_get_type             (void);
-GtkWidget *gimv_nav_win_new                  (GdkPixmap  *pixmap,
-                                              GdkBitmap  *mask,
+GType    gimv_nav_win_get_type             (void);
+GtkWidget *gimv_nav_win_new                  (GdkTexture  *pixmap,
+                                              GdkTexture  *mask,
                                               gint        image_width,
                                               gint        image_height,
                                               gint        view_width,
                                               gint        view_height,
                                               gint        view_pos_x,
                                               gint        view_pos_y);
+/* x, y: pointer position in the coordinates of the overlay (the parent) */
 void       gimv_nav_win_show                 (GimvNavWin *navwin,
-                                              gint        x_root,
-                                              gint        y_root);
+                                              gint        x,
+                                              gint        y);
 void       gimv_nav_win_hide                 (GimvNavWin *navwin);
+void       gimv_nav_win_pointer_motion       (GimvNavWin *navwin,
+                                              gdouble     x,
+                                              gdouble     y);
+void       gimv_nav_win_pointer_release      (GimvNavWin *navwin,
+                                              guint       button);
 void       gimv_nav_win_set_pixmap           (GimvNavWin *navwin,
-                                              GdkPixmap  *pixmap,
-                                              GdkBitmap  *mask,
+                                              GdkTexture  *pixmap,
+                                              GdkTexture  *mask,
                                               gint        image_width,
                                               gint        image_height);
 void       gimv_nav_win_set_orig_image_size  (GimvNavWin *navwin,

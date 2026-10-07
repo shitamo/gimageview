@@ -25,6 +25,8 @@
 #define __GFILEUTIL_H__
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 #include "gtkutils.h"
 

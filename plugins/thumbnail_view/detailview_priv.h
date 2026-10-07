@@ -44,7 +44,7 @@ extern DetailViewColumn detailview_columns[];
 extern gint             detailview_columns_num;
 
 
-extern GtkTargetEntry detailview_dnd_targets[];
+extern GimvTargetEntry detailview_dnd_targets[];
 extern const gint detailview_dnd_targets_num;
 
 

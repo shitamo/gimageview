@@ -95,7 +95,7 @@ static gboolean
 gimv_png_check_type (GimvIO *gio)
 {
    guchar buf[16];
-   size_t bytes_read;
+   guint bytes_read;
    long pos;
 
    g_return_val_if_fail (gio, FALSE);
@@ -255,7 +255,7 @@ gimv_png_load (GimvImageLoader *loader, gpointer data)
       return NULL;
    }
 
-   if (setjmp (png_ptr->jmpbuf)) goto ERROR;
+   if (setjmp (png_jmpbuf (png_ptr))) goto ERROR;
 
    context.gio = gio;
    context.bytes_read = 0;

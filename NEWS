@@ -1,3 +1,81 @@
+Version-0.2.27+gtk4 (GTK 4 port)
+
+	* Ported to GTK 4, built with Meson.
+	* Removed the support for Susie plugins.
+	* Removed lib/dllloader.
+	* The system libexif and GLib replace the bundled libexif and MD5 code.
+	* New loaders for Sun raster, WBMP, PNM and XPM; formats of the
+	  installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...) are
+	  recognized, and formats nothing can read are not listed.
+	* Comments on the thumbnail view: "Subject" and "Comment" columns in
+	  the detail view, a tooltip in the album view.
+	* Comment editor window: Close button (and Esc).
+	* Corrected spelling and wording of the English messages and menus
+	  (Faild -> Failed, Buttton, Thumnail, Tool -> Tools, ...); old key
+	  bindings in ~/.gimv/keyaccelrc for renamed menu items are migrated.
+	  po/gimageview.pot regenerated (tools/po-update.py).
+	* Dialog buttons (OK, Cancel, Apply, ...) are translated again.
+	* Help > Document shows the (Japanese) documents in other locales too.
+	* View > Layout and Window Composition show pictures of the layouts
+	  (a row of icon buttons; name and shortcut in the tooltip).
+	* New GStreamer movie plugin: plays movies and audio in the image view
+	  (the formats depend on the installed GStreamer plugins) and makes
+	  movie thumbnails.  It is the default player when no default view
+	  mode for movies is set.
+	* Archives are read with libarchive instead of running lha, unzip, rar
+	  and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS file
+	  names in old zip/lha archives are converted.
+	* Buttons use the icons of the desktop icon theme (Preferences >
+	  Common > Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/<name>)
+	  may contain PNG and SVG files.
+	* Tools > Set as Wallpaper sets the selected image as the desktop
+	  wallpaper (Xfce, GNOME, KDE Plasma, MATE, Cinnamon, LXDE/LXQt, feh;
+	  "This Desktop" picks the running one).  Other formats and images in
+	  archives are converted to PNG in ~/.gimv/wallpaper.
+	* The movie player shows the elapsed and the total time; a click on a
+	  playing movie no longer moves on to the next file.
+	* Top-down BMP and CMYK JPEG files are loaded.
+	* Printing (GTK print dialog): File > Print... (Ctrl+P) in the image
+	  window and the thumbnail window (selected images, one per page), and
+	  Print... in the popup menus.  The "Image" tab of the print dialog
+	  chooses fit to the page or a resolution in dpi, turning the image to
+	  the page orientation, and printing the file name.
+	* Movie seek bar: pointing at it shows the frame and the time there
+	  (GStreamer player; the time only for audio).
+	* Transparent images are shown over a checkerboard (View >
+	  Checkerboard Behind Transparency, also in the popup menu and in
+	  Preferences > Image Window > Background); off blends them with the
+	  background colour as before.
+	* Preferences > Movie and Audio: continuous play on/off.
+	* Preferences > Movie and Audio: optionally ignore mouse actions for
+	  next/previous image, zoom, rotation and scrolling while a movie or
+	  audio file plays (off by default: the mouse settings apply).
+	* Thumbnail view: directory names end with "/" in all view modes.
+	* Movies and audio files in archives can be played (they are extracted
+	  first; before, the player reported "Resource not found").
+	* Detail view: the image size is read from the file header (formats
+	  of gdk-pixbuf, and JPEG) instead of "Unknown" until the image was
+	  loaded; it is also updated when an image is opened.  The sizes are
+	  read in the background after the list is shown.
+	* The rotation of each image is remembered (kept in its comment file
+	  under ~/.gimv/comment, hidden in the comment editor) and restored
+	  when it is opened again; Preferences > Image Window > Image.
+	* The HTML manual (Japanese) has screenshots, and its descriptions of
+	  the menus, toolbars, mouse menus, preferences and key bindings were
+	  changed to match this version.
+	* Mouse button preferences: the side buttons "back" (button 8) and
+	  "forward" (button 9) can be assigned (nothing by default).
+	* English manual (HTML) and English plain text documents in the Help
+	  menu; they are shown for every language that has no documents of its
+	  own (only Japanese has).
+	* Color scheme (Preferences > Common > Appearance): the desktop theme,
+	  light or dark.  With the desktop theme, a dark theme that GTK 4
+	  cannot read (no gtk-4.0 directory, e.g. Greybird-dark) is shown with
+	  the dark Adwaita.  Icons of GImageView drawn only with black lines
+	  are drawn with light lines in dark colors.
+	* File open dialog: "Thumbnails of the selected files" also opens the
+	  selected folders, each in a tab of its own.
+
 Version-0.2.27
 
 	* Added some options for slideshow.

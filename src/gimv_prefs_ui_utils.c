@@ -39,50 +39,54 @@
  *  Mouse button preference
  *
  *******************************************************************************/
+/*
+ *  GTK4: GtkOptionMenu is gone.  The per item data of the GTK2 version
+ *  ("button-id", "mod-id", ...) is attached to the option menu (GtkDropDown)
+ *  itself, "num" is the selected index maintained by gimv_option_menu_*.
+ */
 static void
-cb_mouse_button (GtkWidget *menu_item, gpointer user_data)
+cb_mouse_button (GtkWidget *option_menu, gpointer user_data)
 {
    gchar **src = user_data, *dest, *tempstr, buf[128], *defval;
    gchar **buttons, **mods;
    gpointer bid_p, mid_p, num_p;
-   gint i, j, bid, mid, num, data[4];
-   GtkToggleButton *pressed, *released;
+   gint i, j, bid, mid, num, data[4], n_buttons, n_mods;
+   GtkWidget *released;
 
-   g_return_if_fail (menu_item);
+   g_return_if_fail (option_menu);
    g_return_if_fail (src && *src && **src);
 
-   bid_p    = gtk_object_get_data (GTK_OBJECT (menu_item), "button-id");
-   mid_p    = gtk_object_get_data (GTK_OBJECT (menu_item), "mod-id");
-   num_p    = gtk_object_get_data (GTK_OBJECT (menu_item), "num");
-   defval   = gtk_object_get_data (GTK_OBJECT (menu_item), "prefs-prechanged");
-   pressed  = gtk_object_get_data (GTK_OBJECT (menu_item), "pressed");
-   released = gtk_object_get_data (GTK_OBJECT (menu_item), "released");
+   bid_p    = g_object_get_data (G_OBJECT (option_menu), "button-id");
+   mid_p    = g_object_get_data (G_OBJECT (option_menu), "mod-id");
+   num_p    = g_object_get_data (G_OBJECT (option_menu), "num");
+   defval   = g_object_get_data (G_OBJECT (option_menu), "prefs-prechanged");
+   released = g_object_get_data (G_OBJECT (option_menu), "released");
 
    bid = GPOINTER_TO_INT (bid_p);
    mid = GPOINTER_TO_INT (mid_p);
    num = GPOINTER_TO_INT (num_p);
 
    if (!*src) return;
-   buttons = g_strsplit (*src, ";", 6);
+   buttons = g_strsplit (*src, ";", PREFS_MOUSE_BUTTON_IDS);
    if (!buttons) return;
+   n_buttons = g_strv_length (buttons);
    dest = g_strdup ("");
 
-   for (i = 0; i < 6; i++) {
-      mods = g_strsplit (buttons[i], ",", 4);
-      if (!mods) {
-         g_strfreev (buttons);
-         g_free (dest);
-         return;
-      }
+   /* settings of older versions have fewer groups: the others are 0 */
+   for (i = 0; i < PREFS_MOUSE_BUTTON_IDS; i++) {
+      mods = g_strsplit (i < n_buttons ? buttons[i] : "", ",", 4);
+      n_mods = mods ? g_strv_length (mods) : 0;
       for (j = 0; j < 4; j++) {
          if (i == bid && j == mid) {
-            if (released && released->active)
+            if (released && gimv_toggle_get_active (released))
                data[j] = 0 - num;
             else
                data[j] = num;
-         } else{
+         } else if (j < n_mods) {
             g_strstrip (mods[j]);
             data[j] = atoi (mods[j]);
+         } else {
+            data[j] = 0;
          }
       }
       g_snprintf (buf, 128, "%d,%d,%d,%d; ",
@@ -105,14 +109,22 @@ cb_mouse_button (GtkWidget *menu_item, gpointer user_data)
 static void
 cb_mouse_prefs_pressed_radio (GtkWidget *radio, gpointer data)
 {
-   GtkOptionMenu *option_menu = data;
+   GtkWidget *option_menu = data;
+   gchar **dest;
 
    g_return_if_fail (option_menu);
 
-   if (option_menu->menu_item)
-      gtk_signal_emit_by_name (GTK_OBJECT (option_menu->menu_item),
-                               "activate");
+   dest = g_object_get_data (G_OBJECT (option_menu), "prefs-dest");
+   if (dest)
+      cb_mouse_button (option_menu, dest);
 }
+
+
+/* frames of the mouse button page: left column buttons 1, 2, 3 and 8,
+   right column double click of button 1, buttons 4, 5 and 9.
+   frame_ids: the group of the button in the settings string (prefs.c) */
+static const gint frame_nums[PREFS_MOUSE_BUTTON_IDS] = { 1, 2, 3, 8, 1, 4, 5, 9 };
+static const gint frame_ids[PREFS_MOUSE_BUTTON_IDS]  = { 1, 2, 3, 6, 0, 4, 5, 7 };
 
 
 GtkWidget *
@@ -130,53 +142,48 @@ gimv_prefs_ui_mouse_prefs (const gchar **items,
 
    GtkWidget *main_vbox, *vbox, *hbox, *vbox1, *vbox2, *temp_vbox;
    GtkWidget *frame1, *frame_vbox1;
-   GtkWidget *label, *notebook, *option_menu, *menu, *menu_item;
+   GtkWidget *label, *notebook, *option_menu;
    GtkWidget *radio0, *radio1;
-   gchar buf[128], **temp = NULL, *buttons[6], **mods;
+   gchar buf[128], **temp = NULL, *buttons[PREFS_MOUSE_BUTTON_IDS], **mods;
+   const gchar **items_i18n;
    gint id, num, i, j, k, def;
 
    g_return_val_if_fail (items, NULL);
    g_return_val_if_fail (defval, NULL);
    g_return_val_if_fail (dest, NULL);
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   for (k = 0; items[k]; k++);
+   items_i18n = g_new0 (const gchar *, k + 1);
+   for (k = 0; items[k]; k++)
+      items_i18n[k] = _(items[k]);
 
-   hbox = gtk_hbox_new (TRUE, 0);
-   gtk_box_pack_start(GTK_BOX(main_vbox), hbox, FALSE, TRUE, 0);
-   vbox1 = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start(GTK_BOX(hbox), vbox1, FALSE, TRUE, 0);
-   vbox2 = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start(GTK_BOX(hbox), vbox2, FALSE, TRUE, 0);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
-   if (defval)
-      temp = g_strsplit (defval, ";", 6);
-   if (temp) {
-      buttons[0] = temp[1];
-      buttons[1] = temp[2];
-      buttons[2] = temp[3];
-      buttons[3] = temp[0];
-      buttons[4] = temp[4];
-      buttons[5] = temp[5];
-   } else {
-      for (i = 0; i < 6; i++)
-         buttons[i] = NULL;
+   hbox = gimv_hbox_new (TRUE, 0);
+   gimv_box_pack_start(GTK_BOX(main_vbox), hbox, FALSE, TRUE, 0);
+   vbox1 = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start(GTK_BOX(hbox), vbox1, FALSE, TRUE, 0);
+   vbox2 = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start(GTK_BOX(hbox), vbox2, FALSE, TRUE, 0);
+
+   {
+      gint n = 0;
+
+      if (defval)
+         temp = g_strsplit (defval, ";", PREFS_MOUSE_BUTTON_IDS);
+      if (temp)
+         n = g_strv_length (temp);
+      for (i = 0; i < PREFS_MOUSE_BUTTON_IDS; i++)
+         buttons[i] = frame_ids[i] < n ? temp[frame_ids[i]] : NULL;
    }
 
    /* create frames */
-   for (i = 0; i < 6; i++) {
-      if (i < 3) {
-         num = i + 1;
-         id = num;
-      } else if (i == 3) {
-         num = 1;
-         id = 0;
-      } else {
-         num = i;
-         id = num;
-      }
+   for (i = 0; i < PREFS_MOUSE_BUTTON_IDS; i++) {
+      num = frame_nums[i];
+      id  = frame_ids[i];
 
-      if (i / 3 < 1) {
+      if (i < PREFS_MOUSE_BUTTON_IDS / 2) {
          temp_vbox = vbox1;
       } else {
          temp_vbox = vbox2;
@@ -185,11 +192,15 @@ gimv_prefs_ui_mouse_prefs (const gchar **items,
       /**********************************************
        * Mouse Button X Frame
        **********************************************/
-      if (num == 4) {
+      if (num == 8) {
+         g_snprintf (buf, 128, _("Mouse Button %d (Back)"), num);
+      } else if (num == 9) {
+         g_snprintf (buf, 128, _("Mouse Button %d (Forward)"), num);
+      } else if (num == 4) {
          g_snprintf (buf, 128, _("Mouse Button %d (Wheel up)"), num);
       } else if (num == 5) {
          g_snprintf (buf, 128, _("Mouse Button %d (Wheel down)"), num);
-      } else if (i == 3) {
+      } else if (id == 0) {
          g_snprintf (buf, 128, _("Mouse Button %d Double Click"), num);
       } else {
          const gchar *button_num_str[] = {
@@ -199,15 +210,15 @@ gimv_prefs_ui_mouse_prefs (const gchar **items,
                      num, _(button_num_str[num]));
       }
       frame1 = gtk_frame_new (buf);
-      gtk_container_set_border_width(GTK_CONTAINER(frame1), 5);
-      gtk_box_pack_start(GTK_BOX(temp_vbox), frame1, FALSE, TRUE, 5);
-      frame_vbox1 = gtk_vbox_new (FALSE, 0);
-      gtk_container_set_border_width(GTK_CONTAINER(frame1), 5);
-      gtk_container_add (GTK_CONTAINER (frame1), frame_vbox1);
+      gimv_container_set_border_width (GTK_WIDGET (frame1), 5);
+      gimv_box_pack_start(GTK_BOX(temp_vbox), frame1, FALSE, TRUE, 5);
+      frame_vbox1 = gimv_vbox_new (FALSE, 0);
+      gimv_container_set_border_width (GTK_WIDGET (frame1), 5);
+      gimv_container_add (GTK_WIDGET (frame1), frame_vbox1);
 
       notebook = gtk_notebook_new ();
       gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), TRUE);
-      gtk_box_pack_start(GTK_BOX(frame_vbox1), notebook, FALSE, FALSE, 5);
+      gimv_box_pack_start(GTK_BOX(frame_vbox1), notebook, FALSE, FALSE, 5);
       gtk_widget_show (notebook);
 
       if (buttons[i] && *buttons[i]) {
@@ -220,84 +231,75 @@ gimv_prefs_ui_mouse_prefs (const gchar **items,
       for (j = 0; j < mod_keys_num; j++) {
          label = gtk_label_new (_(mod_keys[j]));
          gtk_widget_show (label);
-         vbox = gtk_vbox_new (FALSE, 0);
+         vbox = gimv_vbox_new (FALSE, 0);
          gtk_widget_show (vbox);
          gtk_notebook_append_page (GTK_NOTEBOOK (notebook),
                                    vbox, label);
 
-         if (mods[j] && *mods[j]) {
+         if (mods && mods[j] && *mods[j]) {
             g_strstrip (mods[j]);
             def = atoi (mods[j]);
          } else {
             def = 0;
          }
 
-         option_menu = gtk_option_menu_new();
-         menu = gtk_menu_new();
+         /* create option menu */
+         option_menu = gimv_option_menu_new (items_i18n, -1, abs (def),
+                                             G_CALLBACK (cb_mouse_button),
+                                             dest);
+         g_object_set_data (G_OBJECT (option_menu),
+                            "button-id",
+                            GINT_TO_POINTER(id));
+         g_object_set_data (G_OBJECT (option_menu),
+                            "mod-id",
+                            GINT_TO_POINTER(j));
+         g_object_set_data (G_OBJECT (option_menu),
+                            "prefs-prechanged",
+                            (gpointer) defval);
+         g_object_set_data (G_OBJECT (option_menu),
+                            "prefs-dest",
+                            (gpointer) dest);
 
-         gtk_box_pack_start(GTK_BOX(vbox), option_menu, FALSE, FALSE, 5);
+         gimv_box_pack_start(GTK_BOX(vbox), option_menu, FALSE, FALSE, 5);
 
-         hbox = gtk_hbox_new (FALSE, 0);
-         gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
+         hbox = gimv_hbox_new (FALSE, 0);
+         gimv_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
 
-         radio0 = gtk_radio_button_new_with_label (NULL, _("Pressed"));
-         gtk_box_pack_start (GTK_BOX (hbox), radio0, FALSE, FALSE, 0);
-         radio1 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio0),
-                                                               _("Released"));
-         gtk_box_pack_start (GTK_BOX (hbox), radio1, FALSE, FALSE, 0);
-         gtk_signal_connect (GTK_OBJECT (radio0), "toggled",
-                             GTK_SIGNAL_FUNC (cb_mouse_prefs_pressed_radio),
-                             option_menu);
-         gtk_signal_connect (GTK_OBJECT (radio1), "toggled",
-                             GTK_SIGNAL_FUNC (cb_mouse_prefs_pressed_radio),
-                             option_menu);
+         radio0 = gimv_radio_button_new_with_label (NULL, _("Pressed"));
+         gimv_box_pack_start (GTK_BOX (hbox), radio0, FALSE, FALSE, 0);
+         radio1 = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio0), _("Released"));
+         gimv_box_pack_start (GTK_BOX (hbox), radio1, FALSE, FALSE, 0);
+
+         g_object_set_data (G_OBJECT (option_menu),
+                            "pressed",
+                            (gpointer) radio0);
+         g_object_set_data (G_OBJECT (option_menu),
+                            "released",
+                            (gpointer) radio1);
 
          if (def < 0)
-            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio1), TRUE);
+            gimv_toggle_set_active (GTK_WIDGET (radio1), TRUE);
          else
-            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio0), TRUE);
+            gimv_toggle_set_active (GTK_WIDGET (radio0), TRUE);
+
+         g_signal_connect (G_OBJECT (radio0), "toggled",
+                           G_CALLBACK (cb_mouse_prefs_pressed_radio),
+                           option_menu);
+         g_signal_connect (G_OBJECT (radio1), "toggled",
+                           G_CALLBACK (cb_mouse_prefs_pressed_radio),
+                           option_menu);
 
          if (id == 0) {
             gtk_widget_set_sensitive (radio0, FALSE);
             gtk_widget_set_sensitive (radio1, FALSE);
          }
-
-         /* create option menu items */
-         for (k = 0; items[k]; k++) {
-            menu_item = gtk_menu_item_new_with_label (_(items[k]));
-            gtk_object_set_data (GTK_OBJECT (menu_item),
-                                 "button-id",
-                                 GINT_TO_POINTER(id));
-            gtk_object_set_data (GTK_OBJECT (menu_item),
-                                 "mod-id",
-                                 GINT_TO_POINTER(j));
-            gtk_object_set_data (GTK_OBJECT (menu_item),
-                                 "num",
-                                 GINT_TO_POINTER(k));
-            gtk_object_set_data (GTK_OBJECT (menu_item),
-                                 "prefs-prechanged",
-                                 (gpointer) defval);
-            gtk_signal_connect(GTK_OBJECT(menu_item), "activate",
-                               GTK_SIGNAL_FUNC(cb_mouse_button),
-                               dest);
-
-            gtk_object_set_data (GTK_OBJECT (menu_item),
-                                 "pressed",
-                                 (gpointer) radio0);
-            gtk_object_set_data (GTK_OBJECT (menu_item),
-                                 "released",
-                                 (gpointer) radio1);
-            gtk_menu_append (GTK_MENU(menu), menu_item);
-            gtk_widget_show (menu_item);
-         }
-         gtk_option_menu_set_menu (GTK_OPTION_MENU (option_menu), menu);
-         gtk_option_menu_set_history (GTK_OPTION_MENU (option_menu), abs (def));
       }
 
       g_strfreev (mods);
    }
 
    g_strfreev (temp);
+   g_free (items_i18n);
 
    return main_vbox;
 }
@@ -383,18 +385,18 @@ cb_dirprefs_dirsel_pressed (GtkButton *button, gpointer data)
 {
    DirListPrefs *dirprefs = data;
    gchar *path;
-   const gchar *default_path, *dialog_title = _("Select directory");
+   const gchar *default_path, *dialog_title = _("Select Directory");
 
    if (dirprefs->dialog_title)
       dialog_title = dirprefs->dialog_title;
 
-   default_path = gtk_entry_get_text (GTK_ENTRY (dirprefs->entry));
+   default_path = gtk_editable_get_text (GTK_EDITABLE (dirprefs->entry));
    path = gtkutil_modal_file_dialog (dialog_title,
                                      default_path,
                                      MODAL_FILE_DIALOG_DIR_ONLY,
                                      GTK_WINDOW (gimv_prefs_win_get ()));
    if (path)
-      gtk_entry_set_text (GTK_ENTRY (dirprefs->entry), path);
+      gtk_editable_set_text (GTK_EDITABLE (dirprefs->entry), path);
    g_free (path);
 }
 
@@ -430,40 +432,40 @@ gimv_prefs_ui_dir_list_prefs (const gchar *title,
 
    /* frame */
    frame = gtk_frame_new (title);
-   gtk_container_set_border_width(GTK_CONTAINER (frame), 0);
-   frame_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (frame), 5);
-   gtk_container_add (GTK_CONTAINER (frame), frame_vbox);
+   gimv_container_set_border_width (GTK_WIDGET (frame), 0);
+   frame_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (frame), 5);
+   gimv_container_add (GTK_WIDGET (frame), frame_vbox);
 
-   gtk_signal_connect (GTK_OBJECT (frame),"destroy",
-                       GTK_SIGNAL_FUNC (cb_dirprefs_destroy),
+   g_signal_connect (G_OBJECT (frame),"destroy",
+                       G_CALLBACK (cb_dirprefs_destroy),
                        dirprefs);
 
    /* clist */
    dirprefs->editlist = editlist
       = gimv_elist_new_with_titles (titles_num, titles);
    gimv_elist_set_column_title_visible (GIMV_ELIST (editlist), FALSE);
-   gtk_box_pack_start (GTK_BOX (frame_vbox), editlist, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (frame_vbox), editlist, TRUE, TRUE, 0);
    set_default_dir_list (dirprefs);
-   gtk_signal_connect (GTK_OBJECT (editlist), "list_updated",
-                       GTK_SIGNAL_FUNC (cb_dirprefs_editlist_updated), dirprefs);
+   g_signal_connect (G_OBJECT (editlist), "list_updated",
+                       G_CALLBACK (cb_dirprefs_editlist_updated), dirprefs);
 
    /* entry area */
    hbox = GIMV_ELIST (editlist)->edit_area;
 
-   label = gtk_label_new (_("Directory to add : "));
+   label = gtk_label_new (_("Directory to add: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
 
    entry = dirprefs->entry
       = gimv_elist_create_entry (GIMV_ELIST (editlist), 0,
                                  NULL, FALSE);
-   gtk_box_pack_start (GTK_BOX (hbox), entry, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), entry, TRUE, TRUE, 0);
 
    button = dirprefs->select_button = gtk_button_new_with_label (_("Select"));
-   gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button),"clicked",
-                       GTK_SIGNAL_FUNC (cb_dirprefs_dirsel_pressed), dirprefs);
+   gimv_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button),"clicked",
+                       G_CALLBACK (cb_dirprefs_dirsel_pressed), dirprefs);
 
    return frame;
 }
@@ -552,15 +554,15 @@ gimv_prefs_ui_double_clist (const gchar *title,
 
    /* frame */
    frame = gtk_frame_new (title);
-   gtk_container_set_border_width(GTK_CONTAINER (frame), 0);
-   frame_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width (GTK_CONTAINER (frame), 5);
-   gtk_container_add (GTK_CONTAINER (frame), frame_vbox);
+   gimv_container_set_border_width (GTK_WIDGET (frame), 0);
+   frame_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (frame), 5);
+   gimv_container_add (GTK_WIDGET (frame), frame_vbox);
 
 
    /* double stack list */
    dslist = gimv_dlist_new (clist1_title, clist2_title);
-   gtk_box_pack_start (GTK_BOX (frame_vbox), dslist, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (frame_vbox), dslist, TRUE, TRUE, 0);
    gtk_widget_show (dslist);
 
    /* set available list */
@@ -578,10 +580,10 @@ gimv_prefs_ui_double_clist (const gchar *title,
       g_strfreev (titles);
    }
 
-   gtk_signal_connect (GTK_OBJECT (dslist), "destroy",
-                       GTK_SIGNAL_FUNC (cb_dslist_destroy), dsdata);
-   gtk_signal_connect (GTK_OBJECT (dslist), "enabled_list_updated",
-                       GTK_SIGNAL_FUNC (cb_gimv_dlist_updated),
+   g_signal_connect (G_OBJECT (dslist), "destroy",
+                       G_CALLBACK (cb_dslist_destroy), dsdata);
+   g_signal_connect (G_OBJECT (dslist), "enabled_list_updated",
+                       G_CALLBACK (cb_gimv_dlist_updated),
                        dsdata);
 
    return frame;

@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>9. Tips</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="gimv_faq.html" title="8. GImageView FAQ">
+<link rel="next" href="gimv_history.html" title="10. GImageView History">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">9. Tips</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="gimv_faq.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="gimv_history.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="gimv_tips"></a>9. Tips</h2></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="gimv_tips_01"></a>Making the thumbnail view finish drawing faster</span></dt>
+<dd>
+<p class="para">
+gimv loads thumbnails at once in batches of the number specified in <span class="emphasis"><i>[Preferences | Thumbnail Window | GUI redraw interval while loading]</i></span>.
+</p>
+<p class="para">
+On a machine that draws slowly, increasing this value reduces the number of thumbnail updates (screen updates), which makes it somewhat faster. However, the larger the value, the less often the screen is updated and the longer nothing is shown, so 5 to 15 seems appropriate.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_02"></a>Making the image view finish drawing faster 1</span></dt>
+<dd>
+<p class="para">
+In <span class="emphasis"><i>[Preferences | Image Window | Show/Hide]</i></span>, either check all items or uncheck all items.
+</p>
+<p class="para">
+GImageView creates the window once and then removes the bars that are not checked. If &quot;none&quot; are checked, none of them are created, and conversely, if &quot;all are checked&quot;, all of them are created. Skipping this makes it faster by the amount of the &quot;remove&quot; operation. This is very effective when opening large images (larger than the screen resolution).
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_03"></a>Making the image view finish drawing faster 2</span></dt>
+<dd>
+<p class="para">
+Check <span class="emphasis"><i>[Preferences | Image Window | Image | Fit to the window size when opening a file]</i></span>.
+</p>
+<p class="para">
+Regardless of the user's settings, GImageView opens the image at the size specified in <span class="emphasis"><i>[Image Window | Window | Initial window size]</i></span>, and then resizes it to the original size of the image. Checking this option skips that resize, so it becomes faster by that amount of time. However, this is effective only when the image being opened is larger than the specified initial size.
+</p>
+<p class="para">
+Note that with this setting, the only way to &quot;display at the image size&quot; in the image view is to click <span class="emphasis"><i>[No Zoom]</i></span> to resize the image to its actual size, and then use &quot;Fit Window Size to Image&quot;.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_04"></a>Making the image view finish drawing faster 3</span></dt>
+<dd>
+<p class="para">
+Uncheck <span class="emphasis"><i>[Preferences | Image Window | Image | Auto resize to image size]</i></span>.
+</p>
+<p class="para">
+With this, images smaller than the initial window size are not resized either. Combined with the setting above, images are opened at the specified size regardless of their original size, which makes it faster by the amount of the resize.
+</p>
+<p class="para">
+Note that with this setting, the only way to &quot;display at the image size&quot; in the image view is to click <span class="emphasis"><i>[No Zoom]</i></span> to resize the image to its actual size, and then use &quot;Fit Window Size to Image&quot;.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_05"></a>Making drawing in the image view faster</span></dt>
+<dd>
+<p class="para">
+Check <span class="emphasis"><i>[Preferences | Image Window | Image | Keep the original image in memory]</i></span>.
+</p>
+<p class="para">
+When a displayed image is resized or rotated, GImageView re-renders the &quot;original image&quot; and displays it again. If you choose to &quot;keep the original image in memory&quot;, the &quot;original image&quot; is read from memory when rendering, and the drawing speed during rendering is greatly improved compared with reading it from disk every time (when unchecked).
+</p>
+<p class="para">
+When an image is opened for the very first time, it is read from disk whatever the setting, so this option does not matter there. Keeping images in memory uses an extra amount of memory of somewhat less than 1MB, and sometimes several MB or more, per image, so on a system with little memory, opening only a few images may use up the memory. For this reason the default setting is OFF.
+</p>
+<p class="para">
+This is obvious at a glance if you check the memory consumption of the GImageView process with the buffer ON and with the buffer OFF, using top or similar. Incidentally, similar programs such as GQview, gThumb and G-ThumB always have what GImageView calls the &quot;buffer&quot; ON, so the difference in memory consumption should be noticeable when several or more images are opened at the same time.
+</p>
+<p class="para">
+This is also related to the low memory consumption that GImageView claims.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_06"></a>Changing the thumbnail size temporarily</span></dt>
+<dd>
+<p class="para">
+Change the value in the toolbar and press Return, then use <span class="emphasis"><i>[Edit | Reload Cache]</i></span> (Shift + R) or <span class="emphasis"><i>[Update All Thumbnails]</i></span> (Ctrl + R or the mouse menu) to apply it.
+</p>
+<p class="para">
+If you use &quot;Reload Cache&quot;, the cached images are enlarged (or reduced) to the new thumbnail size and displayed. Reducing is fine, but when enlarging, the dots become coarse. To avoid this, use &quot;Update All Thumbnails&quot;. The cache is recreated at the new size, so the dots do not become coarse.
+</p>
+<p class="para">
+The setting made in the toolbar is not applied to new windows or new tabs (it is not saved). The value changed here is valid only in that tab. To change it permanently, change the value of <span class="emphasis"><i>[Preferences | Thumbnail Window | Thumbnail View | Thumbnail Size]</i></span>, or enable &quot;Save window state on exit&quot;.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_07"></a>Differences between [Refresh List], [Reload Cache] and [Update All Thumbnails]</span></dt>
+<dd><div class="variablelist"><dl>
+<dt><span class="term">Refresh List (R)</span></dt>
+<dd><p class="para">
+Updates only the differences between the information on disk and in memory. It only updates the file list and does not resize the thumbnails.
+</p></dd>
+<dt><span class="term">Reload Cache (Shift + R)</span></dt>
+<dd>
+<p class="para">
+Discards all information and reads all information from disk again. At this time, if a cache exists it is read from the cache, and if not, the thumbnail is created from the original image. If a cache exists, only the thumbnail is resized.
+</p>
+<p class="para">
+Because it is a resize and not a re-creation, if the saved cache is smaller than the specified size, the thumbnail is simply enlarged and the image looks bad.
+</p>
+</dd>
+<dt><span class="term">Update All Thumbnails (Ctrl + R)</span></dt>
+<dd><p class="para">
+Discards all information and reads all information from disk again. All thumbnails are re-created from the original images. When the displayed thumbnail size has been changed, this is probably the best one to use.
+</p></dd>
+</dl></div></dd>
+<dt><span class="term"><a name="gimv_tips_08"></a>About custom layouts</span></dt>
+<dd>
+<p class="para">
+By specifying <span class="emphasis"><i>[View | Layout]</i></span>, you can change the position of each pane of the GImageView thumbnail window. Layout 0 is the default, and layouts up to Layout 4 are provided as standard.
+</p>
+<p class="para">
+Besides these layouts, you can also make any pane arrangement as a custom layout.
+</p>
+<p class="para">
+<span class="emphasis"><i>Currently (version 0.1.2), custom settings cannot be made from a GUI or CUI. To make custom settings, you need to edit ~/.gimv/gimvrc directly.</i></span> A settings screen or a settings method will probably be properly built in in the future. Until then, please do this <span class="emphasis"><i>at your own risk</i></span>.
+</p>
+<p class="para">
+The items to edit are the following 6.
+</p>
+<div class="itemizedlist"><ul>
+<li><p class="para">thumbwin_pane1_horizontal (whether pane1 is split horizontally or vertically)</p></li>
+<li><p class="para">thumbwin_pane2_horizontal (the same for pane2)</p></li>
+<li><p class="para">thumbwin_pane2_attach_1   (whether pane2 is attached to child1 or child2 of pane1)</p></li>
+<li><p class="para">thumbwin_widget [0]  (the widget attached to the other side of pane1. 1 is the directory view, 2 the thumbnails, 3 the preview)</p></li>
+<li><p class="para">thumbwin_widget [1]  (child1 of pane2)</p></li>
+<li><p class="para">thumbwin_widget [2]  (child2 of pane2)</p></li>
+</ul></div>
+<p class="para">
+With Custom, the values set here are used. For Layouts 0 to 4, these 6 values are preset. They cannot be changed.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_09"></a>Custom layouts and window composition</span></dt>
+<dd>
+<p class="para">
+Simply put, &quot;a layout is something that can be customized freely&quot;, and &quot;a window composition is a predefined one&quot;.
+</p>
+<p class="para">
+At present, the layout can be changed freely with &quot;Window Composition&quot; or with &quot;DnD of the toolbar of the tab or directory view&quot;, and when these changes are made, the &quot;layout&quot; automatically becomes &quot;Custom&quot;.
+</p>
+<p class="para">
+For now the &quot;layouts&quot; are fixed to 5 kinds (excluding &quot;Custom&quot;), but eventually it is said that you will be able to register as many of your own preferred arrangements as you like as &quot;layouts&quot;. The interface under consideration is (adding an item &quot;Save Layout&quot; to the layout menu, so that a name can be given when saving a layout).
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_tips_10"></a>Similar image search</span></dt>
+<dd>
+<p class="para">
+The similar image search algorithm of GImageView is as follows.
+</p>
+<div class="orderedlist"><ol type="1">
+<li><p class="para">Regardless of the size/aspect ratio of the image, every image is squeezed into a 32x32 dot frame</p></li>
+<li><p class="para">The R/G/B differences of each pixel are accumulated and averaged (0 to 1.0)</p></li>
+<li><p class="para">If the difference is below the threshold, the images are judged to &quot;match&quot;</p></li>
+</ol></div>
+<p class="para">
+This threshold can be set in &quot;Search&quot; in the preferences, but it is actually set as a similarity (1.0 - difference). If the value is at or above this, the images are judged to match (a percentage might have been better).
+</p>
+<p class="para">
+Also, for the 32x32 image data (some programs seem to call it a &quot;fingerprint&quot; or similar), the thumbnails are actually used for speed. For this reason it does not work correctly if thumbnails have not been created.
+</p>
+<p class="para">
+Because of this implementation, images that look very similar to a human at first glance may actually be judged as &quot;not matching&quot;. This happens in the following cases.
+</p>
+<div class="orderedlist"><ol type="1">
+<li><p class="para">When the color balance is shifted as a whole (every pixel is uniformly judged to &quot;have a difference&quot;)</p></li>
+<li><p class="para">When the images are almost the same, but part of the image (top/bottom/right/left) has been cut off (pixels that do not correspond are compared)</p></li>
+</ol></div>
+</dd>
+</dl></div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="gimv_faq.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="gimv_history.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">8. GImageView FAQ&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;10. GImageView History</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

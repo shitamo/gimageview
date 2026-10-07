@@ -29,6 +29,8 @@
 #endif
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 
 GtkWidget *gimv_prefs_ui_mouse_prefs    (const gchar **items,
@@ -51,12 +53,12 @@ GtkWidget *gimv_prefs_ui_double_clist   (const gchar  *title,
 #define gimv_prefs_ui_create_frame(label, frame, vbox, parent, expand) \
 { \
    frame = gtk_frame_new (label); \
-   gtk_container_set_border_width(GTK_CONTAINER (frame), 0); \
-   gtk_box_pack_start(GTK_BOX (parent), frame, expand, TRUE, 0); \
+   gimv_container_set_border_width (GTK_WIDGET (frame), 0); \
+   gimv_box_pack_start(GTK_BOX (parent), frame, expand, TRUE, 0); \
    gtk_widget_show (frame); \
-   vbox = gtk_vbox_new (FALSE, 0); \
-   gtk_container_set_border_width (GTK_CONTAINER(frame), 5); \
-   gtk_container_add (GTK_CONTAINER (frame), vbox); \
+   vbox = gimv_vbox_new (FALSE, 0); \
+   gimv_container_set_border_width (GTK_WIDGET (frame), 5); \
+   gimv_container_add (GTK_WIDGET (frame), vbox); \
    gtk_widget_show (vbox); \
 }
 

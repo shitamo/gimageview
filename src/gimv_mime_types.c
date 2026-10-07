@@ -162,12 +162,13 @@ gimv_mime_types_add_extension (const gchar *mime_type,
                               str, g_strdup (mime_type));
 
          known_ext_list = g_list_append (known_ext_list, str);
-         g_list_sort (known_ext_list, (GCompareFunc) strcmp);
+         known_ext_list = g_list_sort (known_ext_list, (GCompareFunc) strcmp);
 
          if (sysdef_check_enable (ext)) {
             known_enabled_ext_list = g_list_append (known_enabled_ext_list,
                                                     str);
-            g_list_sort (known_enabled_ext_list, (GCompareFunc) strcmp);
+            known_enabled_ext_list = g_list_sort (known_enabled_ext_list,
+                                                  (GCompareFunc) strcmp);
          }
       }
       return TRUE;
@@ -335,7 +336,7 @@ gimv_mime_types_get_extension (const gchar *filename)
    else
       return NULL;
 
-   if (ext == "\0")
+   if (*ext == '\0')
       return NULL;
    else
       return ext;

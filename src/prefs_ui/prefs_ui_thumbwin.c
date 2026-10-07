@@ -130,24 +130,6 @@ static const gchar *tab_pos_items[] = {
 };
 
 
-#ifndef ENABLE_TREEVIEW
-static const gchar *ctree_line_style_items[] = {
-   N_("None"),
-   N_("Solid"),
-   N_("Dotted"),
-   N_("Tabbed"),
-   NULL
-};
-
-
-static const gchar *ctree_expander_style_items[] = {
-   N_("None"),
-   N_("Square"),
-   N_("Triangle"),
-   N_("Circular"),
-   NULL
-};
-#endif /* ENABLE_TREEVIEW */
 
 
 static const gchar *thumbview_mouse_items[] = {
@@ -187,7 +169,7 @@ static const gchar *preview_mouse_items[] = {
    N_("Fit image size to frame"),
    N_("Rotate CCW"),
    N_("Rotate CW"),
-   N_("Open navigate window"),
+   N_("Open the navigation window"),
    N_("Scroll up"),
    N_("Scroll down"),
    N_("Scroll left"),
@@ -257,7 +239,7 @@ cb_player_visible (GtkWidget *radio, gpointer data)
 {
    gint idx = GPOINTER_TO_INT (data);
 
-   if (!GTK_TOGGLE_BUTTON (radio)->active) return;
+   if (!gimv_toggle_get_active (GTK_WIDGET (radio))) return;
 
    config_changed->preview_player_visible = idx;
 }
@@ -339,7 +321,7 @@ static void
 cb_save_thumbwin_state (GtkWidget *toggle)
 {
    config_changed->thumbwin_save_win_state =
-      gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(toggle));
+      gimv_toggle_get_active (GTK_WIDGET (toggle));
 
    set_sensitive_thumbwin ();
 }
@@ -351,7 +333,7 @@ cb_default_disp_mode (GtkWidget *widget)
    const gchar *tmpstr;
    gint disp_mode;
 
-   disp_mode = GPOINTER_TO_INT (gtk_object_get_data (GTK_OBJECT (widget), "num"));
+   disp_mode = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (widget), "num"));
    tmpstr = gimv_thumb_view_num_to_label (disp_mode);
    if (tmpstr)
       config_changed->thumbwin_disp_mode = (gchar *) tmpstr;
@@ -364,7 +346,7 @@ static void
 cb_zoom_menu (GtkWidget *menu)
 {
    config_changed->preview_zoom =
-      GPOINTER_TO_INT (gtk_object_get_data(GTK_OBJECT(menu), "num"));
+      GPOINTER_TO_INT (g_object_get_data(G_OBJECT (menu), "num"));
    set_sensitive_preview();
 }
 
@@ -387,10 +369,10 @@ prefs_thumbwin_page (void)
    GtkWidget *option_menu;
    GtkWidget *toggle, *radio[3];
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
-   gtk_signal_connect (GTK_OBJECT (main_vbox), "destroy",
-                       GTK_SIGNAL_FUNC (cb_thumbwin_page_destroy), NULL);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
+   g_signal_connect (G_OBJECT (main_vbox), "destroy",
+                       G_CALLBACK (cb_thumbwin_page_destroy), NULL);
 
 
    /**********************************************
@@ -403,58 +385,58 @@ prefs_thumbwin_page (void)
                                          conf.thumbwin_save_win_state,
                                          cb_save_thumbwin_state,
                                          &config_changed->thumbwin_save_win_state);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* Window width and height spinner */
-   hbox = gtk_hbox_new (FALSE, 10);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 10);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    label = gtk_label_new (_("width"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    adj = (GtkAdjustment *) gtk_adjustment_new (conf.thumbwin_width,
                                                1.0, 10000.0, 1.0, 5.0, 0.0);
    spinner = prefs_win.thumbwin_width_spin = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 50, -1);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
+   gimv_widget_set_size(spinner, 50, -1);
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
                        &config_changed->thumbwin_width);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
 
    label = gtk_label_new (_("height"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    adj = (GtkAdjustment *) gtk_adjustment_new (conf.thumbwin_height,
                                                1.0, 10000.0, 1.0, 5.0, 0.0);
    spinner = prefs_win.thumbwin_height_spin = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 50, -1);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
+   gimv_widget_set_size(spinner, 50, -1);
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
                        &config_changed->thumbwin_height);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
 
    /* Toolbar Style */
    label = gtk_label_new (_("Default Layout"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
 
    option_menu = create_option_menu_simple (layout_items,
                                             conf.thumbwin_layout_type,
                                             (gint *) &config_changed->thumbwin_layout_type);
    prefs_win.thumbwin_layout = option_menu;
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 0);
 
    /* Show/Hide frame */
    gimv_prefs_ui_create_frame (_("Show/Hide"), frame, vbox2, vbox, FALSE);
 
-   hbox = gtk_hbox_new (FALSE, 10);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 0);
-   gtk_box_pack_start (GTK_BOX (vbox2), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 10);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 0);
+   gimv_box_pack_start (GTK_BOX (vbox2), hbox, FALSE, FALSE, 0);
 
-   hbox2 = gtk_hbox_new (FALSE, 10);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox2), 0);
-   gtk_box_pack_start (GTK_BOX (vbox2), hbox2, FALSE, FALSE, 0);
+   hbox2 = gimv_hbox_new (FALSE, 10);
+   gimv_container_set_border_width (GTK_WIDGET (hbox2), 0);
+   gimv_box_pack_start (GTK_BOX (vbox2), hbox2, FALSE, FALSE, 0);
 
-   hbox3 = gtk_hbox_new (FALSE, 10);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox3), 0);
-   gtk_box_pack_start (GTK_BOX (vbox2), hbox3, FALSE, FALSE, 0);
+   hbox3 = gimv_hbox_new (FALSE, 10);
+   gimv_container_set_border_width (GTK_WIDGET (hbox3), 0);
+   gimv_box_pack_start (GTK_BOX (vbox2), hbox3, FALSE, FALSE, 0);
 
    /* Show Directory or not */
    toggle = gtkutil_create_check_button (_("Directory view"),
@@ -462,7 +444,7 @@ prefs_thumbwin_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_dir_view);
    prefs_win.thumbwin_dirview_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 0);
 
    /* Show Preview or not */
    toggle = gtkutil_create_check_button (_("Preview"),
@@ -470,7 +452,7 @@ prefs_thumbwin_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_preview);
    prefs_win.thumbwin_preview_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 0);
 
    /* Show Preview Tab or not */
    toggle = gtkutil_create_check_button (_("Preview Tab"),
@@ -478,7 +460,7 @@ prefs_thumbwin_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_preview_tab);
    prefs_win.thumbwin_preview_tab_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 0);
 
    /* Show Menubar or not */
    toggle = gtkutil_create_check_button (_("Menubar"),
@@ -486,7 +468,7 @@ prefs_thumbwin_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_menubar);
    prefs_win.thumbwin_menubar_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
 
    /* Show Toolbar or not */
    toggle = gtkutil_create_check_button (_("Toolbar"),
@@ -494,7 +476,7 @@ prefs_thumbwin_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_toolbar);
    prefs_win.thumbwin_toolbar_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
 
    /* Show Statusbar or not */
    toggle = gtkutil_create_check_button (_("Statusbar"),
@@ -502,7 +484,7 @@ prefs_thumbwin_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_statusbar);
    prefs_win.thumbwin_statusbar_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
 
    /* Show Tab or not */
    toggle = gtkutil_create_check_button (_("Tab"),
@@ -510,46 +492,44 @@ prefs_thumbwin_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_tab);
    prefs_win.thumbwin_tab_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox2), toggle, FALSE, FALSE, 0);
 
    /* player */
-   label = gtk_label_new (_("Player toolbar :"));
-   gtk_box_pack_start (GTK_BOX (hbox3), label, FALSE, FALSE, 0);
+   label = gtk_label_new (_("Player toolbar:"));
+   gimv_box_pack_start (GTK_BOX (hbox3), label, FALSE, FALSE, 0);
    prefs_win.thumbwin_player_label = label;
 
-   radio[0] = gtk_radio_button_new_with_label (NULL, _("Show"));
-   gtk_box_pack_start (GTK_BOX (hbox3), radio[0], FALSE, FALSE, 0);
-   gtk_signal_connect (GTK_OBJECT (radio[0]), "toggled",
-                       GTK_SIGNAL_FUNC (cb_player_visible),
+   radio[0] = gimv_radio_button_new_with_label (NULL, _("Show"));
+   gimv_box_pack_start (GTK_BOX (hbox3), radio[0], FALSE, FALSE, 0);
+   g_signal_connect (G_OBJECT (radio[0]), "toggled",
+                       G_CALLBACK (cb_player_visible),
                        GINT_TO_POINTER(GimvImageViewPlayerVisibleShow));
    prefs_win.thumbwin_player_radio[0] = radio[0];
 
-   radio[1] = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio[0]),
-                                                           _("Hide"));
-   gtk_box_pack_start (GTK_BOX (hbox3), radio[1], FALSE, FALSE, 0);
-   gtk_signal_connect (GTK_OBJECT (radio[1]), "toggled",
-                       GTK_SIGNAL_FUNC (cb_player_visible),
+   radio[1] = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio[0]), _("Hide"));
+   gimv_box_pack_start (GTK_BOX (hbox3), radio[1], FALSE, FALSE, 0);
+   g_signal_connect (G_OBJECT (radio[1]), "toggled",
+                       G_CALLBACK (cb_player_visible),
                        GINT_TO_POINTER(GimvImageViewPlayerVisibleHide));
    prefs_win.thumbwin_player_radio[1] = radio[1];
 
-   radio[2] = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio[1]),
-                                                           _("Auto"));
-   gtk_box_pack_start (GTK_BOX (hbox3), radio[2], FALSE, FALSE, 0);
-   gtk_signal_connect (GTK_OBJECT (radio[2]), "toggled",
-                       GTK_SIGNAL_FUNC (cb_player_visible),
+   radio[2] = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio[1]), _("Auto"));
+   gimv_box_pack_start (GTK_BOX (hbox3), radio[2], FALSE, FALSE, 0);
+   g_signal_connect (G_OBJECT (radio[2]), "toggled",
+                       G_CALLBACK (cb_player_visible),
                        GINT_TO_POINTER(GimvImageViewPlayerVisibleAuto));
    prefs_win.thumbwin_player_radio[2] = radio[2];
 
    switch (config_changed->preview_player_visible) {
    case GimvImageViewPlayerVisibleShow:
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio[0]), TRUE);
+      gimv_toggle_set_active (GTK_WIDGET (radio[0]), TRUE);
       break;
    case GimvImageViewPlayerVisibleHide:
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio[1]), TRUE);
+      gimv_toggle_set_active (GTK_WIDGET (radio[1]), TRUE);
       break;
    case GimvImageViewPlayerVisibleAuto:
    default:
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio[2]), TRUE);
+      gimv_toggle_set_active (GTK_WIDGET (radio[2]), TRUE);
       break;
    }
 
@@ -558,58 +538,58 @@ prefs_thumbwin_page (void)
                                          conf.thumbwin_raise_window,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_raise_window);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
    /* Toolbar Style */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
    label = gtk_label_new (_("Toolbar Style"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
 
    option_menu = create_option_menu_simple (toolbar_style_items,
                                             conf.thumbwin_toolbar_style,
                                             (gint *) &config_changed->thumbwin_toolbar_style);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
 
 
    /* "Loading" frame */
    gimv_prefs_ui_create_frame (_("Loading"), frame, vbox, main_vbox, FALSE);
 
    /* GUI redraw interval */
-   hbox = gtk_hbox_new (FALSE, 10);
-   gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 10);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
    label = gtk_label_new (_("GUI redraw interval while loading: Every"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    adj = (GtkAdjustment *) gtk_adjustment_new (conf.thumbwin_redraw_interval,
                                                1.0, 1000.0, 1.0, 5.0, 0.0);
    spinner = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 50, -1);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
+   gimv_widget_set_size(spinner, 50, -1);
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
                        &config_changed->thumbwin_redraw_interval);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
 
    label = gtk_label_new (_("files"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
 
    /* show detail of progress */
    toggle = gtkutil_create_check_button (_("Show detail of loading progress"),
                                          conf.thumbwin_show_progress_detail,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_progress_detail);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
 
    /* set sensitive */
    set_sensitive_thumbwin ();
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }
@@ -621,13 +601,13 @@ prefs_thumbview_toolbar_page (void)
    GtkWidget *main_vbox;
    GtkWidget *label;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
    label = gtk_label_new (_("Not implemented yet."));
-   gtk_box_pack_start (GTK_BOX (main_vbox), label, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (main_vbox), label, FALSE, FALSE, 5);
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }
@@ -648,10 +628,10 @@ prefs_thumbwin_tab_page (void)
    GtkWidget *option_menu;
    GtkWidget *toggle;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
-   gtk_signal_connect (GTK_OBJECT (main_vbox), "destroy",
-                       GTK_SIGNAL_FUNC (cb_thumbwin_tab_page_destroy), NULL);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
+   g_signal_connect (G_OBJECT (main_vbox), "destroy",
+                       G_CALLBACK (cb_thumbwin_tab_page_destroy), NULL);
 
 
    /**********************************************
@@ -660,18 +640,18 @@ prefs_thumbwin_tab_page (void)
    gimv_prefs_ui_create_frame (_("Tab"), frame, vbox, main_vbox, FALSE);
 
    /* Tab Position Selection */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    label = gtk_label_new (_("Tab Position"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
 
    option_menu = create_option_menu_simple (tab_pos_items,
                                             conf.thumbwin_tab_pos,
                                             (gint *) &config_changed->thumbwin_tab_pos);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    prefs_win.thumbwin_tab_pos = option_menu;
 
    /* Move to new tab automatically or not */
@@ -679,40 +659,39 @@ prefs_thumbwin_tab_page (void)
                                          conf.thumbwin_move_to_newtab,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_move_to_newtab);
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
 
    /* show tab close button */
    toggle = gtkutil_create_check_button (_("Show close button"),
                                          conf.thumbwin_show_tab_close,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_show_tab_close);
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
    /* show full path in tab */
    toggle = gtkutil_create_check_button (_("Show full path"),
                                          conf.thumbwin_tab_fullpath,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_tab_fullpath);
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
    /* force open tab */
-   toggle = gtkutil_create_check_button (_("Open new tab whether image is exist or not "
-                                           "in the directory"),
+   toggle = gtkutil_create_check_button (_("Open a new tab even if the directory has no images"),
                                          conf.thumbwin_force_open_tab,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbwin_force_open_tab);
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
 
 
    set_sensitive_thumbwin_tab ();
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }
@@ -728,10 +707,10 @@ prefs_thumbview_page (void)
    gint num, disp_mode;
    gchar **disp_mode_labels;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
-   gtk_signal_connect (GTK_OBJECT (main_vbox), "destroy",
-                       GTK_SIGNAL_FUNC (cb_thumbview_page_destroy), NULL);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
+   g_signal_connect (G_OBJECT (main_vbox), "destroy",
+                       G_CALLBACK (cb_thumbview_page_destroy), NULL);
 
 
    /**********************************************
@@ -739,48 +718,48 @@ prefs_thumbview_page (void)
     **********************************************/
    gimv_prefs_ui_create_frame (_("Show/Hide"), frame, vbox, main_vbox, FALSE);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
    /* show directory */
    toggle = gtkutil_create_check_button (_("Directory"),
                                          conf.thumbview_show_dir,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbview_show_dir);
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
 
    /* show archive */
    toggle = gtkutil_create_check_button (_("Archive"),
                                          conf.thumbview_show_archive,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->thumbview_show_archive);
-   gtk_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), toggle, FALSE, FALSE, 5);
 
 
    /* Default display mode */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, FALSE, 0);
 
    disp_mode_labels = gimv_thumb_view_get_summary_mode_labels (&num);
 
    label = gtk_label_new (_("Default display mode"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
 
    disp_mode = gimv_thumb_view_label_to_num (conf.thumbwin_disp_mode);
    option_menu = create_option_menu ((const gchar **)disp_mode_labels,
                                      disp_mode,
                                      cb_default_disp_mode,
                                      NULL);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
    prefs_win.thumbview_display_mode = option_menu;
 
    /* Thumbnail size spinner */
-   hbox = gtk_hbox_new (FALSE, 10);
-   gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
-   gtk_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 10);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, FALSE, 0);
 
-   label = gtk_label_new (_("Thumnail Size"));
-   gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
+   label = gtk_label_new (_("Thumbnail Size"));
+   gimv_box_pack_start(GTK_BOX(hbox), label, FALSE, TRUE, 0);
 
    adj = (GtkAdjustment *) gtk_adjustment_new (conf.thumbwin_thumb_size,
                                                GIMV_THUMB_WIN_MIN_THUMB_SIZE,
@@ -788,15 +767,15 @@ prefs_thumbview_page (void)
                                                1.0, 5.0, 0.0);
    spinner = gtkutil_create_spin_button (adj);
    prefs_win.thumbview_thumb_size = spinner;
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
                        &config_changed->thumbwin_thumb_size);
-   gtk_box_pack_start(GTK_BOX(hbox), spinner, FALSE, TRUE, 0);
+   gimv_box_pack_start(GTK_BOX(hbox), spinner, FALSE, TRUE, 0);
 
 
    set_sensitive_thumbview  ();
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }
@@ -817,7 +796,7 @@ prefs_thumbview_mouse_page (void)
                                      conf.thumbview_mouse_button,
                                      &config_changed->thumbview_mouse_button);
 
-   gtk_widget_show_all (vbox);
+   gimv_widget_show_all (vbox);
 
    return vbox;
 }
@@ -836,10 +815,10 @@ prefs_dirview_page (void)
    GtkWidget *frame, *vbox;
    GtkWidget *toggle;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
-   gtk_signal_connect (GTK_OBJECT (main_vbox), "destroy",
-                       GTK_SIGNAL_FUNC (cb_dirview_page_destroy), NULL);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
+   g_signal_connect (G_OBJECT (main_vbox), "destroy",
+                       G_CALLBACK (cb_dirview_page_destroy), NULL);
 
 
    /**********************************************
@@ -852,127 +831,32 @@ prefs_dirview_page (void)
                                          conf.dirview_show_toolbar,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->dirview_show_toolbar);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* show/hide dot file */
-   toggle = gtkutil_create_check_button (_("Show dot file"),
+   toggle = gtkutil_create_check_button (_("Show dotfiles"),
                                          conf.dirview_show_dotfile,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->dirview_show_dotfile);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* show/hide dot file */
-   toggle = gtkutil_create_check_button (_("Show \".\" directory whether hide dotfile or not."),
+   toggle = gtkutil_create_check_button (_("Show the \".\" directory even when dotfiles are hidden"),
                                          conf.dirview_show_current_dir,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->dirview_show_current_dir);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* show/hide dot file */
-   toggle = gtkutil_create_check_button (_("Show \"..\" directory whether hide dotfile or not."),
+   toggle = gtkutil_create_check_button (_("Show the \"..\" directory even when dotfiles are hidden"),
                                          conf.dirview_show_parent_dir,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->dirview_show_parent_dir);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
 
-#ifndef ENABLE_TREEVIEW
-{
-   GtkWidget *hbox;
-   GtkWidget *label, *spinner;
-   GtkAdjustment *adj;
-   GtkWidget *option_menu;
 
-   /**********************************************
-    * Style Frame
-    **********************************************/
-   gimv_prefs_ui_create_frame (_("Style"), frame, vbox, main_vbox, FALSE);
-
-   /* tree line style */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER (hbox), 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-   label = gtk_label_new (_("Tree line style"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
-   option_menu = create_option_menu_simple (ctree_line_style_items,
-                                            conf.dirview_line_style,
-                                            (gint *) &config_changed->dirview_line_style);
-   gtk_widget_set_usize (option_menu, 100, -1);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
-
-   /* tree expander style */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER (hbox), 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-   label = gtk_label_new (_("Tree expander style"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
-   option_menu = create_option_menu_simple (ctree_expander_style_items,
-                                            conf.dirview_expander_style,
-                                            (gint *) &config_changed->dirview_expander_style);
-   gtk_widget_set_usize (option_menu, 100, -1);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
-
-
-   /**********************************************
-    * Drag and Drop Frame
-    **********************************************/
-   gimv_prefs_ui_create_frame (_("Drag and Drop"), frame, vbox, main_vbox, FALSE);
-
-   /* auto scroll */
-   toggle = gtkutil_create_check_button (_("Enable auto scroll."),
-                                         conf.dirview_auto_scroll,
-                                         gtkutil_get_data_from_toggle_cb,
-                                         &config_changed->dirview_auto_scroll);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
-
-   /* auto scroll interval */
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-   label = gtk_label_new (_("Auto scroll interval"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
-   adj = (GtkAdjustment *) gtk_adjustment_new (conf.dirview_auto_scroll_time,
-                                               0, 1000,
-                                               5.0, 10.0, 0.0);
-   spinner = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 70, -1);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
-                       &config_changed->dirview_auto_scroll_time);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
-
-   label = gtk_label_new (_("[ms]"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
-
-   /* auto expand */
-   toggle = gtkutil_create_check_button (_("Enable auto expand directory tree."),
-                                         conf.dirview_auto_expand,
-                                         gtkutil_get_data_from_toggle_cb,
-                                         &config_changed->dirview_auto_expand);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
- 
-   /* auto expand time */
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-   label = gtk_label_new (_("Lag time for auto expand"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
-   adj = (GtkAdjustment *) gtk_adjustment_new (conf.dirview_auto_expand_time,
-                                               0, 60000,
-                                               100.0, 500.0, 0.0);
-   spinner = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 70, -1);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_int_cb),
-                       &config_changed->dirview_auto_expand_time);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
-
-   label = gtk_label_new (_("[ms]"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
-}
-#endif /* ENABLE_TREEVIEW */
-
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }
@@ -993,7 +877,7 @@ prefs_dirview_mouse_page (void)
                                      conf.dirview_mouse_button,
                                      &config_changed->dirview_mouse_button);
 
-   gtk_widget_show_all (vbox);
+   gimv_widget_show_all (vbox);
 
    return vbox;
 }
@@ -1012,10 +896,10 @@ prefs_preview_page (void)
    GtkWidget *spinner, *toggle, *label, *option_menu;
    GtkAdjustment *adj;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
-   gtk_signal_connect (GTK_OBJECT (main_vbox), "destroy",
-                       GTK_SIGNAL_FUNC (cb_preview_page_destroy), NULL);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
+   g_signal_connect (G_OBJECT (main_vbox), "destroy",
+                       G_CALLBACK (cb_preview_page_destroy), NULL);
 
 
    /********************************************** 
@@ -1023,43 +907,39 @@ prefs_preview_page (void)
     **********************************************/
    gimv_prefs_ui_create_frame (_("Image"), frame, vbox, main_vbox, FALSE);
 
-   alignment = gtk_alignment_new (0.0, 0.5, 0.0, 0.0);
-   gtk_box_pack_start (GTK_BOX (vbox), alignment, FALSE, FALSE, 0);
+   alignment = gimv_alignment_new (0.0, 0.5, 0.0, 0.0);
+   gimv_box_pack_start (GTK_BOX (vbox), alignment, FALSE, FALSE, 0);
 
-   table = gtk_table_new (2, 2, FALSE);
-   gtk_container_add (GTK_CONTAINER (alignment), table);
+   table = gimv_table_new (2, 2, FALSE);
+   gimv_container_add (GTK_WIDGET (alignment), table);
 
    /* Zoom menu */
    label = gtk_label_new (_("Zoom:"));
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 0, 1,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), label);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 0, 1, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
 
    option_menu = create_option_menu (zoom_menu_items,
                                      conf.preview_zoom,
                                      cb_zoom_menu, NULL);
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), option_menu);
-   gtk_table_attach (GTK_TABLE (table), alignment, 1, 2, 0, 1,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), option_menu);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 1, 2, 0, 1, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
 
    /* Rotate menu */
    label = gtk_label_new (_("Rotation:"));
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 1, 2,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), label);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
 
    option_menu = create_option_menu_simple (rotate_menu_items,
                                             conf.preview_rotation,
                                             &config_changed->preview_rotation);
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), option_menu);
-   gtk_table_attach (GTK_TABLE (table), alignment, 1, 2, 1, 2,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), option_menu);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 1, 2, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
 #if 0
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 0);
 #endif
 
    /* Keep Aspect Ratio */
@@ -1067,24 +947,24 @@ prefs_preview_page (void)
                                          conf.preview_keep_aspect,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->preview_keep_aspect);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* Default Image Scale Spinner */
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 5);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    label = gtk_label_new (_("Default Image Scale"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    adj = (GtkAdjustment *) gtk_adjustment_new (conf.preview_scale,
                                                1.0, 10000.0, 1.0, 5.0, 0.0);
    prefs_win.preview_scale_spin = spinner = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 50, -1);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_float_cb),
+   gimv_widget_set_size(spinner, 50, -1);
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_float_cb),
                        &config_changed->preview_scale);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
    label = gtk_label_new (_("%"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
 
    /* Show Scrollbar or not */
    toggle = gtkutil_create_check_button (_("Show scrollbar"),
@@ -1092,18 +972,18 @@ prefs_preview_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->preview_scrollbar);
    prefs_win.preview_scrollbar_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* keep original image on memory or not */
-   toggle = gtkutil_create_check_button (_("Keep original image on memory"),
+   toggle = gtkutil_create_check_button (_("Keep the original image in memory"),
                                          conf.preview_buffer,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->preview_buffer);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    set_sensitive_preview  ();
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }
@@ -1124,7 +1004,7 @@ prefs_preview_mouse_page (void)
                                      conf.preview_mouse_button,
                                      &config_changed->preview_mouse_button);
 
-   gtk_widget_show_all (vbox);
+   gimv_widget_show_all (vbox);
 
    return vbox;
 }
@@ -1149,8 +1029,8 @@ prefs_ui_thumbwin_apply (GimvPrefsWinAction action)
 
    for (node = gimv_thumb_win_get_list(); node; node = g_list_next (node)) {
       tw = node->data;
-      gtk_toolbar_set_style (GTK_TOOLBAR(tw->toolbar),
-                             dest->thumbwin_toolbar_style);
+      gtkutil_toolbar_set_style (tw->toolbar,
+                                 dest->thumbwin_toolbar_style);
 
       gtk_widget_queue_resize (tw->toolbar_handle);
    }
@@ -1200,20 +1080,6 @@ prefs_ui_dirview_apply (GimvPrefsWinAction action)
       break;
    }
 
-#ifndef ENABLE_TREEVIEW
-   {
-      GList *node;
-      for (node = gimv_thumb_win_get_list(); node; node = g_list_next (node)) {
-         GimvThumbWin *tw = node->data;
-         if (tw->dv) {
-            gtk_ctree_set_line_style (GTK_CTREE (tw->dv->dirtree),
-                                      dest->dirview_line_style);
-            gtk_ctree_set_expander_style (GTK_CTREE (tw->dv->dirtree),
-                                          dest->dirview_expander_style);
-         }
-      }
-   }
-#endif /* ENABLE_TREEVIEW */
 
    return FALSE;
 }
@@ -1241,18 +1107,18 @@ prefs_ui_preview_apply (GimvPrefsWinAction action)
 
       if (tw->iv) {
          if (dest->preview_zoom == 0) {
-            gtk_object_set (GTK_OBJECT (tw->iv),
-                            "x_scale", dest->preview_scale,
-                            "y_scale", dest->preview_scale,
-                            NULL);
+            g_object_set (G_OBJECT (tw->iv),
+                          "x_scale", dest->preview_scale,
+                          "y_scale", dest->preview_scale,
+                          NULL);
          }
-         gtk_object_set (GTK_OBJECT (tw->iv),
-                         "default_zoom",       dest->preview_zoom,
-                         "default_rotation",   dest->preview_rotation,
-                         "keep_aspect",        dest->preview_keep_aspect,
-                         "keep_buffer",        dest->preview_buffer,
-                         "show_scrollbar",     dest->preview_scrollbar,
-                         NULL);
+         g_object_set (G_OBJECT (tw->iv),
+                       "default_zoom",       dest->preview_zoom,
+                       "default_rotation",   dest->preview_rotation,
+                       "keep_aspect",        dest->preview_keep_aspect,
+                       "keep_buffer",        dest->preview_buffer,
+                       "show_scrollbar",     dest->preview_scrollbar,
+                       NULL);
       }
    }
 

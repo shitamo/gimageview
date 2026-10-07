@@ -1,0 +1,290 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>10. GImageView History</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="gimv_tips.html" title="9. Tips">
+<link rel="next" href="todo.html" title="11. ToDo">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">10. GImageView History</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="gimv_tips.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="todo.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="gimv_history"></a>10. GImageView History</h2></div></div>
+<pre class="screen">
+2026-09-26: Version 0.2.27+gtk4 (GTK 4 version)
+    o Ported to GTK 4, built with Meson
+    o Removed the support for Susie plugins
+    o Removed lib/dllloader
+    o The system libexif and GLib replace the bundled libexif and MD5 code
+    o New loaders for PNM, XPM, Sun raster and WBMP
+    o Formats of the installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL,
+      ...) are recognized, and formats nothing can read are not listed
+    o Supports new movie formats (mp4, mkv, webm, flv, etc.)
+    o The scrollbars of the image view are shown only when the image does
+      not fit
+    o Added "Show splash window" to the preferences
+    o "Plugin Info" in Help is split by type and shows descriptions and
+      extensions
+    o Converted the help documents to UTF-8; the built-in text viewer
+      detects the character encoding automatically
+    o Changed the default web browser to xdg-open
+    o Comments on the thumbnail view ("Subject" and "Comment" columns in
+      the detail view, a tooltip in the album view)
+    o Comment editor window: Close button (Esc also closes it)
+
+2002-11-04: Version 0.2.7
+    o Fixed a problem where, in file operations, cache files and comment
+      files were moved/copied/linked even when the file operation was
+      cancelled or failed
+    o Changed back to deleting the original file when moving a file to a
+      different file system
+	 o Fixed a problem where key accelerators were not disabled in the file
+      name entry in rename mode (when using Gtk+2)
+    o Fixed a problem where character encodings were not converted correctly
+      in rename mode (when using Gtk+2)
+    o Fixed a problem where moving the focus between thumbnails did not work
+      correctly in the thumbnail view (when using Gtk+2)
+
+2002-11-02: Version 0.2.6
+    o Improved Gtk+-2.0 support (mainly support for GtkTreeView, and many
+      other bug fixes)
+    o Added a new sort menu
+    o Fixed a problem where recursive loading with directories shown in the
+      thumbnail view caused an infinite loop
+    o Added a "Clear cache" menu to the thumbnail window
+    o Fixed a problem where the ZAlbum widget did not take multibyte strings
+      into account.
+    o Fixed a problem where the character encoding conversion of file names
+      in comment data was wrong.
+    o Code cleanup
+    o Other minor fixes
+
+2002-09-22: Version 0.2.5
+    o Improved the speed of creating thumbnails
+    o Changed the default thumbnail display mode to "Thumbnail 2"
+    o Directories whose thumbnails have been loaded are now highlighted
+    o The image size can now be shown in "Detail" mode
+    o Added mouse button settings for the directory view
+    o The background color of the image window can now be set
+    o Fixed compile errors (Thanks! Mr. Shitamori &amp; Mr. Ezura)
+    o Other minor fixes
+
+2002-09-02: Version 0.2.4
+    o Changed the behavior of "Fullscreen"
+    o Changed the installation directory of the documents
+    o Fixed configure/compile errors
+    o Supports Nautilus-2.0 thumbnails
+    o Improved compatibility of XV thumbnails with other programs
+    o Improved Gtk+-2.0 support
+    o Many other bug fixes
+
+2002-07-01: Version 0.2.3
+    o Added support for animated GIF (when using gdk-pixbuf)
+    o Added MNG/JNG support (requires libmng)
+    o Experimental support for compressed files (gzip, bz2). To use this
+      feature, add &quot;gz&quot; and &quot;bz2&quot; to Preferences-&gt;Common-&gt;Filtering
+    o Added a French catalog file (Thanks! Guillaume Libersat)
+    o When loading thumbnails, thumbnails inside the visible area are now
+      loaded first
+    o Other bug fixes
+
+2002-05-31: Version 0.2.2
+    o Added SVG support (requires librsvg)
+    o Added experimental movie file support (requires xine-lib)
+    o Added experimental Susie plugin support (Broken)
+    o Improved Gtk+-2.0 support
+    o Added a desktop file
+    o Other minor improvements
+
+2002-05-08: Version 0.2.1
+    o In "Thumbnail 2" mode, improved the response when selecting a range by
+      mouse drag, and made it accelerate according to the amount of mouse
+      movement
+    o Added "List 2" mode (uses the same ZAlbum widget as "Thumbnail 2")
+    o ${datadir}/gimageview/gtkrc is now read
+    o The style of the tab label is now changed while loading
+    o Fixed a crash when closing an image window right after opening it
+    o Fixed a crash when closing the similar image search result window after
+      changing the thumbnail size
+    o Fixed a typo in the spec file, pointed out by ns
+
+2002-04-25: Version 0.2.0
+    o Comments can now be added to images
+    o Supports XCF
+    o The window composition can now be changed almost freely
+    o The preferences window now has a tree structure
+    o A splash image is now shown at startup
+    o Brought back the scrollbars of the image view / added the navigation
+      window
+    o Added "Thumbnail 2" mode
+    o Added the similar image search feature
+    o Image saving and thumbnail related features are now plugins
+    o Provisional support for archive files
+    o Provisional support for EXIF
+    o Many other minor fixes
+
+2002-02-18: Version 0.1.9
+    o Fixed a problem where the location entry could not be operated while
+      loading thumbnails, pointed out by jissama
+    o Fixed a bug where switching images in the image view while loading
+      thumbnails sometimes made it impossible to open files afterwards,
+      pointed out by jissama
+
+2002-02-09: Version 0.1.8
+    o Supports the MAG and TGA formats
+    o Semi-original implementation of the image loader for the Windows Bitmap
+      format
+    o Fixed a fatal bug in the PCX loader
+    o Fixed a bug where long command line options with values were not
+      recognized correctly (Thanks! Kazuki Iwamoto)
+    o Fixed minor memory leaks and other bugs
+
+2002-01-02: Version 0.1.7
+    o Fixed a problem where files could not be dropped onto a collection tab
+    o Fixed a problem where opening a collection tab from the main menu made
+      it impossible to operate
+    o Fixed a crash at the end of DnD in the directory view
+    o Added an option to ignore links when getting directories recursively
+
+2001-12-24: Version 0.1.6
+    o The thumbnail window is now opened when no arguments are given
+    o Fixed a problem where loading sometimes could not be cancelled
+    o Reviewed the default settings
+    o Opening files by single-clicking a thumbnail
+    o Supports moving to the next/previous image in the image window
+    o Other fixes/bug fixes
+
+2001-12-08: Version 0.1.5
+    o Fixed a problem where KDE-2.2 format thumbnails were not enabled
+    o Fixed a serious memory leak
+    o Other minor fixes
+
+2001-12-08: Version 0.1.5
+    o Fixed a problem where KDE-2.2 format thumbnails were not enabled
+    o Fixed a serious memory leak
+    o Other minor fixes
+
+2001-11-28: Version 0.1.4
+    o Provisional support for KDE-2.2 format thumbnails (Thanks!! TAM)
+    o Supports dropping tabs onto the thumbnail view area
+    o Changed the position of the location entry
+    o Fixed a bug where the cache loading setting could not be disabled
+    o Fixed a problem where files could not be moved/copied to a directory
+      that is the target of a symbolic link
+    o Fixed bugs around the location entry
+    o Other bug fixes
+
+2001-11-07: Version 0.1.3
+    o Fixed a problem where the scrollbar sometimes could not be dragged,
+      depending on the environment
+    o Fixed a buffer overflow in &quot;Detail&quot; mode
+
+2001-11-05: Version 0.1.2
+    o Added an icon list view to the thumbnail window
+    o The layout of the thumbnail window can now be changed
+    o Along with the change above, changed the pane widget (borrowed from
+      gThumb)
+    o Added a "Tab" category to the main menu of the thumbnail window
+    o Moving tabs by DnD, dropping files onto tabs
+    o Added a location entry to the thumbnail window
+    o (Temporarily) removed the close button of the thumbnail window
+    o Text documents can now be shown from the Help menu
+    o External commands can now be run
+    o Changed/added mouse button assignments
+    o ~/.gimv/gtkrc is now read
+    o Reviewed the internal management of image information
+    o Reviewed the internal management of icons (supports switching icon
+      sets; setting via the GUI is not implemented yet)
+    o Fixed fatal bugs
+    o Many other fixes
+
+2001-10-05: Version 0.1.1
+    o File operations by DnD
+    o Other basic file/directory operation features
+    o The top directory of the directory view can now be changed
+    o Added a toolbar to the directory view
+    o Fixed a bug where refreshing the directory tree collapsed the expanded
+      tree
+    o Added "Refresh List" to the thumbnail window
+    o Selection information is now synchronized across all display modes
+    o Added &quot;Cache type&quot; to the &quot;Detail&quot; display
+    o All functions bound to the middle mouse button were changed to left
+      double-click
+    o Fixed a Segmentation fault when closing a tab right after switching tabs
+    o Fixed a Segmentation fault when closing the dialog before opening has
+      finished, when opening files from the file dialog
+    o The size used when saving GImageView format thumbnails can now be
+      changed
+    o It can now be switched whether the tab name shows the full path or only
+      the directory name
+    o Short command line options can now be given together, like &quot;-wdR&quot;
+    o Fixed a problem where the thumbnail display mode switched by itself
+    o Fixed a problem where updates of the file list were sometimes not
+      reflected in thumbnail table mode
+    o Many other fixes/changes/bug fixes
+
+2001-09-02: Version 0.1.0
+    o Added a directory tree display to the thumbnail window
+    o Added a preview display to the thumbnail window
+    o Added a &quot;Detail&quot; display to the thumbnail window
+    o The state of the thumbnail window is now saved on exit
+    o When an already open directory is specified, it now moves to that tab
+    o Added close buttons to tabs
+    o Added a popup menu to tabs
+    o Tabs can now be moved (within the same window)
+    o Thumbnails can now be removed from the list in collection mode.
+    o Removed the scrollbars of the image window
+    o Slightly improved the image display method of the image view
+    o Fixed a bug where the image was not shown when the window was resized
+    o Fixed a problem with reading .xvpics when using gdk-pibuf
+    o Many other bug fixes
+
+2001-08-02: Version 0.0.3
+    o Minor bug fixes
+
+2001-07-28: Version 0.0.2
+    o Supports gdk-pixbuf
+    o Shortcut key settings (~/.gimv/keyconf). A GUI will come sometime
+    o Cleaned up the cache handling a little.
+    o Other bug fixes
+
+2001-07-01: Version 0.0.1
+    o First release
+</pre>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="gimv_tips.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="todo.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">9. Tips&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;11. ToDo</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

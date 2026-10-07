@@ -24,6 +24,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include <gmodule.h>
 
 #include "gimageview.h"
@@ -143,7 +145,7 @@ set_save_comment (GimvImageSaver *saver, GimvImageInfo *info)
 
    g_snprintf (buf, buflen, "%d", width);
    gimv_image_saver_set_comment (saver, "OriginalWidth", buf);
-   g_snprintf (buf, buflen, "%d", width);
+   g_snprintf (buf, buflen, "%d", height);
    gimv_image_saver_set_comment (saver, "OriginalHeight", buf);
 }
 
@@ -176,7 +178,7 @@ cb_gimvthumb_get_data_from_adjustment_by_int (GtkWidget *widget, gint *data)
    gint size;
    gchar buf[8];
 
-   size = GTK_ADJUSTMENT(widget)->value;
+   size = gtk_adjustment_get_value (GTK_ADJUSTMENT (widget));
    g_snprintf (buf, 8, "%d", size);
    gimv_plugin_prefs_save_value (this->name,
                                  GIMV_PLUGIN_THUMB_CACHE,
@@ -244,21 +246,21 @@ save_thumb (const gchar *filename, const gchar *cache_type,
    /* get image width & height */
    gimv_image_get_size (image, &im_width, &im_height);
    if (im_width < 1 || im_height < 1) {
-      g_print (N_("image size invalid\n"));
+      g_print (N_("Invalid image size\n"));
       goto ERROR;
    }
 
    /* get thumnail width & height */
    success = get_size (im_width, im_height, cache_type, &width, &height);
    if (!success || width < 1 || height < 1) {
-      g_print (N_("cache size invalid\n"));
+      g_print (N_("Invalid cache size\n"));
       goto ERROR;
    }
 
    /* create cache directory if not found */
    success = mkdirs (thumb_file);
    if (!success) {
-      g_print (N_("cannot make dir\n"));
+      g_print (N_("Cannot create the directory\n"));
       goto ERROR;
    }
 
@@ -375,25 +377,21 @@ prefs_save (gpointer data)
    size = get_thumb_size_from_config ();
 
    /* GImageView thumbnail size */
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   label = gtk_label_new (_("GImageVIew thumbnail size"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 5);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   label = gtk_label_new (_("GImageView thumbnail size"));
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    adj = (GtkAdjustment *) gtk_adjustment_new (size,
                                                CACHE_GIMV_MIN_SIZE,
                                                CACHE_GIMV_MAX_SIZE,
                                                1.0, 5.0, 0.0);
    spinner = gtk_spin_button_new (adj, 0, 0);
-   gtk_widget_set_usize(spinner, 70, -1);
+   gimv_widget_set_size(spinner, 70, -1);
    gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner), TRUE);
-#ifndef USE_GTK2
-   gtk_spin_button_set_shadow_type (GTK_SPIN_BUTTON (spinner),
-                                    GTK_SHADOW_OUT);
-#endif
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (cb_gimvthumb_get_data_from_adjustment_by_int),
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (cb_gimvthumb_get_data_from_adjustment_by_int),
                        NULL);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
 
    return hbox;
 }

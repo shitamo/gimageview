@@ -38,20 +38,18 @@
 #include "gimv_thumb_view.h"
 
 
-static void gimv_thumb_class_init (GimvThumbClass *klass);
-static void gimv_thumb_init       (GimvThumb *thumb);
-static void gimv_thumb_destroy    (GtkObject *obj);
+static void gimv_thumb_destroy    (GimvObject *obj);
 
 
-static GtkObjectClass *parent_class = NULL;
+static GimvObjectClass *parent_class = NULL;
 static GHashTable *loader_table = NULL;
 
 
 /* private functions */
 static void       store_thumbnail                (GimvImage      *image,
                                                   gint            thumbsize,
-                                                  GdkPixmap     **pixmap,
-                                                  GdkBitmap     **mask,
+                                                  GdkTexture     **pixmap,
+                                                  GdkTexture     **mask,
                                                   gint           *width,
                                                   gint           *height);
 static void       create_thumbnail               (GimvThumb      *thumb,
@@ -67,38 +65,16 @@ static gchar *config_cache_read_string = NULL;
 static GList *cache_read_list = NULL;
 
 
-GtkType
-gimv_thumb_get_type (void)
-{
-   static GtkType gimv_thumb_type = 0;
-
-   if (!gimv_thumb_type) {
-      static const GtkTypeInfo gimv_thumb_info = {
-         "GimvThumbLoader",
-         sizeof (GimvThumb),
-         sizeof (GimvThumbClass),
-         (GtkClassInitFunc) gimv_thumb_class_init,
-         (GtkObjectInitFunc) gimv_thumb_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_thumb_type = gtk_type_unique (gtk_object_get_type (),
-                                         &gimv_thumb_info);
-   }
-
-   return gimv_thumb_type;
-}
+G_DEFINE_TYPE (GimvThumb, gimv_thumb, GIMV_TYPE_OBJECT)
 
 
 static void
 gimv_thumb_class_init (GimvThumbClass *klass)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_object_get_type ());
+   object_class = (GimvObjectClass *) klass;
+   parent_class = gimv_thumb_parent_class;
 
    object_class->destroy  = gimv_thumb_destroy;
 }
@@ -120,15 +96,13 @@ gimv_thumb_init (GimvThumb *thumb)
    /* will be removed! */
    thumb->selected   = FALSE;
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (thumb));
-   gtk_object_sink (GTK_OBJECT (thumb));
-#endif
+   /* like gtk_object_ref () + gtk_object_sink () of GTK2 */
+   g_object_ref_sink (G_OBJECT (thumb));
 }
 
 
 static void
-gimv_thumb_destroy (GtkObject *object)
+gimv_thumb_destroy (GimvObject *object)
 {
    GimvThumb *thumb;
 
@@ -138,19 +112,19 @@ gimv_thumb_destroy (GtkObject *object)
 
    /* free thumbnail */
    if (thumb->thumbnail) {
-      gdk_pixmap_unref (thumb->thumbnail);
+      g_object_unref (thumb->thumbnail);
       thumb->thumbnail = NULL;
    }
    if (thumb->thumbnail_mask) {
-      gdk_bitmap_unref (thumb->thumbnail_mask);
+      g_object_unref (thumb->thumbnail_mask);
       thumb->thumbnail_mask = NULL;
    }
    if (thumb->icon) {
-      gdk_pixmap_unref (thumb->icon);
+      g_object_unref (thumb->icon);
       thumb->icon = NULL;
    }
    if (thumb->icon_mask) {
-      gdk_bitmap_unref (thumb->icon_mask);
+      g_object_unref (thumb->icon_mask);
       thumb->icon_mask = NULL;
    }
 
@@ -159,8 +133,8 @@ gimv_thumb_destroy (GtkObject *object)
       thumb->info = NULL;
    }
 
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (*GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (*GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
@@ -171,7 +145,7 @@ gimv_thumb_destroy (GtkObject *object)
  ******************************************************************************/
 static void
 store_thumbnail (GimvImage *image, gint thumbsize,
-                 GdkPixmap **pixmap, GdkBitmap **mask,
+                 GdkTexture **pixmap, GdkTexture **mask,
                  gint *width_ret, gint *height_ret)
 {
    gfloat scale;
@@ -231,7 +205,7 @@ cb_loader_progress_update (GimvImageLoader *loader, GimvThumb *thumb)
 {
    GimvThumbView *tv;
 
-   while (gtk_events_pending()) gtk_main_iteration();
+   gimv_flush_events ();
 
    /* FIXME!! */
    if (!GIMV_IS_THUMB(thumb)) return;
@@ -295,8 +269,8 @@ create_thumbnail (GimvThumb *thumb, gint thumbsize,
       if (loader) {
          g_hash_table_insert (loader_table, thumb, loader);
 
-         gtk_signal_connect (GTK_OBJECT (loader), "progress_update",
-                             GTK_SIGNAL_FUNC (cb_loader_progress_update),
+         g_signal_connect (G_OBJECT (loader), "progress_update",
+                             G_CALLBACK (cb_loader_progress_update),
                              thumb);
          gimv_image_loader_set_load_type (loader,
                                           GIMV_IMAGE_LOADER_LOAD_THUMBNAIL);
@@ -395,7 +369,7 @@ GimvThumb *
 gimv_thumb_new (GimvImageInfo *info)
 {
    GimvThumb *thumb
-      = GIMV_THUMB (gtk_type_new (gimv_thumb_get_type ()));
+      = GIMV_THUMB (g_object_new (GIMV_TYPE_THUMB, NULL));
 
    thumb->info = gimv_image_info_ref (info);
 
@@ -410,12 +384,20 @@ gimv_thumb_load (GimvThumb    *thumb,
 {
    /* free old thumbnail */
    if (thumb->thumbnail) {
-      gdk_pixmap_unref (thumb->thumbnail);
-      thumb->thumbnail = NULL; thumb->thumbnail_mask = NULL;
+      g_object_unref (thumb->thumbnail);
+      thumb->thumbnail = NULL;
+   }
+   if (thumb->thumbnail_mask) {
+      g_object_unref (thumb->thumbnail_mask);
+      thumb->thumbnail_mask = NULL;
    }
    if (thumb->icon) {
-      gdk_pixmap_unref (thumb->icon);
-      thumb->icon = NULL; thumb->icon_mask = NULL;
+      g_object_unref (thumb->icon);
+      thumb->icon = NULL;
+   }
+   if (thumb->icon_mask) {
+      g_object_unref (thumb->icon_mask);
+      thumb->icon_mask = NULL;
    }
 
    /* if the file is directory */
@@ -424,12 +406,12 @@ gimv_thumb_load (GimvThumb    *thumb,
       GimvIcon *icon;
 
       icon = gimv_icon_stock_get_icon ("folder48");
-      thumb->thumbnail      = gdk_pixmap_ref (icon->pixmap);
-      thumb->thumbnail_mask = gdk_bitmap_ref (icon->mask);
+      thumb->thumbnail      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->thumbnail_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
 
       icon = gimv_icon_stock_get_icon ("folder");
-      thumb->icon      = gdk_pixmap_ref (icon->pixmap);
-      thumb->icon_mask = gdk_bitmap_ref (icon->mask);
+      thumb->icon      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->icon_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
    }
 
    /* if the file is archive */
@@ -439,12 +421,12 @@ gimv_thumb_load (GimvThumb    *thumb,
       GimvIcon *icon;
 
       icon = gimv_icon_stock_get_icon ("archive");
-      thumb->thumbnail      = gdk_pixmap_ref (icon->pixmap);
-      thumb->thumbnail_mask = gdk_bitmap_ref (icon->mask);
+      thumb->thumbnail      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->thumbnail_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
 
       icon = gimv_icon_stock_get_icon ("small_archive");
-      thumb->icon      = gdk_pixmap_ref (icon->pixmap);
-      thumb->icon_mask = gdk_bitmap_ref (icon->mask);
+      thumb->icon      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->icon_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
    }
 
    /* load chache  */
@@ -509,7 +491,7 @@ gimv_thumb_load_stop (GimvThumb *thumb)
 
 
 void
-gimv_thumb_get_thumb (GimvThumb *thumb, GdkPixmap **pixmap, GdkBitmap **mask)
+gimv_thumb_get_thumb (GimvThumb *thumb, GdkTexture **pixmap, GdkTexture **mask)
 {
    g_return_if_fail (GIMV_IS_THUMB (thumb));
    g_return_if_fail (pixmap && mask);
@@ -525,16 +507,12 @@ gimv_thumb_get_thumb_by_widget (GimvThumb *thumb)
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), NULL);
    if (!thumb->thumbnail) return NULL;
 
-#ifdef USE_GTK2
-   return gtk_image_new_from_pixmap (thumb->thumbnail, thumb->thumbnail_mask);
-#else /* USE_GTK2 */
-   return gtk_pixmap_new (thumb->thumbnail, thumb->thumbnail_mask);
-#endif /* USE_GTK2 */
+   return gtk_image_new_from_paintable (GDK_PAINTABLE (thumb->thumbnail));
 }
 
 
 void
-gimv_thumb_get_icon (GimvThumb *thumb, GdkPixmap **pixmap, GdkBitmap **mask)
+gimv_thumb_get_icon (GimvThumb *thumb, GdkTexture **pixmap, GdkTexture **mask)
 {
    g_return_if_fail (GIMV_IS_THUMB (thumb));
    g_return_if_fail (pixmap && mask);
@@ -550,11 +528,7 @@ gimv_thumb_get_icon_by_widget (GimvThumb *thumb)
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), NULL);
    if (!thumb->icon) return NULL;
 
-#ifdef USE_GTK2
-   return gtk_image_new_from_pixmap (thumb->thumbnail, thumb->thumbnail_mask);
-#else /* USE_GTK2 */
-   return gtk_pixmap_new (thumb->icon, thumb->icon_mask);
-#endif /* USE_GTK2 */
+   return gtk_image_new_from_paintable (GDK_PAINTABLE (thumb->icon));
 }
 
 

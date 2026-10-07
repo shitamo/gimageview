@@ -22,69 +22,43 @@
  */
 
 /*
- * 2003-05-17 Takuro Ashie <ashie@homa.ne.jp>
- *
- *     Fetched from textutils-2.1 and adapt to GImageView.
- *
- *     Copyright (C) 1995-2002 Free Software Foundation, Inc.
- *     Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>.
+ * GTK4 port: the MD5 code taken from textutils-2.1 (md5.c) is replaced by
+ * GLib's GChecksum.  The digest is kept as a hex string: the binary digest
+ * was copied with g_strdup () and cut at its first zero byte.
  */
 
-#include <string.h>
 #include <stdio.h>
-#include <sys/types.h>
+#include <string.h>
 
 #include "gimv_dupl_finder.h"
 #include "gimv_image_info.h"
 #include "gimv_thumb.h"
-#include "md5.h"
 
 
-/* Most systems do not distinguish between external and internal
-   text representations.  */
-/* FIXME: This begs for an autoconf test.  */
-#if O_BINARY
-# define OPENOPTS(BINARY) ((BINARY) != 0 ? TEXT1TO1 : TEXTCNVT)
-# define TEXT1TO1 "rb"
-# define TEXTCNVT "r"
-#else
-# if defined VMS
-#  define OPENOPTS(BINARY) ((BINARY) != 0 ? TEXT1TO1 : TEXTCNVT)
-#  define TEXT1TO1 "rb", "ctx=stm"
-#  define TEXTCNVT "r", "ctx=stm"
-# else
-#  if UNIX || __UNIX__ || unix || __unix__ || _POSIX_VERSION
-#   define OPENOPTS(BINARY) "r"
-#  else
-    /* The following line is intended to evoke an error.
-       Using #error is not portable enough.  */
-    "Cannot determine system type."
-#  endif
-# endif
-#endif
-
-#define DIGEST_BIN_BYTES (128 / 8)
-
-static gboolean
-digest_file (const gchar *filename, gint binary, guchar *bin_result)
+/* MD5 of a file as a hex string, NULL on error */
+static gchar *
+digest_file (const gchar *filename)
 {
+   GChecksum *checksum;
    FILE *fp;
-   gint err;
+   guchar buf[65536];
+   gsize n;
+   gchar *ret = NULL;
 
-   fp = fopen (filename, OPENOPTS (binary));
-   if (fp == NULL)
-      return FALSE;
+   fp = fopen (filename, "rb");
+   if (!fp) return NULL;
 
-   err = md5_stream (fp, bin_result);
-   if (err) {
-      fclose (fp);
-      return FALSE;
-   }
+   checksum = g_checksum_new (G_CHECKSUM_MD5);
+   while ((n = fread (buf, 1, sizeof (buf), fp)) > 0)
+      g_checksum_update (checksum, buf, n);
 
-   if (fclose (fp) == EOF)
-      return FALSE;
+   if (!ferror (fp))
+      ret = g_strdup (g_checksum_get_string (checksum));
 
-   return TRUE;
+   g_checksum_free (checksum);
+   fclose (fp);
+
+   return ret;
 }
 
 
@@ -93,8 +67,7 @@ duplicates_md5_get_data (GimvThumb *thumb)
 {
    const gchar *filename;
    gchar *temp_file = NULL;
-   guchar bin_buffer[DIGEST_BIN_BYTES + 1];
-   gboolean success;
+   gchar *digest;
 
    g_return_val_if_fail (GIMV_IS_THUMB(thumb), NULL);
    g_return_val_if_fail (thumb->info, NULL);
@@ -108,13 +81,10 @@ duplicates_md5_get_data (GimvThumb *thumb)
 
    g_return_val_if_fail (filename && *filename, NULL);
 
-   success = digest_file (filename, TRUE, bin_buffer);
-   if (!success)
-      return NULL;
+   digest = digest_file (filename);
+   g_free (temp_file);
 
-   bin_buffer[DIGEST_BIN_BYTES] = '\0';
-
-   return g_strdup (bin_buffer);
+   return digest;
 }
 
 

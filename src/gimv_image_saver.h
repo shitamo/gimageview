@@ -28,17 +28,17 @@
 #  include "config.h"
 #endif
 
-#include <gtk/gtkobject.h>
+#include <gtk/gtk.h>
 
 #include "gimv_image.h"
 #include "gimv_image_info.h"
 
 
 #define GIMV_TYPE_IMAGE_SAVER            (gimv_image_saver_get_type ())
-#define GIMV_IMAGE_SAVER(obj)            (GTK_CHECK_CAST (obj, gimv_image_saver_get_type (), GimvImageSaver))
-#define GIMV_IMAGE_SAVER_CLASS(klass)    (GTK_CHECK_CLASS_CAST (klass, gimv_image_saver_get_type, GimvImageSaverClass))
-#define GIMV_IS_IMAGE_SAVER(obj)         (GTK_CHECK_TYPE (obj, gimv_image_saver_get_type ()))
-#define GIMV_IS_IMAGE_SAVER_CLASS(klass) (GTK_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_SAVER))
+#define GIMV_IMAGE_SAVER(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_image_saver_get_type (), GimvImageSaver))
+#define GIMV_IMAGE_SAVER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_image_saver_get_type, GimvImageSaverClass))
+#define GIMV_IS_IMAGE_SAVER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_image_saver_get_type ()))
+#define GIMV_IS_IMAGE_SAVER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_IMAGE_SAVER))
 
 
 typedef struct GimvImageSaver_Tag      GimvImageSaver;
@@ -49,7 +49,7 @@ typedef struct GimvImageSaverText_Tag  GimvImageSaverText;
 
 struct GimvImageSaver_Tag
 {
-   GtkObject parent;
+   GimvObject parent;
 
    GimvImageInfo       *info;
    GimvImage           *image;
@@ -69,7 +69,7 @@ struct GimvImageSaver_Tag
 
 struct GimvImageSaverClass_Tag
 {
-   GtkObjectClass parent;
+   GimvObjectClass parent;
 
    void (*save_start)        (GimvImageSaver *saver);
    void (*progress_update)   (GimvImageSaver *saver);
@@ -103,7 +103,7 @@ typedef struct GimvImageSaverPlugin_Tag
 } GimvImageSaverPlugin;
 
 
-GtkType         gimv_image_saver_get_type            (void);
+GType         gimv_image_saver_get_type            (void);
 GimvImageSaver *gimv_image_saver_new                 (void);
 GimvImageSaver *gimv_image_saver_new_with_attr       (GimvImage      *image,
                                                       const gchar    *path,

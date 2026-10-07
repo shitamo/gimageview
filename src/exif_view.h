@@ -29,14 +29,12 @@
 #ifdef ENABLE_EXIF
 
 #include <libexif/exif-data.h>
-#include <libexif/jpeg-data.h>   /* FIXME!! */
 
 typedef struct ExifView_Tag
 {
    GtkWidget *window;     /* if open in stand alone window, use this */
    GtkWidget *container;  /* exif view */
    ExifData  *exif_data;
-   JPEGData  *jpeg_data;
 } ExifView;
 
 

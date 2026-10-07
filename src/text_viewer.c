@@ -43,76 +43,55 @@ cb_text_viewer_destroy (GtkWidget *widget, TextViewer *text_viewer)
 gboolean
 text_viewer_load_file (TextViewer *text_viewer, gchar *filename)
 {
-   FILE *textfile;
    gchar *tmpstr;
-   gchar buf[BUF_SIZE];
 
    g_return_val_if_fail (text_viewer && filename, FALSE);
 
    if (text_viewer->filename) {
-#ifdef USE_GTK2
       {
          GtkTextBuffer *buffer;
          buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_viewer->textbox));
          gtk_text_buffer_set_text (buffer, "\0", -1);
       }
-#else
-      {
-         GtkText *text = GTK_TEXT (text_viewer->textbox);
-         gtk_text_backward_delete (text, gtk_text_get_length(text));
-      }
-#endif
       g_free (text_viewer->filename);
       text_viewer->filename = NULL;
    }
 
-   textfile = fopen (filename, "r");
-   if (!textfile) {
-      g_warning (_("Can't open text file: %s\n"), filename);
-      return FALSE;
-   }
-
-#ifdef USE_GTK2
+   /* GTK4 port: the whole file, converted from the first encoding that
+      fits.  GTK2 converted each line from the locale encoding, which was
+      EUC-JP on Japanese systems then; with a UTF-8 locale the conversion of
+      the EUC-JP documents failed and their lines were dropped. */
    {
+      static const gchar *encodings[] = {
+         NULL /* locale */, "EUC-JP", "SHIFT_JIS", "ISO-2022-JP",
+      };
       GtkTextBuffer *buffer;
-      gchar *text;
+      gchar *contents = NULL, *text = NULL;
+      gsize len = 0;
+      guint i;
+
+      if (!g_file_get_contents (filename, &contents, &len, NULL)) {
+         g_warning (_("Can't open text file: %s\n"), filename);
+         return FALSE;
+      }
+
+      if (g_utf8_validate (contents, len, NULL)) {
+         text = contents;
+         contents = NULL;
+      }
+      for (i = 0; !text && i < G_N_ELEMENTS (encodings); i++) {
+         const gchar *enc = encodings[i];
+         if (!enc && g_get_charset (&enc)) continue;   /* locale is UTF-8 */
+         text = g_convert (contents, len, "UTF-8", enc, NULL, NULL, NULL);
+      }
+      if (!text)   /* show something rather than nothing */
+         text = g_utf8_make_valid (contents, len);
+      g_free (contents);
 
       buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_viewer->textbox));
-
-      text = g_strdup ("");
-      while (fgets (buf, sizeof(buf), textfile)) {
-         gchar  *tmpstr, *prev;
-         tmpstr = charset_to_internal (buf, NULL, NULL,
-                                       CHARSET_TO_INTERNAL_LOCALE);
-         prev = text;
-         text = g_strconcat (text, tmpstr, NULL);
-         g_free (prev);
-      }
       gtk_text_buffer_set_text (buffer, text, -1);
       g_free (text);
    }
-#else
-   {
-      GtkText *text = GTK_TEXT (text_viewer->textbox);
-      GdkFont *font;
-
-      if (conf.textentry_font && *conf.textentry_font)
-         font = gdk_fontset_load (conf.textentry_font);
-      else
-         font = NULL;
-
-      gtk_text_freeze (text);
-      while (fgets (buf, sizeof(buf), textfile)) {
-         gtk_text_insert (text, font, NULL, NULL, buf, -1);
-      }
-      gtk_text_thaw (text);
-
-      if (font)
-         gdk_font_unref (font);
-   }
-#endif
-
-   fclose (textfile);
 
    tmpstr = g_strconcat (_("File Name: "), filename, NULL);
    gtk_statusbar_push(GTK_STATUSBAR (text_viewer->statusbar), 1, tmpstr);
@@ -136,41 +115,36 @@ text_viewer_create (gchar *filename)
    text_viewer->filename = NULL;
 
    /* window */
-   text_viewer->window = window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+   text_viewer->window = window = gtk_window_new ();
    gtk_window_set_title (GTK_WINDOW (window), GIMV_PROG_NAME" -Text Viewer-");
    gtk_window_set_default_size (GTK_WINDOW(window), 600, 500);
    gtk_widget_show (window);
-   gtk_signal_connect (GTK_OBJECT (window), "destroy",
-                       GTK_SIGNAL_FUNC (cb_text_viewer_destroy), text_viewer);
+   g_signal_connect (G_OBJECT (window), "destroy",
+                       G_CALLBACK (cb_text_viewer_destroy), text_viewer);
 
    /* main vbox */
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_add (GTK_CONTAINER (window), vbox);
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_add (GTK_WIDGET (window), vbox);
    gtk_widget_show (vbox);
 
    /* text box */
-   scrolledwin = gtk_scrolled_window_new (NULL, NULL);
+   scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
-   gtk_box_pack_start (GTK_BOX (vbox), scrolledwin, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), scrolledwin, TRUE, TRUE, 0);
    gtk_widget_show (scrolledwin);
 
-#ifdef USE_GTK2
    text = gtk_text_view_new ();
-#else
-   text = gtk_text_new (gtk_scrolled_window_get_hadjustment
-                        (GTK_SCROLLED_WINDOW (scrolledwin)),
-                        gtk_scrolled_window_get_vadjustment
-                        (GTK_SCROLLED_WINDOW (scrolledwin)));
-#endif
+   /* plain text documents are laid out for a fixed width font */
+   gtk_text_view_set_monospace (GTK_TEXT_VIEW (text), TRUE);
    text_viewer->textbox = text;
-   gtk_container_add (GTK_CONTAINER (scrolledwin), text);
+   gimv_container_add (GTK_WIDGET (scrolledwin), text);
    gtk_widget_show (text);
 
    /* statusbar */
    text_viewer->statusbar = statusbar = gtk_statusbar_new ();
-   gtk_container_border_width (GTK_CONTAINER (statusbar), 1);
-   gtk_box_pack_start (GTK_BOX (vbox), statusbar, FALSE, TRUE, 0);
+   gimv_container_set_border_width (statusbar, 1);
+   gimv_box_pack_start (GTK_BOX (vbox), statusbar, FALSE, TRUE, 0);
    gtk_statusbar_push(GTK_STATUSBAR (statusbar), 1, "New Window");
    gtk_widget_show (statusbar);
 

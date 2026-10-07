@@ -23,6 +23,8 @@
 #define __XCF_H__
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include "gimv_image.h"
 #include "gimv_image_loader.h"
 

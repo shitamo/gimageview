@@ -26,6 +26,8 @@
 #define __TEXT_VIEWER_H__
 
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 
 typedef struct TextViewer_Tag
 {

@@ -22,7 +22,7 @@
  */
 
 #include <stdlib.h>
-#include <gdk/gdkkeysyms.h>
+#include <gtk/gtk.h>
 
 #include "gimageview.h"
 
@@ -38,6 +38,7 @@
 #include "gimv_thumb_win.h"
 #include "help.h"
 #include "menu.h"
+#include "gimv_print.h"
 #include "prefs.h"
 
 #ifdef ENABLE_EXIF
@@ -78,6 +79,12 @@ typedef enum {
 } ImageViewPressType;
 
 
+/* color components are 0 - 65535 (as GdkColor of GTK2) */
+typedef struct {
+   gint red, green, blue;
+} ImageWinColor;
+
+
 struct GimvImageWinPriv_Tag
 {
    /* flags */
@@ -90,7 +97,7 @@ struct GimvImageWinPriv_Tag
    gint             win_width;
    gint             win_height;
 
-   GdkColor        *fs_bg_color;
+   ImageWinColor   *fs_bg_color;
 
    guint            hide_cursor_timer_id;
 
@@ -101,7 +108,7 @@ struct GimvImageWinPriv_Tag
 
 static void     gimv_image_win_class_init           (GimvImageWinClass *klass);
 static void     gimv_image_win_init                 (GimvImageWin *iw);
-static void     gimv_image_win_destroy              (GtkObject *object);
+static void     gimv_image_win_dispose              (GObject *object);
 static void     gimv_image_win_realize              (GtkWidget *widget);
 static void     gimv_image_win_real_show_fullscreen (GimvImageWin *iw);
 static void     gimv_image_win_real_hide_fullscreen (GimvImageWin *iw);
@@ -122,64 +129,70 @@ static void     gimv_image_win_fullscreen_hide      (GimvImageWin *iw);
 /* callback functions for menubar */
 static void     cb_file_select          (gpointer      data,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_open_imagewin        (gpointer      data,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_open_thumbwin        (gpointer      data,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_buffer        (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_window_close         (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
+static void     cb_alpha_checker        (GimvImageWin *iw,
+                                         guint         action,
+                                         GimvMenuItem *widget);
 static void     cb_ignore_alpha         (GimvImageWin *iv,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_menubar       (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_player        (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_toolbar       (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_statusbar     (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_scrollbar     (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_switch_player        (GimvImageWin *iw,
                                          GimvImageViewPlayerVisibleType visible,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_maximize      (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_toggle_fullscreen    (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_fit_to_image         (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_edit_comment         (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 #ifdef ENABLE_EXIF
 static void     cb_exif                 (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *menuitem);
+                                         GimvMenuItem    *menuitem);
 #endif /* ENABLE_EXIF */
+static void     cb_print           (GimvImageWin   *iw,
+                                    guint           action,
+                                    GimvMenuItem   *menuitem);
 static void     cb_create_thumb         (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 static void     cb_options              (GimvImageWin *iw);
 static void     cb_move_menu            (GimvImageWin *iw,
                                          guint         action,
-                                         GtkWidget    *widget);
+                                         GimvMenuItem    *widget);
 
 /* callback functions for toolbar */
 static void     cb_toolbar_open_button      (GtkWidget    *widget);
@@ -206,12 +219,12 @@ static void     cb_toolbar_fit_window       (GtkWidget    *widget,
 static void     cb_toolbar_fullscreen       (GtkWidget    *widget,
                                              GimvImageWin *iw);
 static gboolean cb_scale_spinner_key_press  (GtkWidget      *widget, 
-                                             GdkEventKey    *event,
+                                             GimvEventKey    *event,
                                              GimvImageWin   *iw);
 static void     cb_rotate_menu              (GtkWidget      *widget,
                                              GimvImageWin   *iw);
 static gboolean cb_rotate_menu_button_press (GtkWidget      *widget,
-                                             GdkEventButton *event,
+                                             GimvEventButton *event,
                                              GimvImageWin   *iw);
 
 /* callback functions for slideshow toolbar */
@@ -228,10 +241,10 @@ static void     cb_first_clicked    (GtkWidget      *button,
 static void     cb_last_clicked     (GtkWidget      *button,
                                      GimvImageWin   *iw);
 static gboolean cb_seekbar_pressed  (GtkWidget      *widget,
-                                     GdkEventButton *event,
+                                     GimvEventButton *event,
                                      GimvImageWin   *iw);
 static gboolean cb_seekbar_released (GtkWidget      *widget,
-                                     GdkEventButton *event,
+                                     GimvEventButton *event,
                                      GimvImageWin   *iw);
 
 /* other callback functions */
@@ -254,21 +267,21 @@ static void     cb_toggle_aspect       (GimvImageView  *iv,
                                         gboolean        keep_aspect,
                                         GimvImageWin   *iw);
 static gboolean cb_draw_area_key_press (GtkWidget      *widget, 
-                                        GdkEventKey    *event,
+                                        GimvEventKey    *event,
                                         GimvImageWin   *iw);
 static gint     cb_imageview_pressed   (GimvImageView  *iv,
-                                        GdkEventButton *event,
+                                        GimvEventButton *event,
                                         GimvImageWin   *iw);
 static gint     cb_imageview_clicked   (GimvImageView  *iv,
-                                        GdkEventButton *event,
+                                        GimvEventButton *event,
                                         GimvImageWin   *iw);
 
 static gint     gimv_image_view_button_action (GimvImageView  *iv,
-                                               GdkEventButton *event,
+                                               GimvEventButton *event,
                                                gint            num);
 
 /* for main menu */
-GtkItemFactoryEntry gimv_image_win_menu_items[] =
+GimvMenuEntry gimv_image_win_menu_items[] =
 {
    {N_("/_File"),                        NULL,         NULL,              0,  "<Branch>"},
    {N_("/_File/_Open..."),               "<control>F", cb_file_select,    0,  NULL},
@@ -276,6 +289,8 @@ GtkItemFactoryEntry gimv_image_win_menu_items[] =
    {N_("/_File/Open _Thumbnail Window"), "<control>W", cb_open_thumbwin,  0,  NULL},
    {N_("/_File/---"),                    NULL,         NULL,              0,  "<Separator>"},
    {N_("/_File/Memory _Buffer"),         "<control>B", cb_toggle_buffer,  0,  "<ToggleItem>"},
+   {N_("/_File/---"),                    NULL,         NULL,              0,  "<Separator>"},
+   {N_("/_File/_Print..."),              "<control>P", cb_print,          0,  NULL},
    {N_("/_File/---"),                    NULL,         NULL,              0,  "<Separator>"},
    {N_("/_File/_Close"),                 "Q",          cb_window_close,   0,  NULL},
    {N_("/_File/_Quit"),                  "<control>C", gimv_quit,         0,  NULL},
@@ -289,7 +304,7 @@ GtkItemFactoryEntry gimv_image_win_menu_items[] =
 
    {N_("/_View"),                        NULL,         NULL,              0,  "<Branch>"},
 
-   {N_("/_Move"),                        NULL,         NULL,              0,  "<Branch>"},
+   {N_("/_Go"),                        NULL,         NULL,              0,  "<Branch>"},
 
    {N_("/M_ovie"),                       NULL,         NULL,              0,  "<Branch>"},
 
@@ -299,33 +314,34 @@ GtkItemFactoryEntry gimv_image_win_menu_items[] =
 
 
 /* for "View" sub menu */
-GtkItemFactoryEntry gimv_image_win_view_items [] =
+GimvMenuEntry gimv_image_win_view_items [] =
 {
    {N_("/tear"),          NULL,        NULL,                 0,  "<Tearoff>"},
    {N_("/_Zoom"),         NULL,        NULL,                 0,  "<Branch>"},
    {N_("/_Rotate"),       NULL,        NULL,                 0,  "<Branch>"},
    {N_("/Ignore _Alpha Channel"), NULL,cb_ignore_alpha,      0,  "<ToggleItem>"},
+   {N_("/_Checkerboard Behind Transparency"), NULL, cb_alpha_checker, 0, "<ToggleItem>"},
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},
-   {N_("/_Menu Bar"),     "M",         cb_toggle_menubar,    0,  "<ToggleItem>"},
-   {N_("/_Tool Bar"),     "N",         cb_toggle_toolbar,    0,  "<ToggleItem>"},
-   {N_("/Slide Show _Player"), "<shift>N", cb_toggle_player,     0,  "<ToggleItem>"},
-   {N_("/St_atus Bar"),   "V",         cb_toggle_statusbar,  0,  "<ToggleItem>"},
-   {N_("/_Scroll Bar"),   "<shift>S",  cb_toggle_scrollbar,  0,  "<ToggleItem>"},
+   {N_("/_Menubar"),     "M",         cb_toggle_menubar,    0,  "<ToggleItem>"},
+   {N_("/_Toolbar"),     "N",         cb_toggle_toolbar,    0,  "<ToggleItem>"},
+   {N_("/Slideshow _Player"), "<shift>N", cb_toggle_player,     0,  "<ToggleItem>"},
+   {N_("/St_atusbar"),   "V",         cb_toggle_statusbar,  0,  "<ToggleItem>"},
+   {N_("/_Scrollbar"),   "<shift>S",  cb_toggle_scrollbar,  0,  "<ToggleItem>"},
    {N_("/_Player"),       NULL,        NULL,                 0,              "<Branch>"},  
    {N_("/_Player/_Show"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleShow, "<RadioItem>"},  
    {N_("/_Player/_Hide"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleHide, "/Player/Show"},  
    {N_("/_Player/_Auto"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleAuto, "/Player/Hide"},  
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},
-   {N_("/_View modes"),   NULL,        NULL,                 0, "<Branch>"},
+   {N_("/_View Modes"),   NULL,        NULL,                 0, "<Branch>"},
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},
    {N_("/_Fit to Image"), "I",         cb_fit_to_image,      0,  NULL},
    {N_("/Ma_ximize"),     "F",         cb_toggle_maximize,   0,  "<ToggleItem>"},
-   {N_("/F_ull Screen"),  "<shift>F",  cb_toggle_fullscreen, 0,  "<ToggleItem>"},
+   {N_("/F_ullscreen"),  "<shift>F",  cb_toggle_fullscreen, 0,  "<ToggleItem>"},
    {NULL, NULL, NULL, 0, NULL},
 };
 
 
-GtkItemFactoryEntry gimv_image_win_move_items [] =
+GimvMenuEntry gimv_image_win_move_items [] =
 {
    {N_("/_Next"),        "L",  cb_move_menu,  IMG_NEXT,  NULL},
    {N_("/_Previous"),    "H",  cb_move_menu,  IMG_PREV,  NULL},
@@ -335,72 +351,48 @@ GtkItemFactoryEntry gimv_image_win_move_items [] =
 };
 
 
-static GtkWindowClass *parent_class = NULL;
-static gint            gimv_image_win_signals[LAST_SIGNAL] = {0};
+static guint           gimv_image_win_signals[LAST_SIGNAL] = {0};
 
 
 static GList         *ImageWinList   = NULL;
 static GimvImageWin  *shared_img_win = NULL;
 
 
-GtkType
-gimv_image_win_get_type (void)
-{
-   static GtkType gimv_image_win_type = 0;
-
-   if (!gimv_image_win_type) {
-      static const GtkTypeInfo gimv_image_win_info = {
-         "GimvImageWin",
-         sizeof (GimvImageWin),
-         sizeof (GimvImageWinClass),
-         (GtkClassInitFunc) gimv_image_win_class_init,
-         (GtkObjectInitFunc) gimv_image_win_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_image_win_type = gtk_type_unique (GTK_TYPE_WINDOW,
-                                             &gimv_image_win_info);
-   }
-
-   return gimv_image_win_type;
-}
+G_DEFINE_TYPE (GimvImageWin, gimv_image_win, GTK_TYPE_WINDOW)
 
 
 static void
 gimv_image_win_class_init (GimvImageWinClass *klass)
 {
-   GtkObjectClass *object_class;
+   GObjectClass *gobject_class;
    GtkWidgetClass *widget_class;
 
-   object_class = (GtkObjectClass *) klass;
-   widget_class = (GtkWidgetClass *) klass;
-   parent_class = gtk_type_class (GTK_TYPE_WINDOW);
+   gobject_class = G_OBJECT_CLASS (klass);
+   widget_class = GTK_WIDGET_CLASS (klass);
 
    gimv_image_win_signals[SHOW_FULLSCREEN_SIGNAL]
-      = gtk_signal_new ("show_fullscreen",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageWinClass, show_fullscreen),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("show_fullscreen",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageWinClass, show_fullscreen),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
    gimv_image_win_signals[HIDE_FULLSCREEN_SIGNAL]
-      = gtk_signal_new ("hide_fullscreen",
-                        GTK_RUN_FIRST,
-                        GTK_CLASS_TYPE(object_class),
-                        GTK_SIGNAL_OFFSET (GimvImageWinClass, hide_fullscreen),
-                        gtk_signal_default_marshaller,
-                        GTK_TYPE_NONE, 0);
+      = g_signal_new ("hide_fullscreen",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (GimvImageWinClass, hide_fullscreen),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
-   gtk_object_class_add_signals (object_class, gimv_image_win_signals, LAST_SIGNAL);
-
-   object_class->destroy  = gimv_image_win_destroy;
+   gobject_class->dispose = gimv_image_win_dispose;
 
    widget_class->realize  = gimv_image_win_realize;
 
    klass->show_fullscreen = gimv_image_win_real_show_fullscreen;
-   klass->hide_fullscreen = gimv_image_win_real_hide_fullscreen;;
+   klass->hide_fullscreen = gimv_image_win_real_hide_fullscreen;
 }
 
 
@@ -408,7 +400,7 @@ static void
 gimv_image_win_init (GimvImageWin *iw)
 {
    GtkWidget *vbox, *hbox;
-   GtkObject *adj;
+   GtkAdjustment *adj;
 
    iw->priv = g_new0 (GimvImageWinPriv, 1);
 
@@ -449,7 +441,7 @@ gimv_image_win_init (GimvImageWin *iw)
    }
 
    if (conf.imgwin_fullscreen_set_bg) {
-      iw->priv->fs_bg_color = g_new0 (GdkColor, 1);
+      iw->priv->fs_bg_color = g_new0 (ImageWinColor, 1);
       iw->priv->fs_bg_color->red   = conf.imgwin_fullscreen_bg_color[0];
       iw->priv->fs_bg_color->green = conf.imgwin_fullscreen_bg_color[1];
       iw->priv->fs_bg_color->blue  = conf.imgwin_fullscreen_bg_color[2];
@@ -458,27 +450,28 @@ gimv_image_win_init (GimvImageWin *iw)
    }
 
    /* set window properties */
-   gtk_window_set_wmclass(GTK_WINDOW(iw), "imagewin", "GImageView");
-   gtk_window_set_policy(GTK_WINDOW(iw), TRUE, TRUE, FALSE);
+   gimv_icon_stock_set_window_icon (GTK_WIDGET (iw), "gimv_icon");
+   gtk_window_set_resizable (GTK_WINDOW(iw), TRUE);
    gtk_window_set_default_size (GTK_WINDOW(iw),
                                 conf.imgwin_width, conf.imgwin_height);
    gimv_image_win_set_window_title (iw);
 
    /* Main vbox */
-   vbox = gtk_vbox_new (FALSE, 0);
+   vbox = gimv_vbox_new (FALSE, 0);
    iw->main_vbox = vbox;
    if (iw == shared_img_win)
       gtk_widget_set_name (iw->main_vbox, "SharedImageWin");
    else
       gtk_widget_set_name (iw->main_vbox, "ImageWin");
-   gtk_container_add (GTK_CONTAINER (iw), vbox);
+   gimv_container_add (GTK_WIDGET (iw), vbox);
    gtk_widget_show (vbox);
 
    /* Menu Bar */
-   iw->menubar_handle = gtk_handle_box_new();
+   /* GTK4: GtkHandleBox is gone */
+   iw->menubar_handle = gimv_vbox_new (FALSE, 0);
    gtk_widget_set_name (iw->menubar_handle, "MenuBarContainer");
-   gtk_container_set_border_width (GTK_CONTAINER(iw->menubar_handle), 2);
-   gtk_box_pack_start(GTK_BOX(vbox), iw->menubar_handle, FALSE, FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (iw->menubar_handle), 2);
+   gimv_box_pack_start(GTK_BOX(vbox), iw->menubar_handle, FALSE, FALSE, 0);
 
    if (!(iw->priv->flags & GimvImageWinShowMenuBarFlag))
       gtk_widget_hide (iw->menubar_handle);
@@ -486,15 +479,16 @@ gimv_image_win_init (GimvImageWin *iw)
       gtk_widget_show (iw->menubar_handle);
 
    /* toolbar */
-   iw->toolbar_handle = gtk_handle_box_new();
+   /* GTK4: GtkHandleBox is gone */
+   iw->toolbar_handle = gimv_vbox_new (FALSE, 0);
    gtk_widget_set_name (iw->toolbar_handle, "ToolBarContainer");
-   gtk_container_set_border_width (GTK_CONTAINER(iw->toolbar_handle), 2);
-   gtk_box_pack_start (GTK_BOX(vbox), iw->toolbar_handle, FALSE, FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (iw->toolbar_handle), 2);
+   gimv_box_pack_start (GTK_BOX(vbox), iw->toolbar_handle, FALSE, FALSE, 0);
    iw->toolbar = create_toolbar (iw, iw->toolbar_handle);
-   gtk_container_add(GTK_CONTAINER(iw->toolbar_handle), iw->toolbar);
-   gtk_widget_show_all (iw->toolbar);
+   gimv_container_add (GTK_WIDGET (iw->toolbar_handle), iw->toolbar);
+   gimv_widget_show_all (iw->toolbar);
 
-   gtk_toolbar_set_style (GTK_TOOLBAR(iw->toolbar), conf.imgwin_toolbar_style);
+   gtkutil_toolbar_set_style (iw->toolbar, conf.imgwin_toolbar_style);
 
    if (!(iw->priv->flags & GimvImageWinShowToolBarFlag))
       gtk_widget_hide (iw->toolbar_handle);
@@ -502,61 +496,56 @@ gimv_image_win_init (GimvImageWin *iw)
       gtk_widget_show (iw->toolbar_handle);
 
    /* player toolbar */
-   iw->player_handle = gtk_handle_box_new ();
+   iw->player_handle = gimv_vbox_new (FALSE, 0);
    gtk_widget_set_name (iw->player_handle, "PlayerToolBarContainer");
-   gtk_container_set_border_width (GTK_CONTAINER(iw->player_handle), 2);
-   gtk_box_pack_start(GTK_BOX(vbox), iw->player_handle, FALSE, FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (iw->player_handle), 2);
+   gimv_box_pack_start(GTK_BOX(vbox), iw->player_handle, FALSE, FALSE, 0);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_add (GTK_CONTAINER (iw->player_handle), hbox);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_add (GTK_WIDGET (iw->player_handle), hbox);
    gtk_widget_show (hbox);
 
    iw->player_bar = create_player_toolbar(iw, iw->player_handle);
-   gtk_box_pack_start (GTK_BOX (hbox), iw->player_bar, FALSE, FALSE, 0);
-   gtk_widget_show_all (iw->player_bar);
+   gimv_box_pack_start (GTK_BOX (hbox), iw->player_bar, FALSE, FALSE, 0);
+   gimv_widget_show_all (iw->player_bar);
 
    adj = gtk_adjustment_new (0.0, 0.0, 100.0, 0.1, 1.0, 1.0);
 
    /* draw area */
-   gtk_box_pack_start (GTK_BOX (iw->main_vbox), GTK_WIDGET (iw->iv),
+   gimv_box_pack_start (GTK_BOX (iw->main_vbox), GTK_WIDGET (iw->iv),
                        TRUE, TRUE, 0);
    gtk_widget_show (GTK_WIDGET (iw->iv));
 
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "image_changed",
-                       GTK_SIGNAL_FUNC (cb_image_changed), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "load_start",
-                       GTK_SIGNAL_FUNC (cb_load_start), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "load_end",
-                       GTK_SIGNAL_FUNC (cb_load_end), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "set_list",
-                       GTK_SIGNAL_FUNC (cb_set_list), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "unset_list",
-                       GTK_SIGNAL_FUNC (cb_unset_list), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "rendered",
-                       GTK_SIGNAL_FUNC (cb_rendered), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "toggle_aspect",
-                       GTK_SIGNAL_FUNC (cb_toggle_aspect), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "image_pressed",
-                       GTK_SIGNAL_FUNC (cb_imageview_pressed), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv), "image_clicked",
-                       GTK_SIGNAL_FUNC (cb_imageview_clicked), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->iv->draw_area), "key_press_event",
-                       GTK_SIGNAL_FUNC (cb_draw_area_key_press), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "image_changed",
+                       G_CALLBACK (cb_image_changed), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "load_start",
+                       G_CALLBACK (cb_load_start), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "load_end",
+                       G_CALLBACK (cb_load_end), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "set_list",
+                       G_CALLBACK (cb_set_list), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "unset_list",
+                       G_CALLBACK (cb_unset_list), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "rendered",
+                       G_CALLBACK (cb_rendered), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "toggle_aspect",
+                       G_CALLBACK (cb_toggle_aspect), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "image_pressed",
+                       G_CALLBACK (cb_imageview_pressed), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "image_clicked",
+                       G_CALLBACK (cb_imageview_clicked), iw);
+   gimv_event_connect (GTK_WIDGET (iw->iv->draw_area), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_draw_area_key_press), iw);
 
-   iw->player.seekbar = gtk_hscale_new (GTK_ADJUSTMENT (adj));
+   iw->player.seekbar = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT (adj));
    gtk_scale_set_draw_value (GTK_SCALE (iw->player.seekbar), FALSE);
-   gtk_box_pack_start (GTK_BOX (hbox), iw->player.seekbar, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), iw->player.seekbar, TRUE, TRUE, 0);
    gtk_widget_show (iw->player.seekbar);
 
-   gtk_signal_connect (GTK_OBJECT (iw->player.seekbar),
-                       "button_press_event",
-                       GTK_SIGNAL_FUNC (cb_seekbar_pressed), iw);
-   gtk_signal_connect (GTK_OBJECT (iw->player.seekbar),
-                       "button_release_event",
-                       GTK_SIGNAL_FUNC (cb_seekbar_released), iw);
+   gimv_event_connect (GTK_WIDGET (iw->player.seekbar), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_seekbar_pressed), iw);
+   gimv_event_connect (GTK_WIDGET (iw->player.seekbar), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_seekbar_released), iw);
 
-   gtk_toolbar_set_style (GTK_TOOLBAR(iw->player_bar),
-                          conf.imgwin_toolbar_style);
+   gtkutil_toolbar_set_style (iw->player_bar,
+                              conf.imgwin_toolbar_style);
 
    if (!(iw->priv->flags & GimvImageWinShowPlayerFlag))
       gtk_widget_hide (iw->player_handle);
@@ -564,29 +553,29 @@ gimv_image_win_init (GimvImageWin *iw)
       gtk_widget_show (iw->player_handle);
 
    /* status bar */
-   hbox = gtk_hbox_new (FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
    iw->status_bar_container = hbox;
-   gtk_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   gimv_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_show (hbox);
 
    iw->status_bar1 = gtk_statusbar_new ();
    gtk_widget_set_name (iw->status_bar1, "StatuBar1");
-   gtk_container_border_width (GTK_CONTAINER (iw->status_bar1), 1);
-   gtk_widget_set_usize(iw->status_bar1, 200, -1);
-   gtk_box_pack_start (GTK_BOX (hbox), iw->status_bar1, TRUE, TRUE, 0);
+   gimv_container_set_border_width (iw->status_bar1, 1);
+   gimv_widget_set_size(iw->status_bar1, 200, -1);
+   gimv_box_pack_start (GTK_BOX (hbox), iw->status_bar1, TRUE, TRUE, 0);
    gtk_statusbar_push(GTK_STATUSBAR (iw->status_bar1), 1, _("New Window"));
    gtk_widget_show (iw->status_bar1);
 
    iw->status_bar2 = gtk_statusbar_new ();
    gtk_widget_set_name (iw->status_bar1, "StatuBar2");
-   gtk_container_border_width (GTK_CONTAINER (iw->status_bar2), 1);
-   gtk_widget_set_usize(iw->status_bar2, 50, -1);
-   gtk_box_pack_start (GTK_BOX (hbox), iw->status_bar2, TRUE, TRUE, 0);
+   gimv_container_set_border_width (iw->status_bar2, 1);
+   gimv_widget_set_size(iw->status_bar2, 50, -1);
+   gimv_box_pack_start (GTK_BOX (hbox), iw->status_bar2, TRUE, TRUE, 0);
    gtk_widget_show (iw->status_bar2);
 
    iw->progressbar = gtk_progress_bar_new ();
    gtk_widget_set_name (iw->progressbar, "ProgressBar");
-   gtk_box_pack_end (GTK_BOX (hbox), iw->progressbar, FALSE, FALSE, 0);
+   gimv_box_pack_end (GTK_BOX (hbox), iw->progressbar, FALSE, FALSE, 0);
    gtk_widget_show (iw->progressbar);
 
    gimv_image_view_set_progressbar (iw->iv, iw->progressbar);
@@ -612,7 +601,7 @@ gimv_image_win_init (GimvImageWin *iw)
 GtkWidget *
 gimv_image_win_new (GimvImageInfo *info)
 {
-   GimvImageWin *iw = gtk_type_new (GIMV_TYPE_IMAGE_WIN);
+   GimvImageWin *iw = g_object_new (GIMV_TYPE_IMAGE_WIN, NULL);
 
    gimv_image_view_change_image (iw->iv, info);
 
@@ -621,13 +610,25 @@ gimv_image_win_new (GimvImageInfo *info)
 
 
 static void
-gimv_image_win_destroy (GtkObject *object)
+gimv_image_win_dispose (GObject *object)
 {
+   gboolean was_listed;
    GimvImageWin *iw = GIMV_IMAGE_WIN (object);
+
+   if (iw->fullscreen) {
+      if (iw->iv)
+         gimv_image_view_unset_fullscreen (iw->iv);
+      gimv_widget_destroy (iw->fullscreen);
+      iw->fullscreen = NULL;
+   }
 
    if (iw->priv) {
       if (iw->priv->flags & GimvImageWinSlideShowPlayingFlag)
          gimv_image_win_slideshow_stop (iw);
+
+      if (iw->priv->hide_cursor_timer_id != 0)
+         g_source_remove (iw->priv->hide_cursor_timer_id);
+      iw->priv->hide_cursor_timer_id = 0;
 
       if (g_list_length (ImageWinList) == 1 && conf.imgwin_save_win_state)
          gimv_image_win_save_state (iw);
@@ -640,24 +641,27 @@ gimv_image_win_destroy (GtkObject *object)
    }
 
    if (iw->iv) {
-      gtk_signal_disconnect_by_func (GTK_OBJECT (iw->iv),
-                                     (GtkSignalFunc) cb_set_list,   iw);
-      gtk_signal_disconnect_by_func (GTK_OBJECT (iw->iv),
-                                     (GtkSignalFunc) cb_unset_list, iw);
+      /* priv is gone: no more callbacks from the image view (GTK2 only
+         disconnected "set_list" and "unset_list") */
+      g_signal_handlers_disconnect_by_data (G_OBJECT (iw->iv), iw);
+      if (iw->iv->draw_area)
+         gimv_event_disconnect_by_func (iw->iv->draw_area,
+                                        G_CALLBACK (cb_draw_area_key_press),
+                                        iw);
       iw->iv = NULL;
    }
 
    /* update linked list */
+   was_listed = g_list_find (ImageWinList, iw) != NULL;
    ImageWinList = g_list_remove (ImageWinList, iw);
 
    if (iw == shared_img_win)
       shared_img_win = NULL;
 
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      GTK_OBJECT_CLASS (parent_class)->destroy (object);
+   G_OBJECT_CLASS (gimv_image_win_parent_class)->dispose (object);
 
-   /* quit when last window */
-   if (!gimv_image_win_get_list() && !gimv_thumb_win_get_list()) {
+   /* quit when last window (dispose may run more than once) */
+   if (was_listed && !gimv_image_win_get_list() && !gimv_thumb_win_get_list()) {
       gimv_quit();
    }
 }
@@ -668,15 +672,11 @@ gimv_image_win_realize (GtkWidget *widget)
 {
    GimvImageWin *iw = GIMV_IMAGE_WIN (widget);
 
-   if (GTK_WIDGET_CLASS (parent_class)->realize)
-      GTK_WIDGET_CLASS (parent_class)->realize (widget);
+   /* must be set before the surface is created */
+   if (iw->priv && (iw->priv->flags & GimvImageWinHideFrameFlag))
+      gtk_window_set_decorated (GTK_WINDOW (iw), FALSE);
 
-   if (iw->priv->flags & GimvImageWinHideFrameFlag)
-      gdk_window_set_decorations (GTK_WIDGET(iw)->window, 0);
-
-   gtk_widget_realize (iw->menubar_handle);
-
-   gimv_icon_stock_set_window_icon (GTK_WIDGET(iw)->window, "gimv_icon");
+   GTK_WIDGET_CLASS (gimv_image_win_parent_class)->realize (widget);
 }
 
 
@@ -693,10 +693,7 @@ create_imageview_menus (GimvImageWin *iw)
    iw->menubar = menubar_create (GTK_WIDGET (iw),
                                  gimv_image_win_menu_items, n_menu_items,
                                  "<ImageWinMainMenu>", iw);
-   gtk_container_add(GTK_CONTAINER(iw->menubar_handle), iw->menubar);
-#ifndef USE_GTK2
-   gtk_menu_bar_set_shadow_type (GTK_MENU_BAR(iw->menubar), GTK_SHADOW_NONE);
-#endif /* USE_GTK2 */
+   gimv_container_add (GTK_WIDGET (iw->menubar_handle), iw->menubar);
    gtk_widget_show (iw->menubar);
 
    /* sub menu */
@@ -728,36 +725,39 @@ create_imageview_menus (GimvImageWin *iw)
 
    /* attach sub menus to parent menu */
    menu_set_submenu (iw->menubar,   "/View",       iw->view_menu);
-   menu_set_submenu (iw->menubar,   "/Move",       iw->move_menu);
+   menu_set_submenu (iw->menubar,   "/Go",       iw->move_menu);
    menu_set_submenu (iw->menubar,   "/Help",       iw->help_menu);
    menu_set_submenu (iw->view_menu, "/Zoom",       zoom_menu);
    menu_set_submenu (iw->view_menu, "/Rotate",     rotate_menu);
    menu_set_submenu (iw->menubar,   "/Movie",      movie_menu);
-   menu_set_submenu (iw->view_menu, "/View modes", vmode_menu);
+   menu_set_submenu (iw->view_menu, "/View Modes", vmode_menu);
 
    /* popup menu */
-   iw->iv->imageview_popup = iw->view_menu;
+   gimv_image_view_set_menu_ptr (iw->iv, &iw->iv->imageview_popup,
+                                 iw->view_menu);
 
    /* initialize menubar check items */
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "show_scrollbar", &show_scrollbar,
                    "keep_buffer",    &keep_buffer,
                    NULL);
 
    menu_check_item_set_active (iw->menubar, "/File/Memory Buffer", keep_buffer);
 
-   menu_check_item_set_active (iw->view_menu, "/Menu Bar",
+   menu_check_item_set_active (iw->view_menu, "/Menubar",
                                iw->priv->flags & GimvImageWinShowMenuBarFlag);
-   menu_check_item_set_active (iw->view_menu, "/Tool Bar",
+   menu_check_item_set_active (iw->view_menu, "/Toolbar",
                                iw->priv->flags & GimvImageWinShowToolBarFlag);
-   menu_check_item_set_active (iw->view_menu, "/Slide Show Player",
+   menu_check_item_set_active (iw->view_menu, "/Slideshow Player",
                                iw->priv->flags & GimvImageWinShowPlayerFlag);
-   menu_check_item_set_active (iw->view_menu, "/Status Bar",
+   menu_check_item_set_active (iw->view_menu, "/Statusbar",
                                iw->priv->flags & GimvImageWinShowStatusBarFlag);
-   menu_check_item_set_active (iw->view_menu, "/Scroll Bar",  show_scrollbar);
+   menu_check_item_set_active (iw->view_menu, "/Scrollbar",  show_scrollbar);
+   menu_check_item_set_active (iw->view_menu, "/Checkerboard Behind Transparency",
+                               gimv_image_view_get_alpha_checker (iw->iv));
    menu_check_item_set_active (iw->view_menu, "/Maximize",
                                iw->priv->flags & GimvImageWinMaximizeFlag);
-   menu_check_item_set_active (iw->view_menu, "/Full Screen",
+   menu_check_item_set_active (iw->view_menu, "/Fullscreen",
                                iw->priv->flags & GimvImageWinFullScreenFlag);
 
    menu_item_set_sensitive (iw->move_menu, "/Next",     FALSE);
@@ -780,15 +780,75 @@ create_imageview_menus (GimvImageWin *iw)
 }
 
 
+/******************************************************************************
+ *
+ *   toolbar helpers (GTK4: GtkToolbar is gone).
+ *
+ ******************************************************************************/
+static GtkWidget *
+toolbar_append_item (GtkWidget *toolbar,
+                     const gchar *text,
+                     const gchar *tooltip,
+                     GtkWidget *icon,
+                     GCallback callback,
+                     gpointer data)
+{
+   GtkWidget *button, *vbox, *label;
+
+   button = gtk_button_new ();
+   gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
+   gtk_widget_set_focus_on_click (button, FALSE);
+
+   vbox = gimv_vbox_new (FALSE, 0);
+   gtk_button_set_child (GTK_BUTTON (button), vbox);
+   if (icon)
+      gimv_box_pack_start (GTK_BOX (vbox), icon, TRUE, TRUE, 0);
+   label = gtk_label_new (text);
+   gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
+
+   if (tooltip)
+      gtk_widget_set_tooltip_text (button, tooltip);
+   if (callback)
+      g_signal_connect (button, "clicked", callback, data);
+
+   gimv_box_pack_start (GTK_BOX (toolbar), button, FALSE, FALSE, 0);
+
+   return button;
+}
+
+
+static void
+toolbar_append_space (GtkWidget *toolbar)
+{
+   GtkWidget *sep = gtk_separator_new (GTK_ORIENTATION_VERTICAL);
+
+   gtk_widget_set_margin_start (sep, 4);
+   gtk_widget_set_margin_end (sep, 4);
+   gimv_box_pack_start (GTK_BOX (toolbar), sep, FALSE, FALSE, 0);
+}
+
+
+static void
+toolbar_append_widget (GtkWidget *toolbar,
+                       GtkWidget *widget,
+                       const gchar *tooltip)
+{
+   if (tooltip)
+      gtk_widget_set_tooltip_text (widget, tooltip);
+   gtk_widget_set_valign (widget, GTK_ALIGN_CENTER);
+   gimv_box_pack_start (GTK_BOX (toolbar), widget, FALSE, FALSE, 0);
+}
+
+
 static GtkWidget *
 create_toolbar (GimvImageWin *iw, GtkWidget *container)
 {
    GtkWidget *toolbar, *button, *spinner, *iconw, *menu;
    GtkAdjustment *adj;
    const gchar *rotate_labels[] = {
-      N_("90 degrees CCW"),
+      N_("90 degrees counterclockwise"),
       N_("0 degrees"),
-      N_("90 degrees CW"),
+      N_("90 degrees clockwise"),
       N_("180 degrees"),
       NULL,
    };
@@ -798,93 +858,85 @@ create_toolbar (GimvImageWin *iw, GtkWidget *container)
 
    /* file open button */
    iconw = gimv_icon_stock_get_widget ("nfolder");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Open"),
-                                    _("File Open"),
-                                    _("File Open"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_open_button),
-                                    NULL);
+   button = toolbar_append_item (toolbar,
+                                 _("Open"),
+                                 _("Open File"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_open_button),
+                                 NULL);
 
    /* preference button */
    iconw = gimv_icon_stock_get_widget ("prefs");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Prefs"),
-                                    _("Preference"),
-                                    _("Preference"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_prefs_button),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Prefs"),
+                                 _("Preferences"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_prefs_button),
+                                 iw);
 
-   gtk_toolbar_append_space (GTK_TOOLBAR (toolbar));
+   toolbar_append_space (toolbar);
 
    /* prev button */
    iconw = gimv_icon_stock_get_widget ("back");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Prev"),
-                                    _("Previous Image"),
-                                    _("Previous Image"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_prev_button),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Prev"),
+                                 _("Previous Image"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_prev_button),
+                                 iw);
    iw->button.prev = button;
    /* gtk_widget_set_sensitive (button, FALSE); */
 
    /* next button */
    iconw = gimv_icon_stock_get_widget ("forward");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Next"),
-                                    _("Next Image"),
-                                    _("Next Image"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_next_button),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Next"),
+                                 _("Next Image"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_next_button),
+                                 iw);
    iw->button.next = button;
    /* gtk_widget_set_sensitive (button, FALSE); */
 
-   gtk_toolbar_append_space (GTK_TOOLBAR (toolbar));
+   toolbar_append_space (toolbar);
 
    /* no zoom button */
    iconw = gimv_icon_stock_get_widget ("no_zoom");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("No Zoom"),
-                                    _("No Zoom"),
-                                    _("No Zoom"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_no_zoom),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("No Zoom"),
+                                 _("No Zoom"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_no_zoom),
+                                 iw);
 
    /* zoom in button */
    iconw = gimv_icon_stock_get_widget ("zoom_in");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Zoom in"),
-                                    _("Zoom in"),
-                                    _("Zoom in"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_zoom_in),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Zoom in"),
+                                 _("Zoom in"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_zoom_in),
+                                 iw);
 
    /* zoom out button */
    iconw = gimv_icon_stock_get_widget ("zoom_out");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Zoom out"),
-                                    _("Zoom out"),
-                                    _("Zoom out"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_zoom_out),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Zoom out"),
+                                 _("Zoom out"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_zoom_out),
+                                 iw);
 
    /* zoom fit button */
    iconw = gimv_icon_stock_get_widget ("zoom_fit");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Zoom fit"),
-                                    _("Zoom fit"),
-                                    _("Zoom fit"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_zoom_fit),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Zoom to fit"),
+                                 _("Zoom to fit"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_zoom_fit),
+                                 iw);
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "x_scale", &x_scale,
                    "y_scale", &y_scale,
                    NULL);
@@ -896,13 +948,11 @@ create_toolbar (GimvImageWin *iw, GtkWidget *container)
                                                1.0, 5.0, 0.0);
    spinner = gtkutil_create_spin_button (adj);
    gtk_widget_set_name (spinner, "XScaleSpinner");
-   gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar), spinner,
-                              _("X Scale"), _("X Scale"));
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (cb_toolbar_keep_aspect), iw);
+   toolbar_append_widget (toolbar, spinner, _("X Scale"));
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (cb_toolbar_keep_aspect), iw);
    iw->button.xscale = spinner;
-   gtk_signal_connect (GTK_OBJECT(spinner), "key-press-event",
-                       GTK_SIGNAL_FUNC(cb_scale_spinner_key_press), iw);
+   gimv_event_connect (GTK_WIDGET (spinner), GIMV_EVENT_KEY_PRESS, G_CALLBACK(cb_scale_spinner_key_press), iw);
 
    /* y scale spinner */
    adj = (GtkAdjustment *) gtk_adjustment_new (y_scale,
@@ -911,53 +961,47 @@ create_toolbar (GimvImageWin *iw, GtkWidget *container)
                                                1.0, 5.0, 0.0);
    spinner = gtkutil_create_spin_button (adj);
    gtk_widget_set_name (spinner, "YScaleSpinner");
-   gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar), spinner,
-                              _("Y Scale"), _("Y Scale"));
+   toolbar_append_widget (toolbar, spinner, _("Y Scale"));
    iw->button.yscale = spinner;
 
    /* zoom button */
    iconw = gimv_icon_stock_get_widget ("zoom");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Zoom"),
-                                    _("Zoom"),
-                                    _("Zoom"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_zoom),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Zoom"),
+                                 _("Zoom"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_zoom),
+                                 iw);
 
-   gtk_toolbar_append_space (GTK_TOOLBAR (toolbar));
+   toolbar_append_space (toolbar);
 
    /* rotate button */
    menu = create_option_menu (rotate_labels,
                               1, cb_rotate_menu, iw);
-   gtk_signal_connect (GTK_OBJECT (menu), "button_press_event",
-                       GTK_SIGNAL_FUNC (cb_rotate_menu_button_press), iw);
-   gtk_toolbar_append_widget (GTK_TOOLBAR (toolbar), menu,
-                              _("Rotate"), _("Rotate the image"));
+   gimv_event_connect (GTK_WIDGET (menu), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_rotate_menu_button_press), iw);
+   toolbar_append_widget (toolbar, menu, _("Rotate the image"));
    iw->button.rotate = menu;
 
-   gtk_toolbar_append_space (GTK_TOOLBAR (toolbar));
+   toolbar_append_space (toolbar);
 
    /* resize button */
    iconw = gimv_icon_stock_get_widget ("resize");
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Resize"),
-                                    _("Fit Window Size to Image"),
-                                    _("Fit Window Size to Image"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_fit_window),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Resize"),
+                                 _("Fit Window Size to Image"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_fit_window),
+                                 iw);
 
    /* fullscreen button */
    iconw = gimv_icon_stock_get_widget ("fullscreen");
    /* button = gtk_toggle_button_new (); */
-   button = gtk_toolbar_append_item(GTK_TOOLBAR (toolbar),
-                                    _("Full"),
-                                    _("Fullscreen"),
-                                    _("Fullscreen"),
-                                    iconw,
-                                    GTK_SIGNAL_FUNC (cb_toolbar_fullscreen),
-                                    iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Full"),
+                                 _("Fullscreen"),
+                                 iconw,
+                                 G_CALLBACK (cb_toolbar_fullscreen),
+                                 iw);
 
    gtk_widget_set_sensitive (iw->button.prev, FALSE);
    gtk_widget_set_sensitive (iw->button.next, FALSE);
@@ -977,56 +1021,62 @@ create_player_toolbar (GimvImageWin *iw, GtkWidget *container)
 
    /* previous button */
    iconw = gimv_icon_stock_get_widget ("prev_t");
-   button = gtk_toolbar_append_item (GTK_TOOLBAR (toolbar),
-                                     _("First"),
-                                     _("First"), _("First"),
-                                     iconw,
-                                     GTK_SIGNAL_FUNC (cb_first_clicked), iw);
+   button = toolbar_append_item (toolbar,
+                                 _("First"),
+                                 _("First"),
+                                 iconw,
+                                 G_CALLBACK (cb_first_clicked),
+                                 iw);
    iw->player.prev = button;
 
    /* Reverse button */
    iconw = gimv_icon_stock_get_widget ("rw");
-   button = gtk_toolbar_append_item (GTK_TOOLBAR (toolbar),
-                                     _("Prev"),
-                                     _("Previous"), _("Previous"),
-                                     iconw,
-                                     GTK_SIGNAL_FUNC (cb_prev_clicked), iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Prev"),
+                                 _("Previous"),
+                                 iconw,
+                                 G_CALLBACK (cb_prev_clicked),
+                                 iw);
    iw->player.rw = button;
 
    /* play button */
    iconw = gimv_icon_stock_get_widget ("play");
-   button = gtk_toolbar_append_item (GTK_TOOLBAR (toolbar),
-                                     _("Play"),
-                                     _("Play Slide Show"), _("Play Slide Show"),
-                                     iconw,
-                                     GTK_SIGNAL_FUNC (cb_play_clicked), iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Play"),
+                                 _("Play Slideshow"),
+                                 iconw,
+                                 G_CALLBACK (cb_play_clicked),
+                                 iw);
    iw->player.play = button;
 
    /* stop button */
    iconw = gimv_icon_stock_get_widget ("stop2");
-   button = gtk_toolbar_append_item (GTK_TOOLBAR (toolbar),
-                                     _("Stop"),
-                                     _("Stop Slide Show"), _("Stop Slide Show"),
-                                     iconw,
-                                     GTK_SIGNAL_FUNC (cb_stop_clicked), iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Stop"),
+                                 _("Stop Slideshow"),
+                                 iconw,
+                                 G_CALLBACK (cb_stop_clicked),
+                                 iw);
    iw->player.stop = button;
 
    /* Forward button */
    iconw = gimv_icon_stock_get_widget ("ff");
-   button = gtk_toolbar_append_item (GTK_TOOLBAR (toolbar),
-                                     _("Next"),
-                                     _("Next"), _("Next"),
-                                     iconw,
-                                     GTK_SIGNAL_FUNC (cb_next_clicked), iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Next"),
+                                 _("Next"),
+                                 iconw,
+                                 G_CALLBACK (cb_next_clicked),
+                                 iw);
    iw->player.fw = button;
 
    /* Next button */
    iconw = gimv_icon_stock_get_widget ("next_t");
-   button = gtk_toolbar_append_item (GTK_TOOLBAR (toolbar),
-                                     _("Last"),
-                                     _("Last"), _("Last"),
-                                     iconw,
-                                     GTK_SIGNAL_FUNC (cb_last_clicked), iw);
+   button = toolbar_append_item (toolbar,
+                                 _("Last"),
+                                 _("Last"),
+                                 iconw,
+                                 G_CALLBACK (cb_last_clicked),
+                                 iw);
    iw->player.next = button;
 
    return toolbar;
@@ -1038,14 +1088,13 @@ gimv_image_win_set_win_size (GimvImageWin *iw)
 {
    gint x_size, y_size, width, height;
    gfloat x_scale, y_scale, tmp;
-   gboolean show_scrollbar;
    GimvImageViewOrientation rotate;
 
    if (!GIMV_IS_IMAGE_WIN (iw)) return;
    if (iw->priv->flags & GimvImageWinMaximizeFlag) return;
    if (iw->priv->flags & GimvImageWinFullScreenFlag) return;
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "x_scale", &x_scale,
                    "y_scale", &y_scale,
                    NULL);
@@ -1067,34 +1116,29 @@ gimv_image_win_set_win_size (GimvImageWin *iw)
    y_size = height * y_scale / 100.0 + 0.5;
 
    if (iw->priv->flags & GimvImageWinShowMenuBarFlag)
-      y_size += iw->menubar_handle->allocation.height;
+      y_size += gtk_widget_get_height (GTK_WIDGET (iw->menubar_handle));
 
    if (iw->priv->flags & GimvImageWinShowToolBarFlag)
-      y_size += iw->toolbar_handle->allocation.height;
+      y_size += gtk_widget_get_height (GTK_WIDGET (iw->toolbar_handle));
 
    if (iw->priv->flags & GimvImageWinShowPlayerFlag)
-      y_size += iw->player_handle->allocation.height;
+      y_size += gtk_widget_get_height (GTK_WIDGET (iw->player_handle));
 
    if (iw->priv->flags & GimvImageWinShowStatusBarFlag)
-      y_size += iw->status_bar_container->allocation.height;
+      y_size += gtk_widget_get_height (GTK_WIDGET (iw->status_bar_container));
 
-   if (GTK_WIDGET_VISIBLE (iw->iv->player_container))
-      y_size += iw->iv->player_container->allocation.height;
+   if (gtk_widget_get_visible (GTK_WIDGET (iw->iv->player_container)))
+      y_size += gtk_widget_get_height (GTK_WIDGET (iw->iv->player_container));
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
-                   "show_scrollbar", &show_scrollbar,
-                   NULL);
-   if (show_scrollbar) {
-      x_size += iw->iv->vscrollbar->allocation.width;
-      y_size += iw->iv->hscrollbar->allocation.height;
-   }
+   /* GTK4: no room for the scrollbars: they are hidden when the image fits */
 
    if (x_size < 1)
       x_size = conf.imgwin_width;
    if (y_size < 1)
       y_size = conf.imgwin_height;
 
-   gdk_window_resize (GTK_WIDGET(iw)->window, x_size, y_size);
+   /* GTK4: resize through the default size */
+   gtk_window_set_default_size (GTK_WINDOW (iw), x_size, y_size);
    gimv_image_view_set_view_position (iw->iv, 0, 0);
    gimv_image_view_draw_image (iw->iv);
 }
@@ -1116,7 +1160,7 @@ gimv_image_win_set_window_title (GimvImageWin *iw)
 
    if (iw->iv->info && gimv_image_info_get_path (iw->iv->info)) {
       filename = g_basename (iw->iv->info->filename);
-      dirname = g_dirname (iw->iv->info->filename);
+      dirname = g_path_get_dirname (iw->iv->info->filename);
    } else {
       gtk_window_set_title (GTK_WINDOW (iw), GIMV_PROG_NAME);
       return;
@@ -1129,7 +1173,7 @@ gimv_image_win_set_window_title (GimvImageWin *iw)
                                   conf.charset_auto_detect_fn,
                                   conf.charset_filename_mode);
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "keep_buffer", &keep_buffer,
                    NULL);
 
@@ -1180,7 +1224,7 @@ gimv_image_win_set_statusbar_info (GimvImageWin *iw)
                                  conf.charset_auto_detect_fn,
                                  conf.charset_filename_mode);
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "keep_buffer", &keep_buffer,
                    NULL);
 
@@ -1212,34 +1256,34 @@ gimv_image_win_set_statusbar_info (GimvImageWin *iw)
  *
  ******************************************************************************/
 static void
-cb_file_select (gpointer data, guint action, GtkWidget *widget)
+cb_file_select (gpointer data, guint action, GimvMenuItem *widget)
 {
    create_filebrowser (NULL);
 }
 
 
 static void
-cb_open_imagewin (gpointer data, guint action, GtkWidget *widget)
+cb_open_imagewin (gpointer data, guint action, GimvMenuItem *widget)
 {
    gimv_image_win_open_window (NULL);   
 }
 
 
 static void
-cb_open_thumbwin (gpointer data, guint action, GtkWidget *widget)
+cb_open_thumbwin (gpointer data, guint action, GimvMenuItem *widget)
 {
    gimv_thumb_win_open_window();
 }
 
 
 static void
-cb_toggle_buffer (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_buffer (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    gboolean keep_buffer;
 
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       gimv_image_view_load_image_buf (iw->iv);
       keep_buffer = TRUE;
    } else {
@@ -1247,7 +1291,7 @@ cb_toggle_buffer (GimvImageWin *iw, guint action, GtkWidget *widget)
       gimv_image_view_free_image_buf (iw->iv);
    }
 
-   gtk_object_set (GTK_OBJECT (iw->iv),
+   g_object_set (G_OBJECT (iw->iv),
                    "keep_buffer", keep_buffer,
                    NULL);
 
@@ -1257,39 +1301,51 @@ cb_toggle_buffer (GimvImageWin *iw, guint action, GtkWidget *widget)
 
 
 static void
-cb_window_close (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_window_close (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
    if (iw->priv->flags & GimvImageWinCreatingFlag) return;
 
    if (iw->priv->flags & GimvImageWinFullScreenFlag) {
-      menu_check_item_set_active (iw->view_menu, "/Full Screen", FALSE);
+      menu_check_item_set_active (iw->view_menu, "/Fullscreen", FALSE);
       return; /* or close window completly? */
    }
 
-   gtk_widget_destroy (GTK_WIDGET (iw));
+   gimv_widget_destroy (GTK_WIDGET (iw));
 }
 
 
 static void
-cb_ignore_alpha (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_alpha_checker (GimvImageWin *iw, guint action, GimvMenuItem *widget)
+{
+   gboolean active = gimv_menu_item_get_active (GIMV_MENU_ITEM (widget));
+
+   g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
+
+   conf.imgview_alpha_checker = active;
+   gimv_image_view_set_alpha_checker (iw->iv, active);
+}
+
+
+static void
+cb_ignore_alpha (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   gtk_object_set (GTK_OBJECT (iw->iv),
-                   "ignore_alpha", GTK_CHECK_MENU_ITEM (widget)->active,
+   g_object_set (G_OBJECT (iw->iv),
+                   "ignore_alpha", gimv_menu_item_get_active (GIMV_MENU_ITEM (widget)),
                    NULL);
    gimv_image_view_show_image (iw->iv);
 }
 
 
 static void
-cb_toggle_menubar (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_menubar (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       gtk_widget_show (iw->menubar_handle);
       iw->priv->flags |= GimvImageWinShowMenuBarFlag;
    } else {
@@ -1300,11 +1356,11 @@ cb_toggle_menubar (GimvImageWin *iw, guint action, GtkWidget *widget)
 
 
 static void
-cb_toggle_player (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_player (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       gtk_widget_show (iw->player_handle);
       iw->priv->flags |= GimvImageWinShowPlayerFlag;
    } else {
@@ -1315,11 +1371,11 @@ cb_toggle_player (GimvImageWin *iw, guint action, GtkWidget *widget)
 
 
 static void
-cb_toggle_toolbar (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_toolbar (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       gtk_widget_show (iw->toolbar_handle);
       iw->priv->flags |= GimvImageWinShowToolBarFlag;
    } else {
@@ -1330,11 +1386,11 @@ cb_toggle_toolbar (GimvImageWin *iw, guint action, GtkWidget *widget)
 
 
 static void
-cb_toggle_statusbar (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_statusbar (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       gtk_widget_show (iw->status_bar_container);
       iw->priv->flags |= GimvImageWinShowStatusBarFlag;
    } else {
@@ -1345,11 +1401,11 @@ cb_toggle_statusbar (GimvImageWin *iw, guint action, GtkWidget *widget)
 
 
 static void
-cb_toggle_scrollbar (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_scrollbar (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       gimv_image_view_show_scrollbar (iw->iv);
    } else {
       gimv_image_view_hide_scrollbar (iw->iv);
@@ -1360,7 +1416,7 @@ cb_toggle_scrollbar (GimvImageWin *iw, guint action, GtkWidget *widget)
 static void
 cb_switch_player (GimvImageWin *iw,
                   GimvImageViewPlayerVisibleType visible,
-                  GtkWidget     *widget)
+                  GimvMenuItem     *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iw->iv));
@@ -1371,44 +1427,37 @@ cb_switch_player (GimvImageWin *iw,
 
 
 static void
-cb_toggle_maximize (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_maximize (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
-   GdkWindow *gdk_window = GTK_WIDGET(iw)->window;
-   gint client_x, client_y, root_x, root_y;
-   gint width, height;
-
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
-      gdk_window_get_origin (gdk_window, &root_x, &root_y);
-      gdk_window_get_geometry (gdk_window, &client_x, &client_y,
-                               &width, &height, NULL);
-
-      gdk_window_move_resize (gdk_window, -client_x, -client_y,
-                              gdk_screen_width (), gdk_screen_height ());
-      gdk_window_raise (gdk_window);
-      gdk_window_focus (gdk_window, GDK_CURRENT_TIME);
-
+   /* GTK4: window geometry can't be controlled directly, use the window
+      manager's maximize state instead */
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       iw->priv->flags |= GimvImageWinMaximizeFlag;
-      iw->priv->win_x = root_x - client_x;
-      iw->priv->win_y = root_y - client_y;
-      iw->priv->win_width  = width;
-      iw->priv->win_height = height;
+      iw->priv->win_x = 0;
+      iw->priv->win_y = 0;
+      /* GTK4: the default size follows the (unmaximized) window size */
+      gtk_window_get_default_size (GTK_WINDOW (iw),
+                                   &iw->priv->win_width, &iw->priv->win_height);
+
+      gtk_window_maximize (GTK_WINDOW (iw));
+      gtk_window_present (GTK_WINDOW (iw));
    } else {
-      gdk_window_move_resize (gdk_window,
-                              iw->priv->win_x, iw->priv->win_y,
-                              iw->priv->win_width, iw->priv->win_height);
+      gtk_window_unmaximize (GTK_WINDOW (iw));
+      gtk_window_set_default_size (GTK_WINDOW (iw),
+                                   iw->priv->win_width, iw->priv->win_height);
       iw->priv->flags &= ~GimvImageWinMaximizeFlag;
    }
 }
 
 
 static void
-cb_toggle_fullscreen (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_toggle_fullscreen (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   if (GTK_CHECK_MENU_ITEM(widget)->active) {
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
       gimv_image_win_fullscreen_show (iw);
    } else {
       gimv_image_win_fullscreen_hide (iw);
@@ -1417,7 +1466,7 @@ cb_toggle_fullscreen (GimvImageWin *iw, guint action, GtkWidget *widget)
 
 
 static void
-cb_fit_to_image (GimvImageWin *iw, guint action, GtkWidget *widget)
+cb_fit_to_image (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
@@ -1426,7 +1475,7 @@ cb_fit_to_image (GimvImageWin *iw, guint action, GtkWidget *widget)
 
 
 static void
-cb_edit_comment (GimvImageWin *iw, guint action, GtkWidget *menuitem)
+cb_edit_comment (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
    g_return_if_fail (iw->iv);
@@ -1438,7 +1487,7 @@ cb_edit_comment (GimvImageWin *iw, guint action, GtkWidget *menuitem)
 
 #ifdef ENABLE_EXIF
 static void
-cb_exif (GimvImageWin *iw, guint action, GtkWidget *menuitem)
+cb_exif (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
@@ -1452,12 +1501,22 @@ cb_exif (GimvImageWin *iw, guint action, GtkWidget *menuitem)
 static void
 cb_create_thumb (GimvImageWin *iw,
                  guint        action,
-                 GtkWidget   *widget)
+                 GimvMenuItem   *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
    g_return_if_fail (iw->iv);
 
    gimv_image_view_create_thumbnail (iw->iv);
+}
+
+
+static void
+cb_print (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
+   g_return_if_fail (iw->iv);
+
+   gimv_print_image_view (iw->iv, GTK_WINDOW (iw));
 }
 
 
@@ -1473,7 +1532,7 @@ cb_options (GimvImageWin *iw)
 static void
 cb_move_menu (GimvImageWin *iw,
               guint        action,
-              GtkWidget   *widget)
+              GimvMenuItem   *widget)
 {
    gint num;
 
@@ -1578,8 +1637,12 @@ cb_toolbar_zoom (GtkWidget *widget, GimvImageWin *iw)
    xspin = GTK_SPIN_BUTTON(iw->button.xscale);
    yspin = GTK_SPIN_BUTTON(iw->button.yscale);
 
-   x_scale = gtk_spin_button_get_value_as_float (xspin);
-   y_scale = gtk_spin_button_get_value_as_float (yspin);
+   /* GTK4: the toolbar buttons don't take the focus, commit typed text */
+   gtk_spin_button_update (xspin);
+   gtk_spin_button_update (yspin);
+
+   x_scale = gtk_spin_button_get_value (xspin);
+   y_scale = gtk_spin_button_get_value (yspin);
 
    gimv_image_view_zoom_image (iw->iv, GIMV_IMAGE_VIEW_ZOOM_FREE, x_scale, y_scale);
 }
@@ -1593,14 +1656,14 @@ cb_toolbar_keep_aspect (GtkWidget *widget, GimvImageWin *iw)
 
    g_return_if_fail (iw);
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "keep_aspect", &keep_aspect,
                    NULL);
 
    if (!keep_aspect)
       return;
 
-   scale = gtk_spin_button_get_value_as_float (GTK_SPIN_BUTTON (iw->button.xscale));
+   scale = gtk_spin_button_get_value (GTK_SPIN_BUTTON (iw->button.xscale));
    gtk_spin_button_set_value (GTK_SPIN_BUTTON (iw->button.yscale), scale);
 }
 
@@ -1617,20 +1680,20 @@ static void
 cb_toolbar_fullscreen (GtkWidget *widget, GimvImageWin *iw)
 {
    g_return_if_fail (iw);
-   menu_check_item_set_active (iw->view_menu, "/Full Screen",
+   menu_check_item_set_active (iw->view_menu, "/Fullscreen",
                                !(iw->priv->flags & GimvImageWinFullScreenFlag));
 }
 
 
 static gboolean
 cb_scale_spinner_key_press (GtkWidget *widget, 
-                            GdkEventKey *event,
+                            GimvEventKey *event,
                             GimvImageWin *iw)
 {
    g_return_val_if_fail (iw, FALSE);
         
    switch (event->keyval) {
-   case GDK_Escape:
+   case GDK_KEY_Escape:
       gtk_window_set_focus (GTK_WINDOW (iw), NULL);
       return FALSE;
    }
@@ -1643,8 +1706,8 @@ static void
 cb_rotate_menu (GtkWidget *widget, GimvImageWin *iw)
 {
    gint angle;
-   g_return_if_fail (GTK_IS_MENU_ITEM (widget));
-   angle = GPOINTER_TO_INT (gtk_object_get_data (GTK_OBJECT (widget), "num"));
+   g_return_if_fail (GTK_IS_WIDGET (widget));
+   angle = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (widget), "num"));
    switch (angle)
    {
    case 0:
@@ -1670,10 +1733,10 @@ cb_rotate_menu (GtkWidget *widget, GimvImageWin *iw)
 
 static gboolean
 cb_rotate_menu_button_press (GtkWidget *widget,
-                             GdkEventButton *event,
+                             GimvEventButton *event,
                              GimvImageWin *iw)
 {
-   g_return_val_if_fail (GTK_IS_OPTION_MENU (widget), FALSE);
+   g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
 
    switch (event->button) {
    case 2:
@@ -1757,7 +1820,7 @@ cb_last_clicked (GtkWidget *button, GimvImageWin *iw)
 
 static gboolean
 cb_seekbar_pressed (GtkWidget *widget,
-                    GdkEventButton *event,
+                    GimvEventButton *event,
                     GimvImageWin *iw)
 {
    g_return_val_if_fail (iw, FALSE);
@@ -1770,7 +1833,7 @@ cb_seekbar_pressed (GtkWidget *widget,
 
 static gboolean
 cb_seekbar_released (GtkWidget *widget,
-                     GdkEventButton *event,
+                     GimvEventButton *event,
                      GimvImageWin *iw)
 {
    GtkAdjustment *adj;
@@ -1779,7 +1842,7 @@ cb_seekbar_released (GtkWidget *widget,
    g_return_val_if_fail (iw, FALSE);
 
    adj = gtk_range_get_adjustment (GTK_RANGE (iw->player.seekbar));
-   pos = adj->value + 0.5;
+   pos = gtk_adjustment_get_value (adj) + 0.5;
 
    gimv_image_view_nth (iw->iv, pos);
 
@@ -1806,8 +1869,7 @@ cb_image_changed (GimvImageView *iv, GimvImageWin *iw)
 
       pos = gimv_image_view_image_list_position (iv);
       adj = gtk_range_get_adjustment (GTK_RANGE (iw->player.seekbar));
-      adj->value = pos;
-      gtk_adjustment_changed (adj);
+      gtk_adjustment_set_value (adj, pos);
    }
 
    /* set statu bar */
@@ -1864,13 +1926,13 @@ cb_set_list (GimvImageView *iv, GimvImageWin *iw)
 
    adj = gtk_range_get_adjustment (GTK_RANGE (iw->player.seekbar));
 
-   adj->lower          = 0.0;
-   adj->upper          = num;
-   adj->value          = pos;
-   adj->step_increment = 1.0;
-   adj->page_increment = 1.0;
-   adj->page_size      = 1.0;
-   gtk_adjustment_changed (adj);
+   gtk_adjustment_configure (adj,
+                             pos,    /* value */
+                             0.0,    /* lower */
+                             num,    /* upper */
+                             1.0,    /* step_increment */
+                             1.0,    /* page_increment */
+                             1.0);   /* page_size */
 
    menu_item_set_sensitive (iw->move_menu, "/Next",     TRUE);
    menu_item_set_sensitive (iw->move_menu, "/Previous", TRUE);
@@ -1900,8 +1962,7 @@ cb_unset_list (GimvImageView *iv, GimvImageWin *iw)
    gtk_widget_set_sensitive (iw->player.seekbar, FALSE);
 
    adj = gtk_range_get_adjustment (GTK_RANGE (iw->player.seekbar));
-   adj->value = 0;
-   gtk_adjustment_changed (adj);
+   gtk_adjustment_set_value (adj, 0);
 
    menu_item_set_sensitive (iw->move_menu, "/Next",     FALSE);
    menu_item_set_sensitive (iw->move_menu, "/Previous", FALSE);
@@ -1933,10 +1994,10 @@ cb_rendered (GimvImageView *iv, GimvImageWin *iw)
    if (!(iw->priv->flags & GimvImageWinMaximizeFlag) && conf.imgwin_fit_to_image)
       gimv_image_win_set_win_size (iw);
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "x_scale",     &x_scale,
                    "y_scale",     &y_scale,
-                   "orientation", &rotate,
+                   "rotation", &rotate,
                    NULL);
 
    switch (rotate) {
@@ -1961,8 +2022,7 @@ cb_rendered (GimvImageView *iv, GimvImageWin *iw)
    if (iw->button.yscale)
       gtk_spin_button_set_value (GTK_SPIN_BUTTON (iw->button.yscale), y_scale);
    if (iw->button.rotate)
-      gtk_option_menu_set_history (GTK_OPTION_MENU (iw->button.rotate),
-                                   angle);
+      gimv_option_menu_set_history (GTK_WIDGET (iw->button.rotate), angle);
 }
 
 
@@ -1981,13 +2041,13 @@ cb_toggle_aspect (GimvImageView *iv, gboolean keep_aspect, GimvImageWin *iw)
 
 static gboolean
 cb_draw_area_key_press (GtkWidget *widget, 
-                        GdkEventKey *event,
+                        GimvEventKey *event,
                         GimvImageWin *iw)
 {
    g_return_val_if_fail (iw, FALSE);
         
    switch (event->keyval) {
-   case GDK_Escape:
+   case GDK_KEY_Escape:
       if (iw->priv->flags & GimvImageWinMaximizeFlag) {
          menu_check_item_set_active (iw->view_menu, "/Maximize",
                                      !(iw->priv->flags & GimvImageWinMaximizeFlag));
@@ -2002,9 +2062,24 @@ cb_draw_area_key_press (GtkWidget *widget,
 
 
 static gint
-gimv_image_view_button_action (GimvImageView *iv, GdkEventButton *event, gint num)
+gimv_image_view_button_action (GimvImageView *iv, GimvEventButton *event, gint num)
 {
    gint mx, my;
+
+   /* option (Movie and Audio): a playing movie keeps the clicks from moving
+      on to another file or
+      zooming (the popup menu and the like still work) */
+   if (conf.imgview_movie_lock_mouse && gimv_image_view_playable_is_busy (iv)) {
+      switch (abs (num)) {
+      case MOUSE_PRESS_NEXT: case MOUSE_PRESS_PREV:
+      case MOUSE_PRESS_ZOOM_IN: case MOUSE_PRESS_ZOOM_OUT: case MOUSE_PRESS_FIT:
+      case MOUSE_PRESS_ROTATE_CCW: case MOUSE_PRESS_ROTATE_CW: case MOUSE_PRESS_NAVWIN:
+      case MOUSE_PRESS_UP: case MOUSE_PRESS_DOWN: case MOUSE_PRESS_LEFT: case MOUSE_PRESS_RIGHT:
+         return TRUE;
+      default:
+         break;
+      }
+   }
 
    gimv_image_view_get_view_position (iv, &mx, &my);
 
@@ -2061,7 +2136,7 @@ gimv_image_view_button_action (GimvImageView *iv, GdkEventButton *event, gint nu
 
 
 static gint
-cb_imageview_pressed (GimvImageView *iv, GdkEventButton *event, GimvImageWin *iw)
+cb_imageview_pressed (GimvImageView *iv, GimvEventButton *event, GimvImageWin *iw)
 {
    gint num;
 
@@ -2077,7 +2152,7 @@ cb_imageview_pressed (GimvImageView *iv, GdkEventButton *event, GimvImageWin *iw
 
 
 static gint
-cb_imageview_clicked (GimvImageView *iv, GdkEventButton *event, GimvImageWin *iw)
+cb_imageview_clicked (GimvImageView *iv, GimvEventButton *event, GimvImageWin *iw)
 {
    gint num;
 
@@ -2105,13 +2180,11 @@ show_cursor (GimvImageWin *iw)
    g_return_if_fail (iw);
    g_return_if_fail (iw->iv);
    g_return_if_fail (iw->iv->draw_area);
-   g_return_if_fail (GTK_WIDGET_MAPPED (iw->iv->draw_area));
+   /* GTK4: cursors can be set on unmapped widgets */
 
-   cursor = cursor_get (iw->iv->draw_area->window,
-                        CURSOR_HAND_OPEN);
-   gdk_window_set_cursor (iw->iv->draw_area->window, 
-                          cursor);
-   gdk_cursor_destroy (cursor);
+   cursor = cursor_get (iw->iv->draw_area, CURSOR_HAND_OPEN);
+   gtk_widget_set_cursor (iw->iv->draw_area, cursor);
+   g_object_unref (cursor);
 }
 
 
@@ -2123,13 +2196,11 @@ hide_cursor (GimvImageWin *iw)
    g_return_if_fail (iw);
    g_return_if_fail (iw->iv);
    g_return_if_fail (iw->iv->draw_area);
-   g_return_if_fail (GTK_WIDGET_MAPPED (iw->iv->draw_area));
+   /* GTK4: cursors can be set on unmapped widgets */
 
-   cursor = cursor_get (iw->iv->draw_area->window,
-                        CURSOR_VOID);
-   gdk_window_set_cursor (iw->iv->draw_area->window, 
-                          cursor);
-   gdk_cursor_destroy (cursor);
+   cursor = cursor_get (iw->iv->draw_area, CURSOR_VOID);
+   gtk_widget_set_cursor (iw->iv->draw_area, cursor);
+   g_object_unref (cursor);
 }
 
 
@@ -2145,29 +2216,95 @@ timeout_hide_cursor (gpointer data)
 }
 
 
+/*
+ *  GTK4 replacement of gtk_accel_groups_activate (): run the keyboard
+ *  shortcuts of the image window (menu accelerators) for a key event which
+ *  was received by the fullscreen window.
+ */
+static gboolean
+activate_shortcuts_of_controller (GimvImageWin *iw,
+                                  GtkEventController *controller,
+                                  guint keyval, GdkModifierType state)
+{
+   GListModel *model;
+   guint i, n;
+
+   if (!GTK_IS_SHORTCUT_CONTROLLER (controller)) return FALSE;
+
+   model = G_LIST_MODEL (controller);
+   n = g_list_model_get_n_items (model);
+
+   for (i = 0; i < n; i++) {
+      GtkShortcut *shortcut = g_list_model_get_item (model, i);
+      GtkShortcutTrigger *trigger = gtk_shortcut_get_trigger (shortcut);
+      gboolean match = FALSE;
+
+      if (GTK_IS_KEYVAL_TRIGGER (trigger)) {
+         GtkKeyvalTrigger *kt = GTK_KEYVAL_TRIGGER (trigger);
+         match = (gdk_keyval_to_lower (gtk_keyval_trigger_get_keyval (kt))
+                  == gdk_keyval_to_lower (keyval))
+            && (gtk_keyval_trigger_get_modifiers (kt)
+                == (state & gtk_accelerator_get_default_mod_mask ()));
+      }
+
+      if (match) {
+         gboolean done;
+         done = gtk_shortcut_action_activate (gtk_shortcut_get_action (shortcut),
+                                              GTK_SHORTCUT_ACTION_EXCLUSIVE,
+                                              GTK_WIDGET (iw),
+                                              gtk_shortcut_get_arguments (shortcut));
+         g_object_unref (shortcut);
+         if (done) return TRUE;
+         continue;
+      }
+
+      g_object_unref (shortcut);
+   }
+
+   return FALSE;
+}
+
+
+static gboolean
+activate_window_shortcuts (GimvImageWin *iw, GimvEventKey *event)
+{
+   GListModel *controllers;
+   guint i, n;
+   gboolean retval = FALSE;
+
+   controllers = gtk_widget_observe_controllers (GTK_WIDGET (iw));
+   n = g_list_model_get_n_items (controllers);
+
+   for (i = 0; i < n && !retval; i++) {
+      GtkEventController *controller = g_list_model_get_item (controllers, i);
+      retval = activate_shortcuts_of_controller (iw, controller,
+                                                 event->keyval, event->state);
+      g_object_unref (controller);
+   }
+
+   g_object_unref (controllers);
+
+   return retval;
+}
+
+
 static gboolean
 cb_fullscreen_key_press (GtkWidget *widget, 
-                         GdkEventKey *event,
+                         GimvEventKey *event,
                          GimvImageWin *iw)
 {
    g_return_val_if_fail (iw, FALSE);
         
    switch (event->keyval) {
-   case GDK_Escape:
+   case GDK_KEY_Escape:
       if (iw->priv->flags & GimvImageWinCreatingFlag) return TRUE;
-      menu_check_item_set_active (iw->view_menu, "/Full Screen", FALSE);
+      menu_check_item_set_active (iw->view_menu, "/Fullscreen", FALSE);
       return TRUE;
    default:
       break;
    }
 
-#ifdef USE_GTK2
-   gtk_accel_groups_activate (G_OBJECT (iw),
-                              event->keyval, event->state);
-#else /* USE_GTK2 */
-   gtk_accel_groups_activate (GTK_OBJECT (iw),
-                              event->keyval, event->state);
-#endif /* USE_GTK2 */
+   activate_window_shortcuts (iw, event);
 
    return TRUE;
 }
@@ -2175,18 +2312,17 @@ cb_fullscreen_key_press (GtkWidget *widget,
 
 static gboolean
 cb_fullscreen_motion_notify (GtkWidget *widget, 
-                             GdkEventButton *bevent, 
+                             GimvEventMotion *mevent, 
                              gpointer data)
 {
    GimvImageWin *iw = data;
 
-   gdk_window_get_pointer (widget->window, NULL, NULL, NULL);
    show_cursor (iw);
 
    if (iw->priv->hide_cursor_timer_id != 0)
-      gtk_timeout_remove (iw->priv->hide_cursor_timer_id);
+      g_source_remove (iw->priv->hide_cursor_timer_id);
    iw->priv->hide_cursor_timer_id
-      = gtk_timeout_add (IMGWIN_FULLSCREEN_HIDE_CURSOR_DELAY,
+      = g_timeout_add (IMGWIN_FULLSCREEN_HIDE_CURSOR_DELAY,
                          timeout_hide_cursor,
                          iw);
 
@@ -2206,11 +2342,11 @@ set_menu_sensitive (GimvImageWin *iw, gboolean sensitive)
                             sensitive);
    menu_item_set_sensitive (iw->menubar,   "/File/Quit",        sensitive);
    menu_item_set_sensitive (iw->menubar,   "/Edit/Options...",  sensitive);
-   menu_item_set_sensitive (iw->view_menu, "/Menu Bar",         sensitive);
-   menu_item_set_sensitive (iw->view_menu, "/Tool Bar",         sensitive);
-   menu_item_set_sensitive (iw->view_menu, "/Slide Show Player",sensitive);
-   menu_item_set_sensitive (iw->view_menu, "/Status Bar",       sensitive);
-   menu_item_set_sensitive (iw->view_menu, "/Scroll Bar",       sensitive);
+   menu_item_set_sensitive (iw->view_menu, "/Menubar",         sensitive);
+   menu_item_set_sensitive (iw->view_menu, "/Toolbar",         sensitive);
+   menu_item_set_sensitive (iw->view_menu, "/Slideshow Player",sensitive);
+   menu_item_set_sensitive (iw->view_menu, "/Statusbar",       sensitive);
+   menu_item_set_sensitive (iw->view_menu, "/Scrollbar",       sensitive);
    menu_item_set_sensitive (iw->view_menu, "/Fit to Image",     sensitive);
    menu_item_set_sensitive (iw->view_menu, "/Maximize",         sensitive);
    gtk_widget_set_sensitive (iw->help_menu, sensitive);
@@ -2224,8 +2360,8 @@ gimv_image_win_fullscreen_show (GimvImageWin *iw)
 
    if (iw->fullscreen) return;
 
-   gtk_signal_emit (GTK_OBJECT(iw),
-                    gimv_image_win_signals[SHOW_FULLSCREEN_SIGNAL]);
+   g_signal_emit (G_OBJECT (iw),
+                  gimv_image_win_signals[SHOW_FULLSCREEN_SIGNAL], 0);
 }
 
 
@@ -2236,106 +2372,48 @@ gimv_image_win_fullscreen_hide (GimvImageWin *iw)
 
    if (!iw->fullscreen) return;
 
-   gtk_signal_emit (GTK_OBJECT(iw),
-                    gimv_image_win_signals[HIDE_FULLSCREEN_SIGNAL]);
-}
-
-
-#if HAVE_X11_EXTENSIONS_XINERAMA_H
-#  include <X11/Xlib.h>
-#  include <X11/extensions/Xinerama.h>
-#  include <gdk/gdkx.h>
-#endif
-static gboolean
-get_fullscreen_geometory (GimvImageWin *iw, GdkRectangle *area)
-{
-   /*
-   int width, height;
-   int x, y;
-   */
-#ifdef HAVE_X11_EXTENSIONS_XINERAMA_H
-   Display *dpy;
-   XineramaScreenInfo *xinerama;
-   int i, count;
-#endif
-
-   g_return_val_if_fail (area, FALSE);
-
-   area->x = 0;
-   area->y = 0;
-   area->width = gdk_screen_width ();
-   area->height = gdk_screen_height ();
-
-#ifdef HAVE_X11_EXTENSIONS_XINERAMA_H
-   dpy = GDK_DISPLAY ();
-   if (!XineramaIsActive (dpy)) return FALSE;
-
-   xinerama = XineramaQueryScreens (dpy, &count);
-   for (i = 0; i < count; i++) {
-      if (area->x >= xinerama[i].x_org && area->y >= xinerama[i].y_org &&
-          area->x < xinerama[i].x_org + xinerama[i].width &&
-          area->y < xinerama[i].y_org + xinerama[i].height)
-      {
-         area->x = xinerama[i].x_org;
-         area->y = xinerama[i].y_org;
-         area->width = xinerama[i].width;
-         area->height = xinerama[i].height;
-         return TRUE;
-      }
-   }
-
-   area->x = xinerama[0].x_org;
-   area->y = xinerama[0].y_org;
-   area->width = xinerama[0].width;
-   area->height = xinerama[0].height;
-
-   return TRUE;
-#else
-   return FALSE;
-#endif
+   g_signal_emit (G_OBJECT (iw),
+                  gimv_image_win_signals[HIDE_FULLSCREEN_SIGNAL], 0);
 }
 
 
 static void
 gimv_image_win_real_show_fullscreen (GimvImageWin *iw)
 { 
-   GdkRectangle area;
-   gboolean need_resize;
+   gint screen_width, screen_height;
 
    g_return_if_fail (iw);
 
    iw->priv->flags |= GimvImageWinFullScreenFlag;
 
    /* create window */
-   iw->fullscreen = gtk_window_new (GTK_WINDOW_POPUP);
+   iw->fullscreen = gimv_popup_window_new ();
 
-   gtk_window_set_wmclass (GTK_WINDOW (iw->fullscreen), "",
-                           "gimv_fullscreen");
+   gimv_screen_get_size (&screen_width, &screen_height);
    gtk_window_set_default_size (GTK_WINDOW (iw->fullscreen),
-                                gdk_screen_width (),
-                                gdk_screen_height ());
+                                screen_width, screen_height);
 
-   gtk_signal_connect (GTK_OBJECT (iw->fullscreen), 
-                       "key_press_event",
-                       (GtkSignalFunc) cb_fullscreen_key_press, 
-                       iw);
-   gtk_signal_connect (GTK_OBJECT (iw->fullscreen),
-                       "motion_notify_event",
-                       (GtkSignalFunc) cb_fullscreen_motion_notify,
-                       iw);
+   gimv_event_connect (GTK_WIDGET (iw->fullscreen), GIMV_EVENT_KEY_PRESS, (GCallback) cb_fullscreen_key_press, iw);
+   gimv_event_connect (GTK_WIDGET (iw->fullscreen), GIMV_EVENT_MOTION_NOTIFY, (GCallback) cb_fullscreen_motion_notify, iw);
 
    /* set draw widget */
    if (iw->priv->fs_bg_color) {
-      GtkStyle *style;
-      GdkColor *color = g_new0 (GdkColor, 1);
+      ImageWinColor *color = NULL;
 
-      /* save current color */
-      style = gtk_widget_get_style (iw->iv->draw_area);
-      *color = style->bg[GTK_STATE_NORMAL];
-      gtk_object_set_data_full (GTK_OBJECT (iw->fullscreen),
-                                "GimvImageWin::FullScreen::OrigColor",
-                                color,
-                                (GtkDestroyNotify) g_free);
+      /* save current color (NULL: the default background) */
+      if (iw->iv->bg_color) {
+         color = g_new0 (ImageWinColor, 1);
+         color->red   = iw->iv->bg_color->red   * 65535.0 + 0.5;
+         color->green = iw->iv->bg_color->green * 65535.0 + 0.5;
+         color->blue  = iw->iv->bg_color->blue  * 65535.0 + 0.5;
+      }
+      g_object_set_data_full (G_OBJECT (iw->fullscreen),
+                              "GimvImageWin::FullScreen::OrigColor",
+                              color,
+                              (GDestroyNotify) g_free);
+      g_object_set_data (G_OBJECT (iw->fullscreen),
+                         "GimvImageWin::FullScreen::BgColorChanged",
+                         GINT_TO_POINTER (TRUE));
 
       /* set bg color */
       gimv_image_view_set_bg_color (iw->iv,
@@ -2344,34 +2422,23 @@ gimv_image_win_real_show_fullscreen (GimvImageWin *iw)
                                     iw->priv->fs_bg_color->blue);
    }
 
+   /* GTK4: the window manager places a fullscreen window on the proper
+      monitor (the Xinerama code of GTK2 version isn't needed any more) */
+   gtk_window_fullscreen (GTK_WINDOW (iw->fullscreen));
    gtk_widget_show (iw->fullscreen);
-
-   need_resize = get_fullscreen_geometory (iw, &area);
-
-#if (GTK_MAJOR_VERION >= 2) && (GTK_MINOR_VERSION >= 2)
-   gdk_window_fullscreen (iw->fullscreen->window);
-   if (need_resize) {
-      gtk_window_move (iw->fullscreen, area.x, area.y);
-      gtk_window_resize (GTK_WINDOW (iw->fullscreen),
-                         area.width, area.height);
-   }
-#else /* (GTK_MAJOR_VERION >= 2) && (GTK_MINOR_VERSION >= 2) */
-   gtk_widget_set_uposition (iw->fullscreen, area.x, area.y);
-   gtk_window_set_default_size (GTK_WINDOW (iw->fullscreen),
-                                area.width, area.height);
-#endif /* (GTK_MAJOR_VERION >= 2) && (GTK_MINOR_VERSION >= 2) */
 
    gimv_image_view_set_fullscreen (iw->iv, GTK_WINDOW (iw->fullscreen));
 
    set_menu_sensitive (iw, FALSE);
 
-   gdk_keyboard_grab (iw->fullscreen->window, TRUE, GDK_CURRENT_TIME);
-   gtk_grab_add (iw->fullscreen);
+   /* GTK4: no keyboard grabs, the fullscreen window is modal and focused */
+   gimv_grab_add (iw->fullscreen);
+   gtk_window_present (GTK_WINDOW (iw->fullscreen));
    gtk_widget_grab_focus (GTK_WIDGET (iw->iv));
 
    /* enable auto hide cursor stuff */
    iw->priv->hide_cursor_timer_id
-      = gtk_timeout_add (IMGWIN_FULLSCREEN_HIDE_CURSOR_DELAY,
+      = g_timeout_add (IMGWIN_FULLSCREEN_HIDE_CURSOR_DELAY,
                          timeout_hide_cursor,
                          iw);
 }
@@ -2380,15 +2447,23 @@ gimv_image_win_real_show_fullscreen (GimvImageWin *iw)
 static void
 gimv_image_win_real_hide_fullscreen (GimvImageWin *iw)
 {
-   GdkColor *color;
+   ImageWinColor *color;
 
    g_return_if_fail (iw);
 
    /* restore draw widget */
-   color = gtk_object_get_data (GTK_OBJECT (iw->fullscreen),
-                                "GimvImageWin::FullScreen::OrigColor");
-   if (color)
+   color = g_object_get_data (G_OBJECT (iw->fullscreen),
+                              "GimvImageWin::FullScreen::OrigColor");
+   if (color) {
       gimv_image_view_set_bg_color (iw->iv, color->red, color->green, color->blue);
+   } else if (g_object_get_data (G_OBJECT (iw->fullscreen),
+                                 "GimvImageWin::FullScreen::BgColorChanged"))
+   {
+      /* no color was set before: back to the default background */
+      g_free (iw->iv->bg_color);
+      iw->iv->bg_color = NULL;
+      gtk_widget_queue_draw (iw->iv->draw_area);
+   }
 
    gimv_image_view_unset_fullscreen (iw->iv);
 
@@ -2396,13 +2471,14 @@ gimv_image_win_real_hide_fullscreen (GimvImageWin *iw)
 
    /* disable auto hide cursor stuff */
    if (iw->priv->hide_cursor_timer_id != 0)
-      gtk_timeout_remove (iw->priv->hide_cursor_timer_id);
+      g_source_remove (iw->priv->hide_cursor_timer_id);
+   iw->priv->hide_cursor_timer_id = 0;
    show_cursor (iw);
 
    /* restore sensitivity */
    set_menu_sensitive (iw, TRUE);
 
-   gtk_widget_destroy (iw->fullscreen);
+   gimv_widget_destroy (iw->fullscreen);
    iw->fullscreen = NULL;
    iw->priv->flags &= ~GimvImageWinFullScreenFlag;
 }
@@ -2455,11 +2531,10 @@ gimv_image_win_change_image (GimvImageWin *iw, GimvImageInfo *info)
    if (!node) return;
 
    if (conf.imgwin_raise_window
-       && GTK_WIDGET (iw)->window
+       && gtk_widget_get_realized (GTK_WIDGET (iw))
        && !(iw->priv->flags & GimvImageWinFullScreenFlag))
    {
-      gdk_window_raise (GTK_WIDGET (iw)->window);
-      gdk_window_focus (GTK_WIDGET (iw)->window, GDK_CURRENT_TIME);
+      gtk_window_present (GTK_WINDOW (iw));
    }
 
    gimv_image_view_change_image (iw->iv, info);
@@ -2477,15 +2552,15 @@ gimv_image_win_change_image (GimvImageWin *iw, GimvImageInfo *info)
     * the user if both options are set together.
     */
 
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "default_zoom", &default_zoom,
                    NULL);
    if ((default_zoom > 1) && conf.imgwin_fit_to_image
        && !(iw->priv->flags & GimvImageWinMaximizeFlag))
    {
-      gdk_window_resize (GTK_WIDGET(iw)->window,
-                         conf.imgwin_width,
-                         conf.imgwin_height);
+      gtk_window_set_default_size (GTK_WINDOW (iw),
+                                   conf.imgwin_width,
+                                   conf.imgwin_height);
    }
 }
 
@@ -2507,8 +2582,9 @@ gimv_image_win_save_state (GimvImageWin *iw)
    if (iw->priv->flags & GimvImageWinNotSaveStateFlag) return;
 
    if (!(iw->priv->flags & GimvImageWinMaximizeFlag)) {
-      conf.imgwin_width  = GTK_WIDGET(iw)->allocation.width;
-      conf.imgwin_height = GTK_WIDGET(iw)->allocation.height;
+      /* GTK4: the default size follows the window size (the allocation is
+         already gone while the window is destroyed) */
+      gtk_window_get_default_size (GTK_WINDOW (iw), &conf.imgwin_width, &conf.imgwin_height);
    } else {
       conf.imgwin_width  = iw->priv->win_width;
       conf.imgwin_height = iw->priv->win_height;
@@ -2519,7 +2595,7 @@ gimv_image_win_save_state (GimvImageWin *iw)
    conf.imgwin_show_player     = iw->priv->flags & GimvImageWinShowPlayerFlag;
    conf.imgwin_show_statusbar  = iw->priv->flags & GimvImageWinShowStatusBarFlag;
    conf.imgview_player_visible = iw->priv->player_visible;
-   gtk_object_get (GTK_OBJECT (iw->iv),
+   g_object_get (G_OBJECT (iw->iv),
                    "show_scrollbar",   &conf.imgview_scrollbar,
                    "continuance_play", &conf.imgview_movie_continuance,
                    NULL);
@@ -2610,8 +2686,8 @@ gimv_image_win_slideshow_play (GimvImageWin *iw)
    if (iw->priv->slideshow_interval > 0) {
       iw->priv->flags |= GimvImageWinSlideShowPlayingFlag;
       iw->priv->slideshow_timer_id
-         = gtk_timeout_add (iw->priv->slideshow_interval,
-                            (GtkFunction) timeout_slideshow, iw);
+         = g_timeout_add (iw->priv->slideshow_interval,
+                            (GSourceFunc) timeout_slideshow, iw);
    }
 
    gtk_widget_set_sensitive (iw->player.play, FALSE);
@@ -2629,7 +2705,7 @@ gimv_image_win_slideshow_stop (GimvImageWin *iw)
    iw->priv->flags &= ~GimvImageWinSlideShowPlayingFlag;
 
    if (iw->priv->slideshow_timer_id)
-      gtk_timeout_remove (iw->priv->slideshow_timer_id);
+      g_source_remove (iw->priv->slideshow_timer_id);
    iw->priv->slideshow_timer_id = 0;
 
    gtk_widget_set_sensitive (iw->player.play, TRUE);
@@ -2666,7 +2742,7 @@ void
 gimv_image_win_show_menubar (GimvImageWin *iw, gboolean show)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
-   menu_check_item_set_active (iw->view_menu, "/Menu Bar", show);
+   menu_check_item_set_active (iw->view_menu, "/Menubar", show);
 }
 
 
@@ -2674,7 +2750,7 @@ void
 gimv_image_win_show_toolbar (GimvImageWin *iw, gboolean show)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
-   menu_check_item_set_active (iw->view_menu, "/Tool Bar", show);
+   menu_check_item_set_active (iw->view_menu, "/Toolbar", show);
 }
 
 
@@ -2682,7 +2758,7 @@ void
 gimv_image_win_show_player (GimvImageWin *iw, gboolean show)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
-   menu_check_item_set_active (iw->view_menu, "/Slide Show Player", show);
+   menu_check_item_set_active (iw->view_menu, "/Slideshow Player", show);
 }
 
 
@@ -2690,7 +2766,7 @@ void
 gimv_image_win_show_statusbar (GimvImageWin *iw, gboolean show)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
-   menu_check_item_set_active (iw->view_menu, "/Status Bar", show);
+   menu_check_item_set_active (iw->view_menu, "/Statusbar", show);
 }
 
 
@@ -2706,7 +2782,7 @@ void
 gimv_image_win_set_fullscreen (GimvImageWin *iw, gboolean show)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
-   menu_check_item_set_active (iw->view_menu, "/Full Screen", show);
+   menu_check_item_set_active (iw->view_menu, "/Fullscreen", show);
 }
 
 
@@ -2717,7 +2793,7 @@ gimv_image_win_set_fullscreen_bg_color (GimvImageWin *iw,
    g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
 
    if (!iw->priv->fs_bg_color)
-      iw->priv->fs_bg_color = g_new0 (GdkColor, 1);
+      iw->priv->fs_bg_color = g_new0 (ImageWinColor, 1);
 
    iw->priv->fs_bg_color->red   = red;
    iw->priv->fs_bg_color->green = green;

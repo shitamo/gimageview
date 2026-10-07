@@ -37,15 +37,13 @@ struct GimvDuplWinPriv_Tag
 
    GList            *thumb_list;
 
-#ifdef USE_GTK2
    GtkTreeViewColumn *pixmap_col;
    GtkCellRenderer   *pixmap_renderer;
-#endif /* USE_GTK2 */
 };
 
 static void gimv_dupl_win_init       (GimvDuplWin      *sw);
 static void gimv_dupl_win_class_init (GimvDuplWinClass *klass);
-static void gimv_dupl_win_destroy    (GtkObject        *object);
+static void gimv_dupl_win_dispose    (GObject          *object);
 
 
 static void cb_select_all_button      (GtkButton        *button,
@@ -64,7 +62,6 @@ static void cb_finder_found           (GimvDuplFinder   *finder,
 static void cb_select_thumb           (GimvThumb        *thumb,
                                        GimvDuplWin      *sw);
 
-#ifdef ENABLE_TREEVIEW
 
 typedef enum {
    COLUMN_TERMINATOR = -1,
@@ -82,9 +79,9 @@ typedef enum {
 
 static void     cb_tree_cursor_changed        (GtkTreeView  *treeview,
                                                GimvDuplWin  *sw);
-static void     cb_change_to_thumbnail_button (GtkButton    *button,
+static void     cb_change_to_thumbnail_button (GtkWidget    *button,
                                                GimvDuplWin  *sw);
-static void     cb_change_to_icon_button      (GtkButton    *button,
+static void     cb_change_to_icon_button      (GtkWidget    *button,
                                                GimvDuplWin  *sw);
 static gboolean find_row                      (GimvDuplWin  *sw,
                                                GimvThumb    *thumb,
@@ -96,25 +93,6 @@ static gboolean insert_node                   (GimvDuplWin  *sw,
                                                GimvThumb    *thumb,
                                                gfloat        similar);
 
-#else /* ENABLE_TREEVIEW */
-
-static void    set_pixtext                    (GtkCTree     *ctree,
-                                               GtkCTreeNode *node,
-                                               gpointer      data);
-static void    cb_change_to_thumbnail_button  (GtkButton    *button,
-                                               GimvDuplWin  *sw);
-static void    cb_change_to_icon_button       (GtkButton    *button,
-                                               GimvDuplWin  *sw);
-static void    cb_ctree_select_row            (GtkCTree     *ctree,
-                                               GList        *node,
-                                               gint          column,
-                                               GimvDuplWin  *sw);
-static GtkCTreeNode *insert_node              (GimvDuplWin  *sw,
-                                               GtkCTreeNode *parent,
-                                               GimvThumb    *thumb,
-                                               gfloat        similar);
-
-#endif /* ENABLE_TREEVIEW */
 
 
 gchar *simwin_titles[4] = {
@@ -128,29 +106,7 @@ gint simwin_column_num = sizeof (simwin_titles) / sizeof (gchar *);
 static GtkDialogClass *parent_class = NULL;
 
 
-GtkType
-gimv_dupl_win_get_type (void)
-{
-   static GtkType gimv_dupl_win_type = 0;
-
-   if (!gimv_dupl_win_type) {
-      static const GtkTypeInfo gimv_dupl_win_info = {
-         "GimvDuplWin",
-         sizeof (GimvDuplWin),
-         sizeof (GimvDuplWinClass),
-         (GtkClassInitFunc) gimv_dupl_win_class_init,
-         (GtkObjectInitFunc) gimv_dupl_win_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_dupl_win_type = gtk_type_unique (gtk_dialog_get_type (),
-                                            &gimv_dupl_win_info);
-   }
-
-   return gimv_dupl_win_type;
-}
+G_DEFINE_TYPE (GimvDuplWin, gimv_dupl_win, GTK_TYPE_DIALOG)
 
 
 static void
@@ -172,45 +128,42 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    sw->priv            = g_new0 (GimvDuplWinPriv, 1);
    sw->priv->thumbnail_size  = 96;
    sw->priv->thumb_list      = NULL;
-#ifdef ENABLE_TREEVIEW
    sw->priv->pixmap_col      = NULL;
    sw->priv->pixmap_renderer = NULL;
-#endif /* ENABLE_TREEVIEW */
 
    /* window */
-   gtk_window_set_title (GTK_WINDOW (sw), _("Find Duplicates - result")); 
+   gtk_window_set_title (GTK_WINDOW (sw), _("Find Duplicates - Results")); 
    gtk_window_set_default_size (GTK_WINDOW (sw), 500, 400);
-   gtk_window_set_position (GTK_WINDOW (sw), GTK_WIN_POS_MOUSE);
+   /* GTK4: gtk_window_set_position (GTK_WIN_POS_MOUSE) is not available */
 
    /* ctree */
-   scrolledwin = gtk_scrolled_window_new (NULL, NULL);
+   scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-   gtk_container_set_border_width (GTK_CONTAINER (scrolledwin), 5);
+   gimv_container_set_border_width (GTK_WIDGET (scrolledwin), 5);
 
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (sw)->vbox),
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (sw))),
                        scrolledwin, TRUE, TRUE, 0);
 
-#ifdef ENABLE_TREEVIEW
    {
       GtkTreeStore *store;
       GtkTreeViewColumn *col;
       GtkCellRenderer *render;
 
       store = gtk_tree_store_new (N_COLUMN,
-                                  GDK_TYPE_PIXMAP,
-                                  GDK_TYPE_PIXMAP,
-                                  GDK_TYPE_PIXMAP,
-                                  GDK_TYPE_PIXMAP,
+                                  GDK_TYPE_TEXTURE,
+                                  GDK_TYPE_TEXTURE,
+                                  GDK_TYPE_TEXTURE,
+                                  GDK_TYPE_TEXTURE,
                                   G_TYPE_STRING,
                                   G_TYPE_STRING,
                                   G_TYPE_STRING,
                                   G_TYPE_STRING,
                                   G_TYPE_POINTER);
       sw->ctree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-      gtk_container_add (GTK_CONTAINER (scrolledwin), sw->ctree);
+      gimv_container_add (GTK_WIDGET (scrolledwin), sw->ctree);
 
-      gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (sw->ctree), TRUE);
+      /* GTK4: gtk_tree_view_set_rules_hint () was removed */
 
       /* name column */
       col = gtk_tree_view_column_new();
@@ -248,121 +201,102 @@ gimv_dupl_win_init (GimvDuplWin *sw)
       g_signal_connect (G_OBJECT (sw->ctree), "cursor_changed",
                         G_CALLBACK (cb_tree_cursor_changed), sw);
    }
-#else /* ENABLE_TREEVIEW */
-   {
-      for (i = 0; i < simwin_column_num; i++)
-         simwin_titles[i] = _(simwin_titles[i]);
-      sw->ctree = gtk_ctree_new_with_titles (simwin_column_num, 0, simwin_titles);
-      gtk_clist_set_column_width (GTK_CLIST (sw->ctree), 0, 250);
-      gtk_clist_set_column_width (GTK_CLIST (sw->ctree), 1, 50);
-      gtk_clist_set_column_width (GTK_CLIST (sw->ctree), 2, 50);
-      gtk_clist_set_column_width (GTK_CLIST (sw->ctree), 3, 150);
-      /*
-      for (i = 0; i < simwin_column_num; i++)
-         gtk_clist_set_column_auto_resize (GTK_CLIST (sw->ctree), i, TRUE);
-      */
-      gtk_clist_set_column_justification(GTK_CLIST (sw->ctree), 1,
-                                         GTK_JUSTIFY_CENTER);
-      gtk_clist_set_column_justification(GTK_CLIST (sw->ctree), 2,
-                                         GTK_JUSTIFY_RIGHT);
-      gtk_container_add (GTK_CONTAINER (scrolledwin), sw->ctree);
-
-      gtk_signal_connect (GTK_OBJECT (sw->ctree), "tree_select_row",
-                          GTK_SIGNAL_FUNC (cb_ctree_select_row), sw);
-   }
-#endif /* ENABLE_TREEVIEW */
 
    /* button */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (GTK_DIALOG (sw)->action_area), 
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (sw))), 
                        hbox, TRUE, TRUE, 0);
 
    /* radio button */
-   radio = gtk_radio_button_new_with_label (NULL, _("Thumbnail"));
+   radio = gimv_radio_button_new_with_label (NULL, _("Thumbnail"));
    sw->radio_thumb = radio;
-   gtk_signal_connect (GTK_OBJECT (radio), "clicked",
-                       GTK_SIGNAL_FUNC (cb_change_to_thumbnail_button), sw);
-   gtk_box_pack_start (GTK_BOX (hbox), radio, FALSE, FALSE, 0);
+   g_signal_connect (G_OBJECT (radio), "toggled",
+                       G_CALLBACK (cb_change_to_thumbnail_button), sw);
+   gimv_box_pack_start (GTK_BOX (hbox), radio, FALSE, FALSE, 0);
 
-   radio = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio),
-                                                        _("Icon"));
+   radio = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio), _("Icon"));
    sw->radio_icon  = radio;
-   gtk_signal_connect (GTK_OBJECT (radio), "clicked",
-                       GTK_SIGNAL_FUNC (cb_change_to_icon_button), sw);
-   gtk_box_pack_start (GTK_BOX (hbox), radio, FALSE, FALSE, 0);
+   g_signal_connect (G_OBJECT (radio), "toggled",
+                       G_CALLBACK (cb_change_to_icon_button), sw);
+   gimv_box_pack_start (GTK_BOX (hbox), radio, FALSE, FALSE, 0);
 
-   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio), TRUE);
+   gimv_toggle_set_active (GTK_WIDGET (radio), TRUE);
 
    /* Select All */
    button = gtk_button_new_with_label (_("Select All"));
    sw->select_button = button;
-   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_select_all_button), sw);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_select_all_button), sw);
+   /* GTK4: SET (GTK_CAN_DEFAULT) removed */ (void) 0;
    gtk_widget_show (button);
 
    /* close button */
    button = gtk_button_new_with_label (_("Stop"));
    sw->stop_button = button;
-   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-   gtk_signal_connect (GTK_OBJECT (button), "clicked",
-                       GTK_SIGNAL_FUNC (cb_finder_stop_button), sw);
-   GTK_WIDGET_SET_FLAGS(button,GTK_CAN_DEFAULT);
+   gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
+   g_signal_connect (G_OBJECT (button), "clicked",
+                       G_CALLBACK (cb_finder_stop_button), sw);
+   /* GTK4: SET (GTK_CAN_DEFAULT) removed */ (void) 0;
    gtk_widget_show (button);
 
    /* gtk_widget_grab_focus (button); */
 
    /* progress bar */
    sw->progressbar = gtk_progress_bar_new();
-   gtk_box_pack_end (GTK_BOX (hbox), sw->progressbar, FALSE, FALSE, 0);
+   gimv_box_pack_end (GTK_BOX (hbox), sw->progressbar, FALSE, FALSE, 0);
 
    /* finder */
-   gtk_signal_connect (GTK_OBJECT (sw->finder), "start",
-                       GTK_SIGNAL_FUNC (cb_finder_start), sw);
-   gtk_signal_connect (GTK_OBJECT (sw->finder), "stop",
-                       GTK_SIGNAL_FUNC (cb_finder_stop), sw);
-   gtk_signal_connect (GTK_OBJECT (sw->finder), "progress_update",
-                       GTK_SIGNAL_FUNC (cb_finder_progress_update), sw);
-   gtk_signal_connect (GTK_OBJECT (sw->finder), "found",
-                       GTK_SIGNAL_FUNC (cb_finder_found), sw);
+   g_signal_connect (G_OBJECT (sw->finder), "start",
+                       G_CALLBACK (cb_finder_start), sw);
+   g_signal_connect (G_OBJECT (sw->finder), "stop",
+                       G_CALLBACK (cb_finder_stop), sw);
+   g_signal_connect (G_OBJECT (sw->finder), "progress_update",
+                       G_CALLBACK (cb_finder_progress_update), sw);
+   g_signal_connect (G_OBJECT (sw->finder), "found",
+                       G_CALLBACK (cb_finder_found), sw);
 }
 
 
 static void
 gimv_dupl_win_class_init (GimvDuplWinClass *klass)
 {
-   GtkObjectClass *object_class;
+   GObjectClass *gobject_class;
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_dialog_get_type ());
+   gobject_class = (GObjectClass *) klass;
+   parent_class = g_type_class_peek_parent (klass);
 
-   object_class->destroy = gimv_dupl_win_destroy;
+   gobject_class->dispose = gimv_dupl_win_dispose;
 }
 
 
 static void
-gimv_dupl_win_destroy (GtkObject *object)
+gimv_dupl_win_dispose (GObject *object)
 {
    GimvDuplWin *sw = GIMV_DUPL_WIN (object);
 
    g_return_if_fail (sw);
 
+   if (sw->finder) {
+      /* stop searching, the callbacks refer to this window */
+      g_signal_handlers_disconnect_matched (G_OBJECT (sw->finder),
+                                            G_SIGNAL_MATCH_DATA,
+                                            0, 0, NULL, NULL, sw);
+      gimv_dupl_finder_stop (sw->finder);
+      g_object_unref (G_OBJECT (sw->finder));
+      sw->finder = NULL;
+   }
+
    if (sw->priv) {
-      g_list_foreach (sw->priv->thumb_list, (GFunc) gtk_object_unref, NULL);
+      g_list_foreach (sw->priv->thumb_list, (GFunc) g_object_unref, NULL);
       g_list_free (sw->priv->thumb_list);
       sw->priv->thumb_list = NULL;
       g_free (sw->priv);
       sw->priv = NULL;
    }
 
-   if (sw->finder) {
-      gtk_object_unref (GTK_OBJECT (sw->finder));
-      sw->finder = NULL;
-   }
-
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (*GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (G_OBJECT_CLASS (parent_class)->dispose)
+      G_OBJECT_CLASS (parent_class)->dispose (object);
 }
 
 
@@ -404,11 +338,11 @@ cb_finder_start (GimvDuplFinder *finder, GimvDuplWin *sw)
 
    gtk_widget_set_sensitive (sw->stop_button, TRUE);
 
-   gtk_progress_set_show_text (GTK_PROGRESS (sw->progressbar), TRUE);
-   gtk_progress_set_format_string (GTK_PROGRESS (sw->progressbar),
-                                   _("Finding similar images..."));
+   gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (sw->progressbar), TRUE);
+   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (sw->progressbar),
+                              _("Finding similar images..."));
    progress = gimv_dupl_finder_get_progress (finder);
-   gtk_progress_bar_update (GTK_PROGRESS_BAR (sw->progressbar), progress);
+   gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (sw->progressbar), progress);
 }
 
 
@@ -420,10 +354,10 @@ cb_finder_stop (GimvDuplFinder *finder, GimvDuplWin *sw)
 
    gtk_widget_set_sensitive (sw->stop_button, FALSE);
 
-   gtk_progress_bar_update (GTK_PROGRESS_BAR (sw->progressbar), 0.0);
-   /* gtk_progress_set_show_text (GTK_PROGRESS (sw->progressbar), FALSE); */
-   gtk_progress_set_format_string (GTK_PROGRESS (sw->progressbar),
-                                   _("Completed"));
+   gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (sw->progressbar), 0.0);
+   /* gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (sw->progressbar), FALSE); */
+   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (sw->progressbar),
+                              _("Completed"));
 }
 
 
@@ -436,7 +370,7 @@ cb_finder_progress_update (GimvDuplFinder *finder, GimvDuplWin *sw)
    g_return_if_fail (sw);
 
    progress = gimv_dupl_finder_get_progress (finder);
-   gtk_progress_bar_update (GTK_PROGRESS_BAR (sw->progressbar), progress);
+   gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (sw->progressbar), progress);
 }
 
 
@@ -475,7 +409,6 @@ cb_select_thumb (GimvThumb *thumb, GimvDuplWin *sw)
 }
 
 
-#ifdef ENABLE_TREEVIEW
 
 static void
 cb_tree_cursor_changed (GtkTreeView *treeview, GimvDuplWin *sw)
@@ -484,6 +417,9 @@ cb_tree_cursor_changed (GtkTreeView *treeview, GimvDuplWin *sw)
    GtkTreeModel *model;
    GtkTreeIter iter;
    GimvThumb *thumb;
+
+   /* GTK4: also emitted while the tree view is disposed (without model) */
+   if (!gtk_tree_view_get_model (treeview)) return;
 
    g_return_if_fail (treeview);
    g_return_if_fail (sw);
@@ -502,10 +438,33 @@ cb_tree_cursor_changed (GtkTreeView *treeview, GimvDuplWin *sw)
 }
 
 
+/* GTK4: tree views cache row heights, re-measure after changing the
+   source of the pixmap column */
+static gboolean
+foreach_row_changed (GtkTreeModel *model, GtkTreePath *path,
+                     GtkTreeIter *iter, gpointer data)
+{
+   gtk_tree_model_row_changed (model, path, iter);
+   return FALSE;
+}
+
+
 static void
-cb_change_to_thumbnail_button (GtkButton *button, GimvDuplWin *sw)
+refresh_rows (GimvDuplWin *sw)
+{
+   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (sw->ctree));
+   if (model)
+      gtk_tree_model_foreach (model, foreach_row_changed, NULL);
+   gtk_tree_view_columns_autosize (GTK_TREE_VIEW (sw->ctree));
+}
+
+
+static void
+cb_change_to_thumbnail_button (GtkWidget *button, GimvDuplWin *sw)
 {
    g_return_if_fail (sw);
+
+   if (!gimv_toggle_get_active (button)) return;
 
    gtk_tree_view_column_clear_attributes (sw->priv->pixmap_col,
                                           sw->priv->pixmap_renderer);
@@ -515,13 +474,16 @@ cb_change_to_thumbnail_button (GtkButton *button, GimvDuplWin *sw)
    gtk_tree_view_column_add_attribute (sw->priv->pixmap_col,
                                        sw->priv->pixmap_renderer,
                                        "mask", COLUMN_THUMBNAIL_MASK);
+   refresh_rows (sw);
 }
 
 
 static void
-cb_change_to_icon_button (GtkButton *button, GimvDuplWin *sw)
+cb_change_to_icon_button (GtkWidget *button, GimvDuplWin *sw)
 {
    g_return_if_fail (sw);
+
+   if (!gimv_toggle_get_active (button)) return;
 
    gtk_tree_view_column_clear_attributes (sw->priv->pixmap_col,
                                           sw->priv->pixmap_renderer);
@@ -531,6 +493,7 @@ cb_change_to_icon_button (GtkButton *button, GimvDuplWin *sw)
    gtk_tree_view_column_add_attribute (sw->priv->pixmap_col,
                                        sw->priv->pixmap_renderer,
                                        "mask", COLUMN_ICON_MASK);
+   refresh_rows (sw);
 }
 
 
@@ -576,8 +539,8 @@ insert_node (GimvDuplWin *sw,
              GimvThumb *thumb, gfloat similar)
 {
    GtkTreeModel *model;
-   GdkPixmap *thumb_pixmap, *icon_pixmap;
-   GdkBitmap *thumb_mask, *icon_mask;
+   GdkTexture *thumb_pixmap, *icon_pixmap;
+   GdkTexture *thumb_mask, *icon_mask;
    gchar *text[32], accuracy[32], *tmpstr;
 
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
@@ -606,7 +569,7 @@ insert_node (GimvDuplWin *sw,
    text[3] = charset_locale_to_internal (tmpstr);
    g_free (tmpstr);
 
-   gtk_object_ref (GTK_OBJECT(thumb));
+   g_object_ref (G_OBJECT (thumb));
    sw->priv->thumb_list = g_list_append (sw->priv->thumb_list, thumb);
 
    model = gtk_tree_view_get_model (GTK_TREE_VIEW (sw->ctree));
@@ -630,138 +593,6 @@ insert_node (GimvDuplWin *sw,
    return TRUE;
 }
 
-#else /* ENABLE_TREEVIEW */
-
-static void
-set_pixtext (GtkCTree *ctree, GtkCTreeNode *node, gpointer data)
-{
-   gboolean thumbnail = GPOINTER_TO_INT (data);
-   GimvThumb *thumb;
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
-   guint8 spacing;
-   gboolean is_leaf, expanded;
-   gchar *text;
-
-   g_return_if_fail (ctree);
-   g_return_if_fail (node);
-
-   thumb = gtk_ctree_node_get_row_data (ctree, node);
-   g_return_if_fail (GIMV_IS_THUMB (thumb));
-
-   if (thumbnail)
-      gimv_thumb_get_thumb (thumb, &pixmap, &mask);
-   else
-      gimv_thumb_get_icon (thumb, &pixmap, &mask);
-
-   gtk_ctree_get_node_info (ctree, node, &text, &spacing,
-                            NULL, NULL, NULL, NULL,
-                            &is_leaf, &expanded);
-   gtk_ctree_set_node_info (ctree, node,
-                            text, spacing,
-                            pixmap, mask, pixmap, mask,
-                            is_leaf, expanded);
-}
-
-
-static void
-cb_change_to_thumbnail_button (GtkButton *button, GimvDuplWin *sw)
-{
-   g_return_if_fail (sw);
-
-   gtk_clist_set_row_height (GTK_CLIST (sw->ctree), sw->priv->thumbnail_size);
-   gtk_ctree_post_recursive (GTK_CTREE (sw->ctree), NULL,
-                             (GtkCTreeFunc) set_pixtext,
-                             GINT_TO_POINTER (TRUE));
-}
-
-
-static void
-cb_change_to_icon_button (GtkButton *button, GimvDuplWin *sw)
-{
-   g_return_if_fail (sw);
-
-   gtk_clist_set_row_height (GTK_CLIST (sw->ctree), ICON_SIZE);
-   gtk_ctree_post_recursive (GTK_CTREE (sw->ctree), NULL,
-                             (GtkCTreeFunc) set_pixtext,
-                             GINT_TO_POINTER (FALSE));
-}
-
-
-static void
-cb_ctree_select_row (GtkCTree *ctree, GList *node, gint column, GimvDuplWin *sw)
-{
-   GimvThumb *thumb;
-
-   g_return_if_fail (ctree);
-   g_return_if_fail (node);
-   g_return_if_fail (sw);
-
-   if (!sw->tv) return;
-
-   thumb = gtk_ctree_node_get_row_data (ctree, GTK_CTREE_NODE (node));
-   g_return_if_fail (GIMV_IS_THUMB (thumb));
-
-   cb_select_thumb (thumb, sw);
-}
-
-
-static GtkCTreeNode *
-insert_node (GimvDuplWin *sw,
-             GtkCTreeNode *parent,
-             GimvThumb *thumb,
-             gfloat similar)
-{
-   GtkCTreeNode *node;
-   GdkPixmap *pixmap;
-   GdkBitmap *mask;
-   gchar *text[32], accuracy[32], *tmpstr;
-
-   g_return_val_if_fail (GIMV_IS_THUMB (thumb), NULL);
-
-   if (GTK_TOGGLE_BUTTON (sw->radio_thumb)->active)
-      gimv_thumb_get_thumb (thumb, &pixmap, &mask);
-   else
-      gimv_thumb_get_icon (thumb, &pixmap, &mask);
-
-   text[0] = (gchar *) gimv_image_info_get_path (thumb->info);
-   text[0] = charset_to_internal (text[0],
-                                  conf.charset_filename,
-                                  conf.charset_auto_detect_fn,
-                                  conf.charset_filename_mode);
-
-   if (similar > 0) {
-      g_snprintf (accuracy, 32, "%2.1f%%", similar * 100);
-      text[1] = accuracy;
-   } else {
-      text[1] = NULL;
-   }
-
-   tmpstr  = fileutil_size2str (thumb->info->st.st_size, FALSE);
-   text[2] = charset_locale_to_internal (tmpstr);
-   g_free (tmpstr);
-
-   tmpstr  = fileutil_time2str (thumb->info->st.st_mtime);
-   text[3] = charset_locale_to_internal (tmpstr);
-   g_free (tmpstr);
-
-   node = gtk_ctree_insert_node (GTK_CTREE (sw->ctree),
-                                 parent, NULL, text, 4,
-                                 pixmap, mask,
-                                 pixmap, mask,
-                                 FALSE, FALSE);
-   gtk_object_ref (GTK_OBJECT(thumb));
-   sw->priv->thumb_list = g_list_append (sw->priv->thumb_list, thumb);
-   gtk_ctree_node_set_row_data (GTK_CTREE (sw->ctree), node, thumb);
-
-   g_free (text[0]);
-   g_free (text[2]);
-   g_free (text[3]);
-
-   return node;
-}
-
-#endif /* ENABLE_TREEVIEW */
 
 
 
@@ -775,12 +606,12 @@ gimv_dupl_win_new (gint thumbnail_size)
 {
    GimvDuplWin *sw;
 
-   sw = GIMV_DUPL_WIN (gtk_type_new (gimv_dupl_win_get_type ()));
+   sw = GIMV_DUPL_WIN (g_object_new (GIMV_TYPE_DUPL_WIN, NULL));
 
    /* FIXME */
    sw->priv->thumbnail_size = thumbnail_size;
-   gtk_widget_show_all (GTK_WIDGET (sw));
-   gimv_icon_stock_set_window_icon (GTK_WIDGET (sw)->window, "gimv_icon");
+   /* GTK4: shown by the caller (after setting the transient parent) */
+   gimv_icon_stock_set_window_icon (GTK_WIDGET (sw), "gimv_icon");
    /* END FIXME */
 
    return sw;
@@ -820,7 +651,6 @@ gimv_dupl_win_set_thumb (GimvDuplWin *sw,
    g_return_if_fail (GIMV_IS_THUMB (thumb1));
    g_return_if_fail (GIMV_IS_THUMB (thumb2));
 
-#ifdef ENABLE_TREEVIEW
 {
    GtkTreeIter parent_iter, iter;
    gboolean success;
@@ -858,18 +688,4 @@ gimv_dupl_win_set_thumb (GimvDuplWin *sw,
       gtk_tree_path_free (treepath);
    }
 }
-#else /* ENABLE_TREEVIEW */
-{
-   GtkCTreeNode *parent, *node;
-
-   node = gtk_ctree_find_by_row_data (GTK_CTREE (sw->ctree), NULL, thumb1);
-   if (node)
-      parent = node;
-   else
-      parent = insert_node (sw, node, thumb1, -1);
-
-   node = insert_node (sw, parent, thumb2, similar);
-   gtk_ctree_expand (GTK_CTREE (sw->ctree), parent);
-}
-#endif /* ENABLE_TREEVIEW */
 }

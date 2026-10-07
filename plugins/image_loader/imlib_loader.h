@@ -28,16 +28,5 @@
 #  include "config.h"
 #endif
 
-#ifdef HAVE_GDK_IMLIB
-
-#include <glib.h>
-#include <gdk_imlib.h>
-#include "gimv_image_loader.h"
-#include "gimv_image.h"
-
-GimvImage *gimv_imlib_load_file (GimvImageLoader *loader,
-                                 gpointer         data);
-
-#endif /* HAVE_GDK_IMLIB */
 
 #endif /* __IMLIB_LOADER_H__ */

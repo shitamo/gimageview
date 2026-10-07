@@ -162,7 +162,7 @@ prefs_xine_page (void)
    GtkAdjustment *adj;
    GimvPluginInfo *this = gimv_xine_plugin_get_info ();
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
+   main_vbox = gimv_vbox_new (FALSE, 0);
 
    xineconf.thumb = xineconf_pre.thumb
       = gimv_prefs_xine_get_thumb_enable();
@@ -179,73 +179,69 @@ prefs_xine_page (void)
 
 #if 0
    /* video driver combo */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER (hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_show (hbox);
 
-   label = gtk_label_new (_("Video driver : "));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 2);
+   label = gtk_label_new (_("Video driver: "));
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 2);
    gtk_widget_show (label);
 
-   vo_combo = gtk_combo_new ();
-   gtk_box_pack_start (GTK_BOX (hbox), vo_combo, FALSE, FALSE, 2);
+   vo_combo = gimv_combo_new ();
+   gimv_box_pack_start (GTK_BOX (hbox), vo_combo, FALSE, FALSE, 2);
    gtk_widget_show (vo_combo);
-   gtk_widget_set_usize (vo_combo, 100, -1);
+   gimv_widget_set_size (vo_combo, 100, -1);
 
    /* audio driver combo */
-   label = gtk_label_new (_("Audio driver : "));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 2);
+   label = gtk_label_new (_("Audio driver: "));
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 2);
    gtk_widget_show (label);
 
-   ao_combo = gtk_combo_new ();
-   gtk_box_pack_start (GTK_BOX (hbox), ao_combo, FALSE, FALSE, 2);
+   ao_combo = gimv_combo_new ();
+   gimv_box_pack_start (GTK_BOX (hbox), ao_combo, FALSE, FALSE, 2);
    gtk_widget_show (ao_combo);
-   gtk_widget_set_usize (ao_combo, 100, -1);
+   gimv_widget_set_size (ao_combo, 100, -1);
 #else
-   alignment = gtk_alignment_new (0.0, 0.5, 0.0, 0.0);
-   gtk_box_pack_start (GTK_BOX (vbox), alignment, FALSE, FALSE, 0);
+   alignment = gimv_alignment_new (0.0, 0.5, 0.0, 0.0);
+   gimv_box_pack_start (GTK_BOX (vbox), alignment, FALSE, FALSE, 0);
    gtk_widget_show (alignment);
 
-   table = gtk_table_new (2, 2, FALSE);
-   gtk_container_add (GTK_CONTAINER (alignment), table);
+   table = gimv_table_new (2, 2, FALSE);
+   gimv_container_add (GTK_WIDGET (alignment), table);
    gtk_widget_show (table);
 
    /* video driver combo */
-   label = gtk_label_new (_("Video driver : "));
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 0, 1,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   label = gtk_label_new (_("Video driver: "));
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), label);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 0, 1, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (label);
 
-   vo_combo = gtk_combo_new ();
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), vo_combo);
-   gtk_table_attach (GTK_TABLE (table), alignment, 1, 2, 0, 1,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   vo_combo = gimv_combo_new ();
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), vo_combo);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 1, 2, 0, 1, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (vo_combo);
-   gtk_widget_set_usize (vo_combo, 100, -1);
+   gimv_widget_set_size (vo_combo, 100, -1);
 
    /* audio driver combo */
-   label = gtk_label_new (_("Audio driver : "));
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 1, 2,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   label = gtk_label_new (_("Audio driver: "));
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), label);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (label);
 
-   ao_combo = gtk_combo_new ();
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (alignment), ao_combo);
-   gtk_table_attach (GTK_TABLE (table), alignment, 1, 2, 1, 2,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
+   ao_combo = gimv_combo_new ();
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (alignment), ao_combo);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 1, 2, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
    gtk_widget_show (alignment);
    gtk_widget_show (ao_combo);
-   gtk_widget_set_usize (ao_combo, 100, -1);
+   gimv_widget_set_size (ao_combo, 100, -1);
 #endif
 
    gtk_widget_set_sensitive (frame, FALSE);
@@ -261,55 +257,55 @@ prefs_xine_page (void)
                                          xineconf.thumb,
                                          gtkutil_get_data_from_toggle_cb,
                                          &xineconf.thumb);
-   gtk_container_set_border_width (GTK_CONTAINER(toggle), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (toggle), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
    gtk_widget_show (toggle);
 
    /* stream position */
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 5);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_show (hbox);
-   label = gtk_label_new (_("Stream position : "));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   label = gtk_label_new (_("Stream position: "));
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
    adj = (GtkAdjustment *) gtk_adjustment_new (xineconf.thumb_pos,
                                                0.0, 100.0, 0.01, 0.1, 0.0);
    spinner = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 70, -1);
+   gimv_widget_set_size(spinner, 70, -1);
    gtk_spin_button_set_digits (GTK_SPIN_BUTTON (spinner), 2);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_float_cb),
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_float_cb),
                        &xineconf.thumb_pos);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
    gtk_widget_show (spinner);
 
    label = gtk_label_new (_("[%]"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 #endif
 
    /* delay */
-   hbox = gtk_hbox_new (FALSE, 5);
-   gtk_container_set_border_width (GTK_CONTAINER(hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 5);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_show (hbox);
-   label = gtk_label_new (_("Delay time to create thumbnail from starting play : "));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   label = gtk_label_new (_("Delay before creating a thumbnail after playback starts: "));
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
    adj = (GtkAdjustment *) gtk_adjustment_new (xineconf.delay,
                                                0.0, 7200.0, 0.01, 0.1, 0.0);
    spinner = gtkutil_create_spin_button (adj);
-   gtk_widget_set_usize(spinner, 70, -1);
+   gimv_widget_set_size(spinner, 70, -1);
    gtk_spin_button_set_digits (GTK_SPIN_BUTTON (spinner), 2);
-   gtk_signal_connect (GTK_OBJECT (adj), "value_changed",
-                       GTK_SIGNAL_FUNC (gtkutil_get_data_from_adjustment_by_float_cb),
+   g_signal_connect (G_OBJECT (adj), "value_changed",
+                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_float_cb),
                        &xineconf_pre.delay);
-   gtk_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
    gtk_widget_show (spinner);
 
    label = gtk_label_new (_("[sec]"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
    return main_vbox;

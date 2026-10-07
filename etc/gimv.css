@@ -1,0 +1,31 @@
+/* Default style sheet for GImageView (GTK4).
+ * Copy to ~/.gimv/gtk.css to customize; that file is loaded after this one. */
+
+/* thumbnail album / list widgets */
+.gimv-zlist, .gimv-zalbum {
+  background-color: @theme_base_color;
+}
+.gimv-zalbum .selected, .gimv-zlist .selected {
+  background-color: #ccccff;
+  color: #000000;
+}
+
+/* image view background */
+.gimv-image-view {
+  background-color: #ffffff;
+}
+
+/* notebook tab label of the thumbnail window */
+.gimv-tab-label.loading {
+  color: #ff0000;
+}
+
+/* toolbars built from plain boxes */
+.gimv-toolbar {
+  padding: 2px;
+}
+.gimv-toolbar > button {
+  padding: 2px 4px;
+  min-height: 0;
+  min-width: 0;
+}

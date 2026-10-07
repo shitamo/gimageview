@@ -23,6 +23,8 @@
 
 #include <string.h>
 #include <gtk/gtk.h>
+#include "gimv_gtk4_compat.h"
+#include "gimv_object.h"
 #include <gmodule.h>
 
 #include "fileutil.h"
@@ -229,7 +231,7 @@ get_path (const gchar *filename, const gchar *cache_type)
    if (!image_name) goto ERROR0;
 
    /* get dir name */
-   image_dir = g_dirname (abspath);
+   image_dir = g_path_get_dirname (abspath);
    if (!image_dir) goto ERROR0;
 
    /* escate slashes */

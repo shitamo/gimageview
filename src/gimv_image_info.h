@@ -106,6 +106,13 @@ gchar          *gimv_image_info_get_path_with_archive(GimvImageInfo *info);
 const gchar    *gimv_image_info_get_archive_path     (GimvImageInfo *info);
 
 gboolean        gimv_image_info_is_dir               (GimvImageInfo *info);
+/* filename (or a part of the path) for display, in the internal charset,
+   with "/" after directories */
+gchar          *gimv_image_info_get_display_name     (GimvImageInfo *info,
+                                                      const gchar   *filename);
+/* a file on the disk for programs that read it themselves (movie players):
+   archive members are extracted first.  NULL if that failed; g_free () */
+gchar          *gimv_image_info_get_local_path       (GimvImageInfo *info);
 gboolean        gimv_image_info_is_archive           (GimvImageInfo *info);
 gboolean        gimv_image_info_is_in_archive        (GimvImageInfo *info);
 gboolean        gimv_image_info_is_url               (GimvImageInfo *info);

@@ -1,11 +1,14 @@
 Program:
   Takuro Ashie <ashie@homa.ne.jp>
 
-dllloader (Part of Enfle):
+dllloader (Part of Enfle; removed in the GTK 4 port):
   Hiroshi Takekawa
 
-libexif, libexif-gtk:
+libexif, libexif-gtk (bundled until the GTK 4 port):
   Lutz M-Aüller <lutz@users.sourceforge.net>$)B
+
+GTK 4 port:
+  shitamo <sitamo@gmail.com>
 
 Japanese Document:
   Nyan2 <t-nyan2@nifty.com>

@@ -1,0 +1,647 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>3. Menu Bar</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="02.html" title="2. Usage">
+<link rel="next" href="04.html" title="4. Toolbar">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">3. Menu Bar</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="02.html">Prev</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="04.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="03"></a>3. Menu Bar</h2></div></div>
+<p class="para">
+This section describes the items of the menu bar.  Both the thumbnail window and the image window have a menu bar; they are described together here.  Items that exist in only one of the windows are marked "Thumbnail window only" or "Image window only".  The keys in [ ] after an item are its default shortcut keys.
+</p>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-01"></a>3.1. File</h3></div></div>
+<div class="figure"><img src="images/menu_file.png" width="226" height="314" alt="The File menu of the thumbnail window">
+<p class="caption">The File menu of the thumbnail window</p></div>
+<div class="figure"><img src="images/menu_i_file.png" width="288" height="297" alt="The File menu of the image window">
+<p class="caption">The File menu of the image window</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="load_file"></a>Open... [Ctrl + F]</span></dt>
+<dd>
+<p class="para">
+Shows the file open dialog.
+</p>
+<p class="para">
+"Open selected files" creates a new image window and shows the images.
+</p>
+<p class="para">
+"Thumbnails of the selected files" creates a new collection tab and shows the files there as thumbnails (a collection). Selected folders (directories) are opened in a new tab each (as with a double click in the directory view). If files and folders are selected together, the files go to the collection tab and each folder to its own tab.
+</p>
+</dd>
+<dt><span class="term"><a name="open_new_image_window"></a>New Image Window [Ctrl + I]</span></dt>
+<dd>
+<p class="para">
+Creates a new, empty image window.
+</p>
+</dd>
+<dt><span class="term"><a name="open_new_window"></a>New Window [Ctrl + W]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Creates a new thumbnail window.
+</p>
+</dd>
+<dt><span class="term"><a name="open_thumbnail_window"></a>New Thumbnail Window [Ctrl + W]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Creates a new thumbnail window.
+</p>
+</dd>
+<dt><span class="term"><a name="open_new_tab"></a>New Tab [Ctrl + T]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Creates a new, empty tab.
+</p>
+</dd>
+<dt><span class="term"><a name="memory_buffer"></a>Memory Buffer [Ctrl + B]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Keeps the image shown in the memory buffer.  For details see "<a href="gimv_tips.html#gimv_tips_05" title="">Making the image view draw faster</a>" in the Tips.
+</p>
+</dd>
+<dt><span class="term"><a name="print"></a>Print... [Ctrl + P]</span></dt>
+<dd>
+<p class="para">
+In the thumbnail window, prints the images selected in the thumbnail view, one image per page.  When no image is selected and the preview shows an image, that image is printed.
+</p>
+<p class="para">
+In the image window, prints the image shown, in the orientation it is rotated to.
+</p>
+</dd>
+<dt><span class="term"><a name="close_tab"></a>Close Tab [Q]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Closes the active tab.
+</p>
+</dd>
+<dt><span class="term"><a name="close_window"></a>Close Window [Ctrl + Q] / Close [Q]</span></dt>
+<dd>
+<p class="para">
+"Close Window" of the thumbnail window closes the thumbnail window; image windows that are open stay open.  "Close" of the image window closes that image window.
+</p>
+</dd>
+<dt><span class="term"><a name="quit"></a>Quit [Ctrl + C]</span></dt>
+<dd>
+<p class="para">
+Closes <span class="emphasis"><i>all</i></span> windows of GImageView.
+</p>
+<p class="para">
+All thumbnail windows and image windows are closed.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-02"></a>3.2. Edit</h3></div></div>
+<div class="figure"><img src="images/menu_edit.png" width="288" height="417" alt="The Edit menu of the thumbnail window (one image selected)">
+<p class="caption">The Edit menu of the thumbnail window (one image selected)</p></div>
+<div class="figure"><img src="images/menu_i_edit.png" width="261" height="181" alt="The Edit menu of the image window">
+<p class="caption">The Edit menu of the image window</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="select_all"></a>Select All [Ctrl + A]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Selects all files of the active tab.
+</p>
+</dd>
+<dt><span class="term"><a name="unselect_all"></a>Unselect All [Ctrl + N]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Unselects the files of the active tab.
+</p>
+<p class="para">
+GImageView keeps the selection of each tab.  "Unselect All" does not unselect the files of tabs that are not active.
+</p>
+</dd>
+<dt><span class="term"><a name="refresh_list"></a>Refresh List [Shift + Ctrl + R]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Refreshes the list of the active tab.
+</p>
+</dd>
+<dt><span class="term"><a name="reload_cache"></a>Reload Cache [Shift + R]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Reloads the cache of the active tab.
+</p>
+</dd>
+<dt><span class="term"><a name="update_all_thumbnail"></a>Update All Thumbnails [Ctrl + R]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Creates the thumbnails of the active tab again.
+</p>
+<p class="para">
+For the differences between "Refresh List", "Reload Cache" and "Update All Thumbnails", see "<a href="gimv_tips.html#gimv_tips_07" title="">The difference between Refresh List, Reload Cache and Update All Thumbnails</a>" in the Tips.
+</p>
+</dd>
+<dt><span class="term"><a name="rename"></a>Rename... [Shift + E]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Renames the image (file) selected in the thumbnail view.
+</p>
+<p class="para">
+It cannot be used when more than one file is selected.
+</p>
+</dd>
+<dt><span class="term"><a name="copy_file_to"></a>Copy Files To... [Shift + C]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Copies the selected images (files) to another directory.
+</p>
+<p class="para">
+Tab completion can be used in the dialog that selects the directory.
+</p>
+</dd>
+<dt><span class="term"><a name="move_file_to"></a>Move Files To... [Shift + M]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Moves the selected images (files) to another directory.
+</p>
+<p class="para">
+Tab completion can be used in the dialog that selects the directory.
+</p>
+</dd>
+<dt><span class="term"><a name="link_file_to"></a>Link Files To... [Shift + L]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Creates symbolic links to the selected images (files).  Specify the directory to create the links in.
+</p>
+</dd>
+<dt><span class="term"><a name="remove_file"></a>Remove Files... [Delete]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Deletes the selected images (files).
+</p>
+<p class="para">
+This cannot be undone.  Answer the confirmation dialog carefully.
+</p>
+</dd>
+<dt><span class="term"><a name="edit_comment"></a>Edit Comment...</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Edits the comment of the image shown.
+</p>
+</dd>
+<dt><span class="term"><a name="scan_exif"></a>Scan EXIF Data...</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Shows the EXIF data of the image shown.
+</p>
+</dd>
+<dt><span class="term"><a name="create_thumbnail"></a>Create Thumbnail [Shift + T]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Creates the thumbnail of the image shown, in the format of "Cache type for saving" in [Preferences | Thumbnail Cache].
+</p>
+</dd>
+<dt><span class="term"><a name="options"></a>Options... [Ctrl + O]</span></dt>
+<dd>
+<p class="para">
+Shows the preferences dialog.
+</p>
+<p class="para">
+See <a href="06.html" title="6. Preferences">6</a> for the settings.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-03"></a>3.3. View</h3></div></div>
+<div class="figure"><img src="images/menu_view.png" width="310" height="507" alt="The View menu of the thumbnail window">
+<p class="caption">The View menu of the thumbnail window</p></div>
+<div class="figure"><img src="images/menu_i_view.png" width="374" height="507" alt="The View menu of the image window">
+<p class="caption">The View menu of the image window</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="sort_file_list"></a>Sort File List</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Sorts the thumbnail view in the order chosen.
+</p>
+<p class="para">
+The order applies to the active tab and to all tabs opened afterwards.
+</p>
+<p class="para">
+Like the selection, GImageView keeps the order of each tab, so tabs that are not open keep their order.  These orders can be chosen:
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">by Name</p></li>
+<li><p class="para">by Access Time</p></li>
+<li><p class="para">by Modification Time</p></li>
+<li><p class="para">by Change Time</p></li>
+<li><p class="para">by Size</p></li>
+<li><p class="para">by Type</p></li>
+<li><p class="para">by Image Width</p></li>
+<li><p class="para">by Image Height</p></li>
+<li><p class="para">by Image Area</p></li>
+</ul></div>
+<p class="para">
+"Reverse Order", "Case Insensitive" and "Mix Directories and Files" can be set as well.
+</p>
+</dd>
+<dt><span class="term"><a name="layout"></a>Layout</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Changes the layout of the views (directory, thumbnail and preview) of the thumbnail window: Layout 0 to 4 (Ctrl + 0 to 4) or Custom.  For the custom layout, see "<a href="gimv_tips.html#gimv_tips_08" title="">About the custom layout</a>" in the Tips.
+</p>
+<p class="para">
+In the GTK 4 version the layouts are shown as a row of buttons with pictures of the arrangement.  In the pictures, D is the directory view, T the thumbnail view and P the preview.  The tooltip of a button shows the name and the shortcut key (Ctrl + 0 to 4).  The picture of Custom shows the current custom layout.
+</p>
+</dd>
+<dt><span class="term"><a name="window_composition"></a>Layout | Window Composition</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Chooses the arrangement of the views (directory, thumbnail and preview) of the thumbnail window from the prepared compositions.
+</p>
+<p class="para">
+In the GTK 4 version the compositions are shown as buttons with pictures of the arrangement.  The tooltip of a button shows its name.
+</p>
+</dd>
+<dt><span class="term"><a name="slideshow"></a>Slideshow [Ctrl + S]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Starts a slideshow of the active tab.
+</p>
+<p class="para">
+The slideshow is set up in <a href="06.html#06-05" title="6.5. Slideshow">6.5</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="slideshow_options"></a>Slideshow Options</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  The order and the files of the slideshow.
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Start from the First / Start from the Selected / Random Order: the order.</p></li>
+<li><p class="para">Selected Only: shows only the selected images.</p></li>
+<li><p class="para">Images and Movies / Images Only / Movies Only: the kinds of files shown.</p></li>
+</ul></div>
+</dd>
+<dt><span class="term"><a name="zoom"></a>Zoom</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Zooms (enlarges or reduces) the image view and sets "Keep Aspect Ratio".
+</p>
+<p class="para">
+There are Zoom In [S], Zoom Out [A], Fit to Window [W], Fit Width [Shift + W], Fit Height [Shift + H], Keep Aspect Ratio [Shift + A], and 10% to 200% [1 to 9].  For other scales use the toolbar.
+</p>
+<p class="para">
+When "Keep Aspect Ratio" is checked, the aspect ratio is kept when the image view is enlarged or reduced.
+</p>
+</dd>
+<dt><span class="term"><a name="rotate"></a>Rotate</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Rotates the image view: Rotate 90 Degrees Clockwise [R], Rotate 90 Degrees Counterclockwise [E], Rotate 180 Degrees [D].
+</p>
+</dd>
+<dt><span class="term"><a name="ignore_alpha"></a>Ignore Alpha Channel</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Shows the image without its transparency.
+</p>
+</dd>
+<dt><span class="term"><a name="alpha_checker"></a>Checkerboard Behind Transparency</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  The background of images with transparency is shown as a gray checkerboard.  The initial state follows <a href="06.html#Alpha_checker" title="">Show a checkerboard behind transparent parts of images</a> in [Preferences | Image Window].
+</p>
+</dd>
+<dt><span class="term"><a name="directory_view"></a>Directory View [Shift + D]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Shows or hides the directory view.
+</p>
+</dd>
+<dt><span class="term"><a name="preview"></a>Preview [Shift + P]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Shows or hides the preview.
+</p>
+</dd>
+<dt><span class="term"><a name="menubar_view"></a>Menubar [M]</span></dt>
+<dd>
+<p class="para">
+Shows or hides the menu bar.
+</p>
+</dd>
+<dt><span class="term"><a name="tool_bar_view"></a>Toolbar [N]</span></dt>
+<dd>
+<p class="para">
+Shows or hides the toolbar.
+</p>
+</dd>
+<dt><span class="term"><a name="drectory_view_tool_bar_view"></a>DirView Toolbar [Shift + N]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Shows or hides the toolbar of the directory view.
+</p>
+</dd>
+<dt><span class="term"><a name="slideshow_player"></a>Slideshow Player [Shift + N]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Shows or hides the toolbar for controlling slideshows.
+</p>
+</dd>
+<dt><span class="term"><a name="status_bar_view"></a>Statusbar [V]</span></dt>
+<dd>
+<p class="para">
+Shows or hides the status bar.
+</p>
+</dd>
+<dt><span class="term"><a name="scrollbar_view"></a>Scrollbar [Shift + S]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Shows or hides the scroll bars.
+</p>
+</dd>
+<dt><span class="term"><a name="tab_bar_view"></a>Tab [B]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Shows or hides the tabs of the thumbnail view.
+</p>
+</dd>
+<dt><span class="term"><a name="tab_bar_preview"></a>Tab (Preview) [Shift + Z]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Thumbnail window only</i></span>.  Shows or hides the tabs of the preview.
+</p>
+</dd>
+<dt><span class="term"><a name="tool_bar_player"></a>Player</span></dt>
+<dd>
+<p class="para">
+How the toolbar for playing movies and audio is shown: "Show", "Hide" or "Auto".  "Auto" shows it only while a movie or audio file is shown.
+</p>
+</dd>
+<dt><span class="term"><a name="view_modes"></a>View Modes</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Switches the way of showing (image display, the movie and audio plugins).
+</p>
+</dd>
+<dt><span class="term"><a name="Fit_to_Image"></a>Fit to Image [I]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Resizes the image window to the size of the image view (the size of the image shown).  This is the same as [Fit Window Size to Image] of the toolbar.
+</p>
+<p class="para">
+The scale of the image view (the size of the image shown) does not change; the image window is resized.
+</p>
+</dd>
+<dt><span class="term"><a name="maximize"></a>Maximize [F]</span></dt>
+<dd>
+<p class="para">
+Maximizes the window or restores it.
+</p>
+</dd>
+<dt><span class="term"><a name="full_screen"></a>Fullscreen [Shift + F]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Turns fullscreen on or off.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-04"></a>3.4. Tab</h3></div></div>
+<div class="figure"><img src="images/menu_tab.png" width="365" height="314" alt="The Tab menu of the thumbnail window (one tab)">
+<p class="caption">The Tab menu of the thumbnail window (one tab)</p></div>
+<p class="para">
+This menu exists only in the thumbnail window.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="tab_position"></a>Tab Position</span></dt>
+<dd>
+<p class="para">
+Changes the position of the tabs: Top, Bottom, Left or Right.
+</p>
+</dd>
+<dt><span class="term"><a name="first_page"></a>First Page [K]</span></dt>
+<dd>
+<p class="para">
+Makes the first (leftmost) tab active.
+</p>
+</dd>
+<dt><span class="term"><a name="last_page"></a>Last Page [J]</span></dt>
+<dd>
+<p class="para">
+Makes the last (rightmost) tab active.
+</p>
+</dd>
+<dt><span class="term"><a name="next_page"></a>Next Page [L]</span></dt>
+<dd>
+<p class="para">
+Makes the next tab (one to the right) active.
+</p>
+</dd>
+<dt><span class="term"><a name="previous_page"></a>Previous Page [H]</span></dt>
+<dd>
+<p class="para">
+Makes the previous tab (one to the left) active.
+</p>
+</dd>
+<dt><span class="term"><a name="move_tab_forward"></a>Move Tab Forward [Shift + F]</span></dt>
+<dd>
+<p class="para">
+Moves the active tab one place to the left.
+</p>
+</dd>
+<dt><span class="term"><a name="move_tab_backward"></a>Move Tab Backward [Shift + B]</span></dt>
+<dd>
+<p class="para">
+Moves the active tab one place to the right.
+</p>
+</dd>
+<dt><span class="term"><a name="detach_tab"></a>Detach Tab [Ctrl + D]</span></dt>
+<dd>
+<p class="para">
+Detaches the active tab into a new thumbnail window.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-05"></a>3.5. Action</h3></div></div>
+<div class="figure"><img src="images/menu_action.png" width="493" height="178" alt="The Action | Focus menu of the thumbnail window">
+<p class="caption">The Action | Focus menu of the thumbnail window</p></div>
+<p class="para">
+This menu exists only in the thumbnail window.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="focus"></a>Focus</span></dt>
+<dd>
+<p class="para">
+Moves the keyboard focus to the Directory View [Shift + Alt + D], the Thumbnail View [Shift + Alt + T], the Preview [Shift + Alt + P] or the Location Entry (the directory field of the toolbar) [Shift + Alt + L].
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-06"></a>3.6. Tools</h3></div></div>
+<div class="figure"><img src="images/menu_tools.png" width="398" height="164" alt="The Tools menu of the thumbnail window">
+<p class="caption">The Tools menu of the thumbnail window</p></div>
+<p class="para">
+This menu exists only in the thumbnail window.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="clear_all_caches"></a>Clear All Caches</span></dt>
+<dd>
+<p class="para">
+Deletes all thumbnail caches of the format of "Cache type for saving" in [Preferences | Thumbnail Cache].
+</p>
+</dd>
+<dt><span class="term"><a name="find_duplicates"></a>Find Duplicates</span></dt>
+<dd>
+<p class="para">
+Searches the active tab for duplicate images.  The submenu chooses how images are compared: "Similarity", "File Size" or "md5sum".
+</p>
+<p class="para">
+The selection does not matter; all images of the tab are searched.  The accuracy of "Similarity" is set in [Preferences | Search].
+</p>
+</dd>
+<dt><span class="term"><a name="set_wallpaper"></a>Set as Wallpaper</span></dt>
+<dd>
+<p class="para">
+Makes the selected image the wallpaper of the desktop.  "This Desktop" uses the command for the running desktop (environment variable XDG_CURRENT_DESKTOP).  Below it are items for each desktop: Xfce, GNOME, KDE Plasma and others.
+</p>
+<p class="para">
+Images other than JPEG and PNG, and images in archives, are converted to PNG in ~/.gimv/wallpaper/ and that file becomes the wallpaper.  The items and commands can be changed with wallpaper_menu in ~/.gimv/gimvrc.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-07"></a>3.7. Go</h3></div></div>
+<div class="figure"><img src="images/menu_i_go.png" width="252" height="168" alt="The Go menu of the image window">
+<p class="caption">The Go menu of the image window</p></div>
+<p class="para">
+This menu exists only in the image window.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="go_next"></a>Next [L]</span></dt>
+<dd>
+<p class="para">
+Shows the next image.
+</p>
+</dd>
+<dt><span class="term"><a name="go_previous"></a>Previous [H]</span></dt>
+<dd>
+<p class="para">
+Shows the previous image.
+</p>
+</dd>
+<dt><span class="term"><a name="go_first"></a>First [K]</span></dt>
+<dd>
+<p class="para">
+Shows the first image.
+</p>
+</dd>
+<dt><span class="term"><a name="go_last"></a>Last [J]</span></dt>
+<dd>
+<p class="para">
+Shows the last image.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-08"></a>3.8. Movie</h3></div></div>
+<div class="figure"><img src="images/menu_i_movie.png" width="333" height="284" alt="The Movie menu of the image window (an image shown)">
+<p class="caption">The Movie menu of the image window (an image shown)</p></div>
+<p class="para">
+This menu exists only in the image window.  It can be used while a movie or audio file is shown.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="movie_play"></a>Play / Stop / Pause / Forward / Reverse</span></dt>
+<dd>
+<p class="para">
+Controls the playback of movies and audio.
+</p>
+</dd>
+<dt><span class="term"><a name="movie_continuance"></a>Continuous Play</span></dt>
+<dd>
+<p class="para">
+When playback ends, the next file is opened and played.  The initial state follows <a href="06.html#Movie_continuance" title="">continuous play</a> in [Preferences | Movie and Audio].
+</p>
+</dd>
+<dt><span class="term"><a name="movie_eject"></a>Eject</span></dt>
+<dd>
+<p class="para">
+Can be used while the Xine plugin shows the file.  While stopped, it lets you choose an input plugin of xine, and the list of what that plugin can play (MRLs) is shown instead.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="03-09"></a>3.9. Help</h3></div></div>
+<div class="figure"><img src="images/menu_help.png" width="405" height="138" alt="The Help menu of the thumbnail window">
+<p class="caption">The Help menu of the thumbnail window</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="manual"></a>Manual</span></dt>
+<dd>
+<p class="para">
+Shows the manual.
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_document"></a>Document</span></dt>
+<dd>
+<p class="para">
+Shows the documents that come with GImageView.
+</p>
+</dd>
+<dt><span class="term"><a name="about"></a>About</span></dt>
+<dd>
+<p class="para">
+Shows the version, license, authors and developers of GImageView.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="02.html">Prev</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="04.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">2. Usage&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
+<td width="40%" align="right">&#160;4. Toolbar</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

@@ -57,8 +57,8 @@ gimv_xine_image_loader_load_file (GimvImageLoader *loader, gpointer data)
    GimvXinePrivImage *pimage = NULL;
    xine_t *xine;
    xine_stream_t *stream;
-   xine_vo_driver_t *vo_driver;
-   xine_ao_driver_t *ao_driver;
+   xine_video_port_t *vo_driver;
+   xine_audio_port_t *ao_driver;
    guchar *rgb = NULL;
    gint width, height;
    gint ret = 0;

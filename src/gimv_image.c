@@ -35,59 +35,29 @@
 #include "gimv_io.h"
 #include "gimv_image_saver.h"
 
-#if defined (HAVE_GDK_PIXBUF)
 #  include <gdk-pixbuf/gdk-pixbuf.h>
 #  include "pixbuf_utils.h"
 typedef GdkPixbuf GimvRawImage;
-#elif defined (HAVE_GDK_IMLIB)
-#  include <gdk_imlib.h>
-typedef GdkImlibImage GimvRawImage;
-#endif /* HAVE_GDK_PIXBUF */
 
 
-static void gimv_image_class_init    (GimvImageClass *klass);
-static void gimv_image_init          (GimvImage      *image);
-static void gimv_image_destroy       (GtkObject      *object);
+static void gimv_image_destroy       (GimvObject      *object);
 static void gimv_image_backend_init  (void);
 
 
-static GtkObjectClass *parent_class = NULL;
+#define parent_class gimv_image_parent_class
 
 
-GtkType
-gimv_image_get_type (void)
-{
-   static GtkType gimv_image_type = 0;
-
-   if (!gimv_image_type) {
-      static const GtkTypeInfo gimv_image_info = {
-         "GimvImage",
-         sizeof (GimvImage),
-         sizeof (GimvImageClass),
-         (GtkClassInitFunc) gimv_image_class_init,
-         (GtkObjectInitFunc) gimv_image_init,
-         NULL,
-         NULL,
-         (GtkClassInitFunc) NULL,
-      };
-
-      gimv_image_type = gtk_type_unique (gtk_object_get_type (),
-                                         &gimv_image_info);
-   }
-
-   return gimv_image_type;
-}
+G_DEFINE_TYPE (GimvImage, gimv_image, GIMV_TYPE_OBJECT)
 
 
 static void
 gimv_image_class_init (GimvImageClass *klass)
 {
-   GtkObjectClass *object_class;
+   GimvObjectClass *object_class;
 
    gimv_image_backend_init ();
 
-   object_class = (GtkObjectClass *) klass;
-   parent_class = gtk_type_class (gtk_object_get_type ());
+   object_class = (GimvObjectClass *) klass;
 
    object_class->destroy  = gimv_image_destroy;
 }
@@ -103,15 +73,13 @@ gimv_image_init (GimvImage *image)
    image->comments        = NULL;
    image->additional_data = NULL;
 
-#ifdef USE_GTK2
-   gtk_object_ref (GTK_OBJECT (image));
-   gtk_object_sink (GTK_OBJECT (image));
-#endif
+   /* GTK2: gtk_object_ref () + gtk_object_sink () */
+   g_object_ref_sink (G_OBJECT (image));
 }
 
 
 static void
-gimv_image_destroy (GtkObject *object)
+gimv_image_destroy (GimvObject *object)
 {
    GimvImage *image = GIMV_IMAGE (object);
    GimvRawImage *rawimage;
@@ -120,25 +88,21 @@ gimv_image_destroy (GtkObject *object)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    if (rawimage)
-      gdk_pixbuf_unref (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   gdk_imlib_kill_image (rawimage);
-#endif /* HAVE_GDK_PIXBUF */
+      g_object_unref (rawimage);
    image->image = NULL;
 
    gimv_image_free_comments (image);
 
-   if (GTK_OBJECT_CLASS (parent_class)->destroy)
-      (*GTK_OBJECT_CLASS (parent_class)->destroy) (object);
+   if (GIMV_OBJECT_CLASS (parent_class)->destroy)
+      (*GIMV_OBJECT_CLASS (parent_class)->destroy) (object);
 }
 
 
 GimvImage *
 gimv_image_new (void)
 {
-   GimvImage *image = GIMV_IMAGE (gtk_type_new (GIMV_TYPE_IMAGE));
+   GimvImage *image = GIMV_IMAGE (g_object_new (GIMV_TYPE_IMAGE, NULL));
    return image;
 }
 
@@ -151,23 +115,6 @@ gimv_image_new (void)
 void
 gimv_image_backend_init (void)
 {
-#if defined (HAVE_GDK_PIXBUF)
-#elif defined (HAVE_GDK_IMLIB)
-   /*
-   GdkImlibInitParams *imlib_param;
-
-   imlib_param = g_new0 (GdkImlibInitParams, 1);
-
-   imlib_param->flags = PARAMS_REMAP | PARAMS_FASTRENDER;
-   imlib_param->remap = 0;
-   imlib_param->fastrender = 0;
-   gdk_imlib_init_params(imlib_param);
-   g_free (imlib_param);
-   */
-   gdk_imlib_init ();
-   gtk_widget_push_visual (gdk_imlib_get_visual());
-   gtk_widget_push_colormap (gdk_imlib_get_colormap());
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -208,13 +155,11 @@ gimv_image_save_file  (GimvImage   *image,
 }
 
 
-#if defined (HAVE_GDK_PIXBUF)
 static void
 free_rgb_buffer (guchar *pixels, gpointer data)
 {
    g_free(pixels);
 }
-#endif /* HAVE_GDK_PIXBUF */
 
 
 GimvImage *
@@ -224,7 +169,6 @@ gimv_image_create_from_data (guchar *data, gint width, gint height, gboolean alp
 
    image = gimv_image_new ();
 
-#if defined (HAVE_GDK_PIXBUF)
    {
       gint bytes = 3;
 
@@ -236,10 +180,6 @@ gimv_image_create_from_data (guchar *data, gint width, gint height, gboolean alp
                                                width, height, bytes * width,
                                                free_rgb_buffer, NULL);
    }
-#elif defined (HAVE_GDK_IMLIB)
-   image->image = gdk_imlib_create_image_from_data (data, NULL, width, height);
-   g_free (data);
-#endif /* HAVE_GDK_PIXBUF */
 
    if (!image->image) {
       gimv_image_unref (image);
@@ -251,25 +191,35 @@ gimv_image_create_from_data (guchar *data, gint width, gint height, gboolean alp
 
 
 GimvImage *
-gimv_image_create_from_drawable (GdkDrawable *drawable, gint x, gint y,
-                                 gint width, gint height)
+gimv_image_create_from_texture (GdkTexture *texture, gint x, gint y,
+                                gint width, gint height)
 {
    GimvImage *image;
+   GdkPixbuf *pixbuf;
+
+   g_return_val_if_fail (GDK_IS_TEXTURE (texture), NULL);
 
    image = gimv_image_new ();
 
-#if defined (HAVE_GDK_PIXBUF)
-   {
-      GdkColormap *cmap = gdk_colormap_get_system ();
-      image->image = gdk_pixbuf_get_from_drawable (NULL, drawable, cmap,
-                                                   x , y, 0, 0,
-                                                   width, height);
+   pixbuf = gimv_pixbuf_from_texture (texture);
+   if (pixbuf) {
+      gint tw = gdk_pixbuf_get_width (pixbuf), th = gdk_pixbuf_get_height (pixbuf);
+
+      x = CLAMP (x, 0, tw);
+      y = CLAMP (y, 0, th);
+      width  = MIN (width,  tw - x);
+      height = MIN (height, th - y);
+      if (x == 0 && y == 0 && width == tw && height == th) {
+         image->image = pixbuf;
+      } else if (width > 0 && height > 0) {
+         GdkPixbuf *sub = gdk_pixbuf_new_subpixbuf (pixbuf, x, y, width, height);
+         image->image = gdk_pixbuf_copy (sub);
+         g_object_unref (sub);
+         g_object_unref (pixbuf);
+      } else {
+         g_object_unref (pixbuf);
+      }
    }
-#elif defined (HAVE_GDK_IMLIB)
-   image->image = gdk_imlib_create_image_from_drawable (drawable, NULL,
-                                                        x, y,
-                                                        width, height);
-#endif /* HAVE_GDK_PIXBUF */
 
    if (!image->image) {
       gimv_image_unref (image);
@@ -319,19 +269,8 @@ gimv_image_rotate_90 (GimvImage *image,
 
    src_rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    dest_rawimage = pixbuf_copy_rotate_90 (src_rawimage, counter_clockwise);
-   gdk_pixbuf_unref (src_rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   if (counter_clockwise) {
-      gdk_imlib_flip_image_horizontal (src_rawimage);
-      gdk_imlib_rotate_image (src_rawimage, 1);
-   } else {
-      gdk_imlib_flip_image_vertical (src_rawimage);
-      gdk_imlib_rotate_image (src_rawimage, 1);
-   }
-   dest_rawimage = src_rawimage;
-#endif /* HAVE_GDK_PIXBUF */
+   g_object_unref (src_rawimage);
 
    image->image = dest_rawimage;
 
@@ -359,14 +298,8 @@ gimv_image_rotate_180 (GimvImage *image)
 
    src_rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    dest_rawimage = pixbuf_copy_mirror (src_rawimage, TRUE, TRUE);
-   gdk_pixbuf_unref (src_rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   gdk_imlib_flip_image_vertical (src_rawimage);
-   gdk_imlib_flip_image_horizontal (src_rawimage);
-   dest_rawimage = src_rawimage;
-#endif /* HAVE_GDK_PIXBUF */
+   g_object_unref (src_rawimage);
 
    image->image = dest_rawimage;
 
@@ -427,46 +360,30 @@ gimv_image_rotate (GimvImage *image, GimvImageAngle abs_angle)
 
 void
 gimv_image_get_pixmap_and_mask (GimvImage  *image,
-                                GdkPixmap **pixmap_return,
-                                GdkBitmap **mask_return)
+                                GdkTexture **pixmap_return,
+                                GdkTexture **mask_return)
 {
    GimvRawImage *rawimage;
 
    g_return_if_fail (image);
    g_return_if_fail (image->image);
    g_return_if_fail (pixmap_return);
-   g_return_if_fail (mask_return);
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
-   gdk_pixbuf_render_pixmap_and_mask (rawimage, pixmap_return, mask_return, 64);
-#elif defined (HAVE_GDK_IMLIB)
-   *pixmap_return = gdk_imlib_move_image (rawimage);
-   *mask_return = gdk_imlib_move_mask (rawimage);
-
-   /* FIXME */
-   if (!*pixmap_return) {
-      gdk_imlib_render (image->image,
-                        gimv_image_width (image), gimv_image_height (image));
-      *pixmap_return = gdk_imlib_move_image (rawimage);
-      *mask_return = gdk_imlib_move_mask (rawimage);
-   }
-#endif /* HAVE_GDK_PIXBUF */
+   /* GTK4: the alpha channel is kept in the texture, mask is always NULL */
+   *pixmap_return = gimv_texture_new_for_pixbuf (rawimage);
+   if (mask_return)
+      *mask_return = NULL;
 }
 
 
 void
-gimv_image_free_pixmap_and_mask (GdkPixmap *pixmap,
-                                 GdkBitmap *mask)
+gimv_image_free_pixmap_and_mask (GdkTexture *pixmap,
+                                 GdkTexture *mask)
 {
-#if defined (HAVE_GDK_PIXBUF)
-   if (pixmap) gdk_pixmap_unref (pixmap);
-   if (mask) gdk_bitmap_unref (mask);
-#elif defined (HAVE_GDK_IMLIB)
-   gdk_imlib_free_pixmap (pixmap);
-   gdk_imlib_free_bitmap (mask);
-#endif /* HAVE_GDK_PIXBUF */
+   if (pixmap) g_object_unref (pixmap);
+   if (mask) g_object_unref (mask);
 }
 
 
@@ -505,12 +422,8 @@ gimv_image_scale (GimvImage *image,
    }
    */
 
-#if defined (HAVE_GDK_PIXBUF)
    dest_rawimage = gdk_pixbuf_scale_simple (src_rawimage, width, height,
                                             conf.interpolation);
-#elif defined (HAVE_GDK_IMLIB)
-   dest_rawimage = gdk_imlib_clone_scaled_image (src_rawimage, width, height);
-#endif /* HAVE_GDK_PIXBUF */
 
    dest_image = gimv_image_new ();
    dest_image->image = dest_rawimage;
@@ -656,25 +569,19 @@ gimv_image_scale_down (GimvImage *image,
 void
 gimv_image_scale_get_pixmap (GimvImage *image,
                              gint width, gint height,
-                             GdkPixmap **pixmap_return,
-                             GdkBitmap **mask_return)
+                             GdkTexture **pixmap_return,
+                             GdkTexture **mask_return)
 {
    g_return_if_fail (image);
    g_return_if_fail (image->image);
    g_return_if_fail (pixmap_return);
-   g_return_if_fail (mask_return);
 
-#if defined (HAVE_GDK_PIXBUF)
    {
       GimvImage *dest_image;
       dest_image = gimv_image_scale (image, width, height);
       gimv_image_get_pixmap_and_mask (dest_image, pixmap_return, mask_return);
       gimv_image_unref (dest_image);
    }
-#elif defined (HAVE_GDK_IMLIB)
-   gdk_imlib_render (image->image, width, height);
-   gimv_image_get_pixmap_and_mask (image, pixmap_return, mask_return);
-#endif
 }
 
 
@@ -691,13 +598,8 @@ gimv_image_get_size (GimvImage *image, gint *width, gint *height)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    *width  = gdk_pixbuf_get_width  (rawimage);
    *height = gdk_pixbuf_get_height (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   *width  = rawimage->rgb_width;
-   *height = rawimage->rgb_height;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -711,11 +613,7 @@ gimv_image_width (GimvImage *image)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    return gdk_pixbuf_get_width  (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   return rawimage->rgb_width;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -729,11 +627,7 @@ gimv_image_height (GimvImage *image)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    return gdk_pixbuf_get_height (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   return rawimage->rgb_height;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -747,11 +641,7 @@ gimv_image_depth (GimvImage *image)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    return gdk_pixbuf_get_bits_per_sample (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   return 8;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -765,22 +655,14 @@ gimv_image_has_alpha (GimvImage *image)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    return gdk_pixbuf_get_has_alpha (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   return FALSE;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
 gboolean
 gimv_image_can_alpha (GimvImage *image)
 {
-#if defined (HAVE_GDK_PIXBUF)
    return TRUE;
-#elif defined (HAVE_GDK_IMLIB)
-   return FALSE;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -794,14 +676,7 @@ gimv_image_rowstride (GimvImage *image)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    return gdk_pixbuf_get_rowstride (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   if (!rawimage)
-      return 0;
-   else
-      return rawimage->rgb_width * 3;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -815,14 +690,7 @@ gimv_image_get_pixels (GimvImage *image)
 
    rawimage = (GimvRawImage *) image->image;
 
-#if defined (HAVE_GDK_PIXBUF)
    return gdk_pixbuf_get_pixels (rawimage);
-#elif defined (HAVE_GDK_IMLIB)
-   if (!rawimage)
-      return NULL;
-   else
-      return rawimage->rgb_data;
-#endif /* HAVE_GDK_PIXBUF */
 }
 
 
@@ -840,7 +708,7 @@ gimv_image_get_comment (GimvImage *image, const gchar *key)
 GimvImage  *
 gimv_image_ref (GimvImage *image)
 {
-   gtk_object_ref (GTK_OBJECT (image));
+   g_object_ref (G_OBJECT (image));
    return image;
 }
 
@@ -848,7 +716,7 @@ gimv_image_ref (GimvImage *image)
 void
 gimv_image_unref (GimvImage *image)
 {
-   gtk_object_unref (GTK_OBJECT (image));
+   g_object_unref (G_OBJECT (image));
 }
 
 
@@ -1422,9 +1290,6 @@ gimv_image_rgba2rgb (GimvImage *image,
    if (bg_blue >= 0 && bg_blue < 256)
       bgcolor_blue = bg_blue;
 
-#ifdef HAVE_GDK_IMLIB
-   goto ERROR;
-#endif /* HAVE_GDK_IMLIB */
 
    if (!gimv_image_has_alpha (image)) goto ERROR;
 

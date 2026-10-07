@@ -26,6 +26,7 @@
 #include "gimageview.h"
 
 #include "charset.h"
+#include "gimv_color_scheme.h"
 #include "gimv_elist.h"
 #include "fileload.h"
 /* #include "gimv_image.h" */
@@ -74,7 +75,14 @@ static const gchar *open_window_items[] = {
 };
 
 
-#if HAVE_GDK_PIXBUF
+static const gchar *color_scheme_items[] = {
+   N_("Desktop theme"),
+   N_("Light"),
+   N_("Dark"),
+   NULL
+};
+
+
 static const gchar *interpolation_items[] = {
    N_("Nearest"),
    N_("Tiles"),
@@ -82,7 +90,6 @@ static const gchar *interpolation_items[] = {
    N_("Hyperbolic"),
    NULL
 };
-#endif /* HAVE_GDK_PIXBUF */
 
 
 static const gchar *charset_to_internal_items[] = {
@@ -95,11 +102,11 @@ static const gchar *charset_to_internal_items[] = {
 
 
 static void
-cb_scan_sub_dir (GtkToggleButton *button, gpointer data)
+cb_scan_sub_dir (GtkWidget *button, gpointer data)
 {
    ScanSubDirType *type = data;
 
-   if (button->active)
+   if (gimv_toggle_get_active (button))
       *type = SCAN_SUB_DIR;
    else
       *type = SCAN_SUB_DIR_NONE;
@@ -111,7 +118,7 @@ cb_recursive_follow_symlink (GtkWidget *radio, gpointer data)
 {
    gint idx = GPOINTER_TO_INT (data);
 
-   if (!GTK_TOGGLE_BUTTON (radio)->active) return;
+   if (!gimv_toggle_get_active (GTK_WIDGET (radio))) return;
 
    switch (idx) {
    case 0:
@@ -137,8 +144,8 @@ filter_check_value (const gchar *ext, const gchar *name)
 {
    if (!string_is_ascii_printable (ext) || !string_is_ascii_printable (name)) {
       gtkutil_message_dialog (_("Error"),
-                              _("String includes invalid character!\n"
-                                "Only ASCII is available."),
+                              _("The string contains an invalid character!\n"
+                                "Only ASCII is allowed."),
                               GTK_WINDOW (gimv_prefs_win_get ()));
       return FALSE;
    }
@@ -179,7 +186,7 @@ filter_check_duplicate (const gchar *ext, gint row, gboolean dialog)
       if (text && *text && !g_strcasecmp (ext, text)) {
          if (dialog) {
             g_snprintf (message, BUF_SIZE, _("\"%s\" is already defined."), ext);
-            gtkutil_message_dialog (_("Error!!"), message,
+            gtkutil_message_dialog (_("Error!"), message,
                                     GTK_WINDOW (gimv_prefs_win_get ()));
          }
          g_free (text);
@@ -246,7 +253,7 @@ filter_set_value (void)
       row = gimv_elist_append_row (editlist, text);     
 
       gimv_elist_set_row_data_full (editlist, row, rowdata,
-                                       (GtkDestroyNotify) g_free);
+                                       (GDestroyNotify) g_free);
    }
 
    if (sysdef_disables)
@@ -290,7 +297,7 @@ filter_set_value (void)
       row = gimv_elist_append_row (editlist, text);     
 
       gimv_elist_set_row_data_full (editlist, row, rowdata,
-                                       (GtkDestroyNotify) g_free);
+                                       (GDestroyNotify) g_free);
 
    ERROR:
       g_strfreev (sections);
@@ -311,8 +318,8 @@ cb_filter_editlist_confirm (GimvEList *editlist,
    gboolean duplicate = FALSE;
    FilterRowData *rowdata;
 
-   ext  = gtk_entry_get_text (GTK_ENTRY (prefs_win.filter_ext_entry));
-   name = gtk_entry_get_text (GTK_ENTRY (prefs_win.filter_type_entry));
+   ext  = gtk_editable_get_text (GTK_EDITABLE (prefs_win.filter_ext_entry));
+   name = gtk_editable_get_text (GTK_EDITABLE (prefs_win.filter_type_entry));
 
    gtk_widget_set_sensitive (prefs_win.filter_ext_entry, TRUE);
    gtk_widget_set_sensitive (prefs_win.filter_type_entry, TRUE);
@@ -435,9 +442,9 @@ static gboolean
 cb_filter_get_row_data (GimvEList *editlist,
                         GimvEListActionType type,
                         gpointer *rowdata_ret,
-                        GtkDestroyNotify *destroy_fn_ret)
+                        GDestroyNotify *destroy_fn_ret)
 {
-   GtkToggleButton *toggle = GTK_TOGGLE_BUTTON (prefs_win.filter_disable_toggle);
+   GtkWidget *toggle = prefs_win.filter_disable_toggle;
    FilterRowData *rowdata = NULL;
    gint selected = gimv_elist_get_selected_row (editlist);
    gboolean retval = FALSE;
@@ -448,7 +455,7 @@ cb_filter_get_row_data (GimvEList *editlist,
       rowdata = g_new0 (FilterRowData, 1);
       rowdata->user_def = TRUE;
       *rowdata_ret    = rowdata;
-      *destroy_fn_ret = (GtkDestroyNotify) g_free;
+      *destroy_fn_ret = (GDestroyNotify) g_free;
       retval = TRUE;
    } else if (type == GIMV_ELIST_ACTION_CHANGE) {
       rowdata = gimv_elist_get_row_data (editlist, selected);
@@ -457,7 +464,7 @@ cb_filter_get_row_data (GimvEList *editlist,
       return FALSE;
    }
 
-   rowdata->enable = !toggle->active;
+   rowdata->enable = !gimv_toggle_get_active (toggle);
 
    return retval;
 }
@@ -470,7 +477,7 @@ cb_locale_charset_changed (GtkEditable *entry, gpointer data)
       g_free (config_changed->charset_locale);
 
    config_changed->charset_locale
-      = g_strdup (gtk_entry_get_text (GTK_ENTRY (entry)));
+      = g_strdup (gtk_editable_get_text (GTK_EDITABLE (entry)));
 }
 
 
@@ -481,7 +488,7 @@ cb_internal_charset_changed (GtkEditable *entry, gpointer data)
       g_free (config_changed->charset_internal);
 
    config_changed->charset_internal
-      = g_strdup (gtk_entry_get_text (GTK_ENTRY (entry)));
+      = g_strdup (gtk_editable_get_text (GTK_EDITABLE (entry)));
 }
 
 
@@ -492,7 +499,7 @@ cb_filename_charset_changed (GtkEditable *entry, gpointer data)
       g_free (config_changed->charset_filename);
 
    config_changed->charset_filename
-      = g_strdup (gtk_entry_get_text (GTK_ENTRY (entry)));
+      = g_strdup (gtk_editable_get_text (GTK_EDITABLE (entry)));
 }
 
 
@@ -515,7 +522,7 @@ cb_filename_charset_conv (GtkWidget *widget, gpointer data)
    GtkWidget *combo = data;
 
    config_changed->charset_filename_mode
-      = GPOINTER_TO_INT (gtk_object_get_data (GTK_OBJECT (widget), "num"));
+      = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (widget), "num"));
 
    set_sensitive_filename_charset_mode (config_changed->charset_filename_mode,
                                         combo);
@@ -532,164 +539,184 @@ GtkWidget *
 prefs_common_page (void)
 {
    GtkWidget *main_vbox, *frame, *table, *vbox, *alignment;
-#if HAVE_GDK_PIXBUF
    GtkWidget *hbox;
-#endif /* HAVE_GDK_PIXBUF */
    GtkWidget *label;
    GtkWidget *option_menu;
    GtkWidget *toggle, *radio0, *radio1, *radio2;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
 
    /**********************************************
     * Default Open Window Frame
     **********************************************/
    frame = gtk_frame_new (_("Default Open Window"));
-   gtk_container_set_border_width(GTK_CONTAINER(frame), 5);
-   gtk_box_pack_start(GTK_BOX(main_vbox), frame, FALSE, TRUE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (frame), 5);
+   gimv_box_pack_start(GTK_BOX(main_vbox), frame, FALSE, TRUE, 0);
 
-   alignment = gtk_alignment_new(0.0, 0.5, 0.0, 0.0);
-   gtk_container_add (GTK_CONTAINER (frame), alignment);
+   alignment = gimv_alignment_new(0.0, 0.5, 0.0, 0.0);
+   gimv_container_add (GTK_WIDGET (frame), alignment);
 
-   table = gtk_table_new (3, 2, FALSE);
-   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-   gtk_container_add (GTK_CONTAINER (alignment), table);
+   table = gimv_table_new (3, 2, FALSE);
+   gimv_container_set_border_width (GTK_WIDGET (table), 5);
+   gimv_container_add (GTK_WIDGET (alignment), table);
 
    /* File Open Window Selection */
    label = gtk_label_new (_("File Open Window"));
-   alignment = gtk_alignment_new (0.0, 0.5, 0.0, 0.0);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 0, 1,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
+   alignment = gimv_alignment_new (0.0, 0.5, 0.0, 0.0);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 0, 1, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
+   gimv_container_add (GTK_WIDGET (alignment), label);
    option_menu = create_option_menu_simple (open_window_items,
                                             conf.default_file_open_window,
                                             &config_changed->default_file_open_window);
-   gtk_table_attach (GTK_TABLE (table), option_menu, 1, 2, 0, 1,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 5, 1);
+   gimv_table_attach (GTK_WIDGET (table), option_menu, 1, 2, 0, 1, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 5, 1);
 
    /* Directory Open Window Selection */
    label = gtk_label_new (_("Directory Open Window"));
-   alignment = gtk_alignment_new (0.0, 0.5, 0.0, 0.0);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 1, 2,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
+   alignment = gimv_alignment_new (0.0, 0.5, 0.0, 0.0);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
+   gimv_container_add (GTK_WIDGET (alignment), label);
    option_menu = create_option_menu_simple (open_window_items,
                                             conf.default_dir_open_window,
                                             &config_changed->default_dir_open_window);
-   gtk_table_attach (GTK_TABLE (table), option_menu, 1, 2, 1, 2,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 5, 1);
+   gimv_table_attach (GTK_WIDGET (table), option_menu, 1, 2, 1, 2, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 5, 1);
 
    /* Archive Open Window Selection */
    label = gtk_label_new (_("Archive Open Window"));
-   alignment = gtk_alignment_new (0.0, 0.5, 0.0, 0.0);
-   gtk_table_attach (GTK_TABLE (table), alignment, 0, 1, 2, 3,
-                     GTK_EXPAND | GTK_FILL, GTK_FILL, 5, 1);
-   gtk_container_add (GTK_CONTAINER (alignment), label);
+   alignment = gimv_alignment_new (0.0, 0.5, 0.0, 0.0);
+   gimv_table_attach (GTK_WIDGET (table), alignment, 0, 1, 2, 3, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
+   gimv_container_add (GTK_WIDGET (alignment), label);
    option_menu = create_option_menu_simple (open_window_items,
                                             conf.default_arc_open_window,
                                             &config_changed->default_arc_open_window);
-   gtk_table_attach (GTK_TABLE (table), option_menu, 1, 2, 2, 3,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 5, 1);
+   gimv_table_attach (GTK_WIDGET (table), option_menu, 1, 2, 2, 3, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 5, 1);
    gtk_widget_set_sensitive (option_menu, FALSE);
 
 
    /**********************************************
     * Scan Directory Frame
     **********************************************/
-   gimv_prefs_ui_create_frame (_("Directory scan"), frame, vbox, main_vbox, FALSE);
+   gimv_prefs_ui_create_frame (_("Directory Scan"), frame, vbox, main_vbox, FALSE);
 
    /* Ignore filename extension or not */
    toggle = gtkutil_create_check_button (_("Scan directories recursively"),
                                          conf.scan_dir_recursive,
                                          cb_scan_sub_dir,
                                          &config_changed->scan_dir_recursive);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* follow symbolic link */
-   radio0 = gtk_radio_button_new_with_label (NULL, _("Follow symbolic link"));
-   gtk_box_pack_start (GTK_BOX (vbox), radio0, FALSE, FALSE, 0);
+   radio0 = gimv_radio_button_new_with_label (NULL, _("Follow symbolic links"));
+   gimv_box_pack_start (GTK_BOX (vbox), radio0, FALSE, FALSE, 0);
 
-   radio1 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio0),
-                                                         _("Do not follow symbolic link"));
-   gtk_box_pack_start (GTK_BOX (vbox), radio1, FALSE, FALSE, 0);
+   radio1 = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio0), _("Do not follow symbolic links"));
+   gimv_box_pack_start (GTK_BOX (vbox), radio1, FALSE, FALSE, 0);
 
-#ifndef USE_GTK2
-   gtk_widget_set_uposition (GTK_WIDGET(radio0), 40, -1);
-   gtk_widget_set_uposition (GTK_WIDGET(radio1), 40, -1);
-#endif
 
-   radio2 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio1),
-                                                         _("Do not follow link to parent directory"));
+   radio2 = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio1), _("Do not follow links to parent directories"));
    /* not implemented yet
-      gtk_box_pack_start (GTK_BOX (vbox), radio2, FALSE, FALSE, 0);
-      gtk_widget_set_uposition (GTK_WIDGET(radio2), 40, -1);
+      gimv_box_pack_start (GTK_BOX (vbox), radio2, FALSE, FALSE, 0);
+      gtk_widget_set_margin_start (GTK_WIDGET(radio2), 40);
    */
 
    if (conf.recursive_follow_link && conf.recursive_follow_parent)
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio0), TRUE);
+      gimv_toggle_set_active (GTK_WIDGET (radio0), TRUE);
    else if (conf.recursive_follow_link && !conf.recursive_follow_parent)
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio2), TRUE);
+      gimv_toggle_set_active (GTK_WIDGET (radio2), TRUE);
    else
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio1), TRUE);
+      gimv_toggle_set_active (GTK_WIDGET (radio1), TRUE);
 
-   gtk_signal_connect (GTK_OBJECT (radio0), "toggled",
-                       GTK_SIGNAL_FUNC (cb_recursive_follow_symlink),
+   g_signal_connect (G_OBJECT (radio0), "toggled",
+                       G_CALLBACK (cb_recursive_follow_symlink),
                        GINT_TO_POINTER(0));
-   gtk_signal_connect (GTK_OBJECT (radio1), "toggled",
-                       GTK_SIGNAL_FUNC (cb_recursive_follow_symlink),
+   g_signal_connect (G_OBJECT (radio1), "toggled",
+                       G_CALLBACK (cb_recursive_follow_symlink),
                        GINT_TO_POINTER(1));
-   gtk_signal_connect (GTK_OBJECT (radio2), "toggled",
-                       GTK_SIGNAL_FUNC (cb_recursive_follow_symlink),
+   g_signal_connect (G_OBJECT (radio2), "toggled",
+                       G_CALLBACK (cb_recursive_follow_symlink),
                        GINT_TO_POINTER(2));
 
 
-#if HAVE_GDK_PIXBUF
    /********************************************** 
     * Image Frame
     **********************************************/
    gimv_prefs_ui_create_frame (_("Image"), frame, vbox, main_vbox, FALSE);
 
    /* Interpolation type */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER (hbox), 5);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    label = gtk_label_new (_("Interpolation type for scaling"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
    option_menu = create_option_menu_simple (interpolation_items,
                                             conf.interpolation,
                                             (gint *) &config_changed->interpolation);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
-#endif /* HAVE_GDK_PIXBUF */
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
+
+   /**********************************************
+    * Appearance Frame (GTK4 port): color scheme and icons
+    **********************************************/
+   gimv_prefs_ui_create_frame (_("Appearance"), frame, vbox, main_vbox, FALSE);
+
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+   label = gtk_label_new (_("Color scheme"));
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 5);
+   option_menu = create_option_menu_simple (color_scheme_items,
+                                            conf.color_scheme,
+                                            (gint *) &config_changed->color_scheme);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
+
+   toggle = gtkutil_create_check_button (_("Use icons of the desktop icon theme for buttons"),
+                                         conf.use_theme_icons,
+                                         gtkutil_get_data_from_toggle_cb,
+                                         &config_changed->use_theme_icons);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+
+   label = gtk_label_new (_("Windows opened after the change use it."));
+   gtk_widget_set_halign (label, GTK_ALIGN_START);
+   gtk_widget_set_margin_start (label, 25);
+   gtk_widget_add_css_class (label, "dim-label");
+   gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
 
    /********************************************** 
     * Start up Frame
     **********************************************/
-   gimv_prefs_ui_create_frame (_("Start up"), frame, vbox, main_vbox, FALSE);
+   gimv_prefs_ui_create_frame (_("Startup"), frame, vbox, main_vbox, FALSE);
 
    /* Open thumbnail window or not */
    toggle = gtkutil_create_check_button (_("Open thumbnail window"),
                                          conf.startup_open_thumbwin,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->startup_open_thumbwin);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* Scan (or not) Directory */
-   toggle = gtkutil_create_check_button (_("Ignore directory"),
+   toggle = gtkutil_create_check_button (_("Ignore directories given on the command line"),
                                          !(conf.startup_read_dir),
                                          gtkutil_get_data_from_toggle_negative_cb,
                                          &config_changed->startup_read_dir);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
    /* No warning */
    toggle = gtkutil_create_check_button (_("No warning"),
                                          conf.startup_no_warning,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->startup_no_warning);
-   gtk_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
 
-   gtk_widget_show_all (main_vbox);
+#ifdef ENABLE_SPLASH
+   /* Splash window */
+   toggle = gtkutil_create_check_button (_("Show splash window"),
+                                         conf.startup_show_splash,
+                                         gtkutil_get_data_from_toggle_cb,
+                                         &config_changed->startup_show_splash);
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+#endif /* ENABLE_SPLASH */
+
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
 }
@@ -710,8 +737,8 @@ prefs_filter_page (void)
    gchar *titles[] = {_("Extension"), _("File Type"), _("Status"), NULL};
    gint titles_num = sizeof (titles) / sizeof (gchar *);
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
    /********************************************** 
     * Image Types Frame
@@ -724,49 +751,49 @@ prefs_filter_page (void)
    prefs_win.filter_editlist = editlist;
    gimv_elist_set_reorderable (GIMV_ELIST (editlist), FALSE);
    gimv_elist_set_auto_sort (GIMV_ELIST (editlist), 0);
-   gtk_box_pack_start (GTK_BOX (frame_vbox), editlist, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (frame_vbox), editlist, TRUE, TRUE, 0);
    gtk_widget_show (editlist);
 
    /* entry area */
    hbox = GIMV_ELIST (editlist)->edit_area;
 
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
    gtk_widget_show (vbox);
-   hbox1 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
+   hbox1 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
    gtk_widget_show (hbox1);
 
    label = gtk_label_new (_("Extension: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
 
    entry = gimv_elist_create_entry (GIMV_ELIST (editlist), 0, NULL, FALSE);
    prefs_win.filter_ext_entry = entry;
-   gtk_widget_set_usize (entry, 100, -1);
-   gtk_box_pack_start (GTK_BOX (vbox), entry, FALSE, TRUE, 0);
+   gimv_widget_set_size (entry, 100, -1);
+   gimv_box_pack_start (GTK_BOX (vbox), entry, FALSE, TRUE, 0);
    gtk_widget_show (entry);
 
-   vbox = gtk_vbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
+   vbox = gimv_vbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
    gtk_widget_show (vbox);
-   hbox1 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
+   hbox1 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
    gtk_widget_show (hbox1);
 
    label = gtk_label_new (_("File Type: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   gtk_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
    gtk_widget_show (label);
-   hbox1 = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
+   hbox1 = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
    gtk_widget_show (hbox1);
 
    entry = gimv_elist_create_entry (GIMV_ELIST (editlist), 1,
                                        "UNKNOWN", FALSE);
    prefs_win.filter_type_entry = entry;
-   gtk_box_pack_start (GTK_BOX (hbox1), entry, TRUE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), entry, TRUE, TRUE, 0);
    gtk_widget_show (entry);
 
    /* disable check box */
@@ -774,7 +801,7 @@ prefs_filter_page (void)
                                             _("Disable"), FALSE,
                                             _("Disable"), _("Enable"));
    prefs_win.filter_disable_toggle = toggle;
-   gtk_box_pack_start (GTK_BOX (hbox1), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox1), toggle, FALSE, FALSE, 0);
    gtk_widget_show (toggle);
 
    /* definition type column */
@@ -789,11 +816,11 @@ prefs_filter_page (void)
 
    filter_set_value ();
 
-   gtk_signal_connect (GTK_OBJECT (editlist), "action_confirm",
-                       GTK_SIGNAL_FUNC (cb_filter_editlist_confirm),
+   g_signal_connect (G_OBJECT (editlist), "action_confirm",
+                       G_CALLBACK (cb_filter_editlist_confirm),
                        NULL);
-   gtk_signal_connect (GTK_OBJECT (editlist), "list_updated",
-                       GTK_SIGNAL_FUNC (cb_filter_editlist_updated),
+   g_signal_connect (G_OBJECT (editlist), "list_updated",
+                       G_CALLBACK (cb_filter_editlist_updated),
                        NULL);
 
 
@@ -802,7 +829,7 @@ prefs_filter_page (void)
                                          conf.read_dotfile,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->read_dotfile);
-   gtk_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
    gtk_widget_show (toggle);
 
    /* Ignore filename extension or not */
@@ -810,7 +837,7 @@ prefs_filter_page (void)
                                          !(conf.detect_filetype_by_ext),
                                          gtkutil_get_data_from_toggle_negative_cb,
                                          &config_changed->detect_filetype_by_ext);
-   gtk_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
    gtk_widget_show (toggle);
 
    return main_vbox;
@@ -829,62 +856,54 @@ prefs_charset_page (void)
    GtkWidget *main_vbox, *frame, *frame_vbox, *table, *hbox;
    GtkWidget *label, *combo, *option_menu;
 
-   main_vbox = gtk_vbox_new (FALSE, 0);
-   gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+   main_vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
 
    /********************************************** 
     * Common Frame
     **********************************************/
    gimv_prefs_ui_create_frame (_("Common"), frame, frame_vbox, main_vbox, FALSE);
 
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (frame_vbox), hbox, TRUE, TRUE, 0);
-   table = gtk_table_new (2, 2, FALSE);
-   gtk_box_pack_start (GTK_BOX (hbox), table, FALSE, TRUE, 5);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (frame_vbox), hbox, TRUE, TRUE, 0);
+   table = gimv_table_new (2, 2, FALSE);
+   gimv_box_pack_start (GTK_BOX (hbox), table, FALSE, TRUE, 5);
 
    /* locale charset */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_table_attach (GTK_TABLE (table), hbox, 0, 1, 0, 1,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_table_attach (GTK_WIDGET (table), hbox, 0, 1, 0, 1, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 0, 0);
    label = gtk_label_new (_("Locale character set: "));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 0);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   combo = gtk_combo_new ();
-   gtk_combo_set_popdown_strings (GTK_COMBO (combo),
-                                  charset_get_known_list(NULL));
-   gtk_table_attach (GTK_TABLE (table), combo, 1, 2, 0, 1,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (combo)->entry),
-                       conf.charset_locale);
-   gtk_signal_connect (GTK_OBJECT (GTK_COMBO (combo)->entry), "changed",
-                       GTK_SIGNAL_FUNC (cb_locale_charset_changed), NULL);
+   combo = gimv_combo_new ();
+   gimv_combo_set_popdown_strings (GTK_WIDGET (combo), charset_get_known_list(NULL));
+   gimv_table_attach (GTK_WIDGET (table), combo, 1, 2, 0, 1, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 0, 0);
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (combo))), conf.charset_locale);
+   g_signal_connect (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))), "changed",
+                       G_CALLBACK (cb_locale_charset_changed), NULL);
 
    /* internal charset */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_table_attach (GTK_TABLE (table), hbox, 0, 1, 1, 2,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_table_attach (GTK_WIDGET (table), hbox, 0, 1, 1, 2, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 0, 0);
    label = gtk_label_new (_("Internal character set: "));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 0);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-   combo = gtk_combo_new ();
-   gtk_combo_set_popdown_strings (GTK_COMBO (combo),
-                                  charset_get_known_list(NULL));
-   gtk_table_attach (GTK_TABLE (table), combo, 1, 2, 1, 2,
-                     GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (combo)->entry),
-                       conf.charset_internal);
-   gtk_signal_connect (GTK_OBJECT (GTK_COMBO (combo)->entry), "changed",
-                       GTK_SIGNAL_FUNC (cb_internal_charset_changed), NULL);
+   combo = gimv_combo_new ();
+   gimv_combo_set_popdown_strings (GTK_WIDGET (combo), charset_get_known_list(NULL));
+   gimv_table_attach (GTK_WIDGET (table), combo, 1, 2, 1, 2, GIMV_FILL | GIMV_EXPAND, GIMV_FILL, 0, 0);
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (combo))), conf.charset_internal);
+   g_signal_connect (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))), "changed",
+                       G_CALLBACK (cb_internal_charset_changed), NULL);
 
    /* Language to detect */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (frame_vbox), hbox, FALSE, TRUE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (frame_vbox), hbox, FALSE, TRUE, 0);
    label = gtk_label_new (_("Language for auto detecting"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 5);
    option_menu = create_option_menu_simple (charset_auto_detect_labels,
                                             conf.charset_auto_detect_lang,
                                             &config_changed->charset_auto_detect_lang);
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, TRUE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, TRUE, 5);
 
 
    /********************************************** 
@@ -893,34 +912,40 @@ prefs_charset_page (void)
    gimv_prefs_ui_create_frame (_("File name"), frame, frame_vbox, main_vbox, FALSE);
 
    /* charset for filename */
-   hbox = gtk_hbox_new (FALSE, 0);
-   gtk_box_pack_start (GTK_BOX (frame_vbox), hbox, FALSE, TRUE, 0);
+   hbox = gimv_hbox_new (FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (frame_vbox), hbox, FALSE, TRUE, 0);
    label = gtk_label_new (_("Character set of file name"));
-   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, TRUE, 5);
 
    /* filename charset */
-   combo = gtk_combo_new ();
-   gtk_widget_set_usize (combo, 120, -1);
-   gtk_combo_set_popdown_strings (GTK_COMBO (combo),
-                                  charset_get_known_list(NULL));
-   gtk_entry_set_text (GTK_ENTRY (GTK_COMBO (combo)->entry),
-                       conf.charset_filename);
-   gtk_signal_connect (GTK_OBJECT (GTK_COMBO (combo)->entry), "changed",
-                       GTK_SIGNAL_FUNC (cb_filename_charset_changed), NULL);
+   combo = gimv_combo_new ();
+   gimv_widget_set_size (combo, 120, -1);
+   gimv_combo_set_popdown_strings (GTK_WIDGET (combo), charset_get_known_list(NULL));
+   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (combo))), conf.charset_filename);
+   g_signal_connect (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))), "changed",
+                       G_CALLBACK (cb_filename_charset_changed), NULL);
 
    option_menu = create_option_menu (charset_to_internal_items,
                                      conf.charset_filename_mode,
                                      cb_filename_charset_conv,
                                      combo);
 
-   gtk_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, TRUE, 5);
-   gtk_box_pack_start (GTK_BOX (hbox), combo, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, TRUE, 5);
+   gimv_box_pack_start (GTK_BOX (hbox), combo, FALSE, FALSE, 0);
 
    set_sensitive_filename_charset_mode (conf.charset_filename_mode, combo);
 
-   gtk_widget_show_all (main_vbox);
+   gimv_widget_show_all (main_vbox);
 
    return main_vbox;
+}
+
+
+gboolean
+prefs_common_apply (GimvPrefsWinAction action)
+{
+   gimv_color_scheme_apply ();
+   return FALSE;
 }
 
 

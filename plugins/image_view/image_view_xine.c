@@ -148,6 +148,51 @@ static const gchar *wav_extensions[] =
 {
    "wav", "wave",
 };
+/* formats that did not exist or were rare in 2004 */
+static const gchar *mp4_extensions[] =
+{
+   "mp4", "m4v",
+};
+static const gchar *matroska_extensions[] =
+{
+   "mkv",
+};
+static const gchar *webm_extensions[] =
+{
+   "webm",
+};
+static const gchar *flv_extensions[] =
+{
+   "flv",
+};
+static const gchar *ogg_video_extensions[] =
+{
+   "ogv", "ogm",
+};
+static const gchar *mpeg_ts_extensions[] =
+{
+   "ts", "m2ts", "mts",
+};
+static const gchar *threegpp_extensions[] =
+{
+   "3gp",
+};
+static const gchar *threegpp2_extensions[] =
+{
+   "3g2",
+};
+static const gchar *ogg_audio_extensions[] =
+{
+   "ogg", "oga", "opus",
+};
+static const gchar *flac_extensions[] =
+{
+   "flac",
+};
+static const gchar *mp4_audio_extensions[] =
+{
+   "m4a", "aac",
+};
 
 static GimvMimeTypeEntry xine_mime_types[] =
 {
@@ -201,7 +246,7 @@ static GimvMimeTypeEntry xine_mime_types[] =
       icon:           NULL,
    },
    {
-      mime_type:      "video/qicktime",
+      mime_type:      "video/quicktime",
       description:    "Quicktime Video",
       extensions:     quicktime_extensions,
       extensions_len: sizeof (quicktime_extensions) / sizeof (gchar *),
@@ -226,6 +271,83 @@ static GimvMimeTypeEntry xine_mime_types[] =
       description:    "Microsoft Video",
       extensions:     msvideo_extensions,
       extensions_len: sizeof (msvideo_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "audio/ogg",
+      description:    "Ogg Audio",
+      extensions:     ogg_audio_extensions,
+      extensions_len: sizeof (ogg_audio_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "audio/flac",
+      description:    "FLAC Audio",
+      extensions:     flac_extensions,
+      extensions_len: sizeof (flac_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "audio/mp4",
+      description:    "MPEG-4 Audio",
+      extensions:     mp4_audio_extensions,
+      extensions_len: sizeof (mp4_audio_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/mp4",
+      description:    "MPEG-4 Video",
+      extensions:     mp4_extensions,
+      extensions_len: sizeof (mp4_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/x-matroska",
+      description:    "Matroska Video",
+      extensions:     matroska_extensions,
+      extensions_len: sizeof (matroska_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/webm",
+      description:    "WebM Video",
+      extensions:     webm_extensions,
+      extensions_len: sizeof (webm_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/x-flv",
+      description:    "Flash Video",
+      extensions:     flv_extensions,
+      extensions_len: sizeof (flv_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/ogg",
+      description:    "Ogg Video",
+      extensions:     ogg_video_extensions,
+      extensions_len: sizeof (ogg_video_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/mp2t",
+      description:    "MPEG Transport Stream",
+      extensions:     mpeg_ts_extensions,
+      extensions_len: sizeof (mpeg_ts_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/3gpp",
+      description:    "3GPP Video",
+      extensions:     threegpp_extensions,
+      extensions_len: sizeof (threegpp_extensions) / sizeof (gchar *),
+      icon:           NULL,
+   },
+   {
+      mime_type:      "video/3gpp2",
+      description:    "3GPP2 Video",
+      extensions:     threegpp2_extensions,
+      extensions_len: sizeof (threegpp2_extensions) / sizeof (gchar *),
       icon:           NULL,
    },
 };
@@ -260,10 +382,10 @@ GIMV_PLUGIN_GET_MIME_TYPE(xine_mime_types)
 GimvPluginInfo gimv_plugin_info =
 {
    if_version:    GIMV_PLUGIN_IF_VERSION,
-   name:          N_("Xine Embeder & Movie Frame Loader"),
-   version:       "0.2.0",
-   author:        N_("Takuro Ashie"),
-   description:   NULL,
+   name:          N_("Xine Embedder & Movie Frame Loader"),
+   version:       "0.3.0",
+   author:        N_("Takuro Ashie, shitamo"),
+   description:   N_("Plays movies and audio with xine-lib 1.2"),
    get_implement: gimv_plugin_get_impl,
    get_mime_type: gimv_plugin_get_mime_type,
    get_prefs_ui:  gimv_prefs_ui_xine_get_page,
@@ -301,7 +423,7 @@ cb_playback_finished (GimvXine *gtx, GimvImageView *iv)
 
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
 
-   gtk_object_get (GTK_OBJECT (iv),
+   g_object_get (G_OBJECT (iv),
                    "continuance_play", &next,
                    NULL);
 
@@ -396,7 +518,7 @@ install_movie_listener (GimvImageView *iv)
 
    remove_movie_listener (iv);
 
-   timer = gtk_timeout_add (300, timeout_movie_status_listener, iv);
+   timer = g_timeout_add (300, timeout_movie_status_listener, iv);
    g_hash_table_insert (movie_listener_id_table, iv, GUINT_TO_POINTER (timer));
 }
 
@@ -413,7 +535,7 @@ remove_movie_listener (GimvImageView *iv)
    timer = GPOINTER_TO_UINT (data);
 
    if (timer > 0)
-      gtk_timeout_remove (timer);
+      g_source_remove (timer);
 
    g_hash_table_remove (movie_listener_id_table, iv);
 
@@ -429,8 +551,8 @@ install_create_thumbnail_timer (GimvImageView *iv)
 
    remove_create_thumbnail_timer (iv);
 
-   timer = gtk_timeout_add (gimv_prefs_xine_get_delay(this) * 1000,
-                            (GtkFunction) timeout_create_thumbnail,
+   timer = g_timeout_add (gimv_prefs_xine_get_delay(this) * 1000,
+                            (GSourceFunc) timeout_create_thumbnail,
                             (gpointer) iv);
    g_hash_table_insert (create_thumbnail_id_table,
                         iv, GUINT_TO_POINTER (timer));
@@ -446,7 +568,7 @@ remove_create_thumbnail_timer (GimvImageView *iv)
    id_p = g_hash_table_lookup (create_thumbnail_id_table, iv);
    id = GPOINTER_TO_UINT (id_p);
    if (id > 0)
-      gtk_timeout_remove (id);
+      g_source_remove (id);
    g_hash_table_remove (create_thumbnail_id_table, iv);
 }
 
@@ -460,12 +582,17 @@ imageview_xine_real_play (GimvImageView *iv, guint pos)
    g_return_if_fail (iv);
    if (!iv->info) return;
    if (!gimv_image_info_is_movie (iv->info) && !gimv_image_info_is_audio (iv->info)) return;
-   g_return_if_fail (GTK_IS_BIN (iv->draw_area));
+   g_return_if_fail (GTK_IS_WIDGET (iv->draw_area));
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    if (!GIMV_IS_XINE (gtx)) return;
 
-   gimv_xine_set_mrl (gtx, gimv_image_info_get_path (iv->info));
+   {
+      gchar *local = gimv_image_info_get_local_path (iv->info);
+      if (!local) return;
+      gimv_xine_set_mrl (gtx, local);   /* copies it */
+      g_free (local);
+   }
    gimv_xine_play (gtx, 0, pos);
 
    filename = gimv_image_info_get_path_with_archive (iv->info);
@@ -493,9 +620,9 @@ imageview_xine_is_playing (GimvImageView *iv)
    g_return_val_if_fail (gimv_image_info_is_movie (iv->info)
                          || gimv_image_info_is_audio (iv->info),
                          FALSE);
-   g_return_val_if_fail (GTK_IS_BIN (iv->draw_area), FALSE);
+   g_return_val_if_fail (GTK_IS_WIDGET (iv->draw_area), FALSE);
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    g_return_val_if_fail (GIMV_IS_XINE (gtx), FALSE);
 
    return gimv_xine_is_playing (GIMV_XINE (gtx));
@@ -531,15 +658,19 @@ imageview_xine_create (GimvImageView *iv)
       create_thumbnail_id_table
          = g_hash_table_new (g_direct_hash, g_direct_equal);
 
-   widget = gtk_event_box_new ();
+   widget = gimv_event_box_new ();
    gxine = gimv_xine_new (NULL, NULL);
-   gtk_container_add (GTK_CONTAINER (widget), gxine);
+   gimv_container_add (GTK_WIDGET (widget), gxine);
+   /* GTK4: after packing (which resets them): the GTK2 event box gave its
+      child the whole area, otherwise the video window is 0x0 */
+   gtk_widget_set_hexpand (gxine, TRUE);
+   gtk_widget_set_vexpand (gxine, TRUE);
    gtk_widget_show (gxine);
 
-   gtk_signal_connect (GTK_OBJECT (gxine), "playback_finished",
-                       GTK_SIGNAL_FUNC (cb_playback_finished), iv);
-   gtk_signal_connect (GTK_OBJECT (gxine), "destroy",
-                       GTK_SIGNAL_FUNC (cb_destroy), iv);
+   g_signal_connect (G_OBJECT (gxine), "playback_finished",
+                       G_CALLBACK (cb_playback_finished), iv);
+   g_signal_connect (G_OBJECT (gxine), "destroy",
+                       G_CALLBACK (cb_destroy), iv);
 
    return widget;
 }
@@ -557,9 +688,9 @@ imageview_xine_create_thumbnail (GimvImageView *iv, const gchar *cache_write_typ
 
    if (!gimv_image_info_is_movie (iv->info))
       return;
-   if (!GTK_IS_BIN (iv->draw_area)) return;
+   if (!GTK_IS_WIDGET (iv->draw_area)) return;
 
-   gtkxine = GTK_BIN (iv->draw_area)->child;
+   gtkxine = gimv_bin_get_child (GTK_WIDGET (iv->draw_area));
 
    if (!GIMV_IS_XINE (gtkxine)) return;
    if (!gimv_xine_is_playing (GIMV_XINE (gtkxine))) return;
@@ -586,7 +717,7 @@ imageview_xine_create_thumbnail (GimvImageView *iv, const gchar *cache_write_typ
 
    if (imcache) {
       gimv_image_unref (imcache);
-      gtk_signal_emit_by_name (GTK_OBJECT (iv),
+      g_signal_emit_by_name (G_OBJECT (iv),
                                "thumbnail_created",
                                iv->info);
    }
@@ -614,7 +745,7 @@ imageview_xine_play (GimvImageView *iv)
 
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    if (!GIMV_IS_XINE (gtx)) return;
 
    if (!imageview_xine_is_playing (iv)) {
@@ -637,9 +768,9 @@ imageview_xine_stop (GimvImageView *iv)
    if (!iv->info) return;
    if (!gimv_image_info_is_movie (iv->info) && !gimv_image_info_is_audio (iv->info))
       return;
-   g_return_if_fail (GTK_IS_BIN (iv->draw_area));
+   g_return_if_fail (GTK_IS_WIDGET (iv->draw_area));
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    if (!GIMV_IS_XINE (gtx)) return;
 
    remove_create_thumbnail_timer (iv);
@@ -660,9 +791,9 @@ imageview_xine_pause (GimvImageView *iv)
    if (!iv->info) return;
    if (!gimv_image_info_is_movie (iv->info) && !gimv_image_info_is_audio (iv->info))
       return;
-   g_return_if_fail (GTK_IS_BIN (iv->draw_area));
+   g_return_if_fail (GTK_IS_WIDGET (iv->draw_area));
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    if (!GIMV_IS_XINE (gtx)) return;
 
    gimv_xine_set_speed (gtx, GIMV_XINE_SPEED_PAUSE);
@@ -680,9 +811,9 @@ imageview_xine_forward (GimvImageView *iv)
    if (!iv->info) return;
    if (!gimv_image_info_is_movie (iv->info) && !gimv_image_info_is_audio (iv->info))
       return;
-   g_return_if_fail (GTK_IS_BIN (iv->draw_area));
+   g_return_if_fail (GTK_IS_WIDGET (iv->draw_area));
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    if (!GIMV_IS_XINE (gtx)) return;
 
    gimv_xine_set_speed (gtx, 12);
@@ -699,7 +830,7 @@ imageview_xine_seek (GimvImageView *iv, gfloat pos)
 
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    if (!GIMV_IS_XINE (gtx)) return;
 
    ppos = (gfloat) pos * (gfloat) gimv_xine_get_stream_length (gtx) / 100.0;
@@ -718,12 +849,12 @@ imageview_xine_eject (GimvImageView *iv)
 
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    if (!GIMV_IS_XINE (gtx)) return;
 
    if (gimv_xine_is_playing (gtx)) {
-      gtkutil_message_dialog (_("Error!!"), _("Please stop first."),
-                              GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (iv))));
+      gtkutil_message_dialog (_("Error!"), _("Please stop first."),
+                              GTK_WINDOW (gimv_widget_get_toplevel (GTK_WIDGET (iv))));
       return;
    }
 
@@ -734,8 +865,8 @@ imageview_xine_eject (GimvImageView *iv)
    }
 
    if (!plugin_list) {
-      gtkutil_message_dialog (_("Error!!"), _("No available plugin found."),
-                             GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (iv))));
+      gtkutil_message_dialog (_("Error!"), _("No available plugin found."),
+                             GTK_WINDOW (gimv_widget_get_toplevel (GTK_WIDGET (iv))));
       return;
    }
 
@@ -743,7 +874,7 @@ imageview_xine_eject (GimvImageView *iv)
                                   plugin_list->data,
                                   plugin_list, -1,
                                   TEXT_ENTRY_NO_EDITABLE,
-                                  GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (iv))));
+                                  GTK_WINDOW (gimv_widget_get_toplevel (GTK_WIDGET (iv))));
 
    if (!str) goto ERROR;
 
@@ -760,8 +891,8 @@ imageview_xine_eject (GimvImageView *iv)
       gimv_image_view_set_list_self (iv, mrl_list, mrl_list);
       gimv_image_view_change_image (iv, mrl_list->data);
    } else {
-      gtkutil_message_dialog (_("Error!!"), _("No available MRL found."),
-                              GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (iv))));
+      gtkutil_message_dialog (_("Error!"), _("No available MRL found."),
+                              GTK_WINDOW (gimv_widget_get_toplevel (GTK_WIDGET (iv))));
    }
 
    g_free (str);
@@ -778,7 +909,7 @@ imageview_xine_get_status (GimvImageView *iv)
 
    g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), GimvImageViewPlayableStop);
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    g_return_val_if_fail (GIMV_IS_XINE (gtx), GimvImageViewPlayableStop);
 
    if (!imageview_xine_is_playing (iv))
@@ -807,9 +938,9 @@ imageview_xine_get_position (GimvImageView *iv)
    g_return_val_if_fail (gimv_image_info_is_movie (iv->info)
                          || gimv_image_info_is_audio (iv->info),
                          0);
-   g_return_val_if_fail (GTK_IS_BIN (iv->draw_area), 0);
+   g_return_val_if_fail (GTK_IS_WIDGET (iv->draw_area), 0);
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    g_return_val_if_fail (GIMV_IS_XINE (gtx), 0);
 
    return gimv_xine_get_current_time (GIMV_XINE (gtx));
@@ -826,9 +957,9 @@ imageview_xine_get_length (GimvImageView *iv)
    g_return_val_if_fail (gimv_image_info_is_movie (iv->info)
                          || gimv_image_info_is_audio (iv->info),
                          0);
-   g_return_val_if_fail (GTK_IS_BIN (iv->draw_area), FALSE);
+   g_return_val_if_fail (GTK_IS_WIDGET (iv->draw_area), FALSE);
 
-   gtx = GIMV_XINE (GTK_BIN (iv->draw_area)->child);
+   gtx = GIMV_XINE (gimv_bin_get_child (GTK_WIDGET (iv->draw_area)));
    g_return_val_if_fail (GIMV_IS_XINE (gtx), 0);
 
    return gimv_xine_get_stream_length (GIMV_XINE (gtx));

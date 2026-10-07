@@ -106,7 +106,7 @@ post_init (GimvXine *gxine)
                                           "gui.post_audio_plugin", 
                                           0, post_audio_plugins,
                                           _("Post audio plugin"),
-                                          _("Post audio plugin to used with video less stream playback"),
+                                          _("Post audio plugin to use for streams without video"),
                                           CONFIG_LEVEL_BEG,
                                           post_audio_plugin_cb, 
                                           gxine);

@@ -9,9 +9,9 @@ msgstr ""
 "POT-Creation-Date: 2004-12-28 13:33+0900\n"
 "PO-Revision-Date: 2003-01-07 22:00GMT\n"
 "Last-Translator: Migrec <migrec@online.fr>\n"
-"Language-Team: français <fr@li.org>\n"
+"Language-Team: franÃ§ais <fr@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: etc/gimageview.desktop.in.h:1 plugins/thumbnail/gimv_thumb.c:84
@@ -24,16 +24,16 @@ msgstr "Visualiseur d'image"
 
 #. file load
 #: src/argparse.c:39
-msgid "Scan directory at start up"
-msgstr "Examiner les répertoires au démarrage"
+msgid "Scan a directory at startup"
+msgstr "Examiner les rÃ©pertoires au dÃ©marrage"
 
 #: src/argparse.c:40
-msgid "Scan directory recursively (use with \"-d\")"
-msgstr "Examiner le répertoire récursivement (utilise avec \"-d\")"
+msgid "Scan directories recursively (use with \"-d\")"
+msgstr "Examiner le rÃ©pertoire rÃ©cursivement (utilise avec \"-d\")"
 
 #: src/argparse.c:41
-msgid "Read dotfile when scanning directory (use with \"-d\")"
-msgstr "Lire le dotfile en examinant le répertoire (à utiliser avec \"-d\")"
+msgid "Read dotfiles when scanning directories (use with \"-d\")"
+msgstr "Lire le dotfile en examinant le rÃ©pertoire (Ã  utiliser avec \"-d\")"
 
 #. Ignore filename extension or not
 #: src/argparse.c:42 src/prefs_ui/prefs_ui_common.c:809
@@ -42,51 +42,51 @@ msgstr "Ignorer l'extension du fichier"
 
 #. image window
 #: src/argparse.c:45
-msgid "Specify image scale on image window [%]"
-msgstr "Spécifier l'echelle de l'image sur la fenêtre [%]"
+msgid "Image scale in the image window [%]"
+msgstr "SpÃ©cifier l'echelle de l'image sur la fenÃªtre [%]"
 
 #: src/argparse.c:46
-msgid "Keep original image on memory or not"
-msgstr "Garder l'image originale en mémoire ou pas"
+msgid "Keep the original image in memory"
+msgstr "Garder l'image originale en mÃ©moire ou pas"
 
 #: src/argparse.c:47
-msgid "Show menu bar on image view window"
-msgstr "Afficher la barre de menu sur la fenêtre de visualisation de l'image"
+msgid "Show the menubar in the image window"
+msgstr "Afficher la barre de menu sur la fenÃªtre de visualisation de l'image"
 
 #: src/argparse.c:48
-msgid "Show tool bar on image view window"
-msgstr "Afficher la barre de menu sur la fenêtre de visualisation de l'image"
+msgid "Show the toolbar in the image window"
+msgstr "Afficher la barre de menu sur la fenÃªtre de visualisation de l'image"
 
 #.
 #: src/argparse.c:51
 #, fuzzy
-msgid "Open empty image window at start up"
-msgstr "Ouvrir la fenêtre des vignettes au démarrage"
+msgid "Open an empty image window at startup"
+msgstr "Ouvrir la fenÃªtre des vignettes au dÃ©marrage"
 
 #: src/argparse.c:52
-msgid "Open thumbnail window at start up"
-msgstr "Ouvrir la fenêtre des vignettes au démarrage"
+msgid "Open the thumbnail window at startup"
+msgstr "Ouvrir la fenÃªtre des vignettes au dÃ©marrage"
 
 #. default window
 #: src/argparse.c:55
-msgid "Open all images in imageview window"
-msgstr "Ouvrit toutes les images dans la fenêtre de visualisation"
+msgid "Open all images in the image window"
+msgstr "Ouvrit toutes les images dans la fenÃªtre de visualisation"
 
 #: src/argparse.c:56
-msgid "Open all images in thumbnail window"
-msgstr "Ouvrir toutes les images dans la fenêtre des vignettes"
+msgid "Open all images in the thumbnail window"
+msgstr "Ouvrir toutes les images dans la fenÃªtre des vignettes"
 
 #: src/argparse.c:57
-msgid "Open images files in slide show"
+msgid "Open the image files in a slideshow"
 msgstr "Ouvrir les fichiers images en diaporama"
 
 #: src/argparse.c:58
-msgid "Interval of slideshow (use with \"-S\") [sec]"
-msgstr "Intervalle du diaporama (à utiliser avec \"-S\") [sec]"
+msgid "Slideshow interval (use with \"-S\") [sec]"
+msgstr "Intervalle du diaporama (Ã  utiliser avec \"-S\") [sec]"
 
 #. etc
 #: src/argparse.c:61
-msgid "Print version infomation"
+msgid "Print version information"
 msgstr "Afficher les informations de version"
 
 #: src/argparse.c:62
@@ -104,7 +104,7 @@ msgid ""
 "This is free software; see the source for copying conditions.  There is NO\n"
 "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 msgstr ""
-"Tous droits réservés (C) 2001 Takuro Ashie\n"
+"Tous droits rÃ©servÃ©s (C) 2001 Takuro Ashie\n"
 "Ceci est un logiciel libre, voyez les sources pour les conditions de copie."
 "There is NO\n"
 "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
@@ -117,7 +117,7 @@ msgid ""
 "Usage: %s [OPTION...] [Image Files...]\n"
 "\n"
 msgstr ""
-"Tous droits réservés (C) 2001 Takuro Ashie\n"
+"Tous droits rÃ©servÃ©s (C) 2001 Takuro Ashie\n"
 "\n"
 "Utilisation : %s [OPTION...] [Fichiers Image...]\n"
 "\n"
@@ -158,17 +158,17 @@ msgid "Similarity"
 msgstr ""
 
 #: src/dirview.c:212
-msgid "/_Load Thumbnail"
+msgid "/_Load Thumbnails"
 msgstr "/Charger _les vignettes"
 
 #: src/dirview.c:213
-msgid "/Load Thumbnail re_cursively"
-msgstr "/Charger ré_cursivement les vignettes"
+msgid "/Load Thumbnails Re_cursively"
+msgstr "/Charger rÃ©_cursivement les vignettes"
 
 #: src/dirview.c:214
 #, fuzzy
-msgid "/Load Thumbnail recursively in _one tab"
-msgstr "/Charger ré_cursivement les vignettes"
+msgid "/Load Thumbnails Recursively in _One Tab"
+msgstr "/Charger rÃ©_cursivement les vignettes"
 
 #: src/dirview.c:215 src/dirview.c:218 src/dirview.c:220 src/dnd.c:64
 #: src/dnd.c:68 src/gimv_image_view.c:281 src/gimv_image_view.c:283
@@ -182,33 +182,33 @@ msgid "/---"
 msgstr "/---"
 
 #: src/dirview.c:216
-msgid "/_Go to here"
+msgid "/_Go Here"
 msgstr "/Aller ici"
 
 #: src/dirview.c:217
 msgid "/_Refresh Tree"
-msgstr "/_Rafraîchir l'arborescence"
+msgstr "/_RafraÃ®chir l'arborescence"
 
 #: src/dirview.c:219 src/gimv_thumb_view.c:189
-msgid "/_Property..."
-msgstr "/_Propriétés..."
+msgid "/_Properties..."
+msgstr "/_PropriÃ©tÃ©s..."
 
 #: src/dirview.c:221
 msgid "/_Make Directory..."
-msgstr "/Créer un répertoire..."
+msgstr "/CrÃ©er un rÃ©pertoire..."
 
 #: src/dirview.c:222
 msgid "/Re_name Directory..."
-msgstr "/Re_nommer le répertoire..."
+msgstr "/Re_nommer le rÃ©pertoire..."
 
 #: src/dirview.c:223
 msgid "/_Delete Directory..."
-msgstr "/Supprimer le répertoire..."
+msgstr "/Supprimer le rÃ©pertoire..."
 
 #: src/dirview.c:1526 src/fileload.c:442 src/gimv_thumb_view.c:1079
 #, fuzzy, c-format
 msgid "Permission denied: %s"
-msgstr "Permission non accordée : %s"
+msgstr "Permission non accordÃ©e : %s"
 
 #. gtk_object_remove_data (GTK_OBJECT (archive), "progress-bar");
 #: src/dirview.c:1529 src/exif_view.c:246 src/exif_view.c:253
@@ -231,7 +231,7 @@ msgstr "Permission non accordée : %s"
 #: plugins/image_view/image_view_xine.c:725
 #: plugins/image_view/image_view_xine.c:737
 #: plugins/image_view/image_view_xine.c:763
-msgid "Error!!"
+msgid "Error!"
 msgstr "Erreur !!"
 
 #: src/dirview.c:1988 src/dirview.c:1989 src/dirview.c:1990
@@ -245,23 +245,23 @@ msgstr "Haut"
 
 #: src/dirview.c:2008 src/dirview.c:2009 src/dirview.c:2010
 msgid "Refresh"
-msgstr "Rafraîchir"
+msgstr "RafraÃ®chir"
 
 #: src/dirview.c:2018
-msgid "Dotfile"
-msgstr "Fichiers cachés"
+msgid "Dotfiles"
+msgstr "Fichiers cachÃ©s"
 
 #: src/dirview.c:2019 src/dirview.c:2020
-msgid "Show/Hide dotfile"
-msgstr "Afficher/Masquer les fichiers cachés"
+msgid "Show/Hide dotfiles"
+msgstr "Afficher/Masquer les fichiers cachÃ©s"
 
 #: src/dnd.c:63
-msgid "/Open in new tab"
+msgid "/Open in New Tab"
 msgstr "/Ouvrir dans un nouvel onglet"
 
 #: src/dnd.c:65
 msgid "/Move"
-msgstr "/Déplacer"
+msgstr "/DÃ©placer"
 
 #: src/dnd.c:66
 msgid "/Copy"
@@ -278,7 +278,7 @@ msgstr "/Annuler"
 #: src/exif_view.c:147
 #, c-format
 msgid "%s EXIF data"
-msgstr "Données EXIF %s"
+msgstr "DonnÃ©es EXIF %s"
 
 #. button
 #.
@@ -302,7 +302,7 @@ msgstr "Valeur"
 
 #: src/exif_view.c:246 src/exif_view.c:253
 msgid "EXIF data not found."
-msgstr "Données EXIF non trouvées."
+msgstr "DonnÃ©es EXIF non trouvÃ©es."
 
 #. Thumbnail page
 #. radio button
@@ -320,7 +320,7 @@ msgstr "*Chargement des fichiers images* - GImageView - "
 
 #. label
 #: src/fileload.c:210
-msgid "Now Opening Image Files..."
+msgid "Opening image files..."
 msgstr "Ouverture des fichiers images en cours..."
 
 #. cancel button
@@ -334,7 +334,7 @@ msgstr "Sauter"
 #: src/fileload.c:230 src/gimv_image_view.c:2192 src/gimv_image_view.c:2193
 #: src/gimv_image_win.c:1008 src/gimv_thumb_win.c:1621 src/gimv_dupl_win.c:306
 msgid "Stop"
-msgstr "Arrêter"
+msgstr "ArrÃªter"
 
 #: src/fileload.c:311 src/gfileutil.c:185 src/gfileutil.c:187
 #, c-format
@@ -343,38 +343,38 @@ msgstr "nom du fichier = %s\n"
 
 #: src/fileload.c:315
 #, c-format
-msgid "The file is archive: %s\n"
+msgid "The file is an archive: %s\n"
 msgstr "Le fichier est une archive : %s\n"
 
 #: src/fileload.c:496
 #, c-format
 msgid "No image files in this directory: %s\n"
-msgstr "Pas d'image dans ce répertoire : %s\n"
+msgstr "Pas d'image dans ce rÃ©pertoire : %s\n"
 
 #: src/fileload.c:588
-msgid "Command not found!!\n"
+msgid "Command not found!\n"
 msgstr "Commande inconnue !!\n"
 
 #: src/fileload.c:591
 msgid "Canceled"
-msgstr "Annulé"
+msgstr "AnnulÃ©"
 
 #: src/fileload.c:592
 msgid ""
 "Processing the archive file was\n"
-"canceled by user."
+"canceled by the user."
 msgstr ""
 "Le traitement du fichier archive\n"
-"a été annulé par l'utilisateur."
+"a Ã©tÃ© annulÃ© par l'utilisateur."
 
 #: src/fileload.c:596
-msgid "An error occured while processing archive file...\n"
+msgid "An error occurred while processing the archive file.\n"
 msgstr "Une erreur est survenue pendant le traitement de l'archive...\n"
 
 #: src/fileload.c:598
 msgid ""
-"An error occured while processing\n"
-"archive file..."
+"An error occurred while processing\n"
+"the archive file."
 msgstr ""
 "Une erreur est survenue pendant\n"
 "le traitement de l'archive..."
@@ -384,12 +384,12 @@ msgid "Cannot load this archive file.\n"
 msgstr "Impossible de charger cette archive.\n"
 
 #: src/fileload.c:952
-msgid "File name not specified!!\n"
-msgstr "Le nom du fichier n'a pas été spécifié!!\n"
+msgid "No file name specified!\n"
+msgstr "Le nom du fichier n'a pas Ã©tÃ© spÃ©cifiÃ©!!\n"
 
 #: src/fileload.c:974
-msgid "Not an image (or unsupported) file!!\n"
-msgstr "Ce n'est pas une image (ou format non supporté) !!\n"
+msgid "Not an image file (or an unsupported format)!\n"
+msgstr "Ce n'est pas une image (ou format non supportÃ©) !!\n"
 
 #: src/fileload.c:1013
 msgid "Load file(s)"
@@ -397,27 +397,27 @@ msgstr "Charger le(s) fichier(s)"
 
 #: src/fileload.c:1056
 msgid "Open selected files"
-msgstr "Ouvrir les fichiers sélectionnés"
+msgstr "Ouvrir les fichiers sÃ©lectionnÃ©s"
 
 #: src/fileload.c:1063
-msgid "Thumbnail for selected files"
-msgstr "Vignettes pour les fichiers sélectionnés"
+msgid "Thumbnails of the selected files"
+msgstr "Vignettes pour les fichiers sÃ©lectionnÃ©s"
 
 #: src/gfileutil.c:152 src/gfileutil.c:154
 #, c-format
 msgid "scandir = %s\n"
-msgstr "répertoire à  scanner : %s\n"
+msgstr "rÃ©pertoire Ã Â  scanner : %s\n"
 
 #: src/gfileutil.c:200 src/gfileutil.c:202
 #, c-format
 msgid "dirname = %s\n"
-msgstr "nom du répertoire = %s\n"
+msgstr "nom du rÃ©pertoire = %s\n"
 
 #: src/gfileutil.c:461 src/gfileutil.c:738 src/gfileutil.c:985
 #: src/gfileutil.c:1198
 #, c-format
 msgid ""
-"Can't find source file :\n"
+"Can't find the source file:\n"
 "%s"
 msgstr ""
 "Impossible de trouver le fichier source :\n"
@@ -426,34 +426,34 @@ msgstr ""
 #: src/gfileutil.c:474 src/gfileutil.c:496
 #, c-format
 msgid ""
-"Can't move file : %s\n"
+"Can't move file: %s\n"
 "Permission denied: %s\n"
 msgstr ""
-"Impossible de déplacer le fichier : %s\n"
-"Permission non accordée : %s\n"
+"Impossible de dÃ©placer le fichier : %s\n"
+"Permission non accordÃ©e : %s\n"
 
 #: src/gfileutil.c:545 src/gfileutil.c:1001
 #, c-format
 msgid ""
-"Same file :\n"
+"Same file:\n"
 "%s"
 msgstr ""
-"Même fichier :\n"
+"MÃªme fichier :\n"
 "%s"
 
 #: src/gfileutil.c:553 src/gfileutil.c:1231 src/gfileutil.c:1887
 #, c-format
-msgid "File exist : %s"
+msgid "File exists: %s"
 msgstr "Le fichier existe : %s"
 
 #: src/gfileutil.c:554
-msgid "ERROR!!"
+msgid "ERROR!"
 msgstr "ERREUR !!"
 
 #: src/gfileutil.c:558 src/gfileutil.c:1009
 #, fuzzy, c-format
 msgid ""
-"The file exists : %s\n"
+"The file exists: %s\n"
 "Overwrite?"
 msgstr ""
 "Le fichier existe : %s\n"
@@ -461,13 +461,13 @@ msgstr ""
 "Ecraser ?"
 
 #: src/gfileutil.c:561 src/gfileutil.c:1012 src/gimv_thumb_view.c:2413
-msgid "File exist!!"
+msgid "File exists!"
 msgstr "Le fichier existe !!"
 
 #: src/gfileutil.c:673
 #, c-format
 msgid ""
-"Faild to remove file :\n"
+"Failed to remove file:\n"
 "%s"
 msgstr ""
 "Impossible de supprimer le fichier :\n"
@@ -476,41 +476,41 @@ msgstr ""
 #: src/gfileutil.c:694
 #, c-format
 msgid ""
-"Faild to move file :\n"
-"From : %s\n"
-"To : %s"
+"Failed to move file:\n"
+"From: %s\n"
+"To: %s"
 msgstr ""
-"Impossible de déplacer le fichier :\n"
+"Impossible de dÃ©placer le fichier :\n"
 "De : %s\n"
 "Vers : %s"
 
 #: src/gfileutil.c:727
 #, c-format
-msgid "%s is link!!.\n"
+msgid "%s is a link!\n"
 msgstr "%s est un lien !!\n"
 
 #: src/gfileutil.c:749
 #, c-format
-msgid "%s is not directory!!.\n"
-msgstr "%s est un répertoire !!\n"
+msgid "%s is not a directory!\n"
+msgstr "%s est un rÃ©pertoire !!\n"
 
 #: src/gfileutil.c:788
 #, c-format
 msgid ""
-"Can't copy directory : %s\n"
+"Can't copy directory: %s\n"
 "Permission denied: %s\n"
 msgstr ""
-"Ne peut coper le répertoire : %s\n"
-"Permission non accordée : %s\n"
+"Ne peut coper le rÃ©pertoire : %s\n"
+"Permission non accordÃ©e : %s\n"
 
 #: src/gfileutil.c:801
 #, c-format
-msgid "File exists!! : %s\n"
+msgid "File exists: %s\n"
 msgstr "Le fichier existe !! : %s\n"
 
 #: src/gfileutil.c:872
-msgid "Copy directory"
-msgstr "Copier le répertoire"
+msgid "Copy Directory"
+msgstr "Copier le rÃ©pertoire"
 
 #: src/gfileutil.c:895 src/gfileutil.c:1389
 #, c-format
@@ -519,12 +519,12 @@ msgstr "Copie %s ..."
 
 #: src/gfileutil.c:901
 msgid "Copying directory"
-msgstr "Copie le répertoire"
+msgstr "Copie le rÃ©pertoire"
 
 #: src/gfileutil.c:1053
 #, c-format
 msgid ""
-"Can't open file for read :\n"
+"Can't open file for reading:\n"
 "%s"
 msgstr ""
 "Ne peut ouvrir le fichier en lecture :\n"
@@ -533,16 +533,16 @@ msgstr ""
 #: src/gfileutil.c:1065
 #, c-format
 msgid ""
-"Can't open file for write :\n"
+"Can't open file for writing:\n"
 "%s"
 msgstr ""
-"Impossible d'ouvrir le fichier en écriture :\n"
+"Impossible d'ouvrir le fichier en Ã©criture :\n"
 "%s"
 
 #: src/gfileutil.c:1080
 #, c-format
 msgid ""
-"An error occured while copying file :\n"
+"An error occurred while copying file:\n"
 "%s"
 msgstr ""
 "Une erreur est survenue pendant la copie du fichier :\n"
@@ -551,40 +551,40 @@ msgstr ""
 #: src/gfileutil.c:1144
 #, c-format
 msgid ""
-"Can't copy file : %s\n"
+"Can't copy file: %s\n"
 "Permission denied: %s\n"
 msgstr ""
 "Impossible de copier le fichier : %s\n"
-"Permission non accordée : %s\n"
+"Permission non accordÃ©e : %s\n"
 
 #: src/gfileutil.c:1211
 #, c-format
 msgid ""
-"Can't create link : %s\n"
+"Can't create link: %s\n"
 "Permission denied: %s\n"
 msgstr ""
-"Impossible créer le lien : %s\n"
-"Permission non accordée : %s\n"
+"Impossible crÃ©er le lien : %s\n"
+"Permission non accordÃ©e : %s\n"
 
 #: src/gfileutil.c:1243
 #, c-format
 msgid ""
-"Faild to create link :\n"
-"From : %s\n"
-"To : %s"
+"Failed to create link:\n"
+"From: %s\n"
+"To: %s"
 msgstr ""
-"Impossible de créer le lien :\n"
+"Impossible de crÃ©er le lien :\n"
 "De : %s\n"
 "Vers : %s"
 
 #: src/gfileutil.c:1368
 #, c-format
 msgid "Moving %s ..."
-msgstr "Déplace %s ..."
+msgstr "DÃ©place %s ..."
 
 #: src/gfileutil.c:1369
 msgid "Moving files"
-msgstr "Déplace des fichiers"
+msgstr "DÃ©place des fichiers"
 
 #: src/gfileutil.c:1390
 msgid "Copying files"
@@ -592,30 +592,25 @@ msgstr "Copie des fichiers"
 
 #: src/gfileutil.c:1424
 #, c-format
-msgid "Creating Link %s ..."
-msgstr "Création du lien %s ..."
+msgid "Creating link %s ..."
+msgstr "CrÃ©ation du lien %s ..."
 
 #: src/gfileutil.c:1425
 msgid "Creating Links"
-msgstr "Création des liens"
+msgstr "CrÃ©ation des liens"
 
 #: src/gfileutil.c:1481
 #, c-format
-msgid "Directory doesn't exist!!: %s"
-msgstr "Le répertoire n'existe pas !! : %s"
-
-#: src/gfileutil.c:1488
-#, c-format
-msgid "Permission denied!!: %s"
-msgstr "Permission non accordée !! : %s"
+msgid "Directory doesn't exist: %s"
+msgstr "Le rÃ©pertoire n'existe pas !! : %s"
 
 #: src/gfileutil.c:1559
 msgid "Move files to..."
-msgstr "Déplace les fichiers vers..."
+msgstr "DÃ©place les fichiers vers..."
 
 #: src/gfileutil.c:1560
 msgid "Move files to: "
-msgstr "Déplace les fichiers vers :"
+msgstr "DÃ©place les fichiers vers :"
 
 #: src/gfileutil.c:1563
 msgid "Copy files to..."
@@ -633,29 +628,22 @@ msgstr "Lie les fichiers vers..."
 msgid "Link files to: "
 msgstr "Lie les fichiers vers : "
 
-#: src/gfileutil.c:1630
-#, c-format
-msgid "Directory not exist : %s"
-msgstr "Le répertoire n'existe pas : %s"
-
 #: src/gfileutil.c:1638
 #, c-format
 msgid ""
-"%s is symbolic link.\n"
-"Remove link ?"
+"%s is a symbolic link.\n"
+"Remove the link?"
 msgstr ""
 "%s est un lien symbolique.\n"
 "Supprimer le lien ?"
 
 #: src/gfileutil.c:1640 src/gfileutil.c:1652 src/gfileutil.c:1663
 msgid "Confirm Deleting Directory"
-msgstr "Confirmer la suppression du répertoire"
+msgstr "Confirmer la suppression du rÃ©pertoire"
 
 #: src/gfileutil.c:1650
 #, c-format
-msgid ""
-"Delete %s\n"
-"OK?"
+msgid "Delete %s?"
 msgstr ""
 "Supprimer %s\n"
 "D'accord ?"
@@ -663,8 +651,8 @@ msgstr ""
 #: src/gfileutil.c:1660
 #, c-format
 msgid ""
-"%s is not empty\n"
-"Delete all files under %s ?"
+"%s is not empty.\n"
+"Delete all files under %s?"
 msgstr ""
 "%s n'est pas vide\n"
 "Supprimer tous les fichiers contenus dans %s"
@@ -677,22 +665,20 @@ msgstr "Supprime %s ..."
 #: src/gfileutil.c:1719
 #, c-format
 msgid ""
-"Faild to remove directory :\n"
+"Failed to remove directory:\n"
 "%s is not empty."
 msgstr ""
-"N'a pas pu supprimer le répertoire :\n"
+"N'a pas pu supprimer le rÃ©pertoire :\n"
 "%s n'est pas vide."
 
 #: src/gfileutil.c:1724
 #, c-format
-msgid "Faild to remove directory : %s"
-msgstr "N'a pas pu supprimer le répertoire : %s"
+msgid "Failed to remove directory: %s"
+msgstr "N'a pas pu supprimer le rÃ©pertoire : %s"
 
 #: src/gfileutil.c:1757
 #, c-format
-msgid ""
-"Delete these %d files.\n"
-"OK?"
+msgid "Delete these %d files?"
 msgstr ""
 "Supprimer ces fichiers %d .\n"
 "D'accord ?"
@@ -709,65 +695,55 @@ msgstr "Supprimer un fichier"
 msgid "Deleting Files"
 msgstr "Supprime des fichiers"
 
-#: src/gfileutil.c:1807 src/gfileutil.c:1865
-#, c-format
-msgid "Permission denied : %s"
-msgstr "Permission non accordée : %s"
-
 #: src/gfileutil.c:1826
 #, c-format
 msgid ""
-"Faild to delete file :\n"
+"Unable to delete file:\n"
 "%s"
 msgstr ""
 "N'a pas pu supprimer le fichier :\n"
 "%s"
 
 #: src/gfileutil.c:1870
-msgid "Make directory"
-msgstr "Créer un répertoire"
+msgid "Make Directory"
+msgstr "CrÃ©er un rÃ©pertoire"
 
 #: src/gfileutil.c:1871 src/gfileutil.c:1937
 msgid "New directory name: "
-msgstr "Nom du nouveau répertoire :"
+msgstr "Nom du nouveau rÃ©pertoire :"
 
 #: src/gfileutil.c:1884
 #, c-format
-msgid "Directory exist : %s"
-msgstr "Le répertoire existe : %s"
+msgid "Directory exists: %s"
+msgstr "Le rÃ©pertoire existe : %s"
 
 #: src/gfileutil.c:1896
 #, c-format
-msgid "Faild to create directory : %s"
-msgstr "Impossible de créer le répertoire : %s"
-
-#: src/gfileutil.c:1926
-#, c-format
-msgid "Directory not exist :%s"
-msgstr "Le répertoire n'existe pas : %s"
+msgid "Failed to create directory: %s"
+msgstr "Impossible de crÃ©er le rÃ©pertoire : %s"
 
 #: src/gfileutil.c:1936
-msgid "Rename directory"
-msgstr "Renommer le répertoire"
+msgid "Rename Directory"
+msgstr "Renommer le rÃ©pertoire"
 
 #: src/gfileutil.c:1951
 #, c-format
-msgid "Faild to rename directory : %s"
-msgstr "Impossible de renommer le répertoire : %s"
+msgid "Failed to rename directory: %s"
+msgstr "Impossible de renommer le rÃ©pertoire : %s"
 
 #: src/gimageview.c:230
 #, fuzzy
-msgid "No image file is specified!!"
-msgstr "Pas de fichiers images spécifiés !!"
+msgid "No image file specified!"
+msgstr "Pas de fichiers images spÃ©cifiÃ©s !!"
 
 #: src/gimageview.c:232
-msgid "If you want to scan directory, use \"-d\" option."
-msgstr "Si vous voulez examiner un répertoire, utilisez l'option \"-d\"."
+msgid "To scan a directory, use the \"-d\" option."
+msgstr "Si vous voulez examiner un rÃ©pertoire, utilisez l'option \"-d\"."
 
 #: src/gimageview.c:237
 #, fuzzy
-msgid "No window is opened!! Quiting..."
-msgstr "Pas de fenêtre ouverte !! Quitte..."
+msgid "No window is open! Quitting..."
+msgstr "Pas de fenÃªtre ouverte !! Quitte..."
 
 #: src/gimv_comment.c:74
 msgid "Subject"
@@ -783,7 +759,7 @@ msgstr "Lieu"
 
 #: src/gimv_comment.c:77
 msgid "Model"
-msgstr "Modèle"
+msgstr "ModÃ¨le"
 
 #: src/gimv_comment.c:78
 msgid "Comment Time"
@@ -815,24 +791,24 @@ msgid "Can't open comment file for read."
 msgstr "Impossible d'ouvrir en lecture le fichier de commentaire."
 
 #: src/gimv_comment.c:788 plugins/thumbnail/gimv_thumb.c:261
-msgid "cannot make dir\n"
-msgstr "impossible de créer le répertoire\n"
+msgid "Cannot create the directory\n"
+msgstr "impossible de crÃ©er le rÃ©pertoire\n"
 
 #: src/gimv_comment.c:794
 msgid "Can't open comment file for write."
-msgstr "Impossible d'ouvrir en écriture le fichier de commentaire."
+msgstr "Impossible d'ouvrir en Ã©criture le fichier de commentaire."
 
 #: src/gimv_comment_view.c:531
 msgid "Key"
-msgstr "Clé"
+msgstr "ClÃ©"
 
 #: src/gimv_comment_view.c:533
 msgid "Data"
-msgstr "Données"
+msgstr "DonnÃ©es"
 
 #: src/gimv_comment_view.c:618
 msgid "Key: "
-msgstr "Clé : "
+msgstr "ClÃ© : "
 
 #: src/gimv_comment_view.c:630
 msgid "Value: "
@@ -868,7 +844,7 @@ msgstr "Editer le commentaire (%s)"
 #: src/gimv_comment_view.c:1213 src/gimv_comment_view.c:1216
 #, fuzzy
 msgid "_Prev"
-msgstr "Préc"
+msgstr "PrÃ©c"
 
 #: src/gimv_comment_view.c:1224 src/gimv_comment_view.c:1227
 #, fuzzy
@@ -879,7 +855,7 @@ msgstr "/Suiva_nt"
 #: src/gimv_image_view.c:320 src/gimv_image_view.c:331
 #: src/gimv_image_win.c:304
 msgid "/tear"
-msgstr "/déchirer"
+msgstr "/dÃ©chirer"
 
 #: src/gimv_image_view.c:278 src/gimv_image_win.c:305
 msgid "/_Zoom"
@@ -896,24 +872,24 @@ msgstr ""
 #: src/gimv_image_view.c:282 src/gimv_image_win.c:294
 #, fuzzy
 msgid "/M_ovie"
-msgstr "/Déplacer"
+msgstr "/DÃ©placer"
 
 #: src/gimv_image_view.c:284 src/gimv_image_win.c:319
-msgid "/_View modes"
+msgid "/_View Modes"
 msgstr "/Modes de _visualisation"
 
 #: src/gimv_image_view.c:285
 msgid "/Show _Scrollbar"
-msgstr "/Afficher la barre de défilement"
+msgstr "/Afficher la barre de dÃ©filement"
 
 #: src/gimv_image_view.c:287
 #, fuzzy
 msgid "/Create _Thumbnail"
-msgstr "/Créer la vignette"
+msgstr "/CrÃ©er la vignette"
 
 #: src/gimv_image_view.c:288
 msgid "/Memory _Buffer"
-msgstr "/Mémoire Tampon"
+msgstr "/MÃ©moire Tampon"
 
 #: src/gimv_image_view.c:297
 msgid "/Zoom _In"
@@ -921,24 +897,24 @@ msgstr "/Zoom avant"
 
 #: src/gimv_image_view.c:298
 msgid "/Zoom _Out"
-msgstr "/Z_oom arrière"
+msgstr "/Z_oom arriÃ¨re"
 
 #: src/gimv_image_view.c:299
 msgid "/_Fit to Window"
-msgstr "/Adapter à la _fenêtre"
+msgstr "/Adapter Ã Â la _fenÃªtre"
 
 #: src/gimv_image_view.c:300
 #, fuzzy
 msgid "/_Fit _Width"
-msgstr "/Adapter à la _fenêtre"
+msgstr "/Adapter Ã Â la _fenÃªtre"
 
 #: src/gimv_image_view.c:301
 #, fuzzy
 msgid "/_Fit _Height"
-msgstr "/Adapter à la _fenêtre"
+msgstr "/Adapter Ã Â la _fenÃªtre"
 
 #: src/gimv_image_view.c:302
-msgid "/Keep _aspect ratio"
+msgid "/Keep _Aspect Ratio"
 msgstr "/G_arder les proportions"
 
 #: src/gimv_image_view.c:304
@@ -979,18 +955,18 @@ msgstr "/200% (_9)"
 
 #: src/gimv_image_view.c:321
 #, fuzzy
-msgid "/Rotate 90 degrees CW"
-msgstr "/Rotation de 90 degrés"
+msgid "/Rotate 90 Degrees Clockwise"
+msgstr "/Rotation de 90 degrÃ©s"
 
 #: src/gimv_image_view.c:322
 #, fuzzy
-msgid "/Rotate 90 degrees CCW"
-msgstr "/Rotation de 90 degrés"
+msgid "/Rotate 90 Degrees Counterclockwise"
+msgstr "/Rotation de 90 degrÃ©s"
 
 #: src/gimv_image_view.c:323
 #, fuzzy
-msgid "/Rotate 180 degrees"
-msgstr "/Rotation de 180 degrés"
+msgid "/Rotate 180 Degrees"
+msgstr "/Rotation de 180 degrÃ©s"
 
 #: src/gimv_image_view.c:332
 msgid "/_Play"
@@ -998,7 +974,7 @@ msgstr "/Lecture"
 
 #: src/gimv_image_view.c:333
 msgid "/_Stop"
-msgstr "/Arrêter"
+msgstr "/ArrÃªter"
 
 #: src/gimv_image_view.c:334
 msgid "/P_ause"
@@ -1015,23 +991,23 @@ msgstr "/Inve_rser l'odre"
 
 #: src/gimv_image_view.c:338
 #, fuzzy
-msgid "/_Continuance"
+msgid "/_Continuous Play"
 msgstr "/Poursuivre"
 
 #: src/gimv_image_view.c:340
 #, fuzzy
 msgid "/_Eject"
-msgstr "Ejecter"
+msgstr "/Ejecter"
 
 #: src/gimv_image_view.c:2106
 #, c-format
-msgid "File not exist: %s\n"
+msgid "File doesn't exist: %s\n"
 msgstr "Le fichier n'existe pas : %s\n"
 
 #: src/gimv_image_view.c:2108
 #, c-format
-msgid "Not an image (or unsupported) file: %s\n"
-msgstr "Ce fichier n'est pas une image (ou format non supporté) : %s\n"
+msgid "Not an image file (or an unsupported format): %s\n"
+msgstr "Ce fichier n'est pas une image (ou format non supportÃ©) : %s\n"
 
 #: src/gimv_image_view.c:2171
 msgid "RW"
@@ -1063,7 +1039,7 @@ msgstr "Ejecter"
 #: src/gimv_image_view.h:40
 #, fuzzy
 msgid "Default Image Viewer"
-msgstr "Echelle par défaut de l'image"
+msgstr "Echelle par dÃ©faut de l'image"
 
 #: src/gimv_image_win.c:273 src/gimv_thumb_win.c:380
 msgid "/_File"
@@ -1075,11 +1051,11 @@ msgstr "/_Fichier/_Ouvrir..."
 
 #: src/gimv_image_win.c:275
 msgid "/_File/Open _Image Window"
-msgstr "/_Fichier/Ouvrir une fenêtre _image"
+msgstr "/_Fichier/Ouvrir une fenÃªtre _image"
 
 #: src/gimv_image_win.c:276
 msgid "/_File/Open _Thumbnail Window"
-msgstr "/_Fichier/Ouvrir une fenêtre de vigne_ttes"
+msgstr "/_Fichier/Ouvrir une fenÃªtre de vigne_ttes"
 
 #: src/gimv_image_win.c:277 src/gimv_image_win.c:279 src/gimv_thumb_win.c:385
 msgid "/_File/---"
@@ -1087,7 +1063,7 @@ msgstr "/_Fichier/---"
 
 #: src/gimv_image_win.c:278
 msgid "/_File/Memory _Buffer"
-msgstr "/_Fichier/Mémoire tampon"
+msgstr "/_Fichier/MÃ©moire tampon"
 
 #: src/gimv_image_win.c:280
 msgid "/_File/_Close"
@@ -1108,12 +1084,12 @@ msgstr "/_Edition/Editer les _commentaires..."
 #: src/gimv_image_win.c:285
 #, fuzzy
 msgid "/_Edit/Scan E_XIF Data..."
-msgstr "/Examiner les données _EXIF..."
+msgstr "/Examiner les donnÃ©es _EXIF..."
 
 #: src/gimv_image_win.c:286
 #, fuzzy
 msgid "/_Edit/Create _Thumbnail"
-msgstr "/_Edition/Créer les vigne_ttes"
+msgstr "/_Edition/CrÃ©er les vigne_ttes"
 
 #: src/gimv_image_win.c:287 src/gimv_thumb_win.c:393 src/gimv_thumb_win.c:397
 #: src/gimv_thumb_win.c:406
@@ -1129,33 +1105,33 @@ msgid "/_View"
 msgstr "/_Affichage"
 
 #: src/gimv_image_win.c:292
-msgid "/_Move"
-msgstr "/_Déplacer"
+msgid "/_Go"
+msgstr "/_DÃ©placer"
 
 #: src/gimv_image_win.c:296 src/gimv_thumb_win.c:448
 msgid "/_Help"
 msgstr "/Aide"
 
 #: src/gimv_image_win.c:309 src/gimv_thumb_win.c:487
-msgid "/_Menu Bar"
+msgid "/_Menubar"
 msgstr "/Barre de _menu"
 
 #: src/gimv_image_win.c:310
-msgid "/_Tool Bar"
+msgid "/_Toolbar"
 msgstr "/Barre d'ou_tils"
 
 #: src/gimv_image_win.c:311
 #, fuzzy
-msgid "/Slide Show _Player"
+msgid "/Slideshow _Player"
 msgstr "/Diaporama"
 
 #: src/gimv_image_win.c:312 src/gimv_thumb_win.c:490
-msgid "/St_atus Bar"
-msgstr "/B_arre d'état"
+msgid "/St_atusbar"
+msgstr "/B_arre d'Ã©tat"
 
 #: src/gimv_image_win.c:313
-msgid "/_Scroll Bar"
-msgstr "/Barre de défilement"
+msgid "/_Scrollbar"
+msgstr "/Barre de dÃ©filement"
 
 #: src/gimv_image_win.c:314 src/gimv_thumb_win.c:493
 msgid "/_Player"
@@ -1178,15 +1154,15 @@ msgstr "/Lecteur"
 
 #: src/gimv_image_win.c:321
 msgid "/_Fit to Image"
-msgstr "/Adapter à l'image"
+msgstr "/Adapter Ã  l'image"
 
 #: src/gimv_image_win.c:322 src/gimv_thumb_win.c:500
 msgid "/Ma_ximize"
 msgstr "/Ma_ximiser"
 
 #: src/gimv_image_win.c:323
-msgid "/F_ull Screen"
-msgstr "/Plein écran"
+msgid "/F_ullscreen"
+msgstr "/Plein Ã©cran"
 
 #: src/gimv_image_win.c:330
 msgid "/_Next"
@@ -1194,7 +1170,7 @@ msgstr "/Suiva_nt"
 
 #: src/gimv_image_win.c:331
 msgid "/_Previous"
-msgstr "/_Précédent"
+msgstr "/_PrÃ©cÃ©dent"
 
 #: src/gimv_image_win.c:332
 msgid "/_First"
@@ -1206,10 +1182,10 @@ msgstr "/Dernier"
 
 #: src/gimv_image_win.c:577 src/gimv_thumb_win.c:751
 msgid "New Window"
-msgstr "Nouvelle fenêtre"
+msgstr "Nouvelle fenÃªtre"
 
 #: src/gimv_image_win.c:789 src/prefs_ui/prefs_ui_imagewin.c:60
-msgid "90 degrees CCW"
+msgid "90 degrees counterclockwise"
 msgstr ""
 
 #: src/gimv_image_win.c:790 src/prefs_ui/prefs_ui_imagewin.c:59
@@ -1217,7 +1193,7 @@ msgid "0 degrees"
 msgstr ""
 
 #: src/gimv_image_win.c:791 src/prefs_ui/prefs_ui_imagewin.c:62
-msgid "90 degrees CW"
+msgid "90 degrees clockwise"
 msgstr ""
 
 #: src/gimv_image_win.c:792 src/prefs_ui/prefs_ui_imagewin.c:61
@@ -1230,26 +1206,26 @@ msgstr "Ouvrir"
 
 #: src/gimv_image_win.c:803 src/gimv_image_win.c:804 src/gimv_thumb_win.c:1551
 #: src/gimv_thumb_win.c:1552
-msgid "File Open"
+msgid "Open File"
 msgstr "Ouvrir un fichier"
 
 #: src/gimv_image_win.c:812 src/gimv_thumb_win.c:1561
 msgid "Prefs"
-msgstr "Préférences"
+msgstr "PrÃ©fÃ©rences"
 
 #: src/gimv_image_win.c:813 src/gimv_image_win.c:814 src/gimv_prefs_win.c:810
 #: src/gimv_thumb_win.c:1562 src/gimv_thumb_win.c:1563
 #: src/prefs_ui/prefs_ui_etc.c:582
-msgid "Preference"
-msgstr "Préférences"
+msgid "Preferences"
+msgstr "PrÃ©fÃ©rences"
 
 #: src/gimv_image_win.c:824 src/gimv_image_win.c:990 src/gimv_thumb_win.c:1574
 msgid "Prev"
-msgstr "Préc"
+msgstr "PrÃ©c"
 
 #: src/gimv_image_win.c:825 src/gimv_image_win.c:826
 msgid "Previous Image"
-msgstr "Image précédente"
+msgstr "Image prÃ©cÃ©dente"
 
 #: src/gimv_image_win.c:836 src/gimv_image_win.c:1017
 #: src/gimv_image_win.c:1018 src/gimv_thumb_win.c:1585
@@ -1272,11 +1248,11 @@ msgstr "Zoom avant"
 #: src/gimv_image_win.c:870 src/gimv_image_win.c:871 src/gimv_image_win.c:872
 #: src/prefs_ui/prefs_ui_imagewin.c:143 src/prefs_ui/prefs_ui_thumbwin.c:186
 msgid "Zoom out"
-msgstr "Zoom arrière"
+msgstr "Zoom arriÃ¨re"
 
 #: src/gimv_image_win.c:880 src/gimv_image_win.c:881 src/gimv_image_win.c:882
-msgid "Zoom fit"
-msgstr "Zoom adapté"
+msgid "Zoom to fit"
+msgstr "Zoom adaptÃ©"
 
 #: src/gimv_image_win.c:900
 msgid "X Scale"
@@ -1305,7 +1281,7 @@ msgstr "Changer de taille"
 
 #: src/gimv_image_win.c:945 src/gimv_image_win.c:946
 msgid "Fit Window Size to Image"
-msgstr "Ajuster la taille de la fenêtre à l'image"
+msgstr "Ajuster la taille de la fenÃªtre Ã Â l'image"
 
 #: src/gimv_image_win.c:955
 msgid "Full"
@@ -1313,7 +1289,7 @@ msgstr "Plein"
 
 #: src/gimv_image_win.c:956 src/gimv_image_win.c:957
 msgid "Fullscreen"
-msgstr "Plein écran"
+msgstr "Plein Ã©cran"
 
 #: src/gimv_image_win.c:981 src/gimv_image_win.c:982
 #, fuzzy
@@ -1323,16 +1299,16 @@ msgstr "/Premier"
 #: src/gimv_image_win.c:991
 #, fuzzy
 msgid "Previous"
-msgstr "/_Précédent"
+msgstr "/_PrÃ©cÃ©dent"
 
 #: src/gimv_image_win.c:1000
 #, fuzzy
-msgid "Play Slide Show"
+msgid "Play Slideshow"
 msgstr "/Diaporama"
 
 #: src/gimv_image_win.c:1009
 #, fuzzy
-msgid "Stop Slide Show"
+msgid "Stop Slideshow"
 msgstr "/Diaporama"
 
 #: src/gimv_image_win.c:1026 src/gimv_image_win.c:1027
@@ -1436,104 +1412,104 @@ msgstr "Bouton de la souris %d (%s)"
 
 #: src/gimv_prefs_ui_utils.c:243
 msgid "Pressed"
-msgstr "Pressé"
+msgstr "PressÃ©"
 
 #: src/gimv_prefs_ui_utils.c:246
 msgid "Released"
-msgstr "Relaché"
+msgstr "RelachÃ©"
 
 #: src/gimv_prefs_ui_utils.c:386
 #, fuzzy
-msgid "Select directory"
-msgstr "Selectionne le répertoire"
+msgid "Select Directory"
+msgstr "Selectionne le rÃ©pertoire"
 
 #. show directory
 #: src/gimv_prefs_ui_utils.c:420 src/prefs_ui/prefs_ui_thumbwin.c:746
 msgid "Directory"
-msgstr "Répertoire"
+msgstr "RÃ©pertoire"
 
 #: src/gimv_prefs_ui_utils.c:454
-msgid "Directory to add : "
-msgstr "Répertoire à ajouter : "
+msgid "Directory to add: "
+msgstr "RÃ©pertoire Ã  ajouter : "
 
 #: src/gimv_prefs_ui_utils.c:463
 msgid "Select"
-msgstr "Sélectionner"
+msgstr "SÃ©lectionner"
 
 #: src/gimv_prefs_win.c:65
-msgid "/Infomation"
+msgid "/Information"
 msgstr "/Informations"
 
 #: src/gimv_prefs_win.c:66
 msgid "/Common"
-msgstr "/Général"
+msgstr "/GÃ©nÃ©ral"
 
 #: src/gimv_prefs_win.c:67
 msgid "/Common/Filtering"
-msgstr "/Général/Filtrage"
+msgstr "/GÃ©nÃ©ral/Filtrage"
 
 #: src/gimv_prefs_win.c:68
-msgid "/Common/Character set"
-msgstr "Jeu de caractères"
+msgid "/Common/Character Set"
+msgstr "/GÃ©nÃ©ral/Jeu de caractÃ¨res"
 
 #: src/gimv_prefs_win.c:70
 msgid "/Image Window"
-msgstr "/Fenêtre d'image"
+msgstr "/FenÃªtre d'image"
 
 #: src/gimv_prefs_win.c:71
 msgid "/Image Window/Image"
-msgstr "/Fenêtre d'image/Image"
+msgstr "/FenÃªtre d'image/Image"
 
 #: src/gimv_prefs_win.c:72
-msgid "/Image Window/Mouse Buttton"
-msgstr "/Fenêtre d'image/Bouton de la souris"
+msgid "/Image Window/Mouse Buttons"
+msgstr "/FenÃªtre d'image/Bouton de la souris"
 
 #: src/gimv_prefs_win.c:74
 msgid "/Thumbnail Window"
-msgstr "/Fenêtre des vignettes"
+msgstr "/FenÃªtre des vignettes"
 
 #.
 #. {N_("/Thumbnail Window/Toolbar"),   0, NULL, NULL, prefs_thumbview_toolbar_page, NULL},
 #.
 #: src/gimv_prefs_win.c:78
 msgid "/Thumbnail Window/Tab"
-msgstr "/Fenêtre des vignettes/Onglet"
+msgstr "/FenÃªtre des vignettes/Onglet"
 
 #: src/gimv_prefs_win.c:79
 msgid "/Thumbnail Window/Thumbnail View"
-msgstr "/Fenêtre des vignettes/Vue des vignettes"
+msgstr "/FenÃªtre des vignettes/Vue des vignettes"
 
 #: src/gimv_prefs_win.c:80
-msgid "/Thumbnail Window/Thumbnail View/Mouse Buttton"
-msgstr "Fenêtre des vignettes/Vue des vignettes/Bouton de la souris"
+msgid "/Thumbnail Window/Thumbnail View/Mouse Buttons"
+msgstr "/FenÃªtre des vignettes/Vue des vignettes/Boutons de la souris"
 
 #: src/gimv_prefs_win.c:81
 #, fuzzy
 msgid "/Thumbnail Window/Thumbnail View/Album"
-msgstr "/Fenêtre des vignettes/Vue des vignettes"
+msgstr "/FenÃªtre des vignettes/Vue des vignettes"
 
 #: src/gimv_prefs_win.c:83
 msgid "/Thumbnail Window/Directory View"
-msgstr "/Fenêtre des vignettes/Vue des répertoires"
+msgstr "/FenÃªtre des vignettes/Vue des rÃ©pertoires"
 
 #: src/gimv_prefs_win.c:84
-msgid "/Thumbnail Window/Directory View/Mouse Buttton"
-msgstr "/Fenêtre des vignettes/Vue des répertoires/Boutons de la souris"
+msgid "/Thumbnail Window/Directory View/Mouse Buttons"
+msgstr "/FenÃªtre des vignettes/Vue des rÃ©pertoires/Boutons de la souris"
 
 #: src/gimv_prefs_win.c:85
 msgid "/Thumbnail Window/Preview"
-msgstr "/Fenêtre des vignettes/Aperçu"
+msgstr "/FenÃªtre des vignettes/AperÃ§u"
 
 #: src/gimv_prefs_win.c:86
-msgid "/Thumbnail Window/Preview/Mouse Buttton"
-msgstr "Fenêtre des vignettes/Aperçu/Bouton de la souris"
+msgid "/Thumbnail Window/Preview/Mouse Buttons"
+msgstr "/FenÃªtre des vignettes/AperÃ§u/Boutons de la souris"
 
 #: src/gimv_prefs_win.c:88
 msgid "/Movie and Audio"
 msgstr ""
 
 #: src/gimv_prefs_win.c:90
-msgid "/Slide Show"
+msgid "/Slideshow"
 msgstr "/Diaporama"
 
 #: src/gimv_prefs_win.c:91
@@ -1550,7 +1526,7 @@ msgstr "/Chercher"
 
 #: src/gimv_prefs_win.c:94
 msgid "/Drag and Drop"
-msgstr "/Glisser et Déposer (DnD)"
+msgstr "/Glisser et DÃ©poser (DnD)"
 
 #: src/gimv_prefs_win.c:95
 msgid "/External Program"
@@ -1617,11 +1593,11 @@ msgstr "Annuler"
 
 #: src/gimv_thumb_win.c:382
 msgid "/_File/New _Image Window"
-msgstr "/_Fichier/Nouvelle fenêtre d'_image"
+msgstr "/_Fichier/Nouvelle fenÃªtre d'_image"
 
 #: src/gimv_thumb_win.c:383
 msgid "/_File/New _Window"
-msgstr "/_Fichier/Nou_velle fenêtre"
+msgstr "/_Fichier/Nou_velle fenÃªtre"
 
 #: src/gimv_thumb_win.c:384
 msgid "/_File/New _Tab"
@@ -1633,26 +1609,26 @@ msgstr "/_Fichier/Fermer l'on_glet"
 
 #: src/gimv_thumb_win.c:387
 msgid "/_File/_Close Window"
-msgstr "/_Fichier/Fermer la fenêtr_e"
+msgstr "/_Fichier/Fermer la fenÃªtr_e"
 
 #: src/gimv_thumb_win.c:391
 msgid "/_Edit/_Select All"
-msgstr "/_Edition/Tout _sélectionner"
+msgstr "/_Edition/Tout _sÃ©lectionner"
 
 #: src/gimv_thumb_win.c:392
 msgid "/_Edit/U_nselect All"
-msgstr "/_Edition/Tout désélectio_nner"
+msgstr "/_Edition/Tout dÃ©sÃ©lectio_nner"
 
 #: src/gimv_thumb_win.c:394
 msgid "/_Edit/_Refresh List"
-msgstr "/_Edition/_Rafraîchir la liste"
+msgstr "/_Edition/_RafraÃ®chir la liste"
 
 #: src/gimv_thumb_win.c:395
 msgid "/_Edit/Reload _Cache"
 msgstr "/_Edition/Recharger le _cache"
 
 #: src/gimv_thumb_win.c:396
-msgid "/_Edit/_Update All Thumbnail"
+msgid "/_Edit/_Update All Thumbnails"
 msgstr "/_Edition/Act_ualiser toutes les vignettes"
 
 #.
@@ -1668,14 +1644,14 @@ msgstr "/_Edition/Co_pier les fichiers vers..."
 
 #: src/gimv_thumb_win.c:403
 msgid "/_Edit/_Move Files To..."
-msgstr "/_Edition/Dé_placer les fichiers vers..."
+msgstr "/_Edition/DÃ©_placer les fichiers vers..."
 
 #: src/gimv_thumb_win.c:404
 msgid "/_Edit/_Link Files To..."
 msgstr "/_Edition/_Lier les fichiers vers..."
 
 #: src/gimv_thumb_win.c:405
-msgid "/_Edit/Remo_ve file..."
+msgid "/_Edit/Remo_ve Files..."
 msgstr "/_Edition/Suppr_imer le fichier..."
 
 #: src/gimv_thumb_win.c:411 src/gimv_thumb_win.c:491
@@ -1708,11 +1684,11 @@ msgstr "/Ongle_t/---"
 
 #: src/gimv_thumb_win.c:418
 msgid "/_Tab/_First Page"
-msgstr "/Ongle_t/_Première page"
+msgstr "/Ongle_t/_PremiÃ¨re page"
 
 #: src/gimv_thumb_win.c:419
 msgid "/_Tab/_Last Page"
-msgstr "/Ongle_t/_Dernière Page"
+msgstr "/Ongle_t/_DerniÃ¨re Page"
 
 #: src/gimv_thumb_win.c:420
 msgid "/_Tab/_Next Page"
@@ -1720,19 +1696,19 @@ msgstr "/Ongle_t/Page suiva_nte"
 
 #: src/gimv_thumb_win.c:421
 msgid "/_Tab/_Previous Page"
-msgstr "/Ongle_t/_Page précédante"
+msgstr "/Ongle_t/_Page prÃ©cÃ©dante"
 
 #: src/gimv_thumb_win.c:423
-msgid "/_Tab/Move tab for_ward"
-msgstr "/Ongle_t/Déplacer l'onglet en a_vant"
+msgid "/_Tab/Move Tab For_ward"
+msgstr "/Ongle_t/DÃ©placer l'onglet en a_vant"
 
 #: src/gimv_thumb_win.c:424
-msgid "/_Tab/Move tab _backward"
-msgstr "/Ongle_t/Déplacer l'onglet e_n arrière"
+msgid "/_Tab/Move Tab _Backward"
+msgstr "/Ongle_t/DÃ©placer l'onglet e_n arriÃ¨re"
 
 #: src/gimv_thumb_win.c:425
-msgid "/_Tab/_Detach tab"
-msgstr "/Ongle_t/_Détacher l'onglet"
+msgid "/_Tab/_Detach Tab"
+msgstr "/Ongle_t/_DÃ©tacher l'onglet"
 
 #: src/gimv_thumb_win.c:427
 #, fuzzy
@@ -1747,7 +1723,7 @@ msgstr "Lieu"
 #: src/gimv_thumb_win.c:429
 #, fuzzy
 msgid "/_Action/_Focus/_Directory View"
-msgstr "/Vue _du répertoire"
+msgstr "/Vue _du rÃ©pertoire"
 
 #: src/gimv_thumb_win.c:430
 #, fuzzy
@@ -1757,7 +1733,7 @@ msgstr "Vue vignettes"
 #: src/gimv_thumb_win.c:431
 #, fuzzy
 msgid "/_Action/_Focus/_Preview"
-msgstr "/A_perçu"
+msgstr "/A_perÃ§u"
 
 #: src/gimv_thumb_win.c:432
 msgid "/_Action/_Focus/_Location Entry"
@@ -1766,7 +1742,7 @@ msgstr ""
 #: src/gimv_thumb_win.c:434
 #, fuzzy
 msgid "/_Action/_Directory View"
-msgstr "/Vue _du répertoire"
+msgstr "/Vue _du rÃ©pertoire"
 
 #: src/gimv_thumb_win.c:435
 #, fuzzy
@@ -1776,40 +1752,40 @@ msgstr "Vue vignettes"
 #: src/gimv_thumb_win.c:436
 #, fuzzy
 msgid "/_Action/_Preview"
-msgstr "/A_perçu"
+msgstr "/A_perÃ§u"
 
 #: src/gimv_thumb_win.c:437
 #, fuzzy
 msgid "/_Action/_Preview/_Next"
-msgstr "/A_perçu"
+msgstr "/A_perÃ§u"
 
 #: src/gimv_thumb_win.c:438
 #, fuzzy
 msgid "/_Action/_Preview/_Previous"
-msgstr "/A_perçu"
+msgstr "/A_perÃ§u"
 
 #: src/gimv_thumb_win.c:441
 #, fuzzy
-msgid "/Too_l"
+msgid "/Too_ls"
 msgstr "/Barre d'ou_tils"
 
 #: src/gimv_thumb_win.c:442
 #, fuzzy
-msgid "/Too_l/_Clear all cache"
+msgid "/Too_ls/_Clear All Caches"
 msgstr "/_Edition/Nettoyer tout le c_ache"
 
 #: src/gimv_thumb_win.c:443 src/gimv_thumb_win.c:445
 #, fuzzy
-msgid "/Too_l/---"
+msgid "/Too_ls/---"
 msgstr "/_Fichier/---"
 
 #: src/gimv_thumb_win.c:444
 #, fuzzy
-msgid "/Too_l/_Find duplicates"
+msgid "/Too_ls/_Find Duplicates"
 msgstr "/_Edition/Trouver des doublons"
 
 #: src/gimv_thumb_win.c:446
-msgid "/Too_l/_Wallpaper setting"
+msgid "/Too_ls/Set as _Wallpaper"
 msgstr ""
 
 #: src/gimv_thumb_win.c:456
@@ -1842,7 +1818,7 @@ msgstr "/Disposition/Disposition _4"
 
 #: src/gimv_thumb_win.c:463
 msgid "/_Layout/_Custom"
-msgstr "/Disposition/Personnalisée"
+msgstr "/Disposition/PersonnalisÃ©e"
 
 #: src/gimv_thumb_win.c:464
 msgid "/_Layout/---"
@@ -1850,7 +1826,7 @@ msgstr "/Disposition/---"
 
 #: src/gimv_thumb_win.c:465
 msgid "/_Layout/Window _Composition"
-msgstr "/Disposition/_Composition de la fenêtre"
+msgstr "/Disposition/_Composition de la fenÃªtre"
 
 #: src/gimv_thumb_win.c:469
 msgid "/S_lideshow"
@@ -1863,17 +1839,17 @@ msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:471
 #, fuzzy
-msgid "/Slideshow Opt_ions/Start from the _first"
+msgid "/Slideshow Opt_ions/Start from the _First"
 msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:472
 #, fuzzy
-msgid "/Slideshow Opt_ions/Start from the se_lected"
+msgid "/Slideshow Opt_ions/Start from the Se_lected"
 msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:474
 #, fuzzy
-msgid "/Slideshow Opt_ions/_Random order"
+msgid "/Slideshow Opt_ions/_Random Order"
 msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:476 src/gimv_thumb_win.c:478
@@ -1883,43 +1859,43 @@ msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:477
 #, fuzzy
-msgid "/Slideshow Opt_ions/_Selected only"
+msgid "/Slideshow Opt_ions/_Selected Only"
 msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:479
 #, fuzzy
-msgid "/Slideshow Opt_ions/Images _and movies"
+msgid "/Slideshow Opt_ions/Images _and Movies"
 msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:480
 #, fuzzy
-msgid "/Slideshow Opt_ions/_Images only"
+msgid "/Slideshow Opt_ions/_Images Only"
 msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:481
 #, fuzzy
-msgid "/Slideshow Opt_ions/_Movies only"
+msgid "/Slideshow Opt_ions/_Movies Only"
 msgstr "/Diaporama"
 
 #: src/gimv_thumb_win.c:485
 msgid "/_Directory View"
-msgstr "/Vue _du répertoire"
+msgstr "/Vue _du rÃ©pertoire"
 
 #: src/gimv_thumb_win.c:486
 msgid "/_Preview"
-msgstr "/A_perçu"
+msgstr "/A_perÃ§u"
 
 #: src/gimv_thumb_win.c:488
-msgid "/T_ool Bar"
+msgid "/T_oolbar"
 msgstr "/Barre d'_outils"
 
 #: src/gimv_thumb_win.c:489
-msgid "/Dir_View Tool Bar"
-msgstr "/Barre d'outils des répertoires"
+msgid "/Dir_View Toolbar"
+msgstr "/Barre d'outils des rÃ©pertoires"
 
 #: src/gimv_thumb_win.c:492
 msgid "/Ta_b (Preview)"
-msgstr "/Onglet (Aperçu)"
+msgstr "/Onglet (AperÃ§u)"
 
 #: src/gimv_thumb_win.c:509
 msgid "/by _Name"
@@ -1927,7 +1903,7 @@ msgstr "/par _nom"
 
 #: src/gimv_thumb_win.c:510
 msgid "/by _Access Time"
-msgstr "/par heure d'_accès"
+msgstr "/par heure d'_accÃ¨s"
 
 #: src/gimv_thumb_win.c:511
 msgid "/by _Modification Time"
@@ -1955,24 +1931,24 @@ msgstr "/par _hauteur d'image"
 
 #: src/gimv_thumb_win.c:517
 msgid "/by Image Ar_ea"
-msgstr "par surfac_e d'image"
+msgstr "/par surfac_e d'image"
 
 #: src/gimv_thumb_win.c:519
 msgid "/_Reverse Order"
 msgstr "/Inve_rser l'odre"
 
 #: src/gimv_thumb_win.c:521
-msgid "/Case _insensitive"
-msgstr "/Insens_ible à la case"
+msgid "/Case _Insensitive"
+msgstr "/Insens_ible Ã  la case"
 
 #: src/gimv_thumb_win.c:522
-msgid "/_Directory insensitive"
-msgstr "/Insensible aux répertoires"
+msgid "/_Mix Directories and Files"
+msgstr "/Insensible aux rÃ©pertoires"
 
 #: src/gimv_thumb_win.c:654
 #, fuzzy
 msgid " -Thumbnail Window-"
-msgstr "/Fenêtre des vignettes"
+msgstr "/FenÃªtre des vignettes"
 
 #: src/gimv_thumb_win.c:935
 #, c-format
@@ -1981,11 +1957,11 @@ msgstr "Composition %d"
 
 #: src/gimv_thumb_win.c:1575 src/gimv_thumb_win.c:1576
 msgid "Go to previous page"
-msgstr "Aller à la page précédente"
+msgstr "Aller Ã  la page prÃ©cÃ©dente"
 
 #: src/gimv_thumb_win.c:1586 src/gimv_thumb_win.c:1587
 msgid "Go to next page"
-msgstr "Aller à la page suivante"
+msgstr "Aller Ã  la page suivante"
 
 #: src/gimv_thumb_win.c:1598
 msgid "Reload"
@@ -1996,12 +1972,12 @@ msgid "Reload Cache"
 msgstr "Recharger le cache"
 
 #: src/gimv_thumb_win.c:1610 src/gimv_thumb_win.c:1611
-msgid "Skip creating current thumbnail table"
-msgstr "Sauter la création des vignettes de la table courante"
+msgid "Skip creating the current thumbnail table"
+msgstr "Sauter la crÃ©ation des vignettes de la table courante"
 
 #: src/gimv_thumb_win.c:1622 src/gimv_thumb_win.c:1623
 msgid "Stop creating thumbnails"
-msgstr "Arrêter la création des vignettes"
+msgstr "ArrÃªter la crÃ©ation des vignettes"
 
 #: src/gimv_thumb_win.c:1639
 msgid "Thumbnail Size"
@@ -2019,7 +1995,7 @@ msgstr "Quitter ce programme"
 #. Show Preview or not
 #: src/gimv_thumb_win.c:2078 src/prefs_ui/prefs_ui_thumbwin.c:468
 msgid "Preview"
-msgstr "Aperçu"
+msgstr "AperÃ§u"
 
 #: src/gimv_thumb_win.c:3521
 msgid "Empty"
@@ -2033,7 +2009,7 @@ msgstr "fichiers %d/%d"
 #: src/gimv_thumb_win.c:3562
 #, c-format
 msgid "Dir View: %s"
-msgstr "Vue du répertoire : %s"
+msgstr "Vue du rÃ©pertoire : %s"
 
 #: src/gimv_thumb_win.c:3564
 #, c-format
@@ -2059,17 +2035,12 @@ msgstr "Nouvel onglet"
 
 #: src/gimv_thumb_win.c:3872
 #, c-format
-msgid "NewTab %d"
+msgid "New Tab %d"
 msgstr "Nouvel Onglet %d"
 
 #: src/gtk_prop.c:191
 msgid "Properties"
-msgstr "Propriétés"
-
-#. ok and cancel buttons
-#: src/gtk_prop.c:203
-msgid "Ok"
-msgstr "Ok"
+msgstr "PropriÃ©tÃ©s"
 
 #: src/gtk_prop.c:224
 msgid "All"
@@ -2081,11 +2052,11 @@ msgid "Info"
 msgstr "Info"
 
 #: src/gtk_prop.c:246
-msgid "Name :"
+msgid "Name:"
 msgstr "Nom :"
 
 #: src/gtk_prop.c:283
-msgid "Type :"
+msgid "Type:"
 msgstr "Type :"
 
 #: src/gtk_prop.c:305
@@ -2094,19 +2065,19 @@ msgid "%ld Bytes"
 msgstr "%ld Octets"
 
 #: src/gtk_prop.c:307
-msgid "Size :"
+msgid "Size:"
 msgstr "Taille :"
 
 #: src/gtk_prop.c:319
-msgid "Access Time :"
-msgstr "Heure d'accès :"
+msgid "Access Time:"
+msgstr "Heure d'accÃ¨s :"
 
 #: src/gtk_prop.c:331
-msgid "Modification Time :"
+msgid "Modification Time:"
 msgstr "Heure de modification :"
 
 #: src/gtk_prop.c:343
-msgid "Change Time :"
+msgid "Change Time:"
 msgstr "Heure de changement :"
 
 #: src/gtk_prop.c:352
@@ -2114,8 +2085,8 @@ msgid "Permissions"
 msgstr "Permissions"
 
 #: src/gtk_prop.c:356 src/gtk_prop.c:483
-msgid "Owner :"
-msgstr "Propriétaire :"
+msgid "Owner:"
+msgstr "PropriÃ©taire :"
 
 #: src/gtk_prop.c:357 src/gtk_prop.c:389 src/gtk_prop.c:420
 msgid "Read"
@@ -2127,14 +2098,14 @@ msgstr "Ecriture"
 
 #: src/gtk_prop.c:369 src/gtk_prop.c:401 src/gtk_prop.c:432
 msgid "Execute"
-msgstr "Exécute"
+msgstr "ExÃ©cute"
 
 #: src/gtk_prop.c:375
 msgid "Set UID"
 msgstr "Mettre UID"
 
 #: src/gtk_prop.c:388 src/gtk_prop.c:494
-msgid "Group :"
+msgid "Group:"
 msgstr "Groupe :"
 
 #: src/gtk_prop.c:407
@@ -2142,7 +2113,7 @@ msgid "Set GID"
 msgstr "Mettre GID"
 
 #: src/gtk_prop.c:419
-msgid "Other :"
+msgid "Others:"
 msgstr "Autre :"
 
 #: src/gtk_prop.c:438
@@ -2151,7 +2122,7 @@ msgstr "Collant"
 
 #: src/gtk_prop.c:472
 msgid "Owner"
-msgstr "Propriétaire"
+msgstr "PropriÃ©taire"
 
 #: src/gtk_prop.c:477 src/gtk_prop.c:488
 msgid "unknown"
@@ -2172,7 +2143,7 @@ msgstr "Non"
 
 #: src/gtkutils.c:458
 #, fuzzy, c-format
-msgid "The file exists : %s"
+msgid "The file exists: %s"
 msgstr "Le fichier existe : %s"
 
 #: src/gtkutils.c:550
@@ -2188,7 +2159,7 @@ msgstr "Afficher ce message"
 #: src/gtkutils.c:565
 #, fuzzy
 msgid "Show source"
-msgstr "Afficher la barre d'état"
+msgstr "Afficher la barre d'Ã©tat"
 
 #: src/gtkutils.c:638
 #, fuzzy
@@ -2225,33 +2196,33 @@ msgid ""
 "Foundation, Inc., 59 Temple Place - Suite 330, Boston,\n"
 "MA 02111-1307, USA."
 msgstr ""
-"Tous droits réservés (C) 2001 %s <%s>\n"
+"Tous droits rÃ©servÃ©s (C) 2001 %s <%s>\n"
 "\n"
 "Ce programme est un logiciel libre, vous pouvez le redistribuer et/ou\n"
-"le modifier suivant les termes de la GNU General Public License publiée\n"
-"par la Free Software Foundation, soit la version 2, soit ( à votre "
+"le modifier suivant les termes de la GNU General Public License publiÃ©e\n"
+"par la Free Software Foundation, soit la version 2, soit ( Ã  votre "
 "convenance)\n"
-"une version ultérieure.\n"
+"une version ultÃ©rieure.\n"
 "\n"
-"Ce programme est distribué en espérant qu'il sera utile, mais SANS AUCUNE\n"
-"GARANTIE. Consultez la GNU General Public License pour plus de détails.\n"
+"Ce programme est distribuÃ© en espÃ©rant qu'il sera utile, mais SANS AUCUNE\n"
+"GARANTIE. Consultez la GNU General Public License pour plus de dÃ©tails.\n"
 "\n"
-"Vous devez avoir reçu une copie de la GNU General Public License avec ce\n"
-"programme. Si ce n'est pas le cas, écrivez à la Free Software Foundation,\n"
+"Vous devez avoir reÃ§u une copie de la GNU General Public License avec ce\n"
+"programme. Si ce n'est pas le cas, Ã©crivez Ã  la Free Software Foundation,\n"
 " Inc.,, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA."
 
 #: src/help.c:95
 #, fuzzy
 msgid ""
-"Main Program :\n"
+"Main Program:\n"
 "    Takuro Ashie <ashie@homa.ne.jp>\n"
-"Document :\n"
+"Document:\n"
 "    Nyan2 <t-nyan2@nifty.com>\n"
-"Logo :\n"
+"Logo:\n"
 "    eins <eins@milk.freemail.ne.jp>\n"
-"Translate :\n"
+"Translation:\n"
 "\n"
-"Special Thanks :\n"
+"Special Thanks:\n"
 "    horam\n"
 "    TAM\n"
 "    Hiroyuki Komatsu\n"
@@ -2277,9 +2248,9 @@ msgstr ""
 "Logo :\n"
 "    eins <eins@milk.freemail.ne.jp>\n"
 "Traductions :\n"
-"    Guillaume Libersat <glibersat@linux62.com> (Français)\n"
-"    Migrec <migrec@online.fr> (Français)\n"
-"Remerciements spéciaux :\n"
+"    Guillaume Libersat <glibersat@linux62.com> (FranÃ§ais)\n"
+"    Migrec <migrec@online.fr> (FranÃ§ais)\n"
+"Remerciements spÃ©ciaux :\n"
 "    horam\n"
 "    TAM\n"
 "    Hiroyuki Komatsu\n"
@@ -2287,7 +2258,7 @@ msgstr ""
 "    katsu\n"
 "    kaurin\n"
 "    jissama\n"
-"    Et à tous les utilisateurs de GImageView"
+"    Et Ã Â tous les utilisateurs de GImageView"
 
 #: src/help.c:128
 msgid "/_Manual"
@@ -2312,43 +2283,41 @@ msgstr "/_A propos"
 #: src/help.c:446
 #, c-format
 msgid ""
-"Plugin Name : %s\n"
-"Version : %s\n"
-"Author : %s\n"
-"\n"
+"Plugin Name: %s\n"
+"Version: %s\n"
+"Author: %s\n"
 msgstr ""
 "Nom du greffon : %s\n"
 "Version : %s\n"
 "Auteur : %s\n"
-"\n"
 
 #: src/help.c:524
 #, fuzzy, c-format
 msgid ""
-"Operating System : %s %s %s\n"
-"GTK+ version : %d.%d.%d\n"
+"Operating System: %s %s %s\n"
+"GTK version: %d.%d.%d\n"
 msgstr ""
-"Système d'exploitation : %s %s %s\n"
+"SystÃ¨me d'exploitation : %s %s %s\n"
 "Version de GTK+ : %d.%d.%d\n"
 "Version de libpng : %s\n"
 
 #: src/help.c:533
 #, c-format
-msgid "libmng version : %s\n"
+msgid "libmng version: %s\n"
 msgstr "Version de libmng : %s\n"
 
 #: src/help.c:539
 #, c-format
-msgid "gdk-pixbuf version : %s\n"
+msgid "gdk-pixbuf version: %s\n"
 msgstr "Version de gdk-pixbuf : %s\n"
 
 #: src/help.c:545
 #, c-format
-msgid "librsvg version : %s\n"
+msgid "librsvg version: %s\n"
 msgstr "Version de librsvg : %s\n"
 
 #: src/help.c:619
-msgid "Web Site: "
+msgid "Website: "
 msgstr "Site Web : "
 
 #: src/help.c:673
@@ -2361,7 +2330,7 @@ msgstr "Auteurs"
 
 #: src/help.c:688
 msgid "System Info"
-msgstr "Informations système"
+msgstr "Informations systÃ¨me"
 
 #: src/help.c:695 plugins/image_loader/prefs_spi.c:225
 msgid "Plugin Info"
@@ -2376,24 +2345,24 @@ msgstr "A propos de %s"
 #, c-format
 msgid ""
 "Can't open rc file: %s\n"
-"Use default setting ..."
+"Using the default settings..."
 msgstr ""
 "Impossible d'ouvrir le fichier rc : %s\n"
-"Utilise les réglages par défaut..."
+"Utilise les rÃ©glages par dÃ©faut..."
 
 #: src/prefs.c:591
 #, c-format
-msgid "Directory \"%s\" not found. Created it ..."
-msgstr "Le répertoire \"%s\" n'a pas été trouvé. Il a été créé ..."
+msgid "Directory \"%s\" not found. Creating it..."
+msgstr "Le rÃ©pertoire \"%s\" n'a pas Ã©tÃ© trouvÃ©. Il a Ã©tÃ© crÃ©Ã© ..."
 
 #: src/prefs.c:594
 #, c-format
-msgid "\"%s\" found, but it's not directory. Abort creating ..."
-msgstr "\"%s\" trouvé, mais ce n'est pas un répertoire. Création annulée ..."
+msgid "\"%s\" found, but it's not a directory. Not creating it."
+msgstr "\"%s\" trouvÃ©, mais ce n'est pas un rÃ©pertoire. CrÃ©ation annulÃ©e ..."
 
 #: src/prefs.c:603
-msgid "Can't open rc file for write."
-msgstr "Impossible d'ouvrir le fichier rc en écriture."
+msgid "Can't open rc file for writing."
+msgstr "Impossible d'ouvrir le fichier rc en Ã©criture."
 
 #: src/prefs_ui/prefs_ui_common.c:71
 msgid "Image View"
@@ -2405,7 +2374,7 @@ msgstr "Vue vignettes"
 
 #: src/prefs_ui/prefs_ui_common.c:79
 msgid "Nearest"
-msgstr "Plus près"
+msgstr "Plus prÃ¨s"
 
 #: src/prefs_ui/prefs_ui_common.c:80
 msgid "Tiles"
@@ -2413,7 +2382,7 @@ msgstr "Tuiles"
 
 #: src/prefs_ui/prefs_ui_common.c:81
 msgid "Bilinear"
-msgstr "Bilinéaire"
+msgstr "BilinÃ©aire"
 
 #: src/prefs_ui/prefs_ui_common.c:82
 msgid "Hyperbolic"
@@ -2429,7 +2398,7 @@ msgstr "Local"
 
 #: src/prefs_ui/prefs_ui_common.c:91
 msgid "Auto detect"
-msgstr "Auto-détecter"
+msgstr "Auto-dÃ©tecter"
 
 #: src/prefs_ui/prefs_ui_common.c:92
 msgid "Any"
@@ -2443,24 +2412,24 @@ msgstr "Erreur !!"
 
 #: src/prefs_ui/prefs_ui_common.c:140
 msgid ""
-"String includes invalid character!\n"
-"Only ASCII is available."
+"The string contains an invalid character!\n"
+"Only ASCII is allowed."
 msgstr ""
-"La chaîne contient des caractères incorrects !\n"
+"La chaÃ®ne contient des caractÃ¨res incorrects !\n"
 "Seul l'ASCII est disponible."
 
 #: src/prefs_ui/prefs_ui_common.c:148 src/prefs_ui/prefs_ui_etc.c:180
 msgid "Sorry, cannot include \",\" character!"
-msgstr "Désolé, impossible d'inclure le caractère \",\" !"
+msgstr "DÃ©solÃ©, impossible d'inclure le caractÃ¨re \",\" !"
 
 #: src/prefs_ui/prefs_ui_common.c:155 src/prefs_ui/prefs_ui_etc.c:187
 msgid "Sorry, cannot include \";\" character!"
-msgstr "Désolé, imposible d'inclure le caractère \";\" !"
+msgstr "DÃ©solÃ©, imposible d'inclure le caractÃ¨re \";\" !"
 
 #: src/prefs_ui/prefs_ui_common.c:181 src/prefs_ui/prefs_ui_etc.c:400
 #, c-format
 msgid "\"%s\" is already defined."
-msgstr "\"%s\" est déjà défini."
+msgstr "\"%s\" est dÃ©jÃ  dÃ©fini."
 
 #: src/prefs_ui/prefs_ui_common.c:243 src/prefs_ui/prefs_ui_common.c:281
 #: src/prefs_ui/prefs_ui_common.c:775 src/prefs_ui/prefs_ui_etc.c:682
@@ -2470,64 +2439,64 @@ msgstr "Activer"
 #: src/prefs_ui/prefs_ui_common.c:243 src/prefs_ui/prefs_ui_common.c:284
 #: src/prefs_ui/prefs_ui_common.c:774 src/prefs_ui/prefs_ui_common.c:775
 msgid "Disable"
-msgstr "Désactiver"
+msgstr "DÃ©sactiver"
 
 #: src/prefs_ui/prefs_ui_common.c:244 src/prefs_ui/prefs_ui_common.c:427
 #: src/prefs_ui/prefs_ui_etc.c:261 src/prefs_ui/prefs_ui_etc.c:430
 msgid "System defined"
-msgstr "Défini par le système"
+msgstr "DÃ©fini par le systÃ¨me"
 
 #: src/prefs_ui/prefs_ui_common.c:288 src/prefs_ui/prefs_ui_common.c:430
 #: src/prefs_ui/prefs_ui_etc.c:259 src/prefs_ui/prefs_ui_etc.c:433
 msgid "User defined"
-msgstr "Défini par l'utilisateur"
+msgstr "DÃ©fini par l'utilisateur"
 
 #. *********************************************
 #. * Default Open Window Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:549
 msgid "Default Open Window"
-msgstr "Ouverture des fenêtres par défaut"
+msgstr "Ouverture des fenÃªtres par dÃ©faut"
 
 #. File Open Window Selection
 #: src/prefs_ui/prefs_ui_common.c:561
 msgid "File Open Window"
-msgstr "Ouverture de fenêtre Fichier"
+msgstr "Ouverture de fenÃªtre Fichier"
 
 #. Directory Open Window Selection
 #: src/prefs_ui/prefs_ui_common.c:573
 msgid "Directory Open Window"
-msgstr "Ouverture de fenêtre Répertoire"
+msgstr "Ouverture de fenÃªtre RÃ©pertoire"
 
 #. Archive Open Window Selection
 #: src/prefs_ui/prefs_ui_common.c:585
 msgid "Archive Open Window"
-msgstr "Ouverture de fenêtre Archive"
+msgstr "Ouverture de fenÃªtre Archive"
 
 #. *********************************************
 #. * Scan Directory Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:601
-msgid "Directory scan"
-msgstr "Examiner le répertoire"
+msgid "Directory Scan"
+msgstr "Examiner le rÃ©pertoire"
 
 #. Ignore filename extension or not
 #: src/prefs_ui/prefs_ui_common.c:604
 msgid "Scan directories recursively"
-msgstr "Examiner les répertoires récursivement"
+msgstr "Examiner les rÃ©pertoires rÃ©cursivement"
 
 #. follow symbolic link
 #: src/prefs_ui/prefs_ui_common.c:611
-msgid "Follow symbolic link"
+msgid "Follow symbolic links"
 msgstr "Suivre les liens symboliques"
 
 #: src/prefs_ui/prefs_ui_common.c:615
-msgid "Do not follow symbolic link"
+msgid "Do not follow symbolic links"
 msgstr "Ne pas suivre les liens symboliques"
 
 #: src/prefs_ui/prefs_ui_common.c:624
-msgid "Do not follow link to parent directory"
-msgstr "Ne pas suivre les liens vers le répertoire parent"
+msgid "Do not follow links to parent directories"
+msgstr "Ne pas suivre les liens vers le rÃ©pertoire parent"
 
 #. *********************************************
 #. * Image Frame
@@ -2539,29 +2508,34 @@ msgstr "Image"
 
 #: src/prefs_ui/prefs_ui_common.c:658
 msgid "Interpolation type for scaling"
-msgstr "Type d'interpolation pour la mise à l'échelle"
+msgstr "Type d'interpolation pour la mise Ã  l'Ã©chelle"
 
 #. *********************************************
 #. * Start up Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:669
-msgid "Start up"
-msgstr "Démarrage"
+msgid "Startup"
+msgstr "DÃ©marrage"
 
 #. Open thumbnail window or not
 #: src/prefs_ui/prefs_ui_common.c:672
 msgid "Open thumbnail window"
-msgstr "Ouvrir une fenêtre de vignettes"
+msgstr "Ouvrir une fenÃªtre de vignettes"
 
 #. Scan (or not) Directory
 #: src/prefs_ui/prefs_ui_common.c:679
-msgid "Ignore directory"
-msgstr "Ignorer le répertoire"
+msgid "Ignore directories given on the command line"
+msgstr "Ignorer le rÃ©pertoire"
 
 #. No warning
 #: src/prefs_ui/prefs_ui_common.c:686
 msgid "No warning"
 msgstr "Pas d'avertissement"
+
+#. Splash window
+#: src/prefs_ui/prefs_ui_common.c
+msgid "Show splash window"
+msgstr "Afficher la fenÃªtre de dÃ©marrage"
 
 #: src/prefs_ui/prefs_ui_common.c:710
 msgid "Extension"
@@ -2596,26 +2570,26 @@ msgstr "Nom du fichier : "
 #. Ignore filename extension or not
 #: src/prefs_ui/prefs_ui_common.c:801
 msgid "Read dotfiles"
-msgstr "Lire les fichiers cachés"
+msgstr "Lire les fichiers cachÃ©s"
 
 #. *********************************************
 #. * Common Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_common.c:838
 msgid "Common"
-msgstr "Général"
+msgstr "GÃ©nÃ©ral"
 
 #: src/prefs_ui/prefs_ui_common.c:849
 msgid "Locale character set: "
-msgstr "Jeu de caractères local : "
+msgstr "Jeu de caractÃ¨res local : "
 
 #: src/prefs_ui/prefs_ui_common.c:866
 msgid "Internal character set: "
-msgstr "Jeu de caractères interne : "
+msgstr "Jeu de caractÃ¨res interne : "
 
 #: src/prefs_ui/prefs_ui_common.c:882
 msgid "Language for auto detecting"
-msgstr "Langue pour l'auto-détection"
+msgstr "Langue pour l'auto-dÃ©tection"
 
 #. *********************************************
 #. * Filename Frame
@@ -2626,27 +2600,27 @@ msgstr "Nom du fichier"
 
 #: src/prefs_ui/prefs_ui_common.c:898
 msgid "Character set of file name"
-msgstr "Jeu de caractère pour le nom du fichier"
+msgstr "Jeu de caractÃ¨re pour le nom du fichier"
 
 #: src/prefs_ui/prefs_ui_etc.c:140
-msgid "Preference - Cache Writing -"
-msgstr "Préférence - Ecriture dans le cache -"
+msgid "Preferences - Cache Writing -"
+msgstr "PrÃ©fÃ©rence - Ecriture dans le cache -"
 
 #: src/prefs_ui/prefs_ui_etc.c:172
 msgid ""
-"Key string includes invalid character!\n"
-"Only ASCII (except space) is available."
+"The key string contains an invalid character!\n"
+"Only ASCII (except space) is allowed."
 msgstr ""
-"La clé contient un caractère incorrect !\n"
+"La clÃ© contient un caractÃ¨re incorrect !\n"
 "Seul l'ASCII (sauf l'espace) est disponible."
 
 #: src/prefs_ui/prefs_ui_etc.c:193
 msgid "\"Key name\" must be defined."
-msgstr "Le \"Nom de la clé\" doit être défini."
+msgstr "Le \"Nom de la clÃ©\" doit Ãªtre dÃ©fini."
 
 #: src/prefs_ui/prefs_ui_etc.c:199
 msgid "\"Display name\" must be defined."
-msgstr "Le \"Nom affiché\" doit être défini."
+msgstr "Le \"Nom affichÃ©\" doit Ãªtre dÃ©fini."
 
 #: src/prefs_ui/prefs_ui_etc.c:539
 msgid "Cache reading"
@@ -2658,7 +2632,7 @@ msgstr "Types de caches disponibles"
 
 #: src/prefs_ui/prefs_ui_etc.c:541
 msgid "Cache type to use"
-msgstr "Types de cache à utiliser"
+msgstr "Types de cache Ã  utiliser"
 
 #. *********************************************
 #. *  Cache writing frame
@@ -2668,16 +2642,16 @@ msgid "Cache writing"
 msgstr "Ecriture dans le cache"
 
 #: src/prefs_ui/prefs_ui_etc.c:562
-msgid "Cache type for save"
+msgid "Cache type for saving"
 msgstr "Types de cache pour l'enregistrement"
 
 #: src/prefs_ui/prefs_ui_etc.c:611
 msgid "Key Name"
-msgstr "Nom de la clé"
+msgstr "Nom de la clÃ©"
 
 #: src/prefs_ui/prefs_ui_etc.c:612
 msgid "Displayed Name"
-msgstr "Nom affiché"
+msgstr "Nom affichÃ©"
 
 #: src/prefs_ui/prefs_ui_etc.c:614 src/prefs_ui/prefs_ui_etc.c:690
 #: src/prefs_ui/prefs_ui_imagewin.c:315 src/prefs_ui/prefs_ui_thumbwin.c:536
@@ -2693,15 +2667,15 @@ msgstr "Afficher"
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:626
 msgid "Key Name Definition"
-msgstr "Définition du nom de la clé"
+msgstr "DÃ©finition du nom de la clÃ©"
 
 #: src/prefs_ui/prefs_ui_etc.c:650
 msgid "Key Name: "
-msgstr "Nom de la clé : "
+msgstr "Nom de la clÃ© : "
 
 #: src/prefs_ui/prefs_ui_etc.c:667
 msgid "Displayed Name: "
-msgstr "Nom affiché : "
+msgstr "Nom affichÃ© : "
 
 #: src/prefs_ui/prefs_ui_etc.c:683 src/prefs_ui/prefs_ui_etc.c:691
 #: src/prefs_ui/prefs_ui_etc.c:699 src/prefs_ui/prefs_ui_progs.c:66
@@ -2720,34 +2694,34 @@ msgstr "FAUX"
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:726
 msgid "Character set"
-msgstr "Jeu de caractères"
+msgstr "Jeu de caractÃ¨res"
 
 #: src/prefs_ui/prefs_ui_etc.c:732
 msgid "Character set: "
-msgstr "Jeu de caractères : "
+msgstr "Jeu de caractÃ¨res : "
 
 #. *********************************************
 #. *  Find duplicates
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:768
-msgid "Find duplicates"
+msgid "Find Duplicates"
 msgstr "Trouver les doublons"
 
 #: src/prefs_ui/prefs_ui_etc.c:775 src/gimv_dupl_win.c:122
 msgid "Accuracy"
-msgstr "Précision"
+msgstr "PrÃ©cision"
 
 #. *********************************************
 #. *  Behabior of selecting
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:790
-msgid "Behabior when select thumbnail on result window"
+msgid "Behavior when selecting a thumbnail in the result window"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_etc.c:797
 #, fuzzy
-msgid "Select the thumbnail on thumbnail view"
-msgstr "/Fenêtre des vignettes/Vue des vignettes"
+msgid "Select the thumbnail in the thumbnail view"
+msgstr "/FenÃªtre des vignettes/Vue des vignettes"
 
 #: src/prefs_ui/prefs_ui_etc.c:803
 #, fuzzy
@@ -2757,14 +2731,14 @@ msgstr "Afficher ce message"
 #: src/prefs_ui/prefs_ui_etc.c:809
 #, fuzzy
 msgid "Show the image in new window"
-msgstr "Afficher la barre de menu sur la fenêtre de visualisation de l'image"
+msgstr "Afficher la barre de menu sur la fenÃªtre de visualisation de l'image"
 
 #: src/prefs_ui/prefs_ui_etc.c:815
 #, fuzzy
 msgid "Show the image in shared window"
 msgstr ""
-"Restaurer la fenêtre lors de l'ouverture d'une image dans une fenêtre "
-"partagée"
+"Restaurer la fenÃªtre lors de l'ouverture d'une image dans une fenÃªtre "
+"partagÃ©e"
 
 #: src/prefs_ui/prefs_ui_etc.c:851
 msgid "Image change interval"
@@ -2776,8 +2750,8 @@ msgstr "[sec]"
 
 #. repeat
 #: src/prefs_ui/prefs_ui_etc.c:867
-msgid "Repeat slide show"
-msgstr "Répéter le diaporama"
+msgid "Repeat slideshow"
+msgstr "RÃ©pÃ©ter le diaporama"
 
 #. *********************************************
 #. * Show/Hide Frame
@@ -2814,7 +2788,7 @@ msgstr "Afficher la barre d'outils du lecteur"
 #. Show Statusbar or not
 #: src/prefs_ui/prefs_ui_etc.c:898
 msgid "Show statusbar"
-msgstr "Afficher la barre d'état"
+msgstr "Afficher la barre d'Ã©tat"
 
 #. Zoom menu
 #. Default zoom action menu
@@ -2834,15 +2808,10 @@ msgstr "Zoom"
 msgid "Rotation:"
 msgstr "Lieu"
 
-#. Keep Aspect Ratio
-#: src/prefs_ui/prefs_ui_etc.c:946
-msgid "Keep aspect rario"
-msgstr "Conserver les proportions"
-
 #: src/prefs_ui/prefs_ui_etc.c:956 src/prefs_ui/prefs_ui_imagewin.c:446
 #: src/prefs_ui/prefs_ui_thumbwin.c:1076
 msgid "Default Image Scale"
-msgstr "Echelle par défaut de l'image"
+msgstr "Echelle par dÃ©faut de l'image"
 
 #: src/prefs_ui/prefs_ui_etc.c:967 src/prefs_ui/prefs_ui_imagewin.c:457
 #: src/prefs_ui/prefs_ui_thumbwin.c:1086
@@ -2853,38 +2822,38 @@ msgstr "%"
 #. * Back Ground Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:977 src/prefs_ui/prefs_ui_imagewin.c:338
-msgid "Back Ground"
-msgstr "Arrière-plan"
+msgid "Background"
+msgstr "ArriÃ¨re-plan"
 
 #: src/prefs_ui/prefs_ui_etc.c:983
 msgid "Use specified color"
-msgstr "Utiliser les couleurs spécifiées"
+msgstr "Utiliser les couleurs spÃ©cifiÃ©es"
 
 #. *********************************************
 #. *  File Operation frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_etc.c:1019
 msgid "File operation"
-msgstr "Opération sur fichiers"
+msgstr "OpÃ©ration sur fichiers"
 
 #. Drag and Drop to external proccess
 #: src/prefs_ui/prefs_ui_etc.c:1022
-msgid "Enable DnD to external proccess (Experimental)"
+msgid "Enable DnD to external programs (experimental)"
 msgstr ""
-"Activer le Glisser/Déposer (DnD) vers les programmes externes (Expérimental)"
+"Activer le Glisser/DÃ©poser (DnD) vers les programmes externes (ExpÃ©rimental)"
 
 #. Drag and Drop from external proccess
 #: src/prefs_ui/prefs_ui_etc.c:1029
-msgid "Enable DnD from extenal proccess (Experimental)"
+msgid "Enable DnD from external programs (experimental)"
 msgstr ""
-"Activer le Glisser/Déposer (DnD) depuis les programmes externes "
-"(Expérimental)"
+"Activer le Glisser/DÃ©poser (DnD) depuis les programmes externes "
+"(ExpÃ©rimental)"
 
 #. Always refresh list when DnD end
 #: src/prefs_ui/prefs_ui_etc.c:1036
-msgid "Always refresh list when DnD end"
+msgid "Always refresh the list after DnD"
 msgstr ""
-"Toujours actualiser la liste quand le Glisser/Déposer (DnD) est terminé"
+"Toujours actualiser la liste quand le Glisser/DÃ©poser (DnD) est terminÃ©"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:63 src/prefs_ui/prefs_ui_imagewin.c:72
 msgid "Do not change"
@@ -2897,12 +2866,12 @@ msgstr ""
 #: src/prefs_ui/prefs_ui_imagewin.c:71
 #, fuzzy
 msgid "Default image scale"
-msgstr "Echelle par défaut de l'image"
+msgstr "Echelle par dÃ©faut de l'image"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:73
 #, fuzzy
 msgid "Fit image to window"
-msgstr "/Adapter à la _fenêtre"
+msgstr "/Adapter Ã Â la _fenÃªtre"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:74
 msgid "Fit image to window (zoom out only)"
@@ -2924,7 +2893,7 @@ msgstr "Image suivante"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:140 src/prefs_ui/prefs_ui_thumbwin.c:181
 msgid "Previous image"
-msgstr "Image précédente"
+msgstr "Image prÃ©cÃ©dente"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:141 src/prefs_ui/prefs_ui_thumbwin.c:155
 #: src/prefs_ui/prefs_ui_thumbwin.c:171 src/prefs_ui/prefs_ui_thumbwin.c:184
@@ -2944,40 +2913,40 @@ msgid "Rotate CW"
 msgstr "Rotation CW"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:147 src/prefs_ui/prefs_ui_thumbwin.c:190
-msgid "Open navigate window"
-msgstr "Ouvrir une fenêtre de navigation"
+msgid "Open the navigation window"
+msgstr "Ouvrir une fenÃªtre de navigation"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:148 src/prefs_ui/prefs_ui_thumbwin.c:191
 msgid "Scroll up"
-msgstr "Défiler vers le haut"
+msgstr "DÃ©filer vers le haut"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:149 src/prefs_ui/prefs_ui_thumbwin.c:192
 msgid "Scroll down"
-msgstr "Défiler vers le bas"
+msgstr "DÃ©filer vers le bas"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:150 src/prefs_ui/prefs_ui_thumbwin.c:193
 msgid "Scroll left"
-msgstr "Défiler vers la gauche"
+msgstr "DÃ©filer vers la gauche"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:151 src/prefs_ui/prefs_ui_thumbwin.c:194
 msgid "Scroll right"
-msgstr "Défiler vers la droite"
+msgstr "DÃ©filer vers la droite"
 
 #. *********************************************
 #. * Window Frame
 #. *********************************************
 #: src/prefs_ui/prefs_ui_imagewin.c:175 src/prefs_ui/prefs_ui_thumbwin.c:399
 msgid "Window"
-msgstr "Fenêtre"
+msgstr "FenÃªtre"
 
 #. Save window state on exit
 #: src/prefs_ui/prefs_ui_imagewin.c:178 src/prefs_ui/prefs_ui_thumbwin.c:402
 msgid "Save window state on exit"
-msgstr "Enregistrer l'état de la fenêtre en quittant"
+msgstr "Enregistrer l'Ã©tat de la fenÃªtre en quittant"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:189
 msgid "Initial window size: "
-msgstr "Taille initiale de la fenêtre : "
+msgstr "Taille initiale de la fenÃªtre : "
 
 #: src/prefs_ui/prefs_ui_imagewin.c:192 src/prefs_ui/prefs_ui_thumbwin.c:412
 msgid "width"
@@ -2990,19 +2959,19 @@ msgstr "hauteur"
 #. Auto resize window to image size
 #: src/prefs_ui/prefs_ui_imagewin.c:217
 msgid "Auto resize to image size"
-msgstr "Auto-ajuster à la taille de l'image"
+msgstr "Auto-ajuster Ã  la taille de l'image"
 
 #. Open New Window or not
 #: src/prefs_ui/prefs_ui_imagewin.c:224
 msgid "Open each file in separate window"
-msgstr "Ouvrir chaque fichier dans une fenêtre indépendante"
+msgstr "Ouvrir chaque fichier dans une fenÃªtre indÃ©pendante"
 
 #. Raise window or not
 #: src/prefs_ui/prefs_ui_imagewin.c:231
-msgid "Raise window when open image in shared window"
+msgid "Raise the window when opening an image in the shared window"
 msgstr ""
-"Restaurer la fenêtre lors de l'ouverture d'une image dans une fenêtre "
-"partagée"
+"Restaurer la fenÃªtre lors de l'ouverture d'une image dans une fenÃªtre "
+"partagÃ©e"
 
 #. Show Menubar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:255 src/prefs_ui/prefs_ui_thumbwin.c:484
@@ -3017,24 +2986,24 @@ msgstr "Barre d'outils"
 #. Show Player toolbar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:271
 #, fuzzy
-msgid "Slide show player"
+msgid "Slideshow player"
 msgstr "/Diaporama"
 
 #. Show Statusbar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:279 src/prefs_ui/prefs_ui_thumbwin.c:500
 msgid "Statusbar"
-msgstr "Barre d'état"
+msgstr "Barre d'Ã©tat"
 
 #. Show Scrollbar or not
 #: src/prefs_ui/prefs_ui_imagewin.c:287
 #, fuzzy
 msgid "Scrollbar"
-msgstr "Afficher la barre de défilement"
+msgstr "Afficher la barre de dÃ©filement"
 
 #. player
 #: src/prefs_ui/prefs_ui_imagewin.c:295 src/prefs_ui/prefs_ui_thumbwin.c:516
 #, fuzzy
-msgid "Player toolbar :"
+msgid "Player toolbar:"
 msgstr "Afficher la barre d'outils du lecteur"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:299 src/prefs_ui/prefs_ui_thumbwin.c:520
@@ -3048,23 +3017,18 @@ msgid "Hide"
 msgstr "Afficher/Cacher"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:345
-msgid "Specify back ground color"
-msgstr "Indiquer la couleur de l'arrière-plan"
+msgid "Specify the background color"
+msgstr "Indiquer la couleur de l'arriÃ¨re-plan"
 
 #: src/prefs_ui/prefs_ui_imagewin.c:360
-msgid "Specify back ground color of fullscreen"
-msgstr "Indiquer la couleur de l'arrière-plan en plein écran"
+msgid "Specify the background color in fullscreen"
+msgstr "Indiquer la couleur de l'arriÃ¨re-plan en plein Ã©cran"
 
 #. Keep Aspect Ratio
 #: src/prefs_ui/prefs_ui_imagewin.c:436 src/prefs_ui/prefs_ui_thumbwin.c:1066
 #, fuzzy
 msgid "Keep aspect ratio"
 msgstr "/G_arder les proportions"
-
-#. keep original image on memory or not
-#: src/prefs_ui/prefs_ui_imagewin.c:461 src/prefs_ui/prefs_ui_thumbwin.c:1098
-msgid "Keep original image on memory"
-msgstr "Conserver l'image originale en mémoire"
 
 #: src/prefs_ui/prefs_ui_movie.c:91
 msgid "Default view mode for movie and audio: "
@@ -3076,16 +3040,16 @@ msgstr ""
 
 #: src/prefs_ui/prefs_ui_plugin.c:70
 msgid "Directories list to search plugins"
-msgstr "Liste des répertoires dans lesquels chercher les greffons"
+msgstr "Liste des rÃ©pertoires dans lesquels chercher les greffons"
 
 #: src/prefs_ui/prefs_ui_plugin.c:71
 msgid "Select plugin directory"
-msgstr "Sélectionner un répertoire de greffon"
+msgstr "SÃ©lectionner un rÃ©pertoire de greffon"
 
 #: src/prefs_ui/prefs_ui_plugin.c:75
 #, fuzzy
 msgid "Use default directories list to search plugins"
-msgstr "Liste des répertoires dans lesquels chercher les greffons"
+msgstr "Liste des rÃ©pertoires dans lesquels chercher les greffons"
 
 #: src/prefs_ui/prefs_ui_plugin.c:104
 msgid "Plugin Name"
@@ -3123,12 +3087,12 @@ msgstr "Greffons de cache des vignettes"
 
 #: src/prefs_ui/prefs_ui_plugin.c:249
 #, fuzzy
-msgid "Image View Embeder Plugins"
+msgid "Image View Embedder Plugins"
 msgstr "Greffons d'enregistrement des fichiers"
 
 #: src/prefs_ui/prefs_ui_plugin.c:255
 #, fuzzy
-msgid "Thumbnail View Embeder Plugins"
+msgid "Thumbnail View Embedder Plugins"
 msgstr "Greffons d'enregistrement des fichiers"
 
 #: src/prefs_ui/prefs_ui_progs.c:192
@@ -3180,21 +3144,21 @@ msgstr "Utiliser le visualiseur interne"
 
 #: src/prefs_ui/prefs_ui_progs.c:334
 msgid "Directories list to search scripts"
-msgstr "Liste des répertoires dans lesquels chercher les scripts"
+msgstr "Liste des rÃ©pertoires dans lesquels chercher les scripts"
 
 #: src/prefs_ui/prefs_ui_progs.c:335
 msgid "Select scripts directory"
-msgstr "Sélectionner le répertoire des scripts"
+msgstr "SÃ©lectionner le rÃ©pertoire des scripts"
 
 #: src/prefs_ui/prefs_ui_progs.c:339
 #, fuzzy
 msgid "Use default directories list to search scripts"
-msgstr "Liste des répertoires dans lesquels chercher les greffons"
+msgstr "Liste des rÃ©pertoires dans lesquels chercher les greffons"
 
 #. Show dialog
 #: src/prefs_ui/prefs_ui_progs.c:348
-msgid "Show dialog befor execute script"
-msgstr "Afficher le dialogue avant d'exécuter le script"
+msgid "Show a dialog before executing a script"
+msgstr "Afficher le dialogue avant d'exÃ©cuter le script"
 
 #. *********************************************
 #. * Thumbnail Album Frame
@@ -3235,11 +3199,11 @@ msgstr "Disposition 4"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:111
 msgid "Custom"
-msgstr "Personnalisé"
+msgstr "PersonnalisÃ©"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:117 src/gimv_dupl_win.c:288
 msgid "Icon"
-msgstr "Icône"
+msgstr "IcÃ´ne"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:118
 msgid "Text"
@@ -3263,7 +3227,7 @@ msgstr "Solide"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:137
 msgid "Dotted"
-msgstr "Caché"
+msgstr "CachÃ©"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:138
 msgid "Tabbed"
@@ -3271,7 +3235,7 @@ msgstr "Onglet"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:145
 msgid "Square"
-msgstr "Carré"
+msgstr "CarrÃ©"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:146
 msgid "Triangle"
@@ -3283,7 +3247,7 @@ msgstr "Circulaire"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:156
 msgid "Open (Auto select window)"
-msgstr "Ouvrir (Auto-sélectionner la fenêtre)"
+msgstr "Ouvrir (Auto-sÃ©lectionner la fenÃªtre)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:157
 msgid "Open (Auto & Force)"
@@ -3291,23 +3255,23 @@ msgstr "Ouvrir (Auto & Forcer)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:158
 msgid "Open in preview"
-msgstr "Ouvrir en aperçu"
+msgstr "Ouvrir en aperÃ§u"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:159
 msgid "Open in preview (Force)"
-msgstr "Ouvrir en aperçu (Forcer)"
+msgstr "Ouvrir en aperÃ§u (Forcer)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:160 src/prefs_ui/prefs_ui_thumbwin.c:183
 msgid "Open in new window"
-msgstr "Ouvrir dans une nouvelle fenêtre"
+msgstr "Ouvrir dans une nouvelle fenÃªtre"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:161 src/prefs_ui/prefs_ui_thumbwin.c:182
 msgid "Open in shared window"
-msgstr "Ouvrir dans une fenêtre partagée"
+msgstr "Ouvrir dans une fenÃªtre partagÃ©e"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:162
 msgid "Open in shared window (Force)"
-msgstr "Ouvrir dans une fenêtre partagée (Forcer)"
+msgstr "Ouvrir dans une fenÃªtre partagÃ©e (Forcer)"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:169
 msgid "Load thumbnails"
@@ -3315,32 +3279,32 @@ msgstr "Charger les vignettes"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:170
 msgid "Load thumbnails recursively"
-msgstr "Charger récursivement les vignettes"
+msgstr "Charger rÃ©cursivement les vignettes"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:172
 #, fuzzy
 msgid "Change top directory"
-msgstr "Modifier le répertoire racine"
+msgstr "Modifier le rÃ©pertoire racine"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:173
 #, fuzzy
 msgid "Load recursively in a tab"
-msgstr "/Charger ré_cursivement les vignettes"
+msgstr "/Charger rÃ©_cursivement les vignettes"
 
 #. Toolbar Style
 #: src/prefs_ui/prefs_ui_thumbwin.c:435
 msgid "Default Layout"
-msgstr "Disposition par défaut"
+msgstr "Disposition par dÃ©faut"
 
 #. Show Directory or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:460
 msgid "Directory view"
-msgstr "Vue du répertoire"
+msgstr "Vue du rÃ©pertoire"
 
 #. Show Preview Tab or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:476
 msgid "Preview Tab"
-msgstr "Onglet d'aperçu"
+msgstr "Onglet d'aperÃ§u"
 
 #. Show Tab or not
 #. *********************************************
@@ -3353,7 +3317,7 @@ msgstr "Onglet"
 #. Raise window or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:557
 msgid "Raise window when opening thumbnails"
-msgstr "Restaurer la fenêtre lors de l'ouverture des vignettes"
+msgstr "Restaurer la fenÃªtre lors de l'ouverture des vignettes"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:570
 msgid "Toolbar Style"
@@ -3367,7 +3331,7 @@ msgstr "Chargement"
 #: src/prefs_ui/prefs_ui_thumbwin.c:587
 msgid "GUI redraw interval while loading: Every"
 msgstr ""
-"Intervalle de rafraîchissement de l'interface (GUI) pendant le chargement : "
+"Intervalle de rafraÃ®chissement de l'interface (GUI) pendant le chargement : "
 "Tous les"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:598
@@ -3377,11 +3341,11 @@ msgstr "fichiers"
 #. show detail of progress
 #: src/prefs_ui/prefs_ui_thumbwin.c:602
 msgid "Show detail of loading progress"
-msgstr "Montrer les détails du chargement"
+msgstr "Montrer les dÃ©tails du chargement"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:627
 msgid "Not implemented yet."
-msgstr "Pas encore implémenté."
+msgstr "Pas encore implÃ©mentÃ©."
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:665
 msgid "Tab Position"
@@ -3390,7 +3354,7 @@ msgstr "Position de l'onglet"
 #. Move to new tab automatically or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:678
 msgid "Move to new tab automatically"
-msgstr "Se déplacer vers le nouvel onglet automatiquement"
+msgstr "Se dÃ©placer vers le nouvel onglet automatiquement"
 
 #. show tab close button
 #: src/prefs_ui/prefs_ui_thumbwin.c:685
@@ -3404,10 +3368,10 @@ msgstr "Afficher le chemin complet"
 
 #. force open tab
 #: src/prefs_ui/prefs_ui_thumbwin.c:705
-msgid "Open new tab whether image is exist or not in the directory"
+msgid "Open a new tab even if the directory has no images"
 msgstr ""
-"Afficher dans un nouvel onglet même si l'image existe ou pas dans le "
-"répertoire"
+"Afficher dans un nouvel onglet mÃªme si l'image existe ou pas dans le "
+"rÃ©pertoire"
 
 #. show archive
 #: src/prefs_ui/prefs_ui_thumbwin.c:753
@@ -3416,29 +3380,25 @@ msgstr "Archive"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:766
 msgid "Default display mode"
-msgstr "Mode d'affichage par défaut"
-
-#: src/prefs_ui/prefs_ui_thumbwin.c:782
-msgid "Thumnail Size"
-msgstr "Taille des vignettes"
+msgstr "Mode d'affichage par dÃ©faut"
 
 #. show/hide dot file
 #: src/prefs_ui/prefs_ui_thumbwin.c:858
-msgid "Show dot file"
-msgstr "Afficher les fichiers cachés"
+msgid "Show dotfiles"
+msgstr "Afficher les fichiers cachÃ©s"
 
 #. show/hide dot file
 #: src/prefs_ui/prefs_ui_thumbwin.c:865
-msgid "Show \".\" directory whether hide dotfile or not."
+msgid "Show the \".\" directory even when dotfiles are hidden"
 msgstr ""
-"Afficher le répertoire \".\" même si les fichiers cachés ne sont pas affichés"
+"Afficher le rÃ©pertoire \".\" mÃªme si les fichiers cachÃ©s ne sont pas affichÃ©s"
 
 #. show/hide dot file
 #: src/prefs_ui/prefs_ui_thumbwin.c:872
-msgid "Show \"..\" directory whether hide dotfile or not."
+msgid "Show the \"..\" directory even when dotfiles are hidden"
 msgstr ""
-"Afficher le répertoire \"..\" même si les fichiers cachés ne sont pas "
-"affichés"
+"Afficher le rÃ©pertoire \"..\" mÃªme si les fichiers cachÃ©s ne sont pas "
+"affichÃ©s"
 
 #. *********************************************
 #. * Style Frame
@@ -3460,16 +3420,16 @@ msgstr "Style de noeud dans l'arborescence"
 #. *********************************************
 #: src/prefs_ui/prefs_ui_thumbwin.c:919
 msgid "Drag and Drop"
-msgstr "Glisser/Déposer (DnD)"
+msgstr "Glisser/DÃ©poser (DnD)"
 
 #. auto scroll
 #: src/prefs_ui/prefs_ui_thumbwin.c:922
 msgid "Enable auto scroll."
-msgstr "Activer l'auto-défilement"
+msgstr "Activer l'auto-dÃ©filement"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:932
 msgid "Auto scroll interval"
-msgstr "Intervalle d'auto-défilement"
+msgstr "Intervalle d'auto-dÃ©filement"
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:944 src/prefs_ui/prefs_ui_thumbwin.c:970
 msgid "[ms]"
@@ -3478,7 +3438,7 @@ msgstr "[ms]"
 #. auto expand
 #: src/prefs_ui/prefs_ui_thumbwin.c:948
 msgid "Enable auto expand directory tree."
-msgstr "Activer l'auto-expansion de l'arborescence des répertoires."
+msgstr "Activer l'auto-expansion de l'arborescence des rÃ©pertoires."
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:958
 msgid "Lag time for auto expand"
@@ -3487,7 +3447,7 @@ msgstr "Temps de latence pour l'auto-expansion"
 #. Show Scrollbar or not
 #: src/prefs_ui/prefs_ui_thumbwin.c:1090
 msgid "Show scrollbar"
-msgstr "Afficher la barre de défilement"
+msgstr "Afficher la barre de dÃ©filement"
 
 #: src/gimv_dupl_win.c:121 src/thumbnail_view_album.c:790
 #: plugins/thumbnail_view/detailview.c:121
@@ -3500,13 +3460,13 @@ msgstr "Taille (octets)"
 
 #. window
 #: src/gimv_dupl_win.c:181
-msgid "Find Duplicates - result"
-msgstr "Trouver les doublons - résultat"
+msgid "Find Duplicates - Results"
+msgstr "Trouver les doublons - rÃ©sultat"
 
 #. Select All
 #: src/gimv_dupl_win.c:297
 msgid "Select All"
-msgstr "Tout sélectionner"
+msgstr "Tout sÃ©lectionner"
 
 #: src/gimv_dupl_win.c:409
 msgid "Finding similar images..."
@@ -3531,11 +3491,11 @@ msgstr "/_Ouvrir"
 
 #: src/gimv_thumb_view.c:181
 msgid "/Open in New _Window"
-msgstr "/Ouvir dans une nouvelle fenêtre"
+msgstr "/Ouvir dans une nouvelle fenÃªtre"
 
 #: src/gimv_thumb_view.c:182
 msgid "/Open in S_hared Window"
-msgstr "/Ouvrir dans une fenêtre partagée"
+msgstr "/Ouvrir dans une fenÃªtre partagÃ©e"
 
 #: src/gimv_thumb_view.c:183
 msgid "/Open in E_xternal Program"
@@ -3556,7 +3516,7 @@ msgstr "/Supprimer de la liste"
 #: src/gimv_thumb_view.c:191
 #, fuzzy
 msgid "/Scan E_XIF Data..."
-msgstr "/Examiner les données _EXIF..."
+msgstr "/Examiner les donnÃ©es _EXIF..."
 
 #: src/gimv_thumb_view.c:193
 #, fuzzy
@@ -3573,19 +3533,19 @@ msgstr "/_Copier les fichiers vers..."
 
 #: src/gimv_thumb_view.c:197
 msgid "/_Move Files To..."
-msgstr "/Déplacer les fichiers vers..."
+msgstr "/DÃ©placer les fichiers vers..."
 
 #: src/gimv_thumb_view.c:198
 msgid "/_Link Files To..."
 msgstr "/_Lier les fichiers vers..."
 
 #: src/gimv_thumb_view.c:199
-msgid "/_Remove file..."
+msgid "/_Remove Files..."
 msgstr "/Supp_rimer le fichier..."
 
 #: src/gimv_thumb_view.c:478
 msgid "Execute command"
-msgstr "Exécuter une commande"
+msgstr "ExÃ©cuter une commande"
 
 #: src/gimv_thumb_view.c:479 src/gimv_thumb_view.c:548
 msgid "Please enter options:"
@@ -3593,14 +3553,14 @@ msgstr "Veuillez entrer les options :"
 
 #: src/gimv_thumb_view.c:547
 msgid "Execute script"
-msgstr "Exécuter le script"
+msgstr "ExÃ©cuter le script"
 
 #: src/gimv_thumb_view.c:1016
-msgid "No files specified!!"
-msgstr "Pas de fichier spécifié !!"
+msgid "No files specified!"
+msgstr "Pas de fichier spÃ©cifiÃ© !!"
 
 #: src/gimv_thumb_view.c:2378
-msgid "Rename a file"
+msgid "Rename a File"
 msgstr "Renommer un fichier"
 
 #: src/gimv_thumb_view.c:2379
@@ -3610,7 +3570,7 @@ msgstr "Nom du nouveau fichier :"
 #: src/gimv_thumb_view.c:2407
 #, c-format
 msgid ""
-"File exist : %s\n"
+"File exists: %s\n"
 "\n"
 "Overwrite?"
 msgstr ""
@@ -3621,7 +3581,7 @@ msgstr ""
 #: src/gimv_thumb_view.c:2429
 #, c-format
 msgid ""
-"Faild to rename file :\n"
+"Failed to rename file:\n"
 "%s"
 msgstr ""
 "N'a pas pu renommer le fichier :\n"
@@ -3629,12 +3589,12 @@ msgstr ""
 
 #: src/gimv_thumb_view.c:2448
 #, c-format
-msgid "Faild to rename cache file :%s\n"
+msgid "Failed to rename cache file: %s\n"
 msgstr "N'a pas pu renommer le fichier cache : %s\n"
 
 #: src/gimv_thumb_view.c:2458
 #, c-format
-msgid "Faild to rename comment file :%s\n"
+msgid "Failed to rename comment file: %s\n"
 msgstr "N'a pas pu renommer le fichier de commentaire : %s\n"
 
 #: src/gimv_thumb_view.c:3659 src/gimv_thumb_view.c:3735
@@ -3657,12 +3617,12 @@ msgstr ""
 
 #: src/thumbnail_view_album.c:716
 #, c-format
-msgid "Name : %s"
+msgid "Name: %s"
 msgstr "Nom : %s"
 
 #: src/thumbnail_view_album.c:735
 #, c-format
-msgid "Size : %s bytes"
+msgid "Size: %s bytes"
 msgstr "Taille : %s octets"
 
 #: src/thumbnail_view_album.c:737
@@ -3671,7 +3631,7 @@ msgid "%s bytes"
 msgstr "%s octets"
 
 #: src/thumbnail_view_album.c:753
-msgid "Time : "
+msgid "Time: "
 msgstr "Heure : "
 
 #: src/thumbnail_view_album.c:772
@@ -3732,7 +3692,7 @@ msgstr ""
 #: plugins/image_loader/bmp.c:115
 #, fuzzy
 msgid "Windows Bitmap Image"
-msgstr "Ajuster la taille de la fenêtre à l'image"
+msgstr "Ajuster la taille de la fenÃªtre Ã Â l'image"
 
 #: plugins/image_loader/bmp.c:128
 msgid "Windows Bitmap Image Loader"
@@ -3863,16 +3823,16 @@ msgstr "/Greffon/Greffon susie/Archiveur"
 
 #: plugins/image_loader/prefs_spi.c:192
 msgid "Directories list to search susie plugins"
-msgstr "Liste des répertoires dans lesquels chercher les greffons"
+msgstr "Liste des rÃ©pertoires dans lesquels chercher les greffons"
 
 #: plugins/image_loader/prefs_spi.c:193
 msgid "Select susie plugin directory"
-msgstr "Sélectionner le répertoire de greffon susie"
+msgstr "SÃ©lectionner le rÃ©pertoire de greffon susie"
 
 #: plugins/image_loader/prefs_spi.c:197
 #, fuzzy
 msgid "Use default directories list to search susie plugins"
-msgstr "Liste des répertoires dans lesquels chercher les greffons"
+msgstr "Liste des rÃ©pertoires dans lesquels chercher les greffons"
 
 #: plugins/image_loader/prefs_spi.c:225
 msgid "File Name"
@@ -3919,7 +3879,7 @@ msgstr "/Greffon/Enregistrement des images"
 
 #: plugins/image_loader/xvpics.c:48
 #, fuzzy
-msgid "XV thumbnail Image Loader"
+msgid "XV Thumbnail Image Loader"
 msgstr "Support des vignettes XV"
 
 #: plugins/image_saver/png_saver.c:47
@@ -3943,25 +3903,25 @@ msgid "Movie Player (MPlayer)"
 msgstr "/Lecteur"
 
 #: plugins/image_view/image_view_mplayer.c:238
-msgid "MPlayer Embeder & Movie Frame Loader"
+msgid "MPlayer Embedder & Movie Frame Loader"
 msgstr ""
 
 #: plugins/image_view/image_view_xine.c:102
 #, fuzzy
 msgid "Movie Player (Xine)"
-msgstr "/Déplacer"
+msgstr "/DÃ©placer"
 
 #: plugins/image_view/image_view_xine.c:263
-msgid "Xine Embeder & Movie Frame Loader"
+msgid "Xine Embedder & Movie Frame Loader"
 msgstr ""
 
 #: plugins/image_view/image_view_xine.c:725
 msgid "Please stop first."
-msgstr "Veuillez d'abord arrêter la lecture."
+msgstr "Veuillez d'abord arrÃªter la lecture."
 
 #: plugins/image_view/image_view_xine.c:737
 msgid "No available plugin found."
-msgstr "Aucun greffon disponible trouvé."
+msgstr "Aucun greffon disponible trouvÃ©."
 
 #: plugins/image_view/image_view_xine.c:742
 msgid "Available plugins"
@@ -3974,7 +3934,7 @@ msgstr "Greffon :"
 #: plugins/image_view/image_view_xine.c:763
 #, fuzzy
 msgid "No available MRL found."
-msgstr "Aucun greffon disponible trouvé."
+msgstr "Aucun greffon disponible trouvÃ©."
 
 #: plugins/image_view/prefs_mplayer.c:69
 #, fuzzy
@@ -3992,24 +3952,24 @@ msgstr "Archive"
 #. video driver combo
 #: plugins/image_view/prefs_mplayer.c:264 plugins/image_view/prefs_xine.c:187
 #: plugins/image_view/prefs_xine.c:215
-msgid "Video driver : "
+msgid "Video driver: "
 msgstr ""
 
 #. audio driver combo
 #: plugins/image_view/prefs_mplayer.c:282 plugins/image_view/prefs_xine.c:197
 #: plugins/image_view/prefs_xine.c:233
-msgid "Audio driver : "
+msgid "Audio driver: "
 msgstr ""
 
 #. use this feature or not
 #: plugins/image_view/prefs_mplayer.c:306
 #, fuzzy
 msgid "Enable creating thumbnail of movie using MPlayer"
-msgstr "Arrêter la création des vignettes"
+msgstr "ArrÃªter la crÃ©ation des vignettes"
 
 #: plugins/image_view/prefs_mplayer.c:318 plugins/image_view/prefs_xine.c:273
 #, fuzzy
-msgid "Stream position : "
+msgid "Stream position: "
 msgstr "Composition %d"
 
 #: plugins/image_view/prefs_mplayer.c:332 plugins/image_view/prefs_xine.c:287
@@ -4019,7 +3979,7 @@ msgstr ""
 #: plugins/image_view/prefs_xine.c:45
 #, fuzzy
 msgid "/Movie and Audio/Xine"
-msgstr "/Déplacer"
+msgstr "/DÃ©placer"
 
 #. *********************************************
 #. * Driver Frame
@@ -4027,18 +3987,18 @@ msgstr "/Déplacer"
 #: plugins/image_view/prefs_xine.c:177
 #, fuzzy
 msgid "Driver (Not implemented yet)"
-msgstr "Pas encore implémenté."
+msgstr "Pas encore implÃ©mentÃ©."
 
 #. use this feature or not
 #: plugins/image_view/prefs_xine.c:260
 #, fuzzy
 msgid "Enable creating thumbnail of movie using Xine"
-msgstr "Arrêter la création des vignettes"
+msgstr "ArrÃªter la crÃ©ation des vignettes"
 
 #: plugins/image_view/prefs_xine.c:297
 #, fuzzy
-msgid "Delay time to create thumbnail from starting play : "
-msgstr "Arrêter la création des vignettes"
+msgid "Delay before creating a thumbnail after playback starts: "
+msgstr "ArrÃªter la crÃ©ation des vignettes"
 
 #: plugins/io_stream/gimv_bz_io.c:57
 msgid "BZIP2 Compressed Stream Support"
@@ -4050,11 +4010,11 @@ msgstr ""
 
 #: plugins/thumbnail/ee.c:83
 msgid "Electric Eyes (Preview)"
-msgstr "Electric Eyes (Aperçu)"
+msgstr "Electric Eyes (AperÃ§u)"
 
 #: plugins/thumbnail/ee.c:89
 msgid "Electric Eyes (Icon)"
-msgstr "Electric Eyes (Icônes)"
+msgstr "Electric Eyes (IcÃ´nes)"
 
 #: plugins/thumbnail/ee.c:95
 msgid "Electric Eyes (Mini)"
@@ -4075,15 +4035,15 @@ msgid "GImageView thumbnail support"
 msgstr "Support des vignettes GImageView"
 
 #: plugins/thumbnail/gimv_thumb.c:247
-msgid "image size invalid\n"
+msgid "Invalid image size\n"
 msgstr "taille de l'image invalide\n"
 
 #: plugins/thumbnail/gimv_thumb.c:254
-msgid "cache size invalid\n"
+msgid "Invalid cache size\n"
 msgstr "taille du cache invalide\n"
 
 #: plugins/thumbnail/gimv_thumb.c:380
-msgid "GImageVIew thumbnail size"
+msgid "GImageView thumbnail size"
 msgstr "Taille des vignettes GImageView"
 
 #: plugins/thumbnail/gqview.c:93
@@ -4111,8 +4071,8 @@ msgid "Konqueror old (Small)"
 msgstr "Ancien Konqueror (Petit)"
 
 #: plugins/thumbnail/konqueror-old.c:103
-msgid "Konqueror(KDE2.1.x or belower) thumbnail support"
-msgstr "Support des vignettes Konqueror (KDE 2.1.x ou précédent)"
+msgid "Konqueror (KDE 2.1.x or earlier) thumbnail support"
+msgstr "Support des vignettes Konqueror (KDE 2.1.x ou prÃ©cÃ©dent)"
 
 #: plugins/thumbnail/konqueror.c:81
 #, fuzzy
@@ -4131,8 +4091,8 @@ msgstr "Ancien Konqueror (Petit)"
 
 #: plugins/thumbnail/konqueror.c:106
 #, fuzzy
-msgid "Konqueror(KDE2.2 or higher) thumbnail support"
-msgstr "Support des vignettes Konqueror (KDE 2.1.x ou précédent)"
+msgid "Konqueror (KDE 2.2 or later) thumbnail support"
+msgstr "Support des vignettes Konqueror (KDE 2.1.x ou prÃ©cÃ©dent)"
 
 #: plugins/thumbnail/nautilus.c:65
 msgid "Nautilus"
@@ -4162,15 +4122,15 @@ msgstr "Support des vignettes XV"
 
 #: plugins/thumbnail_view/detailview.c:41
 msgid "Detail"
-msgstr "Détail"
+msgstr "DÃ©tail"
 
 #: plugins/thumbnail_view/detailview.c:57
 msgid "Detail + Icon"
-msgstr "Détail + Icône"
+msgstr "DÃ©tail + IcÃ´ne"
 
 #: plugins/thumbnail_view/detailview.c:73
 msgid "Detail + Thumbnail"
-msgstr "Détail + Vignette"
+msgstr "DÃ©tail + Vignette"
 
 #: plugins/thumbnail_view/detailview.c:94
 #, fuzzy
@@ -4183,7 +4143,7 @@ msgstr "Type de cache"
 
 #: plugins/thumbnail_view/detailview.c:125
 msgid "Access time"
-msgstr "Heure d'accès"
+msgstr "Heure d'accÃ¨s"
 
 #: plugins/thumbnail_view/detailview.c:126
 msgid "Modification time"
@@ -4210,12 +4170,12 @@ msgid "Image size"
 msgstr "Taille de l'image"
 
 #: plugins/thumbnail_view/detailview.c:335
-msgid "Unknwon"
+msgid "Unknown"
 msgstr "Inconnu"
 
 #: plugins/thumbnail_view/detailview_prefs.c:56
 msgid "/Thumbnail Window/Thumbnail View/Detail View"
-msgstr "Fenêtre des vignettes/Vue des vignettes/Voir les détails"
+msgstr "/FenÃªtre des vignettes/Vue des vignettes/Voir les dÃ©tails"
 
 #: plugins/thumbnail_view/detailview_prefs.c:108
 msgid "Column Order"
@@ -4227,7 +4187,7 @@ msgstr "Colonnes possibles"
 
 #: plugins/thumbnail_view/detailview_prefs.c:110
 msgid "Displayed columns"
-msgstr "Colonnes affichées"
+msgstr "Colonnes affichÃ©es"
 
 #. show/hide column title
 #: plugins/thumbnail_view/detailview_prefs.c:121
@@ -4255,25 +4215,25 @@ msgid "Delete"
 msgstr "Supprimer"
 
 #~ msgid "/Rotate -90 deg"
-#~ msgstr "/Rotation de -90 degrés"
+#~ msgstr "/Rotation de -90 degrÃ©s"
 
 #, fuzzy
 #~ msgid "Default Zoom: "
-#~ msgstr "Disposition par défaut"
+#~ msgstr "Disposition par dÃ©faut"
 
 #, fuzzy
 #~ msgid "Default Rotation: "
-#~ msgstr "Disposition par défaut"
+#~ msgstr "Disposition par dÃ©faut"
 
 #~ msgid "Auto resize to window size"
-#~ msgstr "Auto-ajuster à la taille de la fenêtre"
+#~ msgstr "Auto-ajuster Ã  la taille de la fenÃªtre"
 
 #~ msgid "Auto resize to window size when opening"
-#~ msgstr "Auto-ajuster à la taille de la fenêtre pendant l'ouverture"
+#~ msgstr "Auto-ajuster Ã  la taille de la fenÃªtre pendant l'ouverture"
 
 #~ msgid "Auto resize to frame size when open image"
 #~ msgstr ""
-#~ "Ajuster automatiquement à la taille du cadre lors de l'ouverture d'une "
+#~ "Ajuster automatiquement Ã  la taille du cadre lors de l'ouverture d'une "
 #~ "image"
 
 #~ msgid "/_File/_New Collection"
@@ -4284,7 +4244,7 @@ msgstr "Supprimer"
 
 #, fuzzy
 #~ msgid "Thumbnail View Thumbnail Mode"
-#~ msgstr "/Fenêtre des vignettes/Vue des vignettes"
+#~ msgstr "/FenÃªtre des vignettes/Vue des vignettes"
 
 #~ msgid ""
 #~ "File not exist!!:\n"
@@ -4297,7 +4257,7 @@ msgstr "Supprimer"
 #~ "Permission denied!!:\n"
 #~ "%s"
 #~ msgstr ""
-#~ "Permission non accordée !! :\n"
+#~ "Permission non accordÃ©e !! :\n"
 #~ "%s"
 
 #~ msgid ""
@@ -4311,7 +4271,7 @@ msgstr "Supprimer"
 #~ msgstr "Impossible de renommer !!"
 
 #~ msgid "List (Icon)"
-#~ msgstr "Liste (Icônes)"
+#~ msgstr "Liste (IcÃ´nes)"
 
 #~ msgid "List (Thumbnail)"
 #~ msgstr "Liste (Vignettes)"
@@ -4321,19 +4281,19 @@ msgstr "Supprimer"
 #~ msgstr "Vue vignettes"
 
 #~ msgid "/Thumbnail Window/Thumbnail View/List View"
-#~ msgstr "Fenêtre des vignettes/Vue des vignettes/Voir la liste"
+#~ msgstr "FenÃªtre des vignettes/Vue des vignettes/Voir la liste"
 
 #~ msgid "Data Order on List View (Thumbnail)"
-#~ msgstr "Ordre des données en vue liste (Vignettes)"
+#~ msgstr "Ordre des donnÃ©es en vue liste (Vignettes)"
 
 #~ msgid "Possible data"
-#~ msgstr "Données possibles"
+#~ msgstr "DonnÃ©es possibles"
 
 #~ msgid "Displayed data"
-#~ msgstr "Données affichées"
+#~ msgstr "DonnÃ©es affichÃ©es"
 
 #~ msgid "/Thumbnail Window/Thumbnail View/Thumbnail Table"
-#~ msgstr "/Fenêtre des vignettes/Vue des vignettes/Tableau des vignettes"
+#~ msgstr "/FenÃªtre des vignettes/Vue des vignettes/Tableau des vignettes"
 
 #~ msgid "Thumbnail Table"
 #~ msgstr "Tableau des vignettes"
@@ -4366,7 +4326,7 @@ msgstr "Supprimer"
 #~ msgstr "GPS IFD"
 
 #~ msgid "Interoperability"
-#~ msgstr "Interopérabilité"
+#~ msgstr "InteropÃ©rabilitÃ©"
 
 #~ msgid "Clear"
 #~ msgstr "Effacer"
@@ -4376,7 +4336,7 @@ msgstr "Supprimer"
 
 #, fuzzy
 #~ msgid "/Movie"
-#~ msgstr "/Déplacer"
+#~ msgstr "/DÃ©placer"
 
 #~ msgid "Image Types"
 #~ msgstr "Types d'images"
@@ -4389,7 +4349,7 @@ msgstr "Supprimer"
 
 #, fuzzy
 #~ msgid "List2 (Icon)"
-#~ msgstr "Liste (Icônes)"
+#~ msgstr "Liste (IcÃ´nes)"
 
 #, fuzzy
 #~ msgid "List2 (Thumbnail)"
@@ -4397,7 +4357,7 @@ msgstr "Supprimer"
 
 #, fuzzy
 #~ msgid "/_Focus"
-#~ msgstr "/A_perçu"
+#~ msgstr "/A_perÃ§u"
 
 #~ msgid "/_View modes/_Image"
 #~ msgstr "/Mode de _visualisation/_Image"
