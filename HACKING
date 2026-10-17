@@ -167,6 +167,7 @@ Susie plugin support.
   XCFLoader:        Image format of GIMP.
   XPM:              XPM (GTK 4 port).
   XVPICSLoader:     XV thumbnail image.
+  ZIM:              ZIM of Z's STAFF KID98 (GTK 4 port).
 
 
 * Image Saver

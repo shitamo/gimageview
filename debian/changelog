@@ -6,7 +6,7 @@ gimageview (0.2.27+gtk4) unstable; urgency=medium
     MD5 code (the system libexif and GLib are used).
   * New GStreamer movie plugin (playback in the image view, movie
     thumbnails); archives are read with libarchive.
-  * New loaders for Sun raster, WBMP, PNM and XPM; formats of the
+  * New loaders for Sun raster, WBMP, PNM, XPM and ZIM (KID98); formats of the
     installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...).
   * Printing, Set as Wallpaper, remembered rotation of each image,
     checkerboard behind transparency, comments in the thumbnail view.

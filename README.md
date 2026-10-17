@@ -24,7 +24,7 @@ Main additions (see `NEWS` for all changes):
 
 * Archives are read with libarchive (no external programs).
 
-* New loaders for Sun raster, WBMP, PNM and XPM; WebP, AVIF, HEIF, JPEG XL and other formats are read when their gdk-pixbuf loaders are installed.
+* New loaders for Sun raster, WBMP, PNM, XPM and ZIM (KID98, PC-9801); WebP, AVIF, HEIF, JPEG XL and other formats are read when their gdk-pixbuf loaders are installed.
 
 * Printing, setting an image as the desktop wallpaper, and remembering the rotation of each image.
 
@@ -83,7 +83,7 @@ GImageView has following features:
 
   * JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (own loaders)
 
-  * PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP (own loaders, GTK 4 port)
+  * PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM (own loaders, GTK 4 port)
 
   * SVG (librsvg is required)
 

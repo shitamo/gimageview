@@ -53,6 +53,7 @@ plugins/image_loader/pnm.c
 plugins/image_loader/pixbuf_loader.c
 plugins/image_loader/png_loader.c
 plugins/image_loader/xpm.c
+plugins/image_loader/zim.c
 plugins/image_loader/wbmp.c
 plugins/image_loader/ras.c
 plugins/image_loader/svg.c

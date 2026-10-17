@@ -18,7 +18,7 @@
 
   o GStreamer による動画・音声の再生と，動画のサムネイル作成．
   o アーカイブを libarchive で読み込み (外部コマンドは使いません)．
-  o Sun raster，WBMP，PNM，XPM の読み込み処理を追加．WebP，AVIF，HEIF，
+  o Sun raster，WBMP，PNM，XPM，ZIM (KID98) の読み込み処理を追加．WebP，AVIF，HEIF，
     JPEG XL などは，対応する gdk-pixbuf の読み込み部品がインストールされて
     いれば読めます．
   o 印刷，画像をデスクトップの壁紙に設定，画像ごとの回転の記憶．
@@ -75,7 +75,7 @@ GImage Viewは，以下のような特徴を持っています．
  o 以下の画像形式に対応しています．
 
    JPEG，PNG，BMP，PCX，TGA，MAG，XBM，XCF，xvpics (独自のローダ)
-   PNM (PBM・PGM・PPM)，XPM，Sun raster，WBMP (独自のローダ．GTK 4 版で追加)
+   PNM (PBM・PGM・PPM)，XPM，Sun raster，WBMP，ZIM (独自のローダ．GTK 4 版で追加)
    SVG (librsvg使用時)
    MNG (libmng使用時)
    WMF (libwmf使用時)

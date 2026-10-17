@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GImageView\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 06:32+0900\n"
+"POT-Creation-Date: 2026-10-17 17:48+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -288,23 +288,23 @@ msgstr ""
 msgid "Cannot load this archive file.\n"
 msgstr ""
 
-#: src/fileload.c:937
+#: src/fileload.c:963
 msgid "No file name specified!\n"
 msgstr ""
 
-#: src/fileload.c:959
+#: src/fileload.c:985
 msgid "Not an image file (or an unsupported format)!\n"
 msgstr ""
 
-#: src/fileload.c:1032
+#: src/fileload.c:1058
 msgid "Load file(s)"
 msgstr ""
 
-#: src/fileload.c:1064
+#: src/fileload.c:1090
 msgid "Open selected files"
 msgstr ""
 
-#: src/fileload.c:1067
+#: src/fileload.c:1093
 msgid "Thumbnails of the selected files"
 msgstr ""
 
@@ -3336,8 +3336,9 @@ msgid "Archive support (libarchive)"
 msgstr ""
 
 #: plugins/archiver/libarchive-ext.c:123 plugins/image_loader/pnm.c:95
-#: plugins/image_loader/xpm.c:75 plugins/image_loader/wbmp.c:73
-#: plugins/image_loader/ras.c:94 plugins/image_view/image_view_gst.c:262
+#: plugins/image_loader/xpm.c:75 plugins/image_loader/zim.c:91
+#: plugins/image_loader/wbmp.c:73 plugins/image_loader/ras.c:94
+#: plugins/image_view/image_view_gst.c:262
 msgid "shitamo"
 msgstr ""
 
@@ -3483,6 +3484,18 @@ msgstr ""
 
 #: plugins/image_loader/xpm.c:76
 msgid "X PixMap (XPM3) images"
+msgstr ""
+
+#: plugins/image_loader/zim.c:76
+msgid "The ZIM image format (KID98)"
+msgstr ""
+
+#: plugins/image_loader/zim.c:89
+msgid "ZIM Image Loader"
+msgstr ""
+
+#: plugins/image_loader/zim.c:92
+msgid "ZIM images of Z's STAFF KID98 (PC-9801)"
 msgstr ""
 
 #: plugins/image_loader/wbmp.c:71

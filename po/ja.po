@@ -4117,6 +4117,15 @@ msgstr "WBMP 画像 (タイプ 0)"
 msgid "X PixMap (XPM3) images"
 msgstr "X PixMap (XPM3) 画像"
 
+msgid "The ZIM image format (KID98)"
+msgstr "ZIM 画像形式 (KID98)"
+
+msgid "ZIM Image Loader"
+msgstr "ZIM画像ローダ"
+
+msgid "ZIM images of Z's STAFF KID98 (PC-9801)"
+msgstr "Z's STAFF KID98 (PC-9801) の ZIM 画像"
+
 msgid "Formats of the installed gdk-pixbuf loaders"
 msgstr "インストールされている gdk-pixbuf ローダの形式"
 
