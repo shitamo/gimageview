@@ -10,6 +10,7 @@ msgstr ""
 "PO-Revision-Date: 2004-12-28 13:27+0900\n"
 "Last-Translator: Takuro Ashie <ashie@homa.ne.jp>\n"
 "Language-Team: Japanese <ashie@homa.ne.jp>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1959,7 +1960,7 @@ msgstr "他のタブでロード中..."
 #: src/gimv_thumb_win.c:3597
 #, c-format
 msgid "%d/%d page  %d/%d files  %ld/%ld kB"
-msgstr "%d/%d page  %d/%d files  %d/%d kB"
+msgstr "%d/%d page  %d/%d files  %ld/%ld kB"
 
 #: src/gimv_thumb_win.c:3830
 msgid "New Tab"
