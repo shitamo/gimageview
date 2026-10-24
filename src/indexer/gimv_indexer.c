@@ -223,11 +223,11 @@ maybe_commit (Indexer *ix, gboolean force)
 
 
 /*
- * Dates before 1990 or in the future are not used (a camera with its clock
- * not set, a number in a file name that only looks like a date).  The
- * future starts one day from now, for the time zones.
+ * Dates in the future are not used (a camera with its clock set wrong, a
+ * number in a file name that only looks like a date).  The future starts
+ * one day from now, for the time zones.  Old dates are fine: an old photo
+ * scanned may well carry the date it was taken.
  */
-#define DATE_MIN "1990-01-01 00:00:00"
 static gchar date_max[20] = "9999-12-31 23:59:59";
 
 static void
@@ -247,7 +247,7 @@ update_date_max (void)
 static gboolean
 date_in_range (const gchar *date)
 {
-   return date && strcmp (date, DATE_MIN) >= 0 && strcmp (date, date_max) <= 0;
+   return date && strcmp (date, date_max) <= 0;
 }
 
 
@@ -617,7 +617,7 @@ run_stage1 (Indexer *ix)
 static gboolean
 valid_date (gint y, gint mo, gint d, gint h, gint mi, gint sec)
 {
-   return y >= 1990 && y <= 9999
+   return y >= 1 && y <= 9999
       && g_date_valid_dmy (d, mo, y)
       && h >= 0 && h < 24 && mi >= 0 && mi < 60 && sec >= 0 && sec < 61;
 }
@@ -710,13 +710,10 @@ run_stage2 (Indexer *ix)
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
    update_date_max ();
    {
-      /* dates out of range written by an older indexer: look at them
-       * again (files without any usable date keep date NULL and are not
-       * read again on every start) */
-      sqlite3_stmt *st = prep (ix, "UPDATE files SET stage = 1 WHERE "
-                                   "date IS NOT NULL AND (date < ?1 OR date > ?2)");
-      sqlite3_bind_text (st, 1, DATE_MIN, -1, SQLITE_STATIC);
-      sqlite3_bind_text (st, 2, date_max, -1, SQLITE_STATIC);
+      /* future dates written before (or by an older indexer): look at
+       * them again */
+      sqlite3_stmt *st = prep (ix, "UPDATE files SET stage = 1 WHERE date > ?1");
+      sqlite3_bind_text (st, 1, date_max, -1, SQLITE_STATIC);
       sqlite3_step (st);
       sqlite3_finalize (st);
    }
@@ -838,6 +835,20 @@ open_db (Indexer *ix, const gchar *dbfile)
    ix->st_file_list = prep (ix, "SELECT name FROM files WHERE dir_id = ?");
    ix->st_file_del  = prep (ix, "DELETE FROM files WHERE dir_id = ? AND name = ?");
    ix->st_sub_list  = prep (ix, "SELECT path FROM dirs WHERE parent = ?");
+
+   /* the rules for dates changed once (9802e3e dropped dates before 1990):
+    * read the files left without a date again, one time */
+   exec (ix, "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)");
+   {
+      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'date_rule'");
+      gboolean current = sqlite3_step (st) == SQLITE_ROW
+         && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "2");
+      sqlite3_finalize (st);
+      if (!current) {
+         exec (ix, "UPDATE files SET stage = 1 WHERE date IS NULL");
+         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('date_rule', '2')");
+      }
+   }
 
    return TRUE;
 }
