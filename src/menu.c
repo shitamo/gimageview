@@ -1538,6 +1538,22 @@ menu_create_items (GtkWidget *window, GimvMenuEntry *entries, guint n_entries,
 }
 
 
+/* NULL without a warning when the menu has no such item */
+GimvMenuItem *
+gimv_menu_find_item (GtkWidget *widget, const gchar *path)
+{
+   GimvMenu *menu = gimv_menu_get (widget);
+   GimvMenuItem *item;
+   gchar *norm;
+
+   if (!menu) return NULL;
+   norm = normalize_path (path);
+   item = g_hash_table_lookup (menu->items, norm);
+   g_free (norm);
+   return item;
+}
+
+
 GimvMenuItem *
 gimv_menu_get_item (GtkWidget *widget, const gchar *path)
 {

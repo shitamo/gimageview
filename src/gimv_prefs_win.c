@@ -88,7 +88,7 @@ static GimvPrefsWinPage prefs_pages[] = {
    {N_("/Movie and Audio"),            0, NULL, NULL, prefs_movie_page,               prefs_movie_apply},
 
    {N_("/Slideshow"),                 0, NULL, NULL, prefs_slideshow_page,           NULL},
-   {N_("/Thumbnail Cache"),            0, NULL, NULL, prefs_cache_page,               NULL},
+   {N_("/Thumbnail Cache"),            0, NULL, NULL, prefs_cache_page,               prefs_cache_apply},
    {N_("/Comment"),                    0, NULL, NULL, prefs_comment_page,             prefs_comment_apply},
 #ifdef ENABLE_INDEX
    {N_("/Index"),                      0, NULL, NULL, prefs_ui_index,                 prefs_ui_index_apply},

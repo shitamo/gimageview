@@ -111,6 +111,10 @@ GtkWidget *gimv_thumb_cache_get_load_prefs    (const gchar   *type,
 GtkWidget *gimv_thumb_cache_get_save_prefs    (const gchar   *type,
                                                gpointer       data);
 
+/* the cache writing type is "none" (or not set): thumbnails are made each
+   time they are shown and not kept */
+gboolean   gimv_thumb_cache_write_disabled    (void);
+
 GList     *gimv_thumb_cache_get_loader_list   (void);
 GList     *gimv_thumb_cache_get_saver_list    (void);
 

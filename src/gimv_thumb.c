@@ -466,8 +466,7 @@ gimv_thumb_load (GimvThumb    *thumb,
       return FALSE;
 
    /* create cache if not exist */
-   if (!thumb->thumbnail
-       && conf.cache_write_type && conf.cache_write_type[0] != '\0')
+   if (!thumb->thumbnail && !gimv_thumb_cache_write_disabled ())
    {
       create_thumbnail (thumb, thumb_size,
                         conf.cache_write_type, TRUE);

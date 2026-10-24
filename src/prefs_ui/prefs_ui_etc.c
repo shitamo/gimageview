@@ -32,6 +32,7 @@
 #include "gtkutils.h"
 #include "menu.h"
 #include "prefs.h"
+#include "gimv_image_win.h"
 #include "prefs_ui_etc.h"
 #include "gimv_prefs_ui_utils.h"
 #include "gimv_prefs_win.h"
@@ -572,7 +573,7 @@ prefs_cache_page (void)
 
    /* Cache write type menu */
    list = node = gimv_thumb_cache_get_saver_list ();
-   /* list = node = g_list_prepend (list, "NONE"); */
+   /* the first is "NONE": do not keep thumbnails */
 
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
@@ -587,8 +588,9 @@ prefs_cache_page (void)
       for (i = 0; node; i++, node = g_list_next (node)) {
          gchar *text = node->data;
 
-         if (!strcmp(text, conf.cache_write_type)) item = i;
-         items_i18n[i] = _(text);
+         if (conf.cache_write_type && !g_ascii_strcasecmp (text, conf.cache_write_type))
+            item = i;
+         items_i18n[i] = !g_ascii_strcasecmp (text, "none") ? _("None (do not save)") : _(text);
          labels[i] = g_strdup (text);
       }
       option_menu = prefs_win.cache_write_type
@@ -1064,5 +1066,17 @@ gboolean
 prefs_comment_apply (GimvPrefsWinAction action)
 {
    gimv_comment_update_data_entry_list ();
+   return FALSE;
+}
+
+
+gboolean
+prefs_cache_apply (GimvPrefsWinAction action)
+{
+   GList *node;
+
+   /* conf has the values to use here */
+   for (node = gimv_image_win_get_list (); node; node = g_list_next (node))
+      gimv_image_win_update_cache_menu (node->data);
    return FALSE;
 }

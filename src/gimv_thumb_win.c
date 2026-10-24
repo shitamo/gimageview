@@ -51,6 +51,7 @@
 #include "menu.h"
 #include "gimv_print.h"
 #include "prefs.h"
+#include "gimv_thumb_cache.h"
 #ifdef ENABLE_INDEX
 #include "gimv_index.h"
 #include "gimv_index_view.h"
@@ -1223,7 +1224,8 @@ cb_tool_submenu_show (GtkWidget *widget, GimvThumbWin *tw)
    /* menuitem1 = gimv_menu_get_item (ifactory, "/Tool/Clear cache for this tab"); */
    menuitem2 = gimv_menu_get_item (ifactory, "/Tools/Clear All Caches");
 
-   if (!gimv_thumb_cache_can_clear (NULL, conf.cache_write_type))
+   if (gimv_thumb_cache_write_disabled ()
+       || !gimv_thumb_cache_can_clear (NULL, conf.cache_write_type))
        gimv_menu_item_set_sensitive (menuitem2, FALSE);
 
    /*
@@ -2968,6 +2970,8 @@ static void
 cb_clear_cache (GimvThumbWin *tw, CacheClearType type, GimvMenuItem *widget)
 {
    const gchar *path;
+
+   if (gimv_thumb_cache_write_disabled ()) return;
 
    switch (type) {
    case CLEAR_CACHE_TAB:

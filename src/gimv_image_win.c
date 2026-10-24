@@ -40,6 +40,7 @@
 #include "menu.h"
 #include "gimv_print.h"
 #include "prefs.h"
+#include "gimv_thumb_cache.h"
 
 #ifdef ENABLE_EXIF
 #   include "exif_view.h"
@@ -743,6 +744,7 @@ create_imageview_menus (GimvImageWin *iw)
                    NULL);
 
    menu_check_item_set_active (iw->menubar, "/File/Memory Buffer", keep_buffer);
+   gimv_image_win_update_cache_menu (iw);
 
    menu_check_item_set_active (iw->view_menu, "/Menubar",
                                iw->priv->flags & GimvImageWinShowMenuBarFlag);
@@ -1496,6 +1498,17 @@ cb_exif (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
                                GTK_WINDOW (iw));
 }
 #endif /* ENABLE_EXIF */
+
+
+/* "Create Thumbnail" is not used when the cache writing type is "none" */
+void
+gimv_image_win_update_cache_menu (GimvImageWin *iw)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
+   if (iw->menubar)
+      menu_item_set_sensitive (iw->menubar, "/Edit/Create Thumbnail",
+                               !gimv_thumb_cache_write_disabled ());
+}
 
 
 static void

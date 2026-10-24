@@ -130,6 +130,7 @@ GimvImageWin *gimv_image_win_open_shared_window        (GimvImageInfo *info);
 GimvImageWin *gimv_image_win_open_window_auto          (GimvImageInfo *info);
 
 GList        *gimv_image_win_get_list                  (void);
+void          gimv_image_win_update_cache_menu         (GimvImageWin *iw);
 GimvImageWin *gimv_image_win_get_shared_window         (void);
 
 void          gimv_image_win_player_set_sensitive_all  (GimvImageWin  *iw,

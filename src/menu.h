@@ -127,6 +127,8 @@ GtkWidget    *menu_create_items              (GtkWidget     *window,
 /* path based access */
 GimvMenuItem *gimv_menu_get_item             (GtkWidget    *menu,
                                               const gchar  *path);
+GimvMenuItem *gimv_menu_find_item            (GtkWidget    *menu,
+                                              const gchar  *path);
 void          menu_item_set_sensitive        (GtkWidget    *menu,
                                               const gchar  *path,
                                               gboolean      sensitive);

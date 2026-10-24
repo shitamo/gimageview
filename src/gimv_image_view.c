@@ -44,6 +44,7 @@
 #include "menu.h"
 #include "gimv_print.h"
 #include "prefs.h"
+#include "gimv_thumb_cache.h"
 
 #ifdef ENABLE_EXIF
 
@@ -2418,6 +2419,7 @@ gimv_image_view_create_thumbnail (GimvImageView *iv)
 
    if (!iv->info) return;
    if (iv->info->flags & GIMV_IMAGE_INFO_MRL_FLAG) return;   /* Dose it need? */
+   if (gimv_thumb_cache_write_disabled ()) return;           /* not kept */
 
    if (!iv->draw_area_funcs) return;
    if (!iv->draw_area_funcs->create_thumbnail_fn) return;
@@ -2985,6 +2987,12 @@ gimv_image_view_popup_menu (GimvImageView *iv, GimvEventButton *event)
       y = event->y;
    }
 
+   if (iv->imageview_popup) {
+      /* not in the menu an image window puts here */
+      GimvMenuItem *item = gimv_menu_find_item (iv->imageview_popup, "/Create Thumbnail");
+      if (item)
+         gimv_menu_item_set_sensitive (item, !gimv_thumb_cache_write_disabled ());
+   }
    if (iv->imageview_popup)
       gimv_menu_popup (iv->imageview_popup,
                        iv->draw_area ? iv->draw_area : GTK_WIDGET (iv),

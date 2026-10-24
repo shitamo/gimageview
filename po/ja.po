@@ -5295,3 +5295,7 @@ msgstr "ログから外す"
 #: plugins/thumbnail/freedesktop.c
 msgid "freedesktop.org thumbnail support (~/.cache/thumbnails)"
 msgstr "freedesktop.org 形式のサムネイル (~/.cache/thumbnails)"
+
+#: src/prefs_ui/prefs_ui_etc.c
+msgid "None (do not save)"
+msgstr "なし (保存しない)"

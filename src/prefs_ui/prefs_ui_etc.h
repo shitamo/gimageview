@@ -35,5 +35,6 @@ GtkWidget *prefs_progs_page     (void);
 GtkWidget *prefs_scripts_page   (void);
 
 gboolean  prefs_comment_apply   (GimvPrefsWinAction action);
+gboolean  prefs_cache_apply     (GimvPrefsWinAction action);
 
 #endif /* __PREFS_UI_ETC_H__ */

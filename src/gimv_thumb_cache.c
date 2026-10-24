@@ -355,3 +355,11 @@ gimv_thumb_cache_get_saver_list (void)
 
    return list;
 }
+
+
+gboolean
+gimv_thumb_cache_write_disabled (void)
+{
+   return !conf.cache_write_type || !*conf.cache_write_type
+          || !g_ascii_strcasecmp (conf.cache_write_type, "none");
+}
