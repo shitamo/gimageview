@@ -92,10 +92,23 @@ struct GimvThumbViewPriv_Tag
     * views must not walk the list for every one of them */
    GPtrArray           *index_array;   /* position -> GimvThumb */
    GHashTable          *index_table;   /* GimvThumb -> position + 1 */
+
+   /* windowed: only the thumbnails near the visible part are loaded, the
+    * ones far from it are dropped (large collections from the image
+    * index) */
+   gboolean             windowed;
+   ThumbLoadType        load_type;
+   GHashTable          *loaded;        /* GimvThumb (loaded) */
+   guint                window_timeout;
+   guint                window_idle;
+   gint                 win_first, win_last, win_lo, win_hi, win_step;
 };
 
 
 static void gimv_thumb_view_destroy    (GimvObject     *object);
+static void window_request             (GimvThumbView  *tv,
+                                        guint           delay_ms);
+static void window_stop                (GimvThumbView  *tv);
 
 
 /* callback functions */
@@ -821,7 +834,10 @@ cb_thumbview_scrollbar_value_changed (GtkWidget *widget,
 {
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
-   gimv_thumb_view_reset_load_priority (tv);
+   if (tv->priv && tv->priv->windowed)
+      window_request (tv, 80);
+   else
+      gimv_thumb_view_reset_load_priority (tv);
 }
 
 
@@ -1586,6 +1602,195 @@ gimv_thumb_view_get_nth_thumb (GimvThumbView *tv, gint pos)
    build_index (tv);
    if ((guint) pos >= tv->priv->index_array->len) return NULL;
    return g_ptr_array_index (tv->priv->index_array, pos);
+}
+
+
+/******************************************************************************
+ *  windowed loading
+ ******************************************************************************/
+
+/* time a loading idle call may take before the main loop runs again */
+#define WINDOW_SLICE_USEC  (15 * 1000)
+/* the thumbnails kept around the visible part, in visible parts */
+#define WINDOW_LOAD_PAGES  1
+#define WINDOW_KEEP_PAGES  3
+#define WINDOW_MIN_CELLS   30
+
+static gboolean window_idle_load (gpointer data);
+
+static void
+window_mark_loaded (GimvThumbView *tv, GimvThumb *thumb)
+{
+   if (!tv->priv->loaded)
+      tv->priv->loaded = g_hash_table_new (g_direct_hash, g_direct_equal);
+   g_hash_table_add (tv->priv->loaded, thumb);
+}
+
+
+static void
+window_stop (GimvThumbView *tv)
+{
+   if (!tv->priv) return;
+   if (tv->priv->window_timeout) {
+      g_source_remove (tv->priv->window_timeout);
+      tv->priv->window_timeout = 0;
+   }
+   if (tv->priv->window_idle) {
+      g_source_remove (tv->priv->window_idle);
+      tv->priv->window_idle = 0;
+   }
+   if (tv->priv->loaded)
+      g_hash_table_remove_all (tv->priv->loaded);
+}
+
+
+/* work out the visible part and what to keep, drop the far thumbnails and
+ * start loading the near ones */
+static gboolean
+window_compute (gpointer data)
+{
+   GimvThumbView *tv = data;
+   GimvThumbViewPriv *priv = tv->priv;
+   gint n, i, first = -1, last = -1, page, keep_lo, keep_hi;
+
+   priv->window_timeout = 0;
+   if (!tv->vfuncs || !tv->thumblist) return G_SOURCE_REMOVE;
+
+   build_index (tv);
+   n = priv->index_array->len;
+
+   /* the visible cells are one run of positions */
+   if (tv->vfuncs->is_in_view) {
+      for (i = 0; i < n; i++) {
+         gboolean in = tv->vfuncs->is_in_view (tv, g_ptr_array_index (priv->index_array, i));
+         if (in) {
+            if (first < 0) first = i;
+            last = i;
+         } else if (first >= 0) {
+            break;
+         }
+      }
+   }
+   if (first < 0) {
+      /* not shown yet */
+      first = 0;
+      last = MIN (n, WINDOW_MIN_CELLS) - 1;
+   }
+
+   page = MAX (last - first + 1, WINDOW_MIN_CELLS);
+   priv->win_first = first;
+   priv->win_last  = last;
+   priv->win_lo    = MAX (0, first - WINDOW_LOAD_PAGES * page);
+   priv->win_hi    = MIN (n - 1, last + WINDOW_LOAD_PAGES * page);
+   priv->win_step  = 0;
+   keep_lo = MAX (0, first - WINDOW_KEEP_PAGES * page);
+   keep_hi = MIN (n - 1, last + WINDOW_KEEP_PAGES * page);
+
+   /* drop the far ones */
+   if (priv->loaded) {
+      GHashTableIter it;
+      gpointer key;
+      GList *drop = NULL, *node;
+
+      g_hash_table_iter_init (&it, priv->loaded);
+      while (g_hash_table_iter_next (&it, &key, NULL)) {
+         gint pos = gimv_thumb_view_get_thumb_index (tv, key);
+         if (pos < keep_lo || pos > keep_hi) {
+            drop = g_list_prepend (drop, key);
+            g_hash_table_iter_remove (&it);
+         }
+      }
+      for (node = drop; node; node = g_list_next (node)) {
+         gimv_thumb_unload (node->data);
+         if (tv->vfuncs->update_thumb)
+            tv->vfuncs->update_thumb (tv, node->data, tv->summary_mode);
+      }
+      g_list_free (drop);
+   }
+
+   if (!priv->window_idle)
+      priv->window_idle = g_idle_add (window_idle_load, tv);
+
+   return G_SOURCE_REMOVE;
+}
+
+
+/* the visible ones first (first .. last), then below (.. hi), then above
+ * (first - 1 .. lo) */
+static gint
+window_nth_position (GimvThumbViewPriv *priv, gint step)
+{
+   gint below = priv->win_hi - priv->win_first + 1;
+
+   if (step < below)
+      return priv->win_first + step;
+   step -= below;
+   if (step < priv->win_first - priv->win_lo)
+      return priv->win_first - 1 - step;
+   return -1;
+}
+
+
+static gboolean
+window_idle_load (gpointer data)
+{
+   GimvThumbView *tv = data;
+   GimvThumbViewPriv *priv = tv->priv;
+   gint64 start = g_get_monotonic_time ();
+
+   while (g_get_monotonic_time () - start < WINDOW_SLICE_USEC) {
+      gint pos = window_nth_position (priv, priv->win_step);
+      GimvThumb *thumb;
+
+      if (pos < 0) {
+         priv->window_idle = 0;
+         return G_SOURCE_REMOVE;
+      }
+      priv->win_step++;
+
+      thumb = gimv_thumb_view_get_nth_thumb (tv, pos);
+      if (!thumb || gimv_thumb_is_loaded (thumb)) {
+         if (thumb) window_mark_loaded (tv, thumb);
+         continue;
+      }
+      gimv_thumb_load (thumb, tv->thumb_size, priv->load_type);
+      window_mark_loaded (tv, thumb);
+      if (tv->vfuncs && tv->vfuncs->update_thumb)
+         tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
+   }
+   return G_SOURCE_CONTINUE;
+}
+
+
+/* after a scroll (delay_ms > 0) or a new list (0) */
+static void
+window_request (GimvThumbView *tv, guint delay_ms)
+{
+   if (!tv->priv || !tv->priv->windowed) return;
+   if (tv->priv->window_timeout)
+      g_source_remove (tv->priv->window_timeout);
+   tv->priv->window_timeout = delay_ms
+      ? g_timeout_add (delay_ms, window_compute, tv)
+      : g_idle_add (window_compute, tv);
+}
+
+
+/* windowed: load only the thumbnails near the visible part and drop the
+ * far ones, so that a collection of tens of thousands of images neither
+ * keeps gimv busy loading nor holds every thumbnail in memory */
+void
+gimv_thumb_view_set_windowed (GimvThumbView *tv, gboolean windowed)
+{
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   tv->priv->windowed = windowed;
+}
+
+
+gboolean
+gimv_thumb_view_is_windowed (GimvThumbView *tv)
+{
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
+   return tv->priv && tv->priv->windowed;
 }
 
 
@@ -2980,6 +3185,14 @@ gimv_thumb_view_load_thumbnails (GimvThumbView *tv, GList *loadlist,
 
    g_return_val_if_fail (tv->vfuncs, FALSE);
 
+   if (tv->priv->windowed) {
+      /* nothing is loaded here: the window loads what is near the
+       * visible part while gimv stays free */
+      tv->priv->load_type = files->thumb_load_type;
+      window_request (tv, 0);
+      return TRUE;
+   }
+
    /* load thumbnail!! */
    tv->load_list = g_list_copy (loadlist);
    gimv_thumb_view_reset_load_priority (tv);
@@ -3086,6 +3299,8 @@ gimv_thumb_view_clear (GimvThumbView *tv)
 
    if (tv->vfuncs->freeze)
       tv->vfuncs->freeze (tv);
+
+   window_stop (tv);
 
    /* from the last one, without changing thumblist on the way: the views
     * find a thumbnail by its position, and the list is dropped at once
@@ -4001,6 +4216,8 @@ gimv_thumb_view_destroy (GimvObject *object)
       tv->priv->related_dupl_win = NULL;
 
       thumblist_changed (tv);
+      window_stop (tv);
+      if (tv->priv->loaded) g_hash_table_unref (tv->priv->loaded);
       g_free (tv->priv);
       tv->priv = NULL;
    }

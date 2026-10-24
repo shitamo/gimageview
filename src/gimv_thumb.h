@@ -76,6 +76,8 @@ gboolean       gimv_thumb_load                 (GimvThumb      *thumb,
                                                 ThumbLoadType   type);
 gboolean       gimv_thumb_is_loading           (GimvThumb      *thumb);
 void           gimv_thumb_load_stop            (GimvThumb      *thumb);
+void           gimv_thumb_unload               (GimvThumb      *thumb);
+gboolean       gimv_thumb_is_loaded            (GimvThumb      *thumb);
 
 void           gimv_thumb_get_thumb            (GimvThumb      *thumb,
                                                 GdkTexture     **pixmap,

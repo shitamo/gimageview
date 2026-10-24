@@ -377,6 +377,27 @@ gimv_thumb_new (GimvImageInfo *info)
 }
 
 
+/* drop the thumbnail and the icon (they are made again by gimv_thumb_load) */
+void
+gimv_thumb_unload (GimvThumb *thumb)
+{
+   g_return_if_fail (GIMV_IS_THUMB (thumb));
+
+   g_clear_object (&thumb->thumbnail);
+   g_clear_object (&thumb->thumbnail_mask);
+   g_clear_object (&thumb->icon);
+   g_clear_object (&thumb->icon_mask);
+}
+
+
+gboolean
+gimv_thumb_is_loaded (GimvThumb *thumb)
+{
+   g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
+   return thumb->thumbnail || thumb->icon;
+}
+
+
 gboolean
 gimv_thumb_load (GimvThumb    *thumb,
                 gint          thumb_size,

@@ -459,8 +459,14 @@ thumbalbum_update_thumbnail (GimvThumbView *tv, GimvThumb *thumb,
    } else {
       gimv_thumb_get_thumb (thumb, &pixmap, &mask);
    }
-   if (pixmap)
+   if (pixmap) {
       gimv_zalbum_set_pixmap (GIMV_ZALBUM (tv_data->album), pos, pixmap, mask);
+   } else if (pos >= 0) {
+      /* the thumbnail was dropped (far from the visible part of a large
+       * collection): drop the cell's reference too */
+      gimv_zalbum_set_pixmap (GIMV_ZALBUM (tv_data->album), pos, NULL, NULL);
+      gimv_zlist_draw_cell (GIMV_ZLIST (tv_data->album), pos);
+   }
 }
 
 
@@ -482,10 +488,10 @@ thumbalbum_get_load_list (GimvThumbView *tv)
          gimv_thumb_get_thumb (thumb, &pixmap, &mask);
       }
       if (!pixmap)
-         loadlist = g_list_append (loadlist, thumb);
+         loadlist = g_list_prepend (loadlist, thumb);
    }
 
-   return loadlist;
+   return g_list_reverse (loadlist);
 }
 
 

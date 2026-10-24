@@ -509,6 +509,9 @@ open_files (IndexView *iv, OpenRequest *req, GList *filelist)
          set_result_tab (iv, tv);
    }
    g_object_set_data (G_OBJECT (tv), NAME_ONLY_KEY, GINT_TO_POINTER (TRUE));
+   /* tens of thousands of images: keep only the thumbnails near the
+    * visible part */
+   gimv_thumb_view_set_windowed (tv, TRUE);
    show_page (iv->tw, tv->container);
 
    title = g_strdup_printf (req->type == GIMV_INDEX_TAB_TAG ? _("%s (Tag)")

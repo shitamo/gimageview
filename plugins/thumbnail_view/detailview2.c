@@ -810,7 +810,10 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
 
    /* GTK4 port: the text columns are also synced without a pixmap (plain
       "Detail" mode), e.g. after a comment was saved */
-   if (pixmap)
+   if (pixmap
+       || !strcmp (DETAIL_ICON_LABEL, dest_mode)
+       || !strcmp (DETAIL_THUMB_LABEL, dest_mode))
+      /* NULL: the thumbnail was dropped (large collection) */
       gtk_list_store_set (GTK_LIST_STORE (model), &iter,
                           COLUMN_PIXMAP,   pixmap,
                           COLUMN_MASK,     mask,
@@ -857,10 +860,10 @@ detailview_get_load_list (GimvThumbView *tv)
 
       gimv_thumb_get_thumb (thumb, &pixmap, &mask);
       if (!pixmap)
-         loadlist = g_list_append (loadlist, thumb);
+         loadlist = g_list_prepend (loadlist, thumb);
    }
 
-   return loadlist;
+   return g_list_reverse (loadlist);
 }
 
 

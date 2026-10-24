@@ -202,6 +202,11 @@ gint           gimv_thumb_view_get_thumb_index    (GimvThumbView    *tv,
                                                    GimvThumb        *thumb);
 GimvThumb     *gimv_thumb_view_get_nth_thumb      (GimvThumbView    *tv,
                                                    gint              pos);
+/* only the thumbnails near the visible part are loaded, the far ones are
+   dropped (large collections) */
+void           gimv_thumb_view_set_windowed       (GimvThumbView    *tv,
+                                                   gboolean          windowed);
+gboolean       gimv_thumb_view_is_windowed        (GimvThumbView    *tv);
 GList         *gimv_thumb_view_get_selected_file_list
                                                   (GimvThumbView    *tv);
 gboolean       gimv_thumb_view_set_selection      (GimvThumb        *thumb,
