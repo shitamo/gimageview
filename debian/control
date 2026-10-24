@@ -17,6 +17,7 @@ Build-Depends:
  libmng-dev,
  libpng-dev,
  librsvg2-dev,
+ libsqlite3-dev,
  libwmf-dev,
  libxine2-dev,
  meson (>= 0.60),

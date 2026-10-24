@@ -45,6 +45,9 @@
 #include "gimv_thumb_cache.h"
 #include "gimv_thumb_win.h"
 #include "prefs.h"
+#ifdef ENABLE_INDEX
+#include "gimv_index.h"
+#endif
 
 #include "fr-archive.h"
 
@@ -191,6 +194,10 @@ gimv_quit (void)
    }
 
    remove_temp_dir ();
+
+#ifdef ENABLE_INDEX
+   gimv_index_quit ();
+#endif
 
    gimv_main_quit ();
 }
@@ -528,6 +535,11 @@ main (gint argc, gchar *argv[])
    }
 
    (void) iw;
+
+#ifdef ENABLE_INDEX
+   /* the indexer only runs while gimv runs */
+   gimv_index_init ();
+#endif
 
    /* main roop */
    gimv_main ();

@@ -78,6 +78,8 @@ typedef struct _Config {
    gboolean   recursive_follow_link;
    gboolean   recursive_follow_parent;
    gboolean   read_dotfile;
+   gboolean   index_enable;   /* image index (gimv-indexer) */
+   gchar     *index_dirs;     /* ';' separated */
    gboolean   detect_filetype_by_ext;
    gboolean   disp_filename_stdout;
    gint       interpolation;

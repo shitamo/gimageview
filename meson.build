@@ -50,6 +50,7 @@ gst_video_dep = dependency('gstreamer-video-1.0', version : '>= 1.16', required 
 gst_app_dep   = dependency('gstreamer-app-1.0', version : '>= 1.16', required : get_option('gstreamer'))
 have_gst = gst_dep.found() and gst_video_dep.found() and gst_app_dep.found()
 libarchive_dep = dependency('libarchive', version : '>= 3.3', required : get_option('libarchive'))
+sqlite_dep = dependency('sqlite3', version : '>= 3.22', required : get_option('index'))
 exif_dep  = dependency('libexif', version : '>= 0.6.16', required : get_option('exif'))
 
 conf = configuration_data()
@@ -76,6 +77,8 @@ conf.set('HAVE_GDK_PIXBUF', 1)
 conf.set('USE_GTK2', 1)            # kept for any leftover checks; GTK4 is a superset of the GTK2 path
 conf.set('USE_NORMAL_PANED', 1)
 conf.set('ENABLE_TREEVIEW', 1)
+conf.set('ENABLE_INDEX', sqlite_dep.found() ? 1 : false)
+conf.set_quoted('LIBEXECDIR', prefix / get_option('libexecdir') / 'gimageview')
 conf.set('ENABLE_EXIF', exif_dep.found() ? 1 : false)
 conf.set('ENABLE_SPLASH', get_option('splash') ? 1 : false)
 conf.set('ENABLE_JPEG', jpeg_dep.found() ? 1 : false)

@@ -22,8 +22,20 @@ gimv_sources = files(
   'prefs_ui/prefs_ui_progs.c', 'prefs_ui/prefs_ui_thumbalbum.c',
   'prefs_ui/prefs_ui_thumbwin.c', 'prefs_ui/prefs_ui_plugin.c')
 
+index_inc = include_directories('indexer')
+index_db_src = files('indexer/gimv_index_db.c')
+
+if sqlite_dep.found()
+  gimv_sources += files('gimv_index.c') + index_db_src
+  executable('gimv-indexer', files('indexer/gimv_indexer.c') + index_db_src,
+    include_directories : [top_inc, index_inc],
+    dependencies : [glib_dep, sqlite_dep, exif_dep],
+    install : true,
+    install_dir : get_option('libexecdir') / 'gimageview')
+endif
+
 gimv_exe = executable('gimv', gimv_sources,
-  include_directories : [top_inc, src_inc],
-  dependencies : common_deps + [exif_dep],
+  include_directories : [top_inc, src_inc, index_inc],
+  dependencies : common_deps + [exif_dep, sqlite_dep],
   export_dynamic : true,
   install : true)

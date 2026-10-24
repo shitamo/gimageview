@@ -4352,6 +4352,28 @@ msgstr "ライト"
 msgid "Dark"
 msgstr "ダーク"
 
+#: src/gimv_index.c
+msgid "Index: starting"
+msgstr "索引: 起動中"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Index: scanning %u folders, %u images"
+msgstr "索引: 走査中 %u フォルダ・%u 枚"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Index: %u images"
+msgstr "索引: %u 枚"
+
+#: src/gimv_index.c
+msgid "Index: used by another GImageView"
+msgstr "索引: 別の GImageView が使用中"
+
+#: src/gimv_index.c
+msgid "Index: error"
+msgstr "索引: エラー"
+
 #~ msgid "Xine Embeder"
 #~ msgstr "Xine埋め込み"
 

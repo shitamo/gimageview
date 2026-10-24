@@ -91,6 +91,8 @@ static ConfParam param_common [] = {
    {"recursive_follow_link",    D_BOOL, "FALSE", &conf.recursive_follow_link},
    {"recursive_follow_parent",  D_BOOL, "FALSE", &conf.recursive_follow_parent},
    {"read_dotfile",             D_BOOL, "FALSE", &conf.read_dotfile},
+   {"index_enable",             D_BOOL, "FALSE", &conf.index_enable},
+   {"index_dirs",               D_STRING, "",    &conf.index_dirs},
 
    {"detect_filetype_by_ext",   D_BOOL,   "TRUE",  &conf.detect_filetype_by_ext},
    {"disp_filename_stdout",     D_BOOL,   "TRUE",  &conf.disp_filename_stdout},
