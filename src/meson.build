@@ -26,7 +26,7 @@ index_inc = include_directories('indexer')
 index_db_src = files('indexer/gimv_index_db.c')
 
 if sqlite_dep.found()
-  gimv_sources += files('gimv_index.c', 'gimv_index_view.c', 'gimv_index_tags.c', 'gimv_index_notice.c', 'gimv_index_newimg.c', 'prefs_ui/prefs_ui_index.c') + index_db_src
+  gimv_sources += files('gimv_index.c', 'gimv_index_view.c', 'gimv_index_tags.c', 'gimv_index_notice.c', 'gimv_index_newimg.c', 'gimv_index_missing.c', 'prefs_ui/prefs_ui_index.c') + index_db_src
   executable('gimv-indexer', files('indexer/gimv_indexer.c') + index_db_src,
     include_directories : [top_inc, index_inc],
     dependencies : [glib_dep, sqlite_dep, exif_dep],

@@ -23,6 +23,7 @@
 
 #include "gimv_index.h"
 #include "gimv_index_notice.h"
+#include "gimv_index_missing.h"
 #include "gimv_thumb_win.h"
 
 /* gimv moves the comment file itself right after the image: look again a
@@ -38,6 +39,7 @@ typedef struct {
 static GPtrArray *pending = NULL;   /* Move, waiting for an answer */
 static GPtrArray *notes = NULL;     /* gchar *, things to know */
 static gchar     *missing_note = NULL;   /* in notes, replaced while the log grows */
+static gchar     *missing_log = NULL;    /* the log missing_note tells */
 
 
 static void
@@ -181,6 +183,10 @@ label_new (const gchar *text, gboolean wrap)
 
 /* the contents of the popover, made when it opens */
 static void
+fill_popover (GtkPopover *popover);
+static void cb_open_missing (GtkButton *button, GtkPopover *popover);
+
+static void
 fill_popover (GtkPopover *popover)
 {
    GtkWidget *box, *label, *hbox, *button, *list, *scroll;
@@ -234,8 +240,15 @@ fill_popover (GtkPopover *popover)
 
    if (notes && notes->len) {
       if (n) gtk_box_append (GTK_BOX (box), gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
-      for (i = 0; i < notes->len; i++)
+      for (i = 0; i < notes->len; i++) {
          gtk_box_append (GTK_BOX (box), label_new (g_ptr_array_index (notes, i), TRUE));
+         if (g_ptr_array_index (notes, i) == missing_note) {
+            button = gtk_button_new_with_label (_("Open the List"));
+            gtk_widget_set_halign (button, GTK_ALIGN_START);
+            g_signal_connect (button, "clicked", G_CALLBACK (cb_open_missing), popover);
+            gtk_box_append (GTK_BOX (box), button);
+         }
+      }
       button = gtk_button_new_with_label (_("OK"));
       gtk_widget_set_halign (button, GTK_ALIGN_END);
       g_signal_connect (button, "clicked", G_CALLBACK (cb_dismiss_note), NULL);
@@ -244,6 +257,15 @@ fill_popover (GtkPopover *popover)
 
    gtk_popover_set_child (popover, box);
    (void) label;
+}
+
+
+static void
+cb_open_missing (GtkButton *button, GtkPopover *popover)
+{
+   GtkRoot *root = gtk_widget_get_root (GTK_WIDGET (popover));
+   gtk_popover_popdown (popover);
+   gimv_index_missing_open (GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL, missing_log);
 }
 
 
@@ -392,6 +414,8 @@ gimv_index_notice_missing (const gchar *log, guint n)
    if (missing_note && g_ptr_array_remove (notes, missing_note))
       missing_note = NULL;
    missing_note = text;
+   g_free (missing_log);
+   missing_log = g_strdup (log);
    g_ptr_array_add (notes, text);
    update_buttons ();
 }

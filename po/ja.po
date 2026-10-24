@@ -5218,3 +5218,76 @@ msgstr "残すログの数 (0 は作らない)"
 
 #~ msgid "/_View/Toggle Menubar"
 #~ msgstr "/表示(_V)/メニューバートグル"
+
+#: src/gimv_thumb_win.c
+msgid "/Too_ls/_Missing Images..."
+msgstr "/ツール(_L)/行方不明の画像(_M)..."
+
+#: src/gimv_index_notice.c
+msgid "Open the List"
+msgstr "一覧を開く"
+
+#: src/gimv_index_missing.c
+msgid "No comment file (done)"
+msgstr "コメントなし (対応済み)"
+
+msgid "The image is back"
+msgstr "画像が戻っている"
+
+msgid "Comment file left"
+msgstr "コメントが残っている"
+
+#, c-format
+msgid "%s already has a comment file.\n"
+msgstr "%s にはもうコメントがあります。\n"
+
+#, c-format
+msgid "%u line done."
+msgid_plural "%u lines done."
+msgstr[0] "%u 行を片付けました。"
+
+msgid "1 line done."
+msgstr "1 行を片付けました。"
+
+msgid "The Image to Put the Comment On"
+msgstr "コメントを付ける画像"
+
+msgid "There is no log of missing images."
+msgstr "行方不明の画像のログはありません。"
+
+msgid ""
+"Images with comments (tags) that went missing. Their comment files are kept: "
+"put them on the image where it went or on another image, or delete them."
+msgstr ""
+"コメント (タグ) 付きで行方不明になった画像です。コメントは残してあります。"
+"移動先の画像や別の画像に付け直すか、削除してください。"
+
+msgid "Log:"
+msgstr "ログ:"
+
+msgid "Path"
+msgstr "パス"
+
+msgid "Last Seen"
+msgstr "最後に見た日時"
+
+msgid "Tags"
+msgstr "タグ"
+
+msgid "Moved To"
+msgstr "移動先"
+
+msgid "State"
+msgstr "状態"
+
+msgid "Put on Where It Went"
+msgstr "移動先に付け直す"
+
+msgid "Put on Another Image..."
+msgstr "別の画像に付け直す..."
+
+msgid "Delete the Comment"
+msgstr "コメントを削除"
+
+msgid "Remove from the Log"
+msgstr "ログから外す"
