@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
+#include <locale.h>
 #include <glib.h>
 
 #include "fileutil.h"
@@ -308,58 +309,41 @@ get_file_mtime (const char *path)
 
 /*
  *  fileutile_size2str:
- *     @ add comma.
+ *     @ add the thousands separator of the locale (1,234,567 / 1.234.567),
+ *       or "," when the locale has none (C, POSIX).
  *  size   :
- *  space  :
- *  Return :
+ *  space  : right aligned in 13 columns
+ *  Return : a new string
  */
 char *
 fileutil_size2str (size_t size, int space)
 {
-   unsigned int i = 0,  j = 0, n_digit = 0;
-   char tmp[14];
-   char comma[14];
-   char buf[14];
+   struct lconv *lc = localeconv ();
+   gchar *str;
 
-   i = size;
+   if (lc && lc->thousands_sep && *lc->thousands_sep) {
+      str = g_strdup_printf ("%'lu", (unsigned long) size);
+   } else {
+      gchar tmp[32];
+      GString *s = g_string_new (NULL);
+      gsize len, i;
 
-   /* detect digit num */
-   while (i > 0) {
-      i = i/10;
-      n_digit++;
+      g_snprintf (tmp, sizeof (tmp), "%lu", (unsigned long) size);
+      len = strlen (tmp);
+      for (i = 0; i < len; i++) {
+         if (i > 0 && (len - i) % 3 == 0)
+            g_string_append_c (s, ',');
+         g_string_append_c (s, tmp[i]);
+      }
+      str = g_string_free (s, FALSE);
    }
-
-   g_snprintf (tmp, sizeof (tmp), "%lu", (unsigned long) size);
-
-   if (strlen (tmp) < 4)
-      return g_strdup (tmp);
-
-   /* until first comma */
-   if (n_digit % 3 != 0) {
-      for (i = 0; i < n_digit % 3; i++)
-         comma[j++] = tmp[i];
-      if (i != strlen (tmp))
-         comma[j++] = ',';
-   }
-
-   /* until end of string */
-   while (tmp[i] != '\0'){
-      comma[j++] = tmp[i++];
-      comma[j++] = tmp[i++];
-      comma[j++] = tmp[i++];
-      if(tmp[i] != '\0')
-         comma[j++] = ',';
-   }
-
-   /* end of string */
-   comma[j] = '\0';
 
    if (space) {
-      g_snprintf (buf, 14, "%13s", comma);
-      return g_strdup (buf);
-   } else {
-      return g_strdup(comma);
+      gchar *spaced = g_strdup_printf ("%13s", str);
+      g_free (str);
+      return spaced;
    }
+   return str;
 }
 
 

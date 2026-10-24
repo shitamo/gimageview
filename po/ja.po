@@ -1937,8 +1937,8 @@ msgstr "Empty"
 
 #: src/gimv_thumb_win.c:3528 src/gimv_thumb_win.c:3631
 #, c-format
-msgid "%d/%d files"
-msgstr "%d/%d files"
+msgid "%'d/%'d files"
+msgstr "%'d/%'d files"
 
 #: src/gimv_thumb_win.c:3562
 #, c-format
@@ -1960,8 +1960,8 @@ msgstr "他のタブでロード中..."
 
 #: src/gimv_thumb_win.c:3597
 #, c-format
-msgid "%d/%d page  %d/%d files  %ld/%ld kB"
-msgstr "%d/%d page  %d/%d files  %ld/%ld kB"
+msgid "%'d/%'d page  %'d/%'d files  %'ld/%'ld kB"
+msgstr "%'d/%'d page  %'d/%'d files  %'ld/%'ld kB"
 
 #: src/gimv_thumb_win.c:3830
 msgid "New Tab"
@@ -4359,13 +4359,13 @@ msgstr "索引: 起動中"
 
 #: src/gimv_index.c
 #, c-format
-msgid "Index: scanning %u folders, %u images"
-msgstr "索引: 走査中 %u フォルダ・%u 枚"
+msgid "Index: scanning %'u folders, %'u images"
+msgstr "索引: 走査中 %'u フォルダ・%'u 枚"
 
 #: src/gimv_index.c
 #, c-format
-msgid "Index: %u images"
-msgstr "索引: %u 枚"
+msgid "Index: %'u images"
+msgstr "索引: %'u 枚"
 
 #: src/gimv_index.c
 msgid "Index: used by another GImageView"
@@ -4390,8 +4390,8 @@ msgstr "/タブ (日付)(_D)"
 
 #: src/gimv_index.c
 #, c-format
-msgid "Index: reading dates %u/%u"
-msgstr "索引: 日付を読み込み中 %u/%u"
+msgid "Index: reading dates %'u/%'u"
+msgstr "索引: 日付を読み込み中 %'u/%'u"
 
 #: src/gimv_prefs_win.c
 msgid "/Index"
@@ -4424,8 +4424,8 @@ msgstr "%s (タグ)"
 
 #: src/gimv_index.c
 #, c-format
-msgid "Index: reading tags %u"
-msgstr "索引: タグを読み込み中 %u"
+msgid "Index: reading tags %'u"
+msgstr "索引: タグを読み込み中 %'u"
 
 #: src/gimv_thumb_view.c
 msgid "/Edit _Tags..."
@@ -4463,14 +4463,14 @@ msgstr "お知らせ"
 
 #: src/gimv_index_notice.c
 #, c-format
-msgid "%u image or folder with comments (tags) was moved by another program."
-msgid_plural "%u images or folders with comments (tags) were moved by another program."
-msgstr[0] "コメント (タグ) のある画像またはフォルダ %u 件が、ほかのソフトで移動されました。"
+msgid "%'u image or folder with comments (tags) was moved by another program."
+msgid_plural "%'u images or folders with comments (tags) were moved by another program."
+msgstr[0] "コメント (タグ) のある画像またはフォルダ %'u 件が、ほかのソフトで移動されました。"
 
 #: src/gimv_index_notice.c
 #, c-format
-msgid "and %u more"
-msgstr "ほか %u 件"
+msgid "and %'u more"
+msgstr "ほか %'u 件"
 
 #: src/gimv_index_notice.c
 msgid "Leave the Comments"
@@ -4491,24 +4491,24 @@ msgstr "新しい画像"
 
 #: src/gimv_index_newimg.c
 #, c-format
-msgid "%u new images"
-msgstr "新しい画像 %u 枚"
+msgid "%'u new images"
+msgstr "新しい画像 %'u 枚"
 
 #: src/gimv_index_newimg.c
 #, c-format
-msgid "%u new images in %s"
+msgid "%'u new images in %s"
 msgstr "%2$s フォルダに新しい画像 %1$u 枚"
 
 #: src/gimv_index_newimg.c
 #, c-format
-msgid "%u new images in %s and other folders"
+msgid "%'u new images in %s and other folders"
 msgstr "%2$s フォルダなどに新しい画像 %1$u 枚"
 
 #: src/gimv_index_notice.c
 #, c-format
-msgid "%u new image since GImageView ran last time."
-msgid_plural "%u new images since GImageView ran last time."
-msgstr[0] "前回から新しい画像が %u 枚増えました。"
+msgid "%'u new image since GImageView ran last time."
+msgid_plural "%'u new images since GImageView ran last time."
+msgstr[0] "前回から新しい画像が %'u 枚増えました。"
 
 #: src/prefs_ui/prefs_ui_index.c
 msgid "New Images"
@@ -4544,15 +4544,15 @@ msgstr "通知しないフォルダを選択"
 
 #: src/gimv_index_notice.c
 #, c-format
-msgid "%u image with comments (tags) is missing. Its comment file is kept; see %s"
-msgid_plural "%u images with comments (tags) are missing. Their comment files are kept; see %s"
-msgstr[0] "コメント (タグ) のある画像 %u 件が行方不明です。コメントファイルは残してあります。ログ: %s"
+msgid "%'u image with comments (tags) is missing. Its comment file is kept; see %s"
+msgid_plural "%'u images with comments (tags) are missing. Their comment files are kept; see %s"
+msgstr[0] "コメント (タグ) のある画像 %'u 件が行方不明です。コメントファイルは残してあります。ログ: %s"
 
 #: src/gimv_index_notice.c
 #, c-format
-msgid "%u old log of missing images was deleted."
-msgid_plural "%u old logs of missing images were deleted."
-msgstr[0] "行方不明の画像の古いログを %u 個削除しました。"
+msgid "%'u old log of missing images was deleted."
+msgid_plural "%'u old logs of missing images were deleted."
+msgstr[0] "行方不明の画像の古いログを %'u 個削除しました。"
 
 #: src/prefs_ui/prefs_ui_index.c
 msgid "Missing Images"
@@ -5242,9 +5242,9 @@ msgid "%s already has a comment file.\n"
 msgstr "%s にはもうコメントがあります。\n"
 
 #, c-format
-msgid "%u line done."
-msgid_plural "%u lines done."
-msgstr[0] "%u 行を片付けました。"
+msgid "%'u line done."
+msgid_plural "%'u lines done."
+msgstr[0] "%'u 行を片付けました。"
 
 msgid "1 line done."
 msgstr "1 行を片付けました。"

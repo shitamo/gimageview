@@ -305,7 +305,7 @@ apply_to_selected (MissingWin *mw, Action act)
       fill_logs (mw, NULL);
 
    {
-      gchar *text = g_strdup_printf (ngettext ("%u line done.", "%u lines done.", done), done);
+      gchar *text = g_strdup_printf (ngettext ("%'u line done.", "%'u lines done.", done), done);
       if (errors->len) {
          gchar *all = g_strconcat (text, "\n", errors->str, NULL);
          g_strchomp (all);

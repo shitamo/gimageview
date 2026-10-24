@@ -208,15 +208,15 @@ send_notification (GPtrArray *paths)
       g_free (dir);
    } else if (same_folder (paths, &folder)) {
       gchar *name = g_path_get_basename (folder);
-      summary = g_strdup_printf (_("%u new images"), paths->len);
-      body = g_strdup_printf (_("%u new images in %s"), paths->len, name);
+      summary = g_strdup_printf (_("%'u new images"), paths->len);
+      body = g_strdup_printf (_("%'u new images in %s"), paths->len, name);
       g_free (name);
       g_free (folder);
    } else {
       gchar *dir  = g_path_get_dirname (picture);
       gchar *name = g_path_get_basename (dir);
-      summary = g_strdup_printf (_("%u new images"), paths->len);
-      body = g_strdup_printf (_("%u new images in %s and other folders"), paths->len, name);
+      summary = g_strdup_printf (_("%'u new images"), paths->len);
+      body = g_strdup_printf (_("%'u new images in %s and other folders"), paths->len, name);
       g_free (name);
       g_free (dir);
    }

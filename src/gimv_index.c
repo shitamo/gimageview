@@ -72,17 +72,17 @@ update_status (void)
       break;
    case GIMV_INDEX_STATE_SCANNING:
       if (ix.stage == 2)
-         ix.status = g_strdup_printf (_("Index: reading dates %u/%u"),
+         ix.status = g_strdup_printf (_("Index: reading dates %'u/%'u"),
                                       ix.done, ix.todo);
       else if (ix.stage == 3)
-         ix.status = g_strdup_printf (_("Index: reading tags %u"), ix.done);
+         ix.status = g_strdup_printf (_("Index: reading tags %'u"), ix.done);
       else
          /* the total is not known in advance: just count up */
-         ix.status = g_strdup_printf (_("Index: scanning %u folders, %u images"),
+         ix.status = g_strdup_printf (_("Index: scanning %'u folders, %'u images"),
                                       ix.n_dirs, ix.n_files);
       break;
    case GIMV_INDEX_STATE_IDLE:
-      ix.status = g_strdup_printf (_("Index: %u images"), ix.n_files);
+      ix.status = g_strdup_printf (_("Index: %'u images"), ix.n_files);
       break;
    case GIMV_INDEX_STATE_BUSY:
       ix.status = g_strdup (_("Index: used by another GImageView"));

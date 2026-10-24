@@ -247,7 +247,7 @@ append_row (IndexView *iv, GtkTreeIter *iter, GtkTreeIter *parent,
 {
    gchar *k = g_strndup (key, len);
    /* the last part of the key: "2019", "05", "03" */
-   gchar *label = g_strdup_printf ("%s (%d)", k + (len == 4 ? 0 : len - 2), count);
+   gchar *label = g_strdup_printf ("%s (%'d)", k + (len == 4 ? 0 : len - 2), count);
 
    gtk_tree_store_append (iv->store, iter, parent);
    gtk_tree_store_set (iv->store, iter,
@@ -263,7 +263,7 @@ set_count (IndexView *iv, GtkTreeIter *iter, gint len, gint count)
    gchar *k = NULL, *label;
 
    gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter, COL_KEY, &k, -1);
-   label = g_strdup_printf ("%s (%d)", k + (len == 4 ? 0 : len - 2), count);
+   label = g_strdup_printf ("%s (%'d)", k + (len == 4 ? 0 : len - 2), count);
    gtk_tree_store_set (iv->store, iter, COL_LABEL, label, -1);
    g_free (label);
    g_free (k);
@@ -369,7 +369,7 @@ build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
    for (i = 0; i < tags->len; i++) {
       TagCount *tc = g_ptr_array_index (tags, i);
       GtkTreeIter iter;
-      gchar *label = g_strdup_printf ("%s (%d)", tc->name, tc->count);
+      gchar *label = g_strdup_printf ("%s (%'d)", tc->name, tc->count);
 
       gtk_tree_store_append (iv->store, &iter, root);
       gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,

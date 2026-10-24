@@ -4268,7 +4268,7 @@ gimv_thumb_win_set_statusbar_page_info (GimvThumbWin *tw, gint pagenum)
    } else if (tv->progress){
       if (conf.thumbwin_show_progress_detail) {
          gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (tw->progressbar), TRUE);
-         g_snprintf (buf, BUF_SIZE, _("%d/%d files"),
+         g_snprintf (buf, BUF_SIZE, _("%'d/%'d files"),
                      tv->progress->pos, tv->progress->num);
 
          gtk_progress_bar_set_text (GTK_PROGRESS_BAR (tw->progressbar), buf);
@@ -4337,7 +4337,7 @@ gimv_thumb_win_set_statusbar_page_info (GimvThumbWin *tw, gint pagenum)
       gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), 1);
       gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), 1, buf);
    }
-   g_snprintf (buf, BUF_SIZE, _("%d/%d page  %d/%d files  %ld/%ld kB"),
+   g_snprintf (buf, BUF_SIZE, _("%'d/%'d page  %'d/%'d files  %'ld/%'ld kB"),
                page + 1, tw->pagenum, tv_filenum, tw->filenum,
                tv_filesize / 1024, tw->filesize / 1024);
    gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar2), 1);
@@ -4371,7 +4371,7 @@ gimv_thumb_win_loading_update_progress (GimvThumbWin *tw, gint pagenum)
 
    if (conf.thumbwin_show_progress_detail) {
       gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (tw->progressbar), TRUE);
-      g_snprintf (buf, BUF_SIZE, _("%d/%d files"),
+      g_snprintf (buf, BUF_SIZE, _("%'d/%'d files"),
                   tv->progress->pos, tv->progress->num);
       gtk_progress_bar_set_text (GTK_PROGRESS_BAR (tw->progressbar), buf);
       tmpstr = charset_to_internal (tv->progress->now_file,

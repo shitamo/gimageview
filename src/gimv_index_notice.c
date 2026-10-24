@@ -200,8 +200,8 @@ fill_popover (GtkPopover *popover)
 
    if (n) {
       gchar *text = g_strdup_printf (
-         ngettext ("%u image or folder with comments (tags) was moved by another program.",
-                   "%u images or folders with comments (tags) were moved by another program.",
+         ngettext ("%'u image or folder with comments (tags) was moved by another program.",
+                   "%'u images or folders with comments (tags) were moved by another program.",
                    n), n);
       gtk_box_append (GTK_BOX (box), label_new (text, TRUE));
       g_free (text);
@@ -214,7 +214,7 @@ fill_popover (GtkPopover *popover)
          g_free (text2);
       }
       if (n > 200) {
-         gchar *more = g_strdup_printf (_("and %u more"), n - 200);
+         gchar *more = g_strdup_printf (_("and %'u more"), n - 200);
          gtk_box_append (GTK_BOX (list), label_new (more, FALSE));
          g_free (more);
       }
@@ -406,8 +406,8 @@ void
 gimv_index_notice_missing (const gchar *log, guint n)
 {
    gchar *text = g_strdup_printf (
-      ngettext ("%u image with comments (tags) is missing. Its comment file is kept; see %s",
-                "%u images with comments (tags) are missing. Their comment files are kept; see %s",
+      ngettext ("%'u image with comments (tags) is missing. Its comment file is kept; see %s",
+                "%'u images with comments (tags) are missing. Their comment files are kept; see %s",
                 n), n, log);
 
    if (!notes) notes = g_ptr_array_new_with_free_func (g_free);
@@ -426,8 +426,8 @@ gimv_index_notice_logs_pruned (guint n)
 {
    if (!notes) notes = g_ptr_array_new_with_free_func (g_free);
    g_ptr_array_add (notes, g_strdup_printf (
-      ngettext ("%u old log of missing images was deleted.",
-                "%u old logs of missing images were deleted.", n), n));
+      ngettext ("%'u old log of missing images was deleted.",
+                "%'u old logs of missing images were deleted.", n), n));
    update_buttons ();
 }
 
@@ -437,8 +437,8 @@ gimv_index_notice_added_since_last (guint n)
 {
    /* images that came while gimv was not running: no desktop notification,
     * just once here */
-   add_note (g_strdup_printf (ngettext ("%u new image since GImageView ran last time.",
-                                        "%u new images since GImageView ran last time.", n),
+   add_note (g_strdup_printf (ngettext ("%'u new image since GImageView ran last time.",
+                                        "%'u new images since GImageView ran last time.", n),
                               n));
 }
 
