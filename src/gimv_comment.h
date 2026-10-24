@@ -124,5 +124,10 @@ gboolean      gimv_comment_get_rotation             (GimvImageInfo *info,
 void          gimv_comment_set_rotation             (GimvImageInfo *info,
                                                      gint           orientation);
 void          gimv_comment_delete_file              (GimvComment *comment);
+/* set one key (value NULL or "": remove it) and save the comment file, or
+   delete the file when nothing is left in it */
+void          gimv_comment_set_value                (GimvImageInfo *info,
+                                                     const gchar   *key,
+                                                     const gchar   *value);
 
 #endif /* __GIMV_COMMENT_H__ */

@@ -4412,6 +4412,50 @@ msgstr "画像の索引を作り、日付で見られるようにする"
 msgid "The images below these directories are looked at while GImageView runs, and can then be seen by date in the \"Date\" tab."
 msgstr "これらのディレクトリ以下の画像を GImageView の起動中に調べ、「日付」タブで日付ごとに見られるようにします。"
 
+#: src/gimv_thumb_win.c
+msgid "/Tab (Ta_g)"
+msgstr "/タブ (タグ)(_G)"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "%s (Tag)"
+msgstr "%s (タグ)"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Index: reading tags %u"
+msgstr "索引: タグを読み込み中 %u"
+
+#: src/gimv_thumb_view.c
+msgid "/Edit _Tags..."
+msgstr "/タグを編集(_T)..."
+
+#: src/gimv_index_tags.c
+msgid "Edit Tags"
+msgstr "タグの編集"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Tags of %s (separated by commas):"
+msgstr "%s のタグ (カンマ区切り):"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Tags of %u images (separated by commas):"
+msgstr "%u 枚の画像のタグ (カンマ区切り):"
+
+#: src/gimv_index_tags.c
+msgid "e.g. travel/Kyoto, cat"
+msgstr "例: 旅行/京都, 猫"
+
+#: src/gimv_index_tags.c
+msgid "Only the tags all of them have are shown. The tags only some of them have are kept."
+msgstr "すべての画像に付いているタグだけを表示しています。一部の画像だけに付いているタグはそのまま残ります。"
+
+#: src/gimv_index_tags.c
+msgid "Too many tags: a comment line holds up to 4096 bytes."
+msgstr "タグが多すぎます。コメントファイルの 1 行は 4096 バイトまでです。"
+
 #~ msgid "Xine Embeder"
 #~ msgstr "Xine埋め込み"
 

@@ -72,6 +72,8 @@ update_status (void)
       if (ix.stage == 2)
          ix.status = g_strdup_printf (_("Index: reading dates %u/%u"),
                                       ix.done, ix.todo);
+      else if (ix.stage == 3)
+         ix.status = g_strdup_printf (_("Index: reading tags %u"), ix.done);
       else
          /* the total is not known in advance: just count up */
          ix.status = g_strdup_printf (_("Index: scanning %u folders, %u images"),
@@ -116,7 +118,7 @@ gimv_index_get_state (void)
 
 
 static void
-notify_watches (void)
+notify_watches (GimvIndexChange what)
 {
    GList *node = ix.watches;
 
@@ -124,7 +126,20 @@ notify_watches (void)
    while (node) {
       Watch *w = node->data;
       node = g_list_next (node);   /* the callback may remove itself */
-      w->func (w->data);
+      w->func (what, w->data);
+   }
+}
+
+
+/* which views a stage changes: stage 1 adds and removes files (and so
+ * their tags), stage 2 dates, stage 3 tags */
+static GimvIndexChange
+stage_changes (gint stage)
+{
+   switch (stage) {
+   case 1:  return GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS;
+   case 3:  return GIMV_INDEX_CHANGED_TAGS;
+   default: return GIMV_INDEX_CHANGED_DATES;
    }
 }
 
@@ -241,6 +256,8 @@ handle_line (const gchar *line)
          ix.state = GIMV_INDEX_STATE_SCANNING;
          if (ix.stage == 1) {
             ix.n_dirs = ix.n_files = 0;
+         } else if (ix.stage == 3) {
+            ix.done = 0;
          } else {
             ix.todo = n >= 4 ? strtoul (v[3], NULL, 10) : 0;
             ix.done = 0;
@@ -251,11 +268,11 @@ handle_line (const gchar *line)
             ix.n_dirs  = strtoul (v[3], NULL, 10);
             ix.n_files = strtoul (v[4], NULL, 10);
          }
-         notify_watches ();
+         notify_watches (stage_changes (ix.stage));
       }
       update_status ();
    } else if (!strcmp (v[0], "progress") && n >= 4) {
-      if (atoi (v[1]) == 2) {
+      if (atoi (v[1]) >= 2) {
          ix.done = strtoul (v[3], NULL, 10);
       } else {
          ix.n_dirs  = strtoul (v[2], NULL, 10);
@@ -263,7 +280,9 @@ handle_line (const gchar *line)
       }
       update_status ();
       if (g_get_monotonic_time () - ix.last_notify > NOTIFY_INTERVAL_USEC)
-         notify_watches ();
+         notify_watches (stage_changes (atoi (v[1])));
+   } else if (!strcmp (v[0], "tags-updated")) {
+      notify_watches (GIMV_INDEX_CHANGED_TAGS);
    } else if (!strcmp (v[0], "idle")) {
       ix.state = GIMV_INDEX_STATE_IDLE;
       update_status ();
@@ -478,6 +497,20 @@ gimv_index_restart (void)
       g_subprocess_wait_async (old, NULL, cb_old_exited, NULL);
    else
       start_indexer ();
+}
+
+
+void
+gimv_index_tags_changed (const gchar *path)
+{
+   gchar *cmd;
+
+   if (!path || path[0] != '/' || strchr (path, '\n')) return;
+   /* without the indexer the next stage 3 reads it */
+   if (!ix.proc) return;
+   cmd = g_strdup_printf ("tags %s\n", path);
+   send_command (cmd);
+   g_free (cmd);
 }
 
 

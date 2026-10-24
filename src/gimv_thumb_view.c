@@ -47,6 +47,9 @@
 #include "gimv_thumb.h"
 #include "gimv_thumb_cache.h"
 #include "gimv_thumb_view.h"
+#ifdef ENABLE_INDEX
+#include "gimv_index_tags.h"
+#endif
 #include "gimv_thumb_win.h"
 #include "menu.h"
 #include "gimv_print.h"
@@ -114,6 +117,11 @@ static void   cb_exif                  (GimvThumbView  *tv,
 static void   cb_edit_comment          (GimvThumbView  *tv,
                                         guint           action,
                                         GimvMenuItem      *menuitem);
+#ifdef ENABLE_INDEX
+static void   cb_edit_tags             (GimvThumbView  *tv,
+                                        guint           action,
+                                        GimvMenuItem   *menuitem);
+#endif
 static void   cb_print                 (GimvThumbView  *tv,
                                         guint           action,
                                         GimvMenuItem      *menuitem);
@@ -194,6 +202,9 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/Scan E_XIF Data..."),        NULL,  cb_exif,          0,           NULL},
 #endif
    {N_("/_Edit Comment..."),          NULL,  cb_edit_comment,  0,           NULL},
+#ifdef ENABLE_INDEX
+   {N_("/Edit _Tags..."),             NULL,  cb_edit_tags,     0,           NULL},
+#endif
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
    {N_("/Re_name..."),                NULL,  cb_rename_file,   0,           NULL},
    {N_("/_Copy Files To..."),         NULL,  cb_file_operate,  FILE_COPY,   NULL},
@@ -713,6 +724,29 @@ cb_print (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
    gimv_print_images (infos, tv->tw ? GTK_WINDOW (tv->tw) : NULL);
    g_list_free (infos);
 }
+
+
+#ifdef ENABLE_INDEX
+static void
+cb_edit_tags (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   GList *thumblist, *node, *infos = NULL;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+
+   thumblist = gimv_thumb_view_get_selection_list (tv);
+   for (node = thumblist; node; node = g_list_next (node)) {
+      GimvThumb *thumb = node->data;
+      /* files of an archive have no comment file of their own */
+      if (thumb && thumb->info && !gimv_image_info_is_in_archive (thumb->info))
+         infos = g_list_append (infos, thumb->info);
+   }
+   g_list_free (thumblist);
+
+   gimv_index_edit_tags (tv->tw ? GTK_WINDOW (tv->tw) : NULL, infos);
+   g_list_free (infos);
+}
+#endif
 
 
 static void

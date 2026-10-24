@@ -97,14 +97,17 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
    /* conf has the new values here */
    gimv_index_restart ();
 
-   /* the "Date" tab opens as soon as directories are given */
+   /* the "Date" and "Tag" tabs open as soon as directories are given */
    configured = gimv_index_is_configured ();
    for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node)) {
       GimvThumbWin *tw = node->data;
-      if (configured)
-         gimv_index_tab_open (tw);
-      else
-         gimv_index_tab_close (tw);
+      if (configured) {
+         gimv_index_tab_open (tw, GIMV_INDEX_TAB_DATE);
+         gimv_index_tab_open (tw, GIMV_INDEX_TAB_TAG);
+      } else {
+         gimv_index_tab_close (tw, GIMV_INDEX_TAB_DATE);
+         gimv_index_tab_close (tw, GIMV_INDEX_TAB_TAG);
+      }
       gimv_index_tab_update_menu (tw);
    }
 

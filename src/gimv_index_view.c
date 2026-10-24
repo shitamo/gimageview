@@ -1,9 +1,9 @@
 /* -*- Mode: C; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 3 -*- */
 
 /*
- * GImageView image index: the "Date" tab of the thumbnail window.
- * Years, months and days come from the index database; selecting one opens
- * its images in a collection tab.
+ * GImageView image index: the "Date" and "Tag" tabs of the thumbnail window.
+ * Years, months and days, or tag names, come from the index database;
+ * selecting one opens its images in a collection tab.
  *
  * The database may hold millions of files, so every query runs in a worker
  * thread with a connection of its own: the day counts once per refresh
@@ -35,16 +35,17 @@
 #define NAME_ONLY_KEY "gimv-name-only"
 
 typedef enum {
-   KIND_DATE_ROOT,
+   KIND_ROOT,
    KIND_YEAR,
    KIND_MONTH,
    KIND_DAY,
+   KIND_TAG,
 } RowKind;
 
 enum {
    COL_LABEL,
    COL_KIND,
-   COL_KEY,        /* "2019", "2019-05", "2019-05-03" */
+   COL_KEY,        /* "2019", "2019-05", "2019-05-03", or the tag name */
    N_COLS
 };
 
@@ -54,6 +55,12 @@ typedef struct {
 } DayCount;
 
 typedef struct {
+   gchar *name;
+   gint   count;
+} TagCount;
+
+typedef struct {
+   GimvIndexTabType type;
    GimvThumbWin  *tw;
    GtkWidget     *scroll;
    GtkWidget     *tree;
@@ -73,6 +80,7 @@ typedef struct {
 
 
 typedef struct {
+   GimvIndexTabType type;
    gchar   *key;
    gboolean new_tab;
 } OpenRequest;
@@ -122,20 +130,62 @@ thread_count_days (GTask *task, gpointer source, gpointer data, GCancellable *ca
 }
 
 
+static void
+tag_count_free (TagCount *tc)
+{
+   g_free (tc->name);
+   g_free (tc);
+}
+
+
+static void
+thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   sqlite3 *db = open_db ();
+   sqlite3_stmt *st;
+   GPtrArray *tags = g_ptr_array_new_with_free_func ((GDestroyNotify) tag_count_free);
+
+   /* a file counts once even with the same tag put by a person and by a
+    * rule */
+   if (db && sqlite3_prepare_v2 (db,
+          "SELECT t.name, count(DISTINCT ft.file_id) FROM file_tags ft "
+          "JOIN tags t ON t.id = ft.tag_id GROUP BY t.id ORDER BY t.name",
+          -1, &st, NULL) == SQLITE_OK)
+   {
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         TagCount *tc = g_new0 (TagCount, 1);
+         tc->name  = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
+         tc->count = sqlite3_column_int (st, 1);
+         g_ptr_array_add (tags, tc);
+      }
+      sqlite3_finalize (st);
+   }
+   if (db) sqlite3_close (db);
+   g_task_return_pointer (task, tags, (GDestroyNotify) g_ptr_array_unref);
+}
+
+
 /* "date" is "YYYY-MM-DD HH:MM:SS": every date starting with key sorts in
  * [key, key + "~") */
 static void
 thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
-   const gchar *key = ((OpenRequest *) data)->key;
+   OpenRequest *req = data;
+   const gchar *key = req->key;
    sqlite3 *db = open_db ();
    sqlite3_stmt *st;
    GList *list = NULL;
+   const gchar *sql;
 
-   if (db && sqlite3_prepare_v2 (db,
-          "SELECT d.path, f.name FROM files f JOIN dirs d ON d.id = f.dir_id "
-          "WHERE f.date >= ?1 AND f.date < ?1 || '~' ORDER BY f.date, f.name",
-          -1, &st, NULL) == SQLITE_OK)
+   if (req->type == GIMV_INDEX_TAB_TAG)
+      sql = "SELECT DISTINCT d.path, f.name, f.date FROM file_tags ft "
+            "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
+            "JOIN dirs d ON d.id = f.dir_id WHERE t.name = ?1 ORDER BY f.date, f.name";
+   else
+      sql = "SELECT d.path, f.name FROM files f JOIN dirs d ON d.id = f.dir_id "
+            "WHERE f.date >= ?1 AND f.date < ?1 || '~' ORDER BY f.date, f.name";
+
+   if (db && sqlite3_prepare_v2 (db, sql, -1, &st, NULL) == SQLITE_OK)
    {
       sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
       while (sqlite3_step (st) == SQLITE_ROW) {
@@ -253,7 +303,13 @@ find_key (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
    do {
       gchar *k = NULL;
       gtk_tree_model_get (model, &iter, COL_KEY, &k, -1);
-      if (k && g_str_has_prefix (key, k)) {
+      if (k && !strcmp (k, key)) {
+         g_free (k);
+         *found = iter;
+         return TRUE;
+      }
+      /* dates: "2019-05" is below "2019" */
+      if (k && g_str_has_prefix (key, k) && key[strlen (k)] == '-') {
          gboolean exact = !strcmp (k, key);
          g_free (k);
          if (exact) {
@@ -268,9 +324,28 @@ find_key (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
 }
 
 
-/* rebuild the tree from new counts and open again what was open */
 static void
-refill (IndexView *iv, GArray *days)
+build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
+{
+   guint i;
+
+   for (i = 0; i < tags->len; i++) {
+      TagCount *tc = g_ptr_array_index (tags, i);
+      GtkTreeIter iter;
+      gchar *label = g_strdup_printf ("%s (%d)", tc->name, tc->count);
+
+      gtk_tree_store_append (iv->store, &iter, root);
+      gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
+                          COL_KEY, tc->name, -1);
+      g_free (label);
+   }
+}
+
+
+/* rebuild the tree from new counts and open again what was open;
+ * result: a GArray of DayCount or a GPtrArray of TagCount */
+static void
+refill (IndexView *iv, gpointer result)
 {
    GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
    GtkTreeIter root, child;
@@ -290,7 +365,10 @@ refill (IndexView *iv, GArray *days)
    iv->filling = TRUE;
    while (gtk_tree_model_iter_children (model, &child, &root))
       gtk_tree_store_remove (iv->store, &child);
-   build_tree (iv, &root, days);
+   if (iv->type == GIMV_INDEX_TAB_TAG)
+      build_tag_list (iv, &root, result);
+   else
+      build_tree (iv, &root, result);
 
    /* the root is always open */
    path = gtk_tree_model_get_path (model, &root);
@@ -320,16 +398,19 @@ cb_counted (GObject *source, GAsyncResult *res, gpointer data)
 {
    GTask *task = G_TASK (res);
    IndexView *iv = data;
-   GArray *days;
+   gpointer result;
 
    /* the view is gone */
    if (g_cancellable_is_cancelled (g_task_get_cancellable (task))) return;
 
-   days = g_task_propagate_pointer (task, NULL);
+   result = g_task_propagate_pointer (task, NULL);
    iv->counting = FALSE;
-   if (days) {
-      refill (iv, days);
-      g_array_unref (days);
+   if (result) {
+      refill (iv, result);
+      if (iv->type == GIMV_INDEX_TAB_TAG)
+         g_ptr_array_unref (result);
+      else
+         g_array_unref (result);
    }
    if (iv->count_again) start_count (iv);
 }
@@ -347,15 +428,20 @@ start_count (IndexView *iv)
    iv->counting = TRUE;
    iv->count_again = FALSE;
    task = g_task_new (NULL, iv->cancel, cb_counted, iv);
-   g_task_run_in_thread (task, thread_count_days);
+   g_task_run_in_thread (task, iv->type == GIMV_INDEX_TAB_TAG
+                               ? thread_count_tags : thread_count_days);
    g_object_unref (task);
 }
 
 
 static void
-cb_index_changed (gpointer data)
+cb_index_changed (GimvIndexChange what, gpointer data)
 {
-   start_count (data);
+   IndexView *iv = data;
+
+   if (what & (iv->type == GIMV_INDEX_TAB_TAG ? GIMV_INDEX_CHANGED_TAGS
+                                              : GIMV_INDEX_CHANGED_DATES))
+      start_count (iv);
 }
 
 
@@ -425,7 +511,9 @@ open_files (IndexView *iv, OpenRequest *req, GList *filelist)
    g_object_set_data (G_OBJECT (tv), NAME_ONLY_KEY, GINT_TO_POINTER (TRUE));
    show_page (iv->tw, tv->container);
 
-   title = g_strdup_printf (_("%s (Date)"), req->key);
+   title = g_strdup_printf (req->type == GIMV_INDEX_TAB_TAG ? _("%s (Tag)")
+                                                            : _("%s (Date)"),
+                            req->key);
    gimv_thumb_view_reset_tab_label (tv, title);
    g_free (title);
 
@@ -460,6 +548,7 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
    if (iv->listing || files_loader_query_loading ()) return;
 
    req = g_new0 (OpenRequest, 1);
+   req->type = iv->type;
    req->key = g_strdup (key);
    req->new_tab = new_tab;
 
@@ -479,7 +568,8 @@ row_key (IndexView *iv, GtkTreeIter *iter, gchar **key)
    *key = NULL;
    gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter,
                        COL_KIND, &kind, COL_KEY, key, -1);
-   if (*key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY))
+   if (*key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY
+                || kind == KIND_TAG))
       return TRUE;
    g_free (*key);
    *key = NULL;
@@ -603,7 +693,7 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
 
 
 static GtkWidget *
-index_view_new (GimvThumbWin *tw)
+index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
 {
    static const GActionEntry actions[] = {
       { "open",         cb_action_open, NULL, NULL, NULL },
@@ -616,12 +706,14 @@ index_view_new (GimvThumbWin *tw)
    GtkGesture *click;
    GSimpleActionGroup *group;
 
+   iv->type = type;
    iv->tw = tw;
    iv->store = gtk_tree_store_new (N_COLS, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING);
 
    gtk_tree_store_append (iv->store, &root, NULL);
    gtk_tree_store_set (iv->store, &root,
-                       COL_LABEL, _("Date"), COL_KIND, KIND_DATE_ROOT, -1);
+                       COL_LABEL, type == GIMV_INDEX_TAB_TAG ? _("Tag") : _("Date"),
+                       COL_KIND, KIND_ROOT, -1);
    iv->cancel = g_cancellable_new ();
 
    iv->tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (iv->store));
@@ -663,27 +755,45 @@ index_view_new (GimvThumbWin *tw)
 
 
 /******************************************************************************
- *  the "Date" tab of the thumbnail window
+ *  the "Date" and "Tag" tabs of the thumbnail window
  ******************************************************************************/
 
-#define DATE_TAB_KEY "gimv-index-date-tab"
+static const gchar *tab_keys[] = { "gimv-index-date-tab", "gimv-index-tag-tab" };
+
+static const gchar *
+tab_title (GimvIndexTabType type)
+{
+   return type == GIMV_INDEX_TAB_TAG ? _("Tag") : _("Date");
+}
+
+
+static GimvMenuItem *
+tab_menu_item (GimvThumbWin *tw, GimvIndexTabType type)
+{
+   return type == GIMV_INDEX_TAB_TAG ? tw->menuitem.index_tag_tab
+                                     : tw->menuitem.index_date_tab;
+}
+
 
 GtkWidget *
-gimv_index_tab_get_page (GimvThumbWin *tw)
+gimv_index_tab_get_page (GimvThumbWin *tw, GimvIndexTabType type)
 {
-   return g_object_get_data (G_OBJECT (tw), DATE_TAB_KEY);
+   return g_object_get_data (G_OBJECT (tw), tab_keys[type]);
 }
 
 
 static void
 sync_menu (GimvThumbWin *tw)
 {
-   if (!tw->menuitem.index_date_tab) return;
-   gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.index_date_tab),
-                              gimv_index_tab_get_page (tw) != NULL);
-   /* nothing to show while the index is off */
-   gimv_menu_item_set_sensitive (GIMV_MENU_ITEM (tw->menuitem.index_date_tab),
-                                 gimv_index_is_configured ());
+   gint type;
+
+   for (type = GIMV_INDEX_TAB_DATE; type <= GIMV_INDEX_TAB_TAG; type++) {
+      GimvMenuItem *item = tab_menu_item (tw, type);
+      if (!item) continue;
+      gimv_menu_item_set_active (item, gimv_index_tab_get_page (tw, type) != NULL);
+      /* nothing to show while the index is off */
+      gimv_menu_item_set_sensitive (item, gimv_index_is_configured ());
+   }
 }
 
 
@@ -698,31 +808,34 @@ gimv_index_tab_update_menu (GimvThumbWin *tw)
 static void
 cb_page_destroy (GtkWidget *page, GimvThumbWin *tw)
 {
-   if (gimv_index_tab_get_page (tw) == page)
-      g_object_set_data (G_OBJECT (tw), DATE_TAB_KEY, NULL);
+   gint type = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (page), "gimv-index-tab-type"));
+   if (gimv_index_tab_get_page (tw, type) == page)
+      g_object_set_data (G_OBJECT (tw), tab_keys[type], NULL);
 }
 
 
 static void
 cb_close_clicked (GtkWidget *button, GimvThumbWin *tw)
 {
-   gimv_index_tab_close (tw);
+   gimv_index_tab_close (tw, GPOINTER_TO_INT (g_object_get_data (G_OBJECT (button),
+                                                                "gimv-index-tab-type")));
 }
 
 
 void
-gimv_index_tab_open (GimvThumbWin *tw)
+gimv_index_tab_open (GimvThumbWin *tw, GimvIndexTabType type)
 {
    GtkWidget *page, *hbox, *label, *button;
 
    g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
-   if (gimv_index_tab_get_page (tw) || !tw->notebook) return;
+   if (gimv_index_tab_get_page (tw, type) || !tw->notebook) return;
 
-   page = index_view_new (tw);
+   page = index_view_new (tw, type);
+   g_object_set_data (G_OBJECT (page), "gimv-index-tab-type", GINT_TO_POINTER (type));
 
    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
    g_object_set_data (G_OBJECT (hbox), "page-container", page);
-   label = gtk_label_new (_("Date"));
+   label = gtk_label_new (tab_title (type));
    gtk_widget_set_name (label, "TabLabel");
    gtk_widget_add_css_class (label, "gimv-tab-label");
    gtk_widget_set_margin_start (label, 4);
@@ -733,16 +846,17 @@ gimv_index_tab_open (GimvThumbWin *tw)
    gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
    gtk_button_set_child (GTK_BUTTON (button), gimv_icon_stock_get_widget ("small_close"));
    gimv_widget_set_size (button, 16, 16);
+   g_object_set_data (G_OBJECT (button), "gimv-index-tab-type", GINT_TO_POINTER (type));
    g_signal_connect (button, "clicked", G_CALLBACK (cb_close_clicked), tw);
    gtk_box_append (GTK_BOX (hbox), button);
    gtk_widget_set_visible (button, conf.thumbwin_show_tab_close);
 
    gtk_notebook_append_page (GTK_NOTEBOOK (tw->notebook), page, hbox);
-   gtk_notebook_set_menu_label_text (GTK_NOTEBOOK (tw->notebook), page, _("Date"));
+   gtk_notebook_set_menu_label_text (GTK_NOTEBOOK (tw->notebook), page, tab_title (type));
    gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (tw->notebook), page, TRUE);
    tw->pagenum++;
 
-   g_object_set_data (G_OBJECT (tw), DATE_TAB_KEY, page);
+   g_object_set_data (G_OBJECT (tw), tab_keys[type], page);
    g_signal_connect (page, "destroy", G_CALLBACK (cb_page_destroy), tw);
    sync_menu (tw);
    gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
@@ -750,16 +864,16 @@ gimv_index_tab_open (GimvThumbWin *tw)
 
 
 void
-gimv_index_tab_close (GimvThumbWin *tw)
+gimv_index_tab_close (GimvThumbWin *tw, GimvIndexTabType type)
 {
    GtkWidget *page;
    gint num;
 
    g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
-   page = gimv_index_tab_get_page (tw);
+   page = gimv_index_tab_get_page (tw, type);
    if (!page) return;
 
-   g_object_set_data (G_OBJECT (tw), DATE_TAB_KEY, NULL);
+   g_object_set_data (G_OBJECT (tw), tab_keys[type], NULL);
    num = gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), page);
    if (num >= 0) {
       gtk_notebook_remove_page (GTK_NOTEBOOK (tw->notebook), num);

@@ -943,19 +943,19 @@ gimv_comment_get_rotation (GimvImageInfo *info, gint *orientation)
 }
 
 
+/* set (value NULL: remove) one key of the comment of the image and save
+ * the comment file, or delete it when nothing is left */
 void
-gimv_comment_set_rotation (GimvImageInfo *info, gint orientation)
+gimv_comment_set_value (GimvImageInfo *info, const gchar *key, const gchar *value)
 {
-   static const gint cw_degrees[] = { 0, 270, 180, 90 };
    GimvComment *comment;
    gboolean fresh;
-   gchar buf[16];
 
    g_return_if_fail (info);
-   if (orientation < 0 || orientation > 3) return;
+   g_return_if_fail (key && *key);
 
    /* a comment object made just now (nobody edits it) for an image without
-      a comment file: keep only the rotation, not the default values */
+      a comment file: keep only this key, not the default values */
    fresh = !gimv_image_info_get_comment (info);
    comment = gimv_comment_get_from_image_info (info);
    if (!comment) return;
@@ -965,11 +965,10 @@ gimv_comment_set_rotation (GimvImageInfo *info, gint orientation)
          gimv_comment_data_entry_remove (comment, comment->data_list->data);
    }
 
-   if (orientation == 0) {
-      gimv_comment_data_entry_remove_by_key (comment, GIMV_COMMENT_ROTATION_KEY);
+   if (!value || !*value) {
+      gimv_comment_data_entry_remove_by_key (comment, key);
    } else {
-      g_snprintf (buf, sizeof (buf), "%d", cw_degrees[orientation]);
-      gimv_comment_append_data (comment, GIMV_COMMENT_ROTATION_KEY, buf);
+      gimv_comment_append_data (comment, key, value);
    }
 
    if (comment_has_data (comment))
@@ -978,6 +977,24 @@ gimv_comment_set_rotation (GimvImageInfo *info, gint orientation)
       gimv_comment_delete_file (comment);
 
    gimv_comment_unref (comment);
+}
+
+
+void
+gimv_comment_set_rotation (GimvImageInfo *info, gint orientation)
+{
+   static const gint cw_degrees[] = { 0, 270, 180, 90 };
+   gchar buf[16];
+
+   g_return_if_fail (info);
+   if (orientation < 0 || orientation > 3) return;
+
+   if (orientation == 0) {
+      gimv_comment_set_value (info, GIMV_COMMENT_ROTATION_KEY, NULL);
+   } else {
+      g_snprintf (buf, sizeof (buf), "%d", cw_degrees[orientation]);
+      gimv_comment_set_value (info, GIMV_COMMENT_ROTATION_KEY, buf);
+   }
 }
 
 

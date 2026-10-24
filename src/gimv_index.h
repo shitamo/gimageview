@@ -40,8 +40,17 @@ const gchar    *gimv_index_get_status_text  (void);
  * Owned by gimv_index, don't close it. */
 sqlite3        *gimv_index_get_db           (void);
 
-/* "stage-changed": something new is in the database */
-typedef void (*GimvIndexChangedFunc) (gpointer data);
+/* the comment file of the image (its tags) was written: let the indexer
+ * read it again */
+void            gimv_index_tags_changed     (const gchar *path);
+
+/* something new is in the database */
+typedef enum {
+   GIMV_INDEX_CHANGED_DATES = 1 << 0,
+   GIMV_INDEX_CHANGED_TAGS  = 1 << 1,
+} GimvIndexChange;
+
+typedef void (*GimvIndexChangedFunc) (GimvIndexChange what, gpointer data);
 guint           gimv_index_add_watch        (GimvIndexChangedFunc func,
                                              gpointer             data);
 void            gimv_index_remove_watch     (guint                id);

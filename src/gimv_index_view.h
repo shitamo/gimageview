@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 3 -*- */
 
 /*
- * GImageView image index: the "Date" tab of the thumbnail window.
+ * GImageView image index: the "Date" and "Tag" tabs of the thumbnail window.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,13 +14,21 @@
 
 #include "gimv_thumb_win.h"
 
-/* open / close the "Date" tab (nothing happens when it is already so) */
-void       gimv_index_tab_open     (GimvThumbWin *tw);
-void       gimv_index_tab_close    (GimvThumbWin *tw);
+typedef enum {
+   GIMV_INDEX_TAB_DATE,
+   GIMV_INDEX_TAB_TAG,
+} GimvIndexTabType;
+
+/* open / close a tab (nothing happens when it is already so) */
+void       gimv_index_tab_open        (GimvThumbWin     *tw,
+                                       GimvIndexTabType  type);
+void       gimv_index_tab_close       (GimvThumbWin     *tw,
+                                       GimvIndexTabType  type);
 /* the page widget of the tab, NULL when it is not open */
-GtkWidget *gimv_index_tab_get_page (GimvThumbWin *tw);
-/* the "Tab (Date)" menu item: checked when open, insensitive while the
- * index is off */
-void       gimv_index_tab_update_menu (GimvThumbWin *tw);
+GtkWidget *gimv_index_tab_get_page    (GimvThumbWin     *tw,
+                                       GimvIndexTabType  type);
+/* the "Tab (Date)" / "Tab (Tag)" menu items: checked when open,
+ * insensitive while the index is off */
+void       gimv_index_tab_update_menu (GimvThumbWin     *tw);
 
 #endif /* __GIMV_INDEX_VIEW_H__ */
