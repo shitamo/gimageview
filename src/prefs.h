@@ -85,6 +85,7 @@ typedef struct _Config {
    gint       index_notify_interval; /* seconds between two at least */
    gint       index_notify_timeout;  /* seconds shown, 0: the default */
    gchar     *index_notify_exclude;  /* ';' separated folders */
+   gint       index_log_keep;        /* logs of missing images kept */
    gboolean   detect_filetype_by_ext;
    gboolean   disp_filename_stdout;
    gint       interpolation;

@@ -23,6 +23,12 @@ void       gimv_index_notice_moved       (const gchar *old,
                                           gboolean     dir);
 /* images that came while gimv was not running */
 void       gimv_index_notice_added_since_last (guint n);
+/* images with comment files are missing: the log of this run, n so far */
+void       gimv_index_notice_missing     (const gchar *log,
+                                          guint        n);
+void       gimv_index_notice_logs_pruned (guint        n);
+/* the moves (files) nobody answered, "old\tnew" strings to free */
+GList     *gimv_index_notice_take_unanswered (void);
 /* the indexer cannot watch more folders */
 void       gimv_index_notice_watch_limit (guint        n_watched);
 

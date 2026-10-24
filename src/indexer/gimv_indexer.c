@@ -32,6 +32,9 @@
  *                           renamed by another program (the comment file
  *                           stays at the old place until gimv moves it)
  *   moved-dir\t<old>\t<new> the same for a directory with comment files
+ *   missing-log\t<file>\t<n> images with comment files are missing: the
+ *                           log of this run holds <n> of them now
+ *   log-pruned <n>          <n> old logs were deleted (index_log_keep)
  *   watch-limit <n>         no more directories can be watched (the kernel
  *                           limit, fs.inotify.max_user_watches); changes
  *                           below the others are found at the next start
@@ -39,6 +42,9 @@
  *   error <text>
  *
  * Commands on stdin:
+ *   unanswered\t<old>\t<new> an image moved by another program whose comment
+ *                           file the user did not move: logged as missing
+ *                           (sent when gimv quits)
  *   tags <path>             the comment file of the image changed: read its
  *                           tags again now (answered with "tags-updated")
  *   quit
@@ -105,6 +111,18 @@ typedef struct Indexer_Tag
    guint        n_watches;
    gboolean     report_new;    /* say "new" for each file added */
    gboolean     first_run;     /* the first stage 1 of this start */
+
+   /* missing files: images with a comment file (comments, tags) that are
+    * gone from the indexed folders; written to a log per run */
+   gboolean     log_missing;   /* FALSE while a folder is taken out of the
+                                * configuration on purpose */
+   gboolean     watching;      /* the missing ones were seen just now */
+   GPtrArray   *missing;       /* "path\tlast seen\ttags" not written yet */
+   gchar       *prev_scan;     /* when the files were last confirmed */
+   gchar       *log_dir;
+   gchar       *log_path;      /* the log of this run, once there is one */
+   guint        log_count;
+   gint         log_keep;
    gboolean     full;          /* stat every file, not only changed dirs */
    GString     *cmdbuf;
 
@@ -175,6 +193,8 @@ take_lock (const gchar *dbfile)
  *  commands from gimv
  ******************************************************************************/
 
+static void unanswered_move (Indexer *ix, const gchar *old, const gchar *new);
+
 /* non-blocking look at stdin, also used to notice that gimv has gone away */
 static void
 check_stdin (Indexer *ix, gint timeout_ms)
@@ -194,7 +214,12 @@ check_stdin (Indexer *ix, gint timeout_ms)
       g_string_append_len (ix->cmdbuf, buf, n);
       while ((nl = strchr (ix->cmdbuf->str, '\n'))) {
          *nl = '\0';
-         if (g_str_has_prefix (ix->cmdbuf->str, "tags /")) {
+         if (g_str_has_prefix (ix->cmdbuf->str, "unanswered\t")) {
+            gchar **v = g_strsplit (ix->cmdbuf->str, "\t", 3);
+            if (g_strv_length (v) == 3)
+               unanswered_move (ix, v[1], v[2]);
+            g_strfreev (v);
+         } else if (g_str_has_prefix (ix->cmdbuf->str, "tags /")) {
             /* the path as it is, spaces and all */
             g_ptr_array_add (ix->tag_queue, g_strdup (ix->cmdbuf->str + 5));
          } else {
@@ -322,6 +347,227 @@ is_image_name (Indexer *ix, const gchar *name)
 
 
 /******************************************************************************
+ *  missing files and their log
+ ******************************************************************************/
+
+static gchar *
+now_string (void)
+{
+   GDateTime *now = g_date_time_new_now_local ();
+   gchar *s = g_date_time_format (now, "%Y-%m-%d %H:%M:%S");
+   g_date_time_unref (now);
+   return s;
+}
+
+
+static gchar *
+manual_tags (Indexer *ix, gint64 file_id)
+{
+   sqlite3_stmt *st = prep (ix, "SELECT group_concat(t.name, ', ') FROM file_tags ft "
+                                "JOIN tags t ON t.id = ft.tag_id "
+                                "WHERE ft.file_id = ? AND ft.auto = 0");
+   gchar *tags = NULL;
+
+   sqlite3_bind_int64 (st, 1, file_id);
+   if (sqlite3_step (st) == SQLITE_ROW && sqlite3_column_text (st, 0))
+      tags = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
+   sqlite3_finalize (st);
+   return tags ? tags : g_strdup ("");
+}
+
+
+static void
+missing_add (Indexer *ix, const gchar *path, gint64 file_id)
+{
+   gchar *tags = manual_tags (ix, file_id), *now = NULL;
+   const gchar *last;
+
+   if (strpbrk (path, "\t\n")) {
+      g_free (tags);
+      return;
+   }
+   if (ix->watching || !ix->prev_scan || !*ix->prev_scan)
+      last = now = now_string ();
+   else
+      last = ix->prev_scan;
+   g_ptr_array_add (ix->missing, g_strdup_printf ("%s\t%s\t%s", path, last, tags));
+   g_free (tags);
+   g_free (now);
+}
+
+
+/* the file is about to be dropped from the database */
+static void
+missing_file (Indexer *ix, gint64 dir_id, const gchar *dirpath, const gchar *name)
+{
+   sqlite3_stmt *st;
+
+   if (!ix->log_missing) return;
+   st = prep (ix, "SELECT f.id FROM files f JOIN comments c ON c.file_id = f.id "
+                  "WHERE f.dir_id = ? AND f.name = ?");
+   sqlite3_bind_int64 (st, 1, dir_id);
+   sqlite3_bind_text  (st, 2, name, -1, SQLITE_STATIC);
+   if (sqlite3_step (st) == SQLITE_ROW) {
+      gchar *path = g_build_filename (dirpath, name, NULL);
+      missing_add (ix, path, sqlite3_column_int64 (st, 0));
+      g_free (path);
+   }
+   sqlite3_finalize (st);
+}
+
+
+/* the directory tree is about to be dropped (like: "path/%" escaped) */
+static void
+missing_tree (Indexer *ix, const gchar *path, const gchar *like)
+{
+   sqlite3_stmt *st;
+   GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
+   GArray *ids = g_array_new (FALSE, FALSE, sizeof (gint64));
+   guint i;
+
+   if (!ix->log_missing) goto out;
+   st = prep (ix, "SELECT d.path, f.name, f.id FROM files f "
+                  "JOIN comments c ON c.file_id = f.id JOIN dirs d ON d.id = f.dir_id "
+                  "WHERE d.path = ?1 OR d.path LIKE ?2 ESCAPE '\\'");
+   sqlite3_bind_text (st, 1, path, -1, SQLITE_STATIC);
+   sqlite3_bind_text (st, 2, like, -1, SQLITE_STATIC);
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      gint64 id = sqlite3_column_int64 (st, 2);
+      g_ptr_array_add (paths, g_build_filename ((const gchar *) sqlite3_column_text (st, 0),
+                                               (const gchar *) sqlite3_column_text (st, 1),
+                                               NULL));
+      g_array_append_val (ids, id);
+   }
+   sqlite3_finalize (st);
+   for (i = 0; i < paths->len; i++)
+      missing_add (ix, g_ptr_array_index (paths, i), g_array_index (ids, gint64, i));
+out:
+   g_ptr_array_unref (paths);
+   g_array_unref (ids);
+}
+
+
+static gint
+compare_names (gconstpointer a, gconstpointer b)
+{
+   return strcmp (*(const gchar **) a, *(const gchar **) b);
+}
+
+
+/* keep the newest log_keep logs */
+static void
+prune_logs (Indexer *ix)
+{
+   GDir *d = g_dir_open (ix->log_dir, 0, NULL);
+   GPtrArray *logs = g_ptr_array_new_with_free_func (g_free);
+   const gchar *name;
+   guint i, pruned = 0;
+
+   if (!d) return;
+   while ((name = g_dir_read_name (d)))
+      if (g_str_has_prefix (name, "missing-") && g_str_has_suffix (name, ".log"))
+         g_ptr_array_add (logs, g_strdup (name));
+   g_dir_close (d);
+
+   /* the names hold the time: sorted, the oldest come first */
+   g_ptr_array_sort (logs, compare_names);
+   for (i = 0; logs->len > (guint) ix->log_keep && i < logs->len - ix->log_keep; i++) {
+      gchar *path = g_build_filename (ix->log_dir, g_ptr_array_index (logs, i), NULL);
+      if (g_unlink (path) == 0) pruned++;
+      g_free (path);
+   }
+   g_ptr_array_unref (logs);
+   if (pruned) say ("log-pruned %u", pruned);
+}
+
+
+static void
+missing_flush (Indexer *ix)
+{
+   FILE *fp;
+   guint i;
+
+   if (!ix->missing->len) return;
+   if (ix->log_keep <= 0) {
+      g_ptr_array_set_size (ix->missing, 0);
+      return;
+   }
+
+   if (!ix->log_path) {
+      GDateTime *now = g_date_time_new_now_local ();
+      gchar *name = g_date_time_format (now, "missing-%Y%m%d-%H%M%S.log");
+      gchar *when = g_date_time_format (now, "%Y-%m-%d %H:%M:%S");
+
+      g_mkdir_with_parents (ix->log_dir, 0700);
+      ix->log_path = g_build_filename (ix->log_dir, name, NULL);
+      fp = g_fopen (ix->log_path, "w");
+      if (fp) {
+         fprintf (fp, "# GImageView: images with comment files (tags) that were missing\n"
+                      "# found %s\n"
+                      "# path\tlast seen\ttags[\tmoved to <path> (the comment file was left)]\n",
+                  when);
+         fclose (fp);
+      }
+      g_free (name);
+      g_free (when);
+      g_date_time_unref (now);
+      prune_logs (ix);
+   }
+
+   fp = g_fopen (ix->log_path, "a");
+   if (fp) {
+      for (i = 0; i < ix->missing->len; i++)
+         fprintf (fp, "%s\n", (gchar *) g_ptr_array_index (ix->missing, i));
+      fclose (fp);
+      ix->log_count += ix->missing->len;
+      if (!strpbrk (ix->log_path, "\t\n"))
+         say ("missing-log\t%s\t%u", ix->log_path, ix->log_count);
+   }
+   g_ptr_array_set_size (ix->missing, 0);
+}
+
+
+static GPtrArray *read_comment_tags (const gchar *file);
+static gchar *comment_root (void);
+
+/* the comment file stays at the old place: missing, with where the image
+ * went */
+static void
+unanswered_move (Indexer *ix, const gchar *old, const gchar *new)
+{
+   gchar *croot = comment_root ();
+   gchar *cfile = g_strconcat (croot, old, ".txt", NULL);
+   GPtrArray *tags = read_comment_tags (cfile);
+   gchar *now = now_string (), *joined = NULL;
+
+   if (tags) {
+      g_ptr_array_add (tags, NULL);
+      joined = g_strjoinv (", ", (gchar **) tags->pdata);
+      g_ptr_array_unref (tags);
+   }
+   if (!strpbrk (old, "\t\n") && !strpbrk (new, "\t\n"))
+      g_ptr_array_add (ix->missing, g_strdup_printf ("%s\t%s\t%s\tmoved to %s", old, now,
+                                                     joined ? joined : "", new));
+   g_free (joined);
+   g_free (now);
+   g_free (cfile);
+   g_free (croot);
+}
+
+
+/* the time of this scan, for the next run */
+static void
+remember_scan (Indexer *ix)
+{
+   gchar *now = now_string ();
+   sqlite3_stmt *st = prep (ix, "INSERT OR REPLACE INTO meta VALUES ('last_scan', ?)");
+   sqlite3_bind_text (st, 1, now, -1, g_free);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+}
+
+
+/******************************************************************************
  *  stage 1: file information
  ******************************************************************************/
 
@@ -394,6 +640,8 @@ dir_remove_tree (Indexer *ix, const gchar *path)
       esc = g_string_free (s, FALSE);
    }
    like = g_strconcat (esc, "/%", NULL);
+
+   missing_tree (ix, path, like);
 
    st = prep (ix, "SELECT count(*) FROM files WHERE dir_id IN "
                   "(SELECT id FROM dirs WHERE path = ?1 OR path LIKE ?2 ESCAPE '\\')");
@@ -558,6 +806,7 @@ scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
       sqlite3_reset (st);
 
       for (i = 0; i < gone->len; i++) {
+         missing_file (ix, id, path, g_ptr_array_index (gone, i));
          st = ix->st_file_del;
          sqlite3_reset (st);
          sqlite3_bind_int64 (st, 1, id);
@@ -623,8 +872,11 @@ drop_old_roots (Indexer *ix)
    }
    sqlite3_finalize (st);
 
+   /* taken out of the configuration on purpose: not missing */
+   ix->log_missing = FALSE;
    for (i = 0; i < gone->len; i++)
       dir_remove_tree (ix, g_ptr_array_index (gone, i));
+   ix->log_missing = TRUE;
    g_ptr_array_unref (gone);
 }
 
@@ -657,6 +909,10 @@ run_stage1 (Indexer *ix)
    if (!ix->quit)
       say ("stage 1 done %u %u %u %u %u", ix->n_dirs, ix->n_files,
            ix->n_added, ix->n_changed, ix->n_removed);
+   if (!ix->quit) {
+      missing_flush (ix);
+      remember_scan (ix);
+   }
    /* not on a new database: everything would be new */
    if (!ix->quit && ix->first_run && before > 0 && ix->n_added > 0)
       say ("added-since-last %u", ix->n_added);
@@ -1232,6 +1488,7 @@ watch_file_removed (Indexer *ix, const gchar *path)
    sqlite3_stmt *st = ix->st_file_del;
 
    if (id) {
+      missing_file (ix, id, dir, name);
       sqlite3_reset (st);
       sqlite3_bind_int64 (st, 1, id);
       sqlite3_bind_text  (st, 2, name, -1, SQLITE_STATIC);
@@ -1374,6 +1631,7 @@ watch_process (Indexer *ix)
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
    exec (ix, "BEGIN");
    ix->report_new = TRUE;
+   ix->watching = TRUE;
 
    while ((n = read (ix->inotify_fd, buf, sizeof (buf))) > 0) {
       gchar *p;
@@ -1459,9 +1717,11 @@ watch_process (Indexer *ix)
    }
    g_hash_table_unref (froms);
    ix->report_new = FALSE;
+   ix->watching = FALSE;
 
    exec (ix, "COMMIT");
    g_free (croot);
+   missing_flush (ix);
 
    if (!any) return;
 
@@ -1512,6 +1772,12 @@ open_db (Indexer *ix, const gchar *dbfile)
     * read the files left without a date again, one time */
    exec (ix, "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)");
    {
+      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'last_scan'");
+      if (sqlite3_step (st) == SQLITE_ROW && sqlite3_column_text (st, 0))
+         ix->prev_scan = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
+      sqlite3_finalize (st);
+   }
+   {
       sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'date_rule'");
       gboolean current = sqlite3_step (st) == SQLITE_ROW
          && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "2");
@@ -1548,11 +1814,13 @@ main (int argc, char *argv[])
    Indexer ix;
    gchar *dbfile = NULL, *exts = NULL;
    gboolean dotfiles = FALSE;
+   gint log_keep = 10;
    gchar **dirs = NULL;
    GOptionEntry entries[] = {
       { "db",       0, 0, G_OPTION_ARG_FILENAME, &dbfile, "database file", "FILE" },
       { "dotfiles", 0, 0, G_OPTION_ARG_NONE, &dotfiles, "include dot files", NULL },
       { "ext",      0, 0, G_OPTION_ARG_STRING, &exts, "image extensions", "LIST" },
+      { "log-keep", 0, 0, G_OPTION_ARG_INT, &log_keep, "logs of missing files kept (0: none)", "N" },
       { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &dirs, NULL, "DIR..." },
       { NULL }
    };
@@ -1581,6 +1849,10 @@ main (int argc, char *argv[])
    ix.tag_queue = g_ptr_array_new_with_free_func (g_free);
    watch_init (&ix);
    ix.first_run = TRUE;
+   ix.log_missing = TRUE;
+   ix.log_keep = log_keep;
+   ix.missing = g_ptr_array_new_with_free_func (g_free);
+   ix.log_dir = g_path_get_dirname (dbfile);
 
    /* roots: absolute, without trailing slashes, no duplicates */
    {
@@ -1652,6 +1924,8 @@ main (int argc, char *argv[])
       }
    } while (!ix.quit);
 
+   /* unanswered moves sent just before quitting */
+   missing_flush (&ix);
    close_db (&ix);
    if (lockfd >= 0) close (lockfd);
    return 0;

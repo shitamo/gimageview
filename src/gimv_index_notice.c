@@ -37,6 +37,7 @@ typedef struct {
 
 static GPtrArray *pending = NULL;   /* Move, waiting for an answer */
 static GPtrArray *notes = NULL;     /* gchar *, things to know */
+static gchar     *missing_note = NULL;   /* in notes, replaced while the log grows */
 
 
 static void
@@ -157,6 +158,7 @@ cb_dismiss_note (GtkButton *button, gpointer data)
    GtkWidget *popover = gtk_widget_get_ancestor (GTK_WIDGET (button), GTK_TYPE_POPOVER);
    if (popover) gtk_popover_popdown (GTK_POPOVER (popover));
    if (notes) g_ptr_array_set_size (notes, 0);
+   missing_note = NULL;
    update_buttons ();
 }
 
@@ -358,6 +360,50 @@ add_note (gchar *text)
 {
    if (!notes) notes = g_ptr_array_new_with_free_func (g_free);
    g_ptr_array_add (notes, text);
+   update_buttons ();
+}
+
+
+/* the moves nobody answered: gimv quits */
+GList *
+gimv_index_notice_take_unanswered (void)
+{
+   GList *list = NULL;
+   guint i;
+
+   for (i = 0; pending && i < pending->len; i++) {
+      Move *m = g_ptr_array_index (pending, i);
+      if (!m->dir)
+         list = g_list_append (list, g_strdup_printf ("%s\t%s", m->old, m->new));
+   }
+   return list;
+}
+
+
+void
+gimv_index_notice_missing (const gchar *log, guint n)
+{
+   gchar *text = g_strdup_printf (
+      ngettext ("%u image with comments (tags) is missing. Its comment file is kept; see %s",
+                "%u images with comments (tags) are missing. Their comment files are kept; see %s",
+                n), n, log);
+
+   if (!notes) notes = g_ptr_array_new_with_free_func (g_free);
+   if (missing_note && g_ptr_array_remove (notes, missing_note))
+      missing_note = NULL;
+   missing_note = text;
+   g_ptr_array_add (notes, text);
+   update_buttons ();
+}
+
+
+void
+gimv_index_notice_logs_pruned (guint n)
+{
+   if (!notes) notes = g_ptr_array_new_with_free_func (g_free);
+   g_ptr_array_add (notes, g_strdup_printf (
+      ngettext ("%u old log of missing images was deleted.",
+                "%u old logs of missing images were deleted.", n), n));
    update_buttons ();
 }
 

@@ -253,6 +253,15 @@ handle_line (const gchar *line)
       return;
    }
 
+   /* "missing-log\t<file>\t<n>" */
+   if (g_str_has_prefix (line, "missing-log\t")) {
+      gchar **t = g_strsplit (line, "\t", 3);
+      if (g_strv_length (t) == 3)
+         gimv_index_notice_missing (t[1], strtoul (t[2], NULL, 10));
+      g_strfreev (t);
+      return;
+   }
+
    /* "moved\t<old>\t<new>", "moved-dir\t<old>\t<new>" */
    if (g_str_has_prefix (line, "moved\t") || g_str_has_prefix (line, "moved-dir\t")) {
       gchar **t = g_strsplit (line, "\t", 3);
@@ -306,6 +315,8 @@ handle_line (const gchar *line)
    } else if (!strcmp (v[0], "changed")) {
       /* files changed while watching */
       notify_watches (GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS);
+   } else if (!strcmp (v[0], "log-pruned") && n >= 2) {
+      gimv_index_notice_logs_pruned (strtoul (v[1], NULL, 10));
    } else if (!strcmp (v[0], "added-since-last") && n >= 2) {
       gimv_index_notice_added_since_last (strtoul (v[1], NULL, 10));
    } else if (!strcmp (v[0], "watch-limit") && n >= 2) {
@@ -396,6 +407,7 @@ start_indexer (void)
    g_ptr_array_add (argv, g_strdup (ix.dbfile));
    if (conf.read_dotfile)
       g_ptr_array_add (argv, g_strdup ("--dotfiles"));
+   g_ptr_array_add (argv, g_strdup_printf ("--log-keep=%d", conf.index_log_keep));
    exts = ext_list ();
    if (*exts) {
       g_ptr_array_add (argv, g_strdup ("--ext"));
@@ -461,6 +473,16 @@ stop_indexer (void)
       g_clear_object (&ix.cancel);
    }
    if (ix.proc) {
+      GList *un = gimv_index_notice_take_unanswered (), *node;
+
+      /* the comment files left by moves nobody answered go to the log */
+      for (node = un; node; node = g_list_next (node)) {
+         gchar *cmd = g_strdup_printf ("unanswered\t%s\n", (gchar *) node->data);
+         send_command (cmd);
+         g_free (cmd);
+      }
+      g_list_free_full (un, g_free);
+
       /* the indexer commits what it has and exits at EOF of stdin */
       send_command ("quit\n");
       g_output_stream_close (ix.in, NULL, NULL);

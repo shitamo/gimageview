@@ -98,6 +98,7 @@ static ConfParam param_common [] = {
    {"index_notify_interval",    D_INT,    "30",   &conf.index_notify_interval},
    {"index_notify_timeout",     D_INT,    "0",    &conf.index_notify_timeout},
    {"index_notify_exclude",     D_STRING, "",     &conf.index_notify_exclude},
+   {"index_log_keep",           D_INT,    "10",   &conf.index_log_keep},
 
    {"detect_filetype_by_ext",   D_BOOL,   "TRUE",  &conf.detect_filetype_by_ext},
    {"disp_filename_stdout",     D_BOOL,   "TRUE",  &conf.disp_filename_stdout},

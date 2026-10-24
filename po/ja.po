@@ -4542,6 +4542,31 @@ msgstr "通知しないフォルダ"
 msgid "Select a folder not to notify"
 msgstr "通知しないフォルダを選択"
 
+#: src/gimv_index_notice.c
+#, c-format
+msgid "%u image with comments (tags) is missing. Its comment file is kept; see %s"
+msgid_plural "%u images with comments (tags) are missing. Their comment files are kept; see %s"
+msgstr[0] "コメント (タグ) のある画像 %u 件が行方不明です。コメントファイルは残してあります。ログ: %s"
+
+#: src/gimv_index_notice.c
+#, c-format
+msgid "%u old log of missing images was deleted."
+msgid_plural "%u old logs of missing images were deleted."
+msgstr[0] "行方不明の画像の古いログを %u 個削除しました。"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Missing Images"
+msgstr "行方不明の画像"
+
+#: src/prefs_ui/prefs_ui_index.c
+#, c-format
+msgid "Images with comments (tags) that are gone are listed in a log in %s, one log for each start."
+msgstr "なくなったコメント (タグ) 付きの画像を、%s のログに書き出します (起動ごとに 1 つ)。"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Logs kept (0: none)"
+msgstr "残すログの数 (0 は作らない)"
+
 #~ msgid "Xine Embeder"
 #~ msgstr "Xine埋め込み"
 

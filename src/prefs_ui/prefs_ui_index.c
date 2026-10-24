@@ -124,6 +124,35 @@ prefs_ui_index (void)
       (void) nframe;
    }
 
+   /* missing images */
+   {
+      GtkWidget *mframe, *mvbox, *hbox, *l, *spin;
+      GtkAdjustment *adj;
+      gchar *dir = g_build_filename (g_get_user_data_dir (), "gimageview", NULL), *text;
+
+      gimv_prefs_ui_create_frame (_("Missing Images"), mframe, mvbox, main_vbox, FALSE);
+      text = g_strdup_printf (_("Images with comments (tags) that are gone are listed "
+                                "in a log in %s, one log for each start."), dir);
+      l = gtk_label_new (text);
+      g_free (text);
+      g_free (dir);
+      gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+      gtk_label_set_wrap (GTK_LABEL (l), TRUE);
+      gimv_box_pack_start (GTK_BOX (mvbox), l, FALSE, FALSE, 0);
+
+      hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
+      l = gtk_label_new (_("Logs kept (0: none)"));
+      adj = gtk_adjustment_new (conf.index_log_keep, 0, 1000, 1, 10, 0);
+      spin = gtkutil_create_spin_button (adj);
+      g_signal_connect (adj, "value_changed",
+                        G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
+                        &config_changed->index_log_keep);
+      gtk_box_append (GTK_BOX (hbox), l);
+      gtk_box_append (GTK_BOX (hbox), spin);
+      gimv_box_pack_start (GTK_BOX (mvbox), hbox, FALSE, FALSE, 0);
+      (void) mframe;
+   }
+
    gimv_widget_show_all (main_vbox);
    gtk_widget_set_sensitive (frame, conf.index_enable);
 
@@ -162,6 +191,7 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
    }
 
    if (dest->index_enable == src->index_enable
+       && dest->index_log_keep == src->index_log_keep
        && !g_strcmp0 (dest->index_dirs, src->index_dirs))
       return FALSE;
 
