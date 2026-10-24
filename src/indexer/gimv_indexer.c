@@ -10,8 +10,11 @@
  *
  *   gimv-indexer --db FILE [--dotfiles] [--ext jpg,png,...] DIR...
  *
- * Stage 1 records the files (date from mtime), stage 2 reads the date each
- * image was taken: EXIF DateTimeOriginal, or else a date in the file name.
+ * Stage 1 records the files (date from mtime), stage 3 reads the tags from
+ * the gimv comment files (~/.gimv/comment/<image path>.txt, the line
+ * "X-IMG-Tags: a, b"), stage 2 reads the date each image was taken: EXIF
+ * DateTimeOriginal, or else a date in the file name.  Stage 3 runs before
+ * stage 2, which may take hours the first time.
  *
  * Messages on stdout:
  *   hello <version>
@@ -19,10 +22,13 @@
  *   stage <n> start [<files to do>]
  *   progress <n> <dirs> <files>
  *   stage <n> done <dirs> <files> <added> <changed> <removed>
+ *   tags-updated            tags changed after a "tags" command
  *   idle
  *   error <text>
  *
  * Commands on stdin:
+ *   tags <path>             the comment file of the image changed: read its
+ *                           tags again now (answered with "tags-updated")
  *   quit
  *   rescan                  look at every file again, also in directories
  *                           whose mtime has not changed (files overwritten
@@ -77,6 +83,7 @@ typedef struct Indexer_Tag
 
    gboolean     quit;
    gboolean     rescan;
+   GPtrArray   *tag_queue;     /* images whose comment file gimv changed */
    gboolean     full;          /* stat every file, not only changed dirs */
    GString     *cmdbuf;
 
@@ -84,6 +91,7 @@ typedef struct Indexer_Tag
    sqlite3_stmt *st_file_get, *st_file_add, *st_file_set;
    sqlite3_stmt *st_file_list, *st_file_del;
    sqlite3_stmt *st_sub_list, *st_dir_del;
+   sqlite3_stmt *st_file_by_path;
 } Indexer;
 
 
@@ -165,11 +173,16 @@ check_stdin (Indexer *ix, gint timeout_ms)
       g_string_append_len (ix->cmdbuf, buf, n);
       while ((nl = strchr (ix->cmdbuf->str, '\n'))) {
          *nl = '\0';
-         g_strstrip (ix->cmdbuf->str);
-         if (!strcmp (ix->cmdbuf->str, "quit"))
-            ix->quit = TRUE;
-         else if (!strcmp (ix->cmdbuf->str, "rescan"))
-            ix->rescan = TRUE;
+         if (g_str_has_prefix (ix->cmdbuf->str, "tags /")) {
+            /* the path as it is, spaces and all */
+            g_ptr_array_add (ix->tag_queue, g_strdup (ix->cmdbuf->str + 5));
+         } else {
+            g_strstrip (ix->cmdbuf->str);
+            if (!strcmp (ix->cmdbuf->str, "quit"))
+               ix->quit = TRUE;
+            else if (!strcmp (ix->cmdbuf->str, "rescan"))
+               ix->rescan = TRUE;
+         }
          g_string_erase (ix->cmdbuf, 0, nl - ix->cmdbuf->str + 1);
       }
       timeout_ms = 0;
@@ -204,12 +217,15 @@ exec (Indexer *ix, const gchar *sql)
 }
 
 
+static void process_tag_queue (Indexer *ix, gboolean in_transaction);
+
 static void
 maybe_commit (Indexer *ix, gboolean force)
 {
    gint64 now = g_get_monotonic_time ();
 
    if (force || now - ix->last_commit >= COMMIT_INTERVAL_USEC) {
+      process_tag_queue (ix, TRUE);
       exec (ix, "COMMIT");
       check_stdin (ix, 0);
       exec (ix, "BEGIN");
@@ -808,6 +824,270 @@ run_stage2 (Indexer *ix)
 
 
 /******************************************************************************
+ *  stage 3: tags from the comment files
+ ******************************************************************************/
+
+static gchar *
+comment_root (void)
+{
+   /* the same place as gimv_comment_get_path () */
+   const gchar *home = g_getenv ("HOME");
+   return g_build_filename (home ? home : g_get_home_dir (), ".gimv", "comment", NULL);
+}
+
+
+/* the tags of the comment file, NULL when there is no file */
+static GPtrArray *
+read_comment_tags (const gchar *file)
+{
+   gchar *text = NULL, **lines;
+   GPtrArray *tags;
+   gint i;
+
+   if (!g_file_get_contents (file, &text, NULL, NULL))
+      return NULL;
+
+   tags = g_ptr_array_new_with_free_func (g_free);
+   lines = g_strsplit (text, "\n", -1);
+   /* "key: value" lines, then an empty line and the note */
+   for (i = 0; lines[i] && *lines[i]; i++) {
+      gchar **v;
+      gint j;
+
+      if (!g_str_has_prefix (lines[i], GIMV_INDEX_TAGS_KEY ":")) continue;
+      v = g_strsplit (lines[i] + strlen (GIMV_INDEX_TAGS_KEY ":"), ",", -1);
+      for (j = 0; v[j]; j++) {
+         gchar *t = g_strstrip (v[j]);
+         if (*t && !g_ptr_array_find_with_equal_func (tags, t, g_str_equal, NULL))
+            g_ptr_array_add (tags, g_strdup (t));
+      }
+      g_strfreev (v);
+   }
+   g_strfreev (lines);
+   g_free (text);
+   return tags;
+}
+
+
+static gint64
+file_id_for_path (Indexer *ix, const gchar *path)
+{
+   gchar *dir = g_path_get_dirname (path), *name = g_path_get_basename (path);
+   sqlite3_stmt *st = ix->st_file_by_path;
+   gint64 id = 0;
+
+   sqlite3_reset (st);
+   sqlite3_bind_text (st, 1, dir, -1, SQLITE_STATIC);
+   sqlite3_bind_text (st, 2, name, -1, SQLITE_STATIC);
+   if (sqlite3_step (st) == SQLITE_ROW)
+      id = sqlite3_column_int64 (st, 0);
+   sqlite3_reset (st);
+   g_free (dir);
+   g_free (name);
+   return id;
+}
+
+
+/* replace the tags a person put on the file */
+static void
+set_manual_tags (Indexer *ix, gint64 file_id, GPtrArray *tags)
+{
+   sqlite3_stmt *st;
+   guint i;
+
+   st = prep (ix, "DELETE FROM file_tags WHERE file_id = ? AND auto = 0");
+   sqlite3_bind_int64 (st, 1, file_id);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+
+   for (i = 0; tags && i < tags->len; i++) {
+      const gchar *name = g_ptr_array_index (tags, i);
+
+      st = prep (ix, "INSERT OR IGNORE INTO tags (name) VALUES (?)");
+      sqlite3_bind_text (st, 1, name, -1, SQLITE_STATIC);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+
+      st = prep (ix, "INSERT OR IGNORE INTO file_tags (file_id, tag_id, auto) "
+                     "SELECT ?, id, 0 FROM tags WHERE name = ?");
+      sqlite3_bind_int64 (st, 1, file_id);
+      sqlite3_bind_text  (st, 2, name, -1, SQLITE_STATIC);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+   }
+}
+
+
+/* read the comment file of one image if it changed; returns TRUE when the
+ * tags in the database changed */
+static gboolean
+import_comment (Indexer *ix, gint64 file_id, const gchar *cfile, gboolean force)
+{
+   struct stat sb;
+   sqlite3_stmt *st;
+   gint64 old = -1, mtime;
+   GPtrArray *tags;
+
+   st = prep (ix, "SELECT mtime FROM comments WHERE file_id = ?");
+   sqlite3_bind_int64 (st, 1, file_id);
+   if (sqlite3_step (st) == SQLITE_ROW) old = sqlite3_column_int64 (st, 0);
+   sqlite3_finalize (st);
+
+   if (stat (cfile, &sb) < 0) {
+      /* no comment file (any more) */
+      if (old < 0) return FALSE;
+      set_manual_tags (ix, file_id, NULL);
+      st = prep (ix, "DELETE FROM comments WHERE file_id = ?");
+      sqlite3_bind_int64 (st, 1, file_id);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+      return TRUE;
+   }
+
+   /* nanoseconds: a comment file written twice in one second */
+   mtime = (gint64) sb.st_mtim.tv_sec * G_GINT64_CONSTANT (1000000000) + sb.st_mtim.tv_nsec;
+   if (!force && old == mtime) return FALSE;
+
+   tags = read_comment_tags (cfile);
+   set_manual_tags (ix, file_id, tags);
+   if (tags) g_ptr_array_unref (tags);
+
+   st = prep (ix, "INSERT OR REPLACE INTO comments (file_id, mtime) VALUES (?, ?)");
+   sqlite3_bind_int64 (st, 1, file_id);
+   sqlite3_bind_int64 (st, 2, mtime);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+   return TRUE;
+}
+
+
+static void
+walk_comments (Indexer *ix, const gchar *croot, const gchar *dir, GHashTable *seen)
+{
+   DIR *dp = opendir (dir);
+   struct dirent *de;
+
+   if (!dp) return;
+   while ((de = readdir (dp)) && !ix->quit) {
+      gchar *path;
+      struct stat sb;
+
+      if (!strcmp (de->d_name, ".") || !strcmp (de->d_name, "..")) continue;
+      path = g_build_filename (dir, de->d_name, NULL);
+      if (lstat (path, &sb) == 0) {
+         if (S_ISDIR (sb.st_mode)) {
+            walk_comments (ix, croot, path, seen);
+         } else if (S_ISREG (sb.st_mode) && g_str_has_suffix (de->d_name, ".txt")) {
+            /* ~/.gimv/comment/a/b.jpg.txt -> /a/b.jpg */
+            gchar *img = g_strndup (path + strlen (croot), strlen (path) - strlen (croot) - 4);
+            gint64 id = file_id_for_path (ix, img);
+            if (id) {
+               gint64 *key = g_new (gint64, 1);
+               *key = id;
+               g_hash_table_add (seen, key);
+               if (import_comment (ix, id, path, FALSE))
+                  ix->n_changed++;
+               ix->n_files++;
+               maybe_commit (ix, FALSE);
+            }
+            g_free (img);
+         }
+      }
+      g_free (path);
+   }
+   closedir (dp);
+}
+
+
+static void
+run_stage3 (Indexer *ix)
+{
+   gchar *croot = comment_root ();
+   GHashTable *seen = g_hash_table_new_full (g_int64_hash, g_int64_equal, g_free, NULL);
+   GArray *gone = g_array_new (FALSE, FALSE, sizeof (gint64));
+   sqlite3_stmt *st;
+   guint i;
+
+   ix->stage = 3;
+   ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   say ("stage 3 start");
+
+   exec (ix, "BEGIN");
+   ix->last_commit = ix->last_progress = g_get_monotonic_time ();
+
+   /* only the comment files below the indexed directories */
+   for (i = 0; ix->roots[i] && !ix->quit; i++) {
+      gchar *dir = g_strconcat (croot, ix->roots[i], NULL);
+      walk_comments (ix, croot, dir, seen);
+      g_free (dir);
+   }
+
+   if (!ix->quit) {
+      /* comment files that are gone */
+      st = prep (ix, "SELECT file_id FROM comments");
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         gint64 id = sqlite3_column_int64 (st, 0);
+         if (!g_hash_table_contains (seen, &id))
+            g_array_append_val (gone, id);
+      }
+      sqlite3_finalize (st);
+      for (i = 0; i < gone->len; i++) {
+         gint64 id = g_array_index (gone, gint64, i);
+         set_manual_tags (ix, id, NULL);
+         st = prep (ix, "DELETE FROM comments WHERE file_id = ?");
+         sqlite3_bind_int64 (st, 1, id);
+         sqlite3_step (st);
+         sqlite3_finalize (st);
+         ix->n_removed++;
+      }
+      /* tags no file has any more */
+      exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
+   }
+
+   exec (ix, "COMMIT");
+   g_array_unref (gone);
+   g_hash_table_unref (seen);
+   g_free (croot);
+
+   if (!ix->quit)
+      say ("stage 3 done %u %u %u %u %u", ix->n_dirs, ix->n_files,
+           ix->n_added, ix->n_changed, ix->n_removed);
+}
+
+
+/* "tags <path>" from gimv: its comment file was just written */
+static void
+process_tag_queue (Indexer *ix, gboolean in_transaction)
+{
+   gchar *croot;
+   gboolean changed = FALSE;
+   guint i;
+
+   if (!ix->tag_queue->len) return;
+
+   croot = comment_root ();
+   if (!in_transaction) exec (ix, "BEGIN");
+   for (i = 0; i < ix->tag_queue->len; i++) {
+      const gchar *img = g_ptr_array_index (ix->tag_queue, i);
+      gint64 id = file_id_for_path (ix, img);
+      gchar *cfile;
+
+      if (!id) continue;
+      cfile = g_strconcat (croot, img, ".txt", NULL);
+      changed |= import_comment (ix, id, cfile, TRUE);
+      g_free (cfile);
+   }
+   if (changed)
+      exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
+   if (!in_transaction) exec (ix, "COMMIT");
+   g_ptr_array_set_size (ix->tag_queue, 0);
+   g_free (croot);
+
+   if (changed) say ("tags-updated");
+}
+
+
+/******************************************************************************
  *  main
  ******************************************************************************/
 
@@ -835,6 +1115,8 @@ open_db (Indexer *ix, const gchar *dbfile)
    ix->st_file_list = prep (ix, "SELECT name FROM files WHERE dir_id = ?");
    ix->st_file_del  = prep (ix, "DELETE FROM files WHERE dir_id = ? AND name = ?");
    ix->st_sub_list  = prep (ix, "SELECT path FROM dirs WHERE parent = ?");
+   ix->st_file_by_path = prep (ix, "SELECT f.id FROM files f JOIN dirs d ON d.id = f.dir_id "
+                                   "WHERE d.path = ? AND f.name = ?");
 
    /* the rules for dates changed once (9802e3e dropped dates before 1990):
     * read the files left without a date again, one time */
@@ -860,7 +1142,7 @@ close_db (Indexer *ix)
    sqlite3_stmt *sts[] = {
       ix->st_dir_get, ix->st_dir_add, ix->st_dir_set, ix->st_file_get,
       ix->st_file_add, ix->st_file_set, ix->st_file_list, ix->st_file_del,
-      ix->st_sub_list,
+      ix->st_sub_list, ix->st_file_by_path,
    };
    guint i;
 
@@ -906,6 +1188,7 @@ main (int argc, char *argv[])
    memset (&ix, 0, sizeof (ix));
    ix.dotfiles = dotfiles;
    ix.cmdbuf = g_string_new (NULL);
+   ix.tag_queue = g_ptr_array_new_with_free_func (g_free);
 
    /* roots: absolute, without trailing slashes, no duplicates */
    {
@@ -950,12 +1233,17 @@ main (int argc, char *argv[])
       ix.rescan = FALSE;
       run_stage1 (&ix);
       if (ix.quit) break;
+      run_stage3 (&ix);
+      if (ix.quit) break;
       run_stage2 (&ix);
       if (ix.quit) break;
+      process_tag_queue (&ix, FALSE);
       say ("idle");
       /* nothing more to do for now: wait for a command or for gimv to quit */
-      while (!ix.quit && !ix.rescan)
+      while (!ix.quit && !ix.rescan) {
          check_stdin (&ix, -1);
+         process_tag_queue (&ix, FALSE);
+      }
    } while (!ix.quit);
 
    close_db (&ix);

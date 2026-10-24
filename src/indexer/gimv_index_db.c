@@ -20,7 +20,28 @@
  * files: image files.  date is local time "YYYY-MM-DD HH:MM:SS" taken from
  *        date_src (mtime, file name or EXIF).  stage is the last scan stage
  *        done for the file.
+ * tags, file_tags (version 2): tag names and which file has which tag.
+ *        auto = 0: put by a person, read from the comment file (the comment
+ *        file is the record, the database only an index of it);
+ *        auto = 1: put by a rule (kept only here).
+ * comments (version 2): the mtime (nanoseconds) of each comment file read,
+ *        to read only the changed ones again.
  */
+/* added in version 2: a version 1 database just gets these */
+#define SCHEMA_V2 \
+   "CREATE TABLE tags (" \
+   "  id   INTEGER PRIMARY KEY," \
+   "  name TEXT NOT NULL UNIQUE);" \
+   "CREATE TABLE file_tags (" \
+   "  file_id INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE," \
+   "  tag_id  INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE," \
+   "  auto    INTEGER NOT NULL DEFAULT 0," \
+   "  PRIMARY KEY (file_id, tag_id, auto));" \
+   "CREATE INDEX file_tags_tag ON file_tags(tag_id);" \
+   "CREATE TABLE comments (" \
+   "  file_id INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE," \
+   "  mtime   INTEGER NOT NULL);"
+
 static const gchar *schema =
    "CREATE TABLE dirs ("
    "  id      INTEGER PRIMARY KEY,"
@@ -41,6 +62,7 @@ static const gchar *schema =
    "  UNIQUE (dir_id, name));"
    "CREATE INDEX files_date ON files(date);"
    "CREATE INDEX files_stage ON files(stage);"
+   SCHEMA_V2
    "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR ";";
 
 
@@ -127,6 +149,12 @@ open_rw (const gchar *path, sqlite3 **dbp, gchar **errmsg, gboolean retry)
       /* new, empty file */
       sqlite3_exec (db, "PRAGMA journal_mode = WAL", NULL, NULL, NULL);
       if (sqlite3_exec (db, schema, NULL, NULL, NULL) != SQLITE_OK)
+         goto broken;
+   } else if (v == 1) {
+      /* version 1 -> 2: only new tables */
+      if (sqlite3_exec (db, "BEGIN;" SCHEMA_V2
+                            "PRAGMA user_version = 2; COMMIT;",
+                        NULL, NULL, NULL) != SQLITE_OK)
          goto broken;
    } else if (v != GIMV_INDEX_DB_VERSION || !quick_check (db)) {
       /* another version or damaged: the index can always be rebuilt from
