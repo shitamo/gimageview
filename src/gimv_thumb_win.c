@@ -54,6 +54,7 @@
 #ifdef ENABLE_INDEX
 #include "gimv_index.h"
 #include "gimv_index_view.h"
+#include "gimv_index_notice.h"
 #endif
 
 
@@ -757,6 +758,9 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gimv_box_pack_start (GTK_BOX (hbox), tw->index_label, FALSE, FALSE, 0);
    gtk_widget_set_visible (tw->index_label,
                            gimv_index_get_state () != GIMV_INDEX_STATE_OFF);
+   tw->notice_button = gimv_index_notice_button_new ();
+   gtk_menu_button_set_has_frame (GTK_MENU_BUTTON (tw->notice_button), FALSE);
+   gimv_box_pack_start (GTK_BOX (hbox), tw->notice_button, FALSE, FALSE, 0);
 #endif
 
    tw->progressbar = gtk_progress_bar_new();

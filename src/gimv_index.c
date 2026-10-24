@@ -20,6 +20,7 @@
 
 #include "gimv_index.h"
 #include "gimv_index_db.h"
+#include "gimv_index_notice.h"
 #include "gimv_mime_types.h"
 #include "gimv_thumb_win.h"
 #include "prefs.h"
@@ -242,8 +243,20 @@ static void read_line (void);
 static void
 handle_line (const gchar *line)
 {
-   gchar **v = g_strsplit (line, " ", -1);
-   guint n = g_strv_length (v);
+   gchar **v;
+   guint n;
+
+   /* "moved\t<old>\t<new>", "moved-dir\t<old>\t<new>" */
+   if (g_str_has_prefix (line, "moved\t") || g_str_has_prefix (line, "moved-dir\t")) {
+      gchar **t = g_strsplit (line, "\t", 3);
+      if (g_strv_length (t) == 3)
+         gimv_index_notice_moved (t[1], t[2], !strcmp (t[0], "moved-dir"));
+      g_strfreev (t);
+      return;
+   }
+
+   v = g_strsplit (line, " ", -1);
+   n = g_strv_length (v);
 
    if (n == 0) {
       /* nothing */
@@ -283,8 +296,15 @@ handle_line (const gchar *line)
          notify_watches (stage_changes (atoi (v[1])));
    } else if (!strcmp (v[0], "tags-updated")) {
       notify_watches (GIMV_INDEX_CHANGED_TAGS);
+   } else if (!strcmp (v[0], "changed")) {
+      /* files changed while watching */
+      notify_watches (GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS);
+   } else if (!strcmp (v[0], "watch-limit") && n >= 2) {
+      gimv_index_notice_watch_limit (strtoul (v[1], NULL, 10));
    } else if (!strcmp (v[0], "idle")) {
       ix.state = GIMV_INDEX_STATE_IDLE;
+      if (n >= 2)
+         ix.n_files = strtoul (v[1], NULL, 10);
       update_status ();
    } else if (!strcmp (v[0], "error")) {
       g_warning ("gimv-indexer: %s", line + 6);

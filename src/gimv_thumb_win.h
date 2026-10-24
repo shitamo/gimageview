@@ -129,6 +129,7 @@ struct GimvThumbWin_Tag
    GtkWidget *status_bar3;
    GtkWidget *progressbar;
    GtkWidget *index_label;          /* image index progress */
+   GtkWidget *notice_button;        /* image index notices */
 
    /* popup menu */
    GtkWidget *thumbview_popup;

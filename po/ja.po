@@ -14,6 +14,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: etc/gimageview.desktop.in.h:1 plugins/thumbnail/gimv_thumb.c:84
 msgid "GImageView"
@@ -4455,6 +4456,34 @@ msgstr "すべての画像に付いているタグだけを表示しています
 #: src/gimv_index_tags.c
 msgid "Too many tags: a comment line holds up to 4096 bytes."
 msgstr "タグが多すぎます。コメントファイルの 1 行は 4096 バイトまでです。"
+
+#: src/gimv_index_notice.c
+msgid "Notices"
+msgstr "お知らせ"
+
+#: src/gimv_index_notice.c
+#, c-format
+msgid "%u image or folder with comments (tags) was moved by another program."
+msgid_plural "%u images or folders with comments (tags) were moved by another program."
+msgstr[0] "コメント (タグ) のある画像またはフォルダ %u 件が、ほかのソフトで移動されました。"
+
+#: src/gimv_index_notice.c
+#, c-format
+msgid "and %u more"
+msgstr "ほか %u 件"
+
+#: src/gimv_index_notice.c
+msgid "Leave the Comments"
+msgstr "コメントは移さない"
+
+#: src/gimv_index_notice.c
+msgid "Move the Comments Too"
+msgstr "コメントも移す"
+
+#: src/gimv_index_notice.c
+#, c-format
+msgid "Only %u folders can be watched for changes (the system limit fs.inotify.max_user_watches). Changes in the other folders are found the next time GImageView starts."
+msgstr "変化を監視できるフォルダは %u 個までです (システムの上限 fs.inotify.max_user_watches)。ほかのフォルダの変化は次に GImageView を起動したときに反映されます。"
 
 #~ msgid "Xine Embeder"
 #~ msgstr "Xine埋め込み"

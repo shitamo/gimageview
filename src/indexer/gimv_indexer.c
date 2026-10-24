@@ -23,7 +23,15 @@
  *   progress <n> <dirs> <files>
  *   stage <n> done <dirs> <files> <added> <changed> <removed>
  *   tags-updated            tags changed after a "tags" command
- *   idle
+ *   changed                 files changed while watching (inotify)
+ *   moved\t<old>\t<new>     an image with a comment file was moved or
+ *                           renamed by another program (the comment file
+ *                           stays at the old place until gimv moves it)
+ *   moved-dir\t<old>\t<new> the same for a directory with comment files
+ *   watch-limit <n>         no more directories can be watched (the kernel
+ *                           limit, fs.inotify.max_user_watches); changes
+ *                           below the others are found at the next start
+ *   idle [<files>]          nothing to do; the number of files indexed
  *   error <text>
  *
  * Commands on stdin:
@@ -50,6 +58,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/file.h>
+#include <sys/inotify.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -84,6 +93,12 @@ typedef struct Indexer_Tag
    gboolean     quit;
    gboolean     rescan;
    GPtrArray   *tag_queue;     /* images whose comment file gimv changed */
+
+   /* watching the directories while gimv runs (inotify) */
+   gint         inotify_fd;
+   GHashTable  *wd_paths;      /* watch descriptor -> directory path */
+   gboolean     watch_full;    /* the kernel limit was reached */
+   guint        n_watches;
    gboolean     full;          /* stat every file, not only changed dirs */
    GString     *cmdbuf;
 
@@ -450,6 +465,7 @@ file_update (Indexer *ix, gint64 dir_id, const gchar *dirpath,
 
 
 static void scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev);
+static void watch_add (Indexer *ix, const gchar *path);
 
 static void
 scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
@@ -470,6 +486,7 @@ scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
 
    id = dir_lookup (ix, path, &old_mtime, &scanned);
    if (!id) id = dir_add (ix, path, parent);
+   watch_add (ix, path);
 
    /* a directory's mtime changes when entries are added, removed or renamed
     * in it, so an unchanged directory needs no look at its files */
@@ -1088,6 +1105,354 @@ process_tag_queue (Indexer *ix, gboolean in_transaction)
 
 
 /******************************************************************************
+ *  watching (inotify): changes while gimv runs
+ ******************************************************************************/
+
+#define WATCH_MASK (IN_CREATE | IN_CLOSE_WRITE | IN_DELETE | IN_MOVED_FROM \
+                    | IN_MOVED_TO | IN_ONLYDIR | IN_DONT_FOLLOW | IN_EXCL_UNLINK)
+
+static void
+say_idle (Indexer *ix)
+{
+   sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files");
+   gint64 n = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int64 (st, 0) : 0;
+   sqlite3_finalize (st);
+   say ("idle %" G_GINT64_FORMAT, n);
+}
+
+
+static void
+watch_init (Indexer *ix)
+{
+   ix->inotify_fd = inotify_init1 (IN_NONBLOCK | IN_CLOEXEC);
+   ix->wd_paths = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, g_free);
+}
+
+
+static void
+watch_add (Indexer *ix, const gchar *path)
+{
+   gint wd;
+
+   if (ix->inotify_fd < 0 || ix->watch_full) return;
+   wd = inotify_add_watch (ix->inotify_fd, path, WATCH_MASK);
+   if (wd < 0) {
+      if (errno == ENOSPC) {
+         ix->watch_full = TRUE;
+         say ("watch-limit %u", ix->n_watches);
+      }
+      return;
+   }
+   if (!g_hash_table_contains (ix->wd_paths, GINT_TO_POINTER (wd)))
+      ix->n_watches++;
+   g_hash_table_insert (ix->wd_paths, GINT_TO_POINTER (wd), g_strdup (path));
+}
+
+
+/* a directory moved: its watches keep their descriptors, change the paths */
+static void
+watch_rename_tree (Indexer *ix, const gchar *old, const gchar *new)
+{
+   GHashTableIter it;
+   gpointer key, value;
+   gsize len = strlen (old);
+
+   g_hash_table_iter_init (&it, ix->wd_paths);
+   while (g_hash_table_iter_next (&it, &key, &value)) {
+      const gchar *p = value;
+      if (!strncmp (p, old, len) && (p[len] == '\0' || p[len] == '/'))
+         g_hash_table_iter_replace (&it, g_strconcat (new, p + len, NULL));
+   }
+}
+
+
+static gboolean
+has_comment (const gchar *croot, const gchar *path, gboolean dir)
+{
+   gchar *c = dir ? g_strconcat (croot, path, NULL)
+                  : g_strconcat (croot, path, ".txt", NULL);
+   gboolean ret = g_file_test (c, dir ? G_FILE_TEST_IS_DIR : G_FILE_TEST_IS_REGULAR);
+   g_free (c);
+   return ret;
+}
+
+
+static void
+report_move (const gchar *what, const gchar *old, const gchar *new)
+{
+   /* tab separated: the paths may hold spaces */
+   if (strpbrk (old, "\t\n") || strpbrk (new, "\t\n")) return;
+   say ("%s\t%s\t%s", what, old, new);
+}
+
+
+static void
+watch_file_added (Indexer *ix, const gchar *path)
+{
+   gchar *dir = g_path_get_dirname (path), *name = g_path_get_basename (path);
+   gint64 mtime, scanned, id;
+
+   if (is_image_name (ix, name) && (id = dir_lookup (ix, dir, &mtime, &scanned))) {
+      file_update (ix, id, dir, name);
+      ix->n_added++;
+   }
+   g_free (dir);
+   g_free (name);
+}
+
+
+static void
+watch_file_removed (Indexer *ix, const gchar *path)
+{
+   gchar *dir = g_path_get_dirname (path), *name = g_path_get_basename (path);
+   gint64 mtime, scanned, id = dir_lookup (ix, dir, &mtime, &scanned);
+   sqlite3_stmt *st = ix->st_file_del;
+
+   if (id) {
+      sqlite3_reset (st);
+      sqlite3_bind_int64 (st, 1, id);
+      sqlite3_bind_text  (st, 2, name, -1, SQLITE_STATIC);
+      sqlite3_step (st);
+      if (sqlite3_changes (ix->db)) ix->n_removed++;
+      sqlite3_reset (st);
+   }
+   g_free (dir);
+   g_free (name);
+}
+
+
+static void
+watch_dir_added (Indexer *ix, const gchar *path)
+{
+   gchar *parent = g_path_get_dirname (path);
+   gint64 mtime, scanned, pid = dir_lookup (ix, parent, &mtime, &scanned);
+
+   /* the whole tree: files may have been put in it already */
+   if (pid) {
+      scan_dir (ix, path, pid, 0);
+      ix->n_added++;
+   }
+   g_free (parent);
+}
+
+
+static void
+watch_file_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar *new)
+{
+   gchar *odir = g_path_get_dirname (old), *oname = g_path_get_basename (old);
+   gchar *ndir = g_path_get_dirname (new), *nname = g_path_get_basename (new);
+   gint64 mtime, scanned, nid;
+   gint64 fid = file_id_for_path (ix, old);
+   sqlite3_stmt *st;
+
+   nid = dir_lookup (ix, ndir, &mtime, &scanned);
+
+   if (!is_image_name (ix, nname)) {
+      /* renamed to something that is not an image */
+      watch_file_removed (ix, old);
+   } else if (!fid || !nid) {
+      watch_file_added (ix, new);
+   } else {
+      /* the same row: its tags in the database go with it */
+      watch_file_removed (ix, new);          /* a file replaced there */
+      st = prep (ix, "UPDATE files SET dir_id = ?, name = ? WHERE id = ?");
+      sqlite3_bind_int64 (st, 1, nid);
+      sqlite3_bind_text  (st, 2, nname, -1, SQLITE_STATIC);
+      sqlite3_bind_int64 (st, 3, fid);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+      ix->n_changed++;
+
+      /* the comment file is still at the old place (gimv moves it itself
+       * when gimv moved the image) */
+      if (has_comment (croot, old, FALSE) && !has_comment (croot, new, FALSE))
+         report_move ("moved", old, new);
+   }
+
+   g_free (odir); g_free (oname); g_free (ndir); g_free (nname);
+}
+
+
+static void
+watch_dir_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar *new)
+{
+   gint64 mtime, scanned, oid = dir_lookup (ix, old, &mtime, &scanned), pid;
+   gchar *parent = g_path_get_dirname (new);
+   sqlite3_stmt *st;
+
+   pid = dir_lookup (ix, parent, &mtime, &scanned);
+   g_free (parent);
+
+   if (!oid || !pid) {
+      watch_dir_added (ix, new);
+      return;
+   }
+
+   /* "old" and "old/..." -> "new" and "new/..." */
+   {
+      GString *esc = g_string_new (NULL);
+      const gchar *p;
+      gchar *like;
+
+      for (p = old; *p; p++) {
+         if (*p == '%' || *p == '_' || *p == '\\') g_string_append_c (esc, '\\');
+         g_string_append_c (esc, *p);
+      }
+      like = g_strconcat (esc->str, "/%", NULL);
+      st = prep (ix, "UPDATE dirs SET path = ?1 || substr(path, ?2) "
+                     "WHERE path = ?3 OR path LIKE ?4 ESCAPE '\\'");
+      sqlite3_bind_text (st, 1, new, -1, SQLITE_STATIC);
+      sqlite3_bind_int  (st, 2, strlen (old) + 1);
+      sqlite3_bind_text (st, 3, old, -1, SQLITE_STATIC);
+      sqlite3_bind_text (st, 4, like, -1, SQLITE_STATIC);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+      g_free (like);
+      g_string_free (esc, TRUE);
+   }
+   st = prep (ix, "UPDATE dirs SET parent = ? WHERE id = ?");
+   sqlite3_bind_int64 (st, 1, pid);
+   sqlite3_bind_int64 (st, 2, oid);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+
+   watch_rename_tree (ix, old, new);
+   ix->n_changed++;
+
+   if (has_comment (croot, old, TRUE))
+      report_move ("moved-dir", old, new);
+}
+
+
+typedef struct {
+   gchar   *path;
+   gboolean dir;
+} MoveFrom;
+
+static void
+move_from_free (MoveFrom *m)
+{
+   g_free (m->path);
+   g_free (m);
+}
+
+
+/* read what the kernel has queued and bring the database up to date */
+static void
+watch_process (Indexer *ix)
+{
+   gchar buf[16384] __attribute__ ((aligned (__alignof__ (struct inotify_event))));
+   GHashTable *froms = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL,
+                                              (GDestroyNotify) move_from_free);
+   gchar *croot = comment_root ();
+   gboolean any = FALSE, new_files = FALSE;
+   gssize n;
+
+   ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   exec (ix, "BEGIN");
+
+   while ((n = read (ix->inotify_fd, buf, sizeof (buf))) > 0) {
+      gchar *p;
+
+      for (p = buf; p < buf + n; ) {
+         struct inotify_event *ev = (struct inotify_event *) p;
+         const gchar *dir;
+         gchar *path;
+         gboolean is_dir = (ev->mask & IN_ISDIR) != 0;
+
+         p += sizeof (struct inotify_event) + ev->len;
+
+         if (ev->mask & IN_Q_OVERFLOW) {
+            /* events were lost: look at everything again */
+            ix->rescan = TRUE;
+            continue;
+         }
+         if (ev->mask & IN_IGNORED) {
+            if (g_hash_table_remove (ix->wd_paths, GINT_TO_POINTER (ev->wd)))
+               ix->n_watches--;
+            continue;
+         }
+         dir = g_hash_table_lookup (ix->wd_paths, GINT_TO_POINTER (ev->wd));
+         if (!dir || !ev->len || !ev->name[0]) continue;
+         if (ev->name[0] == '.' && !ix->dotfiles) continue;
+
+         path = g_build_filename (dir, ev->name, NULL);
+         any = TRUE;
+
+         if (ev->mask & IN_MOVED_FROM) {
+            MoveFrom *m = g_new0 (MoveFrom, 1);
+            m->path = path;
+            m->dir = is_dir;
+            g_hash_table_insert (froms, GUINT_TO_POINTER (ev->cookie), m);
+            continue;                       /* path is kept */
+         } else if (ev->mask & IN_MOVED_TO) {
+            MoveFrom *m = g_hash_table_lookup (froms, GUINT_TO_POINTER (ev->cookie));
+            if (m) {
+               if (is_dir)
+                  watch_dir_moved (ix, croot, m->path, path);
+               else
+                  watch_file_moved (ix, croot, m->path, path);
+               g_hash_table_remove (froms, GUINT_TO_POINTER (ev->cookie));
+            } else if (is_dir) {
+               watch_dir_added (ix, path);     /* from outside */
+               new_files = TRUE;
+            } else {
+               watch_file_added (ix, path);
+               new_files = TRUE;
+            }
+         } else if (ev->mask & IN_CREATE) {
+            /* files: wait for IN_CLOSE_WRITE, they are still written */
+            if (is_dir) {
+               watch_dir_added (ix, path);
+               new_files = TRUE;
+            }
+         } else if (ev->mask & IN_CLOSE_WRITE) {
+            watch_file_added (ix, path);
+            new_files = TRUE;
+         } else if (ev->mask & IN_DELETE) {
+            if (is_dir)
+               dir_remove_tree (ix, path);
+            else
+               watch_file_removed (ix, path);
+         }
+         g_free (path);
+      }
+   }
+
+   /* moved out of the watched directories: gone */
+   {
+      GHashTableIter it;
+      gpointer value;
+
+      g_hash_table_iter_init (&it, froms);
+      while (g_hash_table_iter_next (&it, NULL, &value)) {
+         MoveFrom *m = value;
+         if (m->dir)
+            dir_remove_tree (ix, m->path);
+         else
+            watch_file_removed (ix, m->path);
+      }
+   }
+   g_hash_table_unref (froms);
+
+   exec (ix, "COMMIT");
+   g_free (croot);
+
+   if (!any) return;
+
+   /* the new files get their tags (a comment file moved or copied with them
+    * by gimv) and their dates */
+   if (new_files || ix->n_changed) {
+      run_stage3 (ix);
+      if (new_files)
+         run_stage2 (ix);
+   }
+   say ("changed");
+   say_idle (ix);
+}
+
+
+/******************************************************************************
  *  main
  ******************************************************************************/
 
@@ -1189,6 +1554,7 @@ main (int argc, char *argv[])
    ix.dotfiles = dotfiles;
    ix.cmdbuf = g_string_new (NULL);
    ix.tag_queue = g_ptr_array_new_with_free_func (g_free);
+   watch_init (&ix);
 
    /* roots: absolute, without trailing slashes, no duplicates */
    {
@@ -1238,11 +1604,25 @@ main (int argc, char *argv[])
       run_stage2 (&ix);
       if (ix.quit) break;
       process_tag_queue (&ix, FALSE);
-      say ("idle");
+      say_idle (&ix);
       /* nothing more to do for now: wait for a command or for gimv to quit */
       while (!ix.quit && !ix.rescan) {
-         check_stdin (&ix, -1);
+         struct pollfd pfd[2] = {
+            { STDIN_FILENO,   POLLIN, 0 },
+            { ix.inotify_fd,  POLLIN, 0 },
+         };
+         gint np = ix.inotify_fd >= 0 ? 2 : 1;
+
+         if (poll (pfd, np, -1) < 0 && errno != EINTR) break;
+         if (pfd[0].revents)
+            check_stdin (&ix, 0);
+         if (ix.quit) break;
          process_tag_queue (&ix, FALSE);
+         if (np == 2 && (pfd[1].revents & POLLIN)) {
+            /* let a burst (a folder copied) gather first */
+            g_usleep (200 * 1000);
+            watch_process (&ix);
+         }
       }
    } while (!ix.quit);
 
