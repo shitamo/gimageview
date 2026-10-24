@@ -196,6 +196,12 @@ gint           gimv_thumb_view_refresh_list_idle  (gpointer          data);
 void           gimv_thumb_view_adjust             (GimvThumbView    *tv,
                                                    GimvThumb        *thumb);
 GList         *gimv_thumb_view_get_selection_list (GimvThumbView    *tv);
+/* g_list_index (tv->thumblist, thumb) / g_list_nth_data (tv->thumblist, pos)
+   without walking the list */
+gint           gimv_thumb_view_get_thumb_index    (GimvThumbView    *tv,
+                                                   GimvThumb        *thumb);
+GimvThumb     *gimv_thumb_view_get_nth_thumb      (GimvThumbView    *tv,
+                                                   gint              pos);
 GList         *gimv_thumb_view_get_selected_file_list
                                                   (GimvThumbView    *tv);
 gboolean       gimv_thumb_view_set_selection      (GimvThumb        *thumb,

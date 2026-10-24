@@ -86,6 +86,12 @@ struct GimvThumbViewPriv_Tag
    /* for mouse event */
    gint                 button_2pressed_queue; /* attach an action to
                                                   button release event */
+
+   /* position of each thumbnail in thumblist (built when asked, dropped
+    * when the list changes): with tens of thousands of thumbnails the
+    * views must not walk the list for every one of them */
+   GPtrArray           *index_array;   /* position -> GimvThumb */
+   GHashTable          *index_table;   /* GimvThumb -> position + 1 */
 };
 
 
@@ -1524,12 +1530,72 @@ gimv_thumb_view_extract_archive_file (GimvThumb *thumb)
 }
 
 
+/******************************************************************************
+ *  position cache of thumblist
+ ******************************************************************************/
+
+static void
+thumblist_changed (GimvThumbView *tv)
+{
+   if (!tv->priv) return;
+   if (tv->priv->index_array) {
+      g_ptr_array_unref (tv->priv->index_array);
+      tv->priv->index_array = NULL;
+   }
+   if (tv->priv->index_table) {
+      g_hash_table_unref (tv->priv->index_table);
+      tv->priv->index_table = NULL;
+   }
+}
+
+
+static void
+build_index (GimvThumbView *tv)
+{
+   GList *node;
+   guint i = 0;
+
+   if (tv->priv->index_array) return;
+   tv->priv->index_array = g_ptr_array_new ();
+   tv->priv->index_table = g_hash_table_new (g_direct_hash, g_direct_equal);
+   for (node = tv->thumblist; node; node = g_list_next (node), i++) {
+      g_ptr_array_add (tv->priv->index_array, node->data);
+      g_hash_table_insert (tv->priv->index_table, node->data, GUINT_TO_POINTER (i + 1));
+   }
+}
+
+
+/* the position of the thumbnail in tv->thumblist, -1 when not there;
+ * like g_list_index (tv->thumblist, thumb) without walking the list */
+gint
+gimv_thumb_view_get_thumb_index (GimvThumbView *tv, GimvThumb *thumb)
+{
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), -1);
+   if (!tv->thumblist || !thumb) return -1;
+   build_index (tv);
+   return (gint) GPOINTER_TO_UINT (g_hash_table_lookup (tv->priv->index_table, thumb)) - 1;
+}
+
+
+/* like g_list_nth_data (tv->thumblist, pos) */
+GimvThumb *
+gimv_thumb_view_get_nth_thumb (GimvThumbView *tv, gint pos)
+{
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
+   if (!tv->thumblist || pos < 0) return NULL;
+   build_index (tv);
+   if ((guint) pos >= tv->priv->index_array->len) return NULL;
+   return g_ptr_array_index (tv->priv->index_array, pos);
+}
+
+
 static void
 gimv_thumb_view_append_thumb_data (GimvThumbView *tv, GimvThumb *thumb)
 {
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
    tv->thumblist = g_list_append (tv->thumblist, thumb);
+   thumblist_changed (tv);
 
    /* update file num info */
    tv->tw->filenum++;
@@ -1543,7 +1609,7 @@ static void
 gimv_thumb_view_remove_thumb_data (GimvThumbView *tv, GimvThumb *thumb)
 {
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
-   g_return_if_fail (g_list_find (tv->thumblist, thumb));
+   g_return_if_fail (gimv_thumb_view_get_thumb_index (tv, thumb) >= 0);
 
    /* update file num info */
    tv->tw->filenum--;
@@ -1552,6 +1618,7 @@ gimv_thumb_view_remove_thumb_data (GimvThumbView *tv, GimvThumb *thumb)
    tv->filesize -= thumb->info->st.st_size;
 
    tv->thumblist = g_list_remove (tv->thumblist, thumb);
+   thumblist_changed (tv);
 }
 
 
@@ -1559,12 +1626,15 @@ static void
 gimv_thumb_view_insert_thumb_frames (GimvThumbView *tv, GList *filelist)
 {
    GimvThumb  *thumb;
-   GList *node, *new_thumb_list = NULL;
+   GList *node, *new_thumbs = NULL;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
    if (!filelist) return;
    g_return_if_fail (tv->vfuncs);
 
+   /* GList appends walk the whole list: with tens of thousands of files
+    * (a collection from the image index) collect them in reverse and join
+    * once */
    for (node = filelist; node; node = g_list_next (node)) {
       gchar *filename = node->data;
 
@@ -1575,19 +1645,19 @@ gimv_thumb_view_insert_thumb_frames (GimvThumbView *tv, GList *filelist)
          gimv_image_info_unref (info);
          gimv_thumb_set_parent_thumbview (thumb, tv);
 
-         gimv_thumb_view_append_thumb_data (tv, thumb);
+         new_thumbs = g_list_prepend (new_thumbs, thumb);
 
-         new_thumb_list = g_list_append (new_thumb_list, thumb);
+         /* update file num info (gimv_thumb_view_append_thumb_data ()) */
+         tv->tw->filenum++;
+         tv->tw->filesize += thumb->info->st.st_size;
+         tv->filenum++;
+         tv->filesize += thumb->info->st.st_size;
       }
    }
+   tv->thumblist = g_list_concat (tv->thumblist, g_list_reverse (new_thumbs));
+   thumblist_changed (tv);
 
    gimv_thumb_view_sort_data (tv);
-
-#if 0
-   for (node = new_thumb_list; node; node = g_list_next (node))
-      tv->vfuncs->insert_thumb (tv, node->data, tv->summary_mode);
-   g_list_free(new_thumb_list);
-#endif
 
    gimv_thumb_view_set_widget (tv, tv->tw, tv->container, tv->summary_mode);
 }
@@ -2882,6 +2952,7 @@ gimv_thumb_view_sort_data (GimvThumbView *tv)
    tv->thumblist = g_list_sort (tv->thumblist, func);
    if (reverse)
       tv->thumblist = g_list_reverse (tv->thumblist);
+   thumblist_changed (tv);
 }
 
 
@@ -3016,16 +3087,27 @@ gimv_thumb_view_clear (GimvThumbView *tv)
    if (tv->vfuncs->freeze)
       tv->vfuncs->freeze (tv);
 
-   node = tv->thumblist;
-   while (node) {
+   /* from the last one, without changing thumblist on the way: the views
+    * find a thumbnail by its position, and the list is dropped at once
+    * afterwards (tens of thousands of thumbnails) */
+   for (node = g_list_last (tv->thumblist); node; node = g_list_previous (node)) {
       thumb = node->data;
-      node = g_list_next (node);
+      if (GIMV_IS_THUMB (thumb))
+         tv->vfuncs->remove_thumb (tv, thumb);
+   }
+   for (node = tv->thumblist; node; node = g_list_next (node)) {
+      thumb = node->data;
       if (!GIMV_IS_THUMB (thumb)) continue;
-
-      tv->vfuncs->remove_thumb (tv, thumb);
-      gimv_thumb_view_remove_thumb_data (tv, thumb);
+      /* update file num info (gimv_thumb_view_remove_thumb_data ()) */
+      tv->tw->filenum--;
+      tv->tw->filesize -= thumb->info->st.st_size;
+      tv->filenum--;
+      tv->filesize -= thumb->info->st.st_size;
       g_object_unref (G_OBJECT (thumb));
    }
+   g_list_free (tv->thumblist);
+   tv->thumblist = NULL;
+   thumblist_changed (tv);
 
    /* destroy relation */
    node = tv->priv->related_image_view;
@@ -3918,6 +4000,7 @@ gimv_thumb_view_destroy (GimvObject *object)
       g_list_free (tv->priv->related_dupl_win);
       tv->priv->related_dupl_win = NULL;
 
+      thumblist_changed (tv);
       g_free (tv->priv);
       tv->priv = NULL;
    }

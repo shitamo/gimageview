@@ -408,7 +408,7 @@ thumbalbum_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    filename = g_basename(gimv_image_info_get_path (thumb->info));
 
@@ -451,7 +451,7 @@ thumbalbum_update_thumbnail (GimvThumbView *tv, GimvThumb *thumb,
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && tv_data->album);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    /* set thumbnail */
    if (!strcmp (THUMBALBUM2_LABEL, dest_mode)) {
@@ -501,7 +501,7 @@ thumbalbum_remove_thumbnail (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && tv_data->album);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
    g_return_if_fail (pos >= 0);
 
    gimv_zalbum_remove (GIMV_ZALBUM (tv_data->album), pos);
@@ -517,12 +517,12 @@ thumbalbum_set_selection (GimvThumbView *tv, GimvThumb *thumb, gboolean select)
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
 
-   if (g_list_length (tv->thumblist) < 1) return FALSE;
+   if (!tv->thumblist) return FALSE;
 
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_val_if_fail (tv_data && tv_data->album, FALSE);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    if (pos >= 0) {
       thumb->selected = select;
@@ -547,7 +547,7 @@ thumbalbum_set_focus (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && tv_data->album);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    if (pos < 0)
       gimv_zlist_cell_unset_focus (GIMV_ZLIST (tv_data->album));
@@ -561,7 +561,6 @@ thumbalbum_get_focus (GimvThumbView *tv)
 {
    ThumbViewData *tv_data;
    gint pos;
-   GList *node;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
 
@@ -571,11 +570,7 @@ thumbalbum_get_focus (GimvThumbView *tv)
    pos = GIMV_ZLIST (tv_data->album)->focus;
    if (pos < 0) return NULL;
 
-   node = g_list_nth (tv->thumblist, pos);
-   if (node)
-      return node->data;
-
-   return NULL;
+   return gimv_thumb_view_get_nth_thumb (tv, pos);
 }
 
 
@@ -583,7 +578,6 @@ static gboolean
 thumbalbum_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
 {
    ThumbViewData *tv_data;
-   GList *node;
    gint index;
    gboolean success;
    GdkRectangle area, cell_area, intersect_area;
@@ -594,8 +588,7 @@ thumbalbum_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_val_if_fail (tv_data, FALSE);
 
-   node = g_list_find (tv->thumblist, thumb);
-   index = g_list_position (tv->thumblist, node);
+   index = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    /* widget area */
    gtkutil_get_widget_area (tv_data->album, &area);
@@ -627,7 +620,7 @@ thumbalbum_adjust (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    gimv_zlist_moveto (GIMV_ZLIST (tv_data->album), pos);
 
@@ -650,7 +643,7 @@ cb_album_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
 
    idx = gimv_zlist_cell_index_from_xy (GIMV_ZLIST (widget), x, y);
    if (idx < 0) return FALSE;
-   thumb = g_list_nth_data (tv->thumblist, idx);
+   thumb = gimv_thumb_view_get_nth_thumb (tv, idx);
    if (!GIMV_IS_THUMB (thumb) || !thumb->info) return FALSE;
 
    if (!gimv_comment_get_summary (thumb->info, &subject, &note)) return FALSE;

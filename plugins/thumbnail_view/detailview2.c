@@ -731,7 +731,7 @@ detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
    colnum = detailview_title_idx_list_num + N_COLUMN;
 
    /* image sizes from the file headers, in the background */
@@ -792,8 +792,7 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data && tv_data->treeview);
 
-   node = g_list_find (tv->thumblist, thumb);
-   pos = g_list_position (tv->thumblist, node);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    row = pos;
    col = 0;
@@ -879,7 +878,7 @@ detailview_remove_thumbnail (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
    if (pos < 0) return;
 
    model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
@@ -907,7 +906,7 @@ detailview_adjust (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
    if (pos < 0) return;
 
    model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
@@ -927,19 +926,17 @@ gboolean
 detailview_set_selection (GimvThumbView *tv, GimvThumb *thumb, gboolean select)
 {
    DetailViewData *tv_data;
-   GList *node;
    gint pos;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
 
-   if (g_list_length (tv->thumblist) < 1) return FALSE;
+   if (!tv->thumblist) return FALSE;
 
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_val_if_fail (tv_data && tv_data->treeview, FALSE);
 
-   node = g_list_find (tv->thumblist, thumb);
-   pos = g_list_position (tv->thumblist, node);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    if (pos >= 0) {
       GtkTreeView *treeview = GTK_TREE_VIEW (tv_data->treeview);
@@ -972,12 +969,12 @@ detailview_set_focus (GimvThumbView *tv, GimvThumb *thumb)
    gint pos;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
-   if (g_list_length (tv->thumblist) < 1) return;
+   if (!tv->thumblist) return;
 
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data && tv_data->treeview);
 
-   pos = g_list_index (tv->thumblist, thumb);
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    if (pos >= 0) {
       GtkTreeView *treeview = GTK_TREE_VIEW (tv_data->treeview);
@@ -1004,7 +1001,7 @@ detailview_get_focus (GimvThumbView *tv)
    DetailViewData *tv_data;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
-   if (g_list_length (tv->thumblist) < 1) return NULL;
+   if (!tv->thumblist) return NULL;
 
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_val_if_fail (tv_data && tv_data->treeview, NULL);
@@ -1033,7 +1030,6 @@ gboolean
 detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
 {
    DetailViewData *tv_data;
-   GList *node;
    gint row, row_top, row_bottom;
    GdkRectangle area;
 
@@ -1049,8 +1045,7 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_val_if_fail (tv_data, FALSE);
 
-   node = g_list_find (tv->thumblist, thumb);
-   row = g_list_position (tv->thumblist, node);
+   row = gimv_thumb_view_get_thumb_index (tv, thumb);
 
    /* widget area */
    gtkutil_get_widget_area (tv_data->treeview, &area);
@@ -1068,7 +1063,7 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    gtk_tree_model_get (model, &iter,
                        COLUMN_THUMB_DATA, &tmp_thumb,
                        COLUMN_TERMINATOR);
-   row_top = g_list_index (tv->thumblist, tmp_thumb);
+   row_top = gimv_thumb_view_get_thumb_index (tv, tmp_thumb);
    gtk_tree_path_free (treepath);
 
    /* get index of bottom row */
@@ -1080,7 +1075,7 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    gtk_tree_model_get (model, &iter,
                        COLUMN_THUMB_DATA, &tmp_thumb,
                        COLUMN_TERMINATOR);
-   row_bottom = g_list_index (tv->thumblist, tmp_thumb);
+   row_bottom = gimv_thumb_view_get_thumb_index (tv, tmp_thumb);
    gtk_tree_path_free (treepath);
 
    /* intersect? */
