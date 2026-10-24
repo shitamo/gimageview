@@ -30,6 +30,8 @@
 
 #include "gimv_image.h"
 #include "gimv_thumb.h"
+#include "gimv_thumb_view.h"
+#include "fileload.h"
 #include "gimv_dupl_finder.h"
 #include "prefs.h"
 
@@ -198,16 +200,32 @@ image_sim_new_from_thumb (GimvThumb *thumb)
    GdkTexture *pixmap;
    GdkTexture *mask;
    ImageSimilarityData *data;
+   gboolean loaded_here = FALSE;
 
    g_return_val_if_fail (GIMV_IS_THUMB(thumb), NULL);
 
-   if (!gimv_thumb_has_thumbnail (thumb)) return NULL;
+   /* the thumbnail views load only the thumbnails near the visible part:
+    * load the others for the comparison and drop them again */
+   if (!thumb->thumbnail && !thumb->icon) {
+      GimvThumbView *tv = gimv_thumb_get_parent_thumbview (thumb);
+      gimv_thumb_load (thumb, tv ? tv->thumb_size : 96, LOAD_CACHE);
+      loaded_here = TRUE;
+   }
+
+   if (!gimv_thumb_has_thumbnail (thumb)) {
+      if (loaded_here) gimv_thumb_unload (thumb);
+      return NULL;
+   }
 
    gimv_thumb_get_thumb (thumb, &pixmap, &mask)     ;
-   if (!pixmap) return NULL;;
+   if (!pixmap) {
+      if (loaded_here) gimv_thumb_unload (thumb);
+      return NULL;
+   }
    image = gimv_image_create_from_texture (pixmap, 0, 0,
                                             thumb->thumb_width,
                                             thumb->thumb_height);
+   if (loaded_here) gimv_thumb_unload (thumb);
 
    if (!image) return NULL;
    data = image_sim_new_from_image (image);

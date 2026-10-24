@@ -1775,9 +1775,9 @@ window_request (GimvThumbView *tv, guint delay_ms)
 }
 
 
-/* windowed: load only the thumbnails near the visible part and drop the
- * far ones, so that a collection of tens of thousands of images neither
- * keeps gimv busy loading nor holds every thumbnail in memory */
+/* windowed (the default): load only the thumbnails near the visible part
+ * and drop the far ones, so that tens of thousands of images neither keep
+ * gimv busy loading nor hold every thumbnail in memory */
 void
 gimv_thumb_view_set_windowed (GimvThumbView *tv, gboolean windowed)
 {
@@ -3185,7 +3185,8 @@ gimv_thumb_view_load_thumbnails (GimvThumbView *tv, GList *loadlist,
 
    g_return_val_if_fail (tv->vfuncs, FALSE);
 
-   if (tv->priv->windowed) {
+   /* "Update All Thumbnails" (CREATE_THUMB) asks for every one of them */
+   if (tv->priv->windowed && files->thumb_load_type != CREATE_THUMB) {
       /* nothing is loaded here: the window loads what is near the
        * visible part while gimv stays free */
       tv->priv->load_type = files->thumb_load_type;
@@ -3917,6 +3918,9 @@ gimv_thumb_view_init (GimvThumbView *tv)
    tv->load_list          = NULL;
 
    tv->priv = g_new0 (GimvThumbViewPriv, 1);
+   /* every view loads only what is near the visible part: a folder or a
+    * collection of tens of thousands of images must not keep gimv busy */
+   tv->priv->windowed = TRUE;
    tv->priv->dirname               = NULL;
    tv->priv->archive               = NULL;
    tv->priv->related_image_view    = NULL;
