@@ -24,7 +24,8 @@
 #include "gimv_thumb_win.h"
 #include "prefs.h"
 
-#define NOTIFY_INTERVAL_USEC (5 * G_USEC_PER_SEC)
+/* while scanning, tell the views at most this often (they count again) */
+#define NOTIFY_INTERVAL_USEC (30 * G_USEC_PER_SEC)
 
 typedef struct {
    guint                id;

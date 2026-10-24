@@ -1,9 +1,14 @@
 /* -*- Mode: C; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 3 -*- */
 
 /*
- * GImageView image index: the "Date" (and later "Tag") tree shown below the
- * directory tree.  Years, months and days come from the index database;
- * selecting one opens its images in a collection tab.
+ * GImageView image index: the "Date" tab of the thumbnail window.
+ * Years, months and days come from the index database; selecting one opens
+ * its images in a collection tab.
+ *
+ * The database may hold millions of files, so every query runs in a worker
+ * thread with a connection of its own: the day counts once per refresh
+ * (the whole tree is built from them), and the file list when a row is
+ * opened.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +19,26 @@
 #include "gimageview.h"
 
 #include <string.h>
+#include <gio/gio.h>
 
 #include "fileload.h"
 #include "gimv_icon_stock.h"
 #include "gimv_index.h"
+#include "gimv_index_db.h"
 #include "menu.h"
 #include "prefs.h"
 #include "gimv_index_view.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
 
+/* a collection tab made from the index shows file names, not full paths */
+#define NAME_ONLY_KEY "gimv-name-only"
+
 typedef enum {
    KIND_DATE_ROOT,
    KIND_YEAR,
    KIND_MONTH,
    KIND_DAY,
-   KIND_DUMMY,
 } RowKind;
 
 enum {
@@ -38,6 +47,11 @@ enum {
    COL_KEY,        /* "2019", "2019-05", "2019-05-03" */
    N_COLS
 };
+
+typedef struct {
+   gchar day[11];  /* "YYYY-MM-DD" */
+   gint  count;
+} DayCount;
 
 typedef struct {
    GimvThumbWin  *tw;
@@ -50,89 +64,89 @@ typedef struct {
    gboolean       filling;
    GtkWidget     *popover;
    gchar         *menu_key;    /* row of the right button menu */
+
+   GCancellable  *cancel;      /* cancelled when the view goes away */
+   gboolean       counting;    /* a day count query is running */
+   gboolean       count_again; /* the database changed meanwhile */
+   gboolean       listing;     /* a file list query is running */
 } IndexView;
 
 
+typedef struct {
+   gchar   *key;
+   gboolean new_tab;
+} OpenRequest;
+
+
 /******************************************************************************
- *  database queries
+ *  queries (worker threads)
  ******************************************************************************/
+
+static sqlite3 *
+open_db (void)
+{
+   gchar *path = gimv_index_db_default_path ();
+   sqlite3 *db = NULL;
+
+   gimv_index_db_open (path, FALSE, &db, NULL);
+   g_free (path);
+   return db;
+}
+
+
+static void
+thread_count_days (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   sqlite3 *db = open_db ();
+   sqlite3_stmt *st;
+   GArray *days = g_array_new (FALSE, TRUE, sizeof (DayCount));
+
+   /* the index on files(date) covers this query */
+   if (db && sqlite3_prepare_v2 (db,
+          "SELECT substr(date, 1, 10) AS d, count(*) FROM files "
+          "WHERE date IS NOT NULL GROUP BY d ORDER BY d DESC",
+          -1, &st, NULL) == SQLITE_OK)
+   {
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         const gchar *d = (const gchar *) sqlite3_column_text (st, 0);
+         DayCount dc;
+         if (!d || strlen (d) != 10) continue;
+         memcpy (dc.day, d, 11);
+         dc.count = sqlite3_column_int (st, 1);
+         g_array_append_val (days, dc);
+      }
+      sqlite3_finalize (st);
+   }
+   if (db) sqlite3_close (db);
+   g_task_return_pointer (task, days, (GDestroyNotify) g_array_unref);
+}
+
 
 /* "date" is "YYYY-MM-DD HH:MM:SS": every date starting with key sorts in
  * [key, key + "~") */
 static void
-add_children (IndexView *iv, GtkTreeIter *parent, RowKind kind, const gchar *key)
+thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
-   sqlite3 *db = gimv_index_get_db ();
-   sqlite3_stmt *st;
-   gint len;
-   const gchar *sql;
-
-   if (!db) return;
-
-   switch (kind) {
-   case KIND_YEAR:  len = 4;  break;
-   case KIND_MONTH: len = 7;  break;
-   case KIND_DAY:   len = 10; break;
-   default: return;
-   }
-
-   if (key)
-      sql = "SELECT substr(date, 1, ?1) AS k, count(*) FROM files "
-            "WHERE date >= ?2 AND date < ?2 || '~' GROUP BY k ORDER BY k";
-   else
-      sql = "SELECT substr(date, 1, ?1) AS k, count(*) FROM files "
-            "WHERE date IS NOT NULL GROUP BY k ORDER BY k DESC";
-
-   if (sqlite3_prepare_v2 (db, sql, -1, &st, NULL) != SQLITE_OK)
-      return;
-   sqlite3_bind_int (st, 1, len);
-   if (key)
-      sqlite3_bind_text (st, 2, key, -1, SQLITE_TRANSIENT);
-
-   while (sqlite3_step (st) == SQLITE_ROW) {
-      const gchar *k = (const gchar *) sqlite3_column_text (st, 0);
-      gint count = sqlite3_column_int (st, 1);
-      GtkTreeIter iter, dummy;
-      gchar *label;
-
-      if (!k || (gint) strlen (k) < len) continue;
-      /* the last part of the key: "2019", "05", "03" */
-      label = g_strdup_printf ("%s (%d)", k + (len == 4 ? 0 : len - 2), count);
-      gtk_tree_store_append (iv->store, &iter, parent);
-      gtk_tree_store_set (iv->store, &iter,
-                          COL_LABEL, label, COL_KIND, kind, COL_KEY, k, -1);
-      g_free (label);
-
-      if (kind != KIND_DAY) {
-         gtk_tree_store_append (iv->store, &dummy, &iter);
-         gtk_tree_store_set (iv->store, &dummy, COL_KIND, KIND_DUMMY, -1);
-      }
-   }
-   sqlite3_finalize (st);
-}
-
-
-static GList *
-files_for_key (const gchar *key)
-{
-   sqlite3 *db = gimv_index_get_db ();
+   const gchar *key = ((OpenRequest *) data)->key;
+   sqlite3 *db = open_db ();
    sqlite3_stmt *st;
    GList *list = NULL;
 
-   if (!db) return NULL;
-   if (sqlite3_prepare_v2 (db,
+   if (db && sqlite3_prepare_v2 (db,
           "SELECT d.path, f.name FROM files f JOIN dirs d ON d.id = f.dir_id "
           "WHERE f.date >= ?1 AND f.date < ?1 || '~' ORDER BY f.date, f.name",
-          -1, &st, NULL) != SQLITE_OK)
-      return NULL;
-   sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
-   while (sqlite3_step (st) == SQLITE_ROW) {
-      const gchar *dir  = (const gchar *) sqlite3_column_text (st, 0);
-      const gchar *name = (const gchar *) sqlite3_column_text (st, 1);
-      list = g_list_prepend (list, g_build_filename (dir, name, NULL));
+          -1, &st, NULL) == SQLITE_OK)
+   {
+      sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         const gchar *dir  = (const gchar *) sqlite3_column_text (st, 0);
+         const gchar *name = (const gchar *) sqlite3_column_text (st, 1);
+         list = g_list_prepend (list, g_build_filename (dir, name, NULL));
+      }
+      sqlite3_finalize (st);
    }
-   sqlite3_finalize (st);
-   return g_list_reverse (list);
+   if (db) sqlite3_close (db);
+   g_task_return_pointer (task, g_list_reverse (list), NULL);
 }
 
 
@@ -140,10 +154,77 @@ files_for_key (const gchar *key)
  *  tree
  ******************************************************************************/
 
-static gboolean
-find_date_root (IndexView *iv, GtkTreeIter *iter)
+static void
+append_row (IndexView *iv, GtkTreeIter *iter, GtkTreeIter *parent,
+            RowKind kind, const gchar *key, gint len, gint count)
 {
-   return gtk_tree_model_get_iter_first (GTK_TREE_MODEL (iv->store), iter);
+   gchar *k = g_strndup (key, len);
+   /* the last part of the key: "2019", "05", "03" */
+   gchar *label = g_strdup_printf ("%s (%d)", k + (len == 4 ? 0 : len - 2), count);
+
+   gtk_tree_store_append (iv->store, iter, parent);
+   gtk_tree_store_set (iv->store, iter,
+                       COL_LABEL, label, COL_KIND, kind, COL_KEY, k, -1);
+   g_free (label);
+   g_free (k);
+}
+
+
+static void
+set_count (IndexView *iv, GtkTreeIter *iter, gint len, gint count)
+{
+   gchar *k = NULL, *label;
+
+   gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter, COL_KEY, &k, -1);
+   label = g_strdup_printf ("%s (%d)", k + (len == 4 ? 0 : len - 2), count);
+   gtk_tree_store_set (iv->store, iter, COL_LABEL, label, -1);
+   g_free (label);
+   g_free (k);
+}
+
+
+/* days come newest first; years are shown newest first, months and days
+ * inside a year oldest first */
+static void
+build_tree (IndexView *iv, GtkTreeIter *root, GArray *days)
+{
+   GtkTreeIter year, month, day;
+   gchar cur_year[5] = "", cur_month[8] = "";
+   gint year_count = 0, month_count = 0;
+   gint i;
+
+   for (i = 0; i < (gint) days->len; i++) {
+      DayCount *dc = &g_array_index (days, DayCount, i);
+
+      if (strncmp (dc->day, cur_year, 4)) {
+         if (*cur_month) set_count (iv, &month, 7, month_count);
+         if (*cur_year) set_count (iv, &year, 4, year_count);
+         append_row (iv, &year, root, KIND_YEAR, dc->day, 4, 0);
+         memcpy (cur_year, dc->day, 4);
+         year_count = 0;
+         *cur_month = '\0';
+      }
+      if (strncmp (dc->day, cur_month, 7)) {
+         if (*cur_month) set_count (iv, &month, 7, month_count);
+         /* months oldest first: put each one before the previous */
+         gtk_tree_store_prepend (iv->store, &month, &year);
+         {
+            gchar *k = g_strndup (dc->day, 7);
+            gtk_tree_store_set (iv->store, &month, COL_KIND, KIND_MONTH, COL_KEY, k, -1);
+            g_free (k);
+         }
+         memcpy (cur_month, dc->day, 7);
+         month_count = 0;
+      }
+      gtk_tree_store_prepend (iv->store, &day, &month);
+      gtk_tree_store_set (iv->store, &day, COL_KIND, KIND_DAY, COL_KEY, dc->day, -1);
+      set_count (iv, &day, 10, dc->count);
+
+      year_count  += dc->count;
+      month_count += dc->count;
+   }
+   if (*cur_month) set_count (iv, &month, 7, month_count);
+   if (*cur_year)  set_count (iv, &year, 4, year_count);
 }
 
 
@@ -187,26 +268,21 @@ find_key (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
 }
 
 
-/* rebuild the years and open again what was open */
+/* rebuild the tree from new counts and open again what was open */
 static void
-refill (IndexView *iv)
+refill (IndexView *iv, GArray *days)
 {
    GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
    GtkTreeIter root, child;
    GPtrArray *keys = g_ptr_array_new_with_free_func (g_free);
-   gboolean root_open;
    GtkTreePath *path;
    gchar *selected = NULL;
    GtkTreeSelection *sel;
    guint i;
 
-   if (!find_date_root (iv, &root)) return;
+   if (!gtk_tree_model_get_iter_first (model, &root)) return;
 
-   path = gtk_tree_model_get_path (model, &root);
-   root_open = gtk_tree_view_row_expanded (GTK_TREE_VIEW (iv->tree), path);
-   gtk_tree_path_free (path);
    gtk_tree_view_map_expanded_rows (GTK_TREE_VIEW (iv->tree), collect_expanded, keys);
-
    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
    if (gtk_tree_selection_get_selected (sel, NULL, &child))
       gtk_tree_model_get (model, &child, COL_KEY, &selected, -1);
@@ -214,14 +290,13 @@ refill (IndexView *iv)
    iv->filling = TRUE;
    while (gtk_tree_model_iter_children (model, &child, &root))
       gtk_tree_store_remove (iv->store, &child);
-   add_children (iv, &root, KIND_YEAR, NULL);
+   build_tree (iv, &root, days);
 
-   if (root_open) {
-      path = gtk_tree_model_get_path (model, &root);
-      gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
-      gtk_tree_path_free (path);
-   }
-   /* shorter keys first: a month row exists only after its year is open */
+   /* the root is always open */
+   path = gtk_tree_model_get_path (model, &root);
+   gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
+   gtk_tree_path_free (path);
+   /* shorter keys first: a month row is shown only when its year is open */
    for (i = 0; i < keys->len; i++) {
       if (find_key (model, &root, g_ptr_array_index (keys, i), &child)) {
          path = gtk_tree_model_get_path (model, &child);
@@ -238,33 +313,49 @@ refill (IndexView *iv)
 }
 
 
+static void start_count (IndexView *iv);
+
 static void
-cb_index_changed (gpointer data)
+cb_counted (GObject *source, GAsyncResult *res, gpointer data)
 {
-   refill (data);
+   GTask *task = G_TASK (res);
+   IndexView *iv = data;
+   GArray *days;
+
+   /* the view is gone */
+   if (g_cancellable_is_cancelled (g_task_get_cancellable (task))) return;
+
+   days = g_task_propagate_pointer (task, NULL);
+   iv->counting = FALSE;
+   if (days) {
+      refill (iv, days);
+      g_array_unref (days);
+   }
+   if (iv->count_again) start_count (iv);
 }
 
 
 static void
-cb_row_expanded (GtkTreeView *tree, GtkTreeIter *iter, GtkTreePath *path,
-                 IndexView *iv)
+start_count (IndexView *iv)
 {
-   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
-   GtkTreeIter child;
-   gint kind = 0, child_kind = KIND_DUMMY;
-   gchar *key = NULL;
+   GTask *task;
 
-   if (!gtk_tree_model_iter_children (model, &child, iter)) return;
-   gtk_tree_model_get (model, &child, COL_KIND, &child_kind, -1);
-   if (child_kind != KIND_DUMMY) return;   /* already filled */
+   if (iv->counting) {
+      iv->count_again = TRUE;
+      return;
+   }
+   iv->counting = TRUE;
+   iv->count_again = FALSE;
+   task = g_task_new (NULL, iv->cancel, cb_counted, iv);
+   g_task_run_in_thread (task, thread_count_days);
+   g_object_unref (task);
+}
 
-   gtk_tree_model_get (model, iter, COL_KIND, &kind, COL_KEY, &key, -1);
-   if (kind == KIND_YEAR)
-      add_children (iv, iter, KIND_MONTH, key);
-   else if (kind == KIND_MONTH)
-      add_children (iv, iter, KIND_DAY, key);
-   gtk_tree_store_remove (iv->store, &child);
-   g_free (key);
+
+static void
+cb_index_changed (gpointer data)
+{
+   start_count (data);
 }
 
 
@@ -298,41 +389,85 @@ show_page (GimvThumbWin *tw, GtkWidget *container)
 }
 
 
-/* new_tab FALSE: replace what the result tab shows (the usual way) */
 static void
-open_key (IndexView *iv, const gchar *key, gboolean new_tab)
+open_request_free (OpenRequest *req)
+{
+   g_free (req->key);
+   g_free (req);
+}
+
+
+static void
+open_files (IndexView *iv, OpenRequest *req, GList *filelist)
 {
    FilesLoader *files;
    GimvThumbView *tv;
    gchar *title;
 
-   if (files_loader_query_loading ()) return;
-
-   files = files_loader_new ();
-   files->filelist = files_for_key (key);
-   if (!files->filelist) {
-      files_loader_delete (files);
+   if (!filelist) return;
+   if (files_loader_query_loading ()) {
+      g_list_free_full (filelist, g_free);
       return;
    }
+
+   files = files_loader_new ();
+   files->filelist = filelist;
    files->status = END;
    files->thumb_load_type = LOAD_CACHE;
 
-   tv = new_tab ? NULL : iv->tv;
+   tv = req->new_tab ? NULL : iv->tv;
    if (!tv || tv->tw != iv->tw || tv->progress) {
       tv = gimv_thumb_win_create_new_tab (iv->tw);
-      /* a tab opened on request stays as it is: the next date goes to a
-       * tab of its own only when asked again */
-      if (!new_tab || !iv->tv)
+      /* a tab opened on request stays as it is */
+      if (!req->new_tab || !iv->tv)
          set_result_tab (iv, tv);
    }
+   g_object_set_data (G_OBJECT (tv), NAME_ONLY_KEY, GINT_TO_POINTER (TRUE));
    show_page (iv->tw, tv->container);
 
-   title = g_strdup_printf (_("%s (Date)"), key);
+   title = g_strdup_printf (_("%s (Date)"), req->key);
    gimv_thumb_view_reset_tab_label (tv, title);
    g_free (title);
 
    open_image_files_in_thumbnail_view (files, iv->tw, tv);
    files_loader_delete (files);
+}
+
+
+static void
+cb_listed (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GTask *task = G_TASK (res);
+   IndexView *iv = data;
+   GList *filelist;
+
+   if (g_cancellable_is_cancelled (g_task_get_cancellable (task))) return;
+
+   iv->listing = FALSE;
+   filelist = g_task_propagate_pointer (task, NULL);
+   open_files (iv, g_task_get_task_data (task), filelist);
+}
+
+
+/* new_tab FALSE: replace what the result tab shows (the usual way) */
+static void
+open_key (IndexView *iv, const gchar *key, gboolean new_tab)
+{
+   OpenRequest *req;
+   GTask *task;
+
+   /* one at a time: clicks while the list is read are dropped */
+   if (iv->listing || files_loader_query_loading ()) return;
+
+   req = g_new0 (OpenRequest, 1);
+   req->key = g_strdup (key);
+   req->new_tab = new_tab;
+
+   iv->listing = TRUE;
+   task = g_task_new (NULL, iv->cancel, cb_listed, iv);
+   g_task_set_task_data (task, req, (GDestroyNotify) open_request_free);
+   g_task_run_in_thread (task, thread_list_files);
+   g_object_unref (task);
 }
 
 
@@ -455,6 +590,8 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
 static void
 cb_destroy (GtkWidget *widget, IndexView *iv)
 {
+   g_cancellable_cancel (iv->cancel);
+   g_clear_object (&iv->cancel);
    if (iv->watch_id) gimv_index_remove_watch (iv->watch_id);
    if (iv->open_id) g_source_remove (iv->open_id);
    if (iv->popover) gtk_widget_unparent (iv->popover);
@@ -485,7 +622,7 @@ index_view_new (GimvThumbWin *tw)
    gtk_tree_store_append (iv->store, &root, NULL);
    gtk_tree_store_set (iv->store, &root,
                        COL_LABEL, _("Date"), COL_KIND, KIND_DATE_ROOT, -1);
-   add_children (iv, &root, KIND_YEAR, NULL);
+   iv->cancel = g_cancellable_new ();
 
    iv->tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (iv->store));
    gtk_widget_set_name (iv->tree, "IndexTree");
@@ -495,14 +632,6 @@ index_view_new (GimvThumbWin *tw)
    gtk_tree_view_column_pack_start (col, render, TRUE);
    gtk_tree_view_column_add_attribute (col, render, "text", COL_LABEL);
    gtk_tree_view_append_column (GTK_TREE_VIEW (iv->tree), col);
-   /* the years are shown from the start */
-   {
-      GtkTreePath *path = gtk_tree_path_new_first ();
-      gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
-      gtk_tree_path_free (path);
-   }
-
-   g_signal_connect (iv->tree, "row-expanded", G_CALLBACK (cb_row_expanded), iv);
    g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree)),
                      "changed", G_CALLBACK (cb_selection_changed), iv);
 
@@ -527,6 +656,7 @@ index_view_new (GimvThumbWin *tw)
 
    g_signal_connect (iv->scroll, "destroy", G_CALLBACK (cb_destroy), iv);
    iv->watch_id = gimv_index_add_watch (cb_index_changed, iv);
+   start_count (iv);
 
    return iv->scroll;
 }
@@ -548,9 +678,20 @@ gimv_index_tab_get_page (GimvThumbWin *tw)
 static void
 sync_menu (GimvThumbWin *tw)
 {
-   if (tw->menuitem.index_date_tab)
-      gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.index_date_tab),
-                                 gimv_index_tab_get_page (tw) != NULL);
+   if (!tw->menuitem.index_date_tab) return;
+   gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.index_date_tab),
+                              gimv_index_tab_get_page (tw) != NULL);
+   /* nothing to show while the index is off */
+   gimv_menu_item_set_sensitive (GIMV_MENU_ITEM (tw->menuitem.index_date_tab),
+                                 gimv_index_is_configured ());
+}
+
+
+void
+gimv_index_tab_update_menu (GimvThumbWin *tw)
+{
+   g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
+   sync_menu (tw);
 }
 
 

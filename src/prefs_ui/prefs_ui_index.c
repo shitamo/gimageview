@@ -105,6 +105,7 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
          gimv_index_tab_open (tw);
       else
          gimv_index_tab_close (tw);
+      gimv_index_tab_update_menu (tw);
    }
 
    return FALSE;

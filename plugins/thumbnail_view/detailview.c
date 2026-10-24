@@ -283,7 +283,9 @@ column_data_filename (GimvThumb *thumb)
       const gchar *filename;
       gchar *retval;
 
-      if (tv->mode == GIMV_THUMB_VIEW_MODE_DIR)
+      /* "gimv-name-only": a collection made from the image index */
+      if (tv->mode == GIMV_THUMB_VIEW_MODE_DIR
+          || g_object_get_data (G_OBJECT (tv), "gimv-name-only"))
          filename = g_basename (gimv_image_info_get_path (thumb->info));
       else
          filename = gimv_image_info_get_path (thumb->info);

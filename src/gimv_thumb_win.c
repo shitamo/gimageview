@@ -794,6 +794,7 @@ gimv_thumb_win_open_window (void)
    /* the "Date" tab is there as soon as directories are given for the index */
    if (gimv_index_is_configured ())
       gimv_index_tab_open (tw);
+   gimv_index_tab_update_menu (tw);
 #endif
 
    return tw;
@@ -4442,6 +4443,11 @@ gimv_thumb_win_set_sensitive (GimvThumbWin *tw, GimvThumbwinStatus status)
    menu_entries_set_sensitive (tw->view_menu, gimv_thumb_win_view_items,
                                NULL, gimv_thumb_win_status[status][3]);
    menu_items_set_sensitive (tw->comp_menu, gimv_thumb_win_status[status][3]);
+#ifdef ENABLE_INDEX
+   /* "Tab (Date)" stays insensitive while the index is off */
+   if (tw->menuitem.index_date_tab && !gimv_index_is_configured ())
+      gimv_menu_item_set_sensitive (GIMV_MENU_ITEM (tw->menuitem.index_date_tab), FALSE);
+#endif
    /* the items of the sort sub menu are handled above (4 - 15) */
 
    /* an insensitive menu bar disabled all its accelerators in GTK2 */
