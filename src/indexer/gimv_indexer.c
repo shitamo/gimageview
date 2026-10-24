@@ -222,7 +222,37 @@ maybe_commit (Indexer *ix, gboolean force)
 }
 
 
-/* local time "YYYY-MM-DD HH:MM:SS", the same form as EXIF dates */
+/*
+ * Dates before 1990 or in the future are not used (a camera with its clock
+ * not set, a number in a file name that only looks like a date).  The
+ * future starts one day from now, for the time zones.
+ */
+#define DATE_MIN "1990-01-01 00:00:00"
+static gchar date_max[20] = "9999-12-31 23:59:59";
+
+static void
+update_date_max (void)
+{
+   GDateTime *now = g_date_time_new_now_local ();
+   GDateTime *max = g_date_time_add_days (now, 1);
+   gchar *s = g_date_time_format (max, "%Y-%m-%d %H:%M:%S");
+
+   g_strlcpy (date_max, s, sizeof (date_max));
+   g_free (s);
+   g_date_time_unref (max);
+   g_date_time_unref (now);
+}
+
+
+static gboolean
+date_in_range (const gchar *date)
+{
+   return date && strcmp (date, DATE_MIN) >= 0 && strcmp (date, date_max) <= 0;
+}
+
+
+/* local time "YYYY-MM-DD HH:MM:SS", the same form as EXIF dates;
+ * NULL when out of range */
 static gchar *
 time_to_date (gint64 t)
 {
@@ -231,6 +261,10 @@ time_to_date (gint64 t)
    if (!dt) return NULL;
    s = g_date_time_format (dt, "%Y-%m-%d %H:%M:%S");
    g_date_time_unref (dt);
+   if (!date_in_range (s)) {
+      g_free (s);
+      return NULL;
+   }
    return s;
 }
 
@@ -557,6 +591,7 @@ run_stage1 (Indexer *ix)
 
    ix->stage = 1;
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   update_date_max ();
    say ("stage 1 start");
 
    exec (ix, "BEGIN");
@@ -582,7 +617,7 @@ run_stage1 (Indexer *ix)
 static gboolean
 valid_date (gint y, gint mo, gint d, gint h, gint mi, gint sec)
 {
-   return y >= 1900 && y <= 2100
+   return y >= 1990 && y <= 9999
       && g_date_valid_dmy (d, mo, y)
       && h >= 0 && h < 24 && mi >= 0 && mi < 60 && sec >= 0 && sec < 61;
 }
@@ -613,7 +648,13 @@ exif_date (const gchar *path)
       /* "YYYY:MM:DD HH:MM:SS" */
       if (sscanf (buf, "%d:%d:%d %d:%d:%d", &y, &mo, &d, &h, &mi, &sec) == 6
           && valid_date (y, mo, d, h, mi, sec))
+      {
          ret = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d", y, mo, d, h, mi, sec);
+         if (!date_in_range (ret)) {
+            g_free (ret);
+            ret = NULL;
+         }
+      }
    }
    exif_data_unref (ed);
    return ret;
@@ -644,9 +685,14 @@ filename_date (const gchar *name)
          n[i] = v[i] && *v[i] ? atoi (v[i]) : 0;
          g_free (v[i]);
       }
-      if (valid_date (n[1], n[2], n[3], n[4], n[5], n[6]))
+      if (valid_date (n[1], n[2], n[3], n[4], n[5], n[6])) {
          ret = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d",
                                 n[1], n[2], n[3], n[4], n[5], n[6]);
+         if (!date_in_range (ret)) {
+            g_free (ret);
+            ret = NULL;
+         }
+      }
       g_match_info_next (mi, NULL);
    }
    g_match_info_free (mi);
@@ -657,11 +703,23 @@ filename_date (const gchar *name)
 static void
 run_stage2 (Indexer *ix)
 {
-   sqlite3_stmt *sel, *upd, *done;
+   sqlite3_stmt *sel, *upd;
    gboolean more = TRUE;
 
    ix->stage = 2;
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   update_date_max ();
+   {
+      /* dates out of range written by an older indexer: look at them
+       * again (files without any usable date keep date NULL and are not
+       * read again on every start) */
+      sqlite3_stmt *st = prep (ix, "UPDATE files SET stage = 1 WHERE "
+                                   "date IS NOT NULL AND (date < ?1 OR date > ?2)");
+      sqlite3_bind_text (st, 1, DATE_MIN, -1, SQLITE_STATIC);
+      sqlite3_bind_text (st, 2, date_max, -1, SQLITE_STATIC);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+   }
    {
       /* the total is known here: the files stage 1 has found */
       sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files WHERE stage < 2");
@@ -671,11 +729,10 @@ run_stage2 (Indexer *ix)
    }
 
    /* in directory order, so that the disk is read in one sweep */
-   sel  = prep (ix, "SELECT f.id, d.path, f.name FROM files f "
+   sel  = prep (ix, "SELECT f.id, d.path, f.name, f.mtime FROM files f "
                     "JOIN dirs d ON d.id = f.dir_id WHERE f.stage < 2 "
                     "ORDER BY f.dir_id, f.name LIMIT " G_STRINGIFY (STAGE2_BATCH));
    upd  = prep (ix, "UPDATE files SET date = ?, date_src = ?, stage = 2 WHERE id = ?");
-   done = prep (ix, "UPDATE files SET stage = 2 WHERE id = ?");
 
    exec (ix, "BEGIN");
    ix->last_commit = ix->last_progress = g_get_monotonic_time ();
@@ -684,6 +741,7 @@ run_stage2 (Indexer *ix)
       GArray *ids = g_array_new (FALSE, FALSE, sizeof (gint64));
       GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
       GPtrArray *names = g_ptr_array_new_with_free_func (g_free);
+      GArray *mtimes = g_array_new (FALSE, FALSE, sizeof (gint64));
       guint i;
 
       sqlite3_reset (sel);
@@ -694,6 +752,10 @@ run_stage2 (Indexer *ix)
                                                   (const gchar *) sqlite3_column_text (sel, 2),
                                                   NULL));
          g_ptr_array_add (names, g_strdup ((const gchar *) sqlite3_column_text (sel, 2)));
+         {
+            gint64 mt = sqlite3_column_int64 (sel, 3);
+            g_array_append_val (mtimes, mt);
+         }
       }
       sqlite3_reset (sel);
       more = ids->len == STAGE2_BATCH;
@@ -713,25 +775,27 @@ run_stage2 (Indexer *ix)
          }
 
          if (date) {
-            sqlite3_reset (upd);
-            sqlite3_bind_text  (upd, 1, date, -1, g_free);
-            sqlite3_bind_int   (upd, 2, src);
-            sqlite3_bind_int64 (upd, 3, id);
-            sqlite3_step (upd);
-            sqlite3_reset (upd);
             ix->n_changed++;
          } else {
-            /* keep the date from mtime */
-            sqlite3_reset (done);
-            sqlite3_bind_int64 (done, 1, id);
-            sqlite3_step (done);
-            sqlite3_reset (done);
+            /* the date from mtime, or none when that is out of range too */
+            date = time_to_date (g_array_index (mtimes, gint64, i));
+            src = GIMV_INDEX_DATE_MTIME;
          }
+         sqlite3_reset (upd);
+         if (date)
+            sqlite3_bind_text (upd, 1, date, -1, g_free);
+         else
+            sqlite3_bind_null (upd, 1);
+         sqlite3_bind_int   (upd, 2, src);
+         sqlite3_bind_int64 (upd, 3, id);
+         sqlite3_step (upd);
+         sqlite3_reset (upd);
          ix->n_files++;
          maybe_commit (ix, FALSE);
       }
 
       g_array_unref (ids);
+      g_array_unref (mtimes);
       g_ptr_array_unref (paths);
       g_ptr_array_unref (names);
    }
@@ -739,7 +803,6 @@ run_stage2 (Indexer *ix)
    exec (ix, "COMMIT");
    sqlite3_finalize (sel);
    sqlite3_finalize (upd);
-   sqlite3_finalize (done);
 
    if (!ix->quit)
       say ("stage 2 done %u %u %u %u %u", ix->n_dirs, ix->n_files,
