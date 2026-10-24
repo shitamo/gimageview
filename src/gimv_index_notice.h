@@ -21,6 +21,8 @@ GtkWidget *gimv_index_notice_button_new  (void);
 void       gimv_index_notice_moved       (const gchar *old,
                                           const gchar *new,
                                           gboolean     dir);
+/* images that came while gimv was not running */
+void       gimv_index_notice_added_since_last (guint n);
 /* the indexer cannot watch more folders */
 void       gimv_index_notice_watch_limit (guint        n_watched);
 

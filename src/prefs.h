@@ -80,6 +80,11 @@ typedef struct _Config {
    gboolean   read_dotfile;
    gboolean   index_enable;   /* image index (gimv-indexer) */
    gchar     *index_dirs;     /* ';' separated */
+   gboolean   index_notify;          /* new images: desktop notification */
+   gint       index_notify_wait;     /* seconds gathered into one */
+   gint       index_notify_interval; /* seconds between two at least */
+   gint       index_notify_timeout;  /* seconds shown, 0: the default */
+   gchar     *index_notify_exclude;  /* ';' separated folders */
    gboolean   detect_filetype_by_ext;
    gboolean   disp_filename_stdout;
    gint       interpolation;

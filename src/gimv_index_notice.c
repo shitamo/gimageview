@@ -36,7 +36,7 @@ typedef struct {
 } Move;
 
 static GPtrArray *pending = NULL;   /* Move, waiting for an answer */
-static gchar     *watch_note = NULL;
+static GPtrArray *notes = NULL;     /* gchar *, things to know */
 
 
 static void
@@ -156,7 +156,7 @@ cb_dismiss_note (GtkButton *button, gpointer data)
 {
    GtkWidget *popover = gtk_widget_get_ancestor (GTK_WIDGET (button), GTK_TYPE_POPOVER);
    if (popover) gtk_popover_popdown (GTK_POPOVER (popover));
-   g_clear_pointer (&watch_note, g_free);
+   if (notes) g_ptr_array_set_size (notes, 0);
    update_buttons ();
 }
 
@@ -230,9 +230,10 @@ fill_popover (GtkPopover *popover)
       gtk_box_append (GTK_BOX (box), hbox);
    }
 
-   if (watch_note) {
+   if (notes && notes->len) {
       if (n) gtk_box_append (GTK_BOX (box), gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
-      gtk_box_append (GTK_BOX (box), label_new (watch_note, TRUE));
+      for (i = 0; i < notes->len; i++)
+         gtk_box_append (GTK_BOX (box), label_new (g_ptr_array_index (notes, i), TRUE));
       button = gtk_button_new_with_label (_("OK"));
       gtk_widget_set_halign (button, GTK_ALIGN_END);
       g_signal_connect (button, "clicked", G_CALLBACK (cb_dismiss_note), NULL);
@@ -254,7 +255,7 @@ cb_popover_show (GtkPopover *popover, gpointer data)
 static guint
 notice_count (void)
 {
-   return (pending ? pending->len : 0) + (watch_note ? 1 : 0);
+   return (pending ? pending->len : 0) + (notes ? notes->len : 0);
 }
 
 
@@ -352,13 +353,31 @@ gimv_index_notice_moved (const gchar *old, const gchar *new, gboolean dir)
 }
 
 
+static void
+add_note (gchar *text)
+{
+   if (!notes) notes = g_ptr_array_new_with_free_func (g_free);
+   g_ptr_array_add (notes, text);
+   update_buttons ();
+}
+
+
+void
+gimv_index_notice_added_since_last (guint n)
+{
+   /* images that came while gimv was not running: no desktop notification,
+    * just once here */
+   add_note (g_strdup_printf (ngettext ("%u new image since GImageView ran last time.",
+                                        "%u new images since GImageView ran last time.", n),
+                              n));
+}
+
+
 void
 gimv_index_notice_watch_limit (guint n_watched)
 {
-   g_free (watch_note);
-   watch_note = g_strdup_printf (
+   add_note (g_strdup_printf (
       _("Only %u folders can be watched for changes (the system limit "
         "fs.inotify.max_user_watches). Changes in the other folders are "
-        "found the next time GImageView starts."), n_watched);
-   update_buttons ();
+        "found the next time GImageView starts."), n_watched));
 }

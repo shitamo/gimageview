@@ -24,6 +24,10 @@
  *   stage <n> done <dirs> <files> <added> <changed> <removed>
  *   tags-updated            tags changed after a "tags" command
  *   changed                 files changed while watching (inotify)
+ *   new\t<path>             an image that came while watching
+ *   added-since-last <n>    images that came while gimv was not running
+ *                           (found by the first stage 1, not on a new
+ *                           database)
  *   moved\t<old>\t<new>     an image with a comment file was moved or
  *                           renamed by another program (the comment file
  *                           stays at the old place until gimv moves it)
@@ -99,6 +103,8 @@ typedef struct Indexer_Tag
    GHashTable  *wd_paths;      /* watch descriptor -> directory path */
    gboolean     watch_full;    /* the kernel limit was reached */
    guint        n_watches;
+   gboolean     report_new;    /* say "new" for each file added */
+   gboolean     first_run;     /* the first stage 1 of this start */
    gboolean     full;          /* stat every file, not only changed dirs */
    GString     *cmdbuf;
 
@@ -459,6 +465,12 @@ file_update (Indexer *ix, gint64 dir_id, const gchar *dirpath,
       sqlite3_step (st);
       sqlite3_reset (st);
       ix->n_added++;
+      if (ix->report_new) {
+         gchar *full = g_build_filename (dirpath, name, NULL);
+         if (!strpbrk (full, "\t\n"))
+            say ("new\t%s", full);
+         g_free (full);
+      }
    }
    ix->n_files++;
 }
@@ -621,6 +633,7 @@ static void
 run_stage1 (Indexer *ix)
 {
    gint i;
+   gint64 before = 0;
 
    ix->stage = 1;
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
@@ -630,6 +643,12 @@ run_stage1 (Indexer *ix)
    exec (ix, "BEGIN");
    ix->last_commit = ix->last_progress = g_get_monotonic_time ();
 
+   if (ix->first_run) {
+      sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files");
+      before = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int64 (st, 0) : 0;
+      sqlite3_finalize (st);
+   }
+
    drop_old_roots (ix);
    for (i = 0; ix->roots[i] && !ix->quit; i++)
       scan_dir (ix, ix->roots[i], 0, 0);
@@ -638,6 +657,10 @@ run_stage1 (Indexer *ix)
    if (!ix->quit)
       say ("stage 1 done %u %u %u %u %u", ix->n_dirs, ix->n_files,
            ix->n_added, ix->n_changed, ix->n_removed);
+   /* not on a new database: everything would be new */
+   if (!ix->quit && ix->first_run && before > 0 && ix->n_added > 0)
+      say ("added-since-last %u", ix->n_added);
+   ix->first_run = FALSE;
 }
 
 
@@ -1350,6 +1373,7 @@ watch_process (Indexer *ix)
 
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
    exec (ix, "BEGIN");
+   ix->report_new = TRUE;
 
    while ((n = read (ix->inotify_fd, buf, sizeof (buf))) > 0) {
       gchar *p;
@@ -1434,6 +1458,7 @@ watch_process (Indexer *ix)
       }
    }
    g_hash_table_unref (froms);
+   ix->report_new = FALSE;
 
    exec (ix, "COMMIT");
    g_free (croot);
@@ -1555,6 +1580,7 @@ main (int argc, char *argv[])
    ix.cmdbuf = g_string_new (NULL);
    ix.tag_queue = g_ptr_array_new_with_free_func (g_free);
    watch_init (&ix);
+   ix.first_run = TRUE;
 
    /* roots: absolute, without trailing slashes, no duplicates */
    {

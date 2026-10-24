@@ -21,6 +21,7 @@
 #include "gimv_index.h"
 #include "gimv_index_db.h"
 #include "gimv_index_notice.h"
+#include "gimv_index_newimg.h"
 #include "gimv_mime_types.h"
 #include "gimv_thumb_win.h"
 #include "prefs.h"
@@ -246,6 +247,12 @@ handle_line (const gchar *line)
    gchar **v;
    guint n;
 
+   /* "new\t<path>" */
+   if (g_str_has_prefix (line, "new\t")) {
+      gimv_index_newimg_add (line + 4);
+      return;
+   }
+
    /* "moved\t<old>\t<new>", "moved-dir\t<old>\t<new>" */
    if (g_str_has_prefix (line, "moved\t") || g_str_has_prefix (line, "moved-dir\t")) {
       gchar **t = g_strsplit (line, "\t", 3);
@@ -299,6 +306,8 @@ handle_line (const gchar *line)
    } else if (!strcmp (v[0], "changed")) {
       /* files changed while watching */
       notify_watches (GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS);
+   } else if (!strcmp (v[0], "added-since-last") && n >= 2) {
+      gimv_index_notice_added_since_last (strtoul (v[1], NULL, 10));
    } else if (!strcmp (v[0], "watch-limit") && n >= 2) {
       gimv_index_notice_watch_limit (strtoul (v[1], NULL, 10));
    } else if (!strcmp (v[0], "idle")) {
@@ -490,6 +499,7 @@ void
 gimv_index_quit (void)
 {
    stop_indexer ();
+   gimv_index_newimg_quit ();
    if (ix.db) {
       sqlite3_close (ix.db);
       ix.db = NULL;

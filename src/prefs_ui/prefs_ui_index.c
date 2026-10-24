@@ -63,11 +63,82 @@ prefs_ui_index (void)
    gtk_widget_set_margin_bottom (label, 4);
    gimv_box_pack_start (GTK_BOX (main_vbox), label, FALSE, FALSE, 0);
 
-   gimv_box_pack_start (GTK_BOX (main_vbox), frame, TRUE, TRUE, 0);
+   gtk_widget_set_size_request (frame, -1, 200);
+   gimv_box_pack_start (GTK_BOX (main_vbox), frame, FALSE, FALSE, 0);
+
+   /* new images */
+   {
+      GtkWidget *nframe, *nvbox, *grid, *toggle2, *excl;
+      static const struct {
+         const gchar *label;
+         gint         min, max;
+         gsize        offset;
+      } spins[] = {
+         { N_("Gather new images for (seconds)"),   0, 3600, G_STRUCT_OFFSET (Config, index_notify_wait) },
+         { N_("At most one notification every (seconds)"), 0, 3600, G_STRUCT_OFFSET (Config, index_notify_interval) },
+         { N_("Show a notification for (seconds, 0: the default)"), 0, 600, G_STRUCT_OFFSET (Config, index_notify_timeout) },
+      };
+      guint i;
+
+      gimv_prefs_ui_create_frame (_("New Images"), nframe, nvbox, main_vbox, FALSE);
+      toggle2 = gtkutil_create_check_button (_("Notify new images on the desktop"),
+                                             conf.index_notify,
+                                             gtkutil_get_data_from_toggle_cb,
+                                             &config_changed->index_notify);
+      gimv_box_pack_start (GTK_BOX (nvbox), toggle2, FALSE, FALSE, 0);
+
+      grid = gtk_grid_new ();
+      gtk_grid_set_row_spacing (GTK_GRID (grid), 4);
+      gtk_grid_set_column_spacing (GTK_GRID (grid), 8);
+      gtk_widget_set_margin_start (grid, 20);
+      for (i = 0; i < G_N_ELEMENTS (spins); i++) {
+         gint *val = G_STRUCT_MEMBER_P (&conf, spins[i].offset);
+         GtkAdjustment *adj = gtk_adjustment_new (*val, spins[i].min, spins[i].max, 1, 10, 0);
+         GtkWidget *l = gtk_label_new (_(spins[i].label)), *spin;
+
+         gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+         spin = gtkutil_create_spin_button (adj);
+         g_signal_connect (adj, "value_changed",
+                           G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
+                           G_STRUCT_MEMBER_P (config_changed, spins[i].offset));
+         gtk_grid_attach (GTK_GRID (grid), l, 0, i, 1, 1);
+         gtk_grid_attach (GTK_GRID (grid), spin, 1, i, 1, 1);
+      }
+      gimv_box_pack_start (GTK_BOX (nvbox), grid, FALSE, FALSE, 0);
+
+      label = gtk_label_new (_("Where the notifications appear is set in the "
+                               "desktop's notification settings."));
+      gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
+      gtk_widget_add_css_class (label, "dim-label");
+      gtk_widget_set_margin_start (label, 20);
+      gimv_box_pack_start (GTK_BOX (nvbox), label, FALSE, FALSE, 0);
+
+      excl = gimv_prefs_ui_dir_list_prefs (_("Folders not to notify"),
+                                           _("Select a folder not to notify"),
+                                           config_prechanged->index_notify_exclude,
+                                           &config_changed->index_notify_exclude,
+                                           ';');
+      gtk_widget_set_size_request (excl, -1, 160);
+      gimv_box_pack_start (GTK_BOX (nvbox), excl, FALSE, FALSE, 0);
+      (void) nframe;
+   }
+
    gimv_widget_show_all (main_vbox);
    gtk_widget_set_sensitive (frame, conf.index_enable);
 
-   return main_vbox;
+   /* taller than the other pages: let it scroll instead of making the
+    * preferences window grow off the screen */
+   {
+      GtkWidget *scroll = gtk_scrolled_window_new ();
+      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
+                                      GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+      gtk_scrolled_window_set_propagate_natural_width (GTK_SCROLLED_WINDOW (scroll), TRUE);
+      gtk_widget_set_vexpand (scroll, TRUE);
+      gtk_widget_set_size_request (scroll, -1, 420);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll), main_vbox);
+      return scroll;
+   }
 }
 
 

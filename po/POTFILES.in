@@ -26,6 +26,7 @@ src/gimv_index.c
 src/gimv_index_view.c
 src/gimv_index_tags.c
 src/gimv_index_notice.c
+src/gimv_index_newimg.c
 src/prefs_ui/prefs_ui_index.c
 src/gtk_prop.c
 src/gtkutils.c

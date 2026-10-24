@@ -93,6 +93,11 @@ static ConfParam param_common [] = {
    {"read_dotfile",             D_BOOL, "FALSE", &conf.read_dotfile},
    {"index_enable",             D_BOOL, "FALSE", &conf.index_enable},
    {"index_dirs",               D_STRING, "",    &conf.index_dirs},
+   {"index_notify",             D_BOOL,   "TRUE", &conf.index_notify},
+   {"index_notify_wait",        D_INT,    "30",   &conf.index_notify_wait},
+   {"index_notify_interval",    D_INT,    "30",   &conf.index_notify_interval},
+   {"index_notify_timeout",     D_INT,    "0",    &conf.index_notify_timeout},
+   {"index_notify_exclude",     D_STRING, "",     &conf.index_notify_exclude},
 
    {"detect_filetype_by_ext",   D_BOOL,   "TRUE",  &conf.detect_filetype_by_ext},
    {"disp_filename_stdout",     D_BOOL,   "TRUE",  &conf.disp_filename_stdout},

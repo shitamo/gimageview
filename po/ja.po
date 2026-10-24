@@ -4485,6 +4485,63 @@ msgstr "コメントも移す"
 msgid "Only %u folders can be watched for changes (the system limit fs.inotify.max_user_watches). Changes in the other folders are found the next time GImageView starts."
 msgstr "変化を監視できるフォルダは %u 個までです (システムの上限 fs.inotify.max_user_watches)。ほかのフォルダの変化は次に GImageView を起動したときに反映されます。"
 
+#: src/gimv_index_newimg.c
+msgid "New image"
+msgstr "新しい画像"
+
+#: src/gimv_index_newimg.c
+#, c-format
+msgid "%u new images"
+msgstr "新しい画像 %u 枚"
+
+#: src/gimv_index_newimg.c
+#, c-format
+msgid "%u new images in %s"
+msgstr "%2$s フォルダに新しい画像 %1$u 枚"
+
+#: src/gimv_index_newimg.c
+#, c-format
+msgid "%u new images in %s and other folders"
+msgstr "%2$s フォルダなどに新しい画像 %1$u 枚"
+
+#: src/gimv_index_notice.c
+#, c-format
+msgid "%u new image since GImageView ran last time."
+msgid_plural "%u new images since GImageView ran last time."
+msgstr[0] "前回から新しい画像が %u 枚増えました。"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "New Images"
+msgstr "新しい画像"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Notify new images on the desktop"
+msgstr "新しい画像をデスクトップに通知する"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Gather new images for (seconds)"
+msgstr "まとめて通知するまでの待ち時間 (秒)"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "At most one notification every (seconds)"
+msgstr "通知の最小間隔 (秒)"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Show a notification for (seconds, 0: the default)"
+msgstr "通知の表示時間 (秒、0 は既定)"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Where the notifications appear is set in the desktop's notification settings."
+msgstr "通知が出る位置はデスクトップの通知の設定で決まります。"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Folders not to notify"
+msgstr "通知しないフォルダ"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Select a folder not to notify"
+msgstr "通知しないフォルダを選択"
+
 #~ msgid "Xine Embeder"
 #~ msgstr "Xine埋め込み"
 
