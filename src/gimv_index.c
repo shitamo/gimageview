@@ -158,7 +158,9 @@ gimv_index_remove_watch (guint id)
 sqlite3 *
 gimv_index_get_db (void)
 {
-   if (!ix.db && ix.dbfile)
+   if (!ix.dbfile)
+      ix.dbfile = gimv_index_db_default_path ();
+   if (!ix.db)
       gimv_index_db_open (ix.dbfile, FALSE, &ix.db, NULL);
    return ix.db;
 }
@@ -401,6 +403,22 @@ stop_indexer (void)
       g_clear_object (&ix.proc);
    }
    ix.state = GIMV_INDEX_STATE_OFF;
+}
+
+
+gboolean
+gimv_index_is_configured (void)
+{
+   gchar **dirs;
+   gboolean found = FALSE;
+   gint i;
+
+   if (!conf.index_enable || !conf.index_dirs) return FALSE;
+   dirs = g_strsplit (conf.index_dirs, ";", -1);
+   for (i = 0; dirs[i] && !found; i++)
+      found = *g_strstrip (dirs[i]) != '\0';
+   g_strfreev (dirs);
+   return found;
 }
 
 

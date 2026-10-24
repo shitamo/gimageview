@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 3 -*- */
 
 /*
- * GImageView image index: date/tag tree below the directory tree.
+ * GImageView image index: the "Date" tab of the thumbnail window.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +14,10 @@
 
 #include "gimv_thumb_win.h"
 
-GtkWidget *gimv_index_view_new (GimvThumbWin *tw);
+/* open / close the "Date" tab (nothing happens when it is already so) */
+void       gimv_index_tab_open     (GimvThumbWin *tw);
+void       gimv_index_tab_close    (GimvThumbWin *tw);
+/* the page widget of the tab, NULL when it is not open */
+GtkWidget *gimv_index_tab_get_page (GimvThumbWin *tw);
 
 #endif /* __GIMV_INDEX_VIEW_H__ */

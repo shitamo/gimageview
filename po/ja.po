@@ -4374,6 +4374,19 @@ msgstr "索引: 別の GImageView が使用中"
 msgid "Index: error"
 msgstr "索引: エラー"
 
+#: src/gimv_index_view.c
+#, c-format
+msgid "%s (Date)"
+msgstr "%s (日付)"
+
+#: src/gimv_index_view.c
+msgid "Open in New Tab"
+msgstr "新しいタブで開く"
+
+#: src/gimv_thumb_win.c
+msgid "/Tab (_Date)"
+msgstr "/タブ (日付)(_D)"
+
 #~ msgid "Xine Embeder"
 #~ msgstr "Xine埋め込み"
 

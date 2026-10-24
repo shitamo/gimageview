@@ -24,6 +24,8 @@ typedef enum {
    GIMV_INDEX_STATE_ERROR,
 } GimvIndexState;
 
+/* enabled and at least one directory given */
+gboolean        gimv_index_is_configured    (void);
 /* start the indexer if it is enabled in the preferences */
 void            gimv_index_init             (void);
 void            gimv_index_quit             (void);

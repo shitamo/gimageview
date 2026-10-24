@@ -16,7 +16,10 @@
 #include <string.h>
 
 #include "fileload.h"
+#include "gimv_icon_stock.h"
 #include "gimv_index.h"
+#include "menu.h"
+#include "prefs.h"
 #include "gimv_index_view.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
@@ -45,6 +48,8 @@ typedef struct {
    guint          open_id;
    GimvThumbView *tv;          /* the tab of the last result, weak */
    gboolean       filling;
+   GtkWidget     *popover;
+   gchar         *menu_key;    /* row of the right button menu */
 } IndexView;
 
 
@@ -285,7 +290,17 @@ set_result_tab (IndexView *iv, GimvThumbView *tv)
 
 
 static void
-open_key (IndexView *iv, const gchar *key)
+show_page (GimvThumbWin *tw, GtkWidget *container)
+{
+   gint page = gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), container);
+   if (page >= 0)
+      gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->notebook), page);
+}
+
+
+/* new_tab FALSE: replace what the result tab shows (the usual way) */
+static void
+open_key (IndexView *iv, const gchar *key, gboolean new_tab)
 {
    FilesLoader *files;
    GimvThumbView *tv;
@@ -302,16 +317,15 @@ open_key (IndexView *iv, const gchar *key)
    files->status = END;
    files->thumb_load_type = LOAD_CACHE;
 
-   /* the same tab for every date, while it is there */
-   tv = iv->tv;
+   tv = new_tab ? NULL : iv->tv;
    if (!tv || tv->tw != iv->tw || tv->progress) {
       tv = gimv_thumb_win_create_new_tab (iv->tw);
-      set_result_tab (iv, tv);
-   } else {
-      gint page = gtk_notebook_page_num (GTK_NOTEBOOK (iv->tw->notebook),
-                                         tv->container);
-      gtk_notebook_set_current_page (GTK_NOTEBOOK (iv->tw->notebook), page);
+      /* a tab opened on request stays as it is: the next date goes to a
+       * tab of its own only when asked again */
+      if (!new_tab || !iv->tv)
+         set_result_tab (iv, tv);
    }
+   show_page (iv->tw, tv->container);
 
    title = g_strdup_printf (_("%s (Date)"), key);
    gimv_thumb_view_reset_tab_label (tv, title);
@@ -323,23 +337,37 @@ open_key (IndexView *iv, const gchar *key)
 
 
 static gboolean
+row_key (IndexView *iv, GtkTreeIter *iter, gchar **key)
+{
+   gint kind = 0;
+
+   *key = NULL;
+   gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter,
+                       COL_KIND, &kind, COL_KEY, key, -1);
+   if (*key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY))
+      return TRUE;
+   g_free (*key);
+   *key = NULL;
+   return FALSE;
+}
+
+
+static gboolean
 idle_open_selected (gpointer data)
 {
    IndexView *iv = data;
    GtkTreeSelection *sel;
    GtkTreeIter iter;
-   gint kind = 0;
-   gchar *key = NULL;
+   gchar *key;
 
    iv->open_id = 0;
    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
-   if (!gtk_tree_selection_get_selected (sel, NULL, &iter))
-      return G_SOURCE_REMOVE;
-   gtk_tree_model_get (GTK_TREE_MODEL (iv->store), &iter,
-                       COL_KIND, &kind, COL_KEY, &key, -1);
-   if (key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY))
-      open_key (iv, key);
-   g_free (key);
+   if (gtk_tree_selection_get_selected (sel, NULL, &iter)
+       && row_key (iv, &iter, &key))
+   {
+      open_key (iv, key, FALSE);
+      g_free (key);
+   }
    return G_SOURCE_REMOVE;
 }
 
@@ -353,6 +381,73 @@ cb_selection_changed (GtkTreeSelection *sel, IndexView *iv)
 }
 
 
+/* right button: a menu for the row under the pointer, middle button: open
+ * it in a new tab.  Neither changes the selection. */
+static gchar *
+key_at (IndexView *iv, gdouble x, gdouble y)
+{
+   GtkTreePath *path = NULL;
+   GtkTreeIter iter;
+   gint bx, by;
+   gchar *key = NULL;
+
+   gtk_tree_view_convert_widget_to_bin_window_coords (GTK_TREE_VIEW (iv->tree),
+                                                      x, y, &bx, &by);
+   if (!gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (iv->tree), bx, by,
+                                       &path, NULL, NULL, NULL))
+      return NULL;
+   if (gtk_tree_model_get_iter (GTK_TREE_MODEL (iv->store), &iter, path))
+      row_key (iv, &iter, &key);
+   gtk_tree_path_free (path);
+   return key;
+}
+
+
+static void
+cb_action_open (GSimpleAction *action, GVariant *param, gpointer data)
+{
+   IndexView *iv = data;
+   if (iv->menu_key)
+      open_key (iv, iv->menu_key, !strcmp (g_action_get_name (G_ACTION (action)),
+                                           "open-new-tab"));
+}
+
+
+static void
+cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
+                 IndexView *iv)
+{
+   guint button = gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture));
+   gchar *key;
+
+   /* the left button is left to the tree itself */
+   if (button != GDK_BUTTON_MIDDLE && button != GDK_BUTTON_SECONDARY) return;
+   key = key_at (iv, x, y);
+   if (!key) return;
+   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+
+   g_free (iv->menu_key);
+   iv->menu_key = key;
+
+   if (button == GDK_BUTTON_MIDDLE) {
+      open_key (iv, key, TRUE);
+   } else if (button == GDK_BUTTON_SECONDARY) {
+      GdkRectangle rect = { (gint) x, (gint) y, 1, 1 };
+      if (!iv->popover) {
+         GMenu *menu = g_menu_new ();
+         g_menu_append (menu, _("Open"), "index.open");
+         g_menu_append (menu, _("Open in New Tab"), "index.open-new-tab");
+         iv->popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu));
+         gtk_widget_set_parent (iv->popover, iv->tree);
+         gtk_popover_set_has_arrow (GTK_POPOVER (iv->popover), FALSE);
+         g_object_unref (menu);
+      }
+      gtk_popover_set_pointing_to (GTK_POPOVER (iv->popover), &rect);
+      gtk_popover_popup (GTK_POPOVER (iv->popover));
+   }
+}
+
+
 /******************************************************************************
  *  widget
  ******************************************************************************/
@@ -362,19 +457,27 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
 {
    if (iv->watch_id) gimv_index_remove_watch (iv->watch_id);
    if (iv->open_id) g_source_remove (iv->open_id);
+   if (iv->popover) gtk_widget_unparent (iv->popover);
    set_result_tab (iv, NULL);
    g_clear_object (&iv->store);
+   g_free (iv->menu_key);
    g_free (iv);
 }
 
 
-GtkWidget *
-gimv_index_view_new (GimvThumbWin *tw)
+static GtkWidget *
+index_view_new (GimvThumbWin *tw)
 {
+   static const GActionEntry actions[] = {
+      { "open",         cb_action_open, NULL, NULL, NULL },
+      { "open-new-tab", cb_action_open, NULL, NULL, NULL },
+   };
    IndexView *iv = g_new0 (IndexView, 1);
    GtkTreeViewColumn *col;
    GtkCellRenderer *render;
    GtkTreeIter root;
+   GtkGesture *click;
+   GSimpleActionGroup *group;
 
    iv->tw = tw;
    iv->store = gtk_tree_store_new (N_COLS, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING);
@@ -392,15 +495,33 @@ gimv_index_view_new (GimvThumbWin *tw)
    gtk_tree_view_column_pack_start (col, render, TRUE);
    gtk_tree_view_column_add_attribute (col, render, "text", COL_LABEL);
    gtk_tree_view_append_column (GTK_TREE_VIEW (iv->tree), col);
+   /* the years are shown from the start */
+   {
+      GtkTreePath *path = gtk_tree_path_new_first ();
+      gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
+      gtk_tree_path_free (path);
+   }
 
    g_signal_connect (iv->tree, "row-expanded", G_CALLBACK (cb_row_expanded), iv);
    g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree)),
                      "changed", G_CALLBACK (cb_selection_changed), iv);
 
+   click = gtk_gesture_click_new ();
+   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (click), 0);
+   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (click),
+                                               GTK_PHASE_CAPTURE);
+   g_signal_connect (click, "pressed", G_CALLBACK (cb_tree_pressed), iv);
+   gtk_widget_add_controller (iv->tree, GTK_EVENT_CONTROLLER (click));
+
+   group = g_simple_action_group_new ();
+   g_action_map_add_action_entries (G_ACTION_MAP (group), actions,
+                                    G_N_ELEMENTS (actions), iv);
+   gtk_widget_insert_action_group (iv->tree, "index", G_ACTION_GROUP (group));
+   g_object_unref (group);
+
    iv->scroll = gtk_scrolled_window_new ();
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scroll),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (iv->scroll), TRUE);
    gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (iv->scroll), iv->tree);
    gtk_widget_set_name (iv->scroll, "IndexView");
 
@@ -408,4 +529,101 @@ gimv_index_view_new (GimvThumbWin *tw)
    iv->watch_id = gimv_index_add_watch (cb_index_changed, iv);
 
    return iv->scroll;
+}
+
+
+/******************************************************************************
+ *  the "Date" tab of the thumbnail window
+ ******************************************************************************/
+
+#define DATE_TAB_KEY "gimv-index-date-tab"
+
+GtkWidget *
+gimv_index_tab_get_page (GimvThumbWin *tw)
+{
+   return g_object_get_data (G_OBJECT (tw), DATE_TAB_KEY);
+}
+
+
+static void
+sync_menu (GimvThumbWin *tw)
+{
+   if (tw->menuitem.index_date_tab)
+      gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.index_date_tab),
+                                 gimv_index_tab_get_page (tw) != NULL);
+}
+
+
+static void
+cb_page_destroy (GtkWidget *page, GimvThumbWin *tw)
+{
+   if (gimv_index_tab_get_page (tw) == page)
+      g_object_set_data (G_OBJECT (tw), DATE_TAB_KEY, NULL);
+}
+
+
+static void
+cb_close_clicked (GtkWidget *button, GimvThumbWin *tw)
+{
+   gimv_index_tab_close (tw);
+}
+
+
+void
+gimv_index_tab_open (GimvThumbWin *tw)
+{
+   GtkWidget *page, *hbox, *label, *button;
+
+   g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
+   if (gimv_index_tab_get_page (tw) || !tw->notebook) return;
+
+   page = index_view_new (tw);
+
+   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+   g_object_set_data (G_OBJECT (hbox), "page-container", page);
+   label = gtk_label_new (_("Date"));
+   gtk_widget_set_name (label, "TabLabel");
+   gtk_widget_add_css_class (label, "gimv-tab-label");
+   gtk_widget_set_margin_start (label, 4);
+   gtk_widget_set_margin_end (label, 4);
+   gtk_box_append (GTK_BOX (hbox), label);
+
+   button = gtk_button_new ();
+   gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
+   gtk_button_set_child (GTK_BUTTON (button), gimv_icon_stock_get_widget ("small_close"));
+   gimv_widget_set_size (button, 16, 16);
+   g_signal_connect (button, "clicked", G_CALLBACK (cb_close_clicked), tw);
+   gtk_box_append (GTK_BOX (hbox), button);
+   gtk_widget_set_visible (button, conf.thumbwin_show_tab_close);
+
+   gtk_notebook_append_page (GTK_NOTEBOOK (tw->notebook), page, hbox);
+   gtk_notebook_set_menu_label_text (GTK_NOTEBOOK (tw->notebook), page, _("Date"));
+   gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (tw->notebook), page, TRUE);
+   tw->pagenum++;
+
+   g_object_set_data (G_OBJECT (tw), DATE_TAB_KEY, page);
+   g_signal_connect (page, "destroy", G_CALLBACK (cb_page_destroy), tw);
+   sync_menu (tw);
+   gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
+}
+
+
+void
+gimv_index_tab_close (GimvThumbWin *tw)
+{
+   GtkWidget *page;
+   gint num;
+
+   g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
+   page = gimv_index_tab_get_page (tw);
+   if (!page) return;
+
+   g_object_set_data (G_OBJECT (tw), DATE_TAB_KEY, NULL);
+   num = gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), page);
+   if (num >= 0) {
+      gtk_notebook_remove_page (GTK_NOTEBOOK (tw->notebook), num);
+      if (tw->pagenum > 0) tw->pagenum--;
+   }
+   sync_menu (tw);
+   gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
 }

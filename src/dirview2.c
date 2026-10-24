@@ -28,9 +28,6 @@
 
 #include "charset.h"
 #include "dirview_priv.h"
-#ifdef ENABLE_INDEX
-#include "gimv_index_view.h"
-#endif
 #include "dnd.h"
 #include "fileutil.h"
 #include "gfileutil.h"
@@ -2156,16 +2153,6 @@ dirview_create (const gchar *root_dir,
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
    /* was GTK_SHADOW_IN */
    gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (dv->scroll_win), TRUE);
-#ifdef ENABLE_INDEX
-   /* image index: the date (and tag) tree below the directory tree */
-   if (conf.index_enable) {
-      GtkWidget *iview = gimv_index_view_new (tw);
-      gimv_box_pack_start (GTK_BOX (dv->container), dv->scroll_win, TRUE, TRUE, 0);
-      gtk_widget_set_size_request (iview, -1, 120);
-      gimv_box_pack_start (GTK_BOX (dv->container), iview, FALSE, FALSE, 0);
-      gtk_widget_show (dv->scroll_win);
-   } else
-#endif
    gimv_box_pack_start(GTK_BOX(dv->container), dv->scroll_win, TRUE, TRUE, 0);
    gtk_widget_show (dv->scroll_win);
 

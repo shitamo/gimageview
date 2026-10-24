@@ -53,6 +53,7 @@
 #include "prefs.h"
 #ifdef ENABLE_INDEX
 #include "gimv_index.h"
+#include "gimv_index_view.h"
 #endif
 
 
@@ -99,7 +100,8 @@ typedef enum {
    TAB,
    STATUSBAR,
    DIR_TOOLBAR,
-   PREVIEW_TAB
+   PREVIEW_TAB,
+   INDEX_DATE_TAB
 } ShowItem;
 
 
@@ -510,6 +512,9 @@ GimvMenuEntry gimv_thumb_win_view_items [] =
    {N_("/St_atusbar"),            "V",          cb_toggle_show,       STATUSBAR,      "<CheckItem>"},
    {N_("/_Tab"),                   "B",          cb_toggle_show,       TAB,            "<CheckItem>"},
    {N_("/Ta_b (Preview)"),         "<shift>Z",   cb_toggle_show,       PREVIEW_TAB,    "<CheckItem>"},
+#ifdef ENABLE_INDEX
+   {N_("/Tab (_Date)"),            NULL,         cb_toggle_show,       INDEX_DATE_TAB, "<CheckItem>"},
+#endif
    {N_("/_Player"),                NULL,         NULL,                 0,              "<Branch>"},  
    {N_("/_Player/_Show"),          NULL,         cb_switch_player,     GimvImageViewPlayerVisibleShow, "<RadioItem>"},  
    {N_("/_Player/_Hide"),          NULL,         cb_switch_player,     GimvImageViewPlayerVisibleHide, "/Player/Show"},  
@@ -784,6 +789,12 @@ gimv_thumb_win_open_window (void)
    GimvThumbWin *tw = GIMV_THUMB_WIN (gimv_thumb_win_new());
 
    gtk_widget_show (GTK_WIDGET (tw));
+
+#ifdef ENABLE_INDEX
+   /* the "Date" tab is there as soon as directories are given for the index */
+   if (gimv_index_is_configured ())
+      gimv_index_tab_open (tw);
+#endif
 
    return tw;
 }
@@ -1985,6 +1996,9 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
    tw->menuitem.statusbar   = gimv_menu_get_item (ifactory, "/Statusbar");
    tw->menuitem.tab         = gimv_menu_get_item (ifactory, "/Tab");
    tw->menuitem.preview_tab = gimv_menu_get_item (ifactory, "/Tab (Preview)");
+#ifdef ENABLE_INDEX
+   tw->menuitem.index_date_tab = gimv_menu_get_item (ifactory, "/Tab (Date)");
+#endif
    tw->menuitem.fullscr     = NULL;   /* "/Fullscreen" is disabled */
 
    ifactory = (tw->sort_menu);
@@ -3284,6 +3298,20 @@ cb_toggle_show (GimvThumbWin *tw, ShowItem sitem, GimvMenuItem *widget)
          dirview_hide_toolbar (tw->dv);
       }
       return;
+#ifdef ENABLE_INDEX
+   case INDEX_DATE_TAB:
+      if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
+         GtkWidget *page;
+         gimv_index_tab_open (tw);
+         /* opened from the menu: show it */
+         page = gimv_index_tab_get_page (tw);
+         if (page)
+            gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->notebook),
+                                           gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), page));
+      } else
+         gimv_index_tab_close (tw);
+      return;
+#endif
    case PREVIEW_TAB:
       if (tw->cv)
          gtk_notebook_set_show_tabs (GTK_NOTEBOOK(tw->cv->notebook), 
@@ -4918,6 +4946,7 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
    GList *pages_list = NULL, *node;
    gint i, pagenum, current_page;
    gfloat progress;
+   G_GNUC_UNUSED gboolean date_tab_open = FALSE;
 
    if (tw->layout_type > -1 && tw->layout_type == layout) return;
 
@@ -4933,6 +4962,14 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
       tw->layout_type = 0;
    else
       tw->layout_type = layout;
+
+#ifdef ENABLE_INDEX
+   /* the "Date" tab is not a thumbnail view: take it out and open it again
+    * in the new notebook */
+   date_tab_open = gimv_index_tab_get_page (tw) != NULL;
+   if (date_tab_open)
+      gimv_index_tab_close (tw);
+#endif
 
    /* get pages list in this window */
    for (i = 0; i < tw->pagenum; i++) {
@@ -4984,6 +5021,11 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
    gtk_widget_show (new_main_contents);
    tw->main_contents = new_main_contents;
    tw->pagenum = pagenum;
+
+#ifdef ENABLE_INDEX
+   if (date_tab_open)
+      gimv_index_tab_open (tw);
+#endif
 
    gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->notebook), current_page);
    gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
