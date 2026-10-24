@@ -41,6 +41,7 @@ static struct {
    GimvIndexState    state;
    gint              stage;
    guint             n_dirs, n_files;
+   guint             todo, done;      /* stage 2 */
    gchar            *status;
 
    gchar            *dbfile;
@@ -67,9 +68,13 @@ update_status (void)
       ix.status = g_strdup (_("Index: starting"));
       break;
    case GIMV_INDEX_STATE_SCANNING:
-      /* the total is not known in advance: just count up */
-      ix.status = g_strdup_printf (_("Index: scanning %u folders, %u images"),
-                                   ix.n_dirs, ix.n_files);
+      if (ix.stage == 2)
+         ix.status = g_strdup_printf (_("Index: reading dates %u/%u"),
+                                      ix.done, ix.todo);
+      else
+         /* the total is not known in advance: just count up */
+         ix.status = g_strdup_printf (_("Index: scanning %u folders, %u images"),
+                                      ix.n_dirs, ix.n_files);
       break;
    case GIMV_INDEX_STATE_IDLE:
       ix.status = g_strdup_printf (_("Index: %u images"), ix.n_files);
@@ -233,16 +238,28 @@ handle_line (const gchar *line)
       ix.stage = atoi (v[1]);
       if (!strcmp (v[2], "start")) {
          ix.state = GIMV_INDEX_STATE_SCANNING;
-         ix.n_dirs = ix.n_files = 0;
+         if (ix.stage == 1) {
+            ix.n_dirs = ix.n_files = 0;
+         } else {
+            ix.todo = n >= 4 ? strtoul (v[3], NULL, 10) : 0;
+            ix.done = 0;
+         }
       } else if (!strcmp (v[2], "done") && n >= 5) {
-         ix.n_dirs  = strtoul (v[3], NULL, 10);
-         ix.n_files = strtoul (v[4], NULL, 10);
+         /* the number of images comes from stage 1 */
+         if (ix.stage == 1) {
+            ix.n_dirs  = strtoul (v[3], NULL, 10);
+            ix.n_files = strtoul (v[4], NULL, 10);
+         }
          notify_watches ();
       }
       update_status ();
    } else if (!strcmp (v[0], "progress") && n >= 4) {
-      ix.n_dirs  = strtoul (v[2], NULL, 10);
-      ix.n_files = strtoul (v[3], NULL, 10);
+      if (atoi (v[1]) == 2) {
+         ix.done = strtoul (v[3], NULL, 10);
+      } else {
+         ix.n_dirs  = strtoul (v[2], NULL, 10);
+         ix.n_files = strtoul (v[3], NULL, 10);
+      }
       update_status ();
       if (g_get_monotonic_time () - ix.last_notify > NOTIFY_INTERVAL_USEC)
          notify_watches ();

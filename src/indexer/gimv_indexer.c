@@ -10,10 +10,13 @@
  *
  *   gimv-indexer --db FILE [--dotfiles] [--ext jpg,png,...] DIR...
  *
+ * Stage 1 records the files (date from mtime), stage 2 reads the date each
+ * image was taken: EXIF DateTimeOriginal, or else a date in the file name.
+ *
  * Messages on stdout:
  *   hello <version>
  *   busy                    another indexer already owns the database
- *   stage <n> start
+ *   stage <n> start [<files to do>]
  *   progress <n> <dirs> <files>
  *   stage <n> done <dirs> <files> <added> <changed> <removed>
  *   idle
@@ -31,6 +34,10 @@
  * (at your option) any later version.
  */
 
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -46,6 +53,10 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <sqlite3.h>
+
+#ifdef ENABLE_EXIF
+#  include <libexif/exif-data.h>
+#endif
 
 #include "gimv_index_db.h"
 
@@ -563,6 +574,180 @@ run_stage1 (Indexer *ix)
 
 
 /******************************************************************************
+ *  stage 2: the date the image was taken
+ ******************************************************************************/
+
+#define STAGE2_BATCH 200
+
+static gboolean
+valid_date (gint y, gint mo, gint d, gint h, gint mi, gint sec)
+{
+   return y >= 1900 && y <= 2100
+      && g_date_valid_dmy (d, mo, y)
+      && h >= 0 && h < 24 && mi >= 0 && mi < 60 && sec >= 0 && sec < 61;
+}
+
+
+#ifdef ENABLE_EXIF
+static gchar *
+exif_date (const gchar *path)
+{
+   static const ExifTag tags[] = {
+      EXIF_TAG_DATE_TIME_ORIGINAL, EXIF_TAG_DATE_TIME_DIGITIZED, EXIF_TAG_DATE_TIME,
+   };
+   ExifData *ed;
+   gchar *ret = NULL;
+   guint i;
+
+   /* libexif reads JPEG (and EXIF files); it stops after the EXIF block */
+   ed = exif_data_new_from_file (path);
+   if (!ed) return NULL;
+
+   for (i = 0; i < G_N_ELEMENTS (tags) && !ret; i++) {
+      ExifEntry *e = exif_data_get_entry (ed, tags[i]);
+      gchar buf[64];
+      gint y, mo, d, h, mi, sec;
+
+      if (!e) continue;
+      exif_entry_get_value (e, buf, sizeof (buf));
+      /* "YYYY:MM:DD HH:MM:SS" */
+      if (sscanf (buf, "%d:%d:%d %d:%d:%d", &y, &mo, &d, &h, &mi, &sec) == 6
+          && valid_date (y, mo, d, h, mi, sec))
+         ret = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d", y, mo, d, h, mi, sec);
+   }
+   exif_data_unref (ed);
+   return ret;
+}
+#endif
+
+
+/* IMG_20190503_101500.jpg, 2019-05-03 10.15.00.png, DSC20190503.jpg, ... */
+static gchar *
+filename_date (const gchar *name)
+{
+   static GRegex *re = NULL;
+   GMatchInfo *mi = NULL;
+   gchar *ret = NULL;
+
+   if (!re)
+      re = g_regex_new ("(?<![0-9])((?:19|20)[0-9]{2})[-_.]?([0-9]{2})[-_.]?([0-9]{2})"
+                        "(?:(?:[-_ T.]| at )?([0-9]{2})[-_.:h]?([0-9]{2})[-_.:m]?([0-9]{2}))?"
+                        "(?![0-9])", G_REGEX_OPTIMIZE, 0, NULL);
+
+   g_regex_match (re, name, 0, &mi);
+   while (g_match_info_matches (mi) && !ret) {
+      gchar *v[7];
+      gint n[7], i;
+
+      for (i = 1; i <= 6; i++) {
+         v[i] = g_match_info_fetch (mi, i);
+         n[i] = v[i] && *v[i] ? atoi (v[i]) : 0;
+         g_free (v[i]);
+      }
+      if (valid_date (n[1], n[2], n[3], n[4], n[5], n[6]))
+         ret = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d",
+                                n[1], n[2], n[3], n[4], n[5], n[6]);
+      g_match_info_next (mi, NULL);
+   }
+   g_match_info_free (mi);
+   return ret;
+}
+
+
+static void
+run_stage2 (Indexer *ix)
+{
+   sqlite3_stmt *sel, *upd, *done;
+   gboolean more = TRUE;
+
+   ix->stage = 2;
+   ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   {
+      /* the total is known here: the files stage 1 has found */
+      sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files WHERE stage < 2");
+      guint todo = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int (st, 0) : 0;
+      sqlite3_finalize (st);
+      say ("stage 2 start %u", todo);
+   }
+
+   /* in directory order, so that the disk is read in one sweep */
+   sel  = prep (ix, "SELECT f.id, d.path, f.name FROM files f "
+                    "JOIN dirs d ON d.id = f.dir_id WHERE f.stage < 2 "
+                    "ORDER BY f.dir_id, f.name LIMIT " G_STRINGIFY (STAGE2_BATCH));
+   upd  = prep (ix, "UPDATE files SET date = ?, date_src = ?, stage = 2 WHERE id = ?");
+   done = prep (ix, "UPDATE files SET stage = 2 WHERE id = ?");
+
+   exec (ix, "BEGIN");
+   ix->last_commit = ix->last_progress = g_get_monotonic_time ();
+
+   while (more && !ix->quit) {
+      GArray *ids = g_array_new (FALSE, FALSE, sizeof (gint64));
+      GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
+      GPtrArray *names = g_ptr_array_new_with_free_func (g_free);
+      guint i;
+
+      sqlite3_reset (sel);
+      while (sqlite3_step (sel) == SQLITE_ROW) {
+         gint64 id = sqlite3_column_int64 (sel, 0);
+         g_array_append_val (ids, id);
+         g_ptr_array_add (paths, g_build_filename ((const gchar *) sqlite3_column_text (sel, 1),
+                                                  (const gchar *) sqlite3_column_text (sel, 2),
+                                                  NULL));
+         g_ptr_array_add (names, g_strdup ((const gchar *) sqlite3_column_text (sel, 2)));
+      }
+      sqlite3_reset (sel);
+      more = ids->len == STAGE2_BATCH;
+
+      for (i = 0; i < ids->len && !ix->quit; i++) {
+         gint64 id = g_array_index (ids, gint64, i);
+         gchar *date = NULL;
+         gint src = GIMV_INDEX_DATE_MTIME;
+
+#ifdef ENABLE_EXIF
+         date = exif_date (g_ptr_array_index (paths, i));
+         if (date) src = GIMV_INDEX_DATE_EXIF;
+#endif
+         if (!date) {
+            date = filename_date (g_ptr_array_index (names, i));
+            if (date) src = GIMV_INDEX_DATE_FILENAME;
+         }
+
+         if (date) {
+            sqlite3_reset (upd);
+            sqlite3_bind_text  (upd, 1, date, -1, g_free);
+            sqlite3_bind_int   (upd, 2, src);
+            sqlite3_bind_int64 (upd, 3, id);
+            sqlite3_step (upd);
+            sqlite3_reset (upd);
+            ix->n_changed++;
+         } else {
+            /* keep the date from mtime */
+            sqlite3_reset (done);
+            sqlite3_bind_int64 (done, 1, id);
+            sqlite3_step (done);
+            sqlite3_reset (done);
+         }
+         ix->n_files++;
+         maybe_commit (ix, FALSE);
+      }
+
+      g_array_unref (ids);
+      g_ptr_array_unref (paths);
+      g_ptr_array_unref (names);
+   }
+
+   exec (ix, "COMMIT");
+   sqlite3_finalize (sel);
+   sqlite3_finalize (upd);
+   sqlite3_finalize (done);
+
+   if (!ix->quit)
+      say ("stage 2 done %u %u %u %u %u", ix->n_dirs, ix->n_files,
+           ix->n_added, ix->n_changed, ix->n_removed);
+}
+
+
+/******************************************************************************
  *  main
  ******************************************************************************/
 
@@ -690,6 +875,8 @@ main (int argc, char *argv[])
       ix.full = ix.rescan;
       ix.rescan = FALSE;
       run_stage1 (&ix);
+      if (ix.quit) break;
+      run_stage2 (&ix);
       if (ix.quit) break;
       say ("idle");
       /* nothing more to do for now: wait for a command or for gimv to quit */
