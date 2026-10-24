@@ -110,6 +110,7 @@ typedef struct Indexer_Tag
    gboolean     watch_full;    /* the kernel limit was reached */
    guint        n_watches;
    gboolean     report_new;    /* say "new" for each file added */
+   gboolean     need_stage3;   /* files came while a stage ran */
    gboolean     first_run;     /* the first stage 1 of this start */
 
    /* missing files: images with a comment file (comments, tags) that are
@@ -264,6 +265,8 @@ exec (Indexer *ix, const gchar *sql)
 
 
 static void process_tag_queue (Indexer *ix, gboolean in_transaction);
+static gboolean watch_during_stage (Indexer *ix);
+static void missing_flush (Indexer *ix);
 
 static void
 maybe_commit (Indexer *ix, gboolean force)
@@ -271,8 +274,15 @@ maybe_commit (Indexer *ix, gboolean force)
    gint64 now = g_get_monotonic_time ();
 
    if (force || now - ix->last_commit >= COMMIT_INTERVAL_USEC) {
+      gboolean changed;
+
       process_tag_queue (ix, TRUE);
+      changed = watch_during_stage (ix);
       exec (ix, "COMMIT");
+      if (changed) {
+         missing_flush (ix);
+         say ("changed");
+      }
       check_stdin (ix, 0);
       exec (ix, "BEGIN");
       ix->last_commit = now;
@@ -1617,9 +1627,10 @@ move_from_free (MoveFrom *m)
 }
 
 
-/* read what the kernel has queued and bring the database up to date */
-static void
-watch_process (Indexer *ix)
+/* read what the kernel has queued and bring the database up to date (in
+ * a transaction); TRUE when something changed */
+static gboolean
+watch_apply (Indexer *ix, gboolean *new_files_ret)
 {
    gchar buf[16384] __attribute__ ((aligned (__alignof__ (struct inotify_event))));
    GHashTable *froms = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL,
@@ -1628,8 +1639,6 @@ watch_process (Indexer *ix)
    gboolean any = FALSE, new_files = FALSE;
    gssize n;
 
-   ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
-   exec (ix, "BEGIN");
    ix->report_new = TRUE;
    ix->watching = TRUE;
 
@@ -1718,9 +1727,61 @@ watch_process (Indexer *ix)
    g_hash_table_unref (froms);
    ix->report_new = FALSE;
    ix->watching = FALSE;
-
-   exec (ix, "COMMIT");
    g_free (croot);
+
+   *new_files_ret = new_files;
+   return any;
+}
+
+
+/* stages 2 and 3 may take hours (EXIF of millions of files): changes are
+ * taken in at their commits too, so that new images are notified at once
+ * and the kernel queue does not overflow.  Not in stage 1, which lists the
+ * same directories. */
+static gboolean
+watch_during_stage (Indexer *ix)
+{
+   struct pollfd pfd = { ix->inotify_fd, POLLIN, 0 };
+   guint saved[5];
+   gboolean any, new_files = FALSE;
+
+   if (ix->inotify_fd < 0 || ix->stage < 2) return FALSE;
+   if (poll (&pfd, 1, 0) <= 0 || !(pfd.revents & POLLIN)) return FALSE;
+
+   /* the counters belong to the stage */
+   saved[0] = ix->n_dirs; saved[1] = ix->n_files; saved[2] = ix->n_added;
+   saved[3] = ix->n_changed; saved[4] = ix->n_removed;
+   ix->n_changed = 0;
+   any = watch_apply (ix, &new_files);
+   /* their tags (comment files moved or copied with them) after the stage;
+    * their dates come from stage 2, which picks up every new row */
+   if (new_files || ix->n_changed) ix->need_stage3 = TRUE;
+   ix->n_dirs = saved[0]; ix->n_files = saved[1]; ix->n_added = saved[2];
+   ix->n_changed = saved[3]; ix->n_removed = saved[4];
+   return any;
+}
+
+
+static gint64
+rows_to_date (Indexer *ix)
+{
+   sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files WHERE stage < 2");
+   gint64 n = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int64 (st, 0) : 0;
+   sqlite3_finalize (st);
+   return n;
+}
+
+
+/* in the idle loop */
+static void
+watch_process (Indexer *ix)
+{
+   gboolean any, new_files = FALSE;
+
+   ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   exec (ix, "BEGIN");
+   any = watch_apply (ix, &new_files);
+   exec (ix, "COMMIT");
    missing_flush (ix);
 
    if (!any) return;
@@ -1899,8 +1960,16 @@ main (int argc, char *argv[])
       if (ix.quit) break;
       run_stage3 (&ix);
       if (ix.quit) break;
-      run_stage2 (&ix);
+      /* again while files come in during it */
+      do {
+         run_stage2 (&ix);
+      } while (!ix.quit && rows_to_date (&ix) > 0);
       if (ix.quit) break;
+      if (ix.need_stage3) {
+         ix.need_stage3 = FALSE;
+         run_stage3 (&ix);
+         if (ix.quit) break;
+      }
       process_tag_queue (&ix, FALSE);
       say_idle (&ix);
       /* nothing more to do for now: wait for a command or for gimv to quit */
