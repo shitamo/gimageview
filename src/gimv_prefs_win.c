@@ -36,6 +36,9 @@
 #include "prefs.h"
 #include "prefs_ui/prefs_ui_common.h"
 #include "prefs_ui/prefs_ui_etc.h"
+#ifdef ENABLE_INDEX
+#include "prefs_ui/prefs_ui_index.h"
+#endif
 #include "prefs_ui/prefs_ui_movie.h"
 #include "prefs_ui/prefs_ui_plugin.h"
 #include "prefs_ui/prefs_ui_progs.h"
@@ -87,6 +90,9 @@ static GimvPrefsWinPage prefs_pages[] = {
    {N_("/Slideshow"),                 0, NULL, NULL, prefs_slideshow_page,           NULL},
    {N_("/Thumbnail Cache"),            0, NULL, NULL, prefs_cache_page,               NULL},
    {N_("/Comment"),                    0, NULL, NULL, prefs_comment_page,             prefs_comment_apply},
+#ifdef ENABLE_INDEX
+   {N_("/Index"),                      0, NULL, NULL, prefs_ui_index,                 prefs_ui_index_apply},
+#endif
    {N_("/Search"),                     0, NULL, NULL, prefs_search_page,              NULL},
    {N_("/Drag and Drop"),              0, NULL, NULL, prefs_dnd_page,                 NULL},
    {N_("/External Program"),           0, NULL, NULL, prefs_progs_page,               NULL},
@@ -180,6 +186,7 @@ prefs_win_free_strings (gboolean value_changed)
       &conf.comment_key_list,
       &conf.charset_locale,
       &conf.charset_internal,
+      &conf.index_dirs,
    };
    gint num1 = sizeof (strings) / sizeof (gchar **);
    gint num2 = sizeof (conf.progs) / sizeof (gchar *);

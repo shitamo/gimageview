@@ -4392,6 +4392,26 @@ msgstr "/タブ (日付)(_D)"
 msgid "Index: reading dates %u/%u"
 msgstr "索引: 日付を読み込み中 %u/%u"
 
+#: src/gimv_prefs_win.c
+msgid "/Index"
+msgstr "/索引"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Directories to index"
+msgstr "索引を作るディレクトリ"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Select a directory to index"
+msgstr "索引を作るディレクトリを選択"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Index images by date"
+msgstr "画像の索引を作り、日付で見られるようにする"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "The images below these directories are looked at while GImageView runs, and can then be seen by date in the \"Date\" tab."
+msgstr "これらのディレクトリ以下の画像を GImageView の起動中に調べ、「日付」タブで日付ごとに見られるようにします。"
+
 #~ msgid "Xine Embeder"
 #~ msgstr "Xine埋め込み"
 
