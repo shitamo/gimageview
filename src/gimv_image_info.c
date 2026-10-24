@@ -78,6 +78,39 @@ gimv_image_info_new (const gchar *filename)
  *   Public Functions.
  *
  ******************************************************************************/
+
+/* like gimv_image_info_get () with the stat already known (from the image
+ * index): nothing is read from the disk */
+GimvImageInfo *
+gimv_image_info_get_with_stat (const gchar *filename, const struct stat *st)
+{
+   GimvImageInfo *info;
+
+   g_return_val_if_fail (filename && st, NULL);
+
+   if (!gimv_image_info_table)
+      gimv_image_info_table = g_hash_table_new (g_str_hash, g_str_equal);
+
+   info = g_hash_table_lookup (gimv_image_info_table, filename);
+   if (info) {
+      if (info->st.st_size != st->st_size || info->st.st_mtime != st->st_mtime) {
+         info->st.st_size  = st->st_size;
+         info->st.st_mtime = st->st_mtime;
+         info->width = -1;
+         info->height = -1;
+         info->flags &= ~GIMV_IMAGE_INFO_SYNCED_FLAG;
+      }
+      return gimv_image_info_ref (info);
+   }
+
+   info = gimv_image_info_new (filename);
+   if (!info) return NULL;
+   info->st = *st;
+   g_hash_table_insert (gimv_image_info_table, info->filename, info);
+   return info;
+}
+
+
 GimvImageInfo *
 gimv_image_info_get (const gchar *filename)
 {
@@ -399,6 +432,11 @@ gboolean
 gimv_image_info_is_dir (GimvImageInfo *info)
 {
    g_return_val_if_fail (info, FALSE);
+
+   /* the stat taken with the info (or from the image index); the sort
+    * functions ask this for every comparison */
+   if (info->st.st_mode)
+      return S_ISDIR (info->st.st_mode);
 
    if (isdir (gimv_image_info_get_path (info)))
       return TRUE;

@@ -73,7 +73,9 @@ struct GimvImageInfo_Tag
  *  allocate new GimvImageInfo.
  *  To get GimvImageInfo for archive member, simply treat archive as directory.
  */
-GimvImageInfo  *gimv_image_info_get                  (const gchar   *filename); 
+GimvImageInfo  *gimv_image_info_get                  (const gchar   *filename);
+GimvImageInfo  *gimv_image_info_get_with_stat        (const gchar   *filename,
+                                                      const struct stat *st); 
 GimvImageInfo  *gimv_image_info_get_url              (const gchar   *url);
 
 /*

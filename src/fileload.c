@@ -130,6 +130,8 @@ files_loader_delete (FilesLoader *files)
 
    if (files->archive)
       g_object_unref (G_OBJECT (files->archive));
+   if (files->known_stats)
+      g_hash_table_unref (files->known_stats);
 
    loading_stop = FALSE;
 

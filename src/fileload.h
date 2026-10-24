@@ -71,6 +71,10 @@ struct FilesLoader_Tag
    /* for thumbnail */
    ThumbLoadType thumb_load_type;
 
+   /* path -> struct stat already known (from the image index): the files
+    * are then not looked at on the disk when the tab is filled */
+   GHashTable   *known_stats;
+
    /* cancel */
    LoadStatus    status;
 

@@ -1244,9 +1244,11 @@ comp_func_spel (gconstpointer data1, gconstpointer data2)
       comp = -1;
    } else if (filename2 && !strcmp ("..", g_basename (filename2))) {
       comp = 1;
-   } else if (!ignore_dir && isdir (filename1) && !isdir (filename2)) {
+   } else if (!ignore_dir && gimv_image_info_is_dir (thumb1->info)
+              && !gimv_image_info_is_dir (thumb2->info)) {
       comp = -1;
-   } else if (!ignore_dir && !isdir (filename1) && isdir (filename2)) {
+   } else if (!ignore_dir && !gimv_image_info_is_dir (thumb1->info)
+              && gimv_image_info_is_dir (thumb2->info)) {
       comp = 1;
    } else {
       if (flags & GIMV_SORT_CASE_INSENSITIVE)
@@ -1827,8 +1829,22 @@ gimv_thumb_view_remove_thumb_data (GimvThumbView *tv, GimvThumb *thumb)
 }
 
 
+static void gimv_thumb_view_insert_thumb_frames_known (GimvThumbView *tv,
+                                                       GList         *filelist,
+                                                       GHashTable    *known_stats);
+
 static void
 gimv_thumb_view_insert_thumb_frames (GimvThumbView *tv, GList *filelist)
+{
+   gimv_thumb_view_insert_thumb_frames_known (tv, filelist, NULL);
+}
+
+
+/* known_stats: path -> struct stat already known (from the image index),
+ * those files are not looked at on the disk */
+static void
+gimv_thumb_view_insert_thumb_frames_known (GimvThumbView *tv, GList *filelist,
+                                           GHashTable *known_stats)
 {
    GimvThumb  *thumb;
    GList *node, *new_thumbs = NULL;
@@ -1842,9 +1858,12 @@ gimv_thumb_view_insert_thumb_frames (GimvThumbView *tv, GList *filelist)
     * once */
    for (node = filelist; node; node = g_list_next (node)) {
       gchar *filename = node->data;
+      const struct stat *st = known_stats ? g_hash_table_lookup (known_stats, filename) : NULL;
 
-      if (file_exists(node->data)) {
-         GimvImageInfo *info = gimv_image_info_get (filename);
+      if (st || file_exists (node->data)) {
+         GimvImageInfo *info = st ? gimv_image_info_get_with_stat (filename, st)
+                                  : gimv_image_info_get (filename);
+         if (!info) continue;
 
          thumb = gimv_thumb_new (info);
          gimv_image_info_unref (info);
@@ -4123,7 +4142,8 @@ gimv_thumb_view_reload (GimvThumbView *tv, FilesLoader *files, GimvThumbViewMode
          g_list_free(dirlist);
          g_free (parent);
       }
-      gimv_thumb_view_insert_thumb_frames (tv, files->filelist);
+      gimv_thumb_view_insert_thumb_frames_known (tv, files->filelist,
+                                                 files->known_stats);
    }
 
    /* set window status */

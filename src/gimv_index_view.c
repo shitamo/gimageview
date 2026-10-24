@@ -19,6 +19,8 @@
 #include "gimageview.h"
 
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <gio/gio.h>
 
 #include "fileload.h"
@@ -71,6 +73,8 @@ typedef struct {
    gboolean       filling;
    GtkWidget     *popover;
    gchar         *menu_key;    /* row of the right button menu */
+   gchar         *click_key;   /* row clicked with the left button */
+   gchar         *shown_key;   /* what the result tab shows */
 
    GCancellable  *cancel;      /* cancelled when the view goes away */
    gboolean       counting;    /* a day count query is running */
@@ -165,6 +169,22 @@ thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *ca
 }
 
 
+/* the result of a file list query */
+typedef struct {
+   GList      *paths;
+   GHashTable *stats;   /* path (in paths) -> struct stat from the index */
+} FileList;
+
+
+static void
+file_list_free (FileList *fl)
+{
+   if (fl->stats) g_hash_table_unref (fl->stats);
+   g_list_free_full (fl->paths, g_free);
+   g_free (fl);
+}
+
+
 /* "date" is "YYYY-MM-DD HH:MM:SS": every date starting with key sorts in
  * [key, key + "~") */
 static void
@@ -177,26 +197,43 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
    GList *list = NULL;
    const gchar *sql;
 
+   FileList *fl = g_new0 (FileList, 1);
+
+   /* size and mtime too: the tab is filled without looking at every file
+    * on the disk (tens of thousands of them on a HDD) */
    if (req->type == GIMV_INDEX_TAB_TAG)
-      sql = "SELECT DISTINCT d.path, f.name, f.date FROM file_tags ft "
+      sql = "SELECT DISTINCT d.path, f.name, f.size, f.mtime, f.date FROM file_tags ft "
             "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
             "JOIN dirs d ON d.id = f.dir_id WHERE t.name = ?1 ORDER BY f.date, f.name";
    else
-      sql = "SELECT d.path, f.name FROM files f JOIN dirs d ON d.id = f.dir_id "
+      sql = "SELECT d.path, f.name, f.size, f.mtime FROM files f JOIN dirs d ON d.id = f.dir_id "
             "WHERE f.date >= ?1 AND f.date < ?1 || '~' ORDER BY f.date, f.name";
 
+   fl->stats = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
    if (db && sqlite3_prepare_v2 (db, sql, -1, &st, NULL) == SQLITE_OK)
    {
       sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
       while (sqlite3_step (st) == SQLITE_ROW) {
          const gchar *dir  = (const gchar *) sqlite3_column_text (st, 0);
          const gchar *name = (const gchar *) sqlite3_column_text (st, 1);
-         list = g_list_prepend (list, g_build_filename (dir, name, NULL));
+         gchar *path = g_build_filename (dir, name, NULL);
+         struct stat *sb = g_new0 (struct stat, 1);
+
+         sb->st_mode  = S_IFREG | 0644;
+         sb->st_size  = sqlite3_column_int64 (st, 2);
+         sb->st_mtime = sqlite3_column_int64 (st, 3);
+         sb->st_ctime = sb->st_mtime;
+         sb->st_atime = sb->st_mtime;
+         sb->st_uid   = getuid ();
+         sb->st_gid   = getgid ();
+         list = g_list_prepend (list, path);
+         g_hash_table_insert (fl->stats, path, sb);
       }
       sqlite3_finalize (st);
    }
    if (db) sqlite3_close (db);
-   g_task_return_pointer (task, g_list_reverse (list), NULL);
+   fl->paths = g_list_reverse (list);
+   g_task_return_pointer (task, fl, (GDestroyNotify) file_list_free);
 }
 
 
@@ -484,20 +521,25 @@ open_request_free (OpenRequest *req)
 
 
 static void
-open_files (IndexView *iv, OpenRequest *req, GList *filelist)
+open_files (IndexView *iv, OpenRequest *req, FileList *fl)
 {
+   GList *filelist = fl->paths;
    FilesLoader *files;
    GimvThumbView *tv;
    gchar *title;
 
-   if (!filelist) return;
-   if (files_loader_query_loading ()) {
-      g_list_free_full (filelist, g_free);
+   if (!filelist || files_loader_query_loading ()) {
+      file_list_free (fl);
       return;
    }
 
    files = files_loader_new ();
    files->filelist = filelist;
+   files->known_stats = fl->stats;
+   /* the loader owns them now */
+   fl->paths = NULL;
+   fl->stats = NULL;
+   file_list_free (fl);
    files->status = END;
    files->thumb_load_type = LOAD_CACHE;
 
@@ -513,6 +555,11 @@ open_files (IndexView *iv, OpenRequest *req, GList *filelist)
     * visible part */
    gimv_thumb_view_set_windowed (tv, TRUE);
    show_page (iv->tw, tv->container);
+
+   if (tv == iv->tv) {
+      g_free (iv->shown_key);
+      iv->shown_key = g_strdup (req->key);
+   }
 
    title = g_strdup_printf (req->type == GIMV_INDEX_TAB_TAG ? _("%s (Tag)")
                                                             : _("%s (Date)"),
@@ -530,13 +577,13 @@ cb_listed (GObject *source, GAsyncResult *res, gpointer data)
 {
    GTask *task = G_TASK (res);
    IndexView *iv = data;
-   GList *filelist;
+   FileList *fl;
 
    if (g_cancellable_is_cancelled (g_task_get_cancellable (task))) return;
 
    iv->listing = FALSE;
-   filelist = g_task_propagate_pointer (task, NULL);
-   open_files (iv, g_task_get_task_data (task), filelist);
+   fl = g_task_propagate_pointer (task, NULL);
+   if (fl) open_files (iv, g_task_get_task_data (task), fl);
 }
 
 
@@ -549,6 +596,12 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
 
    /* one at a time: clicks while the list is read are dropped */
    if (iv->listing || files_loader_query_loading ()) return;
+
+   /* already shown (the second click of a double click, Enter) */
+   if (!new_tab && iv->tv && iv->shown_key && !strcmp (iv->shown_key, key)) {
+      show_page (iv->tw, iv->tv->container);
+      return;
+   }
 
    req = g_new0 (OpenRequest, 1);
    req->type = iv->type;
@@ -580,41 +633,45 @@ row_key (IndexView *iv, GtkTreeIter *iter, gchar **key)
 }
 
 
-static gboolean
-idle_open_selected (gpointer data)
+static void
+cb_row_activated (GtkTreeView *tree, GtkTreePath *path, GtkTreeViewColumn *col,
+                  IndexView *iv)
 {
-   IndexView *iv = data;
-   GtkTreeSelection *sel;
    GtkTreeIter iter;
    gchar *key;
 
-   iv->open_id = 0;
-   sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
-   if (gtk_tree_selection_get_selected (sel, NULL, &iter)
+   if (gtk_tree_model_get_iter (GTK_TREE_MODEL (iv->store), &iter, path)
        && row_key (iv, &iter, &key))
    {
       open_key (iv, key, FALSE);
       g_free (key);
    }
-   return G_SOURCE_REMOVE;
 }
 
 
-static void
-cb_selection_changed (GtkTreeSelection *sel, IndexView *iv)
+static gboolean
+idle_open_key (gpointer data)
 {
-   if (iv->filling || iv->open_id) return;
-   /* after the click has been handled */
-   iv->open_id = g_idle_add (idle_open_selected, iv);
+   IndexView *iv = data;
+
+   iv->open_id = 0;
+   if (iv->click_key) {
+      open_key (iv, iv->click_key, FALSE);
+      g_clear_pointer (&iv->click_key, g_free);
+   }
+   return G_SOURCE_REMOVE;
 }
 
 
 /* right button: a menu for the row under the pointer, middle button: open
  * it in a new tab.  Neither changes the selection. */
+/* on_text: set to whether the point is on the row text, not on the
+ * expander arrow or the indentation before it */
 static gchar *
-key_at (IndexView *iv, gdouble x, gdouble y)
+key_at (IndexView *iv, gdouble x, gdouble y, gboolean *on_text)
 {
    GtkTreePath *path = NULL;
+   GtkTreeViewColumn *col = NULL;
    GtkTreeIter iter;
    gint bx, by;
    gchar *key = NULL;
@@ -622,8 +679,13 @@ key_at (IndexView *iv, gdouble x, gdouble y)
    gtk_tree_view_convert_widget_to_bin_window_coords (GTK_TREE_VIEW (iv->tree),
                                                       x, y, &bx, &by);
    if (!gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (iv->tree), bx, by,
-                                       &path, NULL, NULL, NULL))
+                                       &path, &col, NULL, NULL))
       return NULL;
+   if (on_text) {
+      GdkRectangle cell;
+      gtk_tree_view_get_cell_area (GTK_TREE_VIEW (iv->tree), path, col, &cell);
+      *on_text = bx >= cell.x;
+   }
    if (gtk_tree_model_get_iter (GTK_TREE_MODEL (iv->store), &iter, path))
       row_key (iv, &iter, &key);
    gtk_tree_path_free (path);
@@ -646,11 +708,28 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
                  IndexView *iv)
 {
    guint button = gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture));
+   gboolean on_text = FALSE;
    gchar *key;
 
-   /* the left button is left to the tree itself */
+   if (button == GDK_BUTTON_PRIMARY) {
+      /* a click on the text opens it; the arrow only opens the row of the
+       * tree, and moving with the keys opens nothing (Enter does).  The
+       * tree still handles the click itself (selection, arrow). */
+      if (n_press != 1) return;
+      key = key_at (iv, x, y, &on_text);
+      if (!key) return;
+      if (!on_text) {
+         g_free (key);
+         return;
+      }
+      g_free (iv->click_key);
+      iv->click_key = key;
+      if (!iv->open_id)
+         iv->open_id = g_idle_add (idle_open_key, iv);
+      return;
+   }
    if (button != GDK_BUTTON_MIDDLE && button != GDK_BUTTON_SECONDARY) return;
-   key = key_at (iv, x, y);
+   key = key_at (iv, x, y, NULL);
    if (!key) return;
    gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
@@ -691,6 +770,8 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
    set_result_tab (iv, NULL);
    g_clear_object (&iv->store);
    g_free (iv->menu_key);
+   g_free (iv->click_key);
+   g_free (iv->shown_key);
    g_free (iv);
 }
 
@@ -727,8 +808,8 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    gtk_tree_view_column_pack_start (col, render, TRUE);
    gtk_tree_view_column_add_attribute (col, render, "text", COL_LABEL);
    gtk_tree_view_append_column (GTK_TREE_VIEW (iv->tree), col);
-   g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree)),
-                     "changed", G_CALLBACK (cb_selection_changed), iv);
+   /* Enter (and a double click) */
+   g_signal_connect (iv->tree, "row-activated", G_CALLBACK (cb_row_activated), iv);
 
    click = gtk_gesture_click_new ();
    gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (click), 0);

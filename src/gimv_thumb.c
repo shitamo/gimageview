@@ -567,7 +567,7 @@ gimv_thumb_has_thumbnail (GimvThumb *thumb)
 {
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
 
-   if (isdir (gimv_image_info_get_path (thumb->info)))
+   if (gimv_image_info_is_dir (thumb->info))
       return FALSE;
 
    if (fr_archive_utils_get_file_name_ext (gimv_image_info_get_path (thumb->info)))
