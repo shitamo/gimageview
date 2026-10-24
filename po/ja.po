@@ -5291,3 +5291,7 @@ msgstr "コメントを削除"
 
 msgid "Remove from the Log"
 msgstr "ログから外す"
+
+#: plugins/thumbnail/freedesktop.c
+msgid "freedesktop.org thumbnail support (~/.cache/thumbnails)"
+msgstr "freedesktop.org 形式のサムネイル (~/.cache/thumbnails)"

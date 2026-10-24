@@ -79,6 +79,7 @@ plugins/image_view/prefs_xine.c
 plugins/io_stream/gimv_bz_io.c
 plugins/io_stream/gimv_gzip_io.c
 plugins/thumbnail/ee.c
+plugins/thumbnail/freedesktop.c
 plugins/thumbnail/gimv_thumb.c
 plugins/thumbnail/gqview.c
 plugins/thumbnail/konqueror-old.c
