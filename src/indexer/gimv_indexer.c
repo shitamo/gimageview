@@ -8,7 +8,8 @@
  * stdout, one line per message.  gimv talks to it through stdin; when stdin
  * reaches EOF (gimv has quit or crashed) the indexer stops.
  *
- *   gimv-indexer --db FILE [--dotfiles] [--ext jpg,png,...] DIR...
+ *   gimv-indexer --db FILE [--dotfiles] [--ext jpg,png,...]
+ *                [--auto=folder,camera,shape] DIR...
  *
  * Stage 1 records the files (date from mtime), stage 3 reads the tags from
  * the gimv comment files (~/.gimv/comment/<image path>.txt, the line
@@ -128,6 +129,7 @@ typedef struct Indexer_Tag
    guint        log_count;
    gint         log_keep;
    gboolean     full;          /* stat every file, not only changed dirs */
+   guint        auto_kinds;    /* AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE */
    GString     *cmdbuf;
 
    sqlite3_stmt *st_dir_get, *st_dir_add, *st_dir_set;
@@ -1095,6 +1097,30 @@ filename_date (const gchar *name)
 
 #define AUTO_RULE "1"
 
+/* the kinds put (--auto=folder,camera,shape; the preferences) */
+enum {
+   AUTO_FOLDER = 1 << 0,
+   AUTO_CAMERA = 1 << 1,
+   AUTO_SHAPE  = 1 << 2,
+   AUTO_ALL    = AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE,
+};
+
+static guint
+auto_kinds_parse (const gchar *list)
+{
+   gchar **v = g_strsplit (list, ",", -1);
+   guint kinds = 0, i;
+
+   for (i = 0; v[i]; i++) {
+      gchar *k = g_strstrip (v[i]);
+      if (!strcmp (k, "folder"))      kinds |= AUTO_FOLDER;
+      else if (!strcmp (k, "camera")) kinds |= AUTO_CAMERA;
+      else if (!strcmp (k, "shape"))  kinds |= AUTO_SHAPE;
+   }
+   g_strfreev (v);
+   return kinds;
+}
+
 static gchar *
 folder_tag (const gchar *dirpath)
 {
@@ -1175,18 +1201,12 @@ auto_tags_clear (AutoTags *at, gint64 file_id)
 }
 
 
-/* when the rules change (or for a database made before them): every
- * image gets its tags again.  The folder tags come now, from the database
- * alone; the others with stage 2, which reads every image again. */
+/* the folder tags of every image, from the database alone */
 static void
-auto_tags_renew (Indexer *ix)
+auto_folder_all (Indexer *ix)
 {
    sqlite3_stmt *st, *ins;
    AutoTags at;
-
-   exec (ix, "BEGIN");
-   exec (ix, "DELETE FROM file_tags WHERE auto = 1");
-   exec (ix, "UPDATE files SET stage = 1");
 
    auto_tags_init (ix, &at);
    ins = prep (ix, "INSERT OR IGNORE INTO file_tags (file_id, tag_id, auto) "
@@ -1210,10 +1230,69 @@ auto_tags_renew (Indexer *ix)
    sqlite3_finalize (st);
    sqlite3_finalize (ins);
    auto_tags_finish (&at);
+}
+
+
+static void
+auto_kind_remove (Indexer *ix, const gchar *prefix)
+{
+   sqlite3_stmt *st = prep (ix, "DELETE FROM file_tags WHERE auto = 1 AND tag_id IN "
+                                "(SELECT id FROM tags WHERE substr(name, 1, length(?1)) = ?1)");
+   sqlite3_bind_text (st, 1, prefix, -1, SQLITE_STATIC);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+}
+
+
+/* the rules or the kinds wanted changed (or a database made before them):
+ * a new rule makes all the tags of the rules again; a kind turned off goes
+ * away; a kind turned on comes: the folder tags at once from the database,
+ * the camera and the shape by reading every image again in stage 2 */
+static void
+auto_tags_update (Indexer *ix)
+{
+   sqlite3_stmt *st;
+   gchar *rule = NULL, kinds_str[16];
+   guint had, added;
+
+   st = prep (ix, "SELECT value FROM meta WHERE key = 'auto_rule'");
+   if (sqlite3_step (st) == SQLITE_ROW && sqlite3_column_text (st, 0))
+      rule = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
+   sqlite3_finalize (st);
+   st = prep (ix, "SELECT value FROM meta WHERE key = 'auto_kinds'");
+   /* before this key there were all kinds */
+   had = sqlite3_step (st) == SQLITE_ROW ? (guint) sqlite3_column_int (st, 0) : AUTO_ALL;
+   sqlite3_finalize (st);
+
+   if (!g_strcmp0 (rule, AUTO_RULE) && had == ix->auto_kinds) {
+      g_free (rule);
+      return;
+   }
+
+   exec (ix, "BEGIN");
+   if (g_strcmp0 (rule, AUTO_RULE)) {
+      exec (ix, "DELETE FROM file_tags WHERE auto = 1");
+      had = 0;
+   } else {
+      if ((had & AUTO_FOLDER) && !(ix->auto_kinds & AUTO_FOLDER)) auto_kind_remove (ix, "folder/");
+      if ((had & AUTO_CAMERA) && !(ix->auto_kinds & AUTO_CAMERA)) auto_kind_remove (ix, "camera/");
+      if ((had & AUTO_SHAPE)  && !(ix->auto_kinds & AUTO_SHAPE))  auto_kind_remove (ix, "shape/");
+   }
+   added = ix->auto_kinds & ~had;
+   if (added & AUTO_FOLDER)
+      auto_folder_all (ix);
+   if (added & (AUTO_CAMERA | AUTO_SHAPE))
+      exec (ix, "UPDATE files SET stage = 1");
 
    exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
    exec (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_rule', '" AUTO_RULE "')");
+   g_snprintf (kinds_str, sizeof kinds_str, "%u", ix->auto_kinds);
+   st = prep (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_kinds', ?)");
+   sqlite3_bind_text (st, 1, kinds_str, -1, SQLITE_STATIC);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
    exec (ix, "COMMIT");
+   g_free (rule);
 }
 
 
@@ -1274,7 +1353,7 @@ run_stage2 (Indexer *ix)
             g_array_append_val (mtimes, mt);
          }
          /* the files right in a root have no folder tag */
-         g_ptr_array_add (folders, sqlite3_column_int (sel, 4)
+         g_ptr_array_add (folders, sqlite3_column_int (sel, 4) || !(ix->auto_kinds & AUTO_FOLDER)
                           ? NULL : folder_tag ((const gchar *) sqlite3_column_text (sel, 1)));
       }
       sqlite3_reset (sel);
@@ -1293,10 +1372,11 @@ run_stage2 (Indexer *ix)
          if (date) src = GIMV_INDEX_DATE_EXIF;
 #endif
          /* the size from the header only */
-         gdk_pixbuf_get_file_info (path, &w, &h);
+         if (ix->auto_kinds & AUTO_SHAPE)
+            gdk_pixbuf_get_file_info (path, &w, &h);
          auto_tags_clear (&at, id);
          auto_tag_add (&at, id, g_ptr_array_index (folders, i));
-         if (ii.camera) {
+         if (ii.camera && (ix->auto_kinds & AUTO_CAMERA)) {
             gchar *tag = g_strconcat ("camera/", ii.camera, NULL);
             auto_tag_add (&at, id, tag);
             g_free (tag);
@@ -2076,13 +2156,8 @@ open_db (Indexer *ix, const gchar *dbfile)
       }
    }
    {
-      /* the rules of the tags put automatically */
-      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'auto_rule'");
-      gboolean current = sqlite3_step (st) == SQLITE_ROW
-         && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), AUTO_RULE);
-      sqlite3_finalize (st);
-      if (!current)
-         auto_tags_renew (ix);
+      /* the tags put by rules */
+      auto_tags_update (ix);
    }
 
    return TRUE;
@@ -2112,12 +2187,14 @@ main (int argc, char *argv[])
    gchar *dbfile = NULL, *exts = NULL;
    gboolean dotfiles = FALSE;
    gint log_keep = 10;
+   gchar *auto_list = NULL;
    gchar **dirs = NULL;
    GOptionEntry entries[] = {
       { "db",       0, 0, G_OPTION_ARG_FILENAME, &dbfile, "database file", "FILE" },
       { "dotfiles", 0, 0, G_OPTION_ARG_NONE, &dotfiles, "include dot files", NULL },
       { "ext",      0, 0, G_OPTION_ARG_STRING, &exts, "image extensions", "LIST" },
       { "log-keep", 0, 0, G_OPTION_ARG_INT, &log_keep, "logs of missing files kept (0: none)", "N" },
+      { "auto",     0, 0, G_OPTION_ARG_STRING, &auto_list, "tags put by rules (default: all)", "folder,camera,shape" },
       { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &dirs, NULL, "DIR..." },
       { NULL }
    };
@@ -2148,6 +2225,7 @@ main (int argc, char *argv[])
    ix.first_run = TRUE;
    ix.log_missing = TRUE;
    ix.log_keep = log_keep;
+   ix.auto_kinds = auto_list ? auto_kinds_parse (auto_list) : AUTO_ALL;
    ix.missing = g_ptr_array_new_with_free_func (g_free);
    ix.log_dir = g_path_get_dirname (dbfile);
 

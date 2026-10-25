@@ -5338,3 +5338,22 @@ msgstr "横長"
 
 msgid "Square shape"
 msgstr "正方形"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Automatic Tags"
+msgstr "自動タグ"
+
+msgid "Tags put by the index itself, shown in groups in the \"Tag\" tab.  They are kept only in the index, not in the comment files."
+msgstr "索引が自動で付けるタグです。「タグ」タブにグループで表示されます。索引の中だけに持ち、コメントファイルには書きません。"
+
+msgid "The folder name (\"2019_Kyoto\", ...)"
+msgstr "フォルダ名 (「2019_京都旅行」など)"
+
+msgid "The camera (EXIF)"
+msgstr "カメラ (EXIF)"
+
+msgid "The shape (portrait, landscape, square)"
+msgstr "形 (縦長・横長・正方形)"
+
+msgid "Turning the camera or the shape on reads every image again, which takes long with many images."
+msgstr "カメラや形をオンにすると全部の画像を読み直すので、画像が多いと時間がかかります。"

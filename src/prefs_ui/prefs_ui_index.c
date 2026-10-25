@@ -124,6 +124,42 @@ prefs_ui_index (void)
       (void) nframe;
    }
 
+   /* tags put by rules */
+   {
+      GtkWidget *aframe, *avbox, *l, *t;
+      static const struct {
+         const gchar *label;
+         gsize        offset;
+      } kinds[] = {
+         { N_("The folder name (\"2019_Kyoto\", ...)"),     G_STRUCT_OFFSET (Config, index_auto_folder) },
+         { N_("The camera (EXIF)"),                             G_STRUCT_OFFSET (Config, index_auto_camera) },
+         { N_("The shape (portrait, landscape, square)"),       G_STRUCT_OFFSET (Config, index_auto_shape) },
+      };
+      guint i;
+
+      gimv_prefs_ui_create_frame (_("Automatic Tags"), aframe, avbox, main_vbox, FALSE);
+      l = gtk_label_new (_("Tags put by the index itself, shown in groups in the "
+                           "\"Tag\" tab.  They are kept only in the index, not in "
+                           "the comment files."));
+      gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+      gtk_label_set_wrap (GTK_LABEL (l), TRUE);
+      gimv_box_pack_start (GTK_BOX (avbox), l, FALSE, FALSE, 0);
+      for (i = 0; i < G_N_ELEMENTS (kinds); i++) {
+         gboolean *val = G_STRUCT_MEMBER_P (&conf, kinds[i].offset);
+         t = gtkutil_create_check_button (_(kinds[i].label), *val,
+                                          gtkutil_get_data_from_toggle_cb,
+                                          G_STRUCT_MEMBER_P (config_changed, kinds[i].offset));
+         gimv_box_pack_start (GTK_BOX (avbox), t, FALSE, FALSE, 0);
+      }
+      l = gtk_label_new (_("Turning the camera or the shape on reads every image "
+                           "again, which takes long with many images."));
+      gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+      gtk_label_set_wrap (GTK_LABEL (l), TRUE);
+      gtk_widget_add_css_class (l, "dim-label");
+      gimv_box_pack_start (GTK_BOX (avbox), l, FALSE, FALSE, 0);
+      (void) aframe;
+   }
+
    /* missing images */
    {
       GtkWidget *mframe, *mvbox, *hbox, *l, *spin;
@@ -192,6 +228,9 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
 
    if (dest->index_enable == src->index_enable
        && dest->index_log_keep == src->index_log_keep
+       && dest->index_auto_folder == src->index_auto_folder
+       && dest->index_auto_camera == src->index_auto_camera
+       && dest->index_auto_shape  == src->index_auto_shape
        && !g_strcmp0 (dest->index_dirs, src->index_dirs))
       return FALSE;
 

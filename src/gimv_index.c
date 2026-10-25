@@ -409,6 +409,11 @@ start_indexer (void)
    if (conf.read_dotfile)
       g_ptr_array_add (argv, g_strdup ("--dotfiles"));
    g_ptr_array_add (argv, g_strdup_printf ("--log-keep=%d", conf.index_log_keep));
+   /* the tags put by rules: the kinds wanted ("" for none) */
+   g_ptr_array_add (argv, g_strdup_printf ("--auto=%s%s%s",
+                                           conf.index_auto_folder ? "folder," : "",
+                                           conf.index_auto_camera ? "camera," : "",
+                                           conf.index_auto_shape  ? "shape,"  : ""));
    exts = ext_list ();
    if (*exts) {
       g_ptr_array_add (argv, g_strdup ("--ext"));

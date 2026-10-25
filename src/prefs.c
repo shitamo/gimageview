@@ -99,6 +99,9 @@ static ConfParam param_common [] = {
    {"index_notify_timeout",     D_INT,    "0",    &conf.index_notify_timeout},
    {"index_notify_exclude",     D_STRING, "",     &conf.index_notify_exclude},
    {"index_log_keep",           D_INT,    "10",   &conf.index_log_keep},
+   {"index_auto_folder",        D_BOOL,   "TRUE", &conf.index_auto_folder},
+   {"index_auto_camera",        D_BOOL,   "TRUE", &conf.index_auto_camera},
+   {"index_auto_shape",         D_BOOL,   "TRUE", &conf.index_auto_shape},
 
    {"detect_filetype_by_ext",   D_BOOL,   "TRUE",  &conf.detect_filetype_by_ext},
    {"disp_filename_stdout",     D_BOOL,   "TRUE",  &conf.disp_filename_stdout},

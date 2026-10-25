@@ -86,6 +86,9 @@ typedef struct _Config {
    gint       index_notify_timeout;  /* seconds shown, 0: the default */
    gchar     *index_notify_exclude;  /* ';' separated folders */
    gint       index_log_keep;        /* logs of missing images kept */
+   gboolean   index_auto_folder;     /* tags put by rules: the folder name, */
+   gboolean   index_auto_camera;     /* the camera (EXIF) */
+   gboolean   index_auto_shape;      /* and portrait / landscape / square */
    gboolean   detect_filetype_by_ext;
    gboolean   disp_filename_stdout;
    gint       interpolation;
