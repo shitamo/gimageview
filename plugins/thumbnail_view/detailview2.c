@@ -1070,17 +1070,21 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    row_top = gimv_thumb_view_get_thumb_index (tv, tmp_thumb);
    gtk_tree_path_free (treepath);
 
-   /* get index of bottom row */
+   /* get index of bottom row: nothing there when the end of the list is
+      shown (scrolled to the end): then the last row */
    success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
                                             0, area.height, &treepath,
                                             NULL, NULL, NULL);
-   if (!success) return FALSE;
-   gtk_tree_model_get_iter (model, &iter, treepath);
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_THUMB_DATA, &tmp_thumb,
-                       COLUMN_TERMINATOR);
-   row_bottom = gimv_thumb_view_get_thumb_index (tv, tmp_thumb);
-   gtk_tree_path_free (treepath);
+   if (success) {
+      gtk_tree_model_get_iter (model, &iter, treepath);
+      gtk_tree_model_get (model, &iter,
+                          COLUMN_THUMB_DATA, &tmp_thumb,
+                          COLUMN_TERMINATOR);
+      row_bottom = gimv_thumb_view_get_thumb_index (tv, tmp_thumb);
+      gtk_tree_path_free (treepath);
+   } else {
+      row_bottom = gtk_tree_model_iter_n_children (model, NULL) - 1;
+   }
 
    /* intersect? */
    if (row >= row_top && row <= row_bottom)

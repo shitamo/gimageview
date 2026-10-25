@@ -104,6 +104,7 @@ struct GimvThumbViewPriv_Tag
    guint                window_timeout;
    guint                window_idle;
    gint                 win_first, win_last, win_lo, win_hi, win_step;
+   gint                 win_head, win_tail;   /* the ends of the list */
 };
 
 
@@ -1763,6 +1764,10 @@ window_compute (gpointer data)
    priv->win_lo    = MAX (0, first - WINDOW_LOAD_PAGES * page);
    priv->win_hi    = MIN (n - 1, last + WINDOW_LOAD_PAGES * page);
    priv->win_step  = 0;
+   /* "previous image" at the first goes to the last and "next image" at
+      the last to the first: one page at each end is loaded too, last */
+   priv->win_head  = MIN (n, page) - 1;
+   priv->win_tail  = MAX (0, n - page);
    keep_lo = MAX (0, first - WINDOW_KEEP_PAGES * page);
    keep_hi = MIN (n - 1, last + WINDOW_KEEP_PAGES * page);
 
@@ -1775,7 +1780,9 @@ window_compute (gpointer data)
       g_hash_table_iter_init (&it, priv->loaded);
       while (g_hash_table_iter_next (&it, &key, NULL)) {
          gint pos = gimv_thumb_view_get_thumb_index (tv, key);
-         if (pos < keep_lo || pos > keep_hi) {
+         if ((pos < keep_lo || pos > keep_hi)
+             && pos > priv->win_head && pos < priv->win_tail)
+         {
             drop = g_list_prepend (drop, key);
             g_hash_table_iter_remove (&it);
          }
@@ -1796,17 +1803,25 @@ window_compute (gpointer data)
 
 
 /* the visible ones first (first .. last), then below (.. hi), then above
- * (first - 1 .. lo) */
+ * (first - 1 .. lo), then the first page and the last page of the list
+ * (those already done come again; they are skipped as loaded) */
 static gint
 window_nth_position (GimvThumbViewPriv *priv, gint step)
 {
-   gint below = priv->win_hi - priv->win_first + 1;
+   gint below = priv->win_hi - priv->win_first + 1, n_tail;
 
    if (step < below)
       return priv->win_first + step;
    step -= below;
    if (step < priv->win_first - priv->win_lo)
       return priv->win_first - 1 - step;
+   step -= priv->win_first - priv->win_lo;
+   if (step <= priv->win_head)
+      return step;
+   step -= priv->win_head + 1;
+   n_tail = priv->index_array ? (gint) priv->index_array->len - priv->win_tail : 0;
+   if (step < n_tail)
+      return priv->win_tail + step;
    return -1;
 }
 
