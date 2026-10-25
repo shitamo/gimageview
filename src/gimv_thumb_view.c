@@ -474,29 +474,22 @@ chosen_thumb (GimvThumbView *tv)
 }
 
 
-/* a collection: open the folder of the image in a tab, the image
-   selected there */
-static void
-cb_open_folder (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+/* open the folder of the image "path" in a tab of tw, the image selected
+   there (the folder of an image of a collection) */
+void
+gimv_thumb_view_open_folder_of (GimvThumbWin *tw, const gchar *path)
 {
-   GimvThumb *thumb;
    GimvThumbView *dir_tv;
-   gchar *path, *dir, *dir_slash;
+   gchar *dir, *dir_slash;
    GList *node;
 
-   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   g_return_if_fail (path && *path);
    if (files_loader_query_loading ()) return;
 
-   thumb = chosen_thumb (tv);
-   if (!GIMV_IS_THUMB (thumb) || !thumb->info
-       || gimv_image_info_is_in_archive (thumb->info))
-      return;
-
-   path = g_strdup (gimv_image_info_get_path (thumb->info));
    dir = g_path_get_dirname (path);
    dir_slash = g_str_has_suffix (dir, "/") ? g_strdup (dir) : g_strconcat (dir, "/", NULL);
 
-   open_dir_images (dir, tv->tw, NULL, LOAD_CACHE, SCAN_SUB_DIR_NONE);
+   open_dir_images (dir, tw, NULL, LOAD_CACHE, SCAN_SUB_DIR_NONE);
 
    /* the tab is made (or was already there): select the image */
    dir_tv = gimv_thumb_view_find_opened_dir (dir_slash);
@@ -513,6 +506,25 @@ cb_open_folder (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
    }
    g_free (dir_slash);
    g_free (dir);
+}
+
+
+static void
+cb_open_folder (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   GimvThumb *thumb;
+   gchar *path;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+
+   thumb = chosen_thumb (tv);
+   if (!GIMV_IS_THUMB (thumb) || !thumb->info
+       || gimv_image_info_is_in_archive (thumb->info))
+      return;
+
+   /* the thumbnail may go with the list: keep the path */
+   path = g_strdup (gimv_image_info_get_path (thumb->info));
+   gimv_thumb_view_open_folder_of (tv->tw, path);
    g_free (path);
 }
 

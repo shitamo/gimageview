@@ -208,6 +208,9 @@ static void cb_rotate                      (GimvImageView   *iv,
 static void cb_toggle_scrollbar            (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem       *widget);
+static void cb_open_folder                 (GimvImageView   *iv,
+                                            guint            action,
+                                            GimvMenuItem    *widget);
 static void cb_create_thumbnail            (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem       *widget);
@@ -322,6 +325,7 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/Show _Scrollbar"),       "<shift>S",   cb_toggle_scrollbar, 0, "<ToggleItem>"},
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
    {N_("/Create _Thumbnail"),     "<shift>T",   cb_create_thumbnail, 0, NULL},
+   {N_("/Open the _Folder"),      NULL,         cb_open_folder,      0, NULL},
    {N_("/Memory _Buffer"),        "<control>B", cb_toggle_buffer,    0, "<ToggleItem>"},
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
    {N_("/_Print..."),             NULL,         cb_print,            0, NULL},
@@ -1082,6 +1086,39 @@ cb_toggle_scrollbar (GimvImageView *iv, guint action, GimvMenuItem *widget)
    } else {
       gimv_image_view_hide_scrollbar (iv);
    }
+}
+
+
+/* the thumbnail view the image of iv comes from, when it is a collection */
+static GimvThumbView *
+collection_of (GimvImageView *iv)
+{
+   GimvThumbView *tv;
+
+   if (!iv->priv || !iv->priv->image_list || !iv->info) return NULL;
+   tv = iv->priv->image_list->owner;
+   if (!GIMV_IS_THUMB_VIEW (tv) || !g_list_find (gimv_thumb_view_get_list (), tv))
+      return NULL;
+   if (tv->mode != GIMV_THUMB_VIEW_MODE_COLLECTION) return NULL;
+   if (gimv_image_info_is_in_archive (iv->info)
+       || (iv->info->flags & GIMV_IMAGE_INFO_MRL_FLAG))
+      return NULL;
+   return tv;
+}
+
+
+static void
+cb_open_folder (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   GimvThumbView *tv;
+   gchar *path;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   tv = collection_of (iv);
+   if (!tv) return;
+   path = g_strdup (gimv_image_info_get_path (iv->info));
+   gimv_thumb_view_open_folder_of (tv->tw, path);
+   g_free (path);
 }
 
 
@@ -2992,6 +3029,12 @@ gimv_image_view_popup_menu (GimvImageView *iv, GimvEventButton *event)
       GimvMenuItem *item = gimv_menu_find_item (iv->imageview_popup, "/Create Thumbnail");
       if (item)
          gimv_menu_item_set_sensitive (item, !gimv_thumb_cache_write_disabled ());
+      /* the folder of an image of a collection (the index, ...) */
+      item = gimv_menu_find_item (iv->imageview_popup, "/Open the Folder");
+      if (item) {
+         gimv_menu_item_set_visible (item, collection_of (iv) != NULL);
+         gimv_menu_item_set_sensitive (item, !files_loader_query_loading ());
+      }
    }
    if (iv->imageview_popup)
       gimv_menu_popup (iv->imageview_popup,
