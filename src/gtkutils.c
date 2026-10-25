@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <gtk/gtk.h>
@@ -227,11 +228,57 @@ gtkutil_toolbar_set_style (GtkWidget *toolbar, gint style)
 }
 
 
+/* a spin button in a page that scrolls (the preferences): the mouse wheel
+ * scrolls the page while the spin button has no focus, instead of changing
+ * the value under the pointer without the user noticing.  Once clicked
+ * (focused), the wheel changes the value as usual. */
+static gboolean
+cb_spin_scroll (GtkEventControllerScroll *controller, gdouble dx, gdouble dy,
+                GtkWidget *spin)
+{
+   GtkWidget *sw;
+   GtkAdjustment *adj;
+   gdouble page, step;
+
+   {
+      /* the focus is on the text entry inside the spin button */
+      GtkRoot *root = gtk_widget_get_root (spin);
+      GtkWidget *focus = root ? gtk_root_get_focus (root) : NULL;
+      if (focus && (focus == spin || gtk_widget_is_ancestor (focus, spin)))
+         return FALSE;                 /* the spin button changes its value */
+   }
+
+   sw = gtk_widget_get_ancestor (spin, GTK_TYPE_SCROLLED_WINDOW);
+   if (!sw) return FALSE;              /* nothing to scroll: as usual */
+
+   adj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (sw));
+   page = gtk_adjustment_get_page_size (adj);
+   /* as GtkScrolledWindow does for a wheel step */
+   step = page > 0 ? pow (page, 2.0 / 3.0) : 20;
+   gtk_adjustment_set_value (adj, gtk_adjustment_get_value (adj) + dy * step);
+   return TRUE;                        /* not to the spin button */
+}
+
+
+void
+gtkutil_spin_button_pass_scroll (GtkWidget *spin)
+{
+   GtkEventController *scroll;
+
+   g_return_if_fail (GTK_IS_SPIN_BUTTON (spin));
+   scroll = gtk_event_controller_scroll_new (GTK_EVENT_CONTROLLER_SCROLL_VERTICAL);
+   gtk_event_controller_set_propagation_phase (scroll, GTK_PHASE_CAPTURE);
+   g_signal_connect (scroll, "scroll", G_CALLBACK (cb_spin_scroll), spin);
+   gtk_widget_add_controller (spin, scroll);
+}
+
+
 GtkWidget *
 gtkutil_create_spin_button (GtkAdjustment *adj)
 {
    GtkWidget *spinner = gtk_spin_button_new (adj, 0, 0);
    gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner), TRUE);
+   gtkutil_spin_button_pass_scroll (spinner);
 
    return spinner;
 }

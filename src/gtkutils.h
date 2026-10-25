@@ -77,6 +77,7 @@ GtkWidget    *gtkutil_create_toolbar         (void);
 void          gtkutil_toolbar_set_style      (GtkWidget     *toolbar,
                                               gint           style);
 GtkWidget    *gtkutil_create_spin_button     (GtkAdjustment *adj);
+void        gtkutil_spin_button_pass_scroll (GtkWidget     *spin);
 GObject      *gtkutil_option_menu_get_current(GtkWidget     *option_menu);
 GList        *gtkutil_list_insert_sorted     (GList         *list,
                                               gpointer       data,

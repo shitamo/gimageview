@@ -386,6 +386,7 @@ prefs_save (gpointer data)
                                                CACHE_GIMV_MAX_SIZE,
                                                1.0, 5.0, 0.0);
    spinner = gtk_spin_button_new (adj, 0, 0);
+   gtkutil_spin_button_pass_scroll (spinner);
    gimv_widget_set_size(spinner, 70, -1);
    gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spinner), TRUE);
    g_signal_connect (G_OBJECT (adj), "value_changed",
