@@ -221,6 +221,7 @@ gboolean       gimv_thumb_view_set_selection_multiple
 void           gimv_thumb_view_set_focus          (GimvThumbView    *tv,
                                                    GimvThumb        *thumb);
 GimvThumb     *gimv_thumb_view_get_focus          (GimvThumbView    *tv);
+void           gimv_thumb_view_focus_changed      (GimvThumbView    *tv);
 void           gimv_thumb_view_grab_focus         (GimvThumbView    *tv);
 void           gimv_thumb_view_find_duplicates    (GimvThumbView    *tv,
                                                    GimvThumb        *thumb,

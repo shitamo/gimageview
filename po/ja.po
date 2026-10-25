@@ -5299,3 +5299,7 @@ msgstr "freedesktop.org 形式のサムネイル (~/.cache/thumbnails)"
 #: src/prefs_ui/prefs_ui_etc.c
 msgid "None (do not save)"
 msgstr "なし (保存しない)"
+
+#: src/gimv_thumb_view.c
+msgid "/Open the _Folder"
+msgstr "/元のフォルダを開く(_F)"

@@ -4344,6 +4344,43 @@ gimv_thumb_win_set_statusbar_page_info (GimvThumbWin *tw, gint pagenum)
    gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar2), 1, buf);
    /* update progress bar */
    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(tw->progressbar), progress);
+
+   /* like the rest of the status bar, for the page given (on "switch-page"
+      it is not the current page yet) */
+   gimv_thumb_win_show_file_path (tw, tv);
+}
+
+
+#define STATUS_FILE_PATH 2   /* context of the status bar: the file path */
+
+/*
+ * In a collection (the results of the dates and tags of the index, ...)
+ * the files come from many folders: the status bar shows the path of the
+ * focused file over "Collection View".
+ */
+void
+gimv_thumb_win_show_file_path (GimvThumbWin *tw, GimvThumbView *tv)
+{
+   GimvThumb *thumb;
+   const gchar *path;
+   gchar *tilde, *text;
+
+   g_return_if_fail (tw);
+   gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), STATUS_FILE_PATH);
+   if (!tv || tv->mode != GIMV_THUMB_VIEW_MODE_COLLECTION || tv->progress) return;
+
+   thumb = gimv_thumb_view_get_focus (tv);
+   if (!GIMV_IS_THUMB (thumb) || !thumb->info) return;
+   path = gimv_image_info_get_path (thumb->info);
+   if (!path || !*path) return;
+
+   tilde = fileutil_home2tilde (path);
+   text = charset_to_internal (tilde, conf.charset_filename,
+                               conf.charset_auto_detect_fn,
+                               conf.charset_filename_mode);
+   gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), STATUS_FILE_PATH, text);
+   g_free (text);
+   g_free (tilde);
 }
 
 

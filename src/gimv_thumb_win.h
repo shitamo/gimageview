@@ -244,6 +244,8 @@ GimvThumbWin
 GimvThumbView
             *gimv_thumb_win_find_thumbtable           (GimvThumbWin   *tw,
                                                        gint            pagenum);
+void         gimv_thumb_win_show_file_path            (GimvThumbWin   *tw,
+                                                       GimvThumbView  *tv);
 void         gimv_thumb_win_set_statusbar_page_info   (GimvThumbWin   *tw,
                                                        gint            pagenum);
 void         gimv_thumb_win_loading_update_progress   (GimvThumbWin   *tw,

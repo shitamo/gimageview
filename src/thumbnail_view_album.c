@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "gimageview.h"
+#include "charset.h"
 
 #include "dnd.h"
 #include "gimv_comment.h"
@@ -259,6 +260,7 @@ cb_select_cell (GimvZAlbum *album, gint idx, GimvThumbView *tv)
    g_return_if_fail (GIMV_IS_THUMB (thumb));
 
    thumb->selected = TRUE;
+   gimv_thumb_view_focus_changed (tv);
 }
 
 static void
@@ -652,17 +654,37 @@ cb_album_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
    thumb = gimv_thumb_view_get_nth_thumb (tv, idx);
    if (!GIMV_IS_THUMB (thumb) || !thumb->info) return FALSE;
 
-   if (!gimv_comment_get_summary (thumb->info, &subject, &note)) return FALSE;
-   if (!subject && !note) return FALSE;
-
    text = g_string_new (NULL);
+
+   /* a collection has files from many folders: the full path first */
+   if (tv->mode == GIMV_THUMB_VIEW_MODE_COLLECTION) {
+      const gchar *file = gimv_image_info_get_path (thumb->info);
+      if (file) {
+         gchar *internal = charset_to_internal (file, conf.charset_filename,
+                                                conf.charset_auto_detect_fn,
+                                                conf.charset_filename_mode);
+         g_string_append (text, internal);
+         g_free (internal);
+      }
+   }
+
+   if (!gimv_comment_get_summary (thumb->info, &subject, &note)
+       || (!subject && !note))
+   {
+      gboolean any = text->len > 0;
+      if (any) gtk_tooltip_set_text (tooltip, text->str);
+      g_string_free (text, TRUE);
+      return any;
+   }
+
+   if (text->len) g_string_append (text, "\n\n");
    if (subject)
       g_string_append (text, subject);
    if (note) {
       gchar *body = g_strstrip (note);
       if (g_utf8_strlen (body, -1) > 1000)
          *g_utf8_offset_to_pointer (body, 1000) = '\0';
-      if (text->len) g_string_append (text, "\n\n");
+      if (subject) g_string_append (text, "\n\n");
       g_string_append (text, body);
    }
    gtk_tooltip_set_text (tooltip, text->str);

@@ -97,6 +97,7 @@ struct GimvThumbViewPriv_Tag
     * ones far from it are dropped (large collections from the image
     * index) */
    gboolean             windowed;
+   guint                focus_idle;     /* gimv_thumb_view_focus_changed () */
    ThumbLoadType        load_type;
    GHashTable          *loaded;        /* GimvThumb (loaded) */
    guint                window_timeout;
@@ -115,6 +116,9 @@ static void window_stop                (GimvThumbView  *tv);
 static void   cb_open_image            (GimvThumbView  *tv,
                                         GimvThumbViewOpenImageType action,
                                         GimvMenuItem      *menuitem);
+static void       cb_open_folder         (GimvThumbView  *tv,
+                                          guint           action,
+                                          GimvMenuItem   *menuitem);
 static void   cb_open_image_by_external(GimvMenuItem   *menuitem,
                                         GimvThumbView  *tv);
 static void   cb_open_image_by_script  (GimvMenuItem   *menuitem,
@@ -209,6 +213,7 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/_Open"),                     NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_AUTO,        NULL},
    {N_("/Open in New _Window"),       NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_NEW_WIN,     NULL},
    {N_("/Open in S_hared Window"),    NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_SHARED_WIN,  NULL},
+   {N_("/Open the _Folder"),          NULL,  cb_open_folder,   0,           NULL},
    {N_("/Open in E_xternal Program"), NULL,  NULL,             0,           "<Branch>"},
    {N_("/_Scripts"),                  NULL,  NULL,             0,           "<Branch>"},
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
@@ -449,6 +454,66 @@ cb_open_image (GimvThumbView *tv, GimvThumbViewOpenImageType action,
    }
 
    g_list_free (thumblist);
+}
+
+
+/* the thumbnail the user means: the focused one if it is selected, or
+   the first selected */
+static GimvThumb *
+chosen_thumb (GimvThumbView *tv)
+{
+   GimvThumb *focus = gimv_thumb_view_get_focus (tv), *thumb = NULL;
+   GList *list = gimv_thumb_view_get_selection_list (tv);
+
+   if (focus && g_list_find (list, focus))
+      thumb = focus;
+   else if (list)
+      thumb = list->data;
+   g_list_free (list);
+   return thumb;
+}
+
+
+/* a collection: open the folder of the image in a tab, the image
+   selected there */
+static void
+cb_open_folder (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   GimvThumb *thumb;
+   GimvThumbView *dir_tv;
+   gchar *path, *dir, *dir_slash;
+   GList *node;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   if (files_loader_query_loading ()) return;
+
+   thumb = chosen_thumb (tv);
+   if (!GIMV_IS_THUMB (thumb) || !thumb->info
+       || gimv_image_info_is_in_archive (thumb->info))
+      return;
+
+   path = g_strdup (gimv_image_info_get_path (thumb->info));
+   dir = g_path_get_dirname (path);
+   dir_slash = g_str_has_suffix (dir, "/") ? g_strdup (dir) : g_strconcat (dir, "/", NULL);
+
+   open_dir_images (dir, tv->tw, NULL, LOAD_CACHE, SCAN_SUB_DIR_NONE);
+
+   /* the tab is made (or was already there): select the image */
+   dir_tv = gimv_thumb_view_find_opened_dir (dir_slash);
+   if (dir_tv) {
+      for (node = dir_tv->thumblist; node; node = g_list_next (node)) {
+         GimvThumb *t = node->data;
+         if (t && t->info && !g_strcmp0 (gimv_image_info_get_path (t->info), path)) {
+            gimv_thumb_view_set_selection_all (dir_tv, FALSE);
+            gimv_thumb_view_set_selection (t, TRUE);
+            gimv_thumb_view_set_focus (dir_tv, t);
+            break;
+         }
+      }
+   }
+   g_free (dir_slash);
+   g_free (dir);
+   g_free (path);
 }
 
 
@@ -2544,6 +2609,16 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
       gimv_menu_item_set_sensitive (menuitem, FALSE);
    }
 
+   /* the folder of an image of a collection (the index, ...) */
+   menuitem = gimv_menu_get_item (ifactory, "/Open the Folder");
+   if (tv->mode != GIMV_THUMB_VIEW_MODE_COLLECTION
+       || gimv_image_info_is_in_archive (thumb->info))
+   {
+      gimv_menu_item_set_visible (menuitem, FALSE);
+   } else if (files_loader_query_loading ()) {
+      gimv_menu_item_set_sensitive (menuitem, FALSE);
+   }
+
    menuitem = gimv_menu_get_item (ifactory, "/Open in External Program");
    if (/* thumbnail_is_dir (thumb) || thumbnail_is_archive (thumb) */
       gimv_image_info_is_in_archive (thumb->info))
@@ -3729,6 +3804,32 @@ gimv_thumb_view_set_focus (GimvThumbView *tv, GimvThumb *thumb)
 
    if (tv->vfuncs->set_focus)
       tv->vfuncs->set_focus (tv, thumb);
+}
+
+
+static gboolean
+idle_focus_changed (gpointer data)
+{
+   GimvThumbView *tv = data;
+
+   if (GIMV_IS_THUMB_VIEW (tv) && tv->tw && tv->priv) {
+      tv->priv->focus_idle = 0;
+      if (tv == gimv_thumb_win_find_thumbtable (tv->tw, GIMV_THUMB_WIN_CURRENT_PAGE))
+         gimv_thumb_win_show_file_path (tv->tw, tv);
+   }
+   g_object_unref (tv);
+   return G_SOURCE_REMOVE;
+}
+
+
+/* the view tells that the focused (or selected) thumbnail changed; the
+   status bar follows a little later, once for many changes at a time */
+void
+gimv_thumb_view_focus_changed (GimvThumbView *tv)
+{
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   if (!tv->priv || tv->priv->focus_idle) return;
+   tv->priv->focus_idle = g_idle_add (idle_focus_changed, g_object_ref (tv));
 }
 
 

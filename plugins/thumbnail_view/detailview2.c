@@ -40,6 +40,7 @@
 #include "gimv_image.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_win.h"
+#include "prefs.h"
 
 
 enum {
@@ -1089,6 +1090,40 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
 }
 
 
+static gboolean
+cb_treeview_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
+                           GtkTooltip *tooltip, GimvThumbView *tv)
+{
+   GtkTreeModel *model;
+   GtkTreePath *path = NULL;
+   GtkTreeIter iter;
+   GimvThumb *thumb = NULL;
+   const gchar *file;
+   gchar *text;
+
+   if (!GIMV_IS_THUMB_VIEW (tv) || !g_object_get_data (G_OBJECT (tv), "gimv-name-only"))
+      return FALSE;
+   if (!gtk_tree_view_get_tooltip_context (GTK_TREE_VIEW (widget), x, y, keyboard,
+                                           &model, &path, &iter))
+      return FALSE;
+   gtk_tree_model_get (model, &iter, COLUMN_THUMB_DATA, &thumb, COLUMN_TERMINATOR);
+   if (!GIMV_IS_THUMB (thumb) || !thumb->info
+       || !(file = gimv_image_info_get_path (thumb->info)))
+   {
+      gtk_tree_path_free (path);
+      return FALSE;
+   }
+   text = charset_to_internal (file, conf.charset_filename,
+                               conf.charset_auto_detect_fn,
+                               conf.charset_filename_mode);
+   gtk_tooltip_set_text (tooltip, text);
+   gtk_tree_view_set_tooltip_row (GTK_TREE_VIEW (widget), tooltip, path);
+   g_free (text);
+   gtk_tree_path_free (path);
+   return TRUE;
+}
+
+
 GtkWidget *
 detailview_create (GimvThumbView *tv, const gchar *dest_mode)
 {
@@ -1153,6 +1188,15 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    }
 
    gtk_widget_show (tv_data->treeview);
+
+   /* the status bar shows the path of the focused file of a collection */
+   g_signal_connect_swapped (tv_data->treeview, "cursor-changed",
+                             G_CALLBACK (gimv_thumb_view_focus_changed), tv);
+   /* the files of a collection from the index show the name only: the full
+      path as the tooltip */
+   gtk_widget_set_has_tooltip (tv_data->treeview, TRUE);
+   g_signal_connect (tv_data->treeview, "query-tooltip",
+                     G_CALLBACK (cb_treeview_query_tooltip), tv);
 
    gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_treeview_key_press), tv);
    gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_treeview_button_press), tv);
