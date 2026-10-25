@@ -433,8 +433,8 @@ prefs_imagewin_image_page (void)
    gimv_container_add (GTK_WIDGET (alignment), option_menu);
    gimv_table_attach (GTK_WIDGET (table), alignment, 1, 2, 1, 2, GIMV_EXPAND | GIMV_FILL, GIMV_FILL, 5, 1);
 
-   /* remember the rotation of each image (in its comment file) */
-   toggle = gtkutil_create_check_button (_("Remember the rotation of each image (saved with its comment)"),
+   /* remember the rotation and the flip of each image (in its comment file) */
+   toggle = gtkutil_create_check_button (_("Remember the rotation and flip of each image (saved with its comment)"),
                                          conf.imgview_remember_rotation,
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->imgview_remember_rotation);

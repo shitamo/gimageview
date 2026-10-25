@@ -312,6 +312,23 @@ gimv_image_rotate_180 (GimvImage *image)
 }
 
 
+/* left and right turned over (the angle stays) */
+GimvImage *
+gimv_image_flip_horizontal (GimvImage *image)
+{
+   GimvRawImage *src_rawimage;
+
+   g_return_val_if_fail (image, NULL);
+   g_return_val_if_fail (image->image, NULL);
+
+   src_rawimage = (GimvRawImage *) image->image;
+   image->image = pixbuf_copy_mirror (src_rawimage, TRUE, FALSE);
+   g_object_unref (src_rawimage);
+
+   return image;
+}
+
+
 GimvImage *
 gimv_image_rotate (GimvImage *image, GimvImageAngle abs_angle)
 {

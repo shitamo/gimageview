@@ -108,6 +108,7 @@ GimvImage   *gimv_image_create_from_texture  (GdkTexture   *texture,
 GimvImage   *gimv_image_rotate_90            (GimvImage    *src_image,
                                               gboolean      counter_clockwise);
 GimvImage   *gimv_image_rotate_180           (GimvImage    *src_image);
+GimvImage   *gimv_image_flip_horizontal      (GimvImage    *src_image);
 GimvImage   *gimv_image_rotate               (GimvImage    *src_image,
                                               GimvImageAngle abs_angle);
 void         gimv_image_get_pixmap_and_mask  (GimvImage    *image,

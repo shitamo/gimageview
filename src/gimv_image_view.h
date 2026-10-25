@@ -283,6 +283,7 @@ gboolean   gimv_image_view_get_image_size         (GimvImageView  *iv,
 /* rotatable interface */
 void       gimv_image_view_rotate_image           (GimvImageView  *iv,
                                                    GimvImageViewOrientation angle);
+void        gimv_image_view_flip_horizontal (GimvImageView *iv);
 void       gimv_image_view_rotate_ccw             (GimvImageView  *iv);
 void       gimv_image_view_rotate_cw              (GimvImageView  *iv);
 GimvImageViewOrientation

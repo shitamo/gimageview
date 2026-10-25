@@ -125,6 +125,8 @@ struct GimvImageViewPrivate_Tag
    gfloat           x_scale;
    gfloat           y_scale;
    GimvImageViewOrientation rotate;
+   gboolean                 flip;     /* turned over left and right, before
+                                         the rotation */
 
    gint             default_zoom;      /* should be defined as enum */
    gint             default_rotation;  /* should be defined as enum */
@@ -202,6 +204,9 @@ static void cb_keep_aspect                 (GimvImageView   *iv,
 static void cb_zoom                        (GimvImageView   *iv,
                                             GimvImageViewZoomType zoom,
                                             GimvMenuItem       *widget);
+static void cb_flip                        (GimvImageView   *iv,
+                                            guint            action,
+                                            GimvMenuItem    *widget);
 static void cb_rotate                      (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem       *widget);
@@ -364,6 +369,8 @@ GimvMenuEntry gimv_image_view_rotate_items [] =
    {N_("/Rotate 90 Degrees Clockwise"),  "R",   cb_rotate,  GIMV_IMAGE_VIEW_ROTATE_270,  NULL},
    {N_("/Rotate 90 Degrees Counterclockwise"), "E",   cb_rotate,  GIMV_IMAGE_VIEW_ROTATE_90,   NULL},
    {N_("/Rotate 180 Degrees"),    "D",   cb_rotate,  GIMV_IMAGE_VIEW_ROTATE_180,  NULL},
+   {N_("/---"),                   NULL,  NULL,       0,           "<Separator>"},
+   {N_("/Flip Horizontally"),     "X",   cb_flip,    0,           NULL},
    {NULL, NULL, NULL, 0, NULL},
 };
 
@@ -1075,6 +1082,13 @@ cb_rotate (GimvImageView *iv, guint rotate, GimvMenuItem *widget)
    angle = (iv->priv->rotate + rotate) % 4;
 
    gimv_image_view_rotate_image (iv, angle);
+}
+
+
+static void
+cb_flip (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   gimv_image_view_flip_horizontal (iv);
 }
 
 
@@ -2120,8 +2134,10 @@ gimv_image_view_adjust_pos_in_frame (GimvImageView *iv, gboolean center)
 }
 
 #ifdef ENABLE_EXIF
+/* flip: set when the image is to be turned over left and right first
+   (EXIF Orientation 2, 4, 5, 7) */
 static int
-get_exif_rotation (GimvImageInfo *info)
+get_exif_rotation (GimvImageInfo *info, gboolean *flip)
 {
    ExifData *edata;
    ExifEntry *entry;
@@ -2146,7 +2162,12 @@ get_exif_rotation (GimvImageInfo *info)
       case 8:            /* rotate 90 degrees counterclockwise */
          rotate = 1;
          break;
-      default:           /* 1: as is; 2, 4, 5, 7: mirrored (not supported) */
+      /* mirrored: turned over left and right, then rotated */
+      case 2:  *flip = TRUE; rotate = 0; break;
+      case 4:  *flip = TRUE; rotate = 2; break;   /* upside down */
+      case 5:  *flip = TRUE; rotate = 1; break;   /* + 90 degrees counterclockwise */
+      case 7:  *flip = TRUE; rotate = 3; break;   /* + 90 degrees clockwise */
+      default:           /* 1: as is */
          rotate = 0;
          break;
       }
@@ -2250,13 +2271,14 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
    }
 
    /* ditto for rotation */
+   iv->priv->flip = FALSE;
 
    switch (iv->priv->default_rotation) {
    case 4:
       break;
    case 5:
 #ifdef ENABLE_EXIF
-      iv->priv->rotate = get_exif_rotation (info);
+      iv->priv->rotate = get_exif_rotation (info, &iv->priv->flip);
 #else
       iv->priv->rotate = 0;
 #endif
@@ -2266,13 +2288,19 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
       break;
    }
 
-   /* the rotation the user gave this image last time (comment file) */
+   /* the rotation and the flip the user gave this image last time
+      (comment file) */
    if (conf.imgview_remember_rotation && info
        && !gimv_image_info_is_movie (info) && !gimv_image_info_is_audio (info))
    {
       gint orientation;
-      if (gimv_comment_get_rotation (info, &orientation))
+      if (gimv_comment_get_rotation (info, &orientation)) {
          iv->priv->rotate = orientation;
+         iv->priv->flip = gimv_comment_get_flip (info);
+      } else if (gimv_comment_get_flip (info)) {
+         iv->priv->rotate = 0;
+         iv->priv->flip = TRUE;
+      }
    }
 
    /* suggestion from sheepman <sheepman@tcn.zaq.ne.jp> */
@@ -3597,6 +3625,9 @@ cb_loader_load_end (GimvImageLoader *loader, GimvImageView *iv)
       gimv_thumb_view_update_info (iv->info);
    }
 
+   /* shown: the rotation of the flipped image */
+   if (iv->priv->flip && iv->image)
+      iv->image = gimv_image_flip_horizontal (iv->image);
    gimv_image_view_rotate_render (iv, iv->priv->rotate);
 
 ERROR:
@@ -3991,6 +4022,7 @@ gimv_image_view_rotate_render (GimvImageView *iv,
 
 typedef struct RotateData_Tag {
    GimvImageViewOrientation angle;
+   gboolean                 flip;    /* turn over what is shown */
 } RotateData;
 
 
@@ -4012,13 +4044,21 @@ cb_gimv_image_view_rotate_load_end (GimvImageView *iv, GimvImageInfo *info,
    can_draw = check_can_draw_image (iv);
    if (!can_draw) goto func_end;
 
-   /* rotate image */
-   rotate_angle = (angle - iv->priv->rotate) % 4;
-   if (rotate_angle < 0)
-      rotate_angle = rotate_angle + 4;
+   if (data->flip) {
+      /* what is shown turned over: the flip of the image changes and the
+       * rotation goes the other way (H R = R^-1 H), given as angle */
+      iv->image = gimv_image_flip_horizontal (iv->image);
+      iv->priv->flip = !iv->priv->flip;
+      iv->priv->rotate = angle;
+   } else {
+      /* rotate image */
+      rotate_angle = (angle - iv->priv->rotate) % 4;
+      if (rotate_angle < 0)
+         rotate_angle = rotate_angle + 4;
 
-   iv->priv->rotate = angle;
-   gimv_image_view_rotate_render (iv, rotate_angle);
+      iv->priv->rotate = angle;
+      gimv_image_view_rotate_render (iv, rotate_angle);
+   }
 
    /* set image size */
    gimv_image_view_calc_image_size (iv);
@@ -4085,6 +4125,48 @@ gimv_image_view_rotate_image (GimvImageView *iv, GimvImageViewOrientation angle)
                                   data, (GClosureNotify) g_free,
                                   0);
 
+      gimv_image_view_load_image_buf (iv);
+   } else {
+      cb_gimv_image_view_rotate_load_end (iv, iv->info, FALSE, data);
+      g_free (data);
+   }
+}
+
+
+/* turn the image shown over left and right (remembered with the
+   rotation) */
+void
+gimv_image_view_flip_horizontal (GimvImageView *iv)
+{
+   RotateData *data;
+   gint angle;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   if (!iv->info || !iv->priv) return;
+   if (gimv_image_info_is_movie (iv->info) || gimv_image_info_is_audio (iv->info))
+      return;
+
+   /* 90 degrees one way becomes 90 degrees the other way */
+   angle = (4 - iv->priv->rotate) % 4;
+
+   if (conf.imgview_remember_rotation) {
+      gimv_comment_set_flip (iv->info, !iv->priv->flip);
+      gimv_comment_set_rotation (iv->info, angle);
+   }
+
+   if (iv->priv->load_end_signal_id)
+      g_signal_handler_disconnect (G_OBJECT (iv), iv->priv->load_end_signal_id);
+
+   data = g_new0 (RotateData, 1);
+   data->angle = angle;
+   data->flip  = TRUE;
+
+   if (gimv_image_view_need_load (iv)) {
+      iv->priv->load_end_signal_id
+         = g_signal_connect_data (G_OBJECT (iv), "load_end",
+                                  G_CALLBACK (cb_gimv_image_view_rotate_load_end),
+                                  data, (GClosureNotify) g_free,
+                                  0);
       gimv_image_view_load_image_buf (iv);
    } else {
       cb_gimv_image_view_rotate_load_end (iv, iv->info, FALSE, data);

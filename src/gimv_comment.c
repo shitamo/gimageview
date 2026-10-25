@@ -998,6 +998,41 @@ gimv_comment_set_rotation (GimvImageInfo *info, gint orientation)
 }
 
 
+gboolean
+gimv_comment_get_flip (GimvImageInfo *info)
+{
+   GimvComment *comment;
+   GimvCommentDataEntry *entry;
+   gchar *path, *file;
+   gboolean flip = FALSE;
+
+   g_return_val_if_fail (info, FALSE);
+
+   /* most images have no comment file: don't build comment objects */
+   path = gimv_image_info_get_path_with_archive (info);
+   file = path ? gimv_comment_find_file (path) : NULL;
+   g_free (path);
+   if (!file) return FALSE;
+   g_free (file);
+
+   comment = gimv_comment_get_from_image_info (info);
+   if (!comment) return FALSE;
+   entry = gimv_comment_find_data_entry_by_key (comment, GIMV_COMMENT_FLIP_KEY);
+   flip = entry && entry->value && !strcmp (entry->value, "horizontal");
+   gimv_comment_unref (comment);
+
+   return flip;
+}
+
+
+void
+gimv_comment_set_flip (GimvImageInfo *info, gboolean flip)
+{
+   g_return_if_fail (info);
+   gimv_comment_set_value (info, GIMV_COMMENT_FLIP_KEY, flip ? "horizontal" : NULL);
+}
+
+
 void
 gimv_comment_delete_file (GimvComment *comment)
 {

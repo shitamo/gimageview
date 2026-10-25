@@ -4314,8 +4314,8 @@ msgstr "動画・音声の再生中は、マウスでの次/前の画像・拡�
 msgid "Cannot extract the file from the archive."
 msgstr "アーカイブからファイルを展開できません。"
 
-msgid "Remember the rotation of each image (saved with its comment)"
-msgstr "画像ごとに回転した向きを覚える (コメントと一緒に保存)"
+msgid "Remember the rotation and flip of each image (saved with its comment)"
+msgstr "画像ごとに回転・左右反転を覚える (コメントと一緒に保存)"
 
 msgid "Read the image size of at most"
 msgstr "画像サイズを読むのは最大"
@@ -5357,3 +5357,7 @@ msgstr "形 (縦長・横長・正方形)"
 
 msgid "Turning the camera or the shape on reads every image again, which takes long with many images."
 msgstr "カメラや形をオンにすると全部の画像を読み直すので、画像が多いと時間がかかります。"
+
+#: src/gimv_image_view.c
+msgid "/Flip Horizontally"
+msgstr "/左右反転"

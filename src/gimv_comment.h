@@ -123,6 +123,12 @@ gboolean      gimv_comment_get_rotation             (GimvImageInfo *info,
                                                      gint          *orientation);
 void          gimv_comment_set_rotation             (GimvImageInfo *info,
                                                      gint           orientation);
+/* the image shown turned over left and right (hidden key, "horizontal"),
+   applied before the rotation */
+#define GIMV_COMMENT_FLIP_KEY "X-GImageView-Flip"
+gboolean      gimv_comment_get_flip                 (GimvImageInfo *info);
+void          gimv_comment_set_flip                 (GimvImageInfo *info,
+                                                     gboolean       flip);
 void          gimv_comment_delete_file              (GimvComment *comment);
 /* set one key (value NULL or "": remove it) and save the comment file, or
    delete the file when nothing is left in it */
