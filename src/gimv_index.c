@@ -72,7 +72,7 @@ update_status (void)
       break;
    case GIMV_INDEX_STATE_SCANNING:
       if (ix.stage == 2)
-         ix.status = g_strdup_printf (_("Index: reading dates %'u/%'u"),
+         ix.status = g_strdup_printf (_("Index: reading image details %'u/%'u"),
                                       ix.done, ix.todo);
       else if (ix.stage == 3)
          ix.status = g_strdup_printf (_("Index: reading tags %'u"), ix.done);
@@ -134,12 +134,13 @@ notify_watches (GimvIndexChange what)
 
 
 /* which views a stage changes: stage 1 adds and removes files (and so
- * their tags), stage 2 dates, stage 3 tags */
+ * their tags), stage 2 dates and the tags of the rules, stage 3 tags */
 static GimvIndexChange
 stage_changes (gint stage)
 {
    switch (stage) {
    case 1:  return GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS;
+   case 2:  return GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS;  /* rules */
    case 3:  return GIMV_INDEX_CHANGED_TAGS;
    default: return GIMV_INDEX_CHANGED_DATES;
    }

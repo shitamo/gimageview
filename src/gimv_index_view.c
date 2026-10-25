@@ -42,12 +42,16 @@ typedef enum {
    KIND_MONTH,
    KIND_DAY,
    KIND_TAG,
+   KIND_GROUP,     /* the tags of a rule: "Folders", "Cameras", "Shape" */
 } RowKind;
 
 enum {
    COL_LABEL,
    COL_KIND,
-   COL_KEY,        /* "2019", "2019-05", "2019-05-03", or the tag name */
+   COL_KEY,        /* "2019", "2019-05", "2019-05-03", or the tag name;
+                    * a tag put by a rule starts with "," (a tag never
+                    * has a comma), a group of them is ",folder/" */
+   COL_COLOR,      /* the tags put by rules have a color of their own */
    N_COLS
 };
 
@@ -57,9 +61,63 @@ typedef struct {
 } DayCount;
 
 typedef struct {
-   gchar *name;
-   gint   count;
+   gchar   *name;
+   gint     count;
+   gboolean auto_tag;   /* put by a rule (file_tags.auto) */
 } TagCount;
+
+#define AUTO_KEY_MARK  ','
+#define AUTO_TAG_COLOR "#3584e4"
+
+/* the kinds of the tags put by rules (gimv_indexer.c) */
+static const struct {
+   const gchar *prefix;
+   const gchar *group;     /* the group row */
+   const gchar *title;     /* the result tab: "%s" is the rest */
+} auto_kinds[] = {
+   { "folder/", N_("Folders"), N_("Folder: %s") },
+   { "camera/", N_("Cameras"), N_("Camera: %s") },
+   { "shape/",  N_("Shape"),   N_("Shape: %s") },
+};
+
+
+/* "shape/portrait" -> "Portrait", "folder/2019 Kyoto" -> "2019 Kyoto" */
+static const gchar *
+auto_tag_value (const gchar *name, gint *kind_ret)
+{
+   guint i;
+
+   for (i = 0; i < G_N_ELEMENTS (auto_kinds); i++) {
+      if (g_str_has_prefix (name, auto_kinds[i].prefix)) {
+         const gchar *v = name + strlen (auto_kinds[i].prefix);
+         if (kind_ret) *kind_ret = i;
+         if (!strcmp (auto_kinds[i].prefix, "shape/")) {
+            if (!strcmp (v, "portrait"))  return _("Portrait");
+            if (!strcmp (v, "landscape")) return _("Landscape");
+            if (!strcmp (v, "square"))    return _("Square shape");
+         }
+         return v;
+      }
+   }
+   if (kind_ret) *kind_ret = -1;
+   return name;
+}
+
+
+/* the title of a result tab of the tag (or the key of a tag row) */
+static gchar *
+tag_title (const gchar *key)
+{
+   gint kind;
+   const gchar *v;
+
+   if (key[0] != AUTO_KEY_MARK)
+      return g_strdup_printf (_("%s (Tag)"), key);
+   v = auto_tag_value (key + 1, &kind);
+   if (kind < 0)
+      return g_strdup_printf (_("%s (Tag)"), key + 1);
+   return g_strdup_printf (_(auto_kinds[kind].title), v);
+}
 
 typedef struct {
    GimvIndexTabType type;
@@ -149,17 +207,18 @@ thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *ca
    sqlite3_stmt *st;
    GPtrArray *tags = g_ptr_array_new_with_free_func ((GDestroyNotify) tag_count_free);
 
-   /* a file counts once even with the same tag put by a person and by a
-    * rule */
+   /* the tags put by a person and those put by rules apart (the same
+    * name can be both; it is not usual: the rules make "folder/...") */
    if (db && sqlite3_prepare_v2 (db,
-          "SELECT t.name, count(DISTINCT ft.file_id) FROM file_tags ft "
-          "JOIN tags t ON t.id = ft.tag_id GROUP BY t.id ORDER BY t.name",
+          "SELECT t.name, ft.auto, count(*) FROM file_tags ft "
+          "JOIN tags t ON t.id = ft.tag_id GROUP BY t.id, ft.auto ORDER BY t.name",
           -1, &st, NULL) == SQLITE_OK)
    {
       while (sqlite3_step (st) == SQLITE_ROW) {
          TagCount *tc = g_new0 (TagCount, 1);
-         tc->name  = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
-         tc->count = sqlite3_column_int (st, 1);
+         tc->name     = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
+         tc->auto_tag = sqlite3_column_int (st, 1) != 0;
+         tc->count    = sqlite3_column_int (st, 2);
          g_ptr_array_add (tags, tc);
       }
       sqlite3_finalize (st);
@@ -202,9 +261,10 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
    /* size and mtime too: the tab is filled without looking at every file
     * on the disk (tens of thousands of them on a HDD) */
    if (req->type == GIMV_INDEX_TAB_TAG)
-      sql = "SELECT DISTINCT d.path, f.name, f.size, f.mtime, f.date FROM file_tags ft "
+      sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM file_tags ft "
             "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
-            "JOIN dirs d ON d.id = f.dir_id WHERE t.name = ?1 ORDER BY f.date, f.name";
+            "JOIN dirs d ON d.id = f.dir_id WHERE t.name = ?1 AND ft.auto = ?2 "
+            "ORDER BY f.date, f.name";
    else
       sql = "SELECT d.path, f.name, f.size, f.mtime FROM files f JOIN dirs d ON d.id = f.dir_id "
             "WHERE f.date >= ?1 AND f.date < ?1 || '~' ORDER BY f.date, f.name";
@@ -212,7 +272,13 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
    fl->stats = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
    if (db && sqlite3_prepare_v2 (db, sql, -1, &st, NULL) == SQLITE_OK)
    {
-      sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
+      if (req->type == GIMV_INDEX_TAB_TAG) {
+         gboolean is_auto = key[0] == AUTO_KEY_MARK;
+         sqlite3_bind_text (st, 1, is_auto ? key + 1 : key, -1, SQLITE_TRANSIENT);
+         sqlite3_bind_int  (st, 2, is_auto);
+      } else {
+         sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
+      }
       while (sqlite3_step (st) == SQLITE_ROW) {
          const gchar *dir  = (const gchar *) sqlite3_column_text (st, 0);
          const gchar *name = (const gchar *) sqlite3_column_text (st, 1);
@@ -345,8 +411,10 @@ find_key (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
          *found = iter;
          return TRUE;
       }
-      /* dates: "2019-05" is below "2019" */
-      if (k && g_str_has_prefix (key, k) && key[strlen (k)] == '-') {
+      /* dates: "2019-05" is below "2019"; tags: ",folder/x" below ",folder/" */
+      if (k && g_str_has_prefix (key, k)
+          && (key[strlen (k)] == '-' || (k[0] == AUTO_KEY_MARK && g_str_has_suffix (k, "/"))))
+      {
          gboolean exact = !strcmp (k, key);
          g_free (k);
          if (exact) {
@@ -361,20 +429,56 @@ find_key (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
 }
 
 
+/* the tags put by a person at the top, then a group for each rule */
 static void
 build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
 {
-   guint i;
+   GtkTreeIter groups[G_N_ELEMENTS (auto_kinds)];
+   gboolean has_group[G_N_ELEMENTS (auto_kinds)] = { FALSE };
+   guint i, k;
 
    for (i = 0; i < tags->len; i++) {
       TagCount *tc = g_ptr_array_index (tags, i);
       GtkTreeIter iter;
-      gchar *label = g_strdup_printf ("%s (%'d)", tc->name, tc->count);
+      gchar *label;
 
+      if (tc->auto_tag) continue;
+      label = g_strdup_printf ("%s (%'d)", tc->name, tc->count);
       gtk_tree_store_append (iv->store, &iter, root);
       gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
                           COL_KEY, tc->name, -1);
       g_free (label);
+   }
+
+   for (k = 0; k < G_N_ELEMENTS (auto_kinds); k++) {
+      for (i = 0; i < tags->len; i++) {
+         TagCount *tc = g_ptr_array_index (tags, i);
+         GtkTreeIter iter;
+         gchar *label, *key;
+         gint kind;
+         const gchar *v;
+
+         if (!tc->auto_tag) continue;
+         v = auto_tag_value (tc->name, &kind);
+         if (kind != (gint) k) continue;
+
+         if (!has_group[k]) {
+            gchar *gkey = g_strdup_printf ("%c%s", AUTO_KEY_MARK, auto_kinds[k].prefix);
+            gtk_tree_store_append (iv->store, &groups[k], root);
+            gtk_tree_store_set (iv->store, &groups[k], COL_LABEL, _(auto_kinds[k].group),
+                                COL_KIND, KIND_GROUP, COL_KEY, gkey,
+                                COL_COLOR, AUTO_TAG_COLOR, -1);
+            g_free (gkey);
+            has_group[k] = TRUE;
+         }
+         label = g_strdup_printf ("%s (%'d)", v, tc->count);
+         key = g_strdup_printf ("%c%s", AUTO_KEY_MARK, tc->name);
+         gtk_tree_store_append (iv->store, &iter, &groups[k]);
+         gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
+                             COL_KEY, key, COL_COLOR, AUTO_TAG_COLOR, -1);
+         g_free (key);
+         g_free (label);
+      }
    }
 }
 
@@ -561,9 +665,8 @@ open_files (IndexView *iv, OpenRequest *req, FileList *fl)
       iv->shown_key = g_strdup (req->key);
    }
 
-   title = g_strdup_printf (req->type == GIMV_INDEX_TAB_TAG ? _("%s (Tag)")
-                                                            : _("%s (Date)"),
-                            req->key);
+   title = req->type == GIMV_INDEX_TAB_TAG ? tag_title (req->key)
+                                           : g_strdup_printf (_("%s (Date)"), req->key);
    gimv_thumb_view_reset_tab_label (tv, title);
    g_free (title);
 
@@ -792,7 +895,8 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
 
    iv->type = type;
    iv->tw = tw;
-   iv->store = gtk_tree_store_new (N_COLS, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING);
+   iv->store = gtk_tree_store_new (N_COLS, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING,
+                                   G_TYPE_STRING);
 
    gtk_tree_store_append (iv->store, &root, NULL);
    gtk_tree_store_set (iv->store, &root,
@@ -807,6 +911,7 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    render = gtk_cell_renderer_text_new ();
    gtk_tree_view_column_pack_start (col, render, TRUE);
    gtk_tree_view_column_add_attribute (col, render, "text", COL_LABEL);
+   gtk_tree_view_column_add_attribute (col, render, "foreground", COL_COLOR);
    gtk_tree_view_append_column (GTK_TREE_VIEW (iv->tree), col);
    /* Enter (and a double click) */
    g_signal_connect (iv->tree, "row-activated", G_CALLBACK (cb_row_activated), iv);

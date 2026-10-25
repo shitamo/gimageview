@@ -4390,8 +4390,8 @@ msgstr "/タブ (日付)(_D)"
 
 #: src/gimv_index.c
 #, c-format
-msgid "Index: reading dates %'u/%'u"
-msgstr "索引: 日付を読み込み中 %'u/%'u"
+msgid "Index: reading image details %'u/%'u"
+msgstr "索引: 画像の情報を読み込み中 %'u/%'u"
 
 #: src/gimv_prefs_win.c
 msgid "/Index"
@@ -5307,3 +5307,34 @@ msgstr "/元のフォルダを開く(_F)"
 #: src/prefs_ui/prefs_ui_thumbwin.c
 msgid "Open the folder (collections)"
 msgstr "元のフォルダを開く (コレクション)"
+
+#: src/gimv_index_view.c
+msgid "Folders"
+msgstr "フォルダ"
+
+msgid "Cameras"
+msgstr "カメラ"
+
+msgid "Shape"
+msgstr "形"
+
+#, c-format
+msgid "Folder: %s"
+msgstr "フォルダ: %s"
+
+#, c-format
+msgid "Camera: %s"
+msgstr "カメラ: %s"
+
+#, c-format
+msgid "Shape: %s"
+msgstr "形: %s"
+
+msgid "Portrait"
+msgstr "縦長"
+
+msgid "Landscape"
+msgstr "横長"
+
+msgid "Square shape"
+msgstr "正方形"

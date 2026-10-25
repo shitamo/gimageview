@@ -13,8 +13,9 @@
  * Stage 1 records the files (date from mtime), stage 3 reads the tags from
  * the gimv comment files (~/.gimv/comment/<image path>.txt, the line
  * "X-IMG-Tags: a, b"), stage 2 reads the date each image was taken: EXIF
- * DateTimeOriginal, or else a date in the file name.  Stage 3 runs before
- * stage 2, which may take hours the first time.
+ * DateTimeOriginal, or else a date in the file name, and puts the tags of
+ * the rules (folder name, camera, portrait or landscape; see AUTO_RULE).
+ * Stage 3 runs before stage 2, which may take hours the first time.
  *
  * Messages on stdout:
  *   hello <version>
@@ -81,7 +82,9 @@
 
 #ifdef ENABLE_EXIF
 #  include <libexif/exif-data.h>
+#  include <libexif/exif-utils.h>
 #endif
+#include <gdk-pixbuf/gdk-pixbuf.h>
 
 #include "gimv_index_db.h"
 
@@ -945,41 +948,96 @@ valid_date (gint y, gint mo, gint d, gint h, gint mi, gint sec)
 }
 
 
+/* what stage 2 reads from an image */
+typedef struct {
+   gchar *date;       /* "YYYY-MM-DD HH:MM:SS" (EXIF), or NULL */
+   gchar *camera;     /* "Canon EOS 5D", or NULL */
+   gint   orient;     /* EXIF Orientation, 0 when there is none */
+} ImageInfo;
+
+
+static void
+image_info_clear (ImageInfo *ii)
+{
+   g_free (ii->date);
+   g_free (ii->camera);
+   memset (ii, 0, sizeof (*ii));
+}
+
+
 #ifdef ENABLE_EXIF
 static gchar *
-exif_date (const gchar *path)
+exif_string (ExifData *ed, ExifTag tag)
+{
+   ExifEntry *e = exif_data_get_entry (ed, tag);
+   gchar buf[128];
+
+   if (!e) return NULL;
+   exif_entry_get_value (e, buf, sizeof (buf));
+   g_strstrip (buf);
+   return *buf ? g_strdup (buf) : NULL;
+}
+
+
+/* "Canon" + "Canon EOS 5D" -> "Canon EOS 5D", "Apple" + "iPhone 12" ->
+ * "Apple iPhone 12", "NIKON CORPORATION" + "NIKON D90" -> "NIKON D90" */
+static gchar *
+camera_name (gchar *make, gchar *model)
+{
+   gchar *ret, *first;
+
+   if (!model) return make;
+   if (!make) return model;
+   first = g_strndup (make, strcspn (make, " "));
+   if (g_ascii_strncasecmp (model, first, strlen (first)) == 0)
+      ret = g_strdup (model);
+   else
+      ret = g_strconcat (make, " ", model, NULL);
+   g_free (first);
+   g_free (make);
+   g_free (model);
+   return ret;
+}
+
+
+static void
+exif_read (const gchar *path, ImageInfo *ii)
 {
    static const ExifTag tags[] = {
       EXIF_TAG_DATE_TIME_ORIGINAL, EXIF_TAG_DATE_TIME_DIGITIZED, EXIF_TAG_DATE_TIME,
    };
    ExifData *ed;
-   gchar *ret = NULL;
+   ExifEntry *e;
    guint i;
 
    /* libexif reads JPEG (and EXIF files); it stops after the EXIF block */
    ed = exif_data_new_from_file (path);
-   if (!ed) return NULL;
+   if (!ed) return;
 
-   for (i = 0; i < G_N_ELEMENTS (tags) && !ret; i++) {
-      ExifEntry *e = exif_data_get_entry (ed, tags[i]);
-      gchar buf[64];
+   for (i = 0; i < G_N_ELEMENTS (tags) && !ii->date; i++) {
+      gchar *v = exif_string (ed, tags[i]);
       gint y, mo, d, h, mi, sec;
 
-      if (!e) continue;
-      exif_entry_get_value (e, buf, sizeof (buf));
       /* "YYYY:MM:DD HH:MM:SS" */
-      if (sscanf (buf, "%d:%d:%d %d:%d:%d", &y, &mo, &d, &h, &mi, &sec) == 6
+      if (v && sscanf (v, "%d:%d:%d %d:%d:%d", &y, &mo, &d, &h, &mi, &sec) == 6
           && valid_date (y, mo, d, h, mi, sec))
       {
-         ret = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d", y, mo, d, h, mi, sec);
-         if (!date_in_range (ret)) {
-            g_free (ret);
-            ret = NULL;
+         ii->date = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d", y, mo, d, h, mi, sec);
+         if (!date_in_range (ii->date)) {
+            g_free (ii->date);
+            ii->date = NULL;
          }
       }
+      g_free (v);
    }
+
+   ii->camera = camera_name (exif_string (ed, EXIF_TAG_MAKE), exif_string (ed, EXIF_TAG_MODEL));
+
+   e = exif_data_get_entry (ed, EXIF_TAG_ORIENTATION);
+   if (e && e->format == EXIF_FORMAT_SHORT && e->components >= 1)
+      ii->orient = exif_get_short (e->data, exif_data_get_byte_order (ed));
+
    exif_data_unref (ed);
-   return ret;
 }
 #endif
 
@@ -1022,11 +1080,149 @@ filename_date (const gchar *name)
 }
 
 
+/******************************************************************************
+ *  tags put by rules (auto = 1 in file_tags)
+ *
+ *  folder/<name>   the folder of the image (not a root, not a folder named
+ *                  only by numbers or a date, not a camera folder such as
+ *                  DCIM or 100CANON)
+ *  camera/<name>   EXIF Make and Model
+ *  shape/portrait, shape/landscape, shape/square
+ *
+ *  They are kept only in the database and made again when AUTO_RULE
+ *  changes.  Stage 2 puts them with the date (one read of each image).
+ ******************************************************************************/
+
+#define AUTO_RULE "1"
+
+static gchar *
+folder_tag (const gchar *dirpath)
+{
+   static GRegex *skip = NULL;
+   gchar *name = g_path_get_basename (dirpath), *ret = NULL;
+
+   if (!skip)
+      skip = g_regex_new ("^(?:[0-9 ._-]+|[0-9]{3}[A-Za-z0-9_]{5}|DCIM)$",
+                          G_REGEX_OPTIMIZE | G_REGEX_CASELESS, 0, NULL);
+   if (*name && strcmp (name, "/") && strcmp (name, ".")
+       && !g_regex_match (skip, name, 0, NULL))
+      ret = g_strconcat ("folder/", name, NULL);
+   g_free (name);
+   return ret;
+}
+
+
+/* the shape as shown: EXIF Orientation 5 to 8 turn the image by 90 degrees */
+static const gchar *
+shape_tag (gint w, gint h, gint orient)
+{
+   if (w <= 0 || h <= 0) return NULL;
+   if (orient >= 5 && orient <= 8) {
+      gint t = w; w = h; h = t;
+   }
+   if (ABS (w - h) * 50 <= MAX (w, h)) return "shape/square";   /* within 2 % */
+   return h > w ? "shape/portrait" : "shape/landscape";
+}
+
+
+typedef struct {
+   sqlite3_stmt *del, *tag_add, *ft_add;
+} AutoTags;
+
+static void
+auto_tags_init (Indexer *ix, AutoTags *at)
+{
+   at->del     = prep (ix, "DELETE FROM file_tags WHERE file_id = ? AND auto = 1");
+   at->tag_add = prep (ix, "INSERT OR IGNORE INTO tags (name) VALUES (?)");
+   at->ft_add  = prep (ix, "INSERT OR IGNORE INTO file_tags (file_id, tag_id, auto) "
+                           "SELECT ?, id, 1 FROM tags WHERE name = ?");
+}
+
+
+static void
+auto_tags_finish (AutoTags *at)
+{
+   sqlite3_finalize (at->del);
+   sqlite3_finalize (at->tag_add);
+   sqlite3_finalize (at->ft_add);
+}
+
+
+static void
+auto_tag_add (AutoTags *at, gint64 file_id, const gchar *name)
+{
+   if (!name) return;
+   sqlite3_reset (at->tag_add);
+   sqlite3_bind_text (at->tag_add, 1, name, -1, SQLITE_STATIC);
+   sqlite3_step (at->tag_add);
+   sqlite3_reset (at->tag_add);
+
+   sqlite3_reset (at->ft_add);
+   sqlite3_bind_int64 (at->ft_add, 1, file_id);
+   sqlite3_bind_text  (at->ft_add, 2, name, -1, SQLITE_STATIC);
+   sqlite3_step (at->ft_add);
+   sqlite3_reset (at->ft_add);
+}
+
+
+static void
+auto_tags_clear (AutoTags *at, gint64 file_id)
+{
+   sqlite3_reset (at->del);
+   sqlite3_bind_int64 (at->del, 1, file_id);
+   sqlite3_step (at->del);
+   sqlite3_reset (at->del);
+}
+
+
+/* when the rules change (or for a database made before them): every
+ * image gets its tags again.  The folder tags come now, from the database
+ * alone; the others with stage 2, which reads every image again. */
+static void
+auto_tags_renew (Indexer *ix)
+{
+   sqlite3_stmt *st, *ins;
+   AutoTags at;
+
+   exec (ix, "BEGIN");
+   exec (ix, "DELETE FROM file_tags WHERE auto = 1");
+   exec (ix, "UPDATE files SET stage = 1");
+
+   auto_tags_init (ix, &at);
+   ins = prep (ix, "INSERT OR IGNORE INTO file_tags (file_id, tag_id, auto) "
+                   "SELECT f.id, t.id, 1 FROM files f, tags t "
+                   "WHERE f.dir_id = ?1 AND t.name = ?2");
+   st = prep (ix, "SELECT id, path FROM dirs WHERE parent IS NOT NULL");
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      gchar *tag = folder_tag ((const gchar *) sqlite3_column_text (st, 1));
+      if (!tag) continue;
+      sqlite3_reset (at.tag_add);
+      sqlite3_bind_text (at.tag_add, 1, tag, -1, SQLITE_STATIC);
+      sqlite3_step (at.tag_add);
+      sqlite3_reset (at.tag_add);
+      sqlite3_reset (ins);
+      sqlite3_bind_int64 (ins, 1, sqlite3_column_int64 (st, 0));
+      sqlite3_bind_text  (ins, 2, tag, -1, SQLITE_STATIC);
+      sqlite3_step (ins);
+      sqlite3_reset (ins);
+      g_free (tag);
+   }
+   sqlite3_finalize (st);
+   sqlite3_finalize (ins);
+   auto_tags_finish (&at);
+
+   exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
+   exec (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_rule', '" AUTO_RULE "')");
+   exec (ix, "COMMIT");
+}
+
+
 static void
 run_stage2 (Indexer *ix)
 {
    sqlite3_stmt *sel, *upd;
    gboolean more = TRUE;
+   AutoTags at;
 
    ix->stage = 2;
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
@@ -1048,10 +1244,11 @@ run_stage2 (Indexer *ix)
    }
 
    /* in directory order, so that the disk is read in one sweep */
-   sel  = prep (ix, "SELECT f.id, d.path, f.name, f.mtime FROM files f "
+   sel  = prep (ix, "SELECT f.id, d.path, f.name, f.mtime, d.parent IS NULL FROM files f "
                     "JOIN dirs d ON d.id = f.dir_id WHERE f.stage < 2 "
                     "ORDER BY f.dir_id, f.name LIMIT " G_STRINGIFY (STAGE2_BATCH));
    upd  = prep (ix, "UPDATE files SET date = ?, date_src = ?, stage = 2 WHERE id = ?");
+   auto_tags_init (ix, &at);
 
    exec (ix, "BEGIN");
    ix->last_commit = ix->last_progress = g_get_monotonic_time ();
@@ -1061,6 +1258,7 @@ run_stage2 (Indexer *ix)
       GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
       GPtrArray *names = g_ptr_array_new_with_free_func (g_free);
       GArray *mtimes = g_array_new (FALSE, FALSE, sizeof (gint64));
+      GPtrArray *folders = g_ptr_array_new_with_free_func (g_free);
       guint i;
 
       sqlite3_reset (sel);
@@ -1075,19 +1273,36 @@ run_stage2 (Indexer *ix)
             gint64 mt = sqlite3_column_int64 (sel, 3);
             g_array_append_val (mtimes, mt);
          }
+         /* the files right in a root have no folder tag */
+         g_ptr_array_add (folders, sqlite3_column_int (sel, 4)
+                          ? NULL : folder_tag ((const gchar *) sqlite3_column_text (sel, 1)));
       }
       sqlite3_reset (sel);
       more = ids->len == STAGE2_BATCH;
 
       for (i = 0; i < ids->len && !ix->quit; i++) {
          gint64 id = g_array_index (ids, gint64, i);
+         const gchar *path = g_ptr_array_index (paths, i);
          gchar *date = NULL;
-         gint src = GIMV_INDEX_DATE_MTIME;
+         gint src = GIMV_INDEX_DATE_MTIME, w = 0, h = 0;
+         ImageInfo ii = { 0 };
 
 #ifdef ENABLE_EXIF
-         date = exif_date (g_ptr_array_index (paths, i));
+         exif_read (path, &ii);
+         date = g_steal_pointer (&ii.date);
          if (date) src = GIMV_INDEX_DATE_EXIF;
 #endif
+         /* the size from the header only */
+         gdk_pixbuf_get_file_info (path, &w, &h);
+         auto_tags_clear (&at, id);
+         auto_tag_add (&at, id, g_ptr_array_index (folders, i));
+         if (ii.camera) {
+            gchar *tag = g_strconcat ("camera/", ii.camera, NULL);
+            auto_tag_add (&at, id, tag);
+            g_free (tag);
+         }
+         auto_tag_add (&at, id, shape_tag (w, h, ii.orient));
+         image_info_clear (&ii);
          if (!date) {
             date = filename_date (g_ptr_array_index (names, i));
             if (date) src = GIMV_INDEX_DATE_FILENAME;
@@ -1117,11 +1332,16 @@ run_stage2 (Indexer *ix)
       g_array_unref (mtimes);
       g_ptr_array_unref (paths);
       g_ptr_array_unref (names);
+      g_ptr_array_unref (folders);
    }
 
+   /* tags no file has any more (the folder of a moved image, ...) */
+   if (!ix->quit)
+      exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
    exec (ix, "COMMIT");
    sqlite3_finalize (sel);
    sqlite3_finalize (upd);
+   auto_tags_finish (&at);
 
    if (!ix->quit)
       say ("stage 2 done %u %u %u %u %u", ix->n_dirs, ix->n_files,
@@ -1545,7 +1765,8 @@ watch_file_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar
    } else {
       /* the same row: its tags in the database go with it */
       watch_file_removed (ix, new);          /* a file replaced there */
-      st = prep (ix, "UPDATE files SET dir_id = ?, name = ? WHERE id = ?");
+      /* stage 1 again: stage 2 puts the folder tag of the new place */
+      st = prep (ix, "UPDATE files SET dir_id = ?, name = ?, stage = 1 WHERE id = ?");
       sqlite3_bind_int64 (st, 1, nid);
       sqlite3_bind_text  (st, 2, nname, -1, SQLITE_STATIC);
       sqlite3_bind_int64 (st, 3, fid);
@@ -1603,6 +1824,11 @@ watch_dir_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar 
    st = prep (ix, "UPDATE dirs SET parent = ? WHERE id = ?");
    sqlite3_bind_int64 (st, 1, pid);
    sqlite3_bind_int64 (st, 2, oid);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+   /* the images right in it have a new folder name (stage 2 puts it) */
+   st = prep (ix, "UPDATE files SET stage = 1 WHERE dir_id = ?");
+   sqlite3_bind_int64 (st, 1, oid);
    sqlite3_step (st);
    sqlite3_finalize (st);
 
@@ -1790,7 +2016,8 @@ watch_process (Indexer *ix)
     * by gimv) and their dates */
    if (new_files || ix->n_changed) {
       run_stage3 (ix);
-      if (new_files)
+      /* new files, and moved ones (their folder tag) */
+      if (new_files || rows_to_date (ix) > 0)
          run_stage2 (ix);
    }
    say ("changed");
@@ -1847,6 +2074,15 @@ open_db (Indexer *ix, const gchar *dbfile)
          exec (ix, "UPDATE files SET stage = 1 WHERE date IS NULL");
          exec (ix, "INSERT OR REPLACE INTO meta VALUES ('date_rule', '2')");
       }
+   }
+   {
+      /* the rules of the tags put automatically */
+      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'auto_rule'");
+      gboolean current = sqlite3_step (st) == SQLITE_ROW
+         && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), AUTO_RULE);
+      sqlite3_finalize (st);
+      if (!current)
+         auto_tags_renew (ix);
    }
 
    return TRUE;
