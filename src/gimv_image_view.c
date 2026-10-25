@@ -1107,18 +1107,28 @@ collection_of (GimvImageView *iv)
 }
 
 
-static void
-cb_open_folder (GimvImageView *iv, guint action, GimvMenuItem *widget)
+/* the image comes from a collection: open its folder in a tab, the image
+   selected there.  FALSE when the image is not from a collection */
+gboolean
+gimv_image_view_open_folder (GimvImageView *iv)
 {
    GimvThumbView *tv;
    gchar *path;
 
-   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
    tv = collection_of (iv);
-   if (!tv) return;
+   if (!tv) return FALSE;
    path = g_strdup (gimv_image_info_get_path (iv->info));
    gimv_thumb_view_open_folder_of (tv->tw, path);
    g_free (path);
+   return TRUE;
+}
+
+
+static void
+cb_open_folder (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   gimv_image_view_open_folder (iv);
 }
 
 

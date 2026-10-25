@@ -70,7 +70,8 @@ typedef enum
    ACTION_OPEN_IN_PREVIEW_FORCE,
    ACTION_OPEN_IN_NEW_WIN,
    ACTION_OPEN_IN_SHARED_WIN,
-   ACTION_OPEN_IN_SHARED_WIN_FORCE
+   ACTION_OPEN_IN_SHARED_WIN_FORCE,
+   ACTION_OPEN_FOLDER                /* a collection: the folder of the image */
 } ButtonActionType;
 
 
@@ -2406,6 +2407,16 @@ gimv_thumb_view_button_action (GimvThumbView *tv,
    case ACTION_OPEN_IN_SHARED_WIN_FORCE:
       gimv_thumb_view_open_image (tv, thumb,
                                   GIMV_THUMB_VIEW_OPEN_IMAGE_SHARED_WIN);
+      break;
+
+   case ACTION_OPEN_FOLDER:
+      if (tv->mode == GIMV_THUMB_VIEW_MODE_COLLECTION && thumb->info
+          && !gimv_image_info_is_in_archive (thumb->info))
+      {
+         gchar *path = g_strdup (gimv_image_info_get_path (thumb->info));
+         gimv_thumb_view_open_folder_of (tw, path);
+         g_free (path);
+      }
       break;
 
    default:

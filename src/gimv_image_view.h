@@ -216,6 +216,7 @@ void       gimv_image_view_draw_image             (GimvImageView  *iv);
 void       gimv_image_view_show_image             (GimvImageView  *iv);
 
 void       gimv_image_view_create_thumbnail       (GimvImageView  *iv);
+gboolean    gimv_image_view_open_folder     (GimvImageView  *iv);
 
 /* creating/show/hide child widgets */
 void       gimv_image_view_change_view_mode       (GimvImageView  *iv,

@@ -142,6 +142,7 @@ static const gchar *thumbview_mouse_items[] = {
    N_("Open in new window"),
    N_("Open in shared window"),
    N_("Open in shared window (Force)"),
+   N_("Open the folder (collections)"),
    NULL
 };
 
@@ -174,6 +175,7 @@ static const gchar *preview_mouse_items[] = {
    N_("Scroll down"),
    N_("Scroll left"),
    N_("Scroll right"),
+   N_("Open the folder (collections)"),
    NULL
 };
 

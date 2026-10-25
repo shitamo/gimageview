@@ -5303,3 +5303,7 @@ msgstr "なし (保存しない)"
 #: src/gimv_thumb_view.c
 msgid "/Open the _Folder"
 msgstr "/元のフォルダを開く(_F)"
+
+#: src/prefs_ui/prefs_ui_thumbwin.c
+msgid "Open the folder (collections)"
+msgstr "元のフォルダを開く (コレクション)"
