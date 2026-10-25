@@ -2118,6 +2118,9 @@ next_image (GimvImageView *iv, gpointer list_owner,
 
    gimv_thumb_view_set_selection_all (tv, FALSE);
    gimv_thumb_view_set_selection (thumb, TRUE);
+   /* the focus (the status bar shows its path in a collection) follows */
+   gimv_thumb_view_set_focus (tv, thumb);
+   gimv_thumb_view_focus_changed (tv);
    gimv_thumb_view_adjust (tv, thumb);
 
    if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE) {
@@ -2192,6 +2195,9 @@ prev_image (GimvImageView *iv, gpointer list_owner,
 
    gimv_thumb_view_set_selection_all (tv, FALSE);
    gimv_thumb_view_set_selection (thumb, TRUE);
+   /* the focus (the status bar shows its path in a collection) follows */
+   gimv_thumb_view_set_focus (tv, thumb);
+   gimv_thumb_view_focus_changed (tv);
    gimv_thumb_view_adjust (tv, thumb);
 
    if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE) {
@@ -2252,6 +2258,9 @@ nth_image (GimvImageView *iv,
 
    gimv_thumb_view_set_selection_all (tv, FALSE);
    gimv_thumb_view_set_selection (thumb, TRUE);
+   /* the focus (the status bar shows its path in a collection) follows */
+   gimv_thumb_view_set_focus (tv, thumb);
+   gimv_thumb_view_focus_changed (tv);
    gimv_thumb_view_adjust (tv, thumb);
 
    /* show image */
