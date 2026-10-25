@@ -918,9 +918,11 @@ detailview_adjust (GimvThumbView *tv, GimvThumb *thumb)
    if (success) {
       GtkTreePath *treepath;
       treepath = gtk_tree_model_get_path (model, &iter);
+      /* as the album view: no scroll while the row is shown, and the least
+         scroll when it is not (it was always put at the top) */
       gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (tv_data->treeview),
                                     treepath, NULL,
-                                    TRUE, 0.0, 0.0);
+                                    FALSE, 0.0, 0.0);
       gtk_tree_path_free (treepath);
    }
 }
