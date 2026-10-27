@@ -27,6 +27,10 @@ typedef enum {
    GIMV_INDEX_DATE_MTIME    = 0,
    GIMV_INDEX_DATE_FILENAME = 1,
    GIMV_INDEX_DATE_EXIF     = 2,
+   /* the indexer died reading it: the date is from mtime; read again once
+    * at the next start (it may have died for another reason), then left */
+   GIMV_INDEX_DATE_SKIPPED      = 3,
+   GIMV_INDEX_DATE_SKIPPED_TWICE = 4,
 } GimvIndexDateSource;
 
 typedef enum {

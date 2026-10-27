@@ -172,6 +172,8 @@ label_new (const gchar *text, gboolean wrap)
    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
    if (wrap) {
       gtk_label_set_wrap (GTK_LABEL (label), TRUE);
+      /* long paths have no spaces: break them anywhere */
+      gtk_label_set_wrap_mode (GTK_LABEL (label), PANGO_WRAP_WORD_CHAR);
       gtk_label_set_max_width_chars (GTK_LABEL (label), 60);
    } else {
       gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_MIDDLE);

@@ -74,6 +74,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/file.h>
@@ -158,15 +159,22 @@ static const gchar *default_exts[] = {
 };
 
 
+/* gimv is gone (SIGPIPE is ignored: the indexer must not die in the middle
+ * of an image, which would look like a broken image to the next start) */
+static gboolean output_gone = FALSE;
+
 static void
 say (const gchar *fmt, ...)
 {
    va_list ap;
+
+   if (output_gone) return;
    va_start (ap, fmt);
    vfprintf (stdout, fmt, ap);
    va_end (ap);
    fputc ('\n', stdout);
-   fflush (stdout);
+   if (fflush (stdout) != 0 || ferror (stdout))
+      output_gone = TRUE;
 }
 
 
@@ -214,6 +222,7 @@ static void unanswered_move (Indexer *ix, const gchar *old, const gchar *new);
 static void
 check_stdin (Indexer *ix, gint timeout_ms)
 {
+   if (output_gone) ix->quit = TRUE;
    struct pollfd pfd = { STDIN_FILENO, POLLIN, 0 };
    gchar buf[256];
 
@@ -1142,18 +1151,22 @@ guard_check (Indexer *ix)
    id = g_ascii_strtoll (text, NULL, 10);
    g_free (text);
    if (id > 0) {
-      sqlite3_stmt *st = prep (ix, "SELECT d.path, f.name, f.mtime FROM files f "
+      sqlite3_stmt *st = prep (ix, "SELECT d.path, f.name, f.mtime, f.date_src FROM files f "
                                    "JOIN dirs d ON d.id = f.dir_id WHERE f.id = ?");
       sqlite3_bind_int64 (st, 1, id);
       if (sqlite3_step (st) == SQLITE_ROW) {
          gchar *path = g_build_filename ((const gchar *) sqlite3_column_text (st, 0),
                                          (const gchar *) sqlite3_column_text (st, 1), NULL);
          gchar *date = time_to_date (sqlite3_column_int64 (st, 2));
-         sqlite3_stmt *upd = prep (ix, "UPDATE files SET date = ?, date_src = 0, stage = 2 "
+         sqlite3_stmt *upd = prep (ix, "UPDATE files SET date = ?, date_src = ?, stage = 2 "
                                        "WHERE id = ?");
+         /* skipped once: tried again at the next start; twice: left */
+         gint src = sqlite3_column_int (st, 3) == GIMV_INDEX_DATE_SKIPPED
+                    ? GIMV_INDEX_DATE_SKIPPED_TWICE : GIMV_INDEX_DATE_SKIPPED;
          if (date) sqlite3_bind_text (upd, 1, date, -1, g_free);
          else      sqlite3_bind_null (upd, 1);
-         sqlite3_bind_int64 (upd, 2, id);
+         sqlite3_bind_int   (upd, 2, src);
+         sqlite3_bind_int64 (upd, 3, id);
          sqlite3_step (upd);
          sqlite3_finalize (upd);
          say ("skipped\t%s", path);
@@ -2459,10 +2472,14 @@ main (int argc, char *argv[])
    }
 
    lower_priority ();
+   signal (SIGPIPE, SIG_IGN);
 
    if (!open_db (&ix, dbfile))
       return 1;
 
+   /* the images skipped last time are read once more (the last run may have
+      died for another reason) */
+   exec (&ix, "UPDATE files SET stage = 1 WHERE date_src = 3");
    ix.guard_path = g_strconcat (dbfile, ".reading", NULL);
    guard_check (&ix);
    ix.guard_fd = open (ix.guard_path, O_RDWR | O_CREAT | O_CLOEXEC, 0600);
