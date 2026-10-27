@@ -10,3 +10,4 @@ option('libarchive', type : 'feature', value : 'auto', description : 'archive su
 option('gstreamer', type : 'feature', value : 'auto', description : 'GStreamer movie plugin (GStreamer >= 1.16)')
 option('xine', type : 'feature', value : 'auto', description : 'xine movie plugin (libxine >= 1.2)')
 option('index', type : 'feature', value : 'auto', description : 'image index by date and tag (gimv-indexer, SQLite)')
+option('faces', type : 'feature', value : 'auto', description : 'face recognition in the index (gimv-faces, OpenCV >= 4.5.4)')

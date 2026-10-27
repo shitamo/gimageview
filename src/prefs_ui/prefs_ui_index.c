@@ -15,6 +15,7 @@
 #include "gimageview.h"
 #include "gtkutils.h"
 #include "gimv_index.h"
+#include "gimv_index_faces.h"
 #include "gimv_index_view.h"
 #include "gimv_prefs_ui_utils.h"
 #include "gimv_prefs_win.h"
@@ -160,6 +161,52 @@ prefs_ui_index (void)
       (void) aframe;
    }
 
+   /* faces */
+   if (gimv_index_faces_available ()) {
+      GtkWidget *fframe, *fvbox, *l, *dirs;
+      gchar *models = gimv_index_faces_model_dir (), *udir, *text;
+
+      gimv_prefs_ui_create_frame (_("Faces"), fframe, fvbox, main_vbox, FALSE);
+      l = gtk_label_new (_("Faces are looked for in the images of these folders (photos, "
+                           "for example), and faces that look alike are put in groups. "
+                           "The folders must be in the index. It runs after the rest of "
+                           "the index, slowly, while GImageView runs."));
+      gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+      gtk_label_set_wrap (GTK_LABEL (l), TRUE);
+      gimv_box_pack_start (GTK_BOX (fvbox), l, FALSE, FALSE, 0);
+
+      dirs = gimv_prefs_ui_dir_list_prefs (_("Folders to find faces in"),
+                                           _("Select a folder to find faces in"),
+                                           config_prechanged->index_face_dirs,
+                                           &config_changed->index_face_dirs,
+                                           ';');
+      gtk_widget_set_size_request (dirs, -1, 160);
+      gimv_box_pack_start (GTK_BOX (fvbox), dirs, FALSE, FALSE, 0);
+
+      if (models) {
+         text = g_strdup_printf (_("The model files: %s"), models);
+      } else {
+         udir = gimv_index_faces_user_model_dir ();
+         text = g_strdup_printf (
+            _("The model files (OpenCV YuNet and SFace, about 40 MB) are not found. "
+              "Download these two into %s:\n"
+              "https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx\n"
+              "https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx"),
+            udir);
+         g_free (udir);
+      }
+      l = gtk_label_new (text);
+      g_free (text);
+      g_free (models);
+      gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+      gtk_label_set_wrap (GTK_LABEL (l), TRUE);
+      gtk_label_set_wrap_mode (GTK_LABEL (l), PANGO_WRAP_WORD_CHAR);
+      gtk_label_set_selectable (GTK_LABEL (l), TRUE);
+      gtk_widget_add_css_class (l, "dim-label");
+      gimv_box_pack_start (GTK_BOX (fvbox), l, FALSE, FALSE, 0);
+      (void) fframe;
+   }
+
    /* missing images */
    {
       GtkWidget *mframe, *mvbox, *hbox, *l, *spin;
@@ -231,8 +278,12 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
        && dest->index_auto_folder == src->index_auto_folder
        && dest->index_auto_camera == src->index_auto_camera
        && dest->index_auto_shape  == src->index_auto_shape
-       && !g_strcmp0 (dest->index_dirs, src->index_dirs))
+       && !g_strcmp0 (dest->index_dirs, src->index_dirs)) {
+      /* only the folders of the faces: the indexer goes on */
+      if (g_strcmp0 (dest->index_face_dirs, src->index_face_dirs))
+         gimv_index_faces_restart ();
       return FALSE;
+   }
 
    /* conf has the new values here */
    gimv_index_restart ();

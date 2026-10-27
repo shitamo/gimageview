@@ -188,6 +188,7 @@ prefs_win_free_strings (gboolean value_changed)
       &conf.charset_internal,
       &conf.index_dirs,
       &conf.index_notify_exclude,
+      &conf.index_face_dirs,
    };
    gint num1 = sizeof (strings) / sizeof (gchar **);
    gint num2 = sizeof (conf.progs) / sizeof (gchar *);

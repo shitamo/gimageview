@@ -20,6 +20,7 @@
 
 #include "gimv_index.h"
 #include "gimv_index_db.h"
+#include "gimv_index_faces.h"
 #include "gimv_index_notice.h"
 #include "gimv_index_newimg.h"
 #include "gimv_mime_types.h"
@@ -154,7 +155,10 @@ update_status (void)
          g_string_append_printf (tip, _("\nNow in: %s"), ix.cur_dir);
       break;
    case GIMV_INDEX_STATE_IDLE:
-      ix.status = g_strdup_printf (_("Index: %'u images"), ix.n_files);
+      /* the faces are looked for after the rest */
+      ix.status = gimv_index_faces_status ();
+      if (!ix.status)
+         ix.status = g_strdup_printf (_("Index: %'u images"), ix.n_files);
       g_string_append_printf (tip, _("%'u images are in the index; changes are taken in "
                                      "while GImageView runs."), ix.n_files);
       break;
@@ -171,6 +175,13 @@ update_status (void)
       ix.status = g_strdup ("");
       break;
    }
+   if (ix.state == GIMV_INDEX_STATE_IDLE || ix.state == GIMV_INDEX_STATE_SCANNING) {
+      gchar *faces = gimv_index_faces_tooltip ();
+      if (faces) {
+         g_string_append_printf (tip, "\n%s", faces);
+         g_free (faces);
+      }
+   }
    g_free (ix.tooltip);
    ix.tooltip = g_string_free (tip, FALSE);
 
@@ -181,6 +192,13 @@ update_status (void)
       gtk_widget_set_tooltip_text (tw->index_label, *ix.tooltip ? ix.tooltip : NULL);
       gtk_widget_set_visible (tw->index_label, ix.state != GIMV_INDEX_STATE_OFF);
    }
+}
+
+
+void
+gimv_index_status_changed (void)
+{
+   update_status ();
 }
 
 
@@ -230,6 +248,13 @@ stage_changes (gint stage)
    case 3:  return GIMV_INDEX_CHANGED_TAGS;
    default: return GIMV_INDEX_CHANGED_DATES;
    }
+}
+
+
+void
+gimv_index_faces_changed (void)
+{
+   notify_watches (GIMV_INDEX_CHANGED_FACES);
 }
 
 
@@ -436,6 +461,7 @@ handle_line (const gchar *line)
       if (n >= 2)
          ix.n_files = strtoul (v[1], NULL, 10);
       update_status ();
+      gimv_index_faces_kick ();
    } else if (!strcmp (v[0], "error")) {
       g_warning ("gimv-indexer: %s", line + 6);
    }
@@ -625,6 +651,7 @@ send_command (const gchar *cmd)
 static void
 stop_indexer (void)
 {
+   gimv_index_faces_quit ();
    if (ix.cancel) {
       g_cancellable_cancel (ix.cancel);
       g_clear_object (&ix.cancel);

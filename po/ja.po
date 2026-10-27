@@ -5478,3 +5478,82 @@ msgstr "別の GImageView が索引を作っています。"
 
 msgid "The indexer has stopped. The notice icon may tell why."
 msgstr "索引プロセスが止まっています。理由はお知らせアイコンに出ていることがあります。"
+
+#: src/gimv_index_faces.c
+msgid "Index: faces"
+msgstr "索引: 顔"
+
+#: src/gimv_index_faces.c
+#, c-format
+msgid "Index: faces %d%%"
+msgstr "索引: 顔 %d%%"
+
+#: src/gimv_index_faces.c
+#, c-format
+msgid "Finding faces: %'u of %'u images."
+msgstr "顔を探しています: %2$'u 枚中 %1$'u 枚。"
+
+#: src/gimv_index_faces.c
+msgid "Finding faces: starting."
+msgstr "顔を探しています: 開始中。"
+
+#: src/gimv_index_faces.c
+#, c-format
+msgid ""
+"Faces: the model files are not found. Put them in %s (see the Index page of "
+"the preferences)."
+msgstr "顔: モデルファイルが見つかりません。%s に置いてください (設定の「索引」のページを参照)。"
+
+#: src/gimv_index_faces.c
+#, c-format
+msgid "Faces: stopped (%s)."
+msgstr "顔: 停止しました (%s)。"
+
+#: src/gimv_index_faces.c
+#, c-format
+msgid "Faces: %'u found, %'u groups of faces that look alike."
+msgstr "顔: %'u 個、似た顔のグループ %'u 個。"
+
+#: src/gimv_index_faces.c
+msgid "gimv-faces is not found"
+msgstr "gimv-faces が見つかりません"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Faces"
+msgstr "顔"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid ""
+"Faces are looked for in the images of these folders (photos, for example), "
+"and faces that look alike are put in groups. The folders must be in the "
+"index. It runs after the rest of the index, slowly, while GImageView runs."
+msgstr "これらのフォルダ (写真など) の画像から顔を探し、似た顔をグループにまとめます。フォルダは索引の対象に入っている必要があります。索引の他の処理が終わった後、GImageView の実行中にゆっくり進みます。"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Folders to find faces in"
+msgstr "顔を認識するフォルダ"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Select a folder to find faces in"
+msgstr "顔を認識するフォルダを選択"
+
+#: src/prefs_ui/prefs_ui_index.c
+#, c-format
+msgid "The model files: %s"
+msgstr "モデルファイル: %s"
+
+#: src/prefs_ui/prefs_ui_index.c
+#, c-format
+msgid ""
+"The model files (OpenCV YuNet and SFace, about 40 MB) are not found. Download "
+"these two into %s:\n"
+"https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/"
+"face_detection_yunet_2023mar.onnx\n"
+"https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/"
+"face_recognition_sface_2021dec.onnx"
+msgstr ""
+"モデルファイル (OpenCV の YuNet と SFace、約 40 MB) が見つかりません。次の 2 つを %s にダウンロードしてください:\n"
+"https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/"
+"face_detection_yunet_2023mar.onnx\n"
+"https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/"
+"face_recognition_sface_2021dec.onnx"

@@ -49,11 +49,17 @@ void            gimv_index_tags_changed     (const gchar *path);
 typedef enum {
    GIMV_INDEX_CHANGED_DATES = 1 << 0,
    GIMV_INDEX_CHANGED_TAGS  = 1 << 1,
+   GIMV_INDEX_CHANGED_FACES = 1 << 2,
 } GimvIndexChange;
 
 typedef void (*GimvIndexChangedFunc) (GimvIndexChange what, gpointer data);
 guint           gimv_index_add_watch        (GimvIndexChangedFunc func,
                                              gpointer             data);
 void            gimv_index_remove_watch     (guint                id);
+
+/* for gimv_index_faces: the status text to be made again, the faces in the
+ * database changed */
+void            gimv_index_status_changed   (void);
+void            gimv_index_faces_changed    (void);
 
 #endif /* __GIMV_INDEX_H__ */

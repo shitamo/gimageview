@@ -16,8 +16,8 @@
 #include <sqlite3.h>
 
 /* PRAGMA user_version of the current schema */
-#define GIMV_INDEX_DB_VERSION      2
-#define GIMV_INDEX_DB_VERSION_STR  "2"
+#define GIMV_INDEX_DB_VERSION      3
+#define GIMV_INDEX_DB_VERSION_STR  "3"
 
 /* the key of the tags in the gimv comment files */
 #define GIMV_INDEX_TAGS_KEY        "X-IMG-Tags"

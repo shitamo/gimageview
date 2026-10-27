@@ -1,0 +1,753 @@
+/* -*- Mode: C++; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 3 -*- */
+
+/*
+ * gimv-faces: finds the faces in the images of the index (OpenCV YuNet),
+ * keeps a feature of each (OpenCV SFace) and groups the faces that look
+ * alike, for gimv to show as candidates for a person to name.
+ *
+ * Run by gimv when the indexer has nothing to do; it works through the
+ * images of the given folders that are new or changed since last time and
+ * exits.  The folders must be in the index (the files come from it).
+ *
+ *   gimv-faces --db FILE --models DIR [--regroup] [--export DIR] [--] FOLDER...
+ *
+ * --regroup: make the groups again even when no faces changed
+ * --export:  write the faces of the groups as small images to DIR, to look at
+ *
+ * Output (one line each):
+ *   start <todo> <total>          files to read, files in the folders
+ *   progress <done> <todo>
+ *   grouping <faces>
+ *   done <files read> <faces found> <groups>
+ *   no-models <dir>               the model files are not there
+ *   busy                          another gimv-faces runs
+ *   error <message>
+ * It stops when stdin is closed (gimv has gone) or reads "quit".
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ */
+
+#include <algorithm>
+#include <cerrno>
+#include <cmath>
+#include <csignal>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <map>
+#include <string>
+#include <vector>
+
+#include <fcntl.h>
+#include <poll.h>
+#include <sys/file.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
+#include <sqlite3.h>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/objdetect.hpp>
+
+#define DB_VERSION        3
+#define DETECT_MODEL      "face_detection_yunet_2023mar.onnx"
+#define RECOGNIZE_MODEL   "face_recognition_sface_2021dec.onnx"
+
+/* the long side of the image the faces are looked for in */
+#define DETECT_SIZE       1600
+/* faces smaller than this (pixels in that image) are too blurred to tell */
+#define MIN_FACE          40
+#define SCORE_MIN         0.85f
+#define FEATURE_LEN       128
+/* cosine similarity: SFace's own threshold for "the same person" is 0.363;
+ * groups are made a bit stricter to keep them clean */
+#define GROUP_SIM         0.42f
+#define GUESS_SIM         0.45f
+#define COMMIT_USEC       (3 * 1000000LL)
+
+static const char *exts[] = {
+   "jpg", "jpeg", "jpe", "png", "webp", "bmp", "tif", "tiff", nullptr
+};
+
+
+/******************************************************************************
+ *  talking to gimv
+ ******************************************************************************/
+
+static bool output_gone = false;
+static bool quit = false;
+
+static void
+say (const char *fmt, ...)
+{
+   va_list ap;
+
+   if (output_gone) return;
+   va_start (ap, fmt);
+   vfprintf (stdout, fmt, ap);
+   va_end (ap);
+   fputc ('\n', stdout);
+   if (fflush (stdout) != 0 || ferror (stdout))
+      output_gone = true;
+}
+
+
+static void
+check_stdin (void)
+{
+   struct pollfd pfd = { STDIN_FILENO, POLLIN, 0 };
+   char buf[256];
+
+   if (output_gone) quit = true;
+   while (!quit && poll (&pfd, 1, 0) > 0) {
+      ssize_t n = read (STDIN_FILENO, buf, sizeof (buf) - 1);
+      if (n <= 0) {
+         if (n < 0 && errno == EINTR) continue;
+         quit = true;
+         return;
+      }
+      buf[n] = '\0';
+      if (strstr (buf, "quit")) quit = true;
+   }
+}
+
+
+static long long
+now_usec (void)
+{
+   struct timespec ts;
+   clock_gettime (CLOCK_MONOTONIC, &ts);
+   return ts.tv_sec * 1000000LL + ts.tv_nsec / 1000;
+}
+
+
+static void
+lower_priority (void)
+{
+   setpriority (PRIO_PROCESS, 0, 19);
+#ifdef SYS_ioprio_set
+   syscall (SYS_ioprio_set, 1 /* who: process */, 0, 3 << 13 /* class: idle */);
+#endif
+}
+
+
+/******************************************************************************
+ *  database
+ ******************************************************************************/
+
+struct Db {
+   sqlite3 *db = nullptr;
+
+   ~Db () { if (db) sqlite3_close (db); }
+
+   sqlite3_stmt *prep (const char *sql)
+   {
+      sqlite3_stmt *st = nullptr;
+      if (sqlite3_prepare_v2 (db, sql, -1, &st, nullptr) != SQLITE_OK) {
+         say ("error prepare: %s", sqlite3_errmsg (db));
+         return nullptr;
+      }
+      return st;
+   }
+
+   void exec (const char *sql)
+   {
+      char *err = nullptr;
+      if (sqlite3_exec (db, sql, nullptr, nullptr, &err) != SQLITE_OK) {
+         say ("error %s: %s", sql, err ? err : "?");
+         sqlite3_free (err);
+      }
+   }
+};
+
+
+static bool
+open_db (Db &d, const char *path)
+{
+   sqlite3_stmt *st;
+   int v = -1;
+
+   /* the indexer makes it and its schema: only an existing one is used */
+   if (sqlite3_open_v2 (path, &d.db, SQLITE_OPEN_READWRITE, nullptr) != SQLITE_OK) {
+      say ("error cannot open %s", path);
+      return false;
+   }
+   sqlite3_busy_timeout (d.db, 10000);
+   st = d.prep ("PRAGMA user_version");
+   if (st && sqlite3_step (st) == SQLITE_ROW)
+      v = sqlite3_column_int (st, 0);
+   sqlite3_finalize (st);
+   if (v != DB_VERSION) {
+      say ("error the index has version %d, not %d", v, DB_VERSION);
+      return false;
+   }
+   d.exec ("PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON;");
+   return true;
+}
+
+
+/* "dir" itself or below it */
+static bool
+under (const std::string &path, const std::vector<std::string> &dirs)
+{
+   for (const auto &d : dirs) {
+      if (path == d) return true;
+      if (path.size () > d.size () && path.compare (0, d.size (), d) == 0
+          && (d.back () == '/' || path[d.size ()] == '/'))
+         return true;
+   }
+   return false;
+}
+
+
+static bool
+wanted_ext (const char *name)
+{
+   const char *dot = strrchr (name, '.');
+   if (!dot) return false;
+   for (int i = 0; exts[i]; i++)
+      if (!strcasecmp (dot + 1, exts[i])) return true;
+   return false;
+}
+
+
+struct Todo {
+   long long   id;
+   long long   mtime;
+   std::string path;
+};
+
+
+/* the files of the folders not looked at yet (or changed since); the faces
+ * of files no longer in the folders are dropped */
+static void
+list_files (Db &d, const std::vector<std::string> &dirs,
+            std::vector<Todo> &todo, long long &total)
+{
+   sqlite3_stmt *st;
+   std::vector<long long> gone;
+
+   st = d.prep ("SELECT f.id, f.mtime, d.path, f.name, s.mtime "
+                "FROM files f JOIN dirs d ON d.id = f.dir_id "
+                "LEFT JOIN face_scans s ON s.file_id = f.id");
+   total = 0;
+   while (st && sqlite3_step (st) == SQLITE_ROW) {
+      const char *dir  = (const char *) sqlite3_column_text (st, 2);
+      const char *name = (const char *) sqlite3_column_text (st, 3);
+      bool scanned = sqlite3_column_type (st, 4) != SQLITE_NULL;
+
+      if (!dir || !name) continue;
+      if (!under (dir, dirs) || !wanted_ext (name)) {
+         if (scanned) gone.push_back (sqlite3_column_int64 (st, 0));
+         continue;
+      }
+      total++;
+      if (scanned && sqlite3_column_int64 (st, 4) == sqlite3_column_int64 (st, 1))
+         continue;
+      std::string path (dir);
+      if (path.back () != '/') path += '/';
+      path += name;
+      todo.push_back ({ sqlite3_column_int64 (st, 0), sqlite3_column_int64 (st, 1), path });
+   }
+   sqlite3_finalize (st);
+
+   if (!gone.empty ()) {
+      sqlite3_stmt *a = d.prep ("DELETE FROM faces WHERE file_id = ?");
+      sqlite3_stmt *b = d.prep ("DELETE FROM face_scans WHERE file_id = ?");
+      d.exec ("BEGIN");
+      for (long long id : gone) {
+         sqlite3_bind_int64 (a, 1, id); sqlite3_step (a); sqlite3_reset (a);
+         sqlite3_bind_int64 (b, 1, id); sqlite3_step (b); sqlite3_reset (b);
+      }
+      d.exec ("COMMIT");
+      sqlite3_finalize (a);
+      sqlite3_finalize (b);
+   }
+}
+
+
+/******************************************************************************
+ *  crash guard: the id of the file being read, in FILE.faces-reading
+ ******************************************************************************/
+
+static int guard_fd = -1;
+
+static void
+guard_open (Db &d, const std::string &dbfile)
+{
+   std::string g = dbfile + ".faces-reading";
+   long long id = 0;
+   char buf[32] = { 0 };
+   int fd = open (g.c_str (), O_RDONLY | O_CLOEXEC);
+
+   /* the last run died on this one: do not read it again */
+   if (fd >= 0) {
+      if (read (fd, buf, sizeof (buf) - 1) > 0)
+         id = atoll (buf);
+      close (fd);
+   }
+   if (id > 0) {
+      sqlite3_stmt *st = d.prep ("INSERT OR REPLACE INTO face_scans (file_id, mtime, n) "
+                                 "SELECT id, mtime, -1 FROM files WHERE id = ?");
+      sqlite3_bind_int64 (st, 1, id);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+      say ("skipped %lld", id);
+   }
+   guard_fd = open (g.c_str (), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+}
+
+
+static void
+guard_set (long long id)
+{
+   char buf[32];
+   if (guard_fd < 0) return;
+   int n = snprintf (buf, sizeof (buf), "%-20lld\n", id);
+   if (pwrite (guard_fd, buf, n, 0) < 0) { /* nothing to do */ }
+}
+
+
+static void
+guard_close (const std::string &dbfile)
+{
+   if (guard_fd >= 0) close (guard_fd);
+   unlink ((dbfile + ".faces-reading").c_str ());
+}
+
+
+/******************************************************************************
+ *  finding the faces
+ ******************************************************************************/
+
+struct Face {
+   int   x, y, w, h;
+   float score;
+   std::vector<float> feature;
+};
+
+
+static void
+normalize (std::vector<float> &v)
+{
+   double s = 0;
+   for (float f : v) s += (double) f * f;
+   s = std::sqrt (s);
+   if (s > 0)
+      for (float &f : v) f = (float) (f / s);
+}
+
+
+static bool
+read_faces (const std::string &path,
+            cv::Ptr<cv::FaceDetectorYN> &det, cv::Ptr<cv::FaceRecognizerSF> &rec,
+            std::vector<Face> &out)
+{
+   cv::Mat img, small, found;
+   double scale = 1.0;
+   int flags = cv::IMREAD_COLOR;   /* the EXIF orientation is applied */
+   struct stat sb;
+
+   /* big JPEG files: decoded at half or a quarter, much faster */
+   if (stat (path.c_str (), &sb) == 0) {
+      const char *dot = strrchr (path.c_str (), '.');
+      bool jpeg = dot && (!strcasecmp (dot, ".jpg") || !strcasecmp (dot, ".jpeg")
+                          || !strcasecmp (dot, ".jpe"));
+      if (jpeg && sb.st_size > 6 * 1024 * 1024) flags = cv::IMREAD_REDUCED_COLOR_4;
+      else if (jpeg && sb.st_size > 2 * 1024 * 1024) flags = cv::IMREAD_REDUCED_COLOR_2;
+   }
+
+   try {
+      img = cv::imread (path, flags);
+   } catch (const cv::Exception &) {
+      return false;
+   }
+   if (img.empty ()) return false;
+   if (flags == cv::IMREAD_REDUCED_COLOR_4) scale = 4.0;
+   else if (flags == cv::IMREAD_REDUCED_COLOR_2) scale = 2.0;
+   if (img.cols < MIN_FACE * 2 || img.rows < MIN_FACE * 2) return true;
+
+   int longer = std::max (img.cols, img.rows);
+   if (longer > DETECT_SIZE) {
+      double f = (double) DETECT_SIZE / longer;
+      cv::resize (img, small, cv::Size (), f, f, cv::INTER_AREA);
+      scale /= f;
+   } else {
+      small = img;
+   }
+
+   try {
+      det->setInputSize (small.size ());
+      det->detect (small, found);
+   } catch (const cv::Exception &) {
+      return false;
+   }
+
+   for (int i = 0; i < found.rows; i++) {
+      const float *r = found.ptr<float> (i);
+      float score = r[14];
+      cv::Mat aligned, feat;
+
+      if (score < SCORE_MIN || r[2] < MIN_FACE || r[3] < MIN_FACE) continue;
+      try {
+         rec->alignCrop (small, found.row (i), aligned);
+         rec->feature (aligned, feat);
+      } catch (const cv::Exception &) {
+         continue;
+      }
+      if (feat.total () != FEATURE_LEN) continue;
+
+      Face f;
+      f.x = (int) std::lround (std::max (0.0f, r[0]) * scale);
+      f.y = (int) std::lround (std::max (0.0f, r[1]) * scale);
+      f.w = (int) std::lround (r[2] * scale);
+      f.h = (int) std::lround (r[3] * scale);
+      f.score = score;
+      f.feature.assign ((const float *) feat.data, (const float *) feat.data + FEATURE_LEN);
+      normalize (f.feature);
+      out.push_back (std::move (f));
+   }
+   return true;
+}
+
+
+/******************************************************************************
+ *  groups
+ ******************************************************************************/
+
+static float
+dot (const float *a, const float *b)
+{
+   float s = 0;
+   for (int i = 0; i < FEATURE_LEN; i++) s += a[i] * b[i];
+   return s;
+}
+
+
+struct Row {
+   long long id;
+   float     score;
+   long long person;   /* 0: none */
+   std::vector<float> f;
+};
+
+
+/* the unnamed faces: the person they look like (the mean of the faces
+ * named so), else a group of faces that look alike (leader clustering in
+ * the order of the clearest faces first, against the mean of each group) */
+static int
+make_groups (Db &d)
+{
+   std::vector<Row> rows;
+   sqlite3_stmt *st = d.prep ("SELECT id, score, person_id, feature FROM faces");
+
+   while (st && sqlite3_step (st) == SQLITE_ROW) {
+      const void *blob = sqlite3_column_blob (st, 3);
+      if (sqlite3_column_bytes (st, 3) != FEATURE_LEN * (int) sizeof (float)) continue;
+      Row r;
+      r.id = sqlite3_column_int64 (st, 0);
+      r.score = (float) sqlite3_column_double (st, 1);
+      r.person = sqlite3_column_int64 (st, 2);
+      r.f.assign ((const float *) blob, (const float *) blob + FEATURE_LEN);
+      rows.push_back (std::move (r));
+   }
+   sqlite3_finalize (st);
+   say ("grouping %zu", rows.size ());
+
+   /* the persons */
+   std::map<long long, std::vector<float>> persons;
+   for (const Row &r : rows) {
+      if (!r.person) continue;
+      auto &m = persons[r.person];
+      if (m.empty ()) m.assign (FEATURE_LEN, 0.0f);
+      for (int i = 0; i < FEATURE_LEN; i++) m[i] += r.f[i];
+   }
+   for (auto &p : persons) normalize (p.second);
+
+   std::vector<size_t> order;
+   for (size_t i = 0; i < rows.size (); i++)
+      if (!rows[i].person) order.push_back (i);
+   std::sort (order.begin (), order.end (),
+              [&] (size_t a, size_t b) { return rows[a].score > rows[b].score; });
+
+   std::vector<long long> guess (rows.size (), 0);
+   std::vector<int> group (rows.size (), -1);
+   std::vector<std::vector<float>> sums, means;
+   std::vector<int> sizes;
+
+   for (size_t k = 0; k < order.size (); k++) {
+      size_t i = order[k];
+      float best = GUESS_SIM;
+      for (const auto &p : persons) {
+         float s = dot (rows[i].f.data (), p.second.data ());
+         if (s >= best) { best = s; guess[i] = p.first; }
+      }
+      if (guess[i]) continue;
+
+      int g = -1;
+      best = GROUP_SIM;
+      for (size_t c = 0; c < means.size (); c++) {
+         float s = dot (rows[i].f.data (), means[c].data ());
+         if (s >= best) { best = s; g = (int) c; }
+      }
+      if (g < 0) {
+         g = (int) means.size ();
+         sums.emplace_back (FEATURE_LEN, 0.0f);
+         means.emplace_back ();
+         sizes.push_back (0);
+      }
+      for (int j = 0; j < FEATURE_LEN; j++) sums[g][j] += rows[i].f[j];
+      means[g] = sums[g];
+      normalize (means[g]);
+      sizes[g]++;
+      group[i] = g;
+      if ((k & 1023) == 0) {
+         check_stdin ();
+         if (quit) return 0;
+      }
+   }
+
+   /* numbered by size, biggest first; groups of one are none */
+   std::vector<int> by_size;
+   for (size_t c = 0; c < sizes.size (); c++)
+      if (sizes[c] >= 2) by_size.push_back ((int) c);
+   std::sort (by_size.begin (), by_size.end (),
+              [&] (int a, int b) { return sizes[a] > sizes[b]; });
+   std::vector<int> number (sizes.size (), 0);
+   for (size_t n = 0; n < by_size.size (); n++) number[by_size[n]] = (int) n + 1;
+
+   st = d.prep ("UPDATE faces SET guess = ?, cluster = ? WHERE id = ?");
+   d.exec ("BEGIN");
+   for (size_t i = 0; i < rows.size (); i++) {
+      if (rows[i].person) {
+         sqlite3_bind_null (st, 1);
+         sqlite3_bind_null (st, 2);
+      } else {
+         if (guess[i]) sqlite3_bind_int64 (st, 1, guess[i]);
+         else sqlite3_bind_null (st, 1);
+         if (group[i] >= 0 && number[group[i]]) sqlite3_bind_int (st, 2, number[group[i]]);
+         else sqlite3_bind_null (st, 2);
+      }
+      sqlite3_bind_int64 (st, 3, rows[i].id);
+      sqlite3_step (st);
+      sqlite3_reset (st);
+   }
+   d.exec ("COMMIT");
+   sqlite3_finalize (st);
+   return (int) by_size.size ();
+}
+
+
+/******************************************************************************
+ *  --export: the faces of each group as small images, to look at
+ ******************************************************************************/
+
+static void
+export_groups (Db &d, const std::string &out)
+{
+   sqlite3_stmt *st = d.prep (
+      "SELECT fa.id, fa.cluster, fa.x, fa.y, fa.w, fa.h, d.path, f.name, "
+      "  (SELECT count(*) FROM faces c WHERE c.cluster = fa.cluster) "
+      "FROM faces fa JOIN files f ON f.id = fa.file_id JOIN dirs d ON d.id = f.dir_id "
+      "WHERE fa.cluster IS NOT NULL AND fa.cluster <= 100 "
+      "ORDER BY fa.cluster, fa.score DESC");
+   std::map<int, int> written;
+   std::string last_path;
+   cv::Mat img;
+
+   mkdir (out.c_str (), 0755);
+   while (st && sqlite3_step (st) == SQLITE_ROW && !quit) {
+      int cluster = sqlite3_column_int (st, 1);
+      if (written[cluster] >= 40) continue;
+
+      std::string path ((const char *) sqlite3_column_text (st, 6));
+      if (path.back () != '/') path += '/';
+      path += (const char *) sqlite3_column_text (st, 7);
+      if (path != last_path) {
+         img = cv::imread (path, cv::IMREAD_COLOR);
+         last_path = path;
+      }
+      if (img.empty ()) continue;
+
+      int x = sqlite3_column_int (st, 2), y = sqlite3_column_int (st, 3);
+      int w = sqlite3_column_int (st, 4), h = sqlite3_column_int (st, 5);
+      int m = std::max (w, h) / 4;
+      cv::Rect r = cv::Rect (x - m, y - m, w + 2 * m, h + 2 * m)
+                   & cv::Rect (0, 0, img.cols, img.rows);
+      if (r.width <= 0 || r.height <= 0) continue;
+      cv::Mat crop;
+      cv::resize (img (r), crop, cv::Size (160, (int) (160.0 * r.height / r.width)));
+
+      char dir[64], name[64];
+      snprintf (dir, sizeof (dir), "/group-%03d-%d", cluster, sqlite3_column_int (st, 8));
+      std::string gdir = out + dir;
+      mkdir (gdir.c_str (), 0755);
+      snprintf (name, sizeof (name), "/%lld.jpg", (long long) sqlite3_column_int64 (st, 0));
+      cv::imwrite (gdir + name, crop);
+      written[cluster]++;
+      check_stdin ();
+   }
+   sqlite3_finalize (st);
+}
+
+
+/******************************************************************************
+ *  main
+ ******************************************************************************/
+
+static void
+usage (void)
+{
+   fprintf (stderr, "usage: gimv-faces --db FILE --models DIR [--regroup] [--export DIR] [--] FOLDER...\n");
+}
+
+
+int
+main (int argc, char *argv[])
+{
+   std::string dbfile, models, export_dir;
+   std::vector<std::string> dirs;
+   bool opts = true, regroup = false;
+
+   signal (SIGPIPE, SIG_IGN);
+
+   for (int i = 1; i < argc; i++) {
+      std::string a = argv[i];
+      if (opts && a == "--") { opts = false; continue; }
+      if (opts && a == "--db" && i + 1 < argc) { dbfile = argv[++i]; continue; }
+      if (opts && a == "--models" && i + 1 < argc) { models = argv[++i]; continue; }
+      if (opts && a == "--regroup") { regroup = true; continue; }
+      if (opts && a == "--export" && i + 1 < argc) { export_dir = argv[++i]; continue; }
+      if (opts && a.size () > 1 && a[0] == '-') { usage (); return 2; }
+      while (a.size () > 1 && a.back () == '/') a.pop_back ();
+      if (!a.empty ()) dirs.push_back (a);
+   }
+   if (dbfile.empty () || models.empty () || dirs.empty ()) {
+      usage ();
+      return 2;
+   }
+
+   lower_priority ();
+   cv::setNumThreads (2);
+
+   /* one at a time */
+   std::string lockfile = dbfile + ".faces-lock";
+   int lockfd = open (lockfile.c_str (), O_RDWR | O_CREAT | O_CLOEXEC, 0600);
+   if (lockfd < 0 || flock (lockfd, LOCK_EX | LOCK_NB) < 0) {
+      say ("busy");
+      return 0;
+   }
+
+   Db d;
+   if (!open_db (d, dbfile.c_str ())) return 1;
+
+   if (!export_dir.empty ()) {
+      export_groups (d, export_dir);
+      say ("done 0 0 0");
+      return 0;
+   }
+
+   std::string detm = models + "/" DETECT_MODEL, recm = models + "/" RECOGNIZE_MODEL;
+   if (access (detm.c_str (), R_OK) || access (recm.c_str (), R_OK)) {
+      say ("no-models %s", models.c_str ());
+      return 0;
+   }
+
+   cv::Ptr<cv::FaceDetectorYN> det;
+   cv::Ptr<cv::FaceRecognizerSF> rec;
+   try {
+      det = cv::FaceDetectorYN::create (detm, "", cv::Size (320, 320), SCORE_MIN, 0.3f, 5000);
+      rec = cv::FaceRecognizerSF::create (recm, "");
+   } catch (const cv::Exception &e) {
+      say ("error the models cannot be read: %s", e.what ());
+      return 1;
+   }
+
+   guard_open (d, dbfile);
+
+   std::vector<Todo> todo;
+   long long total = 0;
+   list_files (d, dirs, todo, total);
+   say ("start %zu %lld", todo.size (), total);
+
+   sqlite3_stmt *del  = d.prep ("DELETE FROM faces WHERE file_id = ?");
+   sqlite3_stmt *ins  = d.prep ("INSERT INTO faces (file_id, x, y, w, h, score, feature) "
+                                "VALUES (?, ?, ?, ?, ?, ?, ?)");
+   sqlite3_stmt *scan = d.prep ("INSERT OR REPLACE INTO face_scans (file_id, mtime, n) "
+                                "VALUES (?, ?, ?)");
+   long long last_commit = now_usec (), last_say = 0;
+   size_t done = 0, n_faces = 0;
+   bool changed = false;
+
+   d.exec ("BEGIN");
+   for (const Todo &t : todo) {
+      std::vector<Face> faces;
+      bool ok;
+
+      check_stdin ();
+      if (quit) break;
+
+      guard_set (t.id);
+      ok = read_faces (t.path, det, rec, faces);
+      guard_set (0);
+
+      sqlite3_bind_int64 (del, 1, t.id);
+      sqlite3_step (del);
+      sqlite3_reset (del);
+      for (const Face &f : faces) {
+         sqlite3_bind_int64 (ins, 1, t.id);
+         sqlite3_bind_int (ins, 2, f.x);
+         sqlite3_bind_int (ins, 3, f.y);
+         sqlite3_bind_int (ins, 4, f.w);
+         sqlite3_bind_int (ins, 5, f.h);
+         sqlite3_bind_double (ins, 6, f.score);
+         sqlite3_bind_blob (ins, 7, f.feature.data (), FEATURE_LEN * sizeof (float),
+                            SQLITE_STATIC);
+         sqlite3_step (ins);
+         sqlite3_reset (ins);
+      }
+      sqlite3_bind_int64 (scan, 1, t.id);
+      sqlite3_bind_int64 (scan, 2, t.mtime);
+      sqlite3_bind_int (scan, 3, ok ? (int) faces.size () : -1);
+      sqlite3_step (scan);
+      sqlite3_reset (scan);
+      n_faces += faces.size ();
+      changed = true;
+      done++;
+
+      long long now = now_usec ();
+      if (now - last_commit >= COMMIT_USEC) {
+         d.exec ("COMMIT");
+         d.exec ("BEGIN");
+         last_commit = now;
+      }
+      if (now - last_say >= 1000000LL || done == todo.size ()) {
+         say ("progress %zu %zu", done, todo.size ());
+         last_say = now;
+      }
+   }
+   d.exec ("COMMIT");
+   sqlite3_finalize (del);
+   sqlite3_finalize (ins);
+   sqlite3_finalize (scan);
+   guard_close (dbfile);
+
+   /* the groups again when faces came or went, or when asked (names given) */
+   int groups = -1;
+   if (!quit && (changed || regroup))
+      groups = make_groups (d);
+   if (groups < 0) {
+      sqlite3_stmt *st = d.prep ("SELECT count(DISTINCT cluster) FROM faces");
+      groups = st && sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int (st, 0) : 0;
+      sqlite3_finalize (st);
+   }
+   if (!quit)
+      say ("done %zu %zu %d", done, n_faces, groups);
+   return 0;
+}

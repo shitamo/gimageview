@@ -51,6 +51,13 @@ gst_app_dep   = dependency('gstreamer-app-1.0', version : '>= 1.16', required : 
 have_gst = gst_dep.found() and gst_video_dep.found() and gst_app_dep.found()
 libarchive_dep = dependency('libarchive', version : '>= 3.3', required : get_option('libarchive'))
 sqlite_dep = dependency('sqlite3', version : '>= 3.22', required : get_option('index'))
+# face recognition (gimv-faces): C++ and OpenCV >= 4.5.4 (YuNet, SFace)
+opencv_dep = dependency('', required : false)
+if sqlite_dep.found() and not get_option('faces').disabled()
+  if add_languages('cpp', required : get_option('faces'), native : false)
+    opencv_dep = dependency('opencv4', version : '>= 4.5.4', required : get_option('faces'))
+  endif
+endif
 exif_dep  = dependency('libexif', version : '>= 0.6.16', required : get_option('exif'))
 
 conf = configuration_data()
@@ -78,6 +85,7 @@ conf.set('USE_GTK2', 1)            # kept for any leftover checks; GTK4 is a sup
 conf.set('USE_NORMAL_PANED', 1)
 conf.set('ENABLE_TREEVIEW', 1)
 conf.set('ENABLE_INDEX', sqlite_dep.found() ? 1 : false)
+conf.set('ENABLE_FACES', opencv_dep.found() ? 1 : false)
 conf.set_quoted('LIBEXECDIR', prefix / get_option('libexecdir') / 'gimageview')
 conf.set('ENABLE_EXIF', exif_dep.found() ? 1 : false)
 conf.set('ENABLE_SPLASH', get_option('splash') ? 1 : false)

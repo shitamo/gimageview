@@ -42,6 +42,39 @@
    "  file_id INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE," \
    "  mtime   INTEGER NOT NULL);"
 
+/*
+ * faces (version 3), made by gimv-faces for the folders chosen for it:
+ * face_scans: the files looked at, with the mtime then (read again when it
+ *        changes) and the faces found (-1: gimv-faces died reading it).
+ * faces: one row for each face.  x, y, w, h in the pixels of the image as
+ *        shown (EXIF orientation applied); feature: 128 floats (SFace,
+ *        L2-normalized, native byte order).
+ *        person_id: named by a person; guess: the person it looks like;
+ *        cluster: a group of unnamed faces that look alike (NULL: alone).
+ * persons: the names given to faces.
+ */
+#define SCHEMA_V3 \
+   "CREATE TABLE persons (" \
+   "  id   INTEGER PRIMARY KEY," \
+   "  name TEXT NOT NULL UNIQUE);" \
+   "CREATE TABLE face_scans (" \
+   "  file_id INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE," \
+   "  mtime   INTEGER NOT NULL," \
+   "  n       INTEGER NOT NULL);" \
+   "CREATE TABLE faces (" \
+   "  id        INTEGER PRIMARY KEY," \
+   "  file_id   INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE," \
+   "  x INTEGER NOT NULL, y INTEGER NOT NULL," \
+   "  w INTEGER NOT NULL, h INTEGER NOT NULL," \
+   "  score     REAL NOT NULL," \
+   "  feature   BLOB NOT NULL," \
+   "  person_id INTEGER REFERENCES persons(id) ON DELETE SET NULL," \
+   "  guess     INTEGER REFERENCES persons(id) ON DELETE SET NULL," \
+   "  cluster   INTEGER);" \
+   "CREATE INDEX faces_file ON faces(file_id);" \
+   "CREATE INDEX faces_person ON faces(person_id);" \
+   "CREATE INDEX faces_cluster ON faces(cluster);"
+
 static const gchar *schema =
    "CREATE TABLE dirs ("
    "  id      INTEGER PRIMARY KEY,"
@@ -63,6 +96,7 @@ static const gchar *schema =
    "CREATE INDEX files_date ON files(date);"
    "CREATE INDEX files_stage ON files(stage);"
    SCHEMA_V2
+   SCHEMA_V3
    "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR ";";
 
 
@@ -150,11 +184,14 @@ open_rw (const gchar *path, sqlite3 **dbp, gchar **errmsg, gboolean retry)
       sqlite3_exec (db, "PRAGMA journal_mode = WAL", NULL, NULL, NULL);
       if (sqlite3_exec (db, schema, NULL, NULL, NULL) != SQLITE_OK)
          goto broken;
-   } else if (v == 1) {
-      /* version 1 -> 2: only new tables */
-      if (sqlite3_exec (db, "BEGIN;" SCHEMA_V2
-                            "PRAGMA user_version = 2; COMMIT;",
-                        NULL, NULL, NULL) != SQLITE_OK)
+   } else if (v == 1 || v == 2) {
+      /* older versions: only new tables */
+      gchar *sql = g_strconcat ("BEGIN;", v == 1 ? SCHEMA_V2 : "", SCHEMA_V3,
+                                "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR
+                                "; COMMIT;", NULL);
+      gint r = sqlite3_exec (db, sql, NULL, NULL, NULL);
+      g_free (sql);
+      if (r != SQLITE_OK)
          goto broken;
    } else if (v != GIMV_INDEX_DB_VERSION || !quick_check (db)) {
       /* another version or damaged: the index can always be rebuilt from
