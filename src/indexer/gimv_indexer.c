@@ -21,8 +21,12 @@
  * Messages on stdout:
  *   hello <version>
  *   busy                    another indexer already owns the database
- *   stage <n> start [<files to do>]
- *   progress <n> <dirs> <files>
+ *   stage 1 start <images last time>
+ *   stage 2 start <to do> <images> <why>   why: "new" (new and changed
+ *                           images), "auto-tags" or "date-rule" (every image
+ *                           read again for new rules)
+ *   stage 3 start
+ *   progress <n> <dirs> <files>[\t<directory stage 1 is in>]
  *   stage <n> done <dirs> <files> <added> <changed> <removed>
  *   tags-updated            tags changed after a "tags" command
  *   changed                 files changed while watching (inotify)
@@ -132,6 +136,7 @@ typedef struct Indexer_Tag
    gint         log_keep;
    gboolean     full;          /* stat every file, not only changed dirs */
    guint        auto_kinds;    /* AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE */
+   const gchar *cur_dir;       /* the directory stage 1 is in */
    gint         guard_fd;      /* the image stage 2 is reading (INDEX.db.reading) */
    gchar       *guard_path;
    GString     *cmdbuf;
@@ -297,7 +302,10 @@ maybe_commit (Indexer *ix, gboolean force)
       ix->last_commit = now;
    }
    if (force || now - ix->last_progress >= PROGRESS_INTERVAL_USEC) {
-      say ("progress %d %u %u", ix->stage, ix->n_dirs, ix->n_files);
+      if (ix->stage == 1 && ix->cur_dir)
+         say ("progress %d %u %u\t%s", ix->stage, ix->n_dirs, ix->n_files, ix->cur_dir);
+      else
+         say ("progress %d %u %u", ix->stage, ix->n_dirs, ix->n_files);
       ix->last_progress = now;
    }
 }
@@ -760,6 +768,7 @@ scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
 
    if (ix->quit) return;
    if (lstat (path, &sb) < 0 || !S_ISDIR (sb.st_mode)) return;
+   ix->cur_dir = path;
    /* stay on one filesystem below a root */
    if (dev && sb.st_dev != dev) return;
 
@@ -908,21 +917,23 @@ run_stage1 (Indexer *ix)
 
    ix->stage = 1;
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   ix->cur_dir = NULL;
    update_date_max ();
-   say ("stage 1 start");
-
-   exec (ix, "BEGIN");
-   ix->last_commit = ix->last_progress = g_get_monotonic_time ();
-
-   if (ix->first_run) {
+   {
+      /* the images found last time: about how many this pass will see */
       sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files");
       before = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int64 (st, 0) : 0;
       sqlite3_finalize (st);
    }
+   say ("stage 1 start %" G_GINT64_FORMAT, before);
+
+   exec (ix, "BEGIN");
+   ix->last_commit = ix->last_progress = g_get_monotonic_time ();
 
    drop_old_roots (ix);
    for (i = 0; ix->roots[i] && !ix->quit; i++)
       scan_dir (ix, ix->roots[i], 0, 0);
+   ix->cur_dir = NULL;
 
    exec (ix, "COMMIT");
    if (!ix->quit)
@@ -1094,6 +1105,16 @@ filename_date (const gchar *name)
  *  indexer dies on an image, the next start finds the id there, gives that
  *  image its stage 2 without reading it, and says "skipped\t<path>".
  ******************************************************************************/
+
+static gint64
+rows_left (Indexer *ix)
+{
+   sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files WHERE stage < 2");
+   gint64 n = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int64 (st, 0) : 0;
+   sqlite3_finalize (st);
+   return n;
+}
+
 
 static void
 guard_set (Indexer *ix, gint64 id)
@@ -1421,8 +1442,10 @@ auto_tags_update (Indexer *ix)
    added = ix->auto_kinds & ~had;
    if (added & AUTO_FOLDER)
       auto_folder_all (ix);
-   if (added & (AUTO_CAMERA | AUTO_SHAPE))
+   if (added & (AUTO_CAMERA | AUTO_SHAPE)) {
       exec (ix, "UPDATE files SET stage = 1");
+      exec (ix, "INSERT OR REPLACE INTO meta VALUES ('reread', 'auto-tags')");
+   }
 
    exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
    exec (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_rule', '" AUTO_RULE "')");
@@ -1458,8 +1481,19 @@ run_stage2 (Indexer *ix)
       /* the total is known here: the files stage 1 has found */
       sqlite3_stmt *st = prep (ix, "SELECT count(*) FROM files WHERE stage < 2");
       guint todo = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int (st, 0) : 0;
+      guint total = 0;
+      gchar *why = NULL;
       sqlite3_finalize (st);
-      say ("stage 2 start %u", todo);
+      st = prep (ix, "SELECT count(*) FROM files");
+      if (sqlite3_step (st) == SQLITE_ROW) total = sqlite3_column_int (st, 0);
+      sqlite3_finalize (st);
+      /* every image read again, and why ("new": the new and changed ones) */
+      st = prep (ix, "SELECT value FROM meta WHERE key = 'reread'");
+      if (sqlite3_step (st) == SQLITE_ROW && sqlite3_column_text (st, 0))
+         why = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
+      sqlite3_finalize (st);
+      say ("stage 2 start %u %u %s", todo, total, why ? why : "new");
+      g_free (why);
    }
 
    /* in directory order, so that the disk is read in one sweep */
@@ -1557,6 +1591,8 @@ run_stage2 (Indexer *ix)
    }
 
    guard_set (ix, 0);
+   if (!ix->quit && more == FALSE && rows_left (ix) == 0)
+      exec (ix, "DELETE FROM meta WHERE key = 'reread'");
    /* tags no file has any more (the folder of a moved image, ...) */
    if (!ix->quit)
       exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
@@ -2295,11 +2331,28 @@ open_db (Indexer *ix, const gchar *dbfile)
       if (!current) {
          exec (ix, "UPDATE files SET stage = 1 WHERE date IS NULL");
          exec (ix, "INSERT OR REPLACE INTO meta VALUES ('date_rule', '2')");
+         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('reread', 'date-rule')");
       }
    }
    {
       /* the tags put by rules */
       auto_tags_update (ix);
+   }
+   {
+      /* once: a database in the middle of reading every image again for the
+       * automatic tags (made before 'reread' was kept) says so */
+      sqlite3_stmt *st = prep (ix, "SELECT 1 FROM meta WHERE key = 'reread_checked'");
+      gboolean checked = sqlite3_step (st) == SQLITE_ROW;
+      sqlite3_finalize (st);
+      if (!checked) {
+         gint64 left = rows_left (ix), total = 0;
+         st = prep (ix, "SELECT count(*) FROM files");
+         if (sqlite3_step (st) == SQLITE_ROW) total = sqlite3_column_int64 (st, 0);
+         sqlite3_finalize (st);
+         if (total > 0 && left * 4 > total)
+            exec (ix, "INSERT OR IGNORE INTO meta VALUES ('reread', 'auto-tags')");
+         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('reread_checked', '1')");
+      }
    }
 
    return TRUE;

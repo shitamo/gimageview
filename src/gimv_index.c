@@ -45,7 +45,14 @@ static struct {
    gint              stage;
    guint             n_dirs, n_files;
    guint             todo, done;      /* stage 2 */
+   guint             prev_total;      /* stage 1: the images last time */
+   guint             total;           /* stage 2: the images in the index */
+   gchar            *why;             /* stage 2: "new", "auto-tags", ... */
+   gchar            *cur_dir;         /* stage 1 */
+   gint64            stage_start;     /* monotonic */
+   gchar            *stage_clock;     /* "21:05" */
    gchar            *status;
+   gchar            *tooltip;
 
    gchar            *dbfile;
    sqlite3          *db;
@@ -63,48 +70,124 @@ static struct {
  *  status
  ******************************************************************************/
 
+/* "about 3 hours" for the rest of stage 2, from the speed so far; NULL in
+ * the first minute (not known yet) */
+static gchar *
+time_left (gboolean short_form)
+{
+   gint64 spent = g_get_monotonic_time () - ix.stage_start;
+   gdouble rest;
+   guint left = ix.todo > ix.done ? ix.todo - ix.done : 0;
+
+   if (spent < 60 * G_USEC_PER_SEC || ix.done < 100 || !left) return NULL;
+   rest = (gdouble) spent / G_USEC_PER_SEC * left / ix.done;
+   if (rest >= 5400)
+      return g_strdup_printf (short_form ? _("%d h left") : _("about %d hours"),
+                              (gint) (rest / 3600 + 0.5));
+   return g_strdup_printf (short_form ? _("%d min left") : _("about %d minutes"),
+                           MAX (1, (gint) (rest / 60 + 0.5)));
+}
+
+
+/* stage 2 counts against all the images when it reads many of them */
+#define STAGE2_WHOLE_MIN 1000
+
 static void
 update_status (void)
 {
    GList *node;
+   GString *tip = g_string_new (NULL);
 
    g_free (ix.status);
    switch (ix.state) {
    case GIMV_INDEX_STATE_STARTING:
       ix.status = g_strdup (_("Index: starting"));
+      g_string_append (tip, _("The indexer is starting."));
       break;
    case GIMV_INDEX_STATE_SCANNING:
-      if (ix.stage == 2)
-         ix.status = g_strdup_printf (_("Index: reading image details %'u/%'u"),
-                                      ix.done, ix.todo);
-      else if (ix.stage == 3)
-         ix.status = g_strdup_printf (_("Index: reading tags %'u"), ix.done);
-      else
-         /* the total is not known in advance: just count up */
-         ix.status = g_strdup_printf (_("Index: scanning %'u folders, %'u images"),
-                                      ix.n_dirs, ix.n_files);
+      if (ix.stage == 2) {
+         gboolean whole = ix.todo >= STAGE2_WHOLE_MIN && ix.total >= ix.todo;
+         gchar *left = time_left (TRUE), *left_long = time_left (FALSE);
+
+         if (whole) {
+            guint done = ix.total - ix.todo + MIN (ix.done, ix.todo);
+            gint pct = ix.total ? (gint) ((guint64) done * 100 / ix.total) : 0;
+            ix.status = left ? g_strdup_printf (_("Index: reading %d%% (%s)"), pct, left)
+                             : g_strdup_printf (_("Index: reading %d%%"), pct);
+            g_string_append_printf (tip, _("Reading the images for their date, camera and shape: "
+                                           "%'u of %'u images done (%d%%)."), done, ix.total, pct);
+         } else {
+            ix.status = g_strdup_printf (_("Index: reading %'u/%'u"), ix.done, ix.todo);
+            g_string_append_printf (tip, _("Reading the new and changed images for their date, "
+                                           "camera and shape: %'u of %'u."), ix.done, ix.todo);
+         }
+         g_string_append_printf (tip, _("\nThis time: %'u images since %s."),
+                                 ix.done, ix.stage_clock ? ix.stage_clock : "");
+         if (left_long)
+            g_string_append_printf (tip, _("\nTime left: %s."), left_long);
+         if (ix.why && !strcmp (ix.why, "auto-tags"))
+            g_string_append (tip, _("\nWhy: every image is read again for the automatic tags "
+                                    "(new rules, or a kind turned on in the preferences)."));
+         else if (ix.why && !strcmp (ix.why, "date-rule"))
+            g_string_append (tip, _("\nWhy: the images without a date are read again for new "
+                                    "rules of the dates."));
+         g_free (left);
+         g_free (left_long);
+      } else if (ix.stage == 3) {
+         ix.status = g_strdup_printf (_("Index: tags %'u"), ix.done);
+         g_string_append_printf (tip, _("Reading the tags from the comment files: %'u."), ix.done);
+      } else if (ix.prev_total > 0) {
+         /* last time's count tells about how far it is */
+         gint pct = MIN (99, (gint) ((guint64) ix.n_files * 100 / ix.prev_total));
+         ix.status = g_strdup_printf (_("Index: checking %d%%"), pct);
+         g_string_append_printf (tip, _("Looking for added, changed and removed images: "
+                                        "%'u folders, %'u of about %'u images."),
+                                 ix.n_dirs, ix.n_files, ix.prev_total);
+      } else {
+         /* the first time: the total is not known, just count up */
+         ix.status = g_strdup_printf (_("Index: finding %'u"), ix.n_files);
+         g_string_append_printf (tip, _("Finding the images (the first time: how many there "
+                                        "are is not known yet): %'u folders, %'u images."),
+                                 ix.n_dirs, ix.n_files);
+      }
+      if (ix.stage == 1 && ix.cur_dir)
+         g_string_append_printf (tip, _("\nNow in: %s"), ix.cur_dir);
       break;
    case GIMV_INDEX_STATE_IDLE:
       ix.status = g_strdup_printf (_("Index: %'u images"), ix.n_files);
+      g_string_append_printf (tip, _("%'u images are in the index; changes are taken in "
+                                     "while GImageView runs."), ix.n_files);
       break;
    case GIMV_INDEX_STATE_BUSY:
-      ix.status = g_strdup (_("Index: used by another GImageView"));
+      ix.status = g_strdup (_("Index: in use"));
+      g_string_append (tip, _("Another GImageView is making the index."));
       break;
    case GIMV_INDEX_STATE_ERROR:
       ix.status = g_strdup (_("Index: error"));
+      g_string_append (tip, _("The indexer has stopped. The notice icon may tell why."));
       break;
    case GIMV_INDEX_STATE_OFF:
    default:
       ix.status = g_strdup ("");
       break;
    }
+   g_free (ix.tooltip);
+   ix.tooltip = g_string_free (tip, FALSE);
 
    for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node)) {
       GimvThumbWin *tw = node->data;
       if (!tw || !tw->index_label) continue;
       gtk_label_set_text (GTK_LABEL (tw->index_label), ix.status);
+      gtk_widget_set_tooltip_text (tw->index_label, *ix.tooltip ? ix.tooltip : NULL);
       gtk_widget_set_visible (tw->index_label, ix.state != GIMV_INDEX_STATE_OFF);
    }
+}
+
+
+const gchar *
+gimv_index_get_status_tooltip (void)
+{
+   return ix.tooltip && *ix.tooltip ? ix.tooltip : NULL;
 }
 
 
@@ -281,6 +364,13 @@ handle_line (const gchar *line)
       return;
    }
 
+   /* "progress 1 <dirs> <files>\t<directory>" */
+   if (g_str_has_prefix (line, "progress 1 ") && strchr (line, '\t')) {
+      g_free (ix.cur_dir);
+      ix.cur_dir = g_strdup (strchr (line, '\t') + 1);
+      *strchr ((gchar *) line, '\t') = '\0';
+   }
+
    v = g_strsplit (line, " ", -1);
    n = g_strv_length (v);
 
@@ -292,13 +382,23 @@ handle_line (const gchar *line)
    } else if (!strcmp (v[0], "stage") && n >= 3) {
       ix.stage = atoi (v[1]);
       if (!strcmp (v[2], "start")) {
+         GDateTime *now = g_date_time_new_now_local ();
          ix.state = GIMV_INDEX_STATE_SCANNING;
+         ix.stage_start = g_get_monotonic_time ();
+         g_free (ix.stage_clock);
+         ix.stage_clock = g_date_time_format (now, "%H:%M");
+         g_date_time_unref (now);
          if (ix.stage == 1) {
             ix.n_dirs = ix.n_files = 0;
+            ix.prev_total = n >= 4 ? strtoul (v[3], NULL, 10) : 0;
+            g_clear_pointer (&ix.cur_dir, g_free);
          } else if (ix.stage == 3) {
             ix.done = 0;
          } else {
-            ix.todo = n >= 4 ? strtoul (v[3], NULL, 10) : 0;
+            ix.todo  = n >= 4 ? strtoul (v[3], NULL, 10) : 0;
+            ix.total = n >= 5 ? strtoul (v[4], NULL, 10) : 0;
+            g_free (ix.why);
+            ix.why = n >= 6 ? g_strdup (v[5]) : NULL;
             ix.done = 0;
          }
       } else if (!strcmp (v[2], "done") && n >= 5) {

@@ -764,6 +764,8 @@ gimv_thumb_win_init (GimvThumbWin *tw)
 #ifdef ENABLE_INDEX
    tw->index_label = gtk_label_new (gimv_index_get_status_text ());
    gtk_widget_set_name (tw->index_label, "IndexStatus");
+   /* short; the details (and why) in the tooltip */
+   gtk_widget_set_tooltip_text (tw->index_label, gimv_index_get_status_tooltip ());
    gtk_widget_set_margin_start (tw->index_label, 4);
    gtk_widget_set_margin_end (tw->index_label, 4);
    gimv_box_pack_start (GTK_BOX (hbox), tw->index_label, FALSE, FALSE, 0);

@@ -5383,3 +5383,98 @@ msgstr "シグナル %d"
 #, c-format
 msgid "exit status %d"
 msgstr "終了コード %d"
+
+#: src/gimv_index.c
+#, c-format
+msgid "%d h left"
+msgstr "残り%d時間"
+
+#, c-format
+msgid "about %d hours"
+msgstr "約 %d 時間"
+
+#, c-format
+msgid "%d min left"
+msgstr "残り%d分"
+
+#, c-format
+msgid "about %d minutes"
+msgstr "約 %d 分"
+
+msgid "The indexer is starting."
+msgstr "索引プロセスを起動しています。"
+
+#, c-format
+msgid "Index: reading %d%% (%s)"
+msgstr "索引: 読込 %d%% (%s)"
+
+#, c-format
+msgid "Index: reading %d%%"
+msgstr "索引: 読込 %d%%"
+
+#, c-format
+msgid "Reading the images for their date, camera and shape: %'u of %'u images done (%d%%)."
+msgstr "画像の撮影日時・カメラ・形を読み込んでいます: %2$'u 枚中 %1$'u 枚が済み (%3$d%%)。"
+
+#, c-format
+msgid "Index: reading %'u/%'u"
+msgstr "索引: 読込 %'u/%'u"
+
+#, c-format
+msgid "Reading the new and changed images for their date, camera and shape: %'u of %'u."
+msgstr "新しい画像・変わった画像の撮影日時・カメラ・形を読み込んでいます: %'u / %'u。"
+
+#, c-format
+msgid "\nThis time: %'u images since %s."
+msgstr "\n今回: %2$s から %1$'u 枚。"
+
+#, c-format
+msgid "\nTime left: %s."
+msgstr "\n残り: %s。"
+
+msgid "\nWhy: every image is read again for the automatic tags (new rules, or a kind turned on in the preferences)."
+msgstr "\n理由: 自動タグのため全部の画像を読み直しています (規則が新しくなったか、設定で種類をオンにしたため)。"
+
+msgid "\nWhy: the images without a date are read again for new rules of the dates."
+msgstr "\n理由: 日付の規則が変わったため、日付のない画像を読み直しています。"
+
+#, c-format
+msgid "Index: tags %'u"
+msgstr "索引: タグ %'u"
+
+#, c-format
+msgid "Reading the tags from the comment files: %'u."
+msgstr "コメントファイルからタグを読み込んでいます: %'u 件。"
+
+#, c-format
+msgid "Index: checking %d%%"
+msgstr "索引: 確認 %d%%"
+
+#, c-format
+msgid "Looking for added, changed and removed images: %'u folders, %'u of about %'u images."
+msgstr "増えた・変わった・消えた画像を探しています: %1$'u フォルダ、約 %3$'u 枚中 %2$'u 枚。"
+
+#, c-format
+msgid "Index: finding %'u"
+msgstr "索引: 探索 %'u"
+
+#, c-format
+msgid "Finding the images (the first time: how many there are is not known yet): %'u folders, %'u images."
+msgstr "画像を探しています (初回なので全部で何枚あるかはまだ分かりません): %'u フォルダ、%'u 枚。"
+
+#, c-format
+msgid "\nNow in: %s"
+msgstr "\n今のフォルダ: %s"
+
+#, c-format
+msgid "%'u images are in the index; changes are taken in while GImageView runs."
+msgstr "索引には %'u 枚あります。GImageView の動作中の変更は随時取り込みます。"
+
+msgid "Index: in use"
+msgstr "索引: 使用中"
+
+msgid "Another GImageView is making the index."
+msgstr "別の GImageView が索引を作っています。"
+
+msgid "The indexer has stopped. The notice icon may tell why."
+msgstr "索引プロセスが止まっています。理由はお知らせアイコンに出ていることがあります。"

@@ -35,6 +35,7 @@ void            gimv_index_rescan           (void);
 
 GimvIndexState  gimv_index_get_state        (void);
 const gchar    *gimv_index_get_status_text  (void);
+const gchar    *gimv_index_get_status_tooltip (void);
 
 /* read-only connection to the database, NULL when there is none yet.
  * Owned by gimv_index, don't close it. */
