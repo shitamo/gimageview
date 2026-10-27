@@ -248,7 +248,6 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
          gimv_index_tab_close (tw, GIMV_INDEX_TAB_DATE);
          gimv_index_tab_close (tw, GIMV_INDEX_TAB_TAG);
       }
-      gimv_index_tab_update_menu (tw);
    }
 
    return FALSE;

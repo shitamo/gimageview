@@ -27,8 +27,4 @@ void       gimv_index_tab_close       (GimvThumbWin     *tw,
 /* the page widget of the tab, NULL when it is not open */
 GtkWidget *gimv_index_tab_get_page    (GimvThumbWin     *tw,
                                        GimvIndexTabType  type);
-/* the "Tab (Date)" / "Tab (Tag)" menu items: checked when open,
- * insensitive while the index is off */
-void       gimv_index_tab_update_menu (GimvThumbWin     *tw);
-
 #endif /* __GIMV_INDEX_VIEW_H__ */

@@ -103,9 +103,7 @@ typedef enum {
    TAB,
    STATUSBAR,
    DIR_TOOLBAR,
-   PREVIEW_TAB,
-   INDEX_DATE_TAB,
-   INDEX_TAG_TAB
+   PREVIEW_TAB
 } ShowItem;
 
 
@@ -526,10 +524,6 @@ GimvMenuEntry gimv_thumb_win_view_items [] =
    {N_("/St_atusbar"),            "V",          cb_toggle_show,       STATUSBAR,      "<CheckItem>"},
    {N_("/_Tab"),                   "B",          cb_toggle_show,       TAB,            "<CheckItem>"},
    {N_("/Ta_b (Preview)"),         "<shift>Z",   cb_toggle_show,       PREVIEW_TAB,    "<CheckItem>"},
-#ifdef ENABLE_INDEX
-   {N_("/Tab (_Date)"),            NULL,         cb_toggle_show,       INDEX_DATE_TAB, "<CheckItem>"},
-   {N_("/Tab (Ta_g)"),             NULL,         cb_toggle_show,       INDEX_TAG_TAB,  "<CheckItem>"},
-#endif
    {N_("/_Player"),                NULL,         NULL,                 0,              "<Branch>"},  
    {N_("/_Player/_Show"),          NULL,         cb_switch_player,     GimvImageViewPlayerVisibleShow, "<RadioItem>"},  
    {N_("/_Player/_Hide"),          NULL,         cb_switch_player,     GimvImageViewPlayerVisibleHide, "/Player/Show"},  
@@ -816,7 +810,6 @@ gimv_thumb_win_open_window (void)
       gimv_index_tab_open (tw, GIMV_INDEX_TAB_DATE);
       gimv_index_tab_open (tw, GIMV_INDEX_TAB_TAG);
    }
-   gimv_index_tab_update_menu (tw);
 #endif
 
    return tw;
@@ -2021,8 +2014,6 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
    tw->menuitem.tab         = gimv_menu_get_item (ifactory, "/Tab");
    tw->menuitem.preview_tab = gimv_menu_get_item (ifactory, "/Tab (Preview)");
 #ifdef ENABLE_INDEX
-   tw->menuitem.index_date_tab = gimv_menu_get_item (ifactory, "/Tab (Date)");
-   tw->menuitem.index_tag_tab  = gimv_menu_get_item (ifactory, "/Tab (Tag)");
 #endif
    tw->menuitem.fullscr     = NULL;   /* "/Fullscreen" is disabled */
 
@@ -3369,32 +3360,6 @@ cb_toggle_show (GimvThumbWin *tw, ShowItem sitem, GimvMenuItem *widget)
          dirview_hide_toolbar (tw->dv);
       }
       return;
-#ifdef ENABLE_INDEX
-   case INDEX_DATE_TAB:
-   case INDEX_TAG_TAB:
-   {
-      GimvIndexTabType type = sitem == INDEX_TAG_TAB ? GIMV_INDEX_TAB_TAG
-                                                     : GIMV_INDEX_TAB_DATE;
-      if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
-         GtkWidget *page;
-         /* the menu follows the tab too (set_active): only a tab opened
-            here now is shown */
-         gboolean was_open = gimv_index_tab_get_page (tw, type) != NULL;
-         gimv_index_tab_open (tw, type);
-         /* opened from the menu: show it, with the directory view it is in */
-         page = gimv_index_tab_get_page (tw, type);
-         if (page && tw->side_notebook && !was_open) {
-            if (!tw->show_dirview)
-               gimv_thumb_win_open_dirview (tw);
-            gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->side_notebook),
-                                           gtk_notebook_page_num (GTK_NOTEBOOK (tw->side_notebook), page));
-         }
-      } else {
-         gimv_index_tab_close (tw, type);
-      }
-   }
-      return;
-#endif
    case PREVIEW_TAB:
       if (tw->cv)
          gtk_notebook_set_show_tabs (GTK_NOTEBOOK(tw->cv->notebook), 
@@ -4562,13 +4527,6 @@ gimv_thumb_win_set_sensitive (GimvThumbWin *tw, GimvThumbwinStatus status)
    menu_entries_set_sensitive (tw->view_menu, gimv_thumb_win_view_items,
                                NULL, gimv_thumb_win_status[status][3]);
    menu_items_set_sensitive (tw->comp_menu, gimv_thumb_win_status[status][3]);
-#ifdef ENABLE_INDEX
-   /* "Tab (Date)" stays insensitive while the index is off */
-   if (tw->menuitem.index_date_tab && !gimv_index_is_configured ()) {
-      gimv_menu_item_set_sensitive (GIMV_MENU_ITEM (tw->menuitem.index_date_tab), FALSE);
-      gimv_menu_item_set_sensitive (GIMV_MENU_ITEM (tw->menuitem.index_tag_tab), FALSE);
-   }
-#endif
    /* the items of the sort sub menu are handled above (4 - 15) */
 
    /* an insensitive menu bar disabled all its accelerators in GTK2 */

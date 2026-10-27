@@ -957,41 +957,10 @@ tab_title (GimvIndexTabType type)
 }
 
 
-static GimvMenuItem *
-tab_menu_item (GimvThumbWin *tw, GimvIndexTabType type)
-{
-   return type == GIMV_INDEX_TAB_TAG ? tw->menuitem.index_tag_tab
-                                     : tw->menuitem.index_date_tab;
-}
-
-
 GtkWidget *
 gimv_index_tab_get_page (GimvThumbWin *tw, GimvIndexTabType type)
 {
    return g_object_get_data (G_OBJECT (tw), tab_keys[type]);
-}
-
-
-static void
-sync_menu (GimvThumbWin *tw)
-{
-   gint type;
-
-   for (type = GIMV_INDEX_TAB_DATE; type <= GIMV_INDEX_TAB_TAG; type++) {
-      GimvMenuItem *item = tab_menu_item (tw, type);
-      if (!item) continue;
-      gimv_menu_item_set_active (item, gimv_index_tab_get_page (tw, type) != NULL);
-      /* nothing to show while the index is off */
-      gimv_menu_item_set_sensitive (item, gimv_index_is_configured ());
-   }
-}
-
-
-void
-gimv_index_tab_update_menu (GimvThumbWin *tw)
-{
-   g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
-   sync_menu (tw);
 }
 
 
@@ -1042,7 +1011,6 @@ gimv_index_tab_open (GimvThumbWin *tw, GimvIndexTabType type)
 
    g_object_set_data (G_OBJECT (tw), tab_keys[type], page);
    g_signal_connect (page, "destroy", G_CALLBACK (cb_page_destroy), tw);
-   sync_menu (tw);
    gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
 }
 
@@ -1062,6 +1030,5 @@ gimv_index_tab_close (GimvThumbWin *tw, GimvIndexTabType type)
          ? gtk_notebook_page_num (GTK_NOTEBOOK (tw->side_notebook), page) : -1;
    if (num >= 0)
       gtk_notebook_remove_page (GTK_NOTEBOOK (tw->side_notebook), num);
-   sync_menu (tw);
    gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
 }

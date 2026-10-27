@@ -156,8 +156,6 @@ struct GimvThumbWin_Tag
       GimvMenuItem *statusbar;
       GimvMenuItem *tab;
       GimvMenuItem *preview_tab;
-      GimvMenuItem *index_date_tab;   /* NULL without the image index */
-      GimvMenuItem *index_tag_tab;
       GimvMenuItem *fullscr;
 
       GimvMenuItem *layout[6];
