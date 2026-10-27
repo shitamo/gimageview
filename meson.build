@@ -51,11 +51,12 @@ gst_app_dep   = dependency('gstreamer-app-1.0', version : '>= 1.16', required : 
 have_gst = gst_dep.found() and gst_video_dep.found() and gst_app_dep.found()
 libarchive_dep = dependency('libarchive', version : '>= 3.3', required : get_option('libarchive'))
 sqlite_dep = dependency('sqlite3', version : '>= 3.22', required : get_option('index'))
-# face recognition (gimv-faces): C++ and OpenCV >= 4.5.4 (YuNet, SFace)
+# face recognition (gimv-faces): C++ and OpenCV >= 4.8 (FaceDetectorYN and
+# FaceRecognizerSF came in 4.5.4, but the current YuNet model needs 4.8)
 opencv_dep = dependency('', required : false)
 if sqlite_dep.found() and not get_option('faces').disabled()
   if add_languages('cpp', required : get_option('faces'), native : false)
-    opencv_dep = dependency('opencv4', version : '>= 4.5.4', required : get_option('faces'))
+    opencv_dep = dependency('opencv4', version : '>= 4.8', required : get_option('faces'))
   endif
 endif
 exif_dep  = dependency('libexif', version : '>= 0.6.16', required : get_option('exif'))

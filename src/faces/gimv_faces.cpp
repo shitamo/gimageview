@@ -38,6 +38,7 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -62,7 +63,7 @@
 /* the long side of the image the faces are looked for in */
 #define DETECT_SIZE       1600
 /* faces smaller than this (pixels in that image) are too blurred to tell */
-#define MIN_FACE          40
+#define MIN_FACE          32
 #define SCORE_MIN         0.85f
 #define FEATURE_LEN       128
 /* cosine similarity: SFace's own threshold for "the same person" is 0.363;
@@ -233,27 +234,47 @@ list_files (Db &d, const std::vector<std::string> &dirs,
    sqlite3_stmt *st;
    std::vector<long long> gone;
 
-   st = d.prep ("SELECT f.id, f.mtime, d.path, f.name, s.mtime "
-                "FROM files f JOIN dirs d ON d.id = f.dir_id "
-                "LEFT JOIN face_scans s ON s.file_id = f.id");
-   total = 0;
-   while (st && sqlite3_step (st) == SQLITE_ROW) {
-      const char *dir  = (const char *) sqlite3_column_text (st, 2);
-      const char *name = (const char *) sqlite3_column_text (st, 3);
-      bool scanned = sqlite3_column_type (st, 4) != SQLITE_NULL;
+   std::set<long long> seen;
 
-      if (!dir || !name) continue;
-      if (!under (dir, dirs) || !wanted_ext (name)) {
-         if (scanned) gone.push_back (sqlite3_column_int64 (st, 0));
-         continue;
+   /* through the index of dirs.path: only the rows of these folders */
+   st = d.prep ("SELECT f.id, f.mtime, d.path, f.name, s.mtime "
+                "FROM dirs d JOIN files f ON f.dir_id = d.id "
+                "LEFT JOIN face_scans s ON s.file_id = f.id "
+                "WHERE d.path = ?1 OR (d.path >= ?2 AND d.path < ?3)");
+   total = 0;
+   for (const auto &dir : dirs) {
+      std::string below = dir + "/", after = dir + "0";   /* '0' follows '/' */
+      sqlite3_bind_text (st, 1, dir.c_str (), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text (st, 2, below.c_str (), -1, SQLITE_TRANSIENT);
+      sqlite3_bind_text (st, 3, after.c_str (), -1, SQLITE_TRANSIENT);
+      while (st && sqlite3_step (st) == SQLITE_ROW) {
+         const char *dpath = (const char *) sqlite3_column_text (st, 2);
+         const char *name  = (const char *) sqlite3_column_text (st, 3);
+         long long id = sqlite3_column_int64 (st, 0);
+         bool scanned = sqlite3_column_type (st, 4) != SQLITE_NULL;
+
+         if (!dpath || !name || !wanted_ext (name)) continue;
+         if (!seen.insert (id).second) continue;   /* folders inside others */
+         total++;
+         if (scanned && sqlite3_column_int64 (st, 4) == sqlite3_column_int64 (st, 1))
+            continue;
+         std::string path (dpath);
+         if (path.back () != '/') path += '/';
+         path += name;
+         todo.push_back ({ id, sqlite3_column_int64 (st, 1), path });
       }
-      total++;
-      if (scanned && sqlite3_column_int64 (st, 4) == sqlite3_column_int64 (st, 1))
-         continue;
-      std::string path (dir);
-      if (path.back () != '/') path += '/';
-      path += name;
-      todo.push_back ({ sqlite3_column_int64 (st, 0), sqlite3_column_int64 (st, 1), path });
+      sqlite3_reset (st);
+   }
+   sqlite3_finalize (st);
+
+   /* the files looked at before that are no longer in the folders */
+   st = d.prep ("SELECT s.file_id, d.path, f.name FROM face_scans s "
+                "JOIN files f ON f.id = s.file_id JOIN dirs d ON d.id = f.dir_id");
+   while (st && sqlite3_step (st) == SQLITE_ROW) {
+      const char *dpath = (const char *) sqlite3_column_text (st, 1);
+      const char *name  = (const char *) sqlite3_column_text (st, 2);
+      if (!dpath || !name || !under (dpath, dirs) || !wanted_ext (name))
+         gone.push_back (sqlite3_column_int64 (st, 0));
    }
    sqlite3_finalize (st);
 
@@ -344,7 +365,8 @@ normalize (std::vector<float> &v)
 }
 
 
-static bool
+/* 1: read, 0: not an image that can be read, -1: the models fail */
+static int
 read_faces (const std::string &path,
             cv::Ptr<cv::FaceDetectorYN> &det, cv::Ptr<cv::FaceRecognizerSF> &rec,
             std::vector<Face> &out)
@@ -366,12 +388,12 @@ read_faces (const std::string &path,
    try {
       img = cv::imread (path, flags);
    } catch (const cv::Exception &) {
-      return false;
+      return 0;
    }
-   if (img.empty ()) return false;
+   if (img.empty ()) return 0;
    if (flags == cv::IMREAD_REDUCED_COLOR_4) scale = 4.0;
    else if (flags == cv::IMREAD_REDUCED_COLOR_2) scale = 2.0;
-   if (img.cols < MIN_FACE * 2 || img.rows < MIN_FACE * 2) return true;
+   if (img.cols < MIN_FACE * 2 || img.rows < MIN_FACE * 2) return 1;
 
    int longer = std::max (img.cols, img.rows);
    if (longer > DETECT_SIZE) {
@@ -382,11 +404,22 @@ read_faces (const std::string &path,
       small = img;
    }
 
+   /* YuNet wants sides of a multiple of 32: padded at the right and
+    * bottom, which moves nothing (OpenCV 4.8 and later pad by themselves,
+    * this keeps it the same for every version) */
+   cv::Mat padded;
+   int pw = (32 - small.cols % 32) % 32, ph = (32 - small.rows % 32) % 32;
+   if (pw || ph)
+      cv::copyMakeBorder (small, padded, 0, ph, 0, pw, cv::BORDER_CONSTANT, cv::Scalar (0, 0, 0));
+   else
+      padded = small;
+
    try {
-      det->setInputSize (small.size ());
-      det->detect (small, found);
-   } catch (const cv::Exception &) {
-      return false;
+      det->setInputSize (padded.size ());
+      det->detect (padded, found);
+   } catch (const cv::Exception &e) {
+      say ("error finding faces: %s", e.what ());
+      return -1;
    }
 
    for (int i = 0; i < found.rows; i++) {
@@ -396,7 +429,7 @@ read_faces (const std::string &path,
 
       if (score < SCORE_MIN || r[2] < MIN_FACE || r[3] < MIN_FACE) continue;
       try {
-         rec->alignCrop (small, found.row (i), aligned);
+         rec->alignCrop (padded, found.row (i), aligned);
          rec->feature (aligned, feat);
       } catch (const cv::Exception &) {
          continue;
@@ -413,7 +446,58 @@ read_faces (const std::string &path,
       normalize (f.feature);
       out.push_back (std::move (f));
    }
-   return true;
+   return 1;
+}
+
+
+struct Result {
+   const Todo       *todo = nullptr;
+   int               ok = 0;
+   std::vector<Face> faces;
+};
+
+
+static void
+write_results (Db &d, std::vector<Result> &results)
+{
+   if (results.empty ()) return;
+
+   sqlite3_stmt *del  = d.prep ("DELETE FROM faces WHERE file_id = ?");
+   sqlite3_stmt *ins  = d.prep ("INSERT INTO faces (file_id, x, y, w, h, score, feature) "
+                                "VALUES (?, ?, ?, ?, ?, ?, ?)");
+   sqlite3_stmt *scan = d.prep ("INSERT OR REPLACE INTO face_scans (file_id, mtime, n) "
+                                "VALUES (?, ?, ?)");
+
+   d.exec ("BEGIN IMMEDIATE");
+   for (const Result &r : results) {
+      sqlite3_bind_int64 (del, 1, r.todo->id);
+      sqlite3_step (del);
+      sqlite3_reset (del);
+      /* the file may have gone from the index meanwhile: then these fail
+       * (foreign key), which is right */
+      for (const Face &f : r.faces) {
+         sqlite3_bind_int64 (ins, 1, r.todo->id);
+         sqlite3_bind_int (ins, 2, f.x);
+         sqlite3_bind_int (ins, 3, f.y);
+         sqlite3_bind_int (ins, 4, f.w);
+         sqlite3_bind_int (ins, 5, f.h);
+         sqlite3_bind_double (ins, 6, f.score);
+         sqlite3_bind_blob (ins, 7, f.feature.data (), FEATURE_LEN * sizeof (float),
+                            SQLITE_STATIC);
+         sqlite3_step (ins);
+         sqlite3_reset (ins);
+      }
+      sqlite3_bind_int64 (scan, 1, r.todo->id);
+      sqlite3_bind_int64 (scan, 2, r.todo->mtime);
+      sqlite3_bind_int (scan, 3, r.ok > 0 ? (int) r.faces.size () : -1);
+      sqlite3_step (scan);
+      sqlite3_reset (scan);
+   }
+   d.exec ("COMMIT");
+   sqlite3_finalize (del);
+   sqlite3_finalize (ins);
+   sqlite3_finalize (scan);
+   results.clear ();
 }
 
 
@@ -676,55 +760,37 @@ main (int argc, char *argv[])
    list_files (d, dirs, todo, total);
    say ("start %zu %lld", todo.size (), total);
 
-   sqlite3_stmt *del  = d.prep ("DELETE FROM faces WHERE file_id = ?");
-   sqlite3_stmt *ins  = d.prep ("INSERT INTO faces (file_id, x, y, w, h, score, feature) "
-                                "VALUES (?, ?, ?, ?, ?, ?, ?)");
-   sqlite3_stmt *scan = d.prep ("INSERT OR REPLACE INTO face_scans (file_id, mtime, n) "
-                                "VALUES (?, ?, ?)");
    long long last_commit = now_usec (), last_say = 0;
    size_t done = 0, n_faces = 0;
-   bool changed = false;
+   bool changed = false, failed = false;
+   std::vector<Result> pending;
 
-   d.exec ("BEGIN");
    for (const Todo &t : todo) {
-      std::vector<Face> faces;
-      bool ok;
+      Result r;
 
       check_stdin ();
       if (quit) break;
 
       guard_set (t.id);
-      ok = read_faces (t.path, det, rec, faces);
+      r.ok = read_faces (t.path, det, rec, r.faces);
       guard_set (0);
-
-      sqlite3_bind_int64 (del, 1, t.id);
-      sqlite3_step (del);
-      sqlite3_reset (del);
-      for (const Face &f : faces) {
-         sqlite3_bind_int64 (ins, 1, t.id);
-         sqlite3_bind_int (ins, 2, f.x);
-         sqlite3_bind_int (ins, 3, f.y);
-         sqlite3_bind_int (ins, 4, f.w);
-         sqlite3_bind_int (ins, 5, f.h);
-         sqlite3_bind_double (ins, 6, f.score);
-         sqlite3_bind_blob (ins, 7, f.feature.data (), FEATURE_LEN * sizeof (float),
-                            SQLITE_STATIC);
-         sqlite3_step (ins);
-         sqlite3_reset (ins);
+      if (r.ok < 0) {
+         /* not this image's fault: stop, without marking it */
+         quit = true;
+         failed = true;
+         break;
       }
-      sqlite3_bind_int64 (scan, 1, t.id);
-      sqlite3_bind_int64 (scan, 2, t.mtime);
-      sqlite3_bind_int (scan, 3, ok ? (int) faces.size () : -1);
-      sqlite3_step (scan);
-      sqlite3_reset (scan);
-      n_faces += faces.size ();
+      r.todo = &t;
+      n_faces += r.faces.size ();
+      pending.push_back (std::move (r));
       changed = true;
       done++;
 
+      /* written in short transactions, not to keep the indexer waiting
+       * while an image is read */
       long long now = now_usec ();
       if (now - last_commit >= COMMIT_USEC) {
-         d.exec ("COMMIT");
-         d.exec ("BEGIN");
+         write_results (d, pending);
          last_commit = now;
       }
       if (now - last_say >= 1000000LL || done == todo.size ()) {
@@ -732,10 +798,7 @@ main (int argc, char *argv[])
          last_say = now;
       }
    }
-   d.exec ("COMMIT");
-   sqlite3_finalize (del);
-   sqlite3_finalize (ins);
-   sqlite3_finalize (scan);
+   write_results (d, pending);
    guard_close (dbfile);
 
    /* the groups again when faces came or went, or when asked (names given) */
@@ -747,6 +810,7 @@ main (int argc, char *argv[])
       groups = st && sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int (st, 0) : 0;
       sqlite3_finalize (st);
    }
+   if (failed) return 1;
    if (!quit)
       say ("done %zu %zu %d", done, n_faces, groups);
    return 0;

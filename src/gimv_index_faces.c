@@ -250,7 +250,14 @@ handle_line (const gchar *line)
    } else if (!strcmp (v[0], "error")) {
       g_warning ("gimv-faces: %s", line + 6);
       g_free (fx.error);
-      fx.error = g_strdup (line + 6);
+      /* OpenCV's messages are long: the start of the first line */
+      fx.error = g_strndup (line + 6, strcspn (line + 6, "\n"));
+      if (g_utf8_strlen (fx.error, -1) > 100) {
+         gchar *cut = g_utf8_substring (fx.error, 0, 100);
+         g_free (fx.error);
+         fx.error = g_strconcat (cut, "…", NULL);
+         g_free (cut);
+      }
    }
    g_strfreev (v);
 }
