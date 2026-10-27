@@ -5557,3 +5557,133 @@ msgstr ""
 "face_detection_yunet_2023mar.onnx\n"
 "https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/"
 "face_recognition_sface_2021dec.onnx"
+
+#: src/gimv_index_view.c
+msgid "People"
+msgstr "人物"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Maybe (%'d)"
+msgstr "候補 (%'d)"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "%s?"
+msgstr "%s？"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Unnamed groups (%'d)"
+msgstr "名前のないグループ (%'d)"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Group %d (%'d)"
+msgstr "グループ %d (%'d)"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Group %d"
+msgstr "グループ %d"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Other faces (%'d)"
+msgstr "その他の顔 (%'d)"
+
+#: src/gimv_index_view.c
+msgid "Other faces"
+msgstr "その他の顔"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Ignored (%'d)"
+msgstr "無視した顔 (%'d)"
+
+#: src/gimv_index_view.c
+msgid "Ignored faces"
+msgstr "無視した顔"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "%s (People)"
+msgstr "%s (人物)"
+
+#: src/gimv_index_view.c
+msgid "Show the Faces..."
+msgstr "顔を表示..."
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "%s: %'u face"
+msgid_plural "%s: %'u faces"
+msgstr[0] "%s: 顔 %'u 個"
+
+#: src/gimv_index_faces_win.c
+msgid "Name the Faces"
+msgstr "顔に名前を付ける"
+
+#: src/gimv_index_faces_win.c
+msgid "The name of the person (a new one, or one of these):"
+msgstr "人物の名前 (新しい名前を入力するか、下から選択):"
+
+#: src/gimv_index_faces_win.c
+msgid "Select _All"
+msgstr "全て選択(_A)"
+
+#: src/gimv_index_faces_win.c
+msgid "Select all the faces (Ctrl+A)"
+msgstr "全ての顔を選択します (Ctrl+A)"
+
+#: src/gimv_index_faces_win.c
+msgid "_Name..."
+msgstr "名前を付ける(_N)..."
+
+#: src/gimv_index_faces_win.c
+msgid "Give a name to the faces selected"
+msgstr "選択した顔に名前を付けます"
+
+#: src/gimv_index_faces_win.c
+msgid "_Right"
+msgstr "この人で正しい(_R)"
+
+#: src/gimv_index_faces_win.c
+msgid "These faces are of this person"
+msgstr "選択した顔をこの人として確定します"
+
+#: src/gimv_index_faces_win.c
+msgid "Not This _Person"
+msgstr "この人ではない(_P)"
+
+#: src/gimv_index_faces_win.c
+msgid "These faces are not of this person, and are not guessed so again"
+msgstr "選択した顔はこの人ではありません。以後この人の候補にもしません"
+
+#: src/gimv_index_faces_win.c
+msgid "_Remove the Name"
+msgstr "名前を外す(_M)"
+
+#: src/gimv_index_faces_win.c
+msgid "The faces selected have no name again"
+msgstr "選択した顔の名前を外します"
+
+#: src/gimv_index_faces_win.c
+msgid "_Ignore"
+msgstr "無視する(_I)"
+
+#: src/gimv_index_faces_win.c
+msgid "Not to be named (not a face, a stranger): left out of the groups"
+msgstr "名前を付けない顔 (顔ではない、知らない人など) にして、グループから外します"
+
+#: src/gimv_index_faces_win.c
+msgid "Do Not _Ignore"
+msgstr "無視をやめる(_I)"
+
+#: src/gimv_index_faces_win.c
+msgid "_Open the Image"
+msgstr "画像を開く(_O)"
+
+#: src/gimv_index_faces_win.c
+msgid "Open the image of the face (double click)"
+msgstr "顔の元の画像を開きます (ダブルクリック)"

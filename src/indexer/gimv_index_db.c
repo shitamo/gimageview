@@ -75,6 +75,25 @@
    "CREATE INDEX faces_person ON faces(person_id);" \
    "CREATE INDEX faces_cluster ON faces(cluster);"
 
+/*
+ * version 4: what a person said about the faces.
+ * faces.ignored: not to be named (not a face, a stranger), left out of the
+ *        groups and the guesses.
+ * face_rejects: "not this person": the face is not guessed as it again.
+ * face_thumbs: a small JPEG of each face (made by gimv-faces) for the faces
+ *        window, to show them without reading the images.
+ */
+#define SCHEMA_V4 \
+   "ALTER TABLE faces ADD COLUMN ignored INTEGER NOT NULL DEFAULT 0;" \
+   "CREATE TABLE face_rejects (" \
+   "  face_id   INTEGER NOT NULL REFERENCES faces(id) ON DELETE CASCADE," \
+   "  person_id INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE," \
+   "  PRIMARY KEY (face_id, person_id));" \
+   "CREATE TABLE face_thumbs (" \
+   "  face_id INTEGER PRIMARY KEY REFERENCES faces(id) ON DELETE CASCADE," \
+   "  jpeg    BLOB NOT NULL);" \
+   "CREATE INDEX faces_guess ON faces(guess);"
+
 static const gchar *schema =
    "CREATE TABLE dirs ("
    "  id      INTEGER PRIMARY KEY,"
@@ -97,6 +116,7 @@ static const gchar *schema =
    "CREATE INDEX files_stage ON files(stage);"
    SCHEMA_V2
    SCHEMA_V3
+   SCHEMA_V4
    "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR ";";
 
 
@@ -184,9 +204,10 @@ open_rw (const gchar *path, sqlite3 **dbp, gchar **errmsg, gboolean retry)
       sqlite3_exec (db, "PRAGMA journal_mode = WAL", NULL, NULL, NULL);
       if (sqlite3_exec (db, schema, NULL, NULL, NULL) != SQLITE_OK)
          goto broken;
-   } else if (v == 1 || v == 2) {
-      /* older versions: only new tables */
-      gchar *sql = g_strconcat ("BEGIN;", v == 1 ? SCHEMA_V2 : "", SCHEMA_V3,
+   } else if (v >= 1 && v < GIMV_INDEX_DB_VERSION) {
+      /* older versions: only new tables and columns */
+      gchar *sql = g_strconcat ("BEGIN;", v < 2 ? SCHEMA_V2 : "", v < 3 ? SCHEMA_V3 : "",
+                                SCHEMA_V4,
                                 "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR
                                 "; COMMIT;", NULL);
       gint r = sqlite3_exec (db, sql, NULL, NULL, NULL);

@@ -17,6 +17,7 @@
 typedef enum {
    GIMV_INDEX_TAB_DATE,
    GIMV_INDEX_TAB_TAG,
+   GIMV_INDEX_TAB_PERSON,
 } GimvIndexTabType;
 
 /* open / close a tab (nothing happens when it is already so) */
@@ -27,4 +28,7 @@ void       gimv_index_tab_close       (GimvThumbWin     *tw,
 /* the page widget of the tab, NULL when it is not open */
 GtkWidget *gimv_index_tab_get_page    (GimvThumbWin     *tw,
                                        GimvIndexTabType  type);
+/* open or close the tabs as the preferences say */
+void       gimv_index_tabs_sync       (GimvThumbWin     *tw);
+
 #endif /* __GIMV_INDEX_VIEW_H__ */

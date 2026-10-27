@@ -28,6 +28,8 @@
 #include "gimv_icon_stock.h"
 #include "gimv_index.h"
 #include "gimv_index_db.h"
+#include "gimv_index_faces.h"
+#include "gimv_index_faces_win.h"
 #include "menu.h"
 #include "prefs.h"
 #include "gimv_index_view.h"
@@ -44,6 +46,8 @@ typedef enum {
    KIND_DAY,
    KIND_TAG,
    KIND_GROUP,     /* the tags of a rule: "Folders", "Cameras", "Shape" */
+   KIND_FACES,     /* people: a person, the guesses, a group of faces, ... */
+   KIND_HEADER,    /* people: "Unnamed groups" */
 } RowKind;
 
 enum {
@@ -53,6 +57,7 @@ enum {
                     * a tag put by a rule starts with "," (a tag never
                     * has a comma), a group of them is ",folder/" */
    COL_COLOR,      /* the tags put by rules have a color of their own */
+   COL_TITLE,      /* people: the title of the result tab */
    N_COLS
 };
 
@@ -105,6 +110,40 @@ auto_tag_value (const gchar *name, gint *kind_ret)
 }
 
 
+/* a row of the "People" tab */
+typedef struct {
+   gchar *key;     /* gimv_index_faces_key_where () */
+   gchar *label;
+   gchar *title;
+   gint   depth;   /* 0: below the root, 1: below the row before at 0 */
+   RowKind kind;
+} PeopleRow;
+
+
+static void
+people_row_free (PeopleRow *r)
+{
+   g_free (r->key);
+   g_free (r->label);
+   g_free (r->title);
+   g_free (r);
+}
+
+
+static void
+add_people_row (GPtrArray *rows, gint depth, RowKind kind, gchar *key,
+                gchar *label, gchar *title)
+{
+   PeopleRow *r = g_new0 (PeopleRow, 1);
+   r->depth = depth;
+   r->kind = kind;
+   r->key = key;
+   r->label = label;
+   r->title = title;
+   g_ptr_array_add (rows, r);
+}
+
+
 /* the title of a result tab of the tag (or the key of a tag row) */
 static gchar *
 tag_title (const gchar *key)
@@ -139,12 +178,14 @@ typedef struct {
    gboolean       counting;    /* a day count query is running */
    gboolean       count_again; /* the database changed meanwhile */
    gboolean       listing;     /* a file list query is running */
+   gboolean       filled;      /* refilled once: what is open is kept */
 } IndexView;
 
 
 typedef struct {
    GimvIndexTabType type;
    gchar   *key;
+   gchar   *title;     /* people */
    gboolean new_tab;
 } OpenRequest;
 
@@ -229,6 +270,97 @@ thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *ca
 }
 
 
+static gint64
+query_count (sqlite3 *db, const gchar *sql)
+{
+   sqlite3_stmt *st;
+   gint64 n = 0;
+
+   if (sqlite3_prepare_v2 (db, sql, -1, &st, NULL) != SQLITE_OK) return 0;
+   if (sqlite3_step (st) == SQLITE_ROW) n = sqlite3_column_int64 (st, 0);
+   sqlite3_finalize (st);
+   return n;
+}
+
+
+/* the named people (and the faces that look like them), the groups of
+ * unnamed faces that look alike (the biggest first), the rest */
+static void
+thread_count_people (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   sqlite3 *db = open_db ();
+   sqlite3_stmt *st;
+   GPtrArray *rows = g_ptr_array_new_with_free_func ((GDestroyNotify) people_row_free);
+   gint64 n;
+
+   if (!db) {
+      g_task_return_pointer (task, rows, (GDestroyNotify) g_ptr_array_unref);
+      return;
+   }
+
+   if (sqlite3_prepare_v2 (db,
+          "SELECT p.id, p.name, "
+          "  (SELECT count(*) FROM faces WHERE person_id = p.id), "
+          "  (SELECT count(*) FROM faces WHERE guess = p.id AND person_id IS NULL "
+          "   AND ignored = 0) "
+          "FROM persons p ORDER BY p.name", -1, &st, NULL) == SQLITE_OK)
+   {
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         gint64 id = sqlite3_column_int64 (st, 0);
+         const gchar *name = (const gchar *) sqlite3_column_text (st, 1);
+         gint named = sqlite3_column_int (st, 2), guessed = sqlite3_column_int (st, 3);
+
+         if (!named && !guessed) continue;
+         add_people_row (rows, 0, KIND_FACES, g_strdup_printf ("p:%" G_GINT64_FORMAT, id),
+                         g_strdup_printf ("%s (%'d)", name, named), g_strdup (name));
+         if (guessed)
+            add_people_row (rows, 1, KIND_FACES,
+                            g_strdup_printf ("g:%" G_GINT64_FORMAT, id),
+                            g_strdup_printf (_("Maybe (%'d)"), guessed),
+                            g_strdup_printf (_("%s?"), name));
+      }
+      sqlite3_finalize (st);
+   }
+
+   n = query_count (db, "SELECT count(DISTINCT cluster) FROM faces WHERE cluster IS NOT NULL "
+                        "AND person_id IS NULL AND guess IS NULL AND ignored = 0");
+   if (sqlite3_prepare_v2 (db,
+          "SELECT cluster, count(*) AS n FROM faces WHERE cluster IS NOT NULL "
+          "AND person_id IS NULL AND guess IS NULL AND ignored = 0 "
+          "GROUP BY cluster ORDER BY n DESC, cluster", -1, &st, NULL) == SQLITE_OK)
+   {
+      gboolean header = FALSE;
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         gint c = sqlite3_column_int (st, 0), count = sqlite3_column_int (st, 1);
+         if (!header) {
+            add_people_row (rows, 0, KIND_HEADER, g_strdup ("c:"),
+                            g_strdup_printf (_("Unnamed groups (%'d)"), (gint) n), NULL);
+            header = TRUE;
+         }
+         add_people_row (rows, 1, KIND_FACES, g_strdup_printf ("c:%d", c),
+                         g_strdup_printf (_("Group %d (%'d)"), c, count),
+                         g_strdup_printf (_("Group %d"), c));
+      }
+      sqlite3_finalize (st);
+   }
+
+   n = query_count (db, "SELECT count(*) FROM faces WHERE person_id IS NULL AND guess IS NULL "
+                        "AND cluster IS NULL AND ignored = 0");
+   if (n)
+      add_people_row (rows, 0, KIND_FACES, g_strdup ("u"),
+                      g_strdup_printf (_("Other faces (%'d)"), (gint) n),
+                      g_strdup (_("Other faces")));
+   n = query_count (db, "SELECT count(*) FROM faces WHERE ignored = 1");
+   if (n)
+      add_people_row (rows, 0, KIND_FACES, g_strdup ("i"),
+                      g_strdup_printf (_("Ignored (%'d)"), (gint) n),
+                      g_strdup (_("Ignored faces")));
+
+   sqlite3_close (db);
+   g_task_return_pointer (task, rows, (GDestroyNotify) g_ptr_array_unref);
+}
+
+
 /* the result of a file list query */
 typedef struct {
    GList      *paths;
@@ -261,7 +393,18 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
 
    /* size and mtime too: the tab is filled without looking at every file
     * on the disk (tens of thousands of them on a HDD) */
-   if (req->type == GIMV_INDEX_TAB_TAG)
+   gchar *people_sql = NULL;
+
+   if (req->type == GIMV_INDEX_TAB_PERSON) {
+      gchar *where = gimv_index_faces_key_where (key);
+      if (where)
+         people_sql = g_strdup_printf (
+            "SELECT d.path, f.name, f.size, f.mtime FROM files f "
+            "JOIN dirs d ON d.id = f.dir_id WHERE f.id IN "
+            "(SELECT fa.file_id FROM faces fa WHERE %s) ORDER BY f.date, f.name", where);
+      g_free (where);
+      sql = people_sql ? people_sql : "SELECT 1 WHERE 0";
+   } else if (req->type == GIMV_INDEX_TAB_TAG)
       sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM file_tags ft "
             "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
             "JOIN dirs d ON d.id = f.dir_id WHERE t.name = ?1 AND ft.auto = ?2 "
@@ -277,7 +420,7 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
          gboolean is_auto = key[0] == AUTO_KEY_MARK;
          sqlite3_bind_text (st, 1, is_auto ? key + 1 : key, -1, SQLITE_TRANSIENT);
          sqlite3_bind_int  (st, 2, is_auto);
-      } else {
+      } else if (req->type == GIMV_INDEX_TAB_DATE) {
          sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
       }
       while (sqlite3_step (st) == SQLITE_ROW) {
@@ -299,6 +442,7 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
       sqlite3_finalize (st);
    }
    if (db) sqlite3_close (db);
+   g_free (people_sql);
    fl->paths = g_list_reverse (list);
    g_task_return_pointer (task, fl, (GDestroyNotify) file_list_free);
 }
@@ -484,6 +628,55 @@ build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
 }
 
 
+static void
+build_people_list (IndexView *iv, GtkTreeIter *root, GPtrArray *rows)
+{
+   GtkTreeIter top, iter;
+   gboolean has_top = FALSE;
+   guint i;
+
+   for (i = 0; i < rows->len; i++) {
+      PeopleRow *r = g_ptr_array_index (rows, i);
+      GtkTreeIter *parent = r->depth > 0 && has_top ? &top : root;
+
+      gtk_tree_store_append (iv->store, &iter, parent);
+      gtk_tree_store_set (iv->store, &iter, COL_LABEL, r->label, COL_KIND, r->kind,
+                          COL_KEY, r->key, COL_TITLE, r->title,
+                          COL_COLOR, r->kind == KIND_FACES && r->key[0] != 'p'
+                                     ? AUTO_TAG_COLOR : NULL, -1);
+      if (r->depth == 0) {
+         top = iter;
+         has_top = TRUE;
+      }
+   }
+}
+
+
+/* anywhere in the tree (people: the keys say nothing of the place) */
+static gboolean
+find_key_any (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
+              GtkTreeIter *found)
+{
+   GtkTreeIter iter;
+
+   if (!gtk_tree_model_iter_children (model, &iter, parent))
+      return FALSE;
+   do {
+      gchar *k = NULL;
+      gboolean same;
+      gtk_tree_model_get (model, &iter, COL_KEY, &k, -1);
+      same = k && !strcmp (k, key);
+      g_free (k);
+      if (same) {
+         *found = iter;
+         return TRUE;
+      }
+      if (find_key_any (model, &iter, key, found)) return TRUE;
+   } while (gtk_tree_model_iter_next (model, &iter));
+   return FALSE;
+}
+
+
 /* rebuild the tree from new counts and open again what was open;
  * result: a GArray of DayCount or a GPtrArray of TagCount */
 static void
@@ -509,6 +702,8 @@ refill (IndexView *iv, gpointer result)
       gtk_tree_store_remove (iv->store, &child);
    if (iv->type == GIMV_INDEX_TAB_TAG)
       build_tag_list (iv, &root, result);
+   else if (iv->type == GIMV_INDEX_TAB_PERSON)
+      build_people_list (iv, &root, result);
    else
       build_tree (iv, &root, result);
 
@@ -518,13 +713,28 @@ refill (IndexView *iv, gpointer result)
    gtk_tree_path_free (path);
    /* shorter keys first: a month row is shown only when its year is open */
    for (i = 0; i < keys->len; i++) {
-      if (find_key (model, &root, g_ptr_array_index (keys, i), &child)) {
+      if (iv->type == GIMV_INDEX_TAB_PERSON
+          ? find_key_any (model, &root, g_ptr_array_index (keys, i), &child)
+          : find_key (model, &root, g_ptr_array_index (keys, i), &child)) {
          path = gtk_tree_model_get_path (model, &child);
          gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
          gtk_tree_path_free (path);
       }
    }
-   if (selected && find_key (model, &root, selected, &child))
+   /* people: the groups and the guesses open the first time */
+   if (!iv->filled && iv->type == GIMV_INDEX_TAB_PERSON
+       && gtk_tree_model_iter_children (model, &child, &root)) {
+      do {
+         if (!gtk_tree_model_iter_has_child (model, &child)) continue;
+         path = gtk_tree_model_get_path (model, &child);
+         gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
+         gtk_tree_path_free (path);
+      } while (gtk_tree_model_iter_next (model, &child));
+   }
+   iv->filled = TRUE;
+   if (selected && (iv->type == GIMV_INDEX_TAB_PERSON
+                    ? find_key_any (model, &root, selected, &child)
+                    : find_key (model, &root, selected, &child)))
       gtk_tree_selection_select_iter (sel, &child);
    iv->filling = FALSE;
 
@@ -549,7 +759,7 @@ cb_counted (GObject *source, GAsyncResult *res, gpointer data)
    iv->counting = FALSE;
    if (result) {
       refill (iv, result);
-      if (iv->type == GIMV_INDEX_TAB_TAG)
+      if (iv->type != GIMV_INDEX_TAB_DATE)
          g_ptr_array_unref (result);
       else
          g_array_unref (result);
@@ -570,8 +780,9 @@ start_count (IndexView *iv)
    iv->counting = TRUE;
    iv->count_again = FALSE;
    task = g_task_new (NULL, iv->cancel, cb_counted, iv);
-   g_task_run_in_thread (task, iv->type == GIMV_INDEX_TAB_TAG
-                               ? thread_count_tags : thread_count_days);
+   g_task_run_in_thread (task, iv->type == GIMV_INDEX_TAB_TAG ? thread_count_tags
+                               : iv->type == GIMV_INDEX_TAB_PERSON ? thread_count_people
+                               : thread_count_days);
    g_object_unref (task);
 }
 
@@ -582,7 +793,8 @@ cb_index_changed (GimvIndexChange what, gpointer data)
    IndexView *iv = data;
 
    if (what & (iv->type == GIMV_INDEX_TAB_TAG ? GIMV_INDEX_CHANGED_TAGS
-                                              : GIMV_INDEX_CHANGED_DATES))
+               : iv->type == GIMV_INDEX_TAB_PERSON ? GIMV_INDEX_CHANGED_FACES
+               : GIMV_INDEX_CHANGED_DATES))
       start_count (iv);
 }
 
@@ -621,6 +833,7 @@ static void
 open_request_free (OpenRequest *req)
 {
    g_free (req->key);
+   g_free (req->title);
    g_free (req);
 }
 
@@ -666,8 +879,12 @@ open_files (IndexView *iv, OpenRequest *req, FileList *fl)
       iv->shown_key = g_strdup (req->key);
    }
 
-   title = req->type == GIMV_INDEX_TAB_TAG ? tag_title (req->key)
-                                           : g_strdup_printf (_("%s (Date)"), req->key);
+   if (req->type == GIMV_INDEX_TAB_PERSON)
+      title = g_strdup_printf (_("%s (People)"), req->title ? req->title : req->key);
+   else if (req->type == GIMV_INDEX_TAB_TAG)
+      title = tag_title (req->key);
+   else
+      title = g_strdup_printf (_("%s (Date)"), req->key);
    gimv_thumb_view_reset_tab_label (tv, title);
    g_free (title);
 
@@ -691,12 +908,35 @@ cb_listed (GObject *source, GAsyncResult *res, gpointer data)
 }
 
 
+/* people: the title of the row of the key */
+static gchar *
+row_title (IndexView *iv, const gchar *key)
+{
+   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
+   GtkTreeIter root, iter;
+   gchar *title = NULL;
+
+   if (iv->type != GIMV_INDEX_TAB_PERSON) return NULL;
+   if (gtk_tree_model_get_iter_first (model, &root)
+       && find_key_any (model, &root, key, &iter))
+      gtk_tree_model_get (model, &iter, COL_TITLE, &title, -1);
+   return title;
+}
+
+
 /* new_tab FALSE: replace what the result tab shows (the usual way) */
 static void
 open_key (IndexView *iv, const gchar *key, gboolean new_tab)
 {
    OpenRequest *req;
    GTask *task;
+
+   /* the faces window, when open, shows the faces of the row too */
+   if (iv->type == GIMV_INDEX_TAB_PERSON && gimv_index_faces_win_is_open ()) {
+      gchar *title = row_title (iv, key);
+      gimv_index_faces_win_show (iv->tw, key, title);
+      g_free (title);
+   }
 
    /* one at a time: clicks while the list is read are dropped */
    if (iv->listing || files_loader_query_loading ()) return;
@@ -710,6 +950,7 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
    req = g_new0 (OpenRequest, 1);
    req->type = iv->type;
    req->key = g_strdup (key);
+   req->title = row_title (iv, key);
    req->new_tab = new_tab;
 
    iv->listing = TRUE;
@@ -729,7 +970,7 @@ row_key (IndexView *iv, GtkTreeIter *iter, gchar **key)
    gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter,
                        COL_KIND, &kind, COL_KEY, key, -1);
    if (*key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY
-                || kind == KIND_TAG))
+                || kind == KIND_TAG || kind == KIND_FACES))
       return TRUE;
    g_free (*key);
    *key = NULL;
@@ -808,6 +1049,19 @@ cb_action_open (GSimpleAction *action, GVariant *param, gpointer data)
 
 
 static void
+cb_action_faces (GSimpleAction *action, GVariant *param, gpointer data)
+{
+   IndexView *iv = data;
+   gchar *title;
+
+   if (!iv->menu_key) return;
+   title = row_title (iv, iv->menu_key);
+   gimv_index_faces_win_show (iv->tw, iv->menu_key, title);
+   g_free (title);
+}
+
+
+static void
 cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
                  IndexView *iv)
 {
@@ -844,12 +1098,21 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
       open_key (iv, key, TRUE);
    } else if (button == GDK_BUTTON_SECONDARY) {
       GdkRectangle rect = { (gint) x, (gint) y, 1, 1 };
+      graphene_point_t pt = GRAPHENE_POINT_INIT (x, y), out;
+      /* on the scrolled window: a tree view does not take a popover as a
+       * child well (a critical about its CSS nodes) */
+      if (gtk_widget_compute_point (iv->tree, iv->scroll, &pt, &out)) {
+         rect.x = (gint) out.x;
+         rect.y = (gint) out.y;
+      }
       if (!iv->popover) {
          GMenu *menu = g_menu_new ();
          g_menu_append (menu, _("Open"), "index.open");
          g_menu_append (menu, _("Open in New Tab"), "index.open-new-tab");
+         if (iv->type == GIMV_INDEX_TAB_PERSON)
+            g_menu_append (menu, _("Show the Faces..."), "index.faces");
          iv->popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu));
-         gtk_widget_set_parent (iv->popover, iv->tree);
+         gtk_widget_set_parent (iv->popover, iv->scroll);
          gtk_popover_set_has_arrow (GTK_POPOVER (iv->popover), FALSE);
          g_object_unref (menu);
       }
@@ -880,12 +1143,24 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
 }
 
 
+static const gchar *
+tab_title (GimvIndexTabType type)
+{
+   switch (type) {
+   case GIMV_INDEX_TAB_TAG:    return _("Tag");
+   case GIMV_INDEX_TAB_PERSON: return _("People");
+   default:                    return _("Date");
+   }
+}
+
+
 static GtkWidget *
 index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
 {
    static const GActionEntry actions[] = {
       { "open",         cb_action_open, NULL, NULL, NULL },
       { "open-new-tab", cb_action_open, NULL, NULL, NULL },
+      { "faces",        cb_action_faces, NULL, NULL, NULL },
    };
    IndexView *iv = g_new0 (IndexView, 1);
    GtkTreeViewColumn *col;
@@ -897,11 +1172,11 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    iv->type = type;
    iv->tw = tw;
    iv->store = gtk_tree_store_new (N_COLS, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING,
-                                   G_TYPE_STRING);
+                                   G_TYPE_STRING, G_TYPE_STRING);
 
    gtk_tree_store_append (iv->store, &root, NULL);
    gtk_tree_store_set (iv->store, &root,
-                       COL_LABEL, type == GIMV_INDEX_TAB_TAG ? _("Tag") : _("Date"),
+                       COL_LABEL, tab_title (type),
                        COL_KIND, KIND_ROOT, -1);
    iv->cancel = g_cancellable_new ();
 
@@ -924,17 +1199,18 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    g_signal_connect (click, "pressed", G_CALLBACK (cb_tree_pressed), iv);
    gtk_widget_add_controller (iv->tree, GTK_EVENT_CONTROLLER (click));
 
-   group = g_simple_action_group_new ();
-   g_action_map_add_action_entries (G_ACTION_MAP (group), actions,
-                                    G_N_ELEMENTS (actions), iv);
-   gtk_widget_insert_action_group (iv->tree, "index", G_ACTION_GROUP (group));
-   g_object_unref (group);
 
    iv->scroll = gtk_scrolled_window_new ();
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (iv->scroll),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
    gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (iv->scroll), iv->tree);
    gtk_widget_set_name (iv->scroll, "IndexView");
+   /* on the scrolled window, where the menu is */
+   group = g_simple_action_group_new ();
+   g_action_map_add_action_entries (G_ACTION_MAP (group), actions,
+                                    G_N_ELEMENTS (actions), iv);
+   gtk_widget_insert_action_group (iv->scroll, "index", G_ACTION_GROUP (group));
+   g_object_unref (group);
 
    g_signal_connect (iv->scroll, "destroy", G_CALLBACK (cb_destroy), iv);
    iv->watch_id = gimv_index_add_watch (cb_index_changed, iv);
@@ -948,13 +1224,8 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
  *  the "Date" and "Tag" tabs next to the directory view
  ******************************************************************************/
 
-static const gchar *tab_keys[] = { "gimv-index-date-tab", "gimv-index-tag-tab" };
-
-static const gchar *
-tab_title (GimvIndexTabType type)
-{
-   return type == GIMV_INDEX_TAB_TAG ? _("Tag") : _("Date");
-}
+static const gchar *tab_keys[] = { "gimv-index-date-tab", "gimv-index-tag-tab",
+                                   "gimv-index-person-tab" };
 
 
 GtkWidget *
@@ -989,8 +1260,6 @@ gimv_index_tab_open (GimvThumbWin *tw, GimvIndexTabType type)
    label = gtk_label_new (tab_title (type));
    gtk_widget_set_name (label, "TabLabel");
    gtk_widget_add_css_class (label, "gimv-tab-label");
-   gtk_widget_set_margin_start (label, 4);
-   gtk_widget_set_margin_end (label, 4);
    gtk_box_append (GTK_BOX (hbox), label);
 
    /* no close button: the side bar is narrow ("Folders", "Date", "Tag"
@@ -1031,4 +1300,22 @@ gimv_index_tab_close (GimvThumbWin *tw, GimvIndexTabType type)
    if (num >= 0)
       gtk_notebook_remove_page (GTK_NOTEBOOK (tw->side_notebook), num);
    gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
+}
+
+
+/* the tabs there should be, from the preferences */
+void
+gimv_index_tabs_sync (GimvThumbWin *tw)
+{
+   if (gimv_index_is_configured ()) {
+      gimv_index_tab_open (tw, GIMV_INDEX_TAB_DATE);
+      gimv_index_tab_open (tw, GIMV_INDEX_TAB_TAG);
+   } else {
+      gimv_index_tab_close (tw, GIMV_INDEX_TAB_DATE);
+      gimv_index_tab_close (tw, GIMV_INDEX_TAB_TAG);
+   }
+   if (gimv_index_faces_is_configured ())
+      gimv_index_tab_open (tw, GIMV_INDEX_TAB_PERSON);
+   else
+      gimv_index_tab_close (tw, GIMV_INDEX_TAB_PERSON);
 }

@@ -806,10 +806,7 @@ gimv_thumb_win_open_window (void)
 
 #ifdef ENABLE_INDEX
    /* the "Date" tab is there as soon as directories are given for the index */
-   if (gimv_index_is_configured ()) {
-      gimv_index_tab_open (tw, GIMV_INDEX_TAB_DATE);
-      gimv_index_tab_open (tw, GIMV_INDEX_TAB_TAG);
-   }
+   gimv_index_tabs_sync (tw);
 #endif
 
    return tw;
@@ -5055,6 +5052,7 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
    tag_tab_open  = gimv_index_tab_get_page (tw, GIMV_INDEX_TAB_TAG) != NULL;
    gimv_index_tab_close (tw, GIMV_INDEX_TAB_DATE);
    gimv_index_tab_close (tw, GIMV_INDEX_TAB_TAG);
+   gimv_index_tab_close (tw, GIMV_INDEX_TAB_PERSON);
 #endif
 
    /* get pages list in this window */
@@ -5114,6 +5112,7 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
       gimv_index_tab_open (tw, GIMV_INDEX_TAB_DATE);
    if (tag_tab_open)
       gimv_index_tab_open (tw, GIMV_INDEX_TAB_TAG);
+   gimv_index_tabs_sync (tw);
 #endif
 
    gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->notebook), current_page);

@@ -42,6 +42,8 @@ static struct {
 
 
 static void start_faces (void);
+static sqlite3 *wdb;
+static guint    regroup_id;
 
 
 /******************************************************************************
@@ -476,8 +478,257 @@ gimv_index_faces_regroup (void)
 void
 gimv_index_faces_quit (void)
 {
+   if (regroup_id) {
+      g_source_remove (regroup_id);
+      regroup_id = 0;
+   }
+   if (wdb) {
+      sqlite3_close (wdb);
+      wdb = NULL;
+   }
    GSubprocess *old = stop_faces ();
 
    if (old) g_object_unref (old);
    g_clear_pointer (&fx.error, g_free);
+}
+
+
+/******************************************************************************
+ *  what a person says about the faces (the faces window)
+ ******************************************************************************/
+
+#define REGROUP_DELAY 8   /* seconds after the last change */
+
+static sqlite3 *
+write_db (void)
+{
+   gchar *path;
+
+   if (wdb) return wdb;
+   path = gimv_index_db_default_path ();
+   /* the indexer made it: only an existing one of this version */
+   if (sqlite3_open_v2 (path, &wdb, SQLITE_OPEN_READWRITE, NULL) != SQLITE_OK) {
+      sqlite3_close (wdb);
+      wdb = NULL;
+   } else {
+      sqlite3_busy_timeout (wdb, 10000);
+      sqlite3_exec (wdb, "PRAGMA foreign_keys = ON", NULL, NULL, NULL);
+   }
+   g_free (path);
+   return wdb;
+}
+
+
+static gboolean
+cb_regroup (gpointer data)
+{
+   regroup_id = 0;
+   gimv_index_faces_regroup ();
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+changed (void)
+{
+   gimv_index_faces_changed ();
+   /* the groups and guesses again, once the changes have stopped */
+   if (regroup_id) g_source_remove (regroup_id);
+   regroup_id = g_timeout_add_seconds (REGROUP_DELAY, cb_regroup, NULL);
+}
+
+
+/* run sql for each face id (bound as ?1; ?2 is "arg") in one transaction */
+static gboolean
+for_each_face (const gchar *sql, GArray *ids, gint64 arg)
+{
+   sqlite3 *db = write_db ();
+   sqlite3_stmt *st;
+   guint i;
+   gboolean ok = TRUE;
+
+   if (!db || !ids || !ids->len) return FALSE;
+   if (sqlite3_prepare_v2 (db, sql, -1, &st, NULL) != SQLITE_OK) {
+      g_warning ("faces: %s", sqlite3_errmsg (db));
+      return FALSE;
+   }
+   sqlite3_exec (db, "BEGIN IMMEDIATE", NULL, NULL, NULL);
+   for (i = 0; i < ids->len; i++) {
+      sqlite3_bind_int64 (st, 1, g_array_index (ids, gint64, i));
+      sqlite3_bind_int64 (st, 2, arg);
+      if (sqlite3_step (st) != SQLITE_DONE) ok = FALSE;
+      sqlite3_reset (st);
+   }
+   sqlite3_finalize (st);
+   if (ok) {
+      sqlite3_exec (db, "COMMIT", NULL, NULL, NULL);
+   } else {
+      g_warning ("faces: %s", sqlite3_errmsg (db));
+      sqlite3_exec (db, "ROLLBACK", NULL, NULL, NULL);
+   }
+   return ok;
+}
+
+
+/* the id of the person of that name, made when there is none */
+static gint64
+person_id (const gchar *name)
+{
+   sqlite3 *db = write_db ();
+   sqlite3_stmt *st;
+   gint64 id = 0;
+
+   if (!db) return 0;
+   if (sqlite3_prepare_v2 (db, "INSERT OR IGNORE INTO persons (name) VALUES (?1)",
+                           -1, &st, NULL) == SQLITE_OK)
+   {
+      sqlite3_bind_text (st, 1, name, -1, SQLITE_TRANSIENT);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+   }
+   if (sqlite3_prepare_v2 (db, "SELECT id FROM persons WHERE name = ?1",
+                           -1, &st, NULL) == SQLITE_OK)
+   {
+      sqlite3_bind_text (st, 1, name, -1, SQLITE_TRANSIENT);
+      if (sqlite3_step (st) == SQLITE_ROW)
+         id = sqlite3_column_int64 (st, 0);
+      sqlite3_finalize (st);
+   }
+   return id;
+}
+
+
+gboolean
+gimv_index_faces_set_name (GArray *ids, const gchar *name)
+{
+   gint64 pid;
+   gchar *n = g_strstrip (g_strdup (name ? name : ""));
+
+   if (!*n) {
+      g_free (n);
+      return FALSE;
+   }
+   pid = person_id (n);
+   g_free (n);
+   if (!pid) return FALSE;
+   if (!for_each_face ("UPDATE faces SET person_id = ?2, guess = NULL, cluster = NULL, "
+                       "ignored = 0 WHERE id = ?1", ids, pid))
+      return FALSE;
+   /* told it is that person after all */
+   for_each_face ("DELETE FROM face_rejects WHERE face_id = ?1 AND person_id = ?2", ids, pid);
+   changed ();
+   return TRUE;
+}
+
+
+gboolean
+gimv_index_faces_confirm_guess (GArray *ids)
+{
+   if (!for_each_face ("UPDATE faces SET person_id = guess, guess = NULL, cluster = NULL "
+                       "WHERE id = ?1 AND guess IS NOT NULL", ids, 0))
+      return FALSE;
+   changed ();
+   return TRUE;
+}
+
+
+gboolean
+gimv_index_faces_clear_name (GArray *ids)
+{
+   if (!for_each_face ("UPDATE faces SET person_id = NULL WHERE id = ?1", ids, 0))
+      return FALSE;
+   changed ();
+   return TRUE;
+}
+
+
+/* "not this person": the name (or the guess) goes, and the face is not
+ * guessed as that person again */
+gboolean
+gimv_index_faces_reject (GArray *ids, gint64 pid)
+{
+   if (!for_each_face ("INSERT OR IGNORE INTO face_rejects (face_id, person_id) "
+                       "VALUES (?1, ?2)", ids, pid))
+      return FALSE;
+   for_each_face ("UPDATE faces SET person_id = NULL WHERE id = ?1 AND person_id = ?2", ids, pid);
+   for_each_face ("UPDATE faces SET guess = NULL WHERE id = ?1 AND guess = ?2", ids, pid);
+   changed ();
+   return TRUE;
+}
+
+
+gboolean
+gimv_index_faces_set_ignored (GArray *ids, gboolean ignored)
+{
+   if (!for_each_face (ignored ? "UPDATE faces SET ignored = 1, person_id = NULL, "
+                                 "guess = NULL, cluster = NULL WHERE id = ?1"
+                               : "UPDATE faces SET ignored = 0 WHERE id = ?1", ids, 0))
+      return FALSE;
+   changed ();
+   return TRUE;
+}
+
+
+/* the names given so far, sorted */
+GPtrArray *
+gimv_index_faces_get_names (void)
+{
+   GPtrArray *names = g_ptr_array_new_with_free_func (g_free);
+   sqlite3 *db = write_db ();
+   sqlite3_stmt *st;
+
+   if (db && sqlite3_prepare_v2 (db, "SELECT name FROM persons p WHERE EXISTS "
+                                     "(SELECT 1 FROM faces WHERE person_id = p.id) "
+                                     "ORDER BY name", -1, &st, NULL) == SQLITE_OK)
+   {
+      while (sqlite3_step (st) == SQLITE_ROW)
+         g_ptr_array_add (names, g_strdup ((const gchar *) sqlite3_column_text (st, 0)));
+      sqlite3_finalize (st);
+   }
+   return names;
+}
+
+
+/* the regroup waiting is done now (the faces window closes) */
+void
+gimv_index_faces_flush (void)
+{
+   if (!regroup_id) return;
+   g_source_remove (regroup_id);
+   regroup_id = 0;
+   gimv_index_faces_regroup ();
+}
+
+
+/* the faces of a row of the "People" tab, as an SQL condition on "fa"
+ * (faces): "p:ID" named so, "g:ID" looking like that person, "c:N" a group
+ * of unnamed faces, "u" the other unnamed ones, "i" ignored.  NULL for an
+ * unknown key. */
+gchar *
+gimv_index_faces_key_where (const gchar *key)
+{
+   gint64 n;
+   gchar *end;
+
+   if (!key) return NULL;
+   if (!strcmp (key, "u"))
+      return g_strdup ("fa.person_id IS NULL AND fa.guess IS NULL AND fa.cluster IS NULL "
+                       "AND fa.ignored = 0");
+   if (!strcmp (key, "i"))
+      return g_strdup ("fa.ignored = 1");
+   if (strlen (key) < 3 || key[1] != ':') return NULL;
+   n = g_ascii_strtoll (key + 2, &end, 10);
+   if (*end || n <= 0) return NULL;
+   switch (key[0]) {
+   case 'p':
+      return g_strdup_printf ("fa.person_id = %" G_GINT64_FORMAT, n);
+   case 'g':
+      return g_strdup_printf ("fa.guess = %" G_GINT64_FORMAT " AND fa.person_id IS NULL "
+                              "AND fa.ignored = 0", n);
+   case 'c':
+      return g_strdup_printf ("fa.cluster = %" G_GINT64_FORMAT " AND fa.person_id IS NULL "
+                              "AND fa.guess IS NULL AND fa.ignored = 0", n);
+   default:
+      return NULL;
+   }
 }

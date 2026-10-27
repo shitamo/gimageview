@@ -56,7 +56,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect.hpp>
 
-#define DB_VERSION        3
+#define DB_VERSION        4
 #define DETECT_MODEL      "face_detection_yunet_2023mar.onnx"
 #define RECOGNIZE_MODEL   "face_recognition_sface_2021dec.onnx"
 
@@ -218,10 +218,14 @@ wanted_ext (const char *name)
 }
 
 
+struct Face;
+
 struct Todo {
    long long   id;
    long long   mtime;
    std::string path;
+   /* only the thumbnails of these faces (found before thumbnails were made) */
+   std::vector<Face> *missing = nullptr;
 };
 
 
@@ -348,10 +352,67 @@ guard_close (const std::string &dbfile)
  ******************************************************************************/
 
 struct Face {
+   long long id = 0;          /* backfill of the thumbnail: the face */
    int   x, y, w, h;
    float score;
    std::vector<float> feature;
+   std::vector<uchar> thumb;  /* JPEG */
 };
+
+
+#define THUMB_SIZE 128
+
+/* a square around the face (and some of the head), as a small JPEG;
+ * img is the image scaled down by "scale" from the coordinates */
+static void
+make_thumb (const cv::Mat &img, double scale, Face &f)
+{
+   double cx = (f.x + f.w / 2.0) / scale, cy = (f.y + f.h / 2.0) / scale;
+   int side = (int) (std::max (f.w, f.h) * 1.6 / scale);
+   cv::Mat crop, out;
+
+   side = std::min (side, std::min (img.cols, img.rows));
+   if (side < 8) return;
+   /* moved inside the image rather than cut */
+   int x = std::clamp ((int) (cx - side / 2.0), 0, img.cols - side);
+   int y = std::clamp ((int) (cy - side / 2.0), 0, img.rows - side);
+   cv::resize (img (cv::Rect (x, y, side, side)), out, cv::Size (THUMB_SIZE, THUMB_SIZE),
+               0, 0, side > THUMB_SIZE ? cv::INTER_AREA : cv::INTER_LINEAR);
+   try {
+      cv::imencode (".jpg", out, f.thumb, { cv::IMWRITE_JPEG_QUALITY, 85 });
+   } catch (const cv::Exception &) {
+      f.thumb.clear ();
+   }
+}
+
+
+/* the image as shown (EXIF orientation applied); scale: how much smaller
+ * than the real size it was read */
+static bool
+load_image (const std::string &path, cv::Mat &img, double &scale)
+{
+   int flags = cv::IMREAD_COLOR;   /* the EXIF orientation is applied */
+   struct stat sb;
+
+   scale = 1.0;
+   /* big JPEG files: decoded at half or a quarter, much faster */
+   if (stat (path.c_str (), &sb) == 0) {
+      const char *dot = strrchr (path.c_str (), '.');
+      bool jpeg = dot && (!strcasecmp (dot, ".jpg") || !strcasecmp (dot, ".jpeg")
+                          || !strcasecmp (dot, ".jpe"));
+      if (jpeg && sb.st_size > 6 * 1024 * 1024) flags = cv::IMREAD_REDUCED_COLOR_4;
+      else if (jpeg && sb.st_size > 2 * 1024 * 1024) flags = cv::IMREAD_REDUCED_COLOR_2;
+   }
+   try {
+      img = cv::imread (path, flags);
+   } catch (const cv::Exception &) {
+      return false;
+   }
+   if (img.empty ()) return false;
+   if (flags == cv::IMREAD_REDUCED_COLOR_4) scale = 4.0;
+   else if (flags == cv::IMREAD_REDUCED_COLOR_2) scale = 2.0;
+   return true;
+}
 
 
 static void
@@ -372,27 +433,9 @@ read_faces (const std::string &path,
             std::vector<Face> &out)
 {
    cv::Mat img, small, found;
-   double scale = 1.0;
-   int flags = cv::IMREAD_COLOR;   /* the EXIF orientation is applied */
-   struct stat sb;
+   double scale;
 
-   /* big JPEG files: decoded at half or a quarter, much faster */
-   if (stat (path.c_str (), &sb) == 0) {
-      const char *dot = strrchr (path.c_str (), '.');
-      bool jpeg = dot && (!strcasecmp (dot, ".jpg") || !strcasecmp (dot, ".jpeg")
-                          || !strcasecmp (dot, ".jpe"));
-      if (jpeg && sb.st_size > 6 * 1024 * 1024) flags = cv::IMREAD_REDUCED_COLOR_4;
-      else if (jpeg && sb.st_size > 2 * 1024 * 1024) flags = cv::IMREAD_REDUCED_COLOR_2;
-   }
-
-   try {
-      img = cv::imread (path, flags);
-   } catch (const cv::Exception &) {
-      return 0;
-   }
-   if (img.empty ()) return 0;
-   if (flags == cv::IMREAD_REDUCED_COLOR_4) scale = 4.0;
-   else if (flags == cv::IMREAD_REDUCED_COLOR_2) scale = 2.0;
+   if (!load_image (path, img, scale)) return 0;
    if (img.cols < MIN_FACE * 2 || img.rows < MIN_FACE * 2) return 1;
 
    int longer = std::max (img.cols, img.rows);
@@ -444,6 +487,7 @@ read_faces (const std::string &path,
       f.score = score;
       f.feature.assign ((const float *) feat.data, (const float *) feat.data + FEATURE_LEN);
       normalize (f.feature);
+      make_thumb (small, scale, f);
       out.push_back (std::move (f));
    }
    return 1;
@@ -458,6 +502,61 @@ struct Result {
 
 
 static void
+put_thumb (sqlite3_stmt *st, long long face_id, const std::vector<uchar> &jpeg)
+{
+   static const uchar none = 0;
+
+   sqlite3_bind_int64 (st, 1, face_id);
+   sqlite3_bind_blob (st, 2, jpeg.empty () ? &none : jpeg.data (), (int) jpeg.size (),
+                      SQLITE_STATIC);
+   sqlite3_step (st);
+   sqlite3_reset (st);
+}
+
+
+/* the faces found before the thumbnails were made (database version 3):
+ * their thumbnails, a file at a time, after the files to read */
+static void
+list_missing_thumbs (Db &d, std::vector<Todo> &todo, std::vector<std::vector<Face>> &missing)
+{
+   std::set<long long> reading;
+   for (const Todo &t : todo) reading.insert (t.id);
+
+   sqlite3_stmt *st = d.prep (
+      "SELECT fa.id, fa.file_id, fa.x, fa.y, fa.w, fa.h, f.mtime, d.path, f.name "
+      "FROM faces fa LEFT JOIN face_thumbs t ON t.face_id = fa.id "
+      "JOIN files f ON f.id = fa.file_id JOIN dirs d ON d.id = f.dir_id "
+      "WHERE t.face_id IS NULL ORDER BY fa.file_id");
+   std::vector<Todo> more;
+   while (st && sqlite3_step (st) == SQLITE_ROW) {
+      long long file = sqlite3_column_int64 (st, 1);
+      if (reading.count (file)) continue;
+      if (more.empty () || more.back ().id != file) {
+         std::string path ((const char *) sqlite3_column_text (st, 7));
+         if (path.back () != '/') path += '/';
+         path += (const char *) sqlite3_column_text (st, 8);
+         more.push_back ({ file, sqlite3_column_int64 (st, 6), path });
+         missing.emplace_back ();
+      }
+      Face f;
+      f.id = sqlite3_column_int64 (st, 0);
+      f.x = sqlite3_column_int (st, 2);
+      f.y = sqlite3_column_int (st, 3);
+      f.w = sqlite3_column_int (st, 4);
+      f.h = sqlite3_column_int (st, 5);
+      f.score = 0;
+      missing.back ().push_back (f);
+   }
+   sqlite3_finalize (st);
+   /* pointers into "missing" only now, when it does not grow any more */
+   for (size_t i = 0; i < more.size (); i++) {
+      more[i].missing = &missing[i];
+      todo.push_back (more[i]);
+   }
+}
+
+
+static void
 write_results (Db &d, std::vector<Result> &results)
 {
    if (results.empty ()) return;
@@ -468,8 +567,17 @@ write_results (Db &d, std::vector<Result> &results)
    sqlite3_stmt *scan = d.prep ("INSERT OR REPLACE INTO face_scans (file_id, mtime, n) "
                                 "VALUES (?, ?, ?)");
 
+   sqlite3_stmt *thumb = d.prep ("INSERT OR REPLACE INTO face_thumbs (face_id, jpeg) "
+                                 "VALUES (?, ?)");
+
    d.exec ("BEGIN IMMEDIATE");
    for (const Result &r : results) {
+      if (r.todo->missing) {
+         /* an empty one when the image cannot be read: not tried again */
+         for (const Face &f : r.faces)
+            put_thumb (thumb, f.id, f.thumb);
+         continue;
+      }
       sqlite3_bind_int64 (del, 1, r.todo->id);
       sqlite3_step (del);
       sqlite3_reset (del);
@@ -484,7 +592,8 @@ write_results (Db &d, std::vector<Result> &results)
          sqlite3_bind_double (ins, 6, f.score);
          sqlite3_bind_blob (ins, 7, f.feature.data (), FEATURE_LEN * sizeof (float),
                             SQLITE_STATIC);
-         sqlite3_step (ins);
+         if (sqlite3_step (ins) == SQLITE_DONE)
+            put_thumb (thumb, sqlite3_last_insert_rowid (d.db), f.thumb);
          sqlite3_reset (ins);
       }
       sqlite3_bind_int64 (scan, 1, r.todo->id);
@@ -497,6 +606,7 @@ write_results (Db &d, std::vector<Result> &results)
    sqlite3_finalize (del);
    sqlite3_finalize (ins);
    sqlite3_finalize (scan);
+   sqlite3_finalize (thumb);
    results.clear ();
 }
 
@@ -518,6 +628,8 @@ struct Row {
    long long id;
    float     score;
    long long person;   /* 0: none */
+   bool      ignored;
+   int       cluster;   /* before: 0 none */
    std::vector<float> f;
 };
 
@@ -529,7 +641,7 @@ static int
 make_groups (Db &d)
 {
    std::vector<Row> rows;
-   sqlite3_stmt *st = d.prep ("SELECT id, score, person_id, feature FROM faces");
+   sqlite3_stmt *st = d.prep ("SELECT id, score, person_id, feature, ignored, cluster FROM faces");
 
    while (st && sqlite3_step (st) == SQLITE_ROW) {
       const void *blob = sqlite3_column_blob (st, 3);
@@ -538,16 +650,25 @@ make_groups (Db &d)
       r.id = sqlite3_column_int64 (st, 0);
       r.score = (float) sqlite3_column_double (st, 1);
       r.person = sqlite3_column_int64 (st, 2);
+      r.ignored = sqlite3_column_int (st, 4) != 0;
+      r.cluster = sqlite3_column_int (st, 5);
       r.f.assign ((const float *) blob, (const float *) blob + FEATURE_LEN);
       rows.push_back (std::move (r));
    }
    sqlite3_finalize (st);
    say ("grouping %zu", rows.size ());
 
+   /* "not this person" */
+   std::map<long long, std::set<long long>> rejects;
+   st = d.prep ("SELECT face_id, person_id FROM face_rejects");
+   while (st && sqlite3_step (st) == SQLITE_ROW)
+      rejects[sqlite3_column_int64 (st, 0)].insert (sqlite3_column_int64 (st, 1));
+   sqlite3_finalize (st);
+
    /* the persons */
    std::map<long long, std::vector<float>> persons;
    for (const Row &r : rows) {
-      if (!r.person) continue;
+      if (!r.person || r.ignored) continue;
       auto &m = persons[r.person];
       if (m.empty ()) m.assign (FEATURE_LEN, 0.0f);
       for (int i = 0; i < FEATURE_LEN; i++) m[i] += r.f[i];
@@ -556,7 +677,7 @@ make_groups (Db &d)
 
    std::vector<size_t> order;
    for (size_t i = 0; i < rows.size (); i++)
-      if (!rows[i].person) order.push_back (i);
+      if (!rows[i].person && !rows[i].ignored) order.push_back (i);
    std::sort (order.begin (), order.end (),
               [&] (size_t a, size_t b) { return rows[a].score > rows[b].score; });
 
@@ -568,7 +689,9 @@ make_groups (Db &d)
    for (size_t k = 0; k < order.size (); k++) {
       size_t i = order[k];
       float best = GUESS_SIM;
+      auto rej = rejects.find (rows[i].id);
       for (const auto &p : persons) {
+         if (rej != rejects.end () && rej->second.count (p.first)) continue;
          float s = dot (rows[i].f.data (), p.second.data ());
          if (s >= best) { best = s; guess[i] = p.first; }
       }
@@ -597,19 +720,43 @@ make_groups (Db &d)
       }
    }
 
-   /* numbered by size, biggest first; groups of one are none */
-   std::vector<int> by_size;
-   for (size_t c = 0; c < sizes.size (); c++)
-      if (sizes[c] >= 2) by_size.push_back ((int) c);
-   std::sort (by_size.begin (), by_size.end (),
-              [&] (int a, int b) { return sizes[a] > sizes[b]; });
+   /* the numbers stay: a group gets the number most of its faces had
+    * (the faces window shows a group by its number while names are given
+    * to the others); new groups get new numbers.  Groups of one are none. */
+   std::map<std::pair<int, int>, int> overlap;   /* (group, old) -> faces */
+   int max_old = 0;
+   for (size_t i = 0; i < rows.size (); i++) {
+      max_old = std::max (max_old, rows[i].cluster);
+      if (group[i] >= 0 && rows[i].cluster > 0 && sizes[group[i]] >= 2)
+         overlap[{ group[i], rows[i].cluster }]++;
+   }
+   std::vector<std::pair<int, std::pair<int, int>>> pairs;   /* count, (group, old) */
+   for (const auto &o : overlap) pairs.push_back ({ o.second, o.first });
+   std::sort (pairs.begin (), pairs.end (),
+              [] (const auto &a, const auto &b) { return a.first > b.first; });
    std::vector<int> number (sizes.size (), 0);
-   for (size_t n = 0; n < by_size.size (); n++) number[by_size[n]] = (int) n + 1;
+   std::set<int> taken;
+   for (const auto &p : pairs) {
+      int g = p.second.first, old = p.second.second;
+      if (number[g] || taken.count (old)) continue;
+      number[g] = old;
+      taken.insert (old);
+   }
+   std::vector<int> fresh;
+   for (size_t c = 0; c < sizes.size (); c++)
+      if (sizes[c] >= 2 && !number[c]) fresh.push_back ((int) c);
+   std::sort (fresh.begin (), fresh.end (),
+              [&] (int a, int b) { return sizes[a] > sizes[b]; });
+   int next = max_old;
+   for (int c : fresh) number[c] = ++next;
+   int n_groups = 0;
+   for (size_t c = 0; c < sizes.size (); c++)
+      if (number[c]) n_groups++;
 
    st = d.prep ("UPDATE faces SET guess = ?, cluster = ? WHERE id = ?");
    d.exec ("BEGIN");
    for (size_t i = 0; i < rows.size (); i++) {
-      if (rows[i].person) {
+      if (rows[i].person || rows[i].ignored) {
          sqlite3_bind_null (st, 1);
          sqlite3_bind_null (st, 2);
       } else {
@@ -624,7 +771,7 @@ make_groups (Db &d)
    }
    d.exec ("COMMIT");
    sqlite3_finalize (st);
-   return (int) by_size.size ();
+   return n_groups;
 }
 
 
@@ -639,7 +786,7 @@ export_groups (Db &d, const std::string &out)
       "SELECT fa.id, fa.cluster, fa.x, fa.y, fa.w, fa.h, d.path, f.name, "
       "  (SELECT count(*) FROM faces c WHERE c.cluster = fa.cluster) "
       "FROM faces fa JOIN files f ON f.id = fa.file_id JOIN dirs d ON d.id = f.dir_id "
-      "WHERE fa.cluster IS NOT NULL AND fa.cluster <= 100 "
+      "WHERE fa.cluster IS NOT NULL "
       "ORDER BY fa.cluster, fa.score DESC");
    std::map<int, int> written;
    std::string last_path;
@@ -758,6 +905,8 @@ main (int argc, char *argv[])
    std::vector<Todo> todo;
    long long total = 0;
    list_files (d, dirs, todo, total);
+   std::vector<std::vector<Face>> missing;
+   list_missing_thumbs (d, todo, missing);
    say ("start %zu %lld", todo.size (), total);
 
    long long last_commit = now_usec (), last_say = 0;
@@ -770,6 +919,30 @@ main (int argc, char *argv[])
 
       check_stdin ();
       if (quit) break;
+
+      if (t.missing) {
+         cv::Mat img;
+         double scale;
+         guard_set (t.id);
+         r.ok = load_image (t.path, img, scale) ? 1 : 0;
+         guard_set (0);
+         r.faces = *t.missing;
+         if (r.ok)
+            for (Face &f : r.faces) make_thumb (img, scale, f);
+         r.todo = &t;
+         pending.push_back (std::move (r));
+         done++;
+         long long now = now_usec ();
+         if (now - last_commit >= COMMIT_USEC) {
+            write_results (d, pending);
+            last_commit = now;
+         }
+         if (now - last_say >= 1000000LL || done == todo.size ()) {
+            say ("progress %zu %zu", done, todo.size ());
+            last_say = now;
+         }
+         continue;
+      }
 
       guard_set (t.id);
       r.ok = read_faces (t.path, det, rec, r.faces);

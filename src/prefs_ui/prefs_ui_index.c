@@ -280,8 +280,11 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
        && dest->index_auto_shape  == src->index_auto_shape
        && !g_strcmp0 (dest->index_dirs, src->index_dirs)) {
       /* only the folders of the faces: the indexer goes on */
-      if (g_strcmp0 (dest->index_face_dirs, src->index_face_dirs))
+      if (g_strcmp0 (dest->index_face_dirs, src->index_face_dirs)) {
          gimv_index_faces_restart ();
+         for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node))
+            gimv_index_tabs_sync (node->data);
+      }
       return FALSE;
    }
 
@@ -289,17 +292,9 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
    gimv_index_restart ();
 
    /* the "Date" and "Tag" tabs open as soon as directories are given */
-   configured = gimv_index_is_configured ();
-   for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node)) {
-      GimvThumbWin *tw = node->data;
-      if (configured) {
-         gimv_index_tab_open (tw, GIMV_INDEX_TAB_DATE);
-         gimv_index_tab_open (tw, GIMV_INDEX_TAB_TAG);
-      } else {
-         gimv_index_tab_close (tw, GIMV_INDEX_TAB_DATE);
-         gimv_index_tab_close (tw, GIMV_INDEX_TAB_TAG);
-      }
-   }
+   for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node))
+      gimv_index_tabs_sync (node->data);
+   (void) configured;
 
    return FALSE;
 }
