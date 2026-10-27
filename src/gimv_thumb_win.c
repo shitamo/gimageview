@@ -2526,9 +2526,9 @@ side_notebook_new (GimvThumbWin *tw)
    gtk_widget_set_name (notebook, "SideNoteBook");
    /* not scrollable: the three short tabs are always all in view */
    gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook), FALSE);
-   label = gtk_label_new (_("Folders"));
-   gtk_widget_add_css_class (label, "gimv-tab-label");
+   label = gtkutil_icon_tab_label_new ("folder-symbolic", _("Folders"));
    gtk_notebook_append_page (GTK_NOTEBOOK (notebook), tw->dv->container, label);
+   gtk_notebook_set_menu_label_text (GTK_NOTEBOOK (notebook), tw->dv->container, _("Folders"));
    gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (notebook), tw->dv->container, TRUE);
    gtk_notebook_set_show_tabs (GTK_NOTEBOOK (notebook), FALSE);
    g_signal_connect (notebook, "page-added", G_CALLBACK (cb_side_pages_changed), tw);

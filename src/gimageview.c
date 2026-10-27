@@ -130,6 +130,12 @@ gimageview_init (gint *argc, gchar *argv[])
    g_set_application_name ("GImageView");
    gtk_init ();
 
+   /* the icons of GImageView itself, for those the icon theme lacks
+    * (placed straight in the directory: "unthemed", looked at last) */
+   g_snprintf (buf, MAX_PATH_LEN, "%s/icons", DATADIR);
+   gtk_icon_theme_add_search_path (gtk_icon_theme_get_for_display (gdk_display_get_default ()),
+                                   buf);
+
    /* style: GTK4 has no gtkrc, load CSS files instead */
    g_snprintf (buf, MAX_PATH_LEN, "%s/%s", DATADIR, GIMV_GTK_CSS);
    load_css_file (buf, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);

@@ -78,6 +78,10 @@ void          gtkutil_toolbar_set_style      (GtkWidget     *toolbar,
                                               gint           style);
 GtkWidget    *gtkutil_create_spin_button     (GtkAdjustment *adj);
 void        gtkutil_spin_button_pass_scroll (GtkWidget     *spin);
+/* a tab that shows an icon, the text as its tooltip (the same width in
+ * every language); the text itself when the icon is not found at all */
+GtkWidget  *gtkutil_icon_tab_label_new      (const gchar   *icon_name,
+                                             const gchar   *text);
 GObject      *gtkutil_option_menu_get_current(GtkWidget     *option_menu);
 GList        *gtkutil_list_insert_sorted     (GList         *list,
                                               gpointer       data,

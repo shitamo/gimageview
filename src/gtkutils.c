@@ -1396,3 +1396,24 @@ gtkutil_get_data_from_adjustment_by_float_cb (GtkWidget *widget, gfloat *data)
 
    *data = gtk_adjustment_get_value (GTK_ADJUSTMENT (widget));
 }
+
+
+GtkWidget *
+gtkutil_icon_tab_label_new (const gchar *icon_name, const gchar *text)
+{
+   GtkIconTheme *theme = gtk_icon_theme_get_for_display (gdk_display_get_default ());
+   GtkWidget *widget;
+
+   /* the theme, else the icons of GImageView (DATADIR/icons, added to the
+    * search path at the start) */
+   if (icon_name && gtk_icon_theme_has_icon (theme, icon_name)) {
+      widget = gtk_image_new_from_icon_name (icon_name);
+      gtk_widget_set_tooltip_text (widget, text);
+      gtk_accessible_update_property (GTK_ACCESSIBLE (widget),
+                                      GTK_ACCESSIBLE_PROPERTY_LABEL, text, -1);
+   } else {
+      widget = gtk_label_new (text);
+   }
+   gtk_widget_add_css_class (widget, "gimv-tab-label");
+   return widget;
+}

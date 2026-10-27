@@ -25,6 +25,7 @@
 #include <gio/gio.h>
 
 #include "fileload.h"
+#include "gtkutils.h"
 #include "gimv_icon_stock.h"
 #include "gimv_index.h"
 #include "gimv_index_db.h"
@@ -1154,6 +1155,18 @@ tab_title (GimvIndexTabType type)
 }
 
 
+/* the theme's, or the one of GImageView (etc/icons) */
+static const gchar *
+tab_icon (GimvIndexTabType type)
+{
+   switch (type) {
+   case GIMV_INDEX_TAB_TAG:    return "tag-symbolic";
+   case GIMV_INDEX_TAB_PERSON: return "avatar-default-symbolic";
+   default:                    return "x-office-calendar-symbolic";
+   }
+}
+
+
 static GtkWidget *
 index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
 {
@@ -1257,13 +1270,12 @@ gimv_index_tab_open (GimvThumbWin *tw, GimvIndexTabType type)
 
    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
    g_object_set_data (G_OBJECT (hbox), "page-container", page);
-   label = gtk_label_new (tab_title (type));
+   label = gtkutil_icon_tab_label_new (tab_icon (type), tab_title (type));
    gtk_widget_set_name (label, "TabLabel");
-   gtk_widget_add_css_class (label, "gimv-tab-label");
    gtk_box_append (GTK_BOX (hbox), label);
 
-   /* no close button: the side bar is narrow ("Folders", "Date", "Tag"
-      should fit); the View menu opens and closes the tab */
+   /* no close button: the side bar is narrow; the tabs open and close
+      with the preferences */
    (void) button;
 
    /* next to the directory view (the side notebook), not among the
