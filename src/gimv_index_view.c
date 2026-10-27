@@ -1,7 +1,8 @@
 /* -*- Mode: C; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 3 -*- */
 
 /*
- * GImageView image index: the "Date" and "Tag" tabs of the thumbnail window.
+ * GImageView image index: the "Date" and "Tag" tabs next to the directory
+ * view (the side notebook of the thumbnail window).
  * Years, months and days, or tag names, come from the index database;
  * selecting one opens its images in a collection tab.
  *
@@ -944,7 +945,7 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
 
 
 /******************************************************************************
- *  the "Date" and "Tag" tabs of the thumbnail window
+ *  the "Date" and "Tag" tabs next to the directory view
  ******************************************************************************/
 
 static const gchar *tab_keys[] = { "gimv-index-date-tab", "gimv-index-tag-tab" };
@@ -1003,21 +1004,13 @@ cb_page_destroy (GtkWidget *page, GimvThumbWin *tw)
 }
 
 
-static void
-cb_close_clicked (GtkWidget *button, GimvThumbWin *tw)
-{
-   gimv_index_tab_close (tw, GPOINTER_TO_INT (g_object_get_data (G_OBJECT (button),
-                                                                "gimv-index-tab-type")));
-}
-
-
 void
 gimv_index_tab_open (GimvThumbWin *tw, GimvIndexTabType type)
 {
    GtkWidget *page, *hbox, *label, *button;
 
    g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
-   if (gimv_index_tab_get_page (tw, type) || !tw->notebook) return;
+   if (gimv_index_tab_get_page (tw, type) || !tw->side_notebook) return;
 
    page = index_view_new (tw, type);
    g_object_set_data (G_OBJECT (page), "gimv-index-tab-type", GINT_TO_POINTER (type));
@@ -1031,19 +1024,21 @@ gimv_index_tab_open (GimvThumbWin *tw, GimvIndexTabType type)
    gtk_widget_set_margin_end (label, 4);
    gtk_box_append (GTK_BOX (hbox), label);
 
-   button = gtk_button_new ();
-   gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
-   gtk_button_set_child (GTK_BUTTON (button), gimv_icon_stock_get_widget ("small_close"));
-   gimv_widget_set_size (button, 16, 16);
-   g_object_set_data (G_OBJECT (button), "gimv-index-tab-type", GINT_TO_POINTER (type));
-   g_signal_connect (button, "clicked", G_CALLBACK (cb_close_clicked), tw);
-   gtk_box_append (GTK_BOX (hbox), button);
-   gtk_widget_set_visible (button, conf.thumbwin_show_tab_close);
+   /* no close button: the side bar is narrow ("Folders", "Date", "Tag"
+      should fit); the View menu opens and closes the tab */
+   (void) button;
 
-   gtk_notebook_append_page (GTK_NOTEBOOK (tw->notebook), page, hbox);
-   gtk_notebook_set_menu_label_text (GTK_NOTEBOOK (tw->notebook), page, tab_title (type));
-   gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (tw->notebook), page, TRUE);
-   tw->pagenum++;
+   /* next to the directory view (the side notebook), not among the
+      thumbnail tabs: the tree stays in view with the results */
+   {
+      /* the page shown stays (opened at start: the folders) */
+      gint cur = gtk_notebook_get_current_page (GTK_NOTEBOOK (tw->side_notebook));
+      gtk_notebook_append_page (GTK_NOTEBOOK (tw->side_notebook), page, hbox);
+      if (cur >= 0)
+         gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->side_notebook), cur);
+   }
+   gtk_notebook_set_menu_label_text (GTK_NOTEBOOK (tw->side_notebook), page, tab_title (type));
+   gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (tw->side_notebook), page, TRUE);
 
    g_object_set_data (G_OBJECT (tw), tab_keys[type], page);
    g_signal_connect (page, "destroy", G_CALLBACK (cb_page_destroy), tw);
@@ -1063,11 +1058,10 @@ gimv_index_tab_close (GimvThumbWin *tw, GimvIndexTabType type)
    if (!page) return;
 
    g_object_set_data (G_OBJECT (tw), tab_keys[type], NULL);
-   num = gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), page);
-   if (num >= 0) {
-      gtk_notebook_remove_page (GTK_NOTEBOOK (tw->notebook), num);
-      if (tw->pagenum > 0) tw->pagenum--;
-   }
+   num = tw->side_notebook
+         ? gtk_notebook_page_num (GTK_NOTEBOOK (tw->side_notebook), page) : -1;
+   if (num >= 0)
+      gtk_notebook_remove_page (GTK_NOTEBOOK (tw->side_notebook), num);
    sync_menu (tw);
    gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
 }

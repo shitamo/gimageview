@@ -188,6 +188,7 @@ static void       gimv_thumb_win_get_layout          (GimvThumbwinComposeType *c
 static void       gimv_thumb_win_pane_set_visible    (GimvThumbWin   *tw,
                                                       GimvComponentType item);
 static GtkWidget *thumbnail_window_contents_new      (GimvThumbWin   *tw);
+static GtkWidget *side_notebook_new (GimvThumbWin *tw);
 static GtkWidget *thumbnail_view_new                 (GimvThumbWin   *tw);
 static gint       image_preview_action               (GimvImageView  *iv,
                                                       GimvEventButton *event,
@@ -2461,7 +2462,7 @@ thumbnail_window_contents_new (GimvThumbWin *tw)
    /* create each widget */
    dirname = g_get_current_dir ();
    tw->dv = dirview_create (dirname, GTK_WIDGET (tw), tw);
-   tw->dirview = tw->dv->container;
+   tw->dirview = side_notebook_new (tw);
    thumbview = thumbnail_view_new (tw);
    tw->preview = image_preview_new (tw);
    g_free (dirname);
@@ -2514,6 +2515,38 @@ thumbnail_window_contents_new (GimvThumbWin *tw)
    gtk_widget_show (tw->pane2);
 
    return tw->pane1;
+}
+
+
+/* the tabs show only when there is more than the directory view */
+static void
+cb_side_pages_changed (GtkNotebook *notebook, GtkWidget *child, guint num,
+                       GimvThumbWin *tw)
+{
+   gtk_notebook_set_show_tabs (notebook, gtk_notebook_get_n_pages (notebook) > 1);
+}
+
+
+/* where the directory view was: a notebook with it as "Folders", and the
+ * "Date" and "Tag" tabs of the index next to it (as the side bar of
+ * digiKam): the tree stays in view while the results are looked at */
+static GtkWidget *
+side_notebook_new (GimvThumbWin *tw)
+{
+   GtkWidget *notebook = gtk_notebook_new (), *label;
+
+   gtk_widget_set_name (notebook, "SideNoteBook");
+   /* not scrollable: the three short tabs are always all in view */
+   gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook), FALSE);
+   label = gtk_label_new (_("Folders"));
+   gtk_widget_add_css_class (label, "gimv-tab-label");
+   gtk_notebook_append_page (GTK_NOTEBOOK (notebook), tw->dv->container, label);
+   gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (notebook), tw->dv->container, TRUE);
+   gtk_notebook_set_show_tabs (GTK_NOTEBOOK (notebook), FALSE);
+   g_signal_connect (notebook, "page-added", G_CALLBACK (cb_side_pages_changed), tw);
+   g_signal_connect (notebook, "page-removed", G_CALLBACK (cb_side_pages_changed), tw);
+   tw->side_notebook = notebook;
+   return notebook;
 }
 
 
@@ -3344,12 +3377,18 @@ cb_toggle_show (GimvThumbWin *tw, ShowItem sitem, GimvMenuItem *widget)
                                                      : GIMV_INDEX_TAB_DATE;
       if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
          GtkWidget *page;
+         /* the menu follows the tab too (set_active): only a tab opened
+            here now is shown */
+         gboolean was_open = gimv_index_tab_get_page (tw, type) != NULL;
          gimv_index_tab_open (tw, type);
-         /* opened from the menu: show it */
+         /* opened from the menu: show it, with the directory view it is in */
          page = gimv_index_tab_get_page (tw, type);
-         if (page)
-            gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->notebook),
-                                           gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), page));
+         if (page && tw->side_notebook && !was_open) {
+            if (!tw->show_dirview)
+               gimv_thumb_win_open_dirview (tw);
+            gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->side_notebook),
+                                           gtk_notebook_page_num (GTK_NOTEBOOK (tw->side_notebook), page));
+         }
       } else {
          gimv_index_tab_close (tw, type);
       }
@@ -5052,8 +5091,8 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
       tw->layout_type = layout;
 
 #ifdef ENABLE_INDEX
-   /* the "Date" and "Tag" tabs are not thumbnail views: take them out and
-    * open them again in the new notebook */
+   /* the "Date" and "Tag" tabs are in the side notebook, made again with
+    * the directory view: take them out and open them again */
    date_tab_open = gimv_index_tab_get_page (tw, GIMV_INDEX_TAB_DATE) != NULL;
    tag_tab_open  = gimv_index_tab_get_page (tw, GIMV_INDEX_TAB_TAG) != NULL;
    gimv_index_tab_close (tw, GIMV_INDEX_TAB_DATE);
@@ -5077,6 +5116,7 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
    if (tw->dv) {
       tw->dv = NULL;
       tw->dirview = NULL;
+      tw->side_notebook = NULL;
    }
    new_main_contents = thumbnail_window_contents_new (tw);
 
