@@ -41,6 +41,9 @@
  *                           limit, fs.inotify.max_user_watches); changes
  *                           below the others are found at the next start
  *   idle [<files>]          nothing to do; the number of files indexed
+ *   skipped\t<path>         the last run died reading this image: it is
+ *                           left with the date from its mtime and no tags
+ *                           from its contents
  *   error <text>
  *
  * Commands on stdin:
@@ -85,7 +88,6 @@
 #  include <libexif/exif-data.h>
 #  include <libexif/exif-utils.h>
 #endif
-#include <gdk-pixbuf/gdk-pixbuf.h>
 
 #include "gimv_index_db.h"
 
@@ -130,6 +132,8 @@ typedef struct Indexer_Tag
    gint         log_keep;
    gboolean     full;          /* stat every file, not only changed dirs */
    guint        auto_kinds;    /* AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE */
+   gint         guard_fd;      /* the image stage 2 is reading (INDEX.db.reading) */
+   gchar       *guard_path;
    GString     *cmdbuf;
 
    sqlite3_stmt *st_dir_get, *st_dir_add, *st_dir_set;
@@ -1083,6 +1087,64 @@ filename_date (const gchar *name)
 
 
 /******************************************************************************
+ *  a file that takes the indexer down
+ *
+ *  Stage 2 writes the id of the image it reads into INDEX.db.reading (in the
+ *  page cache: no sync, it only has to outlive this process).  If the
+ *  indexer dies on an image, the next start finds the id there, gives that
+ *  image its stage 2 without reading it, and says "skipped\t<path>".
+ ******************************************************************************/
+
+static void
+guard_set (Indexer *ix, gint64 id)
+{
+   gchar buf[24];
+
+   if (ix->guard_fd < 0) return;
+   if (id) {
+      gint len = g_snprintf (buf, sizeof buf, "%-20" G_GINT64_FORMAT "\n", id);
+      if (pwrite (ix->guard_fd, buf, len, 0) < 0) { /* nothing to do */ }
+   } else {
+      if (ftruncate (ix->guard_fd, 0) < 0) { /* nothing to do */ }
+   }
+}
+
+
+/* at the start: the image the last run died on */
+static void
+guard_check (Indexer *ix)
+{
+   gchar *text = NULL;
+   gint64 id;
+
+   if (!g_file_get_contents (ix->guard_path, &text, NULL, NULL)) return;
+   id = g_ascii_strtoll (text, NULL, 10);
+   g_free (text);
+   if (id > 0) {
+      sqlite3_stmt *st = prep (ix, "SELECT d.path, f.name, f.mtime FROM files f "
+                                   "JOIN dirs d ON d.id = f.dir_id WHERE f.id = ?");
+      sqlite3_bind_int64 (st, 1, id);
+      if (sqlite3_step (st) == SQLITE_ROW) {
+         gchar *path = g_build_filename ((const gchar *) sqlite3_column_text (st, 0),
+                                         (const gchar *) sqlite3_column_text (st, 1), NULL);
+         gchar *date = time_to_date (sqlite3_column_int64 (st, 2));
+         sqlite3_stmt *upd = prep (ix, "UPDATE files SET date = ?, date_src = 0, stage = 2 "
+                                       "WHERE id = ?");
+         if (date) sqlite3_bind_text (upd, 1, date, -1, g_free);
+         else      sqlite3_bind_null (upd, 1);
+         sqlite3_bind_int64 (upd, 2, id);
+         sqlite3_step (upd);
+         sqlite3_finalize (upd);
+         say ("skipped\t%s", path);
+         g_free (path);
+      }
+      sqlite3_finalize (st);
+   }
+   guard_set (ix, 0);
+}
+
+
+/******************************************************************************
  *  tags put by rules (auto = 1 in file_tags)
  *
  *  folder/<name>   the folder of the image (not a root, not a folder named
@@ -1135,6 +1197,84 @@ folder_tag (const gchar *dirpath)
       ret = g_strconcat ("folder/", name, NULL);
    g_free (name);
    return ret;
+}
+
+
+/* the size of an image from its header, read here: the image libraries
+ * are not trusted with millions of files of any kind (a broken file must
+ * not take the indexer down; gdk-pixbuf 2.44 hands files to glycin, whose
+ * EXIF reader aborted the process on one).  JPEG, PNG, GIF, WebP, BMP;
+ * FALSE for the others. */
+static guint32 be16 (const guchar *p) { return (p[0] << 8) | p[1]; }
+static guint32 be32 (const guchar *p) { return ((guint32) p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]; }
+static guint32 le16 (const guchar *p) { return p[0] | (p[1] << 8); }
+static guint32 le24 (const guchar *p) { return p[0] | (p[1] << 8) | (p[2] << 16); }
+static guint32 le32 (const guchar *p) { return p[0] | (p[1] << 8) | (p[2] << 16) | ((guint32) p[3] << 24); }
+
+static gboolean
+jpeg_size (FILE *f, gint *w, gint *h)
+{
+   guchar b[8];
+   gint n;
+
+   /* after SOI: segments; the frame header (SOFn) has the size */
+   for (n = 0; n < 1000; n++) {
+      gint c;
+      guint len;
+
+      do { c = fgetc (f); } while (c != EOF && c != 0xff);
+      do { c = fgetc (f); } while (c == 0xff);
+      if (c == EOF) return FALSE;
+      if (c == 0xd8 || (c >= 0xd0 && c <= 0xd7) || c == 0x01) continue;  /* no length */
+      if (c == 0xd9 || c == 0xda) return FALSE;                          /* EOI, SOS */
+      if (fread (b, 1, 2, f) != 2) return FALSE;
+      len = be16 (b);
+      if (len < 2) return FALSE;
+      if (c >= 0xc0 && c <= 0xcf && c != 0xc4 && c != 0xc8 && c != 0xcc) {
+         if (fread (b, 1, 5, f) != 5) return FALSE;
+         *h = be16 (b + 1);
+         *w = be16 (b + 3);
+         return *w > 0 && *h > 0;
+      }
+      if (fseek (f, len - 2, SEEK_CUR) != 0) return FALSE;
+   }
+   return FALSE;
+}
+
+static gboolean
+image_size (const gchar *path, gint *w, gint *h)
+{
+   guchar b[32];
+   FILE *f;
+   gboolean ok = FALSE;
+   gsize n;
+
+   *w = *h = 0;
+   f = fopen (path, "rb");
+   if (!f) return FALSE;
+   n = fread (b, 1, sizeof b, f);
+
+   if (n >= 4 && b[0] == 0xff && b[1] == 0xd8) {
+      fseek (f, 2, SEEK_SET);
+      ok = jpeg_size (f, w, h);
+   } else if (n >= 24 && !memcmp (b, "\x89PNG\r\n\x1a\n", 8) && !memcmp (b + 12, "IHDR", 4)) {
+      *w = be32 (b + 16); *h = be32 (b + 20); ok = TRUE;
+   } else if (n >= 10 && (!memcmp (b, "GIF87a", 6) || !memcmp (b, "GIF89a", 6))) {
+      *w = le16 (b + 6); *h = le16 (b + 8); ok = TRUE;
+   } else if (n >= 30 && !memcmp (b, "RIFF", 4) && !memcmp (b + 8, "WEBP", 4)) {
+      if (!memcmp (b + 12, "VP8 ", 4) && n >= 30) {
+         *w = le16 (b + 26) & 0x3fff; *h = le16 (b + 28) & 0x3fff; ok = TRUE;
+      } else if (!memcmp (b + 12, "VP8L", 4) && n >= 25) {
+         guint32 v = le32 (b + 21);
+         *w = (v & 0x3fff) + 1; *h = ((v >> 14) & 0x3fff) + 1; ok = TRUE;
+      } else if (!memcmp (b + 12, "VP8X", 4) && n >= 30) {
+         *w = le24 (b + 24) + 1; *h = le24 (b + 27) + 1; ok = TRUE;
+      }
+   } else if (n >= 26 && b[0] == 'B' && b[1] == 'M') {
+      *w = (gint32) le32 (b + 18); *h = ABS ((gint32) le32 (b + 22)); ok = TRUE;
+   }
+   fclose (f);
+   return ok && *w > 0 && *h > 0;
 }
 
 
@@ -1366,6 +1506,7 @@ run_stage2 (Indexer *ix)
          gint src = GIMV_INDEX_DATE_MTIME, w = 0, h = 0;
          ImageInfo ii = { 0 };
 
+         guard_set (ix, id);
 #ifdef ENABLE_EXIF
          exif_read (path, &ii);
          date = g_steal_pointer (&ii.date);
@@ -1373,7 +1514,7 @@ run_stage2 (Indexer *ix)
 #endif
          /* the size from the header only */
          if (ix->auto_kinds & AUTO_SHAPE)
-            gdk_pixbuf_get_file_info (path, &w, &h);
+            image_size (path, &w, &h);
          auto_tags_clear (&at, id);
          auto_tag_add (&at, id, g_ptr_array_index (folders, i));
          if (ii.camera && (ix->auto_kinds & AUTO_CAMERA)) {
@@ -1415,6 +1556,7 @@ run_stage2 (Indexer *ix)
       g_ptr_array_unref (folders);
    }
 
+   guard_set (ix, 0);
    /* tags no file has any more (the folder of a moved image, ...) */
    if (!ix->quit)
       exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
@@ -2218,6 +2360,7 @@ main (int argc, char *argv[])
    }
 
    memset (&ix, 0, sizeof (ix));
+   ix.guard_fd = -1;
    ix.dotfiles = dotfiles;
    ix.cmdbuf = g_string_new (NULL);
    ix.tag_queue = g_ptr_array_new_with_free_func (g_free);
@@ -2266,6 +2409,10 @@ main (int argc, char *argv[])
 
    if (!open_db (&ix, dbfile))
       return 1;
+
+   ix.guard_path = g_strconcat (dbfile, ".reading", NULL);
+   guard_check (&ix);
+   ix.guard_fd = open (ix.guard_path, O_RDWR | O_CREAT | O_CLOEXEC, 0600);
 
    do {
       ix.full = ix.rescan;

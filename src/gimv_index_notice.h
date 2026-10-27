@@ -31,5 +31,8 @@ void       gimv_index_notice_logs_pruned (guint        n);
 GList     *gimv_index_notice_take_unanswered (void);
 /* the indexer cannot watch more folders */
 void       gimv_index_notice_watch_limit (guint        n_watched);
+void       gimv_index_notice_skipped     (const gchar *path);
+void       gimv_index_notice_indexer_died (const gchar *why,
+                                           gboolean     restarted);
 
 #endif /* __GIMV_INDEX_NOTICE_H__ */

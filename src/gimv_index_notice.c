@@ -386,6 +386,28 @@ add_note (gchar *text)
 }
 
 
+void
+gimv_index_notice_skipped (const gchar *path)
+{
+   add_note (g_strdup_printf (_("The indexer stopped while reading this image, so it "
+                                "is left out (its date is from the file time and it "
+                                "has no camera or shape tags): %s"), path));
+}
+
+
+void
+gimv_index_notice_indexer_died (const gchar *why, gboolean restarted)
+{
+   if (restarted)
+      add_note (g_strdup_printf (_("The indexer stopped (%s) and was started again."), why));
+   else
+      add_note (g_strdup_printf (_("The indexer stopped (%s) again and again, so it is "
+                                   "not started any more this time.  The messages in "
+                                   "the terminal GImageView was started from may tell "
+                                   "why."), why));
+}
+
+
 /* the moves nobody answered: gimv quits */
 GList *
 gimv_index_notice_take_unanswered (void)

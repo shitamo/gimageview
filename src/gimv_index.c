@@ -53,7 +53,10 @@ static struct {
    GList            *watches;
    guint             watch_id;
    gint64            last_notify;
+   guint             restarts;        /* after the indexer died */
 } ix;
+
+#define MAX_RESTARTS 3
 
 
 /******************************************************************************
@@ -254,6 +257,12 @@ handle_line (const gchar *line)
       return;
    }
 
+   /* "skipped\t<path>": the last run died reading it */
+   if (g_str_has_prefix (line, "skipped\t")) {
+      gimv_index_notice_skipped (line + strlen ("skipped\t"));
+      return;
+   }
+
    /* "missing-log\t<file>\t<n>" */
    if (g_str_has_prefix (line, "missing-log\t")) {
       gchar **t = g_strsplit (line, "\t", 3);
@@ -335,6 +344,41 @@ handle_line (const gchar *line)
 }
 
 
+static void start_indexer (void);
+
+static gboolean
+idle_restart (gpointer data)
+{
+   if (!ix.proc && ix.state == GIMV_INDEX_STATE_ERROR && gimv_index_is_configured ())
+      start_indexer ();
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_died (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GSubprocess *proc = G_SUBPROCESS (source);
+   gchar *why;
+
+   g_subprocess_wait_finish (proc, res, NULL);
+   if (g_subprocess_get_if_signaled (proc))
+      why = g_strdup_printf (_("signal %d"), g_subprocess_get_term_sig (proc));
+   else
+      why = g_strdup_printf (_("exit status %d"), g_subprocess_get_exit_status (proc));
+   g_object_unref (proc);
+
+   if (ix.restarts < MAX_RESTARTS) {
+      ix.restarts++;
+      gimv_index_notice_indexer_died (why, TRUE);
+      g_timeout_add_seconds (2, idle_restart, NULL);
+   } else {
+      gimv_index_notice_indexer_died (why, FALSE);
+   }
+   g_free (why);
+}
+
+
 static void
 cb_read_line (GObject *source, GAsyncResult *res, gpointer data)
 {
@@ -351,13 +395,20 @@ cb_read_line (GObject *source, GAsyncResult *res, gpointer data)
    }
 
    if (!line) {
-      /* EOF: the indexer has exited */
-      if (ix.state != GIMV_INDEX_STATE_BUSY && ix.state != GIMV_INDEX_STATE_OFF)
+      /* EOF: the indexer has exited (not asked to: that is cancelled) */
+      gboolean died = ix.state != GIMV_INDEX_STATE_BUSY && ix.state != GIMV_INDEX_STATE_OFF;
+      if (died)
          ix.state = GIMV_INDEX_STATE_ERROR;
       update_status ();
       g_clear_object (&ix.out);
-      g_clear_object (&ix.proc);
       ix.in = NULL;
+      if (died && ix.proc) {
+         /* why, and start it again: the next run skips an image it died on */
+         g_subprocess_wait_async (ix.proc, NULL, cb_died, NULL);
+         ix.proc = NULL;          /* the reference goes to cb_died */
+      } else {
+         g_clear_object (&ix.proc);
+      }
       return;
    }
 

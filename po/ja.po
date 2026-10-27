@@ -5361,3 +5361,25 @@ msgstr "カメラや形をオンにすると全部の画像を読み直すので
 #: src/gimv_image_view.c
 msgid "/Flip Horizontally"
 msgstr "/左右反転"
+
+#: src/gimv_index_notice.c
+#, c-format
+msgid "The indexer stopped while reading this image, so it is left out (its date is from the file time and it has no camera or shape tags): %s"
+msgstr "索引プロセスがこの画像を読み込む途中で止まったので、この画像は飛ばしました (日付はファイルの更新日時で、カメラ・形のタグは付きません): %s"
+
+#, c-format
+msgid "The indexer stopped (%s) and was started again."
+msgstr "索引プロセスが止まったので (%s)、もう一度起動しました。"
+
+#, c-format
+msgid "The indexer stopped (%s) again and again, so it is not started any more this time.  The messages in the terminal GImageView was started from may tell why."
+msgstr "索引プロセスが何度も止まったので (%s)、今回はもう起動しません。GImageView を起動した端末に出たメッセージに理由が出ているかもしれません。"
+
+#: src/gimv_index.c
+#, c-format
+msgid "signal %d"
+msgstr "シグナル %d"
+
+#, c-format
+msgid "exit status %d"
+msgstr "終了コード %d"
