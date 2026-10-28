@@ -287,6 +287,18 @@ exec (Indexer *ix, const gchar *sql)
 }
 
 
+/* after a commit in the middle of the work: a moment without the write
+ * lock, for gimv (names of faces) and gimv-faces to write; they look for
+ * the lock every few milliseconds (gimv_index_db_wait_busy) */
+#define YIELD_USEC (20 * 1000)
+
+static void
+yield_lock (void)
+{
+   g_usleep (YIELD_USEC);
+}
+
+
 static void process_tag_queue (Indexer *ix, gboolean in_transaction);
 static gboolean watch_during_stage (Indexer *ix);
 static void missing_flush (Indexer *ix);
@@ -302,6 +314,7 @@ maybe_commit (Indexer *ix, gboolean force)
       process_tag_queue (ix, TRUE);
       changed = watch_during_stage (ix);
       exec (ix, "COMMIT");
+      yield_lock ();
       if (changed) {
          missing_flush (ix);
          say ("changed");
@@ -1436,6 +1449,7 @@ exec_in_chunks (Indexer *ix, Prepare *p, const gchar *sql, const gchar *table,
       sqlite3_step (st);
       sqlite3_reset (st);
       exec (ix, "COMMIT");
+      yield_lock ();
       prepare_step (ix, p, MIN (PREPARE_ROWS, max - lo));
    }
    sqlite3_finalize (st);
@@ -1487,6 +1501,7 @@ auto_folder_all (Indexer *ix, Prepare *p)
       rows += sqlite3_changes (ix->db);
       if (rows >= PREPARE_ROWS) {
          exec (ix, "COMMIT");
+         yield_lock ();
          prepare_step (ix, p, rows);
          rows = 0;
          if (!ix->quit) exec (ix, "BEGIN");

@@ -49,4 +49,10 @@ GimvIndexDbResult gimv_index_db_open         (const gchar *path,
                                               sqlite3    **db,
                                               gchar      **errmsg);
 
+/* wait for the other writers up to "seconds", looking every few
+ * milliseconds: they commit often but take the lock again at once, and
+ * SQLite's own waiting (sleeps growing to 100 ms) mostly misses the gaps */
+void              gimv_index_db_wait_busy    (sqlite3     *db,
+                                              gint         seconds);
+
 #endif /* __GIMV_INDEX_DB_H__ */

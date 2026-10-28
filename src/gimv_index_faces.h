@@ -14,6 +14,7 @@
 #define __GIMV_INDEX_FACES_H__
 
 #include <glib.h>
+#include <gio/gio.h>
 
 typedef enum {
    GIMV_INDEX_FACES_OFF,
@@ -41,16 +42,26 @@ void                gimv_index_faces_restart        (void);
 void                gimv_index_faces_regroup        (void);
 void                gimv_index_faces_quit           (void);
 
-/* what a person says about the faces (ids: gint64 face ids); the groups
- * are made again a little later, or at gimv_index_faces_flush () */
-gboolean            gimv_index_faces_set_name       (GArray      *ids,
-                                                     const gchar *name);
-gboolean            gimv_index_faces_confirm_guess  (GArray      *ids);
-gboolean            gimv_index_faces_clear_name     (GArray      *ids);
-gboolean            gimv_index_faces_reject         (GArray      *ids,
-                                                     gint64       person_id);
-gboolean            gimv_index_faces_set_ignored    (GArray      *ids,
-                                                     gboolean     ignored);
+/* what a person says about the faces (ids: gint64 face ids), written in
+ * a worker thread in one transaction; the tabs are told and the groups
+ * made again a little later (or at gimv_index_faces_flush ()) */
+typedef enum {
+   GIMV_INDEX_FACES_SET_NAME,     /* name: the person's name */
+   GIMV_INDEX_FACES_CONFIRM,      /* the guess is right */
+   GIMV_INDEX_FACES_CLEAR_NAME,
+   GIMV_INDEX_FACES_REJECT,       /* person: not this one */
+   GIMV_INDEX_FACES_IGNORE,
+   GIMV_INDEX_FACES_UNIGNORE,
+} GimvIndexFacesEdit;
+
+void                gimv_index_faces_edit_async     (GimvIndexFacesEdit  edit,
+                                                     GArray             *ids,
+                                                     const gchar        *name,
+                                                     gint64              person,
+                                                     GAsyncReadyCallback callback,
+                                                     gpointer            data);
+gboolean            gimv_index_faces_edit_finish    (GAsyncResult       *res,
+                                                     GError            **error);
 GPtrArray          *gimv_index_faces_get_names      (void);
 void                gimv_index_faces_flush          (void);
 

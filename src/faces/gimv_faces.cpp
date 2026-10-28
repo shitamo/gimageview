@@ -168,6 +168,15 @@ struct Db {
 };
 
 
+static int
+busy_poll (void *, int count)
+{
+   if (count >= 60 * 500) return 0;   /* a minute */
+   usleep (2000);
+   return 1;
+}
+
+
 static bool
 open_db (Db &d, const char *path)
 {
@@ -179,7 +188,10 @@ open_db (Db &d, const char *path)
       say ("error cannot open %s", path);
       return false;
    }
-   sqlite3_busy_timeout (d.db, 10000);
+   /* the indexer and gimv commit often but take the lock again at once:
+    * looked at every few milliseconds (SQLite's own wait, growing to
+    * 100 ms sleeps, mostly misses the gaps) */
+   sqlite3_busy_handler (d.db, busy_poll, nullptr);
    st = d.prep ("PRAGMA user_version");
    if (st && sqlite3_step (st) == SQLITE_ROW)
       v = sqlite3_column_int (st, 0);
@@ -570,7 +582,14 @@ write_results (Db &d, std::vector<Result> &results)
    sqlite3_stmt *thumb = d.prep ("INSERT OR REPLACE INTO face_thumbs (face_id, jpeg) "
                                  "VALUES (?, ?)");
 
-   d.exec ("BEGIN IMMEDIATE");
+   if (sqlite3_exec (d.db, "BEGIN IMMEDIATE", nullptr, nullptr, nullptr) != SQLITE_OK) {
+      /* kept for the next time */
+      sqlite3_finalize (del);
+      sqlite3_finalize (ins);
+      sqlite3_finalize (scan);
+      sqlite3_finalize (thumb);
+      return;
+   }
    for (const Result &r : results) {
       if (r.todo->missing) {
          /* an empty one when the image cannot be read: not tried again */

@@ -5707,3 +5707,12 @@ msgid ""
 "preferences): rewriting them in the index (%d%%). The images are read after "
 "this if needed."
 msgstr "自動タグが変わったため (新しい規則、または設定で種類をオン・オフした)、索引の中の自動タグを書き換えています (%d%%)。必要ならこの後で画像を読み直します。"
+
+#: src/gimv_index_faces_win.c
+msgid "writing..."
+msgstr "書き込み中..."
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "%s — could not be written: %s"
+msgstr "%s — 書き込めませんでした: %s"

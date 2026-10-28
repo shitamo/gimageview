@@ -87,6 +87,8 @@ static struct {
    gchar             *key;
    gchar             *title;
    gboolean           changed;   /* names given: the groups made again on close */
+   gboolean           busy;      /* a change being written */
+   gchar             *error;     /* of the last change, shown in the heading */
 } fw;
 
 enum {
@@ -103,8 +105,17 @@ update_heading (void)
    guint n = fw.store ? g_list_model_get_n_items (G_LIST_MODEL (fw.store)) : 0;
    gchar *text = g_strdup_printf (ngettext ("%s: %'u face", "%s: %'u faces", n),
                                   fw.title ? fw.title : "", n);
-   gtk_label_set_text (GTK_LABEL (fw.heading), text);
+   gchar *line;
+
    gtk_window_set_title (GTK_WINDOW (fw.window), text);
+   if (fw.busy)
+      line = g_strdup_printf ("%s — %s", text, _("writing..."));
+   else if (fw.error)
+      line = g_strdup_printf (_("%s — could not be written: %s"), text, fw.error);
+   else
+      line = g_strdup (text);
+   gtk_label_set_text (GTK_LABEL (fw.heading), line);
+   g_free (line);
    g_free (text);
 }
 
@@ -114,10 +125,13 @@ static GArray *
 selected_ids (void)
 {
    GArray *ids = g_array_new (FALSE, FALSE, sizeof (gint64));
-   GtkBitset *set = gtk_selection_model_get_selection (GTK_SELECTION_MODEL (fw.selection));
+   /* a copy: the selection's own may change while it is gone through */
+   GtkBitset *live = gtk_selection_model_get_selection (GTK_SELECTION_MODEL (fw.selection));
+   GtkBitset *set = gtk_bitset_copy (live);
    GtkBitsetIter iter;
    guint pos;
 
+   gtk_bitset_unref (live);
    if (gtk_bitset_iter_init_first (&iter, set, &pos)) {
       do {
          GimvFaceItem *item = g_list_model_get_item (G_LIST_MODEL (fw.store), pos);
@@ -132,22 +146,27 @@ selected_ids (void)
 }
 
 
-/* the faces selected are no longer of this row: out of the list (the
- * rest stays where it was, not read again) */
+/* these faces are no longer of this row: out of the list (the rest
+ * stays where it was, not read again).  By id: the selection may have
+ * changed while they were written (and a GtkMultiSelection's own bitset
+ * changes under an iterator as items go). */
 static void
-remove_selected (void)
+remove_ids (GArray *ids)
 {
-   GtkBitset *set = gtk_selection_model_get_selection (GTK_SELECTION_MODEL (fw.selection));
-   GtkBitsetIter iter;
-   guint pos;
+   GHashTable *gone = g_hash_table_new (g_int64_hash, g_int64_equal);
+   guint i, n;
 
+   for (i = 0; i < ids->len; i++)
+      g_hash_table_add (gone, &g_array_index (ids, gint64, i));
+   n = g_list_model_get_n_items (G_LIST_MODEL (fw.store));
    /* from the end, the positions before stay right */
-   if (gtk_bitset_iter_init_last (&iter, set, &pos)) {
-      do {
-         g_list_store_remove (fw.store, pos);
-      } while (gtk_bitset_iter_previous (&iter, &pos));
+   for (i = n; i > 0; i--) {
+      GimvFaceItem *item = g_list_model_get_item (G_LIST_MODEL (fw.store), i - 1);
+      gboolean drop = item && g_hash_table_contains (gone, &item->id);
+      if (item) g_object_unref (item);
+      if (drop) g_list_store_remove (fw.store, i - 1);
    }
-   gtk_bitset_unref (set);
+   g_hash_table_unref (gone);
    update_heading ();
    update_buttons ();
 }
@@ -180,8 +199,9 @@ update_buttons (void)
    gtk_widget_set_visible (fw.buttons[B_CLEAR],    kind == 'p');
    gtk_widget_set_visible (fw.buttons[B_IGNORE],   kind != 'i');
    gtk_widget_set_visible (fw.buttons[B_UNIGNORE], kind == 'i');
+   /* one change at a time */
    for (i = 0; i < N_BUTTONS; i++)
-      gtk_widget_set_sensitive (fw.buttons[i], i == B_OPEN ? n == 1 : n > 0);
+      gtk_widget_set_sensitive (fw.buttons[i], i == B_OPEN ? n == 1 : n > 0 && !fw.busy);
 }
 
 
@@ -405,52 +425,92 @@ cb_open (GtkButton *button, gpointer data)
 }
 
 
+typedef struct {
+   GArray  *ids;
+   gboolean stays;   /* in this list after the change */
+} EditCtx;
+
+
 static void
-done (gboolean ok, gboolean stays)
+cb_edited (GObject *source, GAsyncResult *res, gpointer data)
 {
-   if (!ok) return;
-   fw.changed = TRUE;
-   if (stays)
-      gtk_selection_model_unselect_all (GTK_SELECTION_MODEL (fw.selection));
-   else
-      remove_selected ();
+   EditCtx *ctx = data;
+   GError *error = NULL;
+   gboolean ok = gimv_index_faces_edit_finish (res, &error);
+
+   /* the window may have gone meanwhile */
+   if (fw.window) {
+      fw.busy = FALSE;
+      g_clear_pointer (&fw.error, g_free);
+      if (ok) {
+         fw.changed = TRUE;
+         if (ctx->stays)
+            gtk_selection_model_unselect_all (GTK_SELECTION_MODEL (fw.selection));
+         else
+            remove_ids (ctx->ids);
+      } else {
+         fw.error = g_strdup (error ? error->message : "?");
+      }
+      update_heading ();
+      update_buttons ();
+   } else if (ok) {
+      gimv_index_faces_flush ();
+   }
+   g_clear_error (&error);
+   g_array_unref (ctx->ids);
+   g_free (ctx);
+}
+
+
+static void
+start_edit (GimvIndexFacesEdit edit, const gchar *name, gint64 person, gboolean stays)
+{
+   EditCtx *ctx;
+
+   if (fw.busy) return;
+   ctx = g_new0 (EditCtx, 1);
+   ctx->ids = selected_ids ();
+   ctx->stays = stays;
+   if (!ctx->ids->len) {
+      g_array_unref (ctx->ids);
+      g_free (ctx);
+      return;
+   }
+   fw.busy = TRUE;
+   g_clear_pointer (&fw.error, g_free);
+   update_heading ();
+   update_buttons ();
+   gimv_index_faces_edit_async (edit, ctx->ids, name, person, cb_edited, ctx);
 }
 
 
 static void
 cb_confirm (GtkButton *button, gpointer data)
 {
-   GArray *ids = selected_ids ();
-   done (gimv_index_faces_confirm_guess (ids), FALSE);
-   g_array_unref (ids);
+   start_edit (GIMV_INDEX_FACES_CONFIRM, NULL, 0, FALSE);
 }
 
 
 static void
 cb_reject (GtkButton *button, gpointer data)
 {
-   GArray *ids = selected_ids ();
    gint64 pid = key_person ();
-   if (pid) done (gimv_index_faces_reject (ids, pid), FALSE);
-   g_array_unref (ids);
+   if (pid) start_edit (GIMV_INDEX_FACES_REJECT, NULL, pid, FALSE);
 }
 
 
 static void
 cb_clear (GtkButton *button, gpointer data)
 {
-   GArray *ids = selected_ids ();
-   done (gimv_index_faces_clear_name (ids), FALSE);
-   g_array_unref (ids);
+   start_edit (GIMV_INDEX_FACES_CLEAR_NAME, NULL, 0, FALSE);
 }
 
 
 static void
 cb_ignore (GtkButton *button, gpointer data)
 {
-   GArray *ids = selected_ids ();
-   done (gimv_index_faces_set_ignored (ids, GPOINTER_TO_INT (data)), FALSE);
-   g_array_unref (ids);
+   start_edit (GPOINTER_TO_INT (data) ? GIMV_INDEX_FACES_IGNORE : GIMV_INDEX_FACES_UNIGNORE,
+               NULL, 0, FALSE);
 }
 
 
@@ -468,11 +528,9 @@ name_apply (NameDialog *nd)
    gchar *name = g_strstrip (g_strdup (gtk_editable_get_text (GTK_EDITABLE (nd->entry))));
 
    if (*name) {
-      GArray *ids = selected_ids ();
       /* the person shown, named so again: they stay in the list */
       gboolean same = fw.key && fw.key[0] == 'p' && !g_strcmp0 (name, fw.title);
-      done (gimv_index_faces_set_name (ids, name), same);
-      g_array_unref (ids);
+      start_edit (GIMV_INDEX_FACES_SET_NAME, name, 0, same);
    }
    g_free (name);
    gtk_window_destroy (GTK_WINDOW (nd->dialog));
@@ -650,6 +708,8 @@ cb_destroy (GtkWidget *widget, gpointer data)
    fw.store = NULL;   /* owned by the selection */
    g_clear_pointer (&fw.key, g_free);
    g_clear_pointer (&fw.title, g_free);
+   g_clear_pointer (&fw.error, g_free);
+   fw.busy = FALSE;
    /* the groups and guesses with the names given, now */
    if (fw.changed) gimv_index_faces_flush ();
    fw.changed = FALSE;

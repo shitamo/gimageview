@@ -120,6 +120,26 @@ static const gchar *schema =
    "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR ";";
 
 
+#define BUSY_POLL_USEC 2000
+
+static int
+busy_poll (void *data, int count)
+{
+   gint seconds = GPOINTER_TO_INT (data);
+   if ((gint64) count * BUSY_POLL_USEC >= (gint64) seconds * G_USEC_PER_SEC)
+      return 0;
+   g_usleep (BUSY_POLL_USEC);
+   return 1;
+}
+
+
+void
+gimv_index_db_wait_busy (sqlite3 *db, gint seconds)
+{
+   sqlite3_busy_handler (db, busy_poll, GINT_TO_POINTER (seconds));
+}
+
+
 gchar *
 gimv_index_db_default_path (void)
 {
@@ -195,7 +215,7 @@ open_rw (const gchar *path, sqlite3 **dbp, gchar **errmsg, gboolean retry)
                         NULL) != SQLITE_OK)
       goto broken;
 
-   sqlite3_busy_timeout (db, 5000);
+   gimv_index_db_wait_busy (db, 5);
    v = get_version (db, &ok);
    if (!ok) goto broken;
 
