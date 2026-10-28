@@ -4556,6 +4556,7 @@ gimv_thumb_win_set_tab_label_text (GtkWidget *page_container,
    if (tablabel) {
       button =   g_object_get_data (G_OBJECT (tablabel), "close-button");
       gtk_label_set_text (GTK_LABEL (tablabel), title);
+      gtk_widget_set_tooltip_text (tablabel, title);
 
       if (conf.thumbwin_show_tab_close) {
          gtk_widget_show (button);
@@ -4659,6 +4660,12 @@ gimv_thumb_win_create_tab_container (GimvThumbWin *tw)
    gtk_widget_add_css_class (tablabel, "gimv-tab-label");
    gimv_misc_set_alignment (tablabel, 0.00, 0.5);
    gimv_misc_set_padding (tablabel, 4, 0);
+   /* a long title (a folder's full path) must not make the notebook wider
+    * than its place, which pushed the right side of the thumbnails (and
+    * the scroll bar) out of the window: cut at the start, the folder's
+    * own name at the end stays; the whole title is in the tooltip */
+   gtk_label_set_ellipsize (GTK_LABEL (tablabel), PANGO_ELLIPSIZE_START);
+   gtk_label_set_max_width_chars (GTK_LABEL (tablabel), 30);
    gimv_box_pack_start(GTK_BOX(hbox), tablabel, TRUE, TRUE, 0);
 
    button = gtk_button_new();
