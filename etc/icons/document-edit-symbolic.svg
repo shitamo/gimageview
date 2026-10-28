@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- GImageView: used when the icon theme has no document-edit-symbolic -->
+  <path fill="#2e3436" d="M11.3 1.3a1 1 0 0 1 1.4 0l2 2a1 1 0 0 1 0 1.4l-1.6 1.6-3.4-3.4zM8.6 4l3.4 3.4L5.4 14H2v-3.4z"/>
+</svg>

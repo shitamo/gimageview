@@ -52,6 +52,8 @@ typedef enum {
    GIMV_INDEX_FACES_REJECT,       /* person: not this one */
    GIMV_INDEX_FACES_IGNORE,
    GIMV_INDEX_FACES_UNIGNORE,
+   GIMV_INDEX_FACES_RENAME,       /* person: to "name"; when another person
+                                   * has that name, the two become one */
 } GimvIndexFacesEdit;
 
 void                gimv_index_faces_edit_async     (GimvIndexFacesEdit  edit,
@@ -60,8 +62,12 @@ void                gimv_index_faces_edit_async     (GimvIndexFacesEdit  edit,
                                                      gint64              person,
                                                      GAsyncReadyCallback callback,
                                                      gpointer            data);
+/* person: the person after RENAME (the other one when merged), may be NULL */
 gboolean            gimv_index_faces_edit_finish    (GAsyncResult       *res,
+                                                     gint64             *person,
                                                      GError            **error);
+/* the id of the person of that name, 0 when there is none */
+gint64              gimv_index_faces_find_person    (const gchar        *name);
 GPtrArray          *gimv_index_faces_get_names      (void);
 void                gimv_index_faces_flush          (void);
 

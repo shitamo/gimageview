@@ -528,6 +528,7 @@ typedef struct {
    GArray            *ids;
    gchar             *name;
    gint64             person;
+   gint64             result;     /* RENAME: the person after it */
 } EditData;
 
 
@@ -587,6 +588,63 @@ person_id (sqlite3 *db, const gchar *name)
 
 
 static gboolean
+exec_person (sqlite3 *db, const gchar *sql, gint64 a, gint64 b)
+{
+   sqlite3_stmt *st;
+   gboolean ok;
+
+   if (sqlite3_prepare_v2 (db, sql, -1, &st, NULL) != SQLITE_OK) return FALSE;
+   sqlite3_bind_int64 (st, 1, a);
+   sqlite3_bind_int64 (st, 2, b);
+   ok = sqlite3_step (st) == SQLITE_DONE;
+   sqlite3_finalize (st);
+   return ok;
+}
+
+
+/* a new name; a name another person has: that person gets the faces, the
+ * guesses and the "not this person" of this one, and this one goes */
+static gboolean
+rename_person (sqlite3 *db, EditData *e)
+{
+   sqlite3_stmt *st;
+   gint64 other = 0, me = e->person;
+   gboolean ok;
+
+   if (sqlite3_prepare_v2 (db, "SELECT id FROM persons WHERE name = ?1", -1, &st, NULL)
+       != SQLITE_OK)
+      return FALSE;
+   sqlite3_bind_text (st, 1, e->name, -1, SQLITE_TRANSIENT);
+   if (sqlite3_step (st) == SQLITE_ROW) other = sqlite3_column_int64 (st, 0);
+   sqlite3_finalize (st);
+
+   if (!other || other == me) {
+      if (sqlite3_prepare_v2 (db, "UPDATE persons SET name = ?2 WHERE id = ?1", -1, &st, NULL)
+          != SQLITE_OK)
+         return FALSE;
+      sqlite3_bind_int64 (st, 1, me);
+      sqlite3_bind_text (st, 2, e->name, -1, SQLITE_TRANSIENT);
+      ok = sqlite3_step (st) == SQLITE_DONE;
+      sqlite3_finalize (st);
+      e->result = me;
+      return ok;
+   }
+
+   ok = exec_person (db, "UPDATE faces SET person_id = ?2 WHERE person_id = ?1", me, other)
+        && exec_person (db, "UPDATE faces SET guess = ?2 WHERE guess = ?1", me, other)
+        && exec_person (db, "INSERT OR IGNORE INTO face_rejects (face_id, person_id) "
+                            "SELECT face_id, ?2 FROM face_rejects WHERE person_id = ?1",
+                        me, other)
+        /* a face said to be the other one is not "not this person" */
+        && exec_person (db, "DELETE FROM face_rejects WHERE person_id = ?2 AND face_id IN "
+                            "(SELECT id FROM faces WHERE person_id = ?2)", me, other)
+        && exec_person (db, "DELETE FROM persons WHERE id = ?1", me, 0);
+   e->result = other;
+   return ok;
+}
+
+
+static gboolean
 edit_in_db (sqlite3 *db, EditData *e)
 {
    gint64 pid;
@@ -619,6 +677,8 @@ edit_in_db (sqlite3 *db, EditData *e)
                                 "cluster = NULL WHERE id = ?1", e->ids, 0);
    case GIMV_INDEX_FACES_UNIGNORE:
       return for_each_face (db, "UPDATE faces SET ignored = 0 WHERE id = ?1", e->ids, 0);
+   case GIMV_INDEX_FACES_RENAME:
+      return rename_person (db, e);
    }
    return FALSE;
 }
@@ -669,11 +729,14 @@ gimv_index_faces_edit_async (GimvIndexFacesEdit edit, GArray *ids, const gchar *
    GTask *task = g_task_new (NULL, NULL, callback, data);
 
    e->edit = edit;
-   e->ids = g_array_ref (ids);
+   e->ids = ids ? g_array_ref (ids) : g_array_new (FALSE, FALSE, sizeof (gint64));
+   ids = e->ids;
    e->name = name ? g_strstrip (g_strdup (name)) : NULL;
    e->person = person;
    g_task_set_task_data (task, e, (GDestroyNotify) edit_data_free);
-   if (!ids->len || (edit == GIMV_INDEX_FACES_SET_NAME && (!e->name || !*e->name))) {
+   if ((edit != GIMV_INDEX_FACES_RENAME && !ids->len)
+       || ((edit == GIMV_INDEX_FACES_SET_NAME || edit == GIMV_INDEX_FACES_RENAME)
+           && (!e->name || !*e->name))) {
       g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT, "nothing to do");
    } else {
       g_task_run_in_thread (task, thread_edit);
@@ -684,11 +747,32 @@ gimv_index_faces_edit_async (GimvIndexFacesEdit edit, GArray *ids, const gchar *
 
 /* TRUE when written; the tabs are told, and the groups made again later */
 gboolean
-gimv_index_faces_edit_finish (GAsyncResult *res, GError **error)
+gimv_index_faces_edit_finish (GAsyncResult *res, gint64 *person, GError **error)
 {
    gboolean ok = g_task_propagate_boolean (G_TASK (res), error);
+   EditData *e = g_task_get_task_data (G_TASK (res));
+
+   if (person) *person = ok && e ? e->result : 0;
    if (ok) changed ();
    return ok;
+}
+
+
+gint64
+gimv_index_faces_find_person (const gchar *name)
+{
+   sqlite3 *db = gimv_index_get_db ();
+   sqlite3_stmt *st;
+   gint64 id = 0;
+
+   if (!db || !name) return 0;
+   if (sqlite3_prepare_v2 (db, "SELECT id FROM persons WHERE name = ?1", -1, &st, NULL)
+       != SQLITE_OK)
+      return 0;
+   sqlite3_bind_text (st, 1, name, -1, SQLITE_TRANSIENT);
+   if (sqlite3_step (st) == SQLITE_ROW) id = sqlite3_column_int64 (st, 0);
+   sqlite3_finalize (st);
+   return id;
 }
 
 

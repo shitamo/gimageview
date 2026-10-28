@@ -76,7 +76,11 @@ gimv_face_item_init (GimvFaceItem *item)
 
 static struct {
    GtkWidget         *window;
-   GtkWidget         *heading;
+   GtkWidget         *heading;   /* the box of these: */
+   GtkWidget         *name_label;   /* the title, selectable (to copy) */
+   GtkWidget         *name_entry;   /* the name being changed */
+   GtkWidget         *edit_button;  /* the pencil: change the name */
+   GtkWidget         *count_label;
    GtkWidget         *grid;
    GtkWidget         *buttons[8];
    GListStore        *store;
@@ -103,20 +107,27 @@ static void
 update_heading (void)
 {
    guint n = fw.store ? g_list_model_get_n_items (G_LIST_MODEL (fw.store)) : 0;
-   gchar *text = g_strdup_printf (ngettext ("%s: %'u face", "%s: %'u faces", n),
-                                  fw.title ? fw.title : "", n);
+   gchar *count = g_strdup_printf (ngettext ("%'u face", "%'u faces", n), n);
+   gchar *title = g_strdup_printf ("%s: %s", fw.title ? fw.title : "", count);
    gchar *line;
 
-   gtk_window_set_title (GTK_WINDOW (fw.window), text);
+   gtk_window_set_title (GTK_WINDOW (fw.window), title);
+   if (!gtk_widget_get_visible (fw.name_entry))
+      gtk_label_set_text (GTK_LABEL (fw.name_label), fw.title ? fw.title : "");
+   /* a named person: the name can be changed */
+   gtk_widget_set_visible (fw.edit_button, fw.key && fw.key[0] == 'p'
+                                           && !gtk_widget_get_visible (fw.name_entry));
+   gtk_widget_set_sensitive (fw.edit_button, !fw.busy);
    if (fw.busy)
-      line = g_strdup_printf ("%s — %s", text, _("writing..."));
+      line = g_strdup_printf ("%s — %s", count, _("writing..."));
    else if (fw.error)
-      line = g_strdup_printf (_("%s — could not be written: %s"), text, fw.error);
+      line = g_strdup_printf (_("%s — could not be written: %s"), count, fw.error);
    else
-      line = g_strdup (text);
-   gtk_label_set_text (GTK_LABEL (fw.heading), line);
+      line = g_strdup (count);
+   gtk_label_set_text (GTK_LABEL (fw.count_label), line);
    g_free (line);
-   g_free (text);
+   g_free (title);
+   g_free (count);
 }
 
 
@@ -436,7 +447,7 @@ cb_edited (GObject *source, GAsyncResult *res, gpointer data)
 {
    EditCtx *ctx = data;
    GError *error = NULL;
-   gboolean ok = gimv_index_faces_edit_finish (res, &error);
+   gboolean ok = gimv_index_faces_edit_finish (res, NULL, &error);
 
    /* the window may have gone meanwhile */
    if (fw.window) {
@@ -483,6 +494,150 @@ start_edit (GimvIndexFacesEdit edit, const gchar *name, gint64 person, gboolean 
    gimv_index_faces_edit_async (edit, ctx->ids, name, person, cb_edited, ctx);
 }
 
+
+/******************************************************************************
+ *  changing the name of the person shown (the pencil)
+ ******************************************************************************/
+
+static void
+name_edit_end (void)
+{
+   gtk_widget_set_visible (fw.name_entry, FALSE);
+   gtk_widget_set_visible (fw.name_label, TRUE);
+   update_heading ();
+}
+
+
+static void
+cb_renamed (GObject *source, GAsyncResult *res, gpointer data)
+{
+   gchar *name = data;
+   GError *error = NULL;
+   gint64 person = 0;
+   gboolean ok = gimv_index_faces_edit_finish (res, &person, &error);
+
+   if (fw.window) {
+      fw.busy = FALSE;
+      g_clear_pointer (&fw.error, g_free);
+      if (ok) {
+         gchar *key = g_strdup_printf ("p:%" G_GINT64_FORMAT, person);
+         gboolean merged = g_strcmp0 (key, fw.key) != 0;
+         fw.changed = TRUE;
+         g_free (fw.key);
+         fw.key = key;
+         g_free (fw.title);
+         fw.title = g_strdup (name);
+         /* two made one: the faces of both */
+         if (merged) reload ();
+      } else {
+         fw.error = g_strdup (error ? error->message : "?");
+      }
+      update_heading ();
+      update_buttons ();
+   } else if (ok) {
+      gimv_index_faces_flush ();
+   }
+   g_clear_error (&error);
+   g_free (name);
+}
+
+
+static void
+rename_to (const gchar *name)
+{
+   gint64 me = fw.key && fw.key[0] == 'p' ? g_ascii_strtoll (fw.key + 2, NULL, 10) : 0;
+
+   if (!me || fw.busy) return;
+   fw.busy = TRUE;
+   g_clear_pointer (&fw.error, g_free);
+   update_heading ();
+   update_buttons ();
+   gimv_index_faces_edit_async (GIMV_INDEX_FACES_RENAME, NULL, name, me,
+                                cb_renamed, g_strdup (name));
+}
+
+
+static void
+cb_merge_answer (GObject *source, GAsyncResult *res, gpointer data)
+{
+   gchar *name = data;
+   gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
+
+   if (button == 1 && fw.window) rename_to (name);
+   g_free (name);
+}
+
+
+static void
+cb_name_entry_activate (GtkEntry *entry, gpointer data)
+{
+   gchar *name = g_strstrip (g_strdup (gtk_editable_get_text (GTK_EDITABLE (entry))));
+   gint64 me = fw.key && fw.key[0] == 'p' ? g_ascii_strtoll (fw.key + 2, NULL, 10) : 0;
+   gint64 other;
+
+   name_edit_end ();
+   if (!*name || !g_strcmp0 (name, fw.title) || !me) {
+      g_free (name);
+      return;
+   }
+
+   other = gimv_index_faces_find_person (name);
+   if (other && other != me) {
+      /* the same person named twice: one person, after asking */
+      GtkAlertDialog *dialog = gtk_alert_dialog_new (_("\"%s\" is there already."), name);
+      const gchar *buttons[] = { _("_Cancel"), _("_Make Them One"), NULL };
+      gchar *detail = g_strdup_printf (_("The faces of \"%s\" become the faces of \"%s\", "
+                                         "and \"%s\" goes."), fw.title, name, fw.title);
+      gtk_alert_dialog_set_detail (dialog, detail);
+      gtk_alert_dialog_set_buttons (dialog, buttons);
+      gtk_alert_dialog_set_cancel_button (dialog, 0);
+      gtk_alert_dialog_set_default_button (dialog, 1);
+      gtk_alert_dialog_choose (dialog, GTK_WINDOW (fw.window), NULL, cb_merge_answer, name);
+      g_object_unref (dialog);
+      g_free (detail);
+      return;
+   }
+   rename_to (name);
+   g_free (name);
+}
+
+
+static gboolean
+cb_name_entry_key (GtkEventControllerKey *ctrl, guint keyval, guint code,
+                   GdkModifierType state, gpointer data)
+{
+   if (keyval == GDK_KEY_Escape) {
+      name_edit_end ();
+      return TRUE;
+   }
+   return FALSE;
+}
+
+
+static void
+cb_name_entry_focus_out (GtkEventControllerFocus *ctrl, gpointer data)
+{
+   /* clicked elsewhere: as Escape */
+   if (gtk_widget_get_visible (fw.name_entry))
+      name_edit_end ();
+}
+
+
+static void
+cb_edit_name (GtkButton *button, gpointer data)
+{
+   gtk_editable_set_text (GTK_EDITABLE (fw.name_entry), fw.title ? fw.title : "");
+   gtk_widget_set_visible (fw.name_label, FALSE);
+   gtk_widget_set_visible (fw.edit_button, FALSE);
+   gtk_widget_set_visible (fw.name_entry, TRUE);
+   gtk_widget_grab_focus (fw.name_entry);
+   gtk_editable_select_region (GTK_EDITABLE (fw.name_entry), 0, -1);
+}
+
+
+/******************************************************************************
+ *  the buttons
+ ******************************************************************************/
 
 static void
 cb_confirm (GtkButton *button, gpointer data)
@@ -746,9 +901,42 @@ create_window (void)
    gtk_widget_set_margin_bottom (vbox, 8);
    gtk_window_set_child (GTK_WINDOW (fw.window), vbox);
 
-   fw.heading = gtk_label_new (NULL);
-   gtk_label_set_xalign (GTK_LABEL (fw.heading), 0.0);
-   gtk_widget_add_css_class (fw.heading, "heading");
+   /* the name (selectable, to copy), the pencil to change it, the count */
+   fw.heading = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+   fw.name_label = gtk_label_new (NULL);
+   gtk_label_set_selectable (GTK_LABEL (fw.name_label), TRUE);
+   gtk_label_set_xalign (GTK_LABEL (fw.name_label), 0.0);
+   gtk_widget_add_css_class (fw.name_label, "heading");
+   /* selectable labels take the focus first: not wanted at the start */
+   gtk_widget_set_focus_on_click (fw.name_label, FALSE);
+   gtk_box_append (GTK_BOX (fw.heading), fw.name_label);
+
+   fw.name_entry = gtk_entry_new ();
+   gtk_editable_set_width_chars (GTK_EDITABLE (fw.name_entry), 24);
+   gtk_widget_set_visible (fw.name_entry, FALSE);
+   g_signal_connect (fw.name_entry, "activate", G_CALLBACK (cb_name_entry_activate), NULL);
+   {
+      GtkEventController *keys = gtk_event_controller_key_new ();
+      GtkEventController *focus = gtk_event_controller_focus_new ();
+      g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_name_entry_key), NULL);
+      g_signal_connect (focus, "leave", G_CALLBACK (cb_name_entry_focus_out), NULL);
+      gtk_widget_add_controller (fw.name_entry, keys);
+      gtk_widget_add_controller (fw.name_entry, focus);
+   }
+   gtk_box_append (GTK_BOX (fw.heading), fw.name_entry);
+
+   fw.edit_button = gtk_button_new_from_icon_name ("document-edit-symbolic");
+   gtk_button_set_has_frame (GTK_BUTTON (fw.edit_button), FALSE);
+   gtk_widget_set_tooltip_text (fw.edit_button, _("Change the name"));
+   gtk_widget_set_valign (fw.edit_button, GTK_ALIGN_CENTER);
+   g_signal_connect (fw.edit_button, "clicked", G_CALLBACK (cb_edit_name), NULL);
+   gtk_box_append (GTK_BOX (fw.heading), fw.edit_button);
+
+   fw.count_label = gtk_label_new (NULL);
+   gtk_label_set_xalign (GTK_LABEL (fw.count_label), 0.0);
+   gtk_widget_add_css_class (fw.count_label, "dim-label");
+   gtk_widget_set_margin_start (fw.count_label, 8);
+   gtk_box_append (GTK_BOX (fw.heading), fw.count_label);
    gtk_box_append (GTK_BOX (vbox), fw.heading);
 
    fw.store = g_list_store_new (GIMV_TYPE_FACE_ITEM);
@@ -811,7 +999,12 @@ gimv_index_faces_win_show (GimvThumbWin *tw, const gchar *key, const gchar *titl
    fw.key = g_strdup (key);
    g_free (fw.title);
    fw.title = g_strdup (title ? title : key);
+   if (gtk_widget_get_visible (fw.name_entry)) name_edit_end ();
    reload ();
+   /* the faces have the keys (Ctrl+A), not the name (a selectable label
+    * would take the focus with its text all selected) */
+   gtk_widget_grab_focus (fw.grid);
+   gtk_label_select_region (GTK_LABEL (fw.name_label), 0, 0);
    gtk_window_present (GTK_WINDOW (fw.window));
 }
 

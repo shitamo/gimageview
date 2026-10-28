@@ -5716,3 +5716,27 @@ msgstr "書き込み中..."
 #, c-format
 msgid "%s — could not be written: %s"
 msgstr "%s — 書き込めませんでした: %s"
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "%'u face"
+msgid_plural "%'u faces"
+msgstr[0] "顔 %'u 個"
+
+#: src/gimv_index_faces_win.c
+msgid "Change the name"
+msgstr "名前を変更"
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "\"%s\" is there already."
+msgstr "「%s」は既にいます。"
+
+#: src/gimv_index_faces_win.c
+msgid "_Make Them One"
+msgstr "1 人にまとめる(_M)"
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "The faces of \"%s\" become the faces of \"%s\", and \"%s\" goes."
+msgstr "「%1$s」の顔は「%2$s」の顔になり、「%3$s」はなくなります。"
