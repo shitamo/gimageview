@@ -1375,59 +1375,166 @@ auto_tags_clear (AutoTags *at, gint64 file_id)
 }
 
 
-/* the folder tags of every image, from the database alone */
+/******************************************************************************
+ *  rewriting many rows at the start (new rules): in small transactions,
+ *  each well under a second, with the progress told and "quit" heard
+ *  between them; what is done stays done, and the mark that all is done
+ *  (meta) comes last, so a run stopped in the middle does it all again
+ *  next time (deleting and putting the same tags twice is no harm)
+ ******************************************************************************/
+
+#define PREPARE_ROWS 20000     /* rows of files or file_tags in one go */
+
+typedef struct {
+   gint64 done, total;        /* rows */
+   gint64 last_say;
+} Prepare;
+
+
+static gint64
+max_rowid (Indexer *ix, const gchar *table)
+{
+   gchar *sql = g_strdup_printf ("SELECT max(rowid) FROM %s", table);
+   sqlite3_stmt *st = prep (ix, sql);
+   gint64 n = st && sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int64 (st, 0) : 0;
+   sqlite3_finalize (st);
+   g_free (sql);
+   return n;
+}
+
+
 static void
-auto_folder_all (Indexer *ix)
+prepare_step (Indexer *ix, Prepare *p, gint64 rows)
+{
+   gint64 now = g_get_monotonic_time ();
+
+   p->done += rows;
+   if (now - p->last_say >= G_USEC_PER_SEC / 2) {
+      say ("prepare %" G_GINT64_FORMAT " %" G_GINT64_FORMAT,
+           MIN (p->done, p->total), p->total);
+      p->last_say = now;
+   }
+   check_stdin (ix, 0);
+}
+
+
+/* sql has ?1 < rowid <= ?2 (and ?3 for "arg"), run over the rows of the
+ * table a chunk at a time; FALSE when told to quit */
+static gboolean
+exec_in_chunks (Indexer *ix, Prepare *p, const gchar *sql, const gchar *table,
+                const gchar *arg)
+{
+   gint64 max = max_rowid (ix, table), lo;
+   sqlite3_stmt *st = prep (ix, sql);
+
+   if (!st) return !ix->quit;
+   for (lo = 0; lo < max && !ix->quit; lo += PREPARE_ROWS) {
+      exec (ix, "BEGIN");
+      sqlite3_bind_int64 (st, 1, lo);
+      sqlite3_bind_int64 (st, 2, lo + PREPARE_ROWS);
+      if (arg) sqlite3_bind_text (st, 3, arg, -1, SQLITE_STATIC);
+      sqlite3_step (st);
+      sqlite3_reset (st);
+      exec (ix, "COMMIT");
+      prepare_step (ix, p, MIN (PREPARE_ROWS, max - lo));
+   }
+   sqlite3_finalize (st);
+   return !ix->quit;
+}
+
+
+/* the folder tags of every image, from the database alone: a commit
+ * after about PREPARE_ROWS files (a folder at a time); counted as the
+ * rows of files */
+static gboolean
+auto_folder_all (Indexer *ix, Prepare *p)
 {
    sqlite3_stmt *st, *ins;
    AutoTags at;
+   GArray *ids = g_array_new (FALSE, FALSE, sizeof (gint64));
+   GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
+   gint64 rows = 0;
+   guint i;
+
+   /* the folders first, the transactions in between do not keep a reading
+    * statement open */
+   st = prep (ix, "SELECT id, path FROM dirs WHERE parent IS NOT NULL ORDER BY id");
+   while (st && sqlite3_step (st) == SQLITE_ROW) {
+      gint64 id = sqlite3_column_int64 (st, 0);
+      g_array_append_val (ids, id);
+      g_ptr_array_add (paths, g_strdup ((const gchar *) sqlite3_column_text (st, 1)));
+   }
+   sqlite3_finalize (st);
 
    auto_tags_init (ix, &at);
    ins = prep (ix, "INSERT OR IGNORE INTO file_tags (file_id, tag_id, auto) "
                    "SELECT f.id, t.id, 1 FROM files f, tags t "
                    "WHERE f.dir_id = ?1 AND t.name = ?2");
-   st = prep (ix, "SELECT id, path FROM dirs WHERE parent IS NOT NULL");
-   while (sqlite3_step (st) == SQLITE_ROW) {
-      gchar *tag = folder_tag ((const gchar *) sqlite3_column_text (st, 1));
+   exec (ix, "BEGIN");
+   for (i = 0; i < ids->len && !ix->quit; i++) {
+      gchar *tag = folder_tag (g_ptr_array_index (paths, i));
       if (!tag) continue;
       sqlite3_reset (at.tag_add);
       sqlite3_bind_text (at.tag_add, 1, tag, -1, SQLITE_STATIC);
       sqlite3_step (at.tag_add);
       sqlite3_reset (at.tag_add);
       sqlite3_reset (ins);
-      sqlite3_bind_int64 (ins, 1, sqlite3_column_int64 (st, 0));
+      sqlite3_bind_int64 (ins, 1, g_array_index (ids, gint64, i));
       sqlite3_bind_text  (ins, 2, tag, -1, SQLITE_STATIC);
       sqlite3_step (ins);
       sqlite3_reset (ins);
       g_free (tag);
+      rows += sqlite3_changes (ix->db);
+      if (rows >= PREPARE_ROWS) {
+         exec (ix, "COMMIT");
+         prepare_step (ix, p, rows);
+         rows = 0;
+         if (!ix->quit) exec (ix, "BEGIN");
+         else break;
+      }
    }
-   sqlite3_finalize (st);
+   if (!ix->quit || rows) {
+      if (sqlite3_get_autocommit (ix->db) == 0) exec (ix, "COMMIT");
+      prepare_step (ix, p, rows);
+   }
    sqlite3_finalize (ins);
    auto_tags_finish (&at);
+   g_array_unref (ids);
+   g_ptr_array_unref (paths);
+   return !ix->quit;
 }
 
 
-static void
-auto_kind_remove (Indexer *ix, const gchar *prefix)
+static gboolean
+auto_kind_remove (Indexer *ix, Prepare *p, const gchar *prefix)
 {
-   sqlite3_stmt *st = prep (ix, "DELETE FROM file_tags WHERE auto = 1 AND tag_id IN "
-                                "(SELECT id FROM tags WHERE substr(name, 1, length(?1)) = ?1)");
-   sqlite3_bind_text (st, 1, prefix, -1, SQLITE_STATIC);
-   sqlite3_step (st);
-   sqlite3_finalize (st);
+   return exec_in_chunks (ix, p,
+                          "DELETE FROM file_tags WHERE rowid > ?1 AND rowid <= ?2 AND auto = 1 "
+                          "AND tag_id IN (SELECT id FROM tags WHERE substr(name, 1, length(?3)) = ?3)",
+                          "file_tags", prefix);
 }
 
 
 /* the rules or the kinds wanted changed (or a database made before them):
  * a new rule makes all the tags of the rules again; a kind turned off goes
  * away; a kind turned on comes: the folder tags at once from the database,
- * the camera and the shape by reading every image again in stage 2 */
+ * the camera and the shape by reading every image again in stage 2.
+ * Also the dates by an older rule: the files without one read again. */
 static void
-auto_tags_update (Indexer *ix)
+prepare_rules (Indexer *ix)
 {
    sqlite3_stmt *st;
    gchar *rule = NULL, kinds_str[16];
    guint had, added;
+   gboolean new_rule, dates;
+   Prepare p = { 0, 0, 0 };
+   gint64 files = max_rowid (ix, "files"), tags = max_rowid (ix, "file_tags");
+   const gchar *why;
+
+   st = prep (ix, "SELECT value FROM meta WHERE key = 'date_rule'");
+   dates = !(sqlite3_step (st) == SQLITE_ROW
+             && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "2"));
+   sqlite3_finalize (st);
 
    st = prep (ix, "SELECT value FROM meta WHERE key = 'auto_rule'");
    if (sqlite3_step (st) == SQLITE_ROW && sqlite3_column_text (st, 0))
@@ -1438,37 +1545,71 @@ auto_tags_update (Indexer *ix)
    had = sqlite3_step (st) == SQLITE_ROW ? (guint) sqlite3_column_int (st, 0) : AUTO_ALL;
    sqlite3_finalize (st);
 
-   if (!g_strcmp0 (rule, AUTO_RULE) && had == ix->auto_kinds) {
-      g_free (rule);
-      return;
-   }
-
-   exec (ix, "BEGIN");
-   if (g_strcmp0 (rule, AUTO_RULE)) {
-      exec (ix, "DELETE FROM file_tags WHERE auto = 1");
-      had = 0;
-   } else {
-      if ((had & AUTO_FOLDER) && !(ix->auto_kinds & AUTO_FOLDER)) auto_kind_remove (ix, "folder/");
-      if ((had & AUTO_CAMERA) && !(ix->auto_kinds & AUTO_CAMERA)) auto_kind_remove (ix, "camera/");
-      if ((had & AUTO_SHAPE)  && !(ix->auto_kinds & AUTO_SHAPE))  auto_kind_remove (ix, "shape/");
-   }
-   added = ix->auto_kinds & ~had;
-   if (added & AUTO_FOLDER)
-      auto_folder_all (ix);
-   if (added & (AUTO_CAMERA | AUTO_SHAPE)) {
-      exec (ix, "UPDATE files SET stage = 1");
-      exec (ix, "INSERT OR REPLACE INTO meta VALUES ('reread', 'auto-tags')");
-   }
-
-   exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
-   exec (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_rule', '" AUTO_RULE "')");
-   g_snprintf (kinds_str, sizeof kinds_str, "%u", ix->auto_kinds);
-   st = prep (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_kinds', ?)");
-   sqlite3_bind_text (st, 1, kinds_str, -1, SQLITE_STATIC);
-   sqlite3_step (st);
-   sqlite3_finalize (st);
-   exec (ix, "COMMIT");
+   new_rule = g_strcmp0 (rule, AUTO_RULE) != 0;
    g_free (rule);
+   if (!dates && !new_rule && had == ix->auto_kinds)
+      return;
+
+   if (new_rule) had = 0;
+   added = ix->auto_kinds & ~had;
+
+   /* how much there is to do, for the progress */
+   if (dates) p.total += files;
+   if (new_rule) {
+      p.total += tags;
+   } else {
+      if ((had & AUTO_FOLDER) && !(ix->auto_kinds & AUTO_FOLDER)) p.total += tags;
+      if ((had & AUTO_CAMERA) && !(ix->auto_kinds & AUTO_CAMERA)) p.total += tags;
+      if ((had & AUTO_SHAPE)  && !(ix->auto_kinds & AUTO_SHAPE))  p.total += tags;
+   }
+   if (added & AUTO_FOLDER) p.total += files;
+   if (added & (AUTO_CAMERA | AUTO_SHAPE)) p.total += files;
+
+   why = (new_rule || had != ix->auto_kinds) ? "auto-tags" : "date-rule";
+   say ("prepare start %" G_GINT64_FORMAT " %s", p.total, why);
+
+   if (dates) {
+      if (!exec_in_chunks (ix, &p, "UPDATE files SET stage = 1 WHERE rowid > ?1 AND rowid <= ?2 "
+                                   "AND date IS NULL", "files", NULL))
+         return;
+      exec (ix, "INSERT OR REPLACE INTO meta VALUES ('date_rule', '2')");
+      exec (ix, "INSERT OR REPLACE INTO meta VALUES ('reread', 'date-rule')");
+   }
+
+   if (new_rule || had != ix->auto_kinds) {
+      if (new_rule) {
+         if (!exec_in_chunks (ix, &p, "DELETE FROM file_tags WHERE rowid > ?1 AND rowid <= ?2 "
+                                      "AND auto = 1", "file_tags", NULL))
+            return;
+      } else {
+         if ((had & AUTO_FOLDER) && !(ix->auto_kinds & AUTO_FOLDER)
+             && !auto_kind_remove (ix, &p, "folder/")) return;
+         if ((had & AUTO_CAMERA) && !(ix->auto_kinds & AUTO_CAMERA)
+             && !auto_kind_remove (ix, &p, "camera/")) return;
+         if ((had & AUTO_SHAPE)  && !(ix->auto_kinds & AUTO_SHAPE)
+             && !auto_kind_remove (ix, &p, "shape/")) return;
+      }
+      if ((added & AUTO_FOLDER) && !auto_folder_all (ix, &p))
+         return;
+      if (added & (AUTO_CAMERA | AUTO_SHAPE)) {
+         if (!exec_in_chunks (ix, &p, "UPDATE files SET stage = 1 "
+                                      "WHERE rowid > ?1 AND rowid <= ?2", "files", NULL))
+            return;
+         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('reread', 'auto-tags')");
+      }
+
+      /* all done: marked so (in one short transaction) */
+      exec (ix, "BEGIN");
+      exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
+      exec (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_rule', '" AUTO_RULE "')");
+      g_snprintf (kinds_str, sizeof kinds_str, "%u", ix->auto_kinds);
+      st = prep (ix, "INSERT OR REPLACE INTO meta VALUES ('auto_kinds', ?)");
+      sqlite3_bind_text (st, 1, kinds_str, -1, SQLITE_STATIC);
+      sqlite3_step (st);
+      sqlite3_finalize (st);
+      exec (ix, "COMMIT");
+   }
+   say ("prepare done");
 }
 
 
@@ -2336,21 +2477,9 @@ open_db (Indexer *ix, const gchar *dbfile)
          ix->prev_scan = g_strdup ((const gchar *) sqlite3_column_text (st, 0));
       sqlite3_finalize (st);
    }
-   {
-      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'date_rule'");
-      gboolean current = sqlite3_step (st) == SQLITE_ROW
-         && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "2");
-      sqlite3_finalize (st);
-      if (!current) {
-         exec (ix, "UPDATE files SET stage = 1 WHERE date IS NULL");
-         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('date_rule', '2')");
-         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('reread', 'date-rule')");
-      }
-   }
-   {
-      /* the tags put by rules */
-      auto_tags_update (ix);
-   }
+   /* the dates and the tags put by rules, when their rules changed */
+   prepare_rules (ix);
+   if (ix->quit) return TRUE;
    {
       /* once: a database in the middle of reading every image again for the
        * automatic tags (made before 'reread' was kept) says so */
@@ -2476,6 +2605,12 @@ main (int argc, char *argv[])
 
    if (!open_db (&ix, dbfile))
       return 1;
+   if (ix.quit) {
+      /* told to quit while preparing: the rest of it next time */
+      close_db (&ix);
+      if (lockfd >= 0) close (lockfd);
+      return 0;
+   }
 
    /* the images skipped last time are read once more (the last run may have
       died for another reason) */

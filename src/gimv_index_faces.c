@@ -511,7 +511,9 @@ write_db (void)
       sqlite3_close (wdb);
       wdb = NULL;
    } else {
-      sqlite3_busy_timeout (wdb, 10000);
+      /* the indexer writes in short transactions: a short wait (in the
+       * main loop) is enough */
+      sqlite3_busy_timeout (wdb, 3000);
       sqlite3_exec (wdb, "PRAGMA foreign_keys = ON", NULL, NULL, NULL);
    }
    g_free (path);

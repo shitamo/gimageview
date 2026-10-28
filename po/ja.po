@@ -5687,3 +5687,23 @@ msgstr "画像を開く(_O)"
 #: src/gimv_index_faces_win.c
 msgid "Open the image of the face (double click)"
 msgstr "顔の元の画像を開きます (ダブルクリック)"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Index: preparing %d%%"
+msgstr "索引: 準備 %d%%"
+
+#: src/gimv_index.c
+#, c-format
+msgid ""
+"The rules of the dates changed: marking the images without a date to be "
+"read again (%d%%)."
+msgstr "日付の規則が変わったため、日付のない画像に読み直しの印を付けています (%d%%)。"
+
+#: src/gimv_index.c
+#, c-format
+msgid ""
+"The automatic tags changed (new rules, or a kind turned on or off in the "
+"preferences): rewriting them in the index (%d%%). The images are read after "
+"this if needed."
+msgstr "自動タグが変わったため (新しい規則、または設定で種類をオン・オフした)、索引の中の自動タグを書き換えています (%d%%)。必要ならこの後で画像を読み直します。"

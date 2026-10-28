@@ -134,6 +134,17 @@ update_status (void)
                                     "rules of the dates."));
          g_free (left);
          g_free (left_long);
+      } else if (ix.stage == 0) {
+         gint pct = ix.todo ? (gint) ((guint64) MIN (ix.done, ix.todo) * 100 / ix.todo) : 0;
+         ix.status = g_strdup_printf (_("Index: preparing %d%%"), pct);
+         if (ix.why && !strcmp (ix.why, "date-rule"))
+            g_string_append_printf (tip, _("The rules of the dates changed: marking the images "
+                                           "without a date to be read again (%d%%)."), pct);
+         else
+            g_string_append_printf (tip, _("The automatic tags changed (new rules, or a kind "
+                                           "turned on or off in the preferences): rewriting "
+                                           "them in the index (%d%%). The images are read "
+                                           "after this if needed."), pct);
       } else if (ix.stage == 3) {
          ix.status = g_strdup_printf (_("Index: tags %'u"), ix.done);
          g_string_append_printf (tip, _("Reading the tags from the comment files: %'u."), ix.done);
@@ -401,6 +412,22 @@ handle_line (const gchar *line)
 
    if (n == 0) {
       /* nothing */
+   } else if (!strcmp (v[0], "prepare") && n >= 2) {
+      /* "prepare start <rows> <why>", "prepare <done> <rows>", "prepare done":
+       * rewriting the index for new rules, before stage 1 */
+      if (!strcmp (v[1], "start")) {
+         ix.state = GIMV_INDEX_STATE_SCANNING;
+         ix.stage = 0;
+         ix.done = 0;
+         ix.todo = n >= 3 ? strtoul (v[2], NULL, 10) : 0;
+         g_free (ix.why);
+         ix.why = n >= 4 ? g_strdup (v[3]) : NULL;
+         ix.stage_start = g_get_monotonic_time ();
+      } else if (strcmp (v[1], "done") && n >= 3) {
+         ix.done = strtoul (v[1], NULL, 10);
+         ix.todo = strtoul (v[2], NULL, 10);
+      }
+      update_status ();
    } else if (!strcmp (v[0], "busy")) {
       ix.state = GIMV_INDEX_STATE_BUSY;
       update_status ();
