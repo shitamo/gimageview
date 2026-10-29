@@ -1826,12 +1826,33 @@ window_nth_position (GimvThumbViewPriv *priv, gint step)
 }
 
 
+static gboolean window_idle_load (gpointer data);
+
+/* later, from the main loop itself */
+static gboolean
+window_idle_again (gpointer data)
+{
+   GimvThumbView *tv = data;
+   tv->priv->window_idle = g_idle_add (window_idle_load, tv);
+   return G_SOURCE_REMOVE;
+}
+
+
 static gboolean
 window_idle_load (gpointer data)
 {
    GimvThumbView *tv = data;
    GimvThumbViewPriv *priv = tv->priv;
    gint64 start = g_get_monotonic_time ();
+
+   /* not inside gimv_flush_events (): a click (its handler lets the events
+    * run to show the selection) or the preview loading an image (it lets
+    * them run while it reads) would wait for all the thumbnails near the
+    * view to be made first.  Looked at again a little later. */
+   if (gimv_flush_events_running ()) {
+      priv->window_idle = g_timeout_add (50, window_idle_again, tv);
+      return G_SOURCE_REMOVE;
+   }
 
    while (g_get_monotonic_time () - start < WINDOW_SLICE_USEC) {
       gint pos = window_nth_position (priv, priv->win_step);
