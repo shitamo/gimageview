@@ -284,6 +284,16 @@ gboolean   gimv_image_view_get_image_size         (GimvImageView  *iv,
 void       gimv_image_view_rotate_image           (GimvImageView  *iv,
                                                    GimvImageViewOrientation angle);
 void        gimv_image_view_flip_horizontal (GimvImageView *iv);
+/* a face marked on the image (show FALSE: none); x, y, w, h in [0, 1] of
+ * the image as its EXIF orientation shows it */
+void        gimv_image_view_set_face_mark   (GimvImageView *iv,
+                                             gboolean       show,
+                                             gdouble        x,
+                                             gdouble        y,
+                                             gdouble        w,
+                                             gdouble        h,
+                                             const gchar   *label);
+gint        gimv_image_view_get_exif_orientation (GimvImageView *iv);
 void       gimv_image_view_rotate_ccw             (GimvImageView  *iv);
 void       gimv_image_view_rotate_cw              (GimvImageView  *iv);
 GimvImageViewOrientation

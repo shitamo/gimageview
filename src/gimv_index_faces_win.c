@@ -336,8 +336,8 @@ reload (void)
  *  the small images
  ******************************************************************************/
 
-static GdkTexture *
-face_texture (gint64 id)
+GdkTexture *
+gimv_index_faces_get_texture (gint64 id)
 {
    sqlite3 *db = gimv_index_get_db ();
    sqlite3_stmt *st;
@@ -384,7 +384,7 @@ cb_bind (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer data)
    GtkWidget *box = gtk_list_item_get_child (li);
    GtkWidget *picture = gtk_widget_get_first_child (box);
    GtkWidget *label = gtk_widget_get_next_sibling (picture);
-   GdkTexture *texture = face_texture (item->id);
+   GdkTexture *texture = gimv_index_faces_get_texture (item->id);
    gchar *day = item->date ? g_strndup (item->date, 10) : g_strdup ("");
 
    gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (texture));
@@ -647,10 +647,33 @@ cb_confirm (GtkButton *button, gpointer data)
 
 
 static void
-cb_reject (GtkButton *button, gpointer data)
+reject_confirmed (gpointer data)
 {
    gint64 pid = key_person ();
-   if (pid) start_edit (GIMV_INDEX_FACES_REJECT, NULL, pid, FALSE);
+   if (fw.window && pid) start_edit (GIMV_INDEX_FACES_REJECT, NULL, pid, FALSE);
+}
+
+
+static void
+cb_reject (GtkButton *button, gpointer data)
+{
+   GArray *ids = selected_ids ();
+   gchar *name = g_strdup (fw.title ? fw.title : "");
+   gsize len = strlen (name);
+
+   /* "Eileen?" (the guesses): the name without the mark */
+   if (fw.key && fw.key[0] == 'g' && len > 0) {
+      const gchar *q = _("%s?");
+      gchar *probe = g_strdup_printf (q, "");
+      if (*probe && g_str_has_suffix (name, probe))
+         name[len - strlen (probe)] = '\0';
+      g_free (probe);
+   }
+   if (ids->len && key_person ())
+      gimv_index_faces_confirm_reject (GTK_WINDOW (fw.window), name, ids->len,
+                                       reject_confirmed, NULL);
+   g_array_unref (ids);
+   g_free (name);
 }
 
 
@@ -674,6 +697,8 @@ typedef struct {
    GtkWidget *dialog;
    GtkWidget *entry;
    GtkWidget *list;
+   GimvIndexFacesNameFunc done;
+   gpointer   data;
 } NameDialog;
 
 
@@ -682,13 +707,20 @@ name_apply (NameDialog *nd)
 {
    gchar *name = g_strstrip (g_strdup (gtk_editable_get_text (GTK_EDITABLE (nd->entry))));
 
-   if (*name) {
-      /* the person shown, named so again: they stay in the list */
-      gboolean same = fw.key && fw.key[0] == 'p' && !g_strcmp0 (name, fw.title);
-      start_edit (GIMV_INDEX_FACES_SET_NAME, name, 0, same);
-   }
+   if (*name && nd->done)
+      nd->done (name, nd->data);
    g_free (name);
    gtk_window_destroy (GTK_WINDOW (nd->dialog));
+}
+
+
+static void
+name_for_window (const gchar *name, gpointer data)
+{
+   /* the person shown, named so again: they stay in the list */
+   gboolean same = fw.key && fw.key[0] == 'p' && !g_strcmp0 (name, fw.title);
+   if (fw.window)
+      start_edit (GIMV_INDEX_FACES_SET_NAME, name, 0, same);
 }
 
 
@@ -752,8 +784,9 @@ cb_name_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierT
 }
 
 
-static void
-cb_name (GtkButton *button, gpointer data)
+/* asks for a name (a new one, or one given before); done gets it */
+void
+gimv_index_faces_ask_name (GtkWindow *parent, GimvIndexFacesNameFunc done, gpointer data)
 {
    NameDialog *nd = g_new0 (NameDialog, 1);
    GtkWidget *vbox, *label, *scroll, *hbox, *ok, *cancel;
@@ -761,9 +794,12 @@ cb_name (GtkButton *button, gpointer data)
    GPtrArray *names = gimv_index_faces_get_names ();
    guint i;
 
+   nd->done = done;
+   nd->data = data;
    nd->dialog = gtk_window_new ();
    gtk_window_set_title (GTK_WINDOW (nd->dialog), _("Name the Faces"));
-   gtk_window_set_transient_for (GTK_WINDOW (nd->dialog), GTK_WINDOW (fw.window));
+   if (parent)
+      gtk_window_set_transient_for (GTK_WINDOW (nd->dialog), parent);
    gtk_window_set_modal (GTK_WINDOW (nd->dialog), TRUE);
    gtk_window_set_default_size (GTK_WINDOW (nd->dialog), 320, 360);
    g_object_set_data_full (G_OBJECT (nd->dialog), "name-dialog", nd, g_free);
@@ -825,6 +861,61 @@ cb_name (GtkButton *button, gpointer data)
 
    gtk_window_present (GTK_WINDOW (nd->dialog));
    gtk_widget_grab_focus (nd->entry);
+}
+
+
+static void
+cb_name (GtkButton *button, gpointer data)
+{
+   gimv_index_faces_ask_name (GTK_WINDOW (fw.window), name_for_window, NULL);
+}
+
+
+/* "not this person": asked again (it may be pressed by mistake, and the
+ * faces are not guessed as that person again) */
+typedef struct {
+   GimvIndexFacesConfirmFunc done;
+   gpointer data;
+} ConfirmAsk;
+
+
+static void
+cb_confirm_answer (GObject *source, GAsyncResult *res, gpointer data)
+{
+   ConfirmAsk *ask = data;
+   gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
+   if (button == 1 && ask->done) ask->done (ask->data);
+   g_free (ask);
+}
+
+
+void
+gimv_index_faces_confirm_reject (GtkWindow *parent, const gchar *name, guint n,
+                                 GimvIndexFacesConfirmFunc done, gpointer data)
+{
+   GtkAlertDialog *dialog;
+   const gchar *buttons[] = { _("_Cancel"), _("_Remove the Name"), NULL };
+   ConfirmAsk *ask = g_new0 (ConfirmAsk, 1);
+   gchar *detail;
+
+   ask->done = done;
+   ask->data = data;
+   dialog = gtk_alert_dialog_new (n == 1 ? _("This face is not \"%s\"?")
+                                         : _("These faces are not \"%s\"?"),
+                                  name ? name : "");
+   detail = g_strdup_printf (ngettext ("%'u face: the name goes, and it is not guessed as "
+                                       "\"%s\" again.",
+                                       "%'u faces: the name goes, and they are not guessed as "
+                                       "\"%s\" again.", n),
+                             n, name ? name : "");
+   gtk_alert_dialog_set_detail (dialog, detail);
+   gtk_alert_dialog_set_buttons (dialog, buttons);
+   /* Enter does not remove by mistake */
+   gtk_alert_dialog_set_cancel_button (dialog, 0);
+   gtk_alert_dialog_set_default_button (dialog, 0);
+   gtk_alert_dialog_choose (dialog, parent, NULL, cb_confirm_answer, ask);
+   g_object_unref (dialog);
+   g_free (detail);
 }
 
 

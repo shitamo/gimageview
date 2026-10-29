@@ -5791,3 +5791,75 @@ msgstr[0] "タグ「%s」を「%s」に変更中、%'u 個のコメントファ�
 #: src/gimv_index_view.c
 msgid "_Merge Them"
 msgstr "1 つにまとめる(_M)"
+
+#: src/gimv_face_panel.c
+msgid "(ignored)"
+msgstr "(無視)"
+
+#: src/gimv_face_panel.c
+msgid "(no name)"
+msgstr "(名前なし)"
+
+#: src/gimv_face_panel.c
+msgid "Change the Name..."
+msgstr "名前を変更..."
+
+#: src/gimv_face_panel.c
+msgid "Name..."
+msgstr "名前を付ける..."
+
+#: src/gimv_face_panel.c
+msgid "This Is Right"
+msgstr "この人で正しい"
+
+#: src/gimv_face_panel.c
+msgid "Not This Person..."
+msgstr "この人ではない..."
+
+#: src/gimv_face_panel.c
+msgid "Do Not Ignore"
+msgstr "無視をやめる"
+
+#: src/gimv_face_panel.c
+msgid "Ignore"
+msgstr "無視する"
+
+#: src/gimv_face_panel.c
+msgid "All the Faces of This Person..."
+msgstr "この人の顔をすべて表示..."
+
+#: src/gimv_face_panel.c
+msgid "Not looked at for faces (not in the folders for faces, or not yet)."
+msgstr "顔を調べていない画像です (顔を認識するフォルダの外か、まだ調べていません)。"
+
+#: src/gimv_face_panel.c
+msgid "No folders are given for faces (the Index page of the preferences)."
+msgstr "顔を認識するフォルダが設定されていません (設定の「索引」のページ)。"
+
+#: src/gimv_face_panel.c
+msgid "No faces found."
+msgstr "顔は見つかっていません。"
+
+#: src/gimv_face_panel.c
+msgid "_Done"
+msgstr "完了(_D)"
+
+#: src/gimv_image_view.c
+msgid "/Edit Faces (_People)"
+msgstr "/顔の編集(_P)"
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "This face is not \"%s\"?"
+msgstr "この顔は「%s」ではない、としますか？"
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "These faces are not \"%s\"?"
+msgstr "これらの顔は「%s」ではない、としますか？"
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "%'u face: the name goes, and it is not guessed as \"%s\" again."
+msgid_plural "%'u faces: the name goes, and they are not guessed as \"%s\" again."
+msgstr[0] "顔 %'u 個: 名前を外し、以後「%s」の候補にもしません。"

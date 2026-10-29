@@ -45,6 +45,9 @@
 #include "gimv_print.h"
 #include "prefs.h"
 #include "gimv_thumb_cache.h"
+#ifdef ENABLE_INDEX
+#include "gimv_face_panel.h"
+#endif
 
 #ifdef ENABLE_EXIF
 
@@ -127,6 +130,14 @@ struct GimvImageViewPrivate_Tag
    GimvImageViewOrientation rotate;
    gboolean                 flip;     /* turned over left and right, before
                                          the rotation */
+
+   /* a face marked on the image (the faces panel): in [0, 1] of the
+    * image as its EXIF orientation shows it (as gimv-faces found it) */
+   gboolean         face_mark;
+   gdouble          face_x, face_y, face_w, face_h;
+   gchar           *face_label;
+   GimvImageInfo   *face_orient_info;   /* not a reference: compared only */
+   gint             face_orient;        /* its EXIF orientation, 1..8 */
 
    gint             default_zoom;      /* should be defined as enum */
    gint             default_rotation;  /* should be defined as enum */
@@ -216,6 +227,9 @@ static void cb_toggle_scrollbar            (GimvImageView   *iv,
 static void cb_open_folder                 (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem    *widget);
+static void cb_edit_faces          (GimvImageView     *iv,
+                                    guint              action,
+                                    GimvMenuItem      *widget);
 static void cb_create_thumbnail            (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem       *widget);
@@ -331,6 +345,7 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
    {N_("/Create _Thumbnail"),     "<shift>T",   cb_create_thumbnail, 0, NULL},
    {N_("/Open the _Folder"),      NULL,         cb_open_folder,      0, NULL},
+   {N_("/Edit Faces (_People)"),  "P",          cb_edit_faces,       0, NULL},
    {N_("/Memory _Buffer"),        "<control>B", cb_toggle_buffer,    0, "<ToggleItem>"},
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
    {N_("/_Print..."),             NULL,         cb_print,            0, NULL},
@@ -995,6 +1010,7 @@ gimv_image_view_finalize (GObject *object)
    GimvImageView *iv = GIMV_IMAGE_VIEW (object);
 
    /* private data is freed here, callbacks may still run while disposing */
+   g_free (iv->priv->face_label);
    g_free (iv->priv);
    iv->priv = NULL;
 
@@ -1070,6 +1086,18 @@ static void
 cb_zoom (GimvImageView *iv, GimvImageViewZoomType zoom, GimvMenuItem *widget)
 {
    gimv_image_view_zoom_image (iv, zoom, 0, 0);
+}
+
+
+/* the faces of the image in a panel at the right (where the view has one:
+ * the preview, the image window) */
+static void
+cb_edit_faces (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+#ifdef ENABLE_INDEX
+   if (gimv_face_panel_has (iv))
+      gimv_face_panel_set_visible (iv, !gimv_face_panel_get_visible (iv));
+#endif
 }
 
 
@@ -2224,6 +2252,11 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
 
    if (!g_list_find (GimvImageViewList, iv)) return;
 
+   /* the mark of a face is of the image before */
+   iv->priv->face_mark = FALSE;
+   iv->priv->face_orient_info = NULL;
+   iv->priv->face_orient = 0;
+
    /* free old image */
    if (iv->priv->pixmap)
       gimv_image_free_pixmap_and_mask (iv->priv->pixmap, iv->priv->mask);
@@ -2370,6 +2403,158 @@ gimv_image_view_get_bg_rgba (GimvImageView *iv, GdkRGBA *color)
  *  draw function of the default draw area (image_view_draw.c).
  *  GTK4: replaces the direct drawing to the GdkWindow of GTK2.
  */
+/* EXIF orientation of the image, 1 when none */
+static gint
+face_orientation (GimvImageView *iv)
+{
+   if (iv->priv->face_orient_info == iv->info && iv->priv->face_orient)
+      return iv->priv->face_orient;
+   iv->priv->face_orient_info = iv->info;
+   iv->priv->face_orient = 1;
+#ifdef ENABLE_EXIF
+   if (iv->info && iv->info->filename) {
+      ExifData *edata = exif_data_new_from_file (iv->info->filename);
+      if (edata) {
+         ExifEntry *entry = exif_content_get_entry (edata->ifd[EXIF_IFD_0],
+                                                    EXIF_TAG_ORIENTATION);
+         if (entry && entry->format == EXIF_FORMAT_SHORT && entry->size >= 2) {
+            gint o = exif_get_short (entry->data, exif_data_get_byte_order (edata));
+            if (o >= 1 && o <= 8) iv->priv->face_orient = o;
+         }
+         exif_data_unref (edata);
+      }
+   }
+#endif
+   return iv->priv->face_orient;
+}
+
+
+/* a point of the image as its EXIF orientation shows it -> the image as
+ * shown here (the file's pixels turned over (flip), then rotated), all in
+ * [0, 1] of each side */
+static void
+face_point_to_view (GimvImageView *iv, gint orient, gdouble x, gdouble y,
+                    gdouble *vx, gdouble *vy)
+{
+   gdouble u, v, t;
+
+   /* to the file's own pixels */
+   switch (orient) {
+   case 2:  u = 1 - x; v = y;     break;
+   case 3:  u = 1 - x; v = 1 - y; break;
+   case 4:  u = x;     v = 1 - y; break;
+   case 5:  u = y;     v = x;     break;
+   case 6:  u = y;     v = 1 - x; break;
+   case 7:  u = 1 - y; v = 1 - x; break;
+   case 8:  u = 1 - y; v = x;     break;
+   default: u = x;     v = y;     break;
+   }
+   /* as shown: turned over, then rotated */
+   if (iv->priv->flip) u = 1 - u;
+   switch (iv->priv->rotate) {
+   case GIMV_IMAGE_VIEW_ROTATE_90:    /* counterclockwise */
+      t = u; u = v; v = 1 - t; break;
+   case GIMV_IMAGE_VIEW_ROTATE_180:
+      u = 1 - u; v = 1 - v; break;
+   case GIMV_IMAGE_VIEW_ROTATE_270:   /* clockwise */
+      t = u; u = 1 - v; v = t; break;
+   default:
+      break;
+   }
+   *vx = u;
+   *vy = v;
+}
+
+
+static void
+paint_face_mark (GimvImageView *iv, cairo_t *cr)
+{
+   gint orient = face_orientation (iv);
+   gdouble xs[4], ys[4], x0, y0, x1, y1;
+   gdouble tw = gdk_texture_get_width (iv->priv->pixmap);
+   gdouble th = gdk_texture_get_height (iv->priv->pixmap);
+   gint i;
+
+   face_point_to_view (iv, orient, iv->priv->face_x, iv->priv->face_y, &xs[0], &ys[0]);
+   face_point_to_view (iv, orient, iv->priv->face_x + iv->priv->face_w, iv->priv->face_y,
+                       &xs[1], &ys[1]);
+   face_point_to_view (iv, orient, iv->priv->face_x, iv->priv->face_y + iv->priv->face_h,
+                       &xs[2], &ys[2]);
+   face_point_to_view (iv, orient, iv->priv->face_x + iv->priv->face_w,
+                       iv->priv->face_y + iv->priv->face_h, &xs[3], &ys[3]);
+   x0 = x1 = xs[0];
+   y0 = y1 = ys[0];
+   for (i = 1; i < 4; i++) {
+      x0 = MIN (x0, xs[i]); x1 = MAX (x1, xs[i]);
+      y0 = MIN (y0, ys[i]); y1 = MAX (y1, ys[i]);
+   }
+   x0 = iv->priv->x_pos + x0 * tw;
+   x1 = iv->priv->x_pos + x1 * tw;
+   y0 = iv->priv->y_pos + y0 * th;
+   y1 = iv->priv->y_pos + y1 * th;
+
+   /* white on a dark edge: seen on light and dark photos */
+   cairo_save (cr);
+   cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+   cairo_rectangle (cr, x0, y0, x1 - x0, y1 - y0);
+   cairo_set_source_rgba (cr, 0, 0, 0, 0.6);
+   cairo_set_line_width (cr, 4);
+   cairo_stroke_preserve (cr);
+   cairo_set_source_rgb (cr, 1, 1, 1);
+   cairo_set_line_width (cr, 2);
+   cairo_stroke (cr);
+
+   if (iv->priv->face_label && *iv->priv->face_label) {
+      PangoLayout *layout = gtk_widget_create_pango_layout (GTK_WIDGET (iv->draw_area),
+                                                            iv->priv->face_label);
+      gint lw, lh;
+      gdouble lx, ly;
+
+      pango_layout_get_pixel_size (layout, &lw, &lh);
+      lx = (x0 + x1) / 2 - lw / 2.0;
+      ly = y1 + 4;
+      cairo_set_source_rgba (cr, 0, 0, 0, 0.65);
+      cairo_rectangle (cr, lx - 4, ly - 1, lw + 8, lh + 2);
+      cairo_fill (cr);
+      cairo_set_source_rgb (cr, 1, 1, 1);
+      cairo_move_to (cr, lx, ly);
+      pango_cairo_show_layout (cr, layout);
+      g_object_unref (layout);
+   }
+   cairo_restore (cr);
+}
+
+
+/* mark a face on the image (show FALSE: none); x, y, w, h in [0, 1] of the
+ * image as its EXIF orientation shows it */
+void
+gimv_image_view_set_face_mark (GimvImageView *iv, gboolean show,
+                               gdouble x, gdouble y, gdouble w, gdouble h,
+                               const gchar *label)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   iv->priv->face_mark = show;
+   iv->priv->face_x = x;
+   iv->priv->face_y = y;
+   iv->priv->face_w = w;
+   iv->priv->face_h = h;
+   g_free (iv->priv->face_label);
+   iv->priv->face_label = g_strdup (label);
+   if (iv->draw_area)
+      gtk_widget_queue_draw (GTK_WIDGET (iv->draw_area));
+}
+
+
+/* the EXIF orientation of the image shown (1..8) */
+gint
+gimv_image_view_get_exif_orientation (GimvImageView *iv)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), 1);
+   return face_orientation (iv);
+}
+
+
 void
 gimv_image_view_paint (GimvImageView *iv, cairo_t *cr,
                        gint width, gint height)
@@ -2426,6 +2611,9 @@ gimv_image_view_paint (GimvImageView *iv, cairo_t *cr,
       gimv_cairo_draw_texture (cr, iv->priv->pixmap,
                                iv->priv->x_pos, iv->priv->y_pos);
    }
+
+   if (iv->priv->face_mark && iv->priv->pixmap)
+      paint_face_mark (iv, cr);
 }
 
 

@@ -46,6 +46,9 @@
 #include "gimv_thumb.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
+#ifdef ENABLE_INDEX
+#include "gimv_face_panel.h"
+#endif
 #include "gtk2-compat.h"
 #include "help.h"
 #include "menu.h"
@@ -2803,7 +2806,12 @@ image_preview_new (GimvThumbWin *tw)
                    NULL);
    if (!show_scrollbar)
       gimv_image_view_hide_scrollbar (tw->iv);
+#ifdef ENABLE_INDEX
+   /* the faces of the image can be shown at the right of the preview */
+   gtk_notebook_prepend_page (GTK_NOTEBOOK(cv->notebook), gimv_face_panel_wrap (tw->iv), label);
+#else
    gtk_notebook_prepend_page (GTK_NOTEBOOK(cv->notebook), GTK_WIDGET (tw->iv), label);
+#endif
    gtk_notebook_set_current_page (GTK_NOTEBOOK(cv->notebook), 0);
 
    return cv->main_vbox;

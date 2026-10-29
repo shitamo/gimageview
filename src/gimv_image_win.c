@@ -34,6 +34,9 @@
 #include "gimv_icon_stock.h"
 #include "gimv_image_view.h"
 #include "gimv_image_win.h"
+#ifdef ENABLE_INDEX
+#include "gimv_face_panel.h"
+#endif
 #include "gimv_prefs_win.h"
 #include "gimv_thumb_win.h"
 #include "help.h"
@@ -152,6 +155,9 @@ static void     cb_ignore_alpha         (GimvImageWin *iv,
 static void     cb_toggle_menubar       (GimvImageWin *iw,
                                          guint         action,
                                          GimvMenuItem    *widget);
+static void     cb_edit_faces         (GimvImageWin   *iw,
+                                       guint           action,
+                                       GimvMenuItem   *widget);
 static void     cb_toggle_player        (GimvImageWin *iw,
                                          guint         action,
                                          GimvMenuItem    *widget);
@@ -322,6 +328,7 @@ GimvMenuEntry gimv_image_win_view_items [] =
    {N_("/_Rotate"),       NULL,        NULL,                 0,  "<Branch>"},
    {N_("/Ignore _Alpha Channel"), NULL,cb_ignore_alpha,      0,  "<ToggleItem>"},
    {N_("/_Checkerboard Behind Transparency"), NULL, cb_alpha_checker, 0, "<ToggleItem>"},
+   {N_("/Edit Faces (_People)"), "P",  cb_edit_faces,        0,  NULL},
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},
    {N_("/_Menubar"),     "M",         cb_toggle_menubar,    0,  "<ToggleItem>"},
    {N_("/_Toolbar"),     "N",         cb_toggle_toolbar,    0,  "<ToggleItem>"},
@@ -513,8 +520,14 @@ gimv_image_win_init (GimvImageWin *iw)
    adj = gtk_adjustment_new (0.0, 0.0, 100.0, 0.1, 1.0, 1.0);
 
    /* draw area */
+#ifdef ENABLE_INDEX
+   /* the faces of the image can be shown at its right */
+   gimv_box_pack_start (GTK_BOX (iw->main_vbox), gimv_face_panel_wrap (iw->iv),
+                       TRUE, TRUE, 0);
+#else
    gimv_box_pack_start (GTK_BOX (iw->main_vbox), GTK_WIDGET (iw->iv),
                        TRUE, TRUE, 0);
+#endif
    gtk_widget_show (GTK_WIDGET (iw->iv));
 
    g_signal_connect (G_OBJECT (iw->iv), "image_changed",
@@ -1339,6 +1352,17 @@ cb_ignore_alpha (GimvImageWin *iw, guint action, GimvMenuItem *widget)
                    "ignore_alpha", gimv_menu_item_get_active (GIMV_MENU_ITEM (widget)),
                    NULL);
    gimv_image_view_show_image (iw->iv);
+}
+
+
+/* the faces of the image in a panel at its right */
+static void
+cb_edit_faces (GimvImageWin *iw, guint action, GimvMenuItem *widget)
+{
+#ifdef ENABLE_INDEX
+   if (iw->iv && gimv_face_panel_has (iw->iv))
+      gimv_face_panel_set_visible (iw->iv, !gimv_face_panel_get_visible (iw->iv));
+#endif
 }
 
 
