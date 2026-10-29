@@ -114,6 +114,8 @@ typedef struct Indexer_Tag
    gboolean     quit;
    gboolean     rescan;
    GPtrArray   *tag_queue;     /* images whose comment file gimv changed */
+   gboolean     rename_pending; /* rows in tag_renames */
+   gboolean     renaming;      /* run_tag_renames () is running */
 
    /* watching the directories while gimv runs (inotify) */
    gint         inotify_fd;
@@ -217,6 +219,7 @@ take_lock (const gchar *dbfile)
  ******************************************************************************/
 
 static void unanswered_move (Indexer *ix, const gchar *old, const gchar *new);
+static sqlite3_stmt *prep (Indexer *ix, const gchar *sql);
 
 /* non-blocking look at stdin, also used to notice that gimv has gone away */
 static void
@@ -242,6 +245,18 @@ check_stdin (Indexer *ix, gint timeout_ms)
             gchar **v = g_strsplit (ix->cmdbuf->str, "\t", 3);
             if (g_strv_length (v) == 3)
                unanswered_move (ix, v[1], v[2]);
+            g_strfreev (v);
+         } else if (g_str_has_prefix (ix->cmdbuf->str, "rename-tag\t")) {
+            /* "rename-tag\t<old>\t<new>": kept in the database until done */
+            gchar **v = g_strsplit (ix->cmdbuf->str, "\t", 3);
+            if (g_strv_length (v) == 3 && *v[1] && *v[2]) {
+               sqlite3_stmt *st = prep (ix, "INSERT INTO tag_renames (old, new) VALUES (?, ?)");
+               sqlite3_bind_text (st, 1, v[1], -1, SQLITE_TRANSIENT);
+               sqlite3_bind_text (st, 2, v[2], -1, SQLITE_TRANSIENT);
+               sqlite3_step (st);
+               sqlite3_finalize (st);
+               ix->rename_pending = TRUE;
+            }
             g_strfreev (v);
          } else if (g_str_has_prefix (ix->cmdbuf->str, "tags /")) {
             /* the path as it is, spaces and all */
@@ -300,6 +315,7 @@ yield_lock (void)
 
 
 static void process_tag_queue (Indexer *ix, gboolean in_transaction);
+static void run_tag_renames (Indexer *ix, gboolean in_transaction);
 static gboolean watch_during_stage (Indexer *ix);
 static void missing_flush (Indexer *ix);
 
@@ -322,6 +338,8 @@ maybe_commit (Indexer *ix, gboolean force)
       check_stdin (ix, 0);
       exec (ix, "BEGIN");
       ix->last_commit = now;
+      /* a tag renamed in gimv: not left waiting for a long stage */
+      run_tag_renames (ix, TRUE);
    }
    if (force || now - ix->last_progress >= PROGRESS_INTERVAL_USEC) {
       if (ix->stage == 1 && ix->cur_dir)
@@ -2041,6 +2059,163 @@ process_tag_queue (Indexer *ix, gboolean in_transaction)
 
 
 /******************************************************************************
+ *  renaming a tag (and two tags made one: renamed to one there is already)
+ *
+ *  The comment files are the record of the tags, so each comment file with
+ *  the tag is written again, and read back into the database.  The renames
+ *  asked for are kept in tag_renames until done: a run stopped in the
+ *  middle goes on at the next start (the files done have the new name in
+ *  the database already, so they are not found again).
+ ******************************************************************************/
+
+/* 1: written, 0: nothing to do (no file, no such tag), -1: not written */
+static gint
+rewrite_comment_tags (const gchar *cfile, const gchar *old, const gchar *new)
+{
+   gchar *text = NULL, **lines;
+   gboolean found = FALSE;
+   gint i, result = 0;
+
+   if (!g_file_get_contents (cfile, &text, NULL, NULL))
+      return 0;
+   lines = g_strsplit (text, "\n", -1);
+   g_free (text);
+   /* "key: value" lines up to the empty line, then the note as it is */
+   for (i = 0; lines[i] && *lines[i]; i++) {
+      gchar **v;
+      GPtrArray *tags;
+      GString *line;
+      guint j;
+
+      if (!g_str_has_prefix (lines[i], GIMV_INDEX_TAGS_KEY ":")) continue;
+      v = g_strsplit (lines[i] + strlen (GIMV_INDEX_TAGS_KEY ":"), ",", -1);
+      tags = g_ptr_array_new ();
+      for (j = 0; v[j]; j++) {
+         gchar *t = g_strstrip (v[j]);
+         if (!*t) continue;
+         if (!strcmp (t, old)) {
+            t = (gchar *) new;
+            found = TRUE;
+         }
+         if (!g_ptr_array_find_with_equal_func (tags, t, g_str_equal, NULL))
+            g_ptr_array_add (tags, t);
+      }
+      line = g_string_new (GIMV_INDEX_TAGS_KEY ": ");
+      for (j = 0; j < tags->len; j++) {
+         if (j) g_string_append (line, ", ");
+         g_string_append (line, g_ptr_array_index (tags, j));
+      }
+      g_free (lines[i]);
+      lines[i] = g_string_free (line, FALSE);
+      g_ptr_array_unref (tags);
+      g_strfreev (v);
+   }
+   if (found) {
+      gchar *out = g_strjoinv ("\n", lines);
+      /* a new file put in place: never half written */
+      result = g_file_set_contents (cfile, out, -1, NULL) ? 1 : -1;
+      g_free (out);
+   }
+   g_strfreev (lines);
+   return result;
+}
+
+
+static void
+run_tag_renames (Indexer *ix, gboolean in_transaction)
+{
+   gchar *croot;
+
+   if (ix->renaming || !ix->rename_pending || ix->quit) return;
+   ix->renaming = TRUE;
+   croot = comment_root ();
+   if (!in_transaction) exec (ix, "BEGIN");
+
+   while (!ix->quit) {
+      sqlite3_stmt *st = prep (ix, "SELECT id, old, new FROM tag_renames ORDER BY id LIMIT 1");
+      gint64 rid;
+      gchar *old, *new;
+      GPtrArray *paths;
+      GArray *ids;
+      guint i, failed = 0;
+      gint64 last_say = 0, last_commit = g_get_monotonic_time ();
+
+      if (sqlite3_step (st) != SQLITE_ROW) {
+         sqlite3_finalize (st);
+         ix->rename_pending = FALSE;
+         break;
+      }
+      rid = sqlite3_column_int64 (st, 0);
+      old = g_strdup ((const gchar *) sqlite3_column_text (st, 1));
+      new = g_strdup ((const gchar *) sqlite3_column_text (st, 2));
+      sqlite3_finalize (st);
+
+      /* the images a person put the tag on */
+      paths = g_ptr_array_new_with_free_func (g_free);
+      ids = g_array_new (FALSE, FALSE, sizeof (gint64));
+      st = prep (ix, "SELECT f.id, d.path, f.name FROM file_tags ft "
+                     "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
+                     "JOIN dirs d ON d.id = f.dir_id WHERE t.name = ? AND ft.auto = 0");
+      sqlite3_bind_text (st, 1, old, -1, SQLITE_STATIC);
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         gint64 id = sqlite3_column_int64 (st, 0);
+         g_array_append_val (ids, id);
+         g_ptr_array_add (paths, g_build_filename ((const gchar *) sqlite3_column_text (st, 1),
+                                                   (const gchar *) sqlite3_column_text (st, 2),
+                                                   NULL));
+      }
+      sqlite3_finalize (st);
+
+      say ("rename-tag start %u\t%s\t%s", ids->len, old, new);
+      for (i = 0; i < ids->len && !ix->quit; i++) {
+         const gchar *img = g_ptr_array_index (paths, i);
+         gchar *cfile = g_strconcat (croot, img, ".txt", NULL);
+         gint64 now;
+
+         if (rewrite_comment_tags (cfile, old, new) < 0) {
+            failed++;
+            say ("rename-tag-failed\t%s", img);
+         }
+         /* the database from the file as it is now */
+         import_comment (ix, g_array_index (ids, gint64, i), cfile, TRUE);
+         g_free (cfile);
+
+         now = g_get_monotonic_time ();
+         if (now - last_say >= PROGRESS_INTERVAL_USEC) {
+            say ("rename-tag %u %u", i + 1, ids->len);
+            last_say = now;
+         }
+         if (now - last_commit >= COMMIT_INTERVAL_USEC) {
+            exec (ix, "COMMIT");
+            yield_lock ();
+            check_stdin (ix, 0);
+            exec (ix, "BEGIN");
+            last_commit = now;
+         }
+      }
+
+      if (!ix->quit) {
+         st = prep (ix, "DELETE FROM tag_renames WHERE id = ?");
+         sqlite3_bind_int64 (st, 1, rid);
+         sqlite3_step (st);
+         sqlite3_finalize (st);
+         exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
+         say ("rename-tag done %u", failed);
+         say ("tags-updated");
+      }
+      g_ptr_array_unref (paths);
+      g_array_unref (ids);
+      g_free (old);
+      g_free (new);
+   }
+
+   if (!in_transaction) exec (ix, "COMMIT");
+   g_free (croot);
+   ix->renaming = FALSE;
+}
+
+
+/******************************************************************************
  *  watching (inotify): changes while gimv runs
  ******************************************************************************/
 
@@ -2486,6 +2661,14 @@ open_db (Indexer *ix, const gchar *dbfile)
    /* the rules for dates changed once (9802e3e dropped dates before 1990):
     * read the files left without a date again, one time */
    exec (ix, "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)");
+   /* tags to rename (from gimv), until done */
+   exec (ix, "CREATE TABLE IF NOT EXISTS tag_renames (id INTEGER PRIMARY KEY, "
+             "old TEXT NOT NULL, new TEXT NOT NULL)");
+   {
+      sqlite3_stmt *st = prep (ix, "SELECT 1 FROM tag_renames LIMIT 1");
+      ix->rename_pending = sqlite3_step (st) == SQLITE_ROW;
+      sqlite3_finalize (st);
+   }
    {
       sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'last_scan'");
       if (sqlite3_step (st) == SQLITE_ROW && sqlite3_column_text (st, 0))
@@ -2652,6 +2835,7 @@ main (int argc, char *argv[])
          if (ix.quit) break;
       }
       process_tag_queue (&ix, FALSE);
+      run_tag_renames (&ix, FALSE);
       say_idle (&ix);
       /* nothing more to do for now: wait for a command or for gimv to quit */
       while (!ix.quit && !ix.rescan) {
@@ -2666,6 +2850,7 @@ main (int argc, char *argv[])
             check_stdin (&ix, 0);
          if (ix.quit) break;
          process_tag_queue (&ix, FALSE);
+         run_tag_renames (&ix, FALSE);
          if (np == 2 && (pfd[1].revents & POLLIN)) {
             /* let a burst (a folder copied) gather first */
             g_usleep (200 * 1000);

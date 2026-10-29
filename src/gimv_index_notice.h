@@ -35,4 +35,8 @@ void       gimv_index_notice_skipped     (const gchar *path);
 void       gimv_index_notice_indexer_died (const gchar *why,
                                            gboolean     restarted);
 
+/* renaming a tag: some comment files could not be written */
+void gimv_index_notice_rename_failed (const gchar *old, const gchar *new,
+                                      guint n, const gchar *first);
+
 #endif /* __GIMV_INDEX_NOTICE_H__ */

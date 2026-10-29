@@ -44,6 +44,10 @@ sqlite3        *gimv_index_get_db           (void);
 /* the comment file of the image (its tags) was written: let the indexer
  * read it again */
 void            gimv_index_tags_changed     (const gchar *path);
+/* rename a tag a person put (in the comment files); to a name there is
+ * already: the two become one.  FALSE when the indexer does not run. */
+gboolean        gimv_index_rename_tag       (const gchar *old,
+                                             const gchar *new);
 
 /* something new is in the database */
 typedef enum {

@@ -5740,3 +5740,54 @@ msgstr "1 人にまとめる(_M)"
 #, c-format
 msgid "The faces of \"%s\" become the faces of \"%s\", and \"%s\" goes."
 msgstr "「%1$s」の顔は「%2$s」の顔になり、「%3$s」はなくなります。"
+
+#: src/gimv_index_view.c
+msgid "Rename... (F2)"
+msgstr "名前を変更... (F2)"
+
+#: src/gimv_index_view.c
+msgid "The tag cannot be renamed now."
+msgstr "今はタグの名前を変更できません。"
+
+#: src/gimv_index_view.c
+msgid ""
+"The indexer does not run (the index is off, or another GImageView makes it)."
+msgstr "索引のプロセスが動いていません (索引がオフになっているか、別の GImageView が索引を作っています)。"
+
+#: src/gimv_index_view.c
+msgid "A tag cannot have a comma in it."
+msgstr "タグには「,」を使えません。"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "The tag \"%s\" is there already."
+msgstr "タグ「%s」は既にあります。"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "The images with \"%s\" get \"%s\" instead, and \"%s\" goes."
+msgstr "「%1$s」の付いた画像は代わりに「%2$s」になり、「%3$s」はなくなります。"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Renaming \"%s\" to \"%s\" in the comment files: %'u of %'u images."
+msgstr "コメントファイルのタグ「%s」を「%s」に書き換えています: %'u / %'u 枚。"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Index: renaming a tag %'u/%'u"
+msgstr "索引: タグ書き換え %'u/%'u"
+
+#: src/gimv_index_notice.c
+#, c-format
+msgid ""
+"Renaming the tag \"%s\" to \"%s\": %'u comment file could not be written, it "
+"keeps the old name (%s)."
+msgid_plural ""
+"Renaming the tag \"%s\" to \"%s\": %'u comment files could not be written, "
+"they keep the old name (the first: %s)."
+msgstr[0] "タグ「%s」を「%s」に変更中、%'u 個のコメントファイルに書き込めず、古い名前のままです (最初のもの: %s)。"
+
+#: src/gimv_index_view.c
+msgid "_Merge Them"
+msgstr "1 つにまとめる(_M)"

@@ -62,6 +62,11 @@ static struct {
    guint             watch_id;
    gint64            last_notify;
    guint             restarts;        /* after the indexer died */
+
+   /* a tag being renamed (in the comment files) */
+   gboolean          renaming;
+   guint             rn_done, rn_total, rn_failed;
+   gchar            *rn_old, *rn_new, *rn_first_failed;
 } ix;
 
 #define MAX_RESTARTS 3
@@ -185,6 +190,17 @@ update_status (void)
    default:
       ix.status = g_strdup ("");
       break;
+   }
+   /* a tag being renamed: shown first, whatever else goes on */
+   if (ix.renaming) {
+      gchar *t = g_strdup_printf (_("Renaming \"%s\" to \"%s\" in the comment files: "
+                                    "%'u of %'u images."),
+                                  ix.rn_old, ix.rn_new, ix.rn_done, ix.rn_total);
+      g_free (ix.status);
+      ix.status = g_strdup_printf (_("Index: renaming a tag %'u/%'u"), ix.rn_done, ix.rn_total);
+      g_string_prepend (tip, "\n");
+      g_string_prepend (tip, t);
+      g_free (t);
    }
    if (ix.state == GIMV_INDEX_STATE_IDLE || ix.state == GIMV_INDEX_STATE_SCANNING) {
       gchar *faces = gimv_index_faces_tooltip ();
@@ -373,6 +389,40 @@ handle_line (const gchar *line)
    /* "new\t<path>" */
    if (g_str_has_prefix (line, "new\t")) {
       gimv_index_newimg_add (line + 4);
+      return;
+   }
+
+   /* "rename-tag start <n>\t<old>\t<new>", "rename-tag <done> <n>",
+    * "rename-tag done <failed>", "rename-tag-failed\t<path>" */
+   if (g_str_has_prefix (line, "rename-tag-failed\t")) {
+      ix.rn_failed++;
+      if (!ix.rn_first_failed)
+         ix.rn_first_failed = g_strdup (line + strlen ("rename-tag-failed\t"));
+      return;
+   }
+   if (g_str_has_prefix (line, "rename-tag ")) {
+      const gchar *rest = line + strlen ("rename-tag ");
+      if (g_str_has_prefix (rest, "start ")) {
+         gchar **t = g_strsplit (rest + strlen ("start "), "\t", 3);
+         ix.renaming = TRUE;
+         ix.rn_done = 0;
+         ix.rn_failed = 0;
+         ix.rn_total = strtoul (t[0], NULL, 10);
+         g_free (ix.rn_old);
+         g_free (ix.rn_new);
+         ix.rn_old = g_strdup (t[0] && t[1] ? t[1] : "");
+         ix.rn_new = g_strdup (t[0] && t[1] && t[2] ? t[2] : "");
+         g_clear_pointer (&ix.rn_first_failed, g_free);
+         g_strfreev (t);
+      } else if (g_str_has_prefix (rest, "done")) {
+         ix.renaming = FALSE;
+         if (ix.rn_failed)
+            gimv_index_notice_rename_failed (ix.rn_old, ix.rn_new, ix.rn_failed,
+                                             ix.rn_first_failed);
+      } else {
+         ix.rn_done = strtoul (rest, NULL, 10);
+      }
+      update_status ();
       return;
    }
 
@@ -774,6 +824,24 @@ gimv_index_tags_changed (const gchar *path)
    cmd = g_strdup_printf ("tags %s\n", path);
    send_command (cmd);
    g_free (cmd);
+}
+
+
+/* the tag renamed in every comment file that has it (by the indexer, which
+ * goes on at its next start when stopped); FALSE when the indexer does
+ * not run */
+gboolean
+gimv_index_rename_tag (const gchar *old, const gchar *new)
+{
+   gchar *cmd;
+
+   if (!ix.proc || !ix.in || !old || !new || !*old || !*new
+       || strpbrk (old, "\t\n") || strpbrk (new, "\t\n"))
+      return FALSE;
+   cmd = g_strdup_printf ("rename-tag\t%s\t%s\n", old, new);
+   send_command (cmd);
+   g_free (cmd);
+   return TRUE;
 }
 
 

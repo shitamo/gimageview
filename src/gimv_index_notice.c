@@ -389,6 +389,19 @@ add_note (gchar *text)
 
 
 void
+gimv_index_notice_rename_failed (const gchar *old, const gchar *new,
+                                 guint n, const gchar *first)
+{
+   add_note (g_strdup_printf (ngettext ("Renaming the tag \"%s\" to \"%s\": %'u comment file "
+                                        "could not be written, it keeps the old name (%s).",
+                                        "Renaming the tag \"%s\" to \"%s\": %'u comment files "
+                                        "could not be written, they keep the old name (the "
+                                        "first: %s).", n),
+                              old, new, n, first ? first : ""));
+}
+
+
+void
 gimv_index_notice_skipped (const gchar *path)
 {
    add_note (g_strdup_printf (_("The indexer stopped while reading this image, so it "
