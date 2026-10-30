@@ -56,7 +56,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect.hpp>
 
-#define DB_VERSION        4
+#define DB_VERSION        5
 #define DETECT_MODEL      "face_detection_yunet_2023mar.onnx"
 #define RECOGNIZE_MODEL   "face_recognition_sface_2021dec.onnx"
 

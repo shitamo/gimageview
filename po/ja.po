@@ -5863,3 +5863,48 @@ msgstr "これらの顔は「%s」ではない、としますか？"
 msgid "%'u face: the name goes, and it is not guessed as \"%s\" again."
 msgid_plural "%'u faces: the name goes, and they are not guessed as \"%s\" again."
 msgstr[0] "顔 %'u 個: 名前を外し、以後「%s」の候補にもしません。"
+
+#: src/gimv_index_view.c
+msgid "Tags of People"
+msgstr "人物のタグ"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "People: %s"
+msgstr "人物: %s"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "%s (%'d people)"
+msgstr "%s (%'d 人)"
+
+#: src/gimv_face_panel.c
+msgid "Tags of the Person..."
+msgstr "人物のタグ..."
+
+#: src/gimv_index_faces_win.c
+msgid "The tags of the person (the group, ...)"
+msgstr "人物のタグ (所属グループなど)"
+
+#: src/gimv_index_faces_win.c
+#, c-format
+msgid "The Tags of \"%s\""
+msgstr "「%s」のタグ"
+
+#: src/gimv_index_faces_win.c
+msgid ""
+"Tags of the person (the group, ...): they go with every image the person is "
+"named in."
+msgstr "人物のタグ (所属グループなど)。この人の名前が付いたすべての画像に効きます。"
+
+#: src/gimv_index_faces_win.c
+msgid "A new tag (Enter adds it)"
+msgstr "新しいタグ (Enter で追加)"
+
+#: src/gimv_index_faces_win.c
+msgid "Tags other people have (a click adds it):"
+msgstr "他の人に付いているタグ (クリックで追加):"
+
+#: src/gimv_index_faces_win.c
+msgid "Remove this tag"
+msgstr "このタグを外す"

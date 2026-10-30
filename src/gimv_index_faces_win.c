@@ -81,6 +81,8 @@ static struct {
    GtkWidget         *name_entry;   /* the name being changed */
    GtkWidget         *edit_button;  /* the pencil: change the name */
    GtkWidget         *count_label;
+   GtkWidget         *tags_button;  /* the tags of the person */
+   GtkWidget         *tags_label;
    GtkWidget         *grid;
    GtkWidget         *buttons[8];
    GListStore        *store;
@@ -118,6 +120,21 @@ update_heading (void)
    gtk_widget_set_visible (fw.edit_button, fw.key && fw.key[0] == 'p'
                                            && !gtk_widget_get_visible (fw.name_entry));
    gtk_widget_set_sensitive (fw.edit_button, !fw.busy);
+   /* a named person: the tags, and the button to change them */
+   gtk_widget_set_visible (fw.tags_button, fw.key && fw.key[0] == 'p');
+   gtk_widget_set_sensitive (fw.tags_button, !fw.busy);
+   {
+      gchar *tags = NULL;
+      if (fw.key && fw.key[0] == 'p') {
+         GPtrArray *list = gimv_index_faces_get_person_tags (g_ascii_strtoll (fw.key + 2, NULL, 10));
+         g_ptr_array_add (list, NULL);
+         tags = g_strjoinv (", ", (gchar **) list->pdata);
+         g_ptr_array_unref (list);
+      }
+      gtk_label_set_text (GTK_LABEL (fw.tags_label), tags ? tags : "");
+      gtk_widget_set_visible (fw.tags_label, tags && *tags);
+      g_free (tags);
+   }
    if (fw.busy)
       line = g_strdup_printf ("%s — %s", count, _("writing..."));
    else if (fw.error)
@@ -635,6 +652,46 @@ cb_edit_name (GtkButton *button, gpointer data)
 }
 
 
+static void
+cb_tags_edited (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GError *error = NULL;
+   gboolean ok = gimv_index_faces_edit_finish (res, NULL, &error);
+
+   if (fw.window) {
+      fw.busy = FALSE;
+      g_clear_pointer (&fw.error, g_free);
+      if (!ok) fw.error = g_strdup (error ? error->message : "?");
+      update_heading ();
+      update_buttons ();
+   }
+   g_clear_error (&error);
+}
+
+
+static void
+tags_given (const gchar *tags, gpointer data)
+{
+   gint64 me = fw.key && fw.key[0] == 'p' ? g_ascii_strtoll (fw.key + 2, NULL, 10) : 0;
+
+   if (!fw.window || !me || fw.busy) return;
+   fw.busy = TRUE;
+   update_heading ();
+   update_buttons ();
+   gimv_index_faces_edit_async (GIMV_INDEX_FACES_PERSON_TAGS, NULL, tags, me,
+                                cb_tags_edited, NULL);
+}
+
+
+static void
+cb_edit_tags (GtkButton *button, gpointer data)
+{
+   gint64 me = fw.key && fw.key[0] == 'p' ? g_ascii_strtoll (fw.key + 2, NULL, 10) : 0;
+   if (me)
+      gimv_index_faces_ask_person_tags (GTK_WINDOW (fw.window), fw.title, me, tags_given, NULL);
+}
+
+
 /******************************************************************************
  *  the buttons
  ******************************************************************************/
@@ -871,6 +928,245 @@ cb_name (GtkButton *button, gpointer data)
 }
 
 
+/******************************************************************************
+ *  the tags of a person
+ ******************************************************************************/
+
+typedef struct {
+   GtkWidget *dialog;
+   GtkWidget *tags;      /* the tags given: a row each, with a remove button */
+   GtkWidget *entry;
+   GtkWidget *known;     /* the tags other people have, to pick */
+   GimvIndexFacesNameFunc done;
+   gpointer   data;
+} TagsDialog;
+
+
+static void tags_add (TagsDialog *td, const gchar *tag);
+
+
+static gboolean
+tags_has (TagsDialog *td, const gchar *tag)
+{
+   GtkWidget *row;
+   for (row = gtk_widget_get_first_child (td->tags); row; row = gtk_widget_get_next_sibling (row))
+      if (!g_strcmp0 (g_object_get_data (G_OBJECT (row), "tag"), tag)) return TRUE;
+   return FALSE;
+}
+
+
+static void
+tags_update_known (TagsDialog *td)
+{
+   GtkWidget *row;
+   /* the ones given already are not offered */
+   for (row = gtk_widget_get_first_child (td->known); row; row = gtk_widget_get_next_sibling (row))
+      gtk_widget_set_visible (row, !tags_has (td, g_object_get_data (G_OBJECT (row), "tag")));
+}
+
+
+static void
+cb_tag_remove (GtkButton *button, TagsDialog *td)
+{
+   GtkWidget *row = g_object_get_data (G_OBJECT (button), "row");
+   gtk_list_box_remove (GTK_LIST_BOX (td->tags), row);
+   tags_update_known (td);
+}
+
+
+static void
+tags_add (TagsDialog *td, const gchar *text)
+{
+   gchar *tag = g_strstrip (g_strdup (text ? text : ""));
+   GtkWidget *row, *box, *label, *remove;
+
+   /* one a line in the database; a comma would look like two */
+   g_strdelimit (tag, "\n\t", ' ');
+   if (!*tag || tags_has (td, tag)) {
+      g_free (tag);
+      return;
+   }
+   row = gtk_list_box_row_new ();
+   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+   label = gtk_label_new (tag);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_widget_set_hexpand (label, TRUE);
+   gtk_widget_set_margin_start (label, 6);
+   remove = gtk_button_new_from_icon_name ("list-remove-symbolic");
+   gtk_button_set_has_frame (GTK_BUTTON (remove), FALSE);
+   gtk_widget_set_tooltip_text (remove, _("Remove this tag"));
+   g_object_set_data (G_OBJECT (remove), "row", row);
+   g_signal_connect (remove, "clicked", G_CALLBACK (cb_tag_remove), td);
+   gtk_box_append (GTK_BOX (box), label);
+   gtk_box_append (GTK_BOX (box), remove);
+   gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
+   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
+   g_object_set_data_full (G_OBJECT (row), "tag", tag, g_free);
+   gtk_list_box_append (GTK_LIST_BOX (td->tags), row);
+   tags_update_known (td);
+}
+
+
+static void
+cb_tag_entry (GtkEntry *entry, TagsDialog *td)
+{
+   tags_add (td, gtk_editable_get_text (GTK_EDITABLE (entry)));
+   gtk_editable_set_text (GTK_EDITABLE (entry), "");
+}
+
+
+static void
+cb_tag_known (GtkListBox *list, GtkListBoxRow *row, TagsDialog *td)
+{
+   tags_add (td, g_object_get_data (G_OBJECT (row), "tag"));
+}
+
+
+static void
+cb_tags_ok (GtkWidget *widget, TagsDialog *td)
+{
+   GString *all = g_string_new (NULL);
+   GtkWidget *row;
+
+   /* what is typed and not added yet counts too */
+   tags_add (td, gtk_editable_get_text (GTK_EDITABLE (td->entry)));
+   for (row = gtk_widget_get_first_child (td->tags); row; row = gtk_widget_get_next_sibling (row)) {
+      if (all->len) g_string_append_c (all, '\n');
+      g_string_append (all, g_object_get_data (G_OBJECT (row), "tag"));
+   }
+   if (td->done) td->done (all->str, td->data);
+   g_string_free (all, TRUE);
+   gtk_window_destroy (GTK_WINDOW (td->dialog));
+}
+
+
+static void
+cb_tags_cancel (GtkWidget *widget, TagsDialog *td)
+{
+   gtk_window_destroy (GTK_WINDOW (td->dialog));
+}
+
+
+static gboolean
+cb_tags_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType state,
+             TagsDialog *td)
+{
+   if (keyval == GDK_KEY_Escape) {
+      gtk_window_destroy (GTK_WINDOW (td->dialog));
+      return TRUE;
+   }
+   return FALSE;
+}
+
+
+static GtkWidget *
+scrolled (GtkWidget *child, gint height)
+{
+   GtkWidget *scroll = gtk_scrolled_window_new ();
+   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_widget_set_size_request (scroll, -1, height);
+   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll), child);
+   gtk_widget_add_css_class (scroll, "frame");
+   return scroll;
+}
+
+
+/* the tags of a person: done gets them, one a line ("" for none) */
+void
+gimv_index_faces_ask_person_tags (GtkWindow *parent, const gchar *person, gint64 person_id,
+                                  GimvIndexFacesNameFunc done, gpointer data)
+{
+   TagsDialog *td = g_new0 (TagsDialog, 1);
+   GtkWidget *vbox, *label, *hbox, *ok, *cancel;
+   GtkEventController *keys;
+   GPtrArray *mine = gimv_index_faces_get_person_tags (person_id);
+   GPtrArray *all = gimv_index_faces_get_all_person_tags ();
+   gchar *title;
+   guint i;
+
+   td->done = done;
+   td->data = data;
+   td->dialog = gtk_window_new ();
+   title = g_strdup_printf (_("The Tags of \"%s\""), person ? person : "");
+   gtk_window_set_title (GTK_WINDOW (td->dialog), title);
+   g_free (title);
+   if (parent) gtk_window_set_transient_for (GTK_WINDOW (td->dialog), parent);
+   gtk_window_set_modal (GTK_WINDOW (td->dialog), TRUE);
+   gtk_window_set_default_size (GTK_WINDOW (td->dialog), 320, 420);
+   g_object_set_data_full (G_OBJECT (td->dialog), "tags-dialog", td, g_free);
+
+   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+   gtk_widget_set_margin_start (vbox, 10);
+   gtk_widget_set_margin_end (vbox, 10);
+   gtk_widget_set_margin_top (vbox, 10);
+   gtk_widget_set_margin_bottom (vbox, 10);
+   gtk_window_set_child (GTK_WINDOW (td->dialog), vbox);
+
+   label = gtk_label_new (_("Tags of the person (the group, ...): they go with every "
+                            "image the person is named in."));
+   gtk_label_set_wrap (GTK_LABEL (label), TRUE);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_box_append (GTK_BOX (vbox), label);
+
+   td->tags = gtk_list_box_new ();
+   gtk_list_box_set_selection_mode (GTK_LIST_BOX (td->tags), GTK_SELECTION_NONE);
+   gtk_box_append (GTK_BOX (vbox), scrolled (td->tags, 110));
+
+   td->entry = gtk_entry_new ();
+   gtk_entry_set_placeholder_text (GTK_ENTRY (td->entry), _("A new tag (Enter adds it)"));
+   g_signal_connect (td->entry, "activate", G_CALLBACK (cb_tag_entry), td);
+   gtk_box_append (GTK_BOX (vbox), td->entry);
+
+   label = gtk_label_new (_("Tags other people have (a click adds it):"));
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_widget_add_css_class (label, "dim-label");
+   gtk_box_append (GTK_BOX (vbox), label);
+   td->known = gtk_list_box_new ();
+   gtk_list_box_set_activate_on_single_click (GTK_LIST_BOX (td->known), TRUE);
+   for (i = 0; i < all->len; i++) {
+      GtkWidget *row = gtk_list_box_row_new (), *l = gtk_label_new (g_ptr_array_index (all, i));
+      gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+      gtk_widget_set_margin_start (l, 6);
+      gtk_widget_set_margin_top (l, 3);
+      gtk_widget_set_margin_bottom (l, 3);
+      gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), l);
+      g_object_set_data_full (G_OBJECT (row), "tag", g_strdup (g_ptr_array_index (all, i)),
+                              g_free);
+      gtk_list_box_append (GTK_LIST_BOX (td->known), row);
+   }
+   g_signal_connect (td->known, "row-activated", G_CALLBACK (cb_tag_known), td);
+   {
+      GtkWidget *s = scrolled (td->known, 100);
+      gtk_widget_set_vexpand (s, TRUE);
+      gtk_box_append (GTK_BOX (vbox), s);
+   }
+
+   for (i = 0; i < mine->len; i++)
+      tags_add (td, g_ptr_array_index (mine, i));
+
+   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   gtk_widget_set_halign (hbox, GTK_ALIGN_END);
+   cancel = gtk_button_new_with_mnemonic (_("_Cancel"));
+   ok = gtk_button_new_with_mnemonic (_("_OK"));
+   gtk_widget_add_css_class (ok, "suggested-action");
+   g_signal_connect (cancel, "clicked", G_CALLBACK (cb_tags_cancel), td);
+   g_signal_connect (ok, "clicked", G_CALLBACK (cb_tags_ok), td);
+   gtk_box_append (GTK_BOX (hbox), cancel);
+   gtk_box_append (GTK_BOX (hbox), ok);
+   gtk_box_append (GTK_BOX (vbox), hbox);
+
+   keys = gtk_event_controller_key_new ();
+   g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_tags_key), td);
+   gtk_widget_add_controller (td->dialog, keys);
+
+   g_ptr_array_unref (mine);
+   g_ptr_array_unref (all);
+   gtk_window_present (GTK_WINDOW (td->dialog));
+   gtk_widget_grab_focus (td->entry);
+}
+
+
 /* "not this person": asked again (it may be pressed by mistake, and the
  * faces are not guessed as that person again) */
 typedef struct {
@@ -1022,6 +1318,19 @@ create_window (void)
    gtk_widget_set_valign (fw.edit_button, GTK_ALIGN_CENTER);
    g_signal_connect (fw.edit_button, "clicked", G_CALLBACK (cb_edit_name), NULL);
    gtk_box_append (GTK_BOX (fw.heading), fw.edit_button);
+
+   fw.tags_label = gtk_label_new (NULL);
+   gtk_label_set_selectable (GTK_LABEL (fw.tags_label), TRUE);
+   gtk_widget_set_focus_on_click (fw.tags_label, FALSE);
+   gtk_widget_set_margin_start (fw.tags_label, 8);
+   gtk_box_append (GTK_BOX (fw.heading), fw.tags_label);
+
+   fw.tags_button = gtk_button_new_from_icon_name ("tag-symbolic");
+   gtk_button_set_has_frame (GTK_BUTTON (fw.tags_button), FALSE);
+   gtk_widget_set_tooltip_text (fw.tags_button, _("The tags of the person (the group, ...)"));
+   gtk_widget_set_valign (fw.tags_button, GTK_ALIGN_CENTER);
+   g_signal_connect (fw.tags_button, "clicked", G_CALLBACK (cb_edit_tags), NULL);
+   gtk_box_append (GTK_BOX (fw.heading), fw.tags_button);
 
    fw.count_label = gtk_label_new (NULL);
    gtk_label_set_xalign (GTK_LABEL (fw.count_label), 0.0);

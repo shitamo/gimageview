@@ -38,6 +38,7 @@ typedef struct {
    gdouble  x, y, w, h;        /* in [0, 1] of the image as shown upright */
    gint64   person, guess;
    gchar   *name;              /* of person, or of guess */
+   gchar   *tags;              /* of person: "a, b" */
    gboolean ignored;
 } PanelFace;
 
@@ -61,6 +62,7 @@ static void
 panel_face_free (PanelFace *f)
 {
    g_free (f->name);
+   g_free (f->tags);
    g_free (f);
 }
 
@@ -130,7 +132,8 @@ read_faces (FacePanel *fp)
    if (scanned > 0 && upright_size (fp->iv, &w, &h)
        && sqlite3_prepare_v2 (db,
              "SELECT fa.id, fa.x, fa.y, fa.w, fa.h, fa.person_id, fa.guess, "
-             "  coalesce(p.name, g.name), fa.ignored "
+             "  coalesce(p.name, g.name), fa.ignored, "
+             "  (SELECT group_concat(tag, ', ') FROM person_tags WHERE person_id = fa.person_id) "
              "FROM faces fa JOIN files f ON f.id = fa.file_id JOIN dirs d ON d.id = f.dir_id "
              "LEFT JOIN persons p ON p.id = fa.person_id LEFT JOIN persons g ON g.id = fa.guess "
              "WHERE d.path = ?1 AND f.name = ?2 ORDER BY fa.x",
@@ -149,6 +152,7 @@ read_faces (FacePanel *fp)
          f->guess = sqlite3_column_int64 (st, 6);
          f->name = g_strdup ((const gchar *) sqlite3_column_text (st, 7));
          f->ignored = sqlite3_column_int (st, 8) != 0;
+         f->tags = g_strdup ((const gchar *) sqlite3_column_text (st, 9));
          g_ptr_array_add (fp->faces, f);
       }
       sqlite3_finalize (st);
@@ -237,6 +241,14 @@ named (const gchar *name, gpointer data)
 
 
 static void
+tags_given (const gchar *tags, gpointer data)
+{
+   FacePanel *fp = asked_panel ();
+   if (fp) edit (fp, GIMV_INDEX_FACES_PERSON_TAGS, 0, tags, ask.person);
+}
+
+
+static void
 rejected (gpointer data)
 {
    FacePanel *fp = asked_panel ();
@@ -265,6 +277,10 @@ cb_action (GSimpleAction *action, GVariant *param, gpointer data)
 
    if (!strcmp (what, "name")) {
       gimv_index_faces_ask_name (panel_window (fp), named, face_ask (fp, f));
+   } else if (!strcmp (what, "tags")) {
+      if (f->person)
+         gimv_index_faces_ask_person_tags (panel_window (fp), f->name, f->person, tags_given,
+                                           face_ask (fp, f));
    } else if (!strcmp (what, "confirm")) {
       edit (fp, GIMV_INDEX_FACES_CONFIRM, f->id, NULL, 0);
    } else if (!strcmp (what, "reject")) {
@@ -288,7 +304,7 @@ show_menu (FacePanel *fp, PanelFace *f, GtkWidget *row)
 {
    GMenu *menu = g_menu_new ();
    GSimpleActionGroup *group = g_simple_action_group_new ();
-   static const gchar *names[] = { "name", "confirm", "reject", "ignore", "person" };
+   static const gchar *names[] = { "name", "tags", "confirm", "reject", "ignore", "person" };
    guint i;
 
    fp->menu_face = f;
@@ -300,6 +316,8 @@ show_menu (FacePanel *fp, PanelFace *f, GtkWidget *row)
    }
 
    g_menu_append (menu, f->person ? _("Change the Name...") : _("Name..."), "face.name");
+   if (f->person && !f->ignored)
+      g_menu_append (menu, _("Tags of the Person..."), "face.tags");
    if (!f->person && f->guess && !f->ignored)
       g_menu_append (menu, _("This Is Right"), "face.confirm");
    if ((f->person || f->guess) && !f->ignored)
@@ -423,6 +441,14 @@ panel_reload (FacePanel *fp)
       g_free (text);
       gtk_box_append (GTK_BOX (row), pic);
       gtk_box_append (GTK_BOX (row), label);
+      if (f->person && f->tags && *f->tags && !f->ignored) {
+         GtkWidget *tl = gtk_label_new (f->tags);
+         gtk_label_set_ellipsize (GTK_LABEL (tl), PANGO_ELLIPSIZE_END);
+         gtk_label_set_max_width_chars (GTK_LABEL (tl), 12);
+         gtk_widget_add_css_class (tl, "dim-label");
+         gtk_widget_add_css_class (tl, "caption");
+         gtk_box_append (GTK_BOX (row), tl);
+      }
       gtk_widget_set_margin_bottom (row, 6);
       g_object_set_data (G_OBJECT (row), "face-index", GUINT_TO_POINTER (i));
 

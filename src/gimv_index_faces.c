@@ -635,11 +635,44 @@ rename_person (sqlite3 *db, EditData *e)
         && exec_person (db, "INSERT OR IGNORE INTO face_rejects (face_id, person_id) "
                             "SELECT face_id, ?2 FROM face_rejects WHERE person_id = ?1",
                         me, other)
+        /* the tags of both */
+        && exec_person (db, "INSERT OR IGNORE INTO person_tags (person_id, tag) "
+                            "SELECT ?2, tag FROM person_tags WHERE person_id = ?1", me, other)
         /* a face said to be the other one is not "not this person" */
         && exec_person (db, "DELETE FROM face_rejects WHERE person_id = ?2 AND face_id IN "
                             "(SELECT id FROM faces WHERE person_id = ?2)", me, other)
         && exec_person (db, "DELETE FROM persons WHERE id = ?1", me, 0);
    e->result = other;
+   return ok;
+}
+
+
+/* the tags of a person: as given (one a line), the ones before go */
+static gboolean
+set_person_tags (sqlite3 *db, EditData *e)
+{
+   sqlite3_stmt *st;
+   gchar **tags;
+   gboolean ok;
+   guint i;
+
+   if (!exec_person (db, "DELETE FROM person_tags WHERE person_id = ?1", e->person, 0))
+      return FALSE;
+   if (sqlite3_prepare_v2 (db, "INSERT OR IGNORE INTO person_tags (person_id, tag) "
+                               "VALUES (?1, ?2)", -1, &st, NULL) != SQLITE_OK)
+      return FALSE;
+   tags = g_strsplit (e->name ? e->name : "", "\n", -1);
+   ok = TRUE;
+   for (i = 0; tags[i] && ok; i++) {
+      gchar *t = g_strstrip (tags[i]);
+      if (!*t) continue;
+      sqlite3_bind_int64 (st, 1, e->person);
+      sqlite3_bind_text (st, 2, t, -1, SQLITE_TRANSIENT);
+      ok = sqlite3_step (st) == SQLITE_DONE;
+      sqlite3_reset (st);
+   }
+   sqlite3_finalize (st);
+   g_strfreev (tags);
    return ok;
 }
 
@@ -679,6 +712,8 @@ edit_in_db (sqlite3 *db, EditData *e)
       return for_each_face (db, "UPDATE faces SET ignored = 0 WHERE id = ?1", e->ids, 0);
    case GIMV_INDEX_FACES_RENAME:
       return rename_person (db, e);
+   case GIMV_INDEX_FACES_PERSON_TAGS:
+      return set_person_tags (db, e);
    }
    return FALSE;
 }
@@ -731,10 +766,12 @@ gimv_index_faces_edit_async (GimvIndexFacesEdit edit, GArray *ids, const gchar *
    e->edit = edit;
    e->ids = ids ? g_array_ref (ids) : g_array_new (FALSE, FALSE, sizeof (gint64));
    ids = e->ids;
-   e->name = name ? g_strstrip (g_strdup (name)) : NULL;
+   e->name = name ? (edit == GIMV_INDEX_FACES_PERSON_TAGS ? g_strdup (name)
+                                                          : g_strstrip (g_strdup (name)))
+                  : NULL;
    e->person = person;
    g_task_set_task_data (task, e, (GDestroyNotify) edit_data_free);
-   if ((edit != GIMV_INDEX_FACES_RENAME && !ids->len)
+   if ((edit != GIMV_INDEX_FACES_RENAME && edit != GIMV_INDEX_FACES_PERSON_TAGS && !ids->len)
        || ((edit == GIMV_INDEX_FACES_SET_NAME || edit == GIMV_INDEX_FACES_RENAME)
            && (!e->name || !*e->name))) {
       g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT, "nothing to do");
@@ -755,6 +792,37 @@ gimv_index_faces_edit_finish (GAsyncResult *res, gint64 *person, GError **error)
    if (person) *person = ok && e ? e->result : 0;
    if (ok) changed ();
    return ok;
+}
+
+
+static GPtrArray *
+string_list (const gchar *sql, gint64 arg)
+{
+   GPtrArray *list = g_ptr_array_new_with_free_func (g_free);
+   sqlite3 *db = gimv_index_get_db ();
+   sqlite3_stmt *st;
+
+   if (db && sqlite3_prepare_v2 (db, sql, -1, &st, NULL) == SQLITE_OK) {
+      if (sqlite3_bind_parameter_count (st) > 0) sqlite3_bind_int64 (st, 1, arg);
+      while (sqlite3_step (st) == SQLITE_ROW)
+         g_ptr_array_add (list, g_strdup ((const gchar *) sqlite3_column_text (st, 0)));
+      sqlite3_finalize (st);
+   }
+   return list;
+}
+
+
+GPtrArray *
+gimv_index_faces_get_person_tags (gint64 person)
+{
+   return string_list ("SELECT tag FROM person_tags WHERE person_id = ?1 ORDER BY tag", person);
+}
+
+
+GPtrArray *
+gimv_index_faces_get_all_person_tags (void)
+{
+   return string_list ("SELECT DISTINCT tag FROM person_tags ORDER BY tag", 0);
 }
 
 
@@ -809,7 +877,8 @@ gimv_index_faces_flush (void)
 
 /* the faces of a row of the "People" tab, as an SQL condition on "fa"
  * (faces): "p:ID" named so, "g:ID" looking like that person, "c:N" a group
- * of unnamed faces, "u" the other unnamed ones, "i" ignored.  NULL for an
+ * of unnamed faces, "u" the other unnamed ones, "i" ignored, "t:TAG" the
+ * people with that tag.  NULL for an
  * unknown key. */
 gchar *
 gimv_index_faces_key_where (const gchar *key)
@@ -823,6 +892,14 @@ gimv_index_faces_key_where (const gchar *key)
                        "AND fa.ignored = 0");
    if (!strcmp (key, "i"))
       return g_strdup ("fa.ignored = 1");
+   /* "t:<tag>": the people with the tag */
+   if (g_str_has_prefix (key, "t:") && key[2]) {
+      gchar *q = sqlite3_mprintf ("fa.person_id IN (SELECT person_id FROM person_tags "
+                                  "WHERE tag = %Q)", key + 2);
+      gchar *w = g_strdup (q);
+      sqlite3_free (q);
+      return w;
+   }
    if (strlen (key) < 3 || key[1] != ':') return NULL;
    n = g_ascii_strtoll (key + 2, &end, 10);
    if (*end || n <= 0) return NULL;

@@ -94,6 +94,17 @@
    "  jpeg    BLOB NOT NULL);" \
    "CREATE INDEX faces_guess ON faces(guess);"
 
+/*
+ * version 5: tags put on a person (the group the person is in, ...): they
+ * go with every image the person is named in.
+ */
+#define SCHEMA_V5 \
+   "CREATE TABLE person_tags (" \
+   "  person_id INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE," \
+   "  tag       TEXT NOT NULL," \
+   "  PRIMARY KEY (person_id, tag));" \
+   "CREATE INDEX person_tags_tag ON person_tags(tag);"
+
 static const gchar *schema =
    "CREATE TABLE dirs ("
    "  id      INTEGER PRIMARY KEY,"
@@ -117,6 +128,7 @@ static const gchar *schema =
    SCHEMA_V2
    SCHEMA_V3
    SCHEMA_V4
+   SCHEMA_V5
    "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR ";";
 
 
@@ -227,7 +239,7 @@ open_rw (const gchar *path, sqlite3 **dbp, gchar **errmsg, gboolean retry)
    } else if (v >= 1 && v < GIMV_INDEX_DB_VERSION) {
       /* older versions: only new tables and columns */
       gchar *sql = g_strconcat ("BEGIN;", v < 2 ? SCHEMA_V2 : "", v < 3 ? SCHEMA_V3 : "",
-                                SCHEMA_V4,
+                                v < 4 ? SCHEMA_V4 : "", SCHEMA_V5,
                                 "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR
                                 "; COMMIT;", NULL);
       gint r = sqlite3_exec (db, sql, NULL, NULL, NULL);

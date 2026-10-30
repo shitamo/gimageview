@@ -35,6 +35,13 @@ void     gimv_index_faces_confirm_reject (GtkWindow                *parent,
                                           GimvIndexFacesConfirmFunc done,
                                           gpointer                  data);
 
+/* asks for the tags of a person; done gets them one a line ("" for none) */
+void     gimv_index_faces_ask_person_tags (GtkWindow              *parent,
+                                           const gchar            *person,
+                                           gint64                  person_id,
+                                           GimvIndexFacesNameFunc  done,
+                                           gpointer                data);
+
 /* the small image of a face, NULL when there is none */
 GdkTexture *gimv_index_faces_get_texture (gint64 face_id);
 

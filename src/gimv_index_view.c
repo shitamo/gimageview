@@ -85,6 +85,9 @@ static const struct {
    { "folder/", N_("Folders"), N_("Folder: %s") },
    { "camera/", N_("Cameras"), N_("Camera: %s") },
    { "shape/",  N_("Shape"),   N_("Shape: %s") },
+   /* not put by a rule, but kept in the index only too: the tags of the
+    * people named in the image (person_tags) */
+   { "person/", N_("Tags of People"), N_("People: %s") },
 };
 
 
@@ -276,6 +279,21 @@ thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *ca
       }
       sqlite3_finalize (st);
    }
+   /* the tags of the people: the images any of them is named in */
+   if (db && sqlite3_prepare_v2 (db,
+          "SELECT pt.tag, count(DISTINCT fa.file_id) FROM person_tags pt "
+          "JOIN faces fa ON fa.person_id = pt.person_id GROUP BY pt.tag ORDER BY pt.tag",
+          -1, &st, NULL) == SQLITE_OK)
+   {
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         TagCount *tc = g_new0 (TagCount, 1);
+         tc->name     = g_strdup_printf ("person/%s", (const gchar *) sqlite3_column_text (st, 0));
+         tc->auto_tag = TRUE;
+         tc->count    = sqlite3_column_int (st, 1);
+         g_ptr_array_add (tags, tc);
+      }
+      sqlite3_finalize (st);
+   }
    if (db) sqlite3_close (db);
    g_task_return_pointer (task, tags, (GDestroyNotify) g_ptr_array_unref);
 }
@@ -309,28 +327,98 @@ thread_count_people (GTask *task, gpointer source, gpointer data, GCancellable *
       return;
    }
 
-   if (sqlite3_prepare_v2 (db,
-          "SELECT p.id, p.name, "
-          "  (SELECT count(*) FROM faces WHERE person_id = p.id), "
-          "  (SELECT count(*) FROM faces WHERE guess = p.id AND person_id IS NULL "
-          "   AND ignored = 0) "
-          "FROM persons p ORDER BY p.name", -1, &st, NULL) == SQLITE_OK)
+   /* the people: first by their tags (a person with two tags is under
+    * both), then those without a tag */
    {
-      while (sqlite3_step (st) == SQLITE_ROW) {
-         gint64 id = sqlite3_column_int64 (st, 0);
-         const gchar *name = (const gchar *) sqlite3_column_text (st, 1);
-         gint named = sqlite3_column_int (st, 2), guessed = sqlite3_column_int (st, 3);
+      typedef struct { gint64 id; gchar *name; gint named, guessed; gboolean tagged; } Person;
+      GArray *people = g_array_new (FALSE, TRUE, sizeof (Person));
+      GHashTable *by_id = g_hash_table_new (g_int64_hash, g_int64_equal);
+      guint i;
 
-         if (!named && !guessed) continue;
-         add_people_row (rows, 0, KIND_FACES, g_strdup_printf ("p:%" G_GINT64_FORMAT, id),
-                         g_strdup_printf ("%s (%'d)", name, named), g_strdup (name));
-         if (guessed)
-            add_people_row (rows, 1, KIND_FACES,
-                            g_strdup_printf ("g:%" G_GINT64_FORMAT, id),
-                            g_strdup_printf (_("Maybe (%'d)"), guessed),
-                            g_strdup_printf (_("%s?"), name));
+      if (sqlite3_prepare_v2 (db,
+             "SELECT p.id, p.name, "
+             "  (SELECT count(*) FROM faces WHERE person_id = p.id), "
+             "  (SELECT count(*) FROM faces WHERE guess = p.id AND person_id IS NULL "
+             "   AND ignored = 0) "
+             "FROM persons p ORDER BY p.name", -1, &st, NULL) == SQLITE_OK)
+      {
+         while (sqlite3_step (st) == SQLITE_ROW) {
+            Person pr = { 0 };
+            pr.id = sqlite3_column_int64 (st, 0);
+            pr.name = g_strdup ((const gchar *) sqlite3_column_text (st, 1));
+            pr.named = sqlite3_column_int (st, 2);
+            pr.guessed = sqlite3_column_int (st, 3);
+            if (!pr.named && !pr.guessed) {
+               g_free (pr.name);
+               continue;
+            }
+            g_array_append_val (people, pr);
+         }
+         sqlite3_finalize (st);
       }
-      sqlite3_finalize (st);
+      for (i = 0; i < people->len; i++) {
+         Person *pr = &g_array_index (people, Person, i);
+         g_hash_table_insert (by_id, &pr->id, pr);
+      }
+
+#define ADD_PERSON(pr, depth) G_STMT_START { \
+         add_people_row (rows, (depth), KIND_FACES, \
+                         g_strdup_printf ("p:%" G_GINT64_FORMAT, (pr)->id), \
+                         g_strdup_printf ("%s (%'d)", (pr)->name, (pr)->named), \
+                         g_strdup ((pr)->name)); \
+         if ((pr)->guessed) \
+            add_people_row (rows, (depth) + 1, KIND_FACES, \
+                            g_strdup_printf ("g:%" G_GINT64_FORMAT, (pr)->id), \
+                            g_strdup_printf (_("Maybe (%'d)"), (pr)->guessed), \
+                            g_strdup_printf (_("%s?"), (pr)->name)); \
+      } G_STMT_END
+
+      if (sqlite3_prepare_v2 (db,
+             "SELECT pt.tag, pt.person_id FROM person_tags pt "
+             "JOIN persons p ON p.id = pt.person_id ORDER BY pt.tag, p.name",
+             -1, &st, NULL) == SQLITE_OK)
+      {
+         gchar *cur = NULL;
+         GPtrArray *members = g_ptr_array_new ();
+
+         for (;;) {
+            gboolean more = sqlite3_step (st) == SQLITE_ROW;
+            const gchar *tag = more ? (const gchar *) sqlite3_column_text (st, 0) : NULL;
+            gint64 pid = more ? sqlite3_column_int64 (st, 1) : 0;
+            Person *pr = more ? g_hash_table_lookup (by_id, &pid) : NULL;
+
+            if (cur && (!more || g_strcmp0 (tag, cur))) {
+               /* the tag before: its row and its people */
+               if (members->len) {
+                  guint j;
+                  add_people_row (rows, 0, KIND_FACES, g_strdup_printf ("t:%s", cur),
+                                  g_strdup_printf (_("%s (%'d people)"), cur, members->len),
+                                  g_strdup (cur));
+                  for (j = 0; j < members->len; j++)
+                     ADD_PERSON ((Person *) g_ptr_array_index (members, j), 1);
+               }
+               g_ptr_array_set_size (members, 0);
+               g_clear_pointer (&cur, g_free);
+            }
+            if (!more) break;
+            if (!cur) cur = g_strdup (tag);
+            if (pr) {
+               g_ptr_array_add (members, pr);
+               pr->tagged = TRUE;
+            }
+         }
+         sqlite3_finalize (st);
+         g_ptr_array_unref (members);
+      }
+      for (i = 0; i < people->len; i++) {
+         Person *pr = &g_array_index (people, Person, i);
+         if (!pr->tagged) ADD_PERSON (pr, 0);
+      }
+#undef ADD_PERSON
+      for (i = 0; i < people->len; i++)
+         g_free (g_array_index (people, Person, i).name);
+      g_hash_table_unref (by_id);
+      g_array_unref (people);
    }
 
    n = query_count (db, "SELECT count(DISTINCT cluster) FROM faces WHERE cluster IS NOT NULL "
@@ -415,6 +503,12 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
             "(SELECT fa.file_id FROM faces fa WHERE %s) ORDER BY f.date, f.name", where);
       g_free (where);
       sql = people_sql ? people_sql : "SELECT 1 WHERE 0";
+   } else if (req->type == GIMV_INDEX_TAB_TAG && g_str_has_prefix (key, ",person/")) {
+      /* a tag of people: the images they are named in (?1, ?2 as for tags) */
+      sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM files f "
+            "JOIN dirs d ON d.id = f.dir_id WHERE f.id IN (SELECT fa.file_id FROM faces fa "
+            "JOIN person_tags pt ON pt.person_id = fa.person_id "
+            "WHERE 'person/' || pt.tag = ?1 AND ?2 = 1) ORDER BY f.date, f.name";
    } else if (req->type == GIMV_INDEX_TAB_TAG)
       sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM file_tags ft "
             "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
@@ -642,23 +736,24 @@ build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
 static void
 build_people_list (IndexView *iv, GtkTreeIter *root, GPtrArray *rows)
 {
-   GtkTreeIter top, iter;
-   gboolean has_top = FALSE;
+   /* the last row at each depth: the parent of the rows below it */
+   GtkTreeIter at[4], iter;
+   gint have = -1;
    guint i;
 
    for (i = 0; i < rows->len; i++) {
       PeopleRow *r = g_ptr_array_index (rows, i);
-      GtkTreeIter *parent = r->depth > 0 && has_top ? &top : root;
+      gint depth = MIN (r->depth, have + 1);
+      GtkTreeIter *parent = depth > 0 ? &at[depth - 1] : root;
 
+      depth = MIN (depth, (gint) G_N_ELEMENTS (at) - 1);
       gtk_tree_store_append (iv->store, &iter, parent);
       gtk_tree_store_set (iv->store, &iter, COL_LABEL, r->label, COL_KIND, r->kind,
                           COL_KEY, r->key, COL_TITLE, r->title,
                           COL_COLOR, r->kind == KIND_FACES && r->key[0] != 'p'
-                                     ? AUTO_TAG_COLOR : NULL, -1);
-      if (r->depth == 0) {
-         top = iter;
-         has_top = TRUE;
-      }
+                                     && r->key[0] != 't' ? AUTO_TAG_COLOR : NULL, -1);
+      at[depth] = iter;
+      have = depth;
    }
 }
 
@@ -804,7 +899,8 @@ cb_index_changed (GimvIndexChange what, gpointer data)
 {
    IndexView *iv = data;
 
-   if (what & (iv->type == GIMV_INDEX_TAB_TAG ? GIMV_INDEX_CHANGED_TAGS
+   /* the tag tab has the tags of people too (faces) */
+   if (what & (iv->type == GIMV_INDEX_TAB_TAG ? GIMV_INDEX_CHANGED_TAGS | GIMV_INDEX_CHANGED_FACES
                : iv->type == GIMV_INDEX_TAB_PERSON ? GIMV_INDEX_CHANGED_FACES
                : GIMV_INDEX_CHANGED_DATES))
       start_count (iv);

@@ -54,6 +54,7 @@ typedef enum {
    GIMV_INDEX_FACES_UNIGNORE,
    GIMV_INDEX_FACES_RENAME,       /* person: to "name"; when another person
                                    * has that name, the two become one */
+   GIMV_INDEX_FACES_PERSON_TAGS,  /* person: the tags are "name" (one a line) */
 } GimvIndexFacesEdit;
 
 void                gimv_index_faces_edit_async     (GimvIndexFacesEdit  edit,
@@ -66,6 +67,10 @@ void                gimv_index_faces_edit_async     (GimvIndexFacesEdit  edit,
 gboolean            gimv_index_faces_edit_finish    (GAsyncResult       *res,
                                                      gint64             *person,
                                                      GError            **error);
+/* the tags of a person (sorted), and all the tags people have */
+GPtrArray          *gimv_index_faces_get_person_tags (gint64       person);
+GPtrArray          *gimv_index_faces_get_all_person_tags (void);
+
 /* the id of the person of that name, 0 when there is none */
 gint64              gimv_index_faces_find_person    (const gchar        *name);
 GPtrArray          *gimv_index_faces_get_names      (void);
