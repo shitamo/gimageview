@@ -474,6 +474,7 @@ GdkDisplay *gimv_display                (void);
 void       gimv_screen_get_size         (gint        *width,
                                          gint        *height);
 void       gimv_clipboard_set_text      (const gchar *text);
+void       gimv_clipboard_set_texture   (GdkTexture  *texture);
 
 /* GtkTreeView reacts to column resizing only in a 6 pixel strip left of
    each header separator; make the strip wider, on both sides */

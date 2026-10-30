@@ -294,6 +294,13 @@ void        gimv_image_view_set_face_mark   (GimvImageView *iv,
                                              gdouble        h,
                                              const gchar   *label);
 gint        gimv_image_view_get_exif_orientation (GimvImageView *iv);
+/* the image as shown (to the clipboard, for an image search and the like);
+ * the face: x, y, w, h in [0, 1] of the image as its EXIF orientation shows
+ * it, with some room around it */
+gboolean    gimv_image_view_copy_to_clipboard      (GimvImageView *iv);
+gboolean    gimv_image_view_copy_face_to_clipboard (GimvImageView *iv,
+                                                    gdouble x, gdouble y,
+                                                    gdouble w, gdouble h);
 void       gimv_image_view_rotate_ccw             (GimvImageView  *iv);
 void       gimv_image_view_rotate_cw              (GimvImageView  *iv);
 GimvImageViewOrientation

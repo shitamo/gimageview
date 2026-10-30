@@ -227,6 +227,9 @@ static void cb_toggle_scrollbar            (GimvImageView   *iv,
 static void cb_open_folder                 (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem    *widget);
+static void cb_copy_to_clipboard   (GimvImageView     *iv,
+                                    guint              action,
+                                    GimvMenuItem      *widget);
 static void cb_edit_faces          (GimvImageView     *iv,
                                     guint              action,
                                     GimvMenuItem      *widget);
@@ -345,6 +348,7 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
    {N_("/Create _Thumbnail"),     "<shift>T",   cb_create_thumbnail, 0, NULL},
    {N_("/Open the _Folder"),      NULL,         cb_open_folder,      0, NULL},
+   {N_("/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
    {N_("/Edit Faces (_People)"),  "P",          cb_edit_faces,       0, NULL},
    {N_("/Memory _Buffer"),        "<control>B", cb_toggle_buffer,    0, "<ToggleItem>"},
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
@@ -1086,6 +1090,13 @@ static void
 cb_zoom (GimvImageView *iv, GimvImageViewZoomType zoom, GimvMenuItem *widget)
 {
    gimv_image_view_zoom_image (iv, zoom, 0, 0);
+}
+
+
+static void
+cb_copy_to_clipboard (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   gimv_image_view_copy_to_clipboard (iv);
 }
 
 
@@ -2552,6 +2563,150 @@ gimv_image_view_get_exif_orientation (GimvImageView *iv)
 {
    g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), 1);
    return face_orientation (iv);
+}
+
+
+/* the image as shown here (turned over, rotated) as a pixbuf: the one kept
+ * (the memory buffer), else the file loaded again (its full size), else what
+ * is drawn (in the zoom it has); NULL when there is none */
+static GdkPixbuf *
+shown_pixbuf (GimvImageView *iv)
+{
+   GimvImage *image = NULL;
+   GdkTexture *texture = NULL;
+   GdkPixbuf *pixbuf = NULL;
+
+   if (iv->image && !GIMV_IS_ANIM (iv->image)) {
+      image = gimv_image_ref (iv->image);
+   } else if (iv->info && !gimv_image_info_is_movie (iv->info)
+              && !gimv_image_info_is_audio (iv->info)
+              && !gimv_image_info_is_animation (iv->info)
+              && !gimv_image_info_is_in_archive (iv->info)
+              && gimv_image_info_get_path (iv->info))
+   {
+      image = gimv_image_load_file (gimv_image_info_get_path (iv->info), FALSE);
+      if (image && iv->priv->flip)
+         image = gimv_image_flip_horizontal (image);
+      if (image) {
+         switch (iv->priv->rotate) {
+         case GIMV_IMAGE_VIEW_ROTATE_90:
+            image = gimv_image_rotate_90 (image, TRUE);  break;
+         case GIMV_IMAGE_VIEW_ROTATE_180:
+            image = gimv_image_rotate_180 (image);       break;
+         case GIMV_IMAGE_VIEW_ROTATE_270:
+            image = gimv_image_rotate_90 (image, FALSE); break;
+         default:
+            break;
+         }
+      }
+   }
+
+   if (image) {
+      gimv_image_get_pixmap_and_mask (image, &texture, NULL);
+      gimv_image_unref (image);
+   }
+   if (!texture && iv->priv->pixmap)
+      texture = g_object_ref (iv->priv->pixmap);
+   if (texture) {
+      pixbuf = gimv_pixbuf_from_texture (texture);
+      g_object_unref (texture);
+   }
+   return pixbuf;
+}
+
+
+static gboolean
+pixbuf_to_clipboard (GdkPixbuf *pixbuf)
+{
+   GdkTexture *texture;
+
+   if (!pixbuf) return FALSE;
+   texture = gimv_texture_new_for_pixbuf (pixbuf);
+   if (!texture) return FALSE;
+   gimv_clipboard_set_texture (texture);
+   g_object_unref (texture);
+   return TRUE;
+}
+
+
+gboolean
+gimv_image_view_copy_to_clipboard (GimvImageView *iv)
+{
+   GdkPixbuf *pixbuf;
+   gboolean ok;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+
+   pixbuf = shown_pixbuf (iv);
+   ok = pixbuf_to_clipboard (pixbuf);
+   if (pixbuf) g_object_unref (pixbuf);
+   return ok;
+}
+
+
+/* the room around a face (of its size, on each side): the hair and the chin
+ * help an image search */
+#define FACE_COPY_ROOM   0.4
+/* a small face is made larger: image searches find little in a few pixels */
+#define FACE_COPY_MIN    256
+
+gboolean
+gimv_image_view_copy_face_to_clipboard (GimvImageView *iv,
+                                        gdouble x, gdouble y,
+                                        gdouble w, gdouble h)
+{
+   GdkPixbuf *pixbuf, *crop, *scaled;
+   gint orient, i, pw, ph, cx, cy, cw, ch, sw, sh;
+   gdouble xs[4], ys[4], x0, y0, x1, y1;
+   gboolean ok;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+
+   x -= w * FACE_COPY_ROOM;
+   y -= h * FACE_COPY_ROOM;
+   w *= 1 + 2 * FACE_COPY_ROOM;
+   h *= 1 + 2 * FACE_COPY_ROOM;
+   x0 = CLAMP (x, 0, 1);  x1 = CLAMP (x + w, 0, 1);
+   y0 = CLAMP (y, 0, 1);  y1 = CLAMP (y + h, 0, 1);
+
+   orient = face_orientation (iv);
+   face_point_to_view (iv, orient, x0, y0, &xs[0], &ys[0]);
+   face_point_to_view (iv, orient, x1, y0, &xs[1], &ys[1]);
+   face_point_to_view (iv, orient, x0, y1, &xs[2], &ys[2]);
+   face_point_to_view (iv, orient, x1, y1, &xs[3], &ys[3]);
+   x0 = x1 = xs[0];
+   y0 = y1 = ys[0];
+   for (i = 1; i < 4; i++) {
+      x0 = MIN (x0, xs[i]); x1 = MAX (x1, xs[i]);
+      y0 = MIN (y0, ys[i]); y1 = MAX (y1, ys[i]);
+   }
+
+   pixbuf = shown_pixbuf (iv);
+   if (!pixbuf) return FALSE;
+   pw = gdk_pixbuf_get_width (pixbuf);
+   ph = gdk_pixbuf_get_height (pixbuf);
+   cx = CLAMP ((gint) (x0 * pw), 0, pw - 1);
+   cy = CLAMP ((gint) (y0 * ph), 0, ph - 1);
+   cw = CLAMP ((gint) (x1 * pw + 0.5) - cx, 1, pw - cx);
+   ch = CLAMP ((gint) (y1 * ph + 0.5) - cy, 1, ph - cy);
+
+   crop = gdk_pixbuf_new_subpixbuf (pixbuf, cx, cy, cw, ch);
+   g_object_unref (pixbuf);
+   if (!crop) return FALSE;
+
+   if (MIN (cw, ch) < FACE_COPY_MIN) {
+      gdouble scale = (gdouble) FACE_COPY_MIN / MIN (cw, ch);
+      sw = cw * scale + 0.5;
+      sh = ch * scale + 0.5;
+      scaled = gdk_pixbuf_scale_simple (crop, sw, sh, GDK_INTERP_BILINEAR);
+   } else {
+      scaled = gdk_pixbuf_copy (crop);
+   }
+   g_object_unref (crop);
+
+   ok = pixbuf_to_clipboard (scaled);
+   if (scaled) g_object_unref (scaled);
+   return ok;
 }
 
 

@@ -2518,6 +2518,16 @@ gimv_clipboard_set_text (const gchar *text)
 }
 
 
+/* an image on the clipboard (given as image/png and the like) */
+void
+gimv_clipboard_set_texture (GdkTexture *texture)
+{
+   GdkDisplay *display = gdk_display_get_default ();
+   if (!display || !texture) return;
+   gdk_clipboard_set_texture (gdk_display_get_clipboard (display), texture);
+}
+
+
 /******************************************************************************
  *
  *   wider column resize handles for GtkTreeView headers

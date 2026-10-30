@@ -273,6 +273,10 @@ cb_action (GSimpleAction *action, GVariant *param, gpointer data)
    const gchar *what = g_action_get_name (G_ACTION (action));
    PanelFace *f = fp->menu_face;
 
+   if (f && !strcmp (what, "copy")) {
+      gimv_image_view_copy_face_to_clipboard (fp->iv, f->x, f->y, f->w, f->h);
+      return;
+   }
    if (!f || fp->busy) return;
 
    if (!strcmp (what, "name")) {
@@ -304,7 +308,8 @@ show_menu (FacePanel *fp, PanelFace *f, GtkWidget *row)
 {
    GMenu *menu = g_menu_new ();
    GSimpleActionGroup *group = g_simple_action_group_new ();
-   static const gchar *names[] = { "name", "tags", "confirm", "reject", "ignore", "person" };
+   static const gchar *names[] = { "name", "tags", "confirm", "reject", "ignore", "person",
+                                   "copy" };
    guint i;
 
    fp->menu_face = f;
@@ -325,6 +330,13 @@ show_menu (FacePanel *fp, PanelFace *f, GtkWidget *row)
    g_menu_append (menu, f->ignored ? _("Do Not Ignore") : _("Ignore"), "face.ignore");
    if ((f->person || f->guess) && !f->ignored)
       g_menu_append (menu, _("All the Faces of This Person..."), "face.person");
+   {
+      /* apart: it changes nothing */
+      GMenu *section = g_menu_new ();
+      g_menu_append (section, _("Copy This Face to the Clipboard"), "face.copy");
+      g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
+      g_object_unref (section);
+   }
 
    if (fp->popover) gtk_widget_unparent (fp->popover);
    fp->popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu));
