@@ -355,6 +355,7 @@ static void cb_thumb_notebook_page_reordered (GtkNotebook   *notebook,
                                               GtkWidget     *page,
                                               guint          pagenum,
                                               GimvThumbWin  *tw);
+static void thumb_win_update_show_tabs (GimvThumbWin *tw);
 static void cb_thumb_notebook_switch_page (GtkNotebook      *notebook,
                                            GtkWidget        *page,
                                            gint              pagenum,
@@ -2132,8 +2133,7 @@ sync_widget_state_to_menu (GimvThumbWin *tw)
       gtk_widget_hide (tw->toolbar_handle);
    if (!gimv_menu_item_get_active (GIMV_MENU_ITEM (tw->menuitem.statusbar)))
       gtk_widget_hide (tw->status_bar_container);
-   gtk_notebook_set_show_tabs (GTK_NOTEBOOK (tw->notebook),
-                               gimv_menu_item_get_active (GIMV_MENU_ITEM (tw->menuitem.tab)));
+   thumb_win_update_show_tabs (tw);
    if (tw->cv)
       gtk_notebook_set_show_tabs (GTK_NOTEBOOK (tw->cv->notebook),
                                   gimv_menu_item_get_active (GIMV_MENU_ITEM (tw->menuitem.preview_tab)));
@@ -2509,6 +2509,32 @@ thumbnail_window_contents_new (GimvThumbWin *tw)
 }
 
 
+/* the tabs of the thumbnail notebook: as the menu says, but not with no
+ * page (the empty tab area of the theme asks a negative height: a
+ * Gtk-WARNING "GtkGizmo (tabs) reported min height -3") */
+static void
+thumb_win_update_show_tabs (GimvThumbWin *tw)
+{
+   gboolean show = TRUE;
+
+   if (!tw->notebook) return;
+   if (tw->menuitem.tab)
+      show = gimv_menu_item_get_active (GIMV_MENU_ITEM (tw->menuitem.tab));
+   if (gtk_notebook_get_n_pages (GTK_NOTEBOOK (tw->notebook)) < 1)
+      show = FALSE;
+   if (gtk_notebook_get_show_tabs (GTK_NOTEBOOK (tw->notebook)) != show)
+      gtk_notebook_set_show_tabs (GTK_NOTEBOOK (tw->notebook), show);
+}
+
+
+static void
+cb_thumb_pages_changed (GtkNotebook *notebook, GtkWidget *child, guint num,
+                        GimvThumbWin *tw)
+{
+   thumb_win_update_show_tabs (tw);
+}
+
+
 /* the tabs show only when there is more than the directory view */
 static void
 cb_side_pages_changed (GtkNotebook *notebook, GtkWidget *child, guint num,
@@ -2563,6 +2589,8 @@ thumbnail_view_new (GimvThumbWin *tw)
                        G_CALLBACK(cb_thumb_notebook_switch_page), tw);
    g_signal_connect (G_OBJECT (notebook), "page-reordered",
                        G_CALLBACK(cb_thumb_notebook_page_reordered), tw);
+   g_signal_connect (notebook, "page-added", G_CALLBACK (cb_thumb_pages_changed), tw);
+   g_signal_connect (notebook, "page-removed", G_CALLBACK (cb_thumb_pages_changed), tw);
 
    g_object_set_data (G_OBJECT (notebook), "thumbwin", tw);
    dnd_src_set  (notebook, dnd_types_tab_component, dnd_types_tab_component_num);
@@ -3351,8 +3379,7 @@ cb_toggle_show (GimvThumbWin *tw, ShowItem sitem, GimvMenuItem *widget)
       item = tw->toolbar_handle;
       break;
    case TAB:
-      gtk_notebook_set_show_tabs (GTK_NOTEBOOK(tw->notebook), 
-                                  gimv_menu_item_get_active (GIMV_MENU_ITEM (widget)));
+      thumb_win_update_show_tabs (tw);
       break;
    case STATUSBAR:
       item = tw->status_bar_container;
