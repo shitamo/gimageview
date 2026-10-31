@@ -5949,3 +5949,23 @@ msgstr "AK5画像ローダ"
 #: plugins/image_loader/ak5.c
 msgid "AK5 and MSL pictures of MASL (PC-9801)"
 msgstr "MASL (PC-9801) の AK5・MSL 画像"
+
+msgid "Names of People"
+msgstr "人物名"
+
+msgid "%s (Name)"
+msgstr "%s (人物名)"
+
+msgid "Tags starting with \"person/\" are the names of faces."
+msgstr "\"person/\" で始まるタグは顔の人物名です。"
+
+msgid "They are written by GImageView from the names given in the faces window."
+msgstr "顔の表示ウインドウで付けた名前から GImageView が書き込みます。"
+
+#, c-format
+msgid "Writing the names of the faces into the comment files: %'u of %'u images."
+msgstr "顔の人物名をコメントファイルに書き込み中: %'u / %'u 枚。"
+
+#, c-format
+msgid "Index: names %'u/%'u"
+msgstr "索引: 人物名 %'u/%'u"

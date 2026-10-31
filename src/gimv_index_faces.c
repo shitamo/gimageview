@@ -242,6 +242,8 @@ handle_line (const gchar *line)
       fx.state = GIMV_INDEX_FACES_DONE;
       gimv_index_status_changed ();
       gimv_index_faces_changed ();
+      /* new faces: the names in the comment files may go on them now */
+      gimv_index_sync_names ();
    } else if (!strcmp (v[0], "no-models")) {
       fx.state = GIMV_INDEX_FACES_NO_MODELS;
       gimv_index_status_changed ();
@@ -508,6 +510,8 @@ static void
 changed (void)
 {
    gimv_index_faces_changed ();
+   /* the names to the comment files too */
+   gimv_index_sync_names ();
    /* the groups and guesses again, once the changes have stopped */
    if (regroup_id) g_source_remove (regroup_id);
    regroup_id = g_timeout_add_seconds (REGROUP_DELAY, cb_regroup, NULL);
@@ -779,6 +783,16 @@ gimv_index_faces_edit_async (GimvIndexFacesEdit edit, GArray *ids, const gchar *
       g_task_run_in_thread (task, thread_edit);
    }
    g_object_unref (task);
+}
+
+
+void
+gimv_index_faces_named_by_indexer (void)
+{
+   gimv_index_faces_changed ();
+   /* the groups and guesses again (not the names: they came from there) */
+   if (regroup_id) g_source_remove (regroup_id);
+   regroup_id = g_timeout_add_seconds (REGROUP_DELAY, cb_regroup, NULL);
 }
 
 

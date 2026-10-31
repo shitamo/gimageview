@@ -65,5 +65,9 @@ void            gimv_index_remove_watch     (guint                id);
  * database changed */
 void            gimv_index_status_changed   (void);
 void            gimv_index_faces_changed    (void);
+/* the names of the faces to the comment files (as tags "person/<name>"),
+ * and the names in them back to the faces: done by the indexer between
+ * its other work */
+void            gimv_index_sync_names       (void);
 
 #endif /* __GIMV_INDEX_H__ */

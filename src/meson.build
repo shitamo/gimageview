@@ -29,7 +29,7 @@ if sqlite_dep.found()
   gimv_sources += files('gimv_index.c', 'gimv_index_view.c', 'gimv_index_tags.c', 'gimv_index_notice.c', 'gimv_index_newimg.c', 'gimv_index_missing.c', 'gimv_index_faces.c', 'gimv_index_faces_win.c', 'gimv_face_panel.c', 'prefs_ui/prefs_ui_index.c') + index_db_src
   executable('gimv-indexer', files('indexer/gimv_indexer.c') + index_db_src,
     include_directories : [top_inc, index_inc],
-    dependencies : [glib_dep, sqlite_dep, exif_dep],
+    dependencies : [glib_dep, sqlite_dep, exif_dep, m_dep],
     install : true,
     install_dir : get_option('libexecdir') / 'gimageview')
   if opencv_dep.found()

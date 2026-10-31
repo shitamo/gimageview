@@ -74,6 +74,10 @@ typedef struct {
 } TagCount;
 
 #define AUTO_KEY_MARK  ','
+/* the names of faces, written into the comment files by the indexer (so
+ * tags put by a person, but kept apart in their own group) */
+#define NAME_TAG       "person/"
+#define NAME_TAG_LEN   7
 #define AUTO_TAG_COLOR "#3584e4"
 
 /* the kinds of the tags put by rules (gimv_indexer.c) */
@@ -155,6 +159,8 @@ tag_title (const gchar *key)
    gint kind;
    const gchar *v;
 
+   if (g_str_has_prefix (key, NAME_TAG) && key[NAME_TAG_LEN])
+      return g_strdup_printf (_("%s (Name)"), key + NAME_TAG_LEN);
    if (key[0] != AUTO_KEY_MARK)
       return g_strdup_printf (_("%s (Tag)"), key);
    v = auto_tag_value (key + 1, &kind);
@@ -663,7 +669,8 @@ find_key (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
       }
       /* dates: "2019-05" is below "2019"; tags: ",folder/x" below ",folder/" */
       if (k && g_str_has_prefix (key, k)
-          && (key[strlen (k)] == '-' || (k[0] == AUTO_KEY_MARK && g_str_has_suffix (k, "/"))))
+          && (key[strlen (k)] == '-' || (k[0] == AUTO_KEY_MARK && g_str_has_suffix (k, "/"))
+              || !strcmp (k, NAME_TAG)))
       {
          gboolean exact = !strcmp (k, key);
          g_free (k);
@@ -685,6 +692,8 @@ build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
 {
    GtkTreeIter groups[G_N_ELEMENTS (auto_kinds)];
    gboolean has_group[G_N_ELEMENTS (auto_kinds)] = { FALSE };
+   GtkTreeIter names;
+   gboolean has_names = FALSE;
    guint i, k;
 
    for (i = 0; i < tags->len; i++) {
@@ -692,9 +701,29 @@ build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
       GtkTreeIter iter;
       gchar *label;
 
-      if (tc->auto_tag) continue;
+      if (tc->auto_tag || g_str_has_prefix (tc->name, NAME_TAG)) continue;
       label = g_strdup_printf ("%s (%'d)", tc->name, tc->count);
       gtk_tree_store_append (iv->store, &iter, root);
+      gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
+                          COL_KEY, tc->name, -1);
+      g_free (label);
+   }
+
+   /* the names of faces in the comment files */
+   for (i = 0; i < tags->len; i++) {
+      TagCount *tc = g_ptr_array_index (tags, i);
+      GtkTreeIter iter;
+      gchar *label;
+
+      if (tc->auto_tag || !g_str_has_prefix (tc->name, NAME_TAG)) continue;
+      if (!has_names) {
+         gtk_tree_store_append (iv->store, &names, root);
+         gtk_tree_store_set (iv->store, &names, COL_LABEL, _("Names of People"),
+                             COL_KIND, KIND_GROUP, COL_KEY, NAME_TAG, -1);
+         has_names = TRUE;
+      }
+      label = g_strdup_printf ("%s (%'d)", tc->name + NAME_TAG_LEN, tc->count);
+      gtk_tree_store_append (iv->store, &iter, &names);
       gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
                           COL_KEY, tc->name, -1);
       g_free (label);
@@ -1256,6 +1285,9 @@ key_is_manual_tag (IndexView *iv, const gchar *key)
 
    if (iv->type != GIMV_INDEX_TAB_TAG || !key || !*key || key[0] == AUTO_KEY_MARK)
       return FALSE;
+   /* the names of faces: renamed as the person (the faces window) */
+   if (g_str_has_prefix (key, NAME_TAG))
+      return FALSE;
    if (!gtk_tree_model_get_iter_first (model, &root) || !find_key (model, &root, key, &iter))
       return FALSE;
    gtk_tree_model_get (model, &iter, COL_KIND, &kind, -1);
@@ -1376,6 +1408,9 @@ cb_edited (GtkCellRendererText *render, gchar *path, gchar *text, IndexView *iv)
    } else if (strchr (new, ',') || strpbrk (new, "\t\n")) {
       /* the comment files keep the tags separated by commas */
       alert (iv, _("A tag cannot have a comma in it."), NULL);
+   } else if (g_str_has_prefix (new, NAME_TAG)) {
+      alert (iv, _("Tags starting with \"person/\" are the names of faces."),
+             _("They are written by GImageView from the names given in the faces window."));
    } else if (manual_tag_exists (new)) {
       /* the same thing tagged with two names: one tag, after asking */
       GtkAlertDialog *dialog = gtk_alert_dialog_new (_("The tag \"%s\" is there already."), new);
@@ -1442,6 +1477,8 @@ row_copy_text (IndexView *iv, GtkTreeIter *iter)
       text = g_strdup (title);
    } else if (iv->type == GIMV_INDEX_TAB_TAG && key[0] == AUTO_KEY_MARK) {
       text = g_strdup (auto_tag_value (key + 1, NULL));
+   } else if (iv->type == GIMV_INDEX_TAB_TAG && g_str_has_prefix (key, NAME_TAG)) {
+      text = g_strdup (key + NAME_TAG_LEN);
    } else {
       text = g_strdup (key);
    }

@@ -56,6 +56,9 @@
  *                           (sent when gimv quits)
  *   tags <path>             the comment file of the image changed: read its
  *                           tags again now (answered with "tags-updated")
+ *   sync-names              names of faces changed (or new faces found):
+ *                           the tags "person/<name>" of the comment files
+ *                           made the same (see run_name_sync)
  *   quit
  *   rescan                  look at every file again, also in directories
  *                           whose mtime has not changed (files overwritten
@@ -72,6 +75,7 @@
 #endif
 
 #include <errno.h>
+#include <math.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
@@ -116,6 +120,8 @@ typedef struct Indexer_Tag
    GPtrArray   *tag_queue;     /* images whose comment file gimv changed */
    gboolean     rename_pending; /* rows in tag_renames */
    gboolean     renaming;      /* run_tag_renames () is running */
+   gboolean     names_pending; /* the names of the faces to the comment files */
+   gboolean     names_syncing; /* run_name_sync () is running */
 
    /* watching the directories while gimv runs (inotify) */
    gint         inotify_fd;
@@ -258,6 +264,10 @@ check_stdin (Indexer *ix, gint timeout_ms)
                ix->rename_pending = TRUE;
             }
             g_strfreev (v);
+         } else if (!strcmp (ix->cmdbuf->str, "sync-names")) {
+            /* names of faces given or changed (or faces found): looked at
+             * between the other work */
+            ix->names_pending = TRUE;
          } else if (g_str_has_prefix (ix->cmdbuf->str, "tags /")) {
             /* the path as it is, spaces and all */
             g_ptr_array_add (ix->tag_queue, g_strdup (ix->cmdbuf->str + 5));
@@ -316,6 +326,7 @@ yield_lock (void)
 
 static void process_tag_queue (Indexer *ix, gboolean in_transaction);
 static void run_tag_renames (Indexer *ix, gboolean in_transaction);
+static void run_name_sync (Indexer *ix, gboolean in_transaction);
 static gboolean watch_during_stage (Indexer *ix);
 static void missing_flush (Indexer *ix);
 
@@ -340,6 +351,8 @@ maybe_commit (Indexer *ix, gboolean force)
       ix->last_commit = now;
       /* a tag renamed in gimv: not left waiting for a long stage */
       run_tag_renames (ix, TRUE);
+      /* nor the names of faces */
+      run_name_sync (ix, TRUE);
    }
    if (force || now - ix->last_progress >= PROGRESS_INTERVAL_USEC) {
       if (ix->stage == 1 && ix->cur_dir)
@@ -2216,6 +2229,641 @@ run_tag_renames (Indexer *ix, gboolean in_transaction)
 
 
 /******************************************************************************
+ *  the names of the faces in the comment files
+ *
+ *  The faces and the names given to them are kept in the database only,
+ *  which can be made again.  So each name given to a face in an image is
+ *  written into the comment file of the image as the tag "person/<name>",
+ *  and name_sync keeps the names written for each image:
+ *  - a name given there and not in the file yet: written;
+ *  - a name written before and not given any more (taken back, "not this
+ *    person", the person renamed or made one with another): taken out;
+ *  - a "person/" tag in the file that was not written here (the index made
+ *    again, or a tag put by hand): the name goes back to a face of the
+ *    image, the face most like the faces with that name, or the only face
+ *    left without a name; one not found stays in the file and is tried
+ *    again later (the faces of the image not found yet, ...).
+ *  The files and the database are looked at in short transactions between
+ *  the other work, as for the renames: gimv never waits for it.
+ ******************************************************************************/
+
+#define PERSON_TAG        "person/"
+#define PERSON_TAG_LEN    7
+#define NAMES_FEATURE_LEN 128
+/* SFace (cosine): the same person; lower than the guesses of gimv-faces,
+ * the tag says the person is in the image */
+#define RESTORE_SIM       0.363f
+/* the last face left for the last name: not when it looks like another */
+#define RESTORE_LAST_SIM  0.25f
+/* more images than this: told on the status bar */
+#define NAMES_SAY_MIN     20
+/* a line of a comment file (gimv_comment.c) */
+#define COMMENT_LINE_MAX  4096
+
+typedef struct {
+   gint64  id;
+   gchar  *path;      /* the image */
+   gint    free_faces; /* faces of the image without a name, not ignored */
+} NameWork;
+
+
+static void
+name_work_clear (gpointer p)
+{
+   g_free (((NameWork *) p)->path);
+}
+
+
+/* a name that can be a tag: one line, no comma (the comment files keep
+ * the tags separated by commas) */
+static gboolean
+name_is_taggable (const gchar *name)
+{
+   return name && *name && !strpbrk (name, ",\t\n\r");
+}
+
+
+/* "a\nb" (sorted by SQL) -> a set of names (sorted the same: strcmp) */
+static GPtrArray *
+names_split (const gchar *joined, gboolean taggable_only)
+{
+   GPtrArray *a = g_ptr_array_new_with_free_func (g_free);
+   gchar **v;
+   gint i;
+
+   if (!joined || !*joined) return a;
+   v = g_strsplit (joined, "\n", -1);
+   for (i = 0; v[i]; i++) {
+      if (!*v[i] || (taggable_only && !name_is_taggable (v[i]))) continue;
+      g_ptr_array_add (a, g_strdup (v[i]));
+   }
+   g_strfreev (v);
+   return a;
+}
+
+
+static gboolean
+names_has (GPtrArray *a, const gchar *name)
+{
+   return g_ptr_array_find_with_equal_func (a, name, g_str_equal, NULL);
+}
+
+
+static gint
+names_cmp (gconstpointer a, gconstpointer b)
+{
+   return strcmp (*(const gchar **) a, *(const gchar **) b);
+}
+
+
+static gboolean
+names_equal (GPtrArray *a, GPtrArray *b)
+{
+   guint i;
+
+   if (a->len != b->len) return FALSE;
+   for (i = 0; i < a->len; i++)
+      if (!names_has (b, g_ptr_array_index (a, i))) return FALSE;
+   return TRUE;
+}
+
+
+/* the names in the file after the sync: the ones written before and not
+ * given now go, the given ones come, the others (not found yet) stay */
+static GPtrArray *
+names_wanted (GPtrArray *in_file, GPtrArray *written, GPtrArray *given)
+{
+   GPtrArray *r = g_ptr_array_new_with_free_func (g_free);
+   guint i;
+
+   for (i = 0; i < in_file->len; i++) {
+      const gchar *n = g_ptr_array_index (in_file, i);
+      if (names_has (written, n) && !names_has (given, n)) continue;
+      if (!names_has (r, n)) g_ptr_array_add (r, g_strdup (n));
+   }
+   for (i = 0; i < given->len; i++) {
+      const gchar *n = g_ptr_array_index (given, i);
+      if (!names_has (r, n)) g_ptr_array_add (r, g_strdup (n));
+   }
+   g_ptr_array_sort (r, names_cmp);
+   return r;
+}
+
+
+/* in the file, not written by the sync, not given: to find a face for */
+static GPtrArray *
+names_to_restore (GPtrArray *in_file, GPtrArray *written, GPtrArray *given)
+{
+   GPtrArray *r = g_ptr_array_new_with_free_func (g_free);
+   guint i;
+
+   for (i = 0; i < in_file->len; i++) {
+      const gchar *n = g_ptr_array_index (in_file, i);
+      if (!names_has (written, n) && !names_has (given, n))
+         g_ptr_array_add (r, g_strdup (n));
+   }
+   return r;
+}
+
+
+/* the "person/" tags of the tags of a comment file */
+static GPtrArray *
+names_of_tags (GPtrArray *tags)
+{
+   GPtrArray *r = g_ptr_array_new_with_free_func (g_free);
+   guint i;
+
+   for (i = 0; tags && i < tags->len; i++) {
+      const gchar *t = g_ptr_array_index (tags, i);
+      if (g_str_has_prefix (t, PERSON_TAG) && t[PERSON_TAG_LEN]
+          && !names_has (r, t + PERSON_TAG_LEN))
+         g_ptr_array_add (r, g_strdup (t + PERSON_TAG_LEN));
+   }
+   g_ptr_array_sort (r, names_cmp);
+   return r;
+}
+
+
+/* the "person/" tags of the comment file made "names"; the other tags, the
+ * other lines and the note stay as they are.  A file left empty goes.
+ * 1: written, -1: not written */
+static gint
+write_person_tags (const gchar *cfile, GPtrArray *names)
+{
+   gchar *text = NULL, **lines, *out, *dir;
+   GPtrArray *keep;
+   GString *line;
+   gint i, head, at = -1, result;
+   guint j;
+   gboolean existed = g_file_get_contents (cfile, &text, NULL, NULL);
+
+   if (existed) {
+      lines = g_strsplit (text, "\n", -1);
+   } else {
+      lines = g_new0 (gchar *, 2);
+      lines[0] = g_strdup ("");
+   }
+   g_free (text);
+
+   /* "key: value" lines up to the empty line, then the note */
+   keep = g_ptr_array_new_with_free_func (g_free);
+   for (head = 0; lines[head] && *lines[head]; head++) {
+      gchar **v;
+
+      if (at >= 0 || !g_str_has_prefix (lines[head], GIMV_INDEX_TAGS_KEY ":")) continue;
+      at = head;
+      v = g_strsplit (lines[head] + strlen (GIMV_INDEX_TAGS_KEY ":"), ",", -1);
+      for (i = 0; v[i]; i++) {
+         gchar *t = g_strstrip (v[i]);
+         if (!*t || g_str_has_prefix (t, PERSON_TAG) || names_has (keep, t)) continue;
+         g_ptr_array_add (keep, g_strdup (t));
+      }
+      g_strfreev (v);
+   }
+   for (j = 0; j < names->len; j++)
+      g_ptr_array_add (keep, g_strconcat (PERSON_TAG, g_ptr_array_index (names, j), NULL));
+
+   line = g_string_new (NULL);
+   if (keep->len) {
+      g_string_append (line, GIMV_INDEX_TAGS_KEY ": ");
+      for (j = 0; j < keep->len; j++) {
+         if (j) g_string_append (line, ", ");
+         g_string_append (line, g_ptr_array_index (keep, j));
+      }
+   }
+   g_ptr_array_unref (keep);
+   if (line->len + 1 >= COMMENT_LINE_MAX) {
+      g_string_free (line, TRUE);
+      g_strfreev (lines);
+      return -1;
+   }
+
+   if (at >= 0 && line->len) {
+      g_free (lines[at]);
+      lines[at] = g_string_free (line, FALSE);
+   } else if (at >= 0) {
+      /* no tags left: the line goes */
+      g_free (lines[at]);
+      memmove (&lines[at], &lines[at + 1], (g_strv_length (lines + at + 1) + 1) * sizeof (gchar *));
+      g_string_free (line, TRUE);
+   } else if (line->len) {
+      /* the first line */
+      guint n = g_strv_length (lines);
+      lines = g_renew (gchar *, lines, n + 2);
+      memmove (&lines[1], &lines[0], (n + 1) * sizeof (gchar *));
+      lines[0] = g_string_free (line, FALSE);
+   } else {
+      g_string_free (line, TRUE);
+      g_strfreev (lines);
+      return 1;   /* nothing there, nothing wanted */
+   }
+
+   out = g_strjoinv ("\n", lines);
+   g_strfreev (lines);
+   {
+      gchar *bare = g_strstrip (g_strdup (out));
+      gboolean empty = !*bare;
+      g_free (bare);
+      if (empty) {
+         /* nothing left in it */
+         g_free (out);
+         return (!existed || g_unlink (cfile) == 0) ? 1 : -1;
+      }
+   }
+   dir = g_path_get_dirname (cfile);
+   result = (g_mkdir_with_parents (dir, 0755) == 0
+             && g_file_set_contents (cfile, out, -1, NULL)) ? 1 : -1;
+   g_free (dir);
+   g_free (out);
+   return result;
+}
+
+
+/* the mean of the faces with the name (L2-normalized), NULL when no face
+ * has it; kept in "means" for the pass */
+static const gfloat *
+name_mean (Indexer *ix, GHashTable *means, const gchar *name)
+{
+   gpointer found;
+   sqlite3_stmt *st;
+   gfloat *m;
+   gdouble len = 0;
+   guint n = 0;
+   gint i;
+
+   if (g_hash_table_lookup_extended (means, name, NULL, &found))
+      return found;
+
+   m = g_new0 (gfloat, NAMES_FEATURE_LEN);
+   st = prep (ix, "SELECT fa.feature FROM faces fa JOIN persons p ON p.id = fa.person_id "
+                  "WHERE p.name = ? AND fa.ignored = 0");
+   sqlite3_bind_text (st, 1, name, -1, SQLITE_STATIC);
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      const gfloat *f = sqlite3_column_blob (st, 0);
+      if (sqlite3_column_bytes (st, 0) != NAMES_FEATURE_LEN * (gint) sizeof (gfloat)) continue;
+      for (i = 0; i < NAMES_FEATURE_LEN; i++) m[i] += f[i];
+      n++;
+   }
+   sqlite3_finalize (st);
+   for (i = 0; i < NAMES_FEATURE_LEN; i++) len += (gdouble) m[i] * m[i];
+   if (!n || len <= 0) {
+      g_free (m);
+      m = NULL;
+   } else {
+      len = sqrt (len);
+      for (i = 0; i < NAMES_FEATURE_LEN; i++) m[i] /= len;
+   }
+   g_hash_table_insert (means, g_strdup (name), m);
+   return m;
+}
+
+
+/* "not this person" said of the face */
+static gboolean
+face_rejected (Indexer *ix, gint64 face, const gchar *name)
+{
+   sqlite3_stmt *st = prep (ix, "SELECT 1 FROM face_rejects r JOIN persons p "
+                                "ON p.id = r.person_id WHERE r.face_id = ? AND p.name = ?");
+   gboolean r;
+
+   sqlite3_bind_int64 (st, 1, face);
+   sqlite3_bind_text (st, 2, name, -1, SQLITE_STATIC);
+   r = sqlite3_step (st) == SQLITE_ROW;
+   sqlite3_finalize (st);
+   return r;
+}
+
+
+static gboolean
+face_name (Indexer *ix, gint64 face, const gchar *name)
+{
+   sqlite3_stmt *st;
+   gboolean ok;
+
+   st = prep (ix, "INSERT OR IGNORE INTO persons (name) VALUES (?)");
+   sqlite3_bind_text (st, 1, name, -1, SQLITE_STATIC);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+   /* not one named in the meantime (by gimv) */
+   st = prep (ix, "UPDATE faces SET person_id = (SELECT id FROM persons WHERE name = ?), "
+                  "guess = NULL, cluster = NULL WHERE id = ? AND person_id IS NULL");
+   sqlite3_bind_text (st, 1, name, -1, SQLITE_STATIC);
+   sqlite3_bind_int64 (st, 2, face);
+   ok = sqlite3_step (st) == SQLITE_DONE && sqlite3_changes (ix->db) > 0;
+   sqlite3_finalize (st);
+   return ok;
+}
+
+
+static gfloat
+names_dot (const gfloat *a, const gfloat *b)
+{
+   gfloat s = 0;
+   gint i;
+   for (i = 0; i < NAMES_FEATURE_LEN; i++) s += a[i] * b[i];
+   return s;
+}
+
+
+/* the names back on faces of the image: the pairs of a name and a face
+ * most alike first, then the last name on the last face; the number of
+ * faces named */
+static guint
+names_restore (Indexer *ix, gint64 file_id, GPtrArray *names, GHashTable *means)
+{
+   GArray *faces = g_array_new (FALSE, FALSE, sizeof (gint64));
+   GPtrArray *feats = g_ptr_array_new_with_free_func (g_free);
+   gboolean *face_done, *name_done;
+   sqlite3_stmt *st;
+   guint i, j, named = 0, faces_left, names_left = names->len;
+
+   st = prep (ix, "SELECT id, feature FROM faces WHERE file_id = ? "
+                  "AND person_id IS NULL AND ignored = 0");
+   sqlite3_bind_int64 (st, 1, file_id);
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      gint64 id = sqlite3_column_int64 (st, 0);
+      if (sqlite3_column_bytes (st, 1) != NAMES_FEATURE_LEN * (gint) sizeof (gfloat)) continue;
+      g_array_append_val (faces, id);
+      g_ptr_array_add (feats, g_memdup2 (sqlite3_column_blob (st, 1),
+                                         NAMES_FEATURE_LEN * sizeof (gfloat)));
+   }
+   sqlite3_finalize (st);
+   faces_left = faces->len;
+   face_done = g_new0 (gboolean, faces->len + 1);
+   name_done = g_new0 (gboolean, names->len + 1);
+
+   while (faces_left && names_left) {
+      gfloat best = RESTORE_SIM;
+      gint bf = -1, bn = -1;
+
+      for (j = 0; j < names->len; j++) {
+         const gfloat *m;
+         if (name_done[j]) continue;
+         if (!(m = name_mean (ix, means, g_ptr_array_index (names, j)))) continue;
+         for (i = 0; i < faces->len; i++) {
+            gfloat s;
+            if (face_done[i]) continue;
+            s = names_dot (m, g_ptr_array_index (feats, i));
+            if (s >= best && !face_rejected (ix, g_array_index (faces, gint64, i),
+                                             g_ptr_array_index (names, j))) {
+               best = s;
+               bf = i;
+               bn = j;
+            }
+         }
+      }
+      if (bf < 0) break;
+      face_done[bf] = name_done[bn] = TRUE;
+      faces_left--;
+      names_left--;
+      if (face_name (ix, g_array_index (faces, gint64, bf), g_ptr_array_index (names, bn)))
+         named++;
+   }
+
+   /* one name and one face left: that one, unless it looks like another
+    * person than the faces with the name */
+   if (faces_left == 1 && names_left == 1) {
+      i = 0;
+      while (face_done[i]) i++;
+      j = 0;
+      while (name_done[j]) j++;
+      {
+         const gchar *name = g_ptr_array_index (names, j);
+         const gfloat *m = name_mean (ix, means, name);
+         gint64 face = g_array_index (faces, gint64, i);
+         if ((!m || names_dot (m, g_ptr_array_index (feats, i)) >= RESTORE_LAST_SIM)
+             && !face_rejected (ix, face, name)
+             && face_name (ix, face, name))
+            named++;
+      }
+   }
+
+   g_free (face_done);
+   g_free (name_done);
+   g_ptr_array_unref (feats);
+   g_array_unref (faces);
+   return named;
+}
+
+
+/* the names given to the faces of the image (that can be tags), sorted */
+static GPtrArray *
+names_given (Indexer *ix, gint64 file_id)
+{
+   GPtrArray *r = g_ptr_array_new_with_free_func (g_free);
+   sqlite3_stmt *st = prep (ix, "SELECT DISTINCT p.name FROM faces fa JOIN persons p "
+                                "ON p.id = fa.person_id WHERE fa.file_id = ? ORDER BY 1");
+   sqlite3_bind_int64 (st, 1, file_id);
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      const gchar *n = (const gchar *) sqlite3_column_text (st, 0);
+      if (name_is_taggable (n)) g_ptr_array_add (r, g_strdup (n));
+   }
+   sqlite3_finalize (st);
+   g_ptr_array_sort (r, names_cmp);
+   return r;
+}
+
+
+static GPtrArray *
+names_written (Indexer *ix, gint64 file_id)
+{
+   sqlite3_stmt *st = prep (ix, "SELECT names FROM name_sync WHERE file_id = ?");
+   GPtrArray *r;
+
+   sqlite3_bind_int64 (st, 1, file_id);
+   r = names_split (sqlite3_step (st) == SQLITE_ROW
+                    ? (const gchar *) sqlite3_column_text (st, 0) : NULL, FALSE);
+   sqlite3_finalize (st);
+   return r;
+}
+
+
+static void
+names_set_written (Indexer *ix, gint64 file_id, GPtrArray *names)
+{
+   sqlite3_stmt *st;
+
+   if (!names->len) {
+      st = prep (ix, "DELETE FROM name_sync WHERE file_id = ?");
+      sqlite3_bind_int64 (st, 1, file_id);
+   } else {
+      gchar *joined;
+      g_ptr_array_add (names, NULL);
+      joined = g_strjoinv ("\n", (gchar **) names->pdata);
+      g_ptr_array_remove_index (names, names->len - 1);
+      st = prep (ix, "INSERT OR REPLACE INTO name_sync (file_id, names) VALUES (?, ?)");
+      sqlite3_bind_int64 (st, 1, file_id);
+      sqlite3_bind_text (st, 2, joined, -1, g_free);
+   }
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+}
+
+
+/* the images to look at: the ones where the names given, written and in
+ * the file (as the database has it) differ, from the database alone (no
+ * file is opened for the others) */
+static GArray *
+names_find_work (Indexer *ix)
+{
+   GArray *work = g_array_new (FALSE, FALSE, sizeof (NameWork));
+   sqlite3_stmt *st;
+
+   g_array_set_clear_func (work, name_work_clear);
+   st = prep (ix,
+      "SELECT c.id, d.path, f.name, "
+      " (SELECT group_concat (n, char(10)) FROM (SELECT DISTINCT p.name AS n FROM faces fa "
+      "   JOIN persons p ON p.id = fa.person_id WHERE fa.file_id = c.id ORDER BY 1)), "
+      " (SELECT names FROM name_sync WHERE file_id = c.id), "
+      " (SELECT group_concat (n, char(10)) FROM (SELECT substr (t.name, 8) AS n "
+      "   FROM file_tags ft JOIN tags t ON t.id = ft.tag_id WHERE ft.file_id = c.id "
+      "   AND ft.auto = 0 AND t.name >= 'person/' AND t.name < 'person0' ORDER BY 1)), "
+      " (SELECT count(*) FROM faces fa WHERE fa.file_id = c.id AND fa.person_id IS NULL "
+      "   AND fa.ignored = 0) "
+      "FROM (SELECT file_id AS id FROM faces WHERE person_id IS NOT NULL "
+      "      UNION SELECT ft.file_id FROM file_tags ft WHERE ft.auto = 0 AND ft.tag_id IN "
+      "        (SELECT id FROM tags WHERE name >= 'person/' AND name < 'person0') "
+      "      UNION SELECT file_id FROM name_sync) c "
+      "JOIN files f ON f.id = c.id JOIN dirs d ON d.id = f.dir_id ORDER BY c.id");
+   while (st && sqlite3_step (st) == SQLITE_ROW) {
+      GPtrArray *given   = names_split ((const gchar *) sqlite3_column_text (st, 3), TRUE);
+      GPtrArray *written = names_split ((const gchar *) sqlite3_column_text (st, 4), FALSE);
+      GPtrArray *in_file = names_split ((const gchar *) sqlite3_column_text (st, 5), FALSE);
+      GPtrArray *wanted  = names_wanted (in_file, written, given);
+      GPtrArray *restore = names_to_restore (in_file, written, given);
+      gint free_faces = sqlite3_column_int (st, 6);
+
+      if (!names_equal (wanted, in_file) || !names_equal (written, given)
+          || (restore->len && free_faces > 0))
+      {
+         NameWork w;
+         w.id = sqlite3_column_int64 (st, 0);
+         w.path = g_build_filename ((const gchar *) sqlite3_column_text (st, 1),
+                                    (const gchar *) sqlite3_column_text (st, 2), NULL);
+         w.free_faces = free_faces;
+         g_array_append_val (work, w);
+      }
+      g_ptr_array_unref (given);
+      g_ptr_array_unref (written);
+      g_ptr_array_unref (in_file);
+      g_ptr_array_unref (wanted);
+      g_ptr_array_unref (restore);
+   }
+   sqlite3_finalize (st);
+   return work;
+}
+
+
+/* one image: the names back on faces, then the file; FALSE when the file
+ * could not be written */
+static gboolean
+names_sync_file (Indexer *ix, const gchar *croot, NameWork *w, GHashTable *means,
+                 guint *restored, gboolean *wrote)
+{
+   gchar *cfile = g_strconcat (croot, w->path, ".txt", NULL);
+   GPtrArray *tags = read_comment_tags (cfile);
+   GPtrArray *in_file = names_of_tags (tags);
+   GPtrArray *written = names_written (ix, w->id);
+   GPtrArray *given = names_given (ix, w->id);
+   GPtrArray *restore = names_to_restore (in_file, written, given);
+   GPtrArray *wanted;
+   gboolean ok = TRUE;
+
+   if (restore->len && w->free_faces > 0) {
+      guint n = names_restore (ix, w->id, restore, means);
+      if (n) {
+         *restored += n;
+         g_ptr_array_unref (given);
+         given = names_given (ix, w->id);
+      }
+   }
+
+   wanted = names_wanted (in_file, written, given);
+   if (!names_equal (wanted, in_file)) {
+      if (write_person_tags (cfile, wanted) < 0) {
+         ok = FALSE;
+      } else {
+         *wrote = TRUE;
+      }
+      /* the database from the file as it is now */
+      import_comment (ix, w->id, cfile, TRUE);
+   }
+   /* not written: tried again next time */
+   if (ok) names_set_written (ix, w->id, given);
+
+   if (tags) g_ptr_array_unref (tags);
+   g_ptr_array_unref (in_file);
+   g_ptr_array_unref (written);
+   g_ptr_array_unref (given);
+   g_ptr_array_unref (restore);
+   g_ptr_array_unref (wanted);
+   g_free (cfile);
+   return ok;
+}
+
+
+static void
+run_name_sync (Indexer *ix, gboolean in_transaction)
+{
+   gchar *croot;
+   guint pass, restored_all = 0, failed = 0;
+   gboolean wrote = FALSE, told = FALSE;
+   gint64 last_say = 0, last_commit = g_get_monotonic_time ();
+
+   if (ix->names_syncing || !ix->names_pending || ix->quit) return;
+   ix->names_syncing = TRUE;
+   ix->names_pending = FALSE;
+   croot = comment_root ();
+   if (!in_transaction) exec (ix, "BEGIN");
+
+   /* again when names came back: the faces with them tell more */
+   for (pass = 0; pass < 4 && !ix->quit; pass++) {
+      GArray *work = names_find_work (ix);
+      GHashTable *means = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+      guint i, restored = 0;
+
+      if (work->len >= NAMES_SAY_MIN) {
+         say ("names start %u", work->len);
+         told = TRUE;
+      }
+      for (i = 0; i < work->len && !ix->quit; i++) {
+         gint64 now;
+
+         if (!names_sync_file (ix, croot, &g_array_index (work, NameWork, i), means,
+                               &restored, &wrote))
+            failed++;
+
+         now = g_get_monotonic_time ();
+         if (told && now - last_say >= PROGRESS_INTERVAL_USEC) {
+            say ("names %u %u", i + 1, work->len);
+            last_say = now;
+         }
+         if (now - last_commit >= COMMIT_INTERVAL_USEC) {
+            exec (ix, "COMMIT");
+            yield_lock ();
+            check_stdin (ix, 0);
+            exec (ix, "BEGIN");
+            last_commit = now;
+         }
+      }
+      g_hash_table_unref (means);
+      g_array_unref (work);
+      restored_all += restored;
+      if (!restored) break;
+   }
+
+   if (wrote)
+      exec (ix, "DELETE FROM tags WHERE id NOT IN (SELECT tag_id FROM file_tags)");
+   if (!in_transaction) exec (ix, "COMMIT");
+   if (told) say ("names done %u", failed);
+   if (restored_all) say ("faces-named %u", restored_all);
+   if (wrote) say ("tags-updated");
+   g_free (croot);
+   ix->names_syncing = FALSE;
+}
+
+
+/******************************************************************************
  *  watching (inotify): changes while gimv runs
  ******************************************************************************/
 
@@ -2664,6 +3312,9 @@ open_db (Indexer *ix, const gchar *dbfile)
    /* tags to rename (from gimv), until done */
    exec (ix, "CREATE TABLE IF NOT EXISTS tag_renames (id INTEGER PRIMARY KEY, "
              "old TEXT NOT NULL, new TEXT NOT NULL)");
+   /* the names of faces written to each comment file (run_name_sync) */
+   exec (ix, "CREATE TABLE IF NOT EXISTS name_sync (file_id INTEGER PRIMARY KEY "
+             "REFERENCES files(id) ON DELETE CASCADE, names TEXT NOT NULL)");
    {
       sqlite3_stmt *st = prep (ix, "SELECT 1 FROM tag_renames LIMIT 1");
       ix->rename_pending = sqlite3_step (st) == SQLITE_ROW;
@@ -2836,6 +3487,9 @@ main (int argc, char *argv[])
       }
       process_tag_queue (&ix, FALSE);
       run_tag_renames (&ix, FALSE);
+      /* the comment files all read: the names in them can be found */
+      ix.names_pending = TRUE;
+      run_name_sync (&ix, FALSE);
       say_idle (&ix);
       /* nothing more to do for now: wait for a command or for gimv to quit */
       while (!ix.quit && !ix.rescan) {
@@ -2851,6 +3505,7 @@ main (int argc, char *argv[])
          if (ix.quit) break;
          process_tag_queue (&ix, FALSE);
          run_tag_renames (&ix, FALSE);
+         run_name_sync (&ix, FALSE);
          if (np == 2 && (pfd[1].revents & POLLIN)) {
             /* let a burst (a folder copied) gather first */
             g_usleep (200 * 1000);

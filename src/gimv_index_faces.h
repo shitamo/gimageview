@@ -75,6 +75,8 @@ GPtrArray          *gimv_index_faces_get_all_person_tags (void);
 gint64              gimv_index_faces_find_person    (const gchar        *name);
 GPtrArray          *gimv_index_faces_get_names      (void);
 void                gimv_index_faces_flush          (void);
+/* the indexer gave names back to faces (from the comment files) */
+void                gimv_index_faces_named_by_indexer (void);
 
 /* the faces of a row of the "People" tab ("p:3", "c:12", "u", ...) as an
  * SQL condition on the table faces named "fa" */

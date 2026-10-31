@@ -67,6 +67,10 @@ static struct {
    gboolean          renaming;
    guint             rn_done, rn_total, rn_failed;
    gchar            *rn_old, *rn_new, *rn_first_failed;
+
+   /* the names of the faces being written to the comment files */
+   gboolean          naming;
+   guint             nm_done, nm_total;
 } ix;
 
 #define MAX_RESTARTS 3
@@ -198,6 +202,15 @@ update_status (void)
                                   ix.rn_old, ix.rn_new, ix.rn_done, ix.rn_total);
       g_free (ix.status);
       ix.status = g_strdup_printf (_("Index: renaming a tag %'u/%'u"), ix.rn_done, ix.rn_total);
+      g_string_prepend (tip, "\n");
+      g_string_prepend (tip, t);
+      g_free (t);
+   }
+   if (ix.naming && !ix.renaming) {
+      gchar *t = g_strdup_printf (_("Writing the names of the faces into the comment files: "
+                                    "%'u of %'u images."), ix.nm_done, ix.nm_total);
+      g_free (ix.status);
+      ix.status = g_strdup_printf (_("Index: names %'u/%'u"), ix.nm_done, ix.nm_total);
       g_string_prepend (tip, "\n");
       g_string_prepend (tip, t);
       g_free (t);
@@ -423,6 +436,32 @@ handle_line (const gchar *line)
          ix.rn_done = strtoul (rest, NULL, 10);
       }
       update_status ();
+      return;
+   }
+
+   /* "names start <n>", "names <done> <n>", "names done <failed>": the
+    * names of faces to the comment files; "faces-named <n>": names in the
+    * comment files given back to faces */
+   if (g_str_has_prefix (line, "names ")) {
+      const gchar *rest = line + strlen ("names ");
+      if (g_str_has_prefix (rest, "start ")) {
+         ix.naming = TRUE;
+         ix.nm_done = 0;
+         ix.nm_total = strtoul (rest + strlen ("start "), NULL, 10);
+      } else if (g_str_has_prefix (rest, "done")) {
+         guint failed = strtoul (rest + strlen ("done"), NULL, 10);
+         ix.naming = FALSE;
+         if (failed)
+            g_warning ("gimv-indexer: the names of faces could not be written to "
+                       "%u comment files", failed);
+      } else {
+         ix.nm_done = strtoul (rest, NULL, 10);
+      }
+      update_status ();
+      return;
+   }
+   if (g_str_has_prefix (line, "faces-named ")) {
+      gimv_index_faces_named_by_indexer ();
       return;
    }
 
@@ -842,6 +881,14 @@ gimv_index_rename_tag (const gchar *old, const gchar *new)
    send_command (cmd);
    g_free (cmd);
    return TRUE;
+}
+
+
+void
+gimv_index_sync_names (void)
+{
+   if (ix.proc && ix.in)
+      send_command ("sync-names\n");
 }
 
 
