@@ -64,6 +64,15 @@
 #define DETECT_SIZE       1600
 /* faces smaller than this (pixels in that image) are too blurred to tell */
 #define MIN_FACE          32
+/* a second look in a small image for a face filling much of the photo
+ * (a close-up): YuNet misses faces of more than about 400 pixels in the
+ * image it is given */
+#define CLOSE_SIZE        320
+/* those smaller than this (pixels in that image) are found by the first */
+#define CLOSE_MIN         64
+/* a face of the second look over one of the first (this part of the
+ * smaller one): the same face */
+#define SAME_FACE         0.5
 #define SCORE_MIN         0.85f
 #define FEATURE_LEN       128
 /* cosine similarity: SFace's own threshold for "the same person" is 0.363;
@@ -201,6 +210,11 @@ open_db (Db &d, const char *path)
       return false;
    }
    d.exec ("PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON;");
+   /* the files looked at for close-ups too (the files looked at before
+    * that get the second look alone, their faces kept); made here, not by
+    * the indexer: no new version of the database */
+   d.exec ("CREATE TABLE IF NOT EXISTS face_closeup ("
+           "  file_id INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE)");
    return true;
 }
 
@@ -238,6 +252,9 @@ struct Todo {
    std::string path;
    /* only the thumbnails of these faces (found before thumbnails were made) */
    std::vector<Face> *missing = nullptr;
+   /* looked at before close-ups were: only the second look, the faces of
+    * the file kept */
+   bool closeup = false;
 };
 
 
@@ -253,9 +270,12 @@ list_files (Db &d, const std::vector<std::string> &dirs,
    std::set<long long> seen;
 
    /* through the index of dirs.path: only the rows of these folders */
-   st = d.prep ("SELECT f.id, f.mtime, d.path, f.name, s.mtime "
+   std::vector<Todo> closeups;
+
+   st = d.prep ("SELECT f.id, f.mtime, d.path, f.name, s.mtime, s.n, c.file_id "
                 "FROM dirs d JOIN files f ON f.dir_id = d.id "
                 "LEFT JOIN face_scans s ON s.file_id = f.id "
+                "LEFT JOIN face_closeup c ON c.file_id = f.id "
                 "WHERE d.path = ?1 OR (d.path >= ?2 AND d.path < ?3)");
    total = 0;
    for (const auto &dir : dirs) {
@@ -272,16 +292,25 @@ list_files (Db &d, const std::vector<std::string> &dirs,
          if (!dpath || !name || !wanted_ext (name)) continue;
          if (!seen.insert (id).second) continue;   /* folders inside others */
          total++;
-         if (scanned && sqlite3_column_int64 (st, 4) == sqlite3_column_int64 (st, 1))
-            continue;
+         bool same = scanned && sqlite3_column_int64 (st, 4) == sqlite3_column_int64 (st, 1);
+         bool closeup = same && sqlite3_column_int (st, 5) >= 0
+                        && sqlite3_column_type (st, 6) == SQLITE_NULL;
+         if (same && !closeup) continue;
          std::string path (dpath);
          if (path.back () != '/') path += '/';
          path += name;
-         todo.push_back ({ id, sqlite3_column_int64 (st, 1), path });
+         if (closeup) {
+            closeups.push_back ({ id, sqlite3_column_int64 (st, 1), path });
+            closeups.back ().closeup = true;
+         } else {
+            todo.push_back ({ id, sqlite3_column_int64 (st, 1), path });
+         }
       }
       sqlite3_reset (st);
    }
    sqlite3_finalize (st);
+   /* the new and changed files first */
+   for (Todo &t : closeups) todo.push_back (std::move (t));
 
    /* the files looked at before that are no longer in the folders */
    st = d.prep ("SELECT s.file_id, d.path, f.name FROM face_scans s "
@@ -330,11 +359,20 @@ guard_open (Db &d, const std::string &dbfile)
       close (fd);
    }
    if (id > 0) {
-      sqlite3_stmt *st = d.prep ("INSERT OR REPLACE INTO face_scans (file_id, mtime, n) "
-                                 "SELECT id, mtime, -1 FROM files WHERE id = ?");
+      /* the second look alone (a file looked at before): its faces kept */
+      sqlite3_stmt *st = d.prep ("INSERT OR IGNORE INTO face_closeup (file_id) "
+                                 "SELECT s.file_id FROM face_scans s JOIN files f ON f.id = s.file_id "
+                                 "WHERE s.file_id = ? AND s.n >= 0 AND s.mtime = f.mtime");
       sqlite3_bind_int64 (st, 1, id);
       sqlite3_step (st);
       sqlite3_finalize (st);
+      if (!sqlite3_changes (d.db)) {
+         st = d.prep ("INSERT OR REPLACE INTO face_scans (file_id, mtime, n) "
+                      "SELECT id, mtime, -1 FROM files WHERE id = ?");
+         sqlite3_bind_int64 (st, 1, id);
+         sqlite3_step (st);
+         sqlite3_finalize (st);
+      }
       say ("skipped %lld", id);
    }
    guard_fd = open (g.c_str (), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
@@ -438,43 +476,52 @@ normalize (std::vector<float> &v)
 }
 
 
-/* 1: read, 0: not an image that can be read, -1: the models fail */
-static int
-read_faces (const std::string &path,
-            cv::Ptr<cv::FaceDetectorYN> &det, cv::Ptr<cv::FaceRecognizerSF> &rec,
-            std::vector<Face> &out)
+/* "small" padded to sides of a multiple of 32, as YuNet wants: at the
+ * right and bottom, which moves nothing (OpenCV 4.8 and later pad by
+ * themselves, this keeps it the same for every version) */
+static cv::Mat
+pad32 (const cv::Mat &small)
 {
-   cv::Mat img, small, found;
-   double scale;
-
-   if (!load_image (path, img, scale)) return 0;
-   if (img.cols < MIN_FACE * 2 || img.rows < MIN_FACE * 2) return 1;
-
-   int longer = std::max (img.cols, img.rows);
-   if (longer > DETECT_SIZE) {
-      double f = (double) DETECT_SIZE / longer;
-      cv::resize (img, small, cv::Size (), f, f, cv::INTER_AREA);
-      scale /= f;
-   } else {
-      small = img;
-   }
-
-   /* YuNet wants sides of a multiple of 32: padded at the right and
-    * bottom, which moves nothing (OpenCV 4.8 and later pad by themselves,
-    * this keeps it the same for every version) */
    cv::Mat padded;
    int pw = (32 - small.cols % 32) % 32, ph = (32 - small.rows % 32) % 32;
    if (pw || ph)
       cv::copyMakeBorder (small, padded, 0, ph, 0, pw, cv::BORDER_CONSTANT, cv::Scalar (0, 0, 0));
    else
       padded = small;
+   return padded;
+}
+
+
+/* this part of the smaller of the two faces is in the other */
+static double
+overlap (const Face &a, const Face &b)
+{
+   int x0 = std::max (a.x, b.x), y0 = std::max (a.y, b.y);
+   int x1 = std::min (a.x + a.w, b.x + b.w), y1 = std::min (a.y + a.h, b.y + b.h);
+   double inter = (double) std::max (0, x1 - x0) * std::max (0, y1 - y0);
+   double smaller = std::min ((double) a.w * a.h, (double) b.w * b.h);
+   return smaller > 0 ? inter / smaller : 0;
+}
+
+
+/* the faces in "small" (the image scaled down by "scale" from the
+ * coordinates of the faces) of "min" pixels or more there, not over one
+ * of "avoid"; the thumbnails from "big" (scaled down by "big_scale");
+ * false: the models fail */
+static bool
+detect (const cv::Mat &small, double scale, int min,
+        const cv::Mat &big, double big_scale, const std::vector<Face> &avoid,
+        cv::Ptr<cv::FaceDetectorYN> &det, cv::Ptr<cv::FaceRecognizerSF> &rec,
+        std::vector<Face> &out)
+{
+   cv::Mat padded = pad32 (small), found;
 
    try {
       det->setInputSize (padded.size ());
       det->detect (padded, found);
    } catch (const cv::Exception &e) {
       say ("error finding faces: %s", e.what ());
-      return -1;
+      return false;
    }
 
    for (int i = 0; i < found.rows; i++) {
@@ -482,14 +529,7 @@ read_faces (const std::string &path,
       float score = r[14];
       cv::Mat aligned, feat;
 
-      if (score < SCORE_MIN || r[2] < MIN_FACE || r[3] < MIN_FACE) continue;
-      try {
-         rec->alignCrop (padded, found.row (i), aligned);
-         rec->feature (aligned, feat);
-      } catch (const cv::Exception &) {
-         continue;
-      }
-      if (feat.total () != FEATURE_LEN) continue;
+      if (score < SCORE_MIN || r[2] < min || r[3] < min) continue;
 
       Face f;
       f.x = (int) std::lround (std::max (0.0f, r[0]) * scale);
@@ -497,10 +537,64 @@ read_faces (const std::string &path,
       f.w = (int) std::lround (r[2] * scale);
       f.h = (int) std::lround (r[3] * scale);
       f.score = score;
+      bool known = false;
+      for (const Face &a : avoid)
+         if (overlap (a, f) > SAME_FACE) { known = true; break; }
+      if (known) continue;
+
+      try {
+         rec->alignCrop (padded, found.row (i), aligned);
+         rec->feature (aligned, feat);
+      } catch (const cv::Exception &) {
+         continue;
+      }
+      if (feat.total () != FEATURE_LEN) continue;
       f.feature.assign ((const float *) feat.data, (const float *) feat.data + FEATURE_LEN);
       normalize (f.feature);
-      make_thumb (small, scale, f);
+      make_thumb (big, big_scale, f);
       out.push_back (std::move (f));
+   }
+   return true;
+}
+
+
+/* 1: read, 0: not an image that can be read, -1: the models fail;
+ * closeup: only the second look (the faces of "known" kept) */
+static int
+read_faces (const std::string &path,
+            cv::Ptr<cv::FaceDetectorYN> &det, cv::Ptr<cv::FaceRecognizerSF> &rec,
+            bool closeup, const std::vector<Face> &known, std::vector<Face> &out)
+{
+   cv::Mat img, small;
+   double scale, small_scale;
+
+   if (!load_image (path, img, scale)) return 0;
+   if (img.cols < MIN_FACE * 2 || img.rows < MIN_FACE * 2) return 1;
+
+   int longer = std::max (img.cols, img.rows);
+   small_scale = scale;
+   if (longer > DETECT_SIZE) {
+      double f = (double) DETECT_SIZE / longer;
+      cv::resize (img, small, cv::Size (), f, f, cv::INTER_AREA);
+      small_scale = scale / f;
+   } else {
+      small = img;
+   }
+
+   /* the faces of the photo */
+   if (!closeup
+       && !detect (small, small_scale, MIN_FACE, small, small_scale, {}, det, rec, out))
+      return -1;
+
+   /* a face too big for that: in a small image (a small photo was looked
+    * at as small as that already) */
+   if (longer > CLOSE_SIZE * 3 / 2) {
+      cv::Mat tiny;
+      double f = (double) CLOSE_SIZE / longer;
+      std::vector<Face> avoid = closeup ? known : out;
+      cv::resize (img, tiny, cv::Size (), f, f, cv::INTER_AREA);
+      if (!detect (tiny, scale / f, CLOSE_MIN, small, small_scale, avoid, det, rec, out))
+         return -1;
    }
    return 1;
 }
@@ -581,6 +675,8 @@ write_results (Db &d, std::vector<Result> &results)
 
    sqlite3_stmt *thumb = d.prep ("INSERT OR REPLACE INTO face_thumbs (face_id, jpeg) "
                                  "VALUES (?, ?)");
+   sqlite3_stmt *closeup_st = d.prep ("INSERT OR IGNORE INTO face_closeup (file_id) VALUES (?)");
+   sqlite3_stmt *more  = d.prep ("UPDATE face_scans SET n = n + ? WHERE file_id = ? AND n >= 0");
 
    if (sqlite3_exec (d.db, "BEGIN IMMEDIATE", nullptr, nullptr, nullptr) != SQLITE_OK) {
       /* kept for the next time */
@@ -588,6 +684,8 @@ write_results (Db &d, std::vector<Result> &results)
       sqlite3_finalize (ins);
       sqlite3_finalize (scan);
       sqlite3_finalize (thumb);
+      sqlite3_finalize (closeup_st);
+      sqlite3_finalize (more);
       return;
    }
    for (const Result &r : results) {
@@ -597,9 +695,12 @@ write_results (Db &d, std::vector<Result> &results)
             put_thumb (thumb, f.id, f.thumb);
          continue;
       }
-      sqlite3_bind_int64 (del, 1, r.todo->id);
-      sqlite3_step (del);
-      sqlite3_reset (del);
+      /* a second look alone: the faces found before kept */
+      if (!r.todo->closeup) {
+         sqlite3_bind_int64 (del, 1, r.todo->id);
+         sqlite3_step (del);
+         sqlite3_reset (del);
+      }
       /* the file may have gone from the index meanwhile: then these fail
        * (foreign key), which is right */
       for (const Face &f : r.faces) {
@@ -615,17 +716,29 @@ write_results (Db &d, std::vector<Result> &results)
             put_thumb (thumb, sqlite3_last_insert_rowid (d.db), f.thumb);
          sqlite3_reset (ins);
       }
-      sqlite3_bind_int64 (scan, 1, r.todo->id);
-      sqlite3_bind_int64 (scan, 2, r.todo->mtime);
-      sqlite3_bind_int (scan, 3, r.ok > 0 ? (int) r.faces.size () : -1);
-      sqlite3_step (scan);
-      sqlite3_reset (scan);
+      if (r.todo->closeup) {
+         sqlite3_bind_int (more, 1, (int) r.faces.size ());
+         sqlite3_bind_int64 (more, 2, r.todo->id);
+         sqlite3_step (more);
+         sqlite3_reset (more);
+      } else {
+         sqlite3_bind_int64 (scan, 1, r.todo->id);
+         sqlite3_bind_int64 (scan, 2, r.todo->mtime);
+         sqlite3_bind_int (scan, 3, r.ok > 0 ? (int) r.faces.size () : -1);
+         sqlite3_step (scan);
+         sqlite3_reset (scan);
+      }
+      sqlite3_bind_int64 (closeup_st, 1, r.todo->id);
+      sqlite3_step (closeup_st);
+      sqlite3_reset (closeup_st);
    }
    d.exec ("COMMIT");
    sqlite3_finalize (del);
    sqlite3_finalize (ins);
    sqlite3_finalize (scan);
    sqlite3_finalize (thumb);
+   sqlite3_finalize (closeup_st);
+   sqlite3_finalize (more);
    results.clear ();
 }
 
@@ -932,6 +1045,7 @@ main (int argc, char *argv[])
    size_t done = 0, n_faces = 0;
    bool changed = false, failed = false;
    std::vector<Result> pending;
+   sqlite3_stmt *faces_of = d.prep ("SELECT x, y, w, h FROM faces WHERE file_id = ?");
 
    for (const Todo &t : todo) {
       Result r;
@@ -963,8 +1077,21 @@ main (int argc, char *argv[])
          continue;
       }
 
+      std::vector<Face> known;
+      if (t.closeup) {
+         sqlite3_bind_int64 (faces_of, 1, t.id);
+         while (sqlite3_step (faces_of) == SQLITE_ROW) {
+            Face f;
+            f.x = sqlite3_column_int (faces_of, 0);
+            f.y = sqlite3_column_int (faces_of, 1);
+            f.w = sqlite3_column_int (faces_of, 2);
+            f.h = sqlite3_column_int (faces_of, 3);
+            known.push_back (std::move (f));
+         }
+         sqlite3_reset (faces_of);
+      }
       guard_set (t.id);
-      r.ok = read_faces (t.path, det, rec, r.faces);
+      r.ok = read_faces (t.path, det, rec, t.closeup, known, r.faces);
       guard_set (0);
       if (r.ok < 0) {
          /* not this image's fault: stop, without marking it */
@@ -974,8 +1101,9 @@ main (int argc, char *argv[])
       }
       r.todo = &t;
       n_faces += r.faces.size ();
+      /* the groups again: only for new faces after a second look alone */
+      if (!t.closeup || !r.faces.empty ()) changed = true;
       pending.push_back (std::move (r));
-      changed = true;
       done++;
 
       /* written in short transactions, not to keep the indexer waiting
@@ -991,6 +1119,7 @@ main (int argc, char *argv[])
       }
    }
    write_results (d, pending);
+   sqlite3_finalize (faces_of);
    guard_close (dbfile);
 
    /* the groups again when faces came or went, or when asked (names given) */
