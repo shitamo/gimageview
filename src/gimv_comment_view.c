@@ -30,6 +30,7 @@
 #include "charset.h"
 #include "dnd.h"
 #include "gimv_comment.h"
+#include "gimv_file_comment.h"
 #include "gimv_icon_stock.h"
 #include "gimv_image_info.h"
 #include "gimv_image_view.h"
@@ -41,6 +42,9 @@ typedef enum {
    COLUMN_KEY,
    COLUMN_VALUE,
    COLUMN_RAW_ENTRY,
+   COLUMN_FILE,       /* a comment written in the image file: shown only */
+   COLUMN_STYLE,      /* PangoStyle: those in italics */
+   COLUMN_TIP,        /* their whole text (markup) */
    N_COLUMN
 } ListStoreColumn;
 
@@ -49,6 +53,23 @@ static void gimv_comment_view_set_sensitive  (GimvCommentView *cv);
 static void gimv_comment_view_set_combo_list (GimvCommentView *cv);
 static void gimv_comment_view_data_enter     (GimvCommentView *cv);
 static void gimv_comment_view_reset_data     (GimvCommentView *cv);
+
+
+/* the row selected is a comment of the image file (not to edit) */
+static gboolean
+selected_is_file (GimvCommentView *cv)
+{
+   GtkTreeSelection *selection;
+   GtkTreeModel *model;
+   GtkTreeIter iter;
+   gboolean file = FALSE;
+
+   if (!cv->comment_clist) return FALSE;
+   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (cv->comment_clist));
+   if (gtk_tree_selection_get_selected (selection, &model, &iter))
+      gtk_tree_model_get (model, &iter, COLUMN_FILE, &file, COLUMN_TERMINATOR);
+   return file;
+}
 
 
 /******************************************************************************
@@ -86,6 +107,7 @@ gimv_comment_view_delete_selected_data (GimvCommentView *cv)
    GimvCommentDataEntry *entry;
 
    g_return_if_fail (cv);
+   if (selected_is_file (cv)) return;
 
    {
       GtkTreeView *treeview = GTK_TREE_VIEW (cv->comment_clist);
@@ -200,6 +222,7 @@ cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
    GtkTreeIter iter;
    gboolean success;
    gchar *key = NULL, *value = NULL;
+   gboolean file = FALSE;
    GtkEntry *entry1, *entry2;
 
    /* GTK4: also emitted while the tree view is disposed (without model) */
@@ -213,7 +236,18 @@ cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
       gtk_tree_model_get (model, &iter,
                           COLUMN_KEY,   &key,
                           COLUMN_VALUE, &value,
+                          COLUMN_FILE,  &file,
                           COLUMN_TERMINATOR);
+   }
+   /* a comment of the file: its whole text (the list shows its first line) */
+   if (file) {
+      gchar *tip = NULL, *text = NULL;
+      gtk_tree_model_get (model, &iter, COLUMN_TIP, &tip, COLUMN_TERMINATOR);
+      if (tip && pango_parse_markup (tip, -1, 0, NULL, &text, NULL, NULL)) {
+         g_free (value);
+         value = g_strdelimit (text, "\n", ' ');
+      }
+      g_free (tip);
    }
 
    if (key)
@@ -489,7 +523,10 @@ create_data_page (GimvCommentView *cv)
    store = gtk_list_store_new (N_COLUMN,
                                G_TYPE_STRING,
                                G_TYPE_STRING,
-                               G_TYPE_POINTER);
+                               G_TYPE_POINTER,
+                               G_TYPE_BOOLEAN,
+                               G_TYPE_INT,
+                               G_TYPE_STRING);
    clist =  gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
    gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
    cv->comment_clist = clist;
@@ -503,6 +540,7 @@ create_data_page (GimvCommentView *cv)
    render = gtk_cell_renderer_text_new ();
    gtk_tree_view_column_pack_start (col, render, TRUE);
    gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_KEY);
+   gtk_tree_view_column_add_attribute (col, render, "style", COLUMN_STYLE);
    gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
 
    /* set column for value */
@@ -512,7 +550,9 @@ create_data_page (GimvCommentView *cv)
    render = gtk_cell_renderer_text_new ();
    gtk_tree_view_column_pack_start (col, render, TRUE);
    gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_VALUE);
+   gtk_tree_view_column_add_attribute (col, render, "style", COLUMN_STYLE);
    gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
+   gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (clist), COLUMN_TIP);
 
    g_signal_connect (G_OBJECT (clist),"cursor-changed",
                        G_CALLBACK (cb_tree_view_cursor_changed), cv);
@@ -649,6 +689,14 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
 
       selected = gtk_tree_selection_get_selected (selection, &model, &iter);
    }
+
+   /* a comment of the image file is only shown */
+   {
+      gboolean file = selected && selected_is_file (cv);
+      gtk_editable_set_editable (GTK_EDITABLE (cv->value_entry), !file);
+      gtk_widget_set_sensitive (cv->key_combo, !file);
+      gtk_widget_set_sensitive (cv->delete_button, !file);
+   }
 }
 
 
@@ -695,7 +743,7 @@ gimv_comment_view_set_combo_list (GimvCommentView *cv)
       else
          info = NULL;
 
-      if (!strcmp ("X-IMG-File-Path-In-Arcvhie", data_entry->key)
+      if (!strcmp ("X-IMG-File-Path-In-Archive", data_entry->key)
           && info && !gimv_image_info_is_in_archive (info))
       {
          continue;
@@ -727,6 +775,7 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
 
    g_return_if_fail (cv);
    if (!cv->selected_item) return;
+   if (selected_is_file (cv)) return;
 
    key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
    g_return_if_fail (key);
@@ -792,7 +841,7 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
          if (!entry) continue;
          if (!entry->display) continue;
 
-         if (!strcmp ("X-IMG-File-Path-In-Arcvhie", entry->key)
+         if (!strcmp ("X-IMG-File-Path-In-Archive", entry->key)
              && info && !gimv_image_info_is_in_archive (info))
          {
             continue;
@@ -812,6 +861,38 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
                                 COLUMN_RAW_ENTRY, entry,
                                 COLUMN_TERMINATOR);
          }
+      }
+
+      /* the comments written in the file, after the data (in italics:
+       * shown only, not saved with the data) */
+      if (info && !gimv_image_info_is_in_archive (info)) {
+         GPtrArray *list = gimv_file_comment_read (gimv_image_info_get_path (info));
+         GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (cv->comment_clist));
+         guint i;
+
+         for (i = 0; i < list->len; i++) {
+            GimvFileComment *c = g_ptr_array_index (list, i);
+            const gchar *nl = strchr (c->text, '\n');
+            gchar *name = g_strdup_printf (_("In File: %s"), c->name);
+            gchar *value = nl ? g_strdup_printf ("%.*s …", (gint) (nl - c->text), c->text)
+                              : g_strdup (c->text);
+            gchar *tip = g_markup_escape_text (c->text, -1);
+            GtkTreeIter iter;
+
+            gtk_list_store_append (GTK_LIST_STORE (model), &iter);
+            gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+                                COLUMN_KEY,       name,
+                                COLUMN_VALUE,     value,
+                                COLUMN_RAW_ENTRY, NULL,
+                                COLUMN_FILE,      TRUE,
+                                COLUMN_STYLE,     PANGO_STYLE_ITALIC,
+                                COLUMN_TIP,       tip,
+                                COLUMN_TERMINATOR);
+            g_free (name);
+            g_free (value);
+            g_free (tip);
+         }
+         g_ptr_array_unref (list);
       }
 
       if (cv->comment->note && *cv->comment->note) {

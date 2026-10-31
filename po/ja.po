@@ -5920,3 +5920,16 @@ msgstr "/編集(_E)/画像をクリップボードにコピー(_L)"
 #: src/gimv_face_panel.c
 msgid "Copy This Face to the Clipboard"
 msgstr "この顔をクリップボードにコピー"
+
+#: src/gimv_file_comment.c
+msgid "User Name"
+msgstr "ユーザー名"
+
+#: src/gimv_file_comment.c
+msgid "Machine"
+msgstr "機種"
+
+#: src/gimv_comment_view.c
+#, c-format
+msgid "In File: %s"
+msgstr "ファイル内: %s"

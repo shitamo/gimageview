@@ -14,6 +14,7 @@ src/gfileutil.c
 src/gimageview.c
 src/gimv_comment.c
 src/gimv_comment_view.c
+src/gimv_file_comment.c
 src/gimv_image.c
 src/gimv_image_view.c
 src/gimv_image_view.h
