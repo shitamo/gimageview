@@ -34,7 +34,7 @@
  *     takes here (a benchmark like 森ベンチ measures this machine), the
  *     other commands a little (a loop of nothing but waiting goes on);
  *     a picture is taken at a wait, or after a 60th second of drawing;
- *   - no sound: PCMs only take their time ("p", "pwt");
+ *   - the PCMs are told to a MaslSoundFunc (masl_sound.c plays them);
  *   - no keys, no options; a scenario waiting for a key with nothing
  *     changing for 3 seconds gets every key pressed for a moment (as
  *     "masl -xr" does, to play on);
@@ -100,6 +100,8 @@ struct MaslPlayer_Tag {
    guint           n_palettes;
    const MaslPcm  *pcms;
    guint           n_pcms;
+   MaslSoundFunc   sound_func;
+   gpointer        sound_data;
 
    /* the machine */
    guint           pc;
@@ -923,6 +925,9 @@ step (MaslPlayer *pl)
       samples = pcm->adpcm ? pcm->len * 2.0 : (gdouble) pcm->len;
       rate = pl->rate ? pl->rate : pcm->rate ? pcm->rate : 16000;
       pl->pcm_end[ch] = (insn->flags & 1) ? INFINITY : pl->now + samples * 1000.0 / rate;
+      if (pl->sound_func)
+         pl->sound_func (MASL_SOUND_PLAY, ch, n, (guint) rate, insn->flags & 1,
+                         pl->now, pl->sound_data);
       break;
    }
    case OP_PWT: {
@@ -938,12 +943,16 @@ step (MaslPlayer *pl)
       gint bits = arg (pl, insn, 0, 255), i;
       for (i = 0; i < MASL_CHANNELS; i++)
          if (bits & (1 << i)) pl->pcm_end[i] = 0;
+      if (pl->sound_func)
+         pl->sound_func (MASL_SOUND_STOP, bits, -1, 0, FALSE, pl->now, pl->sound_data);
       break;
    }
    case OP_RATE: {
       gint i;
       pl->rate = (guint) MAX (arg (pl, insn, 0, 0), 0);
       for (i = 0; i < MASL_CHANNELS; i++) pl->pcm_end[i] = 0;
+      if (pl->sound_func)
+         pl->sound_func (MASL_SOUND_STOP, 0xff, -1, 0, FALSE, pl->now, pl->sound_data);
       break;
    }
    case OP_COUNT: {
@@ -1062,6 +1071,15 @@ masl_player_free (MaslPlayer *pl)
    if (pl->code) g_array_free (pl->code, TRUE);
    g_free (pl->counters);
    g_free (pl);
+}
+
+
+void
+masl_player_set_sound_func (MaslPlayer *pl, MaslSoundFunc func, gpointer data)
+{
+   g_return_if_fail (pl);
+   pl->sound_func = func;
+   pl->sound_data = data;
 }
 
 

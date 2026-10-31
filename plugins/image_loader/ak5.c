@@ -136,6 +136,7 @@ typedef struct {
    GArray       *cgs;        /* Ak5Entry: the CGs alone */
    GPtrArray    *pals;       /* the palettes alone */
    MaslPlayer   *player;
+   MaslSound    *sound;
    guchar       *next_rgb;   /* the picture after the one shown */
    gdouble       shown_ms, next_ms;
    gint          interval;
@@ -208,6 +209,7 @@ pkn_parse (Ak5 *ak, const guchar *buf, gsize len)
       pcm.adpcm = buf[pos] == 1;
       pcm.rate  = ak5_le16 (buf + pos + 17);
       pcm.len   = ak5_le32 (buf + pos + 19);
+      pcm.data  = buf + pos + 23;
       if (pcm.len > len - pos - 23) break;
       g_array_append_val (ak->pcms, pcm);
       pos += 23 + pcm.len;
@@ -398,6 +400,7 @@ static void
 ak5_free (Ak5 *ak)
 {
    if (!ak) return;
+   masl_sound_free (ak->sound);
    masl_player_free (ak->player);
    g_free (ak->next_rgb);
    if (ak->pcms) g_array_free (ak->pcms, TRUE);
@@ -513,6 +516,7 @@ masl_read_ahead (Ak5 *ak)
    do {
       got = masl_player_next (ak->player, ak->next_rgb, &ak->next_ms);
    } while (got && ak->next_ms - ak->shown_ms < 1.0);
+   if (got) masl_sound_set_time (ak->sound, ak->next_ms);
    if (got) {
       ak->interval = (gint) (ak->next_ms - ak->shown_ms + 0.5);
    } else {
@@ -561,6 +565,7 @@ masl_anim_start (GimvAnim *anim)
    guchar *rgb = g_malloc (MASL_FRAME_SIZE);
 
    masl_player_reset (ak->player);
+   masl_sound_start (ak->sound);     /* before the player tells of PCMs */
    if (!masl_player_next (ak->player, rgb, &ak->shown_ms)
        || !gimv_anim_update_frame (anim, rgb, AK5_WIDTH, AK5_HEIGHT, FALSE))
    {
@@ -635,6 +640,9 @@ ak5_load (GimvImageLoader *loader, gpointer data)
                                     (const MaslPcm *) ak->pcms->data, ak->pcms->len);
       if (ak->player) {
          GimvAnim *anim = gimv_anim_new ();
+         ak->sound = masl_sound_new ((const MaslPcm *) ak->pcms->data, ak->pcms->len);
+         if (ak->sound)
+            masl_player_set_sound_func (ak->player, masl_sound_event, ak->sound);
          anim->anim  = ak;
          anim->table = &masl_anim_table;
          if (!masl_anim_start (anim)) {
