@@ -416,7 +416,9 @@ static void
 cb_unbind (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer data)
 {
    GtkWidget *box = gtk_list_item_get_child (li);
-   gtk_picture_set_paintable (GTK_PICTURE (gtk_widget_get_first_child (box)), NULL);
+   GtkWidget *picture = box ? gtk_widget_get_first_child (box) : NULL;
+   if (GTK_IS_PICTURE (picture))
+      gtk_picture_set_paintable (GTK_PICTURE (picture), NULL);
 }
 
 

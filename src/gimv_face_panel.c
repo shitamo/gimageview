@@ -273,7 +273,7 @@ cb_action (GSimpleAction *action, GVariant *param, gpointer data)
    const gchar *what = g_action_get_name (G_ACTION (action));
    PanelFace *f = fp->menu_face;
 
-   if (f && !strcmp (what, "copy")) {
+   if (f && fp->iv && !strcmp (what, "copy")) {
       gimv_image_view_copy_face_to_clipboard (fp->iv, f->x, f->y, f->w, f->h);
       return;
    }
@@ -300,6 +300,29 @@ cb_action (GSimpleAction *action, GVariant *param, gpointer data)
       if (p && f->name) gimv_index_faces_win_show (tw, key, f->name);
       g_free (key);
    }
+}
+
+
+/* the popover of a face, unparented (and so freed: fp->popover is a weak
+ * pointer) */
+static void
+drop_popover (FacePanel *fp)
+{
+   if (fp->popover) {
+      GtkWidget *popover = fp->popover;
+      g_object_remove_weak_pointer (G_OBJECT (popover), (gpointer *) &fp->popover);
+      fp->popover = NULL;
+      if (gtk_widget_get_parent (popover))
+         gtk_widget_unparent (popover);
+   }
+}
+
+
+static void
+cb_row_destroy (GtkWidget *row, FacePanel *fp)
+{
+   if (fp->popover && gtk_widget_get_parent (fp->popover) == row)
+      drop_popover (fp);
 }
 
 
@@ -338,10 +361,14 @@ show_menu (FacePanel *fp, PanelFace *f, GtkWidget *row)
       g_object_unref (section);
    }
 
-   if (fp->popover) gtk_widget_unparent (fp->popover);
+   drop_popover (fp);
    fp->popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu));
+   g_object_add_weak_pointer (G_OBJECT (fp->popover), (gpointer *) &fp->popover);
    gtk_widget_insert_action_group (fp->box, "face", G_ACTION_GROUP (group));
    gtk_widget_set_parent (fp->popover, row);
+   /* the row goes (the list made again, the window closed): the popover
+    * with it (a row does not unparent it by itself) */
+   g_signal_connect (row, "destroy", G_CALLBACK (cb_row_destroy), fp);
    /* towards the image: the panel is at the right edge of the window */
    gtk_popover_set_position (GTK_POPOVER (fp->popover), GTK_POS_LEFT);
    gtk_popover_popup (GTK_POPOVER (fp->popover));
@@ -397,10 +424,7 @@ panel_clear (FacePanel *fp)
 {
    GtkWidget *child;
 
-   if (fp->popover) {
-      gtk_widget_unparent (fp->popover);
-      fp->popover = NULL;
-   }
+   drop_popover (fp);
    fp->menu_face = NULL;
    while ((child = gtk_widget_get_first_child (fp->list)))
       gtk_box_remove (GTK_BOX (fp->list), child);
@@ -413,7 +437,7 @@ panel_reload (FacePanel *fp)
    gint scanned;
    guint i;
 
-   if (!fp->box || !gtk_widget_get_visible (fp->box)) return;
+   if (!fp->box || !fp->iv || !gtk_widget_get_visible (fp->box)) return;
    panel_clear (fp);
    gimv_image_view_set_face_mark (fp->iv, FALSE, 0, 0, 0, 0, NULL);
    scanned = read_faces (fp);
@@ -505,10 +529,17 @@ cb_box_destroy (GtkWidget *widget, FacePanel *fp)
 {
    if (fp->watch_id) gimv_index_remove_watch (fp->watch_id);
    fp->watch_id = 0;
-   panel_clear (fp);
-   if (GIMV_IS_IMAGE_VIEW (fp->iv)) {
+   /* not panel_clear (): the children of the box are gone already (a box
+    * unparents them before its "destroy"), the rows and the popover too */
+   drop_popover (fp);
+   fp->menu_face = NULL;
+   fp->list = NULL;
+   fp->message = NULL;
+   if (fp->iv) {   /* a weak pointer: the view may have gone before */
+      g_object_remove_weak_pointer (G_OBJECT (fp->iv), (gpointer *) &fp->iv);
       g_signal_handlers_disconnect_by_data (fp->iv, fp);
       g_object_set_data (G_OBJECT (fp->iv), PANEL_KEY, NULL);
+      fp->iv = NULL;
    }
    g_ptr_array_unref (fp->faces);
    fp->box = NULL;
@@ -529,6 +560,7 @@ gimv_face_panel_wrap (GimvImageView *iv)
    GtkWidget *hbox, *header, *title, *done, *scroll;
 
    fp->iv = iv;
+   g_object_add_weak_pointer (G_OBJECT (iv), (gpointer *) &fp->iv);
    fp->faces = g_ptr_array_new_with_free_func ((GDestroyNotify) panel_face_free);
 
    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
