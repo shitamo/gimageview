@@ -20,6 +20,7 @@
 #include "gimageview.h"
 
 #include <string.h>
+#include <math.h>
 #include <gio/gio.h>
 
 #include "gimv_image_info.h"
@@ -45,6 +46,8 @@ struct _GimvFaceItem {
    gint64  id;
    gchar  *path;
    gchar  *date;
+   gfloat  sim;     /* sorted "least like the person first": the likeness */
+   gboolean has_sim;
 };
 
 G_DEFINE_TYPE (GimvFaceItem, gimv_face_item, G_TYPE_OBJECT)
@@ -81,6 +84,7 @@ static struct {
    GtkWidget         *name_entry;   /* the name being changed */
    GtkWidget         *edit_button;  /* the pencil: change the name */
    GtkWidget         *count_label;
+   GtkWidget         *sort_drop;    /* the order of the faces */
    GtkWidget         *tags_button;  /* the tags of the person */
    GtkWidget         *tags_label;
    GtkWidget         *grid;
@@ -97,12 +101,22 @@ static struct {
    gchar             *error;     /* of the last change, shown in the heading */
 } fw;
 
+/* the order of the faces (the items of sort_drop) */
+enum {
+   SORT_OLD_FIRST,
+   SORT_NEW_FIRST,
+   SORT_UNLIKE_FIRST,   /* least like the person (or the group) first */
+};
+/* kept for the next faces shown (and the next window) */
+static guint sort_order = SORT_OLD_FIRST;
+
 enum {
    B_NAME, B_CONFIRM, B_REJECT, B_CLEAR, B_IGNORE, B_UNIGNORE, B_OPEN, N_BUTTONS
 };
 
 
 static void update_buttons (void);
+static gboolean key_has_likeness (const gchar *key);
 
 
 static void
@@ -139,6 +153,9 @@ update_heading (void)
       line = g_strdup_printf ("%s — %s", count, _("writing..."));
    else if (fw.error)
       line = g_strdup_printf (_("%s — could not be written: %s"), count, fw.error);
+   else if (sort_order == SORT_UNLIKE_FIRST && !key_has_likeness (fw.key))
+      /* not of one person: by date */
+      line = g_strdup_printf (_("%s — by date (not of one person)"), count);
    else
       line = g_strdup (count);
    gtk_label_set_text (GTK_LABEL (fw.count_label), line);
@@ -241,7 +258,32 @@ typedef struct {
    gint64 id;
    gchar *path;
    gchar *date;
+   gfloat sim;
+   gboolean has_sim;
+   gfloat *feature;   /* SORT_UNLIKE_FIRST only */
 } FaceRow;
+
+typedef struct {
+   gchar *key;
+   guint  order;
+} ListRequest;
+
+
+static void
+list_request_free (ListRequest *req)
+{
+   g_free (req->key);
+   g_free (req);
+}
+
+
+/* "least like the person first" makes sense for the faces of one person
+ * (named, or guessed) and of a group */
+static gboolean
+key_has_likeness (const gchar *key)
+{
+   return key && (key[0] == 'p' || key[0] == 'g' || key[0] == 'c') && key[1] == ':';
+}
 
 static void
 face_row_clear (gpointer p)
@@ -249,13 +291,107 @@ face_row_clear (gpointer p)
    FaceRow *r = p;
    g_free (r->path);
    g_free (r->date);
+   g_free (r->feature);
+}
+
+
+#define FACE_FEATURE_LEN 128
+
+static void
+feature_normalize (gfloat *m)
+{
+   gdouble len = 0;
+   gint i;
+
+   for (i = 0; i < FACE_FEATURE_LEN; i++) len += (gdouble) m[i] * m[i];
+   if (len <= 0) return;
+   len = sqrt (len);
+   for (i = 0; i < FACE_FEATURE_LEN; i++) m[i] /= len;
+}
+
+
+/* the mean of the faces named as the person (for the guesses: whom they
+ * are compared with), NULL when there is none */
+static gfloat *
+person_mean (sqlite3 *db, gint64 person)
+{
+   sqlite3_stmt *st;
+   gfloat *m = g_new0 (gfloat, FACE_FEATURE_LEN);
+   guint n = 0;
+   gint i;
+
+   if (sqlite3_prepare_v2 (db, "SELECT feature FROM faces WHERE person_id = ?1 AND ignored = 0",
+                           -1, &st, NULL) == SQLITE_OK) {
+      sqlite3_bind_int64 (st, 1, person);
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         const gfloat *f = sqlite3_column_blob (st, 0);
+         if (sqlite3_column_bytes (st, 0) != FACE_FEATURE_LEN * (gint) sizeof (gfloat)) continue;
+         for (i = 0; i < FACE_FEATURE_LEN; i++) m[i] += f[i];
+         n++;
+      }
+      sqlite3_finalize (st);
+   }
+   if (!n) {
+      g_free (m);
+      return NULL;
+   }
+   feature_normalize (m);
+   return m;
+}
+
+
+static gint
+cmp_unlike_first (gconstpointer a, gconstpointer b)
+{
+   const FaceRow *x = a, *y = b;
+
+   /* the faces without a feature at the end */
+   if (x->has_sim != y->has_sim) return x->has_sim ? -1 : 1;
+   if (x->sim != y->sim) return x->sim < y->sim ? -1 : 1;
+   return g_strcmp0 (x->date, y->date);
+}
+
+
+/* the likeness of each face to the mean (of the person, else of the faces
+ * listed), least alike first */
+static void
+sort_unlike_first (sqlite3 *db, const gchar *key, GArray *rows)
+{
+   gfloat *mean = NULL;
+   guint i, n = 0;
+   gint j;
+
+   if (key[0] == 'g')
+      mean = person_mean (db, g_ascii_strtoll (key + 2, NULL, 10));
+   if (!mean) {
+      mean = g_new0 (gfloat, FACE_FEATURE_LEN);
+      for (i = 0; i < rows->len; i++) {
+         FaceRow *r = &g_array_index (rows, FaceRow, i);
+         if (!r->feature) continue;
+         for (j = 0; j < FACE_FEATURE_LEN; j++) mean[j] += r->feature[j];
+         n++;
+      }
+      feature_normalize (mean);
+   }
+   for (i = 0; i < rows->len; i++) {
+      FaceRow *r = &g_array_index (rows, FaceRow, i);
+      gfloat s = 0;
+      if (!r->feature) continue;
+      for (j = 0; j < FACE_FEATURE_LEN; j++) s += mean[j] * r->feature[j];
+      r->sim = s;
+      r->has_sim = TRUE;
+   }
+   g_free (mean);
+   g_array_sort (rows, cmp_unlike_first);
 }
 
 
 static void
 thread_list_faces (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
-   const gchar *key = data;
+   ListRequest *req = data;
+   const gchar *key = req->key;
+   gboolean unlike = req->order == SORT_UNLIKE_FIRST && key_has_likeness (key);
    gchar *where = gimv_index_faces_key_where (key), *sql, *dbfile;
    GArray *rows = g_array_new (FALSE, TRUE, sizeof (FaceRow));
    sqlite3 *db = NULL;
@@ -273,9 +409,12 @@ thread_list_faces (GTask *task, gpointer source, gpointer data, GCancellable *ca
    }
 
    /* by date: the faces of one day (one event) come together */
-   sql = g_strdup_printf ("SELECT fa.id, d.path, f.name, f.date FROM faces fa "
+   sql = g_strdup_printf ("SELECT fa.id, d.path, f.name, f.date, %s FROM faces fa "
                           "JOIN files f ON f.id = fa.file_id JOIN dirs d ON d.id = f.dir_id "
-                          "WHERE %s ORDER BY f.date, f.name, fa.x", where);
+                          "WHERE %s ORDER BY f.date %s, f.name %s, fa.x",
+                          unlike ? "fa.feature" : "NULL", where,
+                          req->order == SORT_NEW_FIRST ? "DESC" : "",
+                          req->order == SORT_NEW_FIRST ? "DESC" : "");
    if (sqlite3_prepare_v2 (db, sql, -1, &st, NULL) == SQLITE_OK) {
       while (sqlite3_step (st) == SQLITE_ROW) {
          FaceRow r;
@@ -284,10 +423,17 @@ thread_list_faces (GTask *task, gpointer source, gpointer data, GCancellable *ca
          r.path = g_build_filename ((const gchar *) sqlite3_column_text (st, 1),
                                     (const gchar *) sqlite3_column_text (st, 2), NULL);
          r.date = g_strdup ((const gchar *) sqlite3_column_text (st, 3));
+         r.sim = 0;
+         r.has_sim = FALSE;
+         r.feature = sqlite3_column_bytes (st, 4) == FACE_FEATURE_LEN * (gint) sizeof (gfloat)
+                     ? g_memdup2 (sqlite3_column_blob (st, 4), FACE_FEATURE_LEN * sizeof (gfloat))
+                     : NULL;
          g_array_append_val (rows, r);
       }
       sqlite3_finalize (st);
    }
+   if (unlike && !g_cancellable_is_cancelled (cancel))
+      sort_unlike_first (db, key, rows);
    g_free (sql);
    g_free (where);
    sqlite3_close (db);
@@ -317,6 +463,8 @@ cb_listed (GObject *source, GAsyncResult *res, gpointer data)
       item->id = r->id;
       item->path = g_steal_pointer (&r->path);
       item->date = g_steal_pointer (&r->date);
+      item->sim = r->sim;
+      item->has_sim = r->has_sim;
       g_ptr_array_add (items, item);
    }
    g_list_store_splice (fw.store, 0, g_list_model_get_n_items (G_LIST_MODEL (fw.store)),
@@ -325,6 +473,19 @@ cb_listed (GObject *source, GAsyncResult *res, gpointer data)
    g_array_unref (rows);
    update_heading ();
    update_buttons ();
+}
+
+
+static void reload (void);
+
+static void
+cb_sort_changed (GtkDropDown *drop, GParamSpec *pspec, gpointer data)
+{
+   guint order = gtk_drop_down_get_selected (drop);
+
+   if (order == GTK_INVALID_LIST_POSITION || order == sort_order) return;
+   sort_order = order;
+   if (fw.key) reload ();
 }
 
 
@@ -343,7 +504,12 @@ reload (void)
 
    fw.cancel = g_cancellable_new ();
    task = g_task_new (NULL, fw.cancel, cb_listed, NULL);
-   g_task_set_task_data (task, g_strdup (fw.key), g_free);
+   {
+      ListRequest *req = g_new0 (ListRequest, 1);
+      req->key = g_strdup (fw.key);
+      req->order = sort_order;
+      g_task_set_task_data (task, req, (GDestroyNotify) list_request_free);
+   }
    g_task_run_in_thread (task, thread_list_faces);
    g_object_unref (task);
 }
@@ -406,8 +572,19 @@ cb_bind (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer data)
 
    gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (texture));
    if (texture) g_object_unref (texture);
-   gtk_label_set_text (GTK_LABEL (label), day);
-   gtk_widget_set_tooltip_text (box, item->path);
+   if (item->has_sim) {
+      /* how alike, shown with the date (the order is by it) */
+      gchar *text = g_strdup_printf ("%s  %.2f", day, item->sim);
+      gchar *tip = g_strdup_printf (_("%s\nLikeness: %.2f (1 the same, about 0.4 and under "
+                                      "another person)"), item->path, item->sim);
+      gtk_label_set_text (GTK_LABEL (label), text);
+      gtk_widget_set_tooltip_text (box, tip);
+      g_free (text);
+      g_free (tip);
+   } else {
+      gtk_label_set_text (GTK_LABEL (label), day);
+      gtk_widget_set_tooltip_text (box, item->path);
+   }
    g_free (day);
 }
 
@@ -1339,6 +1516,22 @@ create_window (void)
    gtk_widget_add_css_class (fw.count_label, "dim-label");
    gtk_widget_set_margin_start (fw.count_label, 8);
    gtk_box_append (GTK_BOX (fw.heading), fw.count_label);
+   {
+      const gchar *orders[] = { _("Oldest First"), _("Newest First"),
+                                _("Least Like the Person First"), NULL };
+      GtkWidget *space = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_widget_set_hexpand (space, TRUE);
+      gtk_box_append (GTK_BOX (fw.heading), space);
+      fw.sort_drop = gtk_drop_down_new_from_strings (orders);
+      gtk_drop_down_set_selected (GTK_DROP_DOWN (fw.sort_drop), sort_order);
+      gtk_widget_set_valign (fw.sort_drop, GTK_ALIGN_CENTER);
+      gtk_widget_set_tooltip_text (fw.sort_drop,
+                                   _("The order of the faces. \"Least like the person first\": "
+                                     "the faces most unlike the others of the person (or the "
+                                     "group) come first, to find the ones named wrong."));
+      g_signal_connect (fw.sort_drop, "notify::selected", G_CALLBACK (cb_sort_changed), NULL);
+      gtk_box_append (GTK_BOX (fw.heading), fw.sort_drop);
+   }
    gtk_box_append (GTK_BOX (vbox), fw.heading);
 
    fw.store = g_list_store_new (GIMV_TYPE_FACE_ITEM);

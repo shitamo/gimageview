@@ -5969,3 +5969,23 @@ msgstr "顔の人物名をコメントファイルに書き込み中: %'u / %'u 
 #, c-format
 msgid "Index: names %'u/%'u"
 msgstr "索引: 人物名 %'u/%'u"
+
+msgid "Oldest First"
+msgstr "古い順"
+
+msgid "Newest First"
+msgstr "新しい順"
+
+msgid "Least Like the Person First"
+msgstr "その人らしくない順"
+
+msgid "The order of the faces. \"Least like the person first\": the faces most unlike the others of the person (or the group) come first, to find the ones named wrong."
+msgstr "顔の並び順。「その人らしくない順」: その人 (またはグループ) の他の顔と最も似ていない顔から並べます。名前の付け間違いを見つけるのに。"
+
+#, c-format
+msgid "%s\nLikeness: %.2f (1 the same, about 0.4 and under another person)"
+msgstr "%s\n似ている度合い: %.2f (1 で同じ、0.4 前後以下は別人)"
+
+#, c-format
+msgid "%s — by date (not of one person)"
+msgstr "%s — 日付順 (一人の顔の一覧ではないため)"
