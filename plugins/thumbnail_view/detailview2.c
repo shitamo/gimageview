@@ -1196,13 +1196,16 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    gtk_widget_show (tv_data->treeview);
 
    /* the status bar shows the path of the focused file of a collection */
-   g_signal_connect_swapped (tv_data->treeview, "cursor-changed",
-                             G_CALLBACK (gimv_thumb_view_focus_changed), tv);
+   /* bound to tv: the tree view (emitting "cursor-changed" while it is
+    * disposed) may outlive it, when a tab is closed */
+   g_signal_connect_object (tv_data->treeview, "cursor-changed",
+                            G_CALLBACK (gimv_thumb_view_focus_changed), tv,
+                            G_CONNECT_SWAPPED);
    /* the files of a collection from the index show the name only: the full
       path as the tooltip */
    gtk_widget_set_has_tooltip (tv_data->treeview, TRUE);
-   g_signal_connect (tv_data->treeview, "query-tooltip",
-                     G_CALLBACK (cb_treeview_query_tooltip), tv);
+   g_signal_connect_object (tv_data->treeview, "query-tooltip",
+                            G_CALLBACK (cb_treeview_query_tooltip), tv, 0);
 
    gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_treeview_key_press), tv);
    gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_treeview_button_press), tv);
