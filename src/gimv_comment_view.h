@@ -59,6 +59,12 @@ struct GimvCommentView_Tag
    GimvImageView *iv;
    GtkWidget     *next_button;
    GtkWidget     *prev_button;
+
+   /* the tags of the image in the index (the data page) */
+   GtkWidget     *tags_row;
+   GtkWidget     *tags_flow;
+   GCancellable  *tags_cancel;
+   guint          tags_watch;
 };
 
 

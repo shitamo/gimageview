@@ -28,6 +28,11 @@
 #include "gimageview.h"
 
 #include "charset.h"
+#ifdef ENABLE_INDEX
+#  include "gimv_index.h"
+#  include "gimv_index_view.h"
+#  include "gimv_thumb_win.h"
+#endif
 #include "dnd.h"
 #include "gimv_comment.h"
 #include "gimv_file_comment.h"
@@ -209,6 +214,14 @@ cb_destroyed (GtkWidget *widget, GimvCommentView *cv)
 
    /* GTK4: no accel group any more (mnemonics are used) */
    cv->accel_group = NULL;
+
+#ifdef ENABLE_INDEX
+   if (cv->tags_watch) gimv_index_remove_watch (cv->tags_watch);
+   if (cv->tags_cancel) {
+      g_cancellable_cancel (cv->tags_cancel);
+      g_clear_object (&cv->tags_cancel);
+   }
+#endif
 
    g_free (cv);
 }
@@ -491,6 +504,170 @@ gimv_comment_view_new ()
 }
 
 
+/******************************************************************************
+ *  the tags of the image in the index, above the data: each a button that
+ *  shows the images with the tag.  Read in a worker thread.
+ ******************************************************************************/
+#ifdef ENABLE_INDEX
+
+#define TAG_RULE_COLOR "#3584e4"   /* as in the tag tab */
+
+static void
+cb_tag_clicked (GtkButton *button, gpointer data)
+{
+   const gchar *key = g_object_get_data (G_OBJECT (button), "gimv-tag-key");
+   GtkRoot *root = gtk_widget_get_root (GTK_WIDGET (button));
+   GimvThumbWin *tw = NULL;
+
+   if (GIMV_IS_THUMB_WIN (root)) {
+      tw = GIMV_THUMB_WIN (root);
+   } else {
+      /* the comment window, the image window: the first thumbnail window */
+      GList *list = gimv_thumb_win_get_list ();
+      if (list) tw = list->data;
+   }
+   if (tw && key) {
+      gimv_index_open_tag (tw, key);
+      gtk_window_present (GTK_WINDOW (tw));
+   }
+}
+
+
+static void
+tags_clear (GimvCommentView *cv)
+{
+   GtkWidget *child;
+
+   if (!cv->tags_flow) return;
+   while ((child = gtk_widget_get_first_child (cv->tags_flow)))
+      gtk_flow_box_remove (GTK_FLOW_BOX (cv->tags_flow), child);
+}
+
+
+static void
+cb_got_tags (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GimvCommentView *cv = data;
+   GPtrArray *keys;
+   guint i;
+
+   /* cv may be gone (cancelled then) */
+   if (g_cancellable_is_cancelled (g_task_get_cancellable (G_TASK (res)))) return;
+   keys = gimv_index_get_tags_finish (res);
+   if (!cv->tags_flow) {
+      if (keys) g_ptr_array_unref (keys);
+      return;
+   }
+
+   tags_clear (cv);
+   /* not in the index (in an archive, a folder not indexed): no row */
+   gtk_widget_set_visible (cv->tags_row, keys != NULL);
+   if (!keys) return;
+
+   if (!keys->len) {
+      GtkWidget *none = gtk_label_new (_("none"));
+      gtk_widget_add_css_class (none, "dim-label");
+      gtk_flow_box_append (GTK_FLOW_BOX (cv->tags_flow), none);
+   }
+   for (i = 0; i < keys->len; i++) {
+      const gchar *key = g_ptr_array_index (keys, i);
+      gint kind = gimv_index_tag_kind (key);
+      gchar *text = gimv_index_tag_label (key);
+      GtkWidget *button = gtk_button_new ();
+      GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 3);
+      GtkWidget *label = gtk_label_new (NULL);
+
+      if (kind == 1)
+         gtk_box_append (GTK_BOX (box), gtk_image_new_from_icon_name ("avatar-default-symbolic"));
+      if (kind >= 2) {
+         /* the tags of rules and of people: kept in the index only */
+         gchar *markup = g_markup_printf_escaped ("<span foreground=\"" TAG_RULE_COLOR "\">%s</span>",
+                                                  text);
+         gtk_label_set_markup (GTK_LABEL (label), markup);
+         g_free (markup);
+      } else {
+         gtk_label_set_text (GTK_LABEL (label), text);
+      }
+      gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+      gtk_label_set_max_width_chars (GTK_LABEL (label), 30);
+      gtk_box_append (GTK_BOX (box), label);
+      gtk_button_set_child (GTK_BUTTON (button), box);
+      gtk_widget_add_css_class (button, "flat");
+      gtk_widget_set_tooltip_text (button,
+         kind == 0 ? _("A tag put by a person: click to show the images with it")
+         : kind == 1 ? _("A person in the image: click to show the images of the person")
+         : kind == 2 ? _("A tag of a person in the image: click to show the images of these people")
+         : _("An automatic tag: click to show the images with it"));
+      g_object_set_data_full (G_OBJECT (button), "gimv-tag-key", g_strdup (key), g_free);
+      g_signal_connect (button, "clicked", G_CALLBACK (cb_tag_clicked), NULL);
+      gtk_flow_box_append (GTK_FLOW_BOX (cv->tags_flow), button);
+      g_free (text);
+   }
+   g_ptr_array_unref (keys);
+}
+
+
+static void
+tags_refresh (GimvCommentView *cv)
+{
+   GimvImageInfo *info = cv->comment ? cv->comment->info : NULL;
+
+   if (!cv->tags_flow) return;
+   if (cv->tags_cancel) {
+      g_cancellable_cancel (cv->tags_cancel);
+      g_clear_object (&cv->tags_cancel);
+   }
+   if (!info || gimv_image_info_is_in_archive (info) || !gimv_index_is_configured ()) {
+      tags_clear (cv);
+      gtk_widget_set_visible (cv->tags_row, FALSE);
+      return;
+   }
+   /* the old ones stay until the new ones come (no flicker) */
+   cv->tags_cancel = g_cancellable_new ();
+   gimv_index_get_tags_async (gimv_image_info_get_path (info), cv->tags_cancel,
+                              cb_got_tags, cv);
+}
+
+
+static void
+cb_index_changed (GimvIndexChange what, gpointer data)
+{
+   if (what & (GIMV_INDEX_CHANGED_TAGS | GIMV_INDEX_CHANGED_FACES))
+      tags_refresh (data);
+}
+
+
+static void
+create_tags_row (GimvCommentView *cv, GtkWidget *vbox)
+{
+   GtkWidget *label;
+
+   cv->tags_row = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+   gtk_widget_set_margin_start (cv->tags_row, 4);
+   gtk_widget_set_margin_end (cv->tags_row, 4);
+   gtk_widget_set_margin_top (cv->tags_row, 2);
+   gtk_widget_set_margin_bottom (cv->tags_row, 2);
+   label = gtk_label_new (_("Tags:"));
+   gtk_widget_set_valign (label, GTK_ALIGN_START);
+   gtk_widget_set_margin_top (label, 6);
+   gtk_box_append (GTK_BOX (cv->tags_row), label);
+
+   cv->tags_flow = gtk_flow_box_new ();
+   gtk_flow_box_set_selection_mode (GTK_FLOW_BOX (cv->tags_flow), GTK_SELECTION_NONE);
+   gtk_flow_box_set_max_children_per_line (GTK_FLOW_BOX (cv->tags_flow), 30);
+   gtk_flow_box_set_row_spacing (GTK_FLOW_BOX (cv->tags_flow), 0);
+   gtk_flow_box_set_column_spacing (GTK_FLOW_BOX (cv->tags_flow), 0);
+   gtk_widget_set_hexpand (cv->tags_flow, TRUE);
+   gtk_box_append (GTK_BOX (cv->tags_row), cv->tags_flow);
+
+   gtk_widget_set_visible (cv->tags_row, FALSE);
+   gtk_box_append (GTK_BOX (vbox), cv->tags_row);
+   cv->tags_watch = gimv_index_add_watch (cb_index_changed, cv);
+}
+
+#endif /* ENABLE_INDEX */
+
+
 static GtkWidget *
 create_data_page (GimvCommentView *cv)
 {
@@ -507,6 +684,10 @@ create_data_page (GimvCommentView *cv)
 
    gtk_notebook_append_page (GTK_NOTEBOOK(cv->notebook),
                              vbox, label);
+
+#ifdef ENABLE_INDEX
+   create_tags_row (cv, vbox);
+#endif
 
    /* scrolled window & clist */
    scrolledwin = gimv_scrolled_window_new (NULL, NULL);
@@ -958,6 +1139,9 @@ gimv_comment_view_change_file (GimvCommentView *cv, GimvImageInfo *info)
 
    gimv_comment_view_reset_data (cv);
    gimv_comment_view_set_combo_list (cv);
+#ifdef ENABLE_INDEX
+   tags_refresh (cv);
+#endif
 
    return TRUE;
 }

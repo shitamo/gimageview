@@ -1892,6 +1892,8 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
       gtk_widget_set_vexpand (iv->scroll, TRUE);
       gtk_box_append (GTK_BOX (box), iv->search_bar);
       gtk_box_append (GTK_BOX (box), iv->scroll);
+      /* for gimv_index_open_tag () */
+      g_object_set_data (G_OBJECT (box), "gimv-index-view", iv);
       return box;
    }
 }
@@ -1995,3 +1997,132 @@ gimv_index_tabs_sync (GimvThumbWin *tw)
    else
       gimv_index_tab_close (tw, GIMV_INDEX_TAB_PERSON);
 }
+
+
+/******************************************************************************
+ *  the tags of one image (the "Data" tab of the comments)
+ ******************************************************************************/
+
+static void
+add_strings (sqlite3 *db, const gchar *sql, gint64 file_id, const gchar *prefix,
+             GPtrArray *keys)
+{
+   sqlite3_stmt *st;
+
+   if (sqlite3_prepare_v2 (db, sql, -1, &st, NULL) != SQLITE_OK) return;
+   sqlite3_bind_int64 (st, 1, file_id);
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      gchar *key = g_strconcat (prefix, (const gchar *) sqlite3_column_text (st, 0), NULL);
+      if (!g_ptr_array_find_with_equal_func (keys, key, g_str_equal, NULL))
+         g_ptr_array_add (keys, key);
+      else
+         g_free (key);
+   }
+   sqlite3_finalize (st);
+}
+
+
+static void
+thread_get_tags (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   const gchar *path = data;
+   gchar *dbfile = gimv_index_db_default_path ();
+   gchar *dir = g_path_get_dirname (path), *name = g_path_get_basename (path);
+   sqlite3 *db = NULL;
+   sqlite3_stmt *st;
+   gint64 file_id = 0;
+   GPtrArray *keys = NULL;
+
+   if (gimv_index_db_open (dbfile, FALSE, &db, NULL) == GIMV_INDEX_DB_OK
+       && sqlite3_prepare_v2 (db, "SELECT f.id FROM files f JOIN dirs d ON d.id = f.dir_id "
+                                  "WHERE d.path = ?1 AND f.name = ?2", -1, &st, NULL) == SQLITE_OK)
+   {
+      sqlite3_bind_text (st, 1, dir, -1, SQLITE_STATIC);
+      sqlite3_bind_text (st, 2, name, -1, SQLITE_STATIC);
+      if (sqlite3_step (st) == SQLITE_ROW) file_id = sqlite3_column_int64 (st, 0);
+      sqlite3_finalize (st);
+   }
+   if (file_id && !g_cancellable_is_cancelled (cancel)) {
+      keys = g_ptr_array_new_with_free_func (g_free);
+      /* put by a person (the names apart, after them) */
+      add_strings (db, "SELECT t.name FROM file_tags ft JOIN tags t ON t.id = ft.tag_id "
+                       "WHERE ft.file_id = ?1 AND ft.auto = 0 "
+                       "AND NOT (t.name >= 'person/' AND t.name < 'person0') ORDER BY t.name",
+                   file_id, "", keys);
+      /* the names: given to the faces, and in the comment file (one not
+       * given back to a face yet) */
+      add_strings (db, "SELECT p.name FROM faces fa JOIN persons p ON p.id = fa.person_id "
+                       "WHERE fa.file_id = ?1 UNION SELECT substr (t.name, 8) FROM file_tags ft "
+                       "JOIN tags t ON t.id = ft.tag_id WHERE ft.file_id = ?1 AND ft.auto = 0 "
+                       "AND t.name >= 'person/' AND t.name < 'person0' ORDER BY 1",
+                   file_id, NAME_TAG, keys);
+      add_strings (db, "SELECT DISTINCT pt.tag FROM faces fa JOIN person_tags pt "
+                       "ON pt.person_id = fa.person_id WHERE fa.file_id = ?1 ORDER BY 1",
+                   file_id, ",person/", keys);
+      add_strings (db, "SELECT t.name FROM file_tags ft JOIN tags t ON t.id = ft.tag_id "
+                       "WHERE ft.file_id = ?1 AND ft.auto = 1 ORDER BY t.name",
+                   file_id, ",", keys);
+   }
+   if (db) sqlite3_close (db);
+   g_free (dbfile);
+   g_free (dir);
+   g_free (name);
+   g_task_return_pointer (task, keys, keys ? (GDestroyNotify) g_ptr_array_unref : NULL);
+}
+
+
+void
+gimv_index_get_tags_async (const gchar *path, GCancellable *cancel,
+                           GAsyncReadyCallback callback, gpointer data)
+{
+   GTask *task = g_task_new (NULL, cancel, callback, data);
+
+   g_task_set_task_data (task, g_strdup (path), g_free);
+   g_task_run_in_thread (task, thread_get_tags);
+   g_object_unref (task);
+}
+
+
+GPtrArray *
+gimv_index_get_tags_finish (GAsyncResult *res)
+{
+   return g_task_propagate_pointer (G_TASK (res), NULL);
+}
+
+
+gint
+gimv_index_tag_kind (const gchar *key)
+{
+   if (!key) return 0;
+   if (key[0] == AUTO_KEY_MARK)
+      return g_str_has_prefix (key + 1, "person/") ? 2 : 3;
+   return g_str_has_prefix (key, NAME_TAG) ? 1 : 0;
+}
+
+
+gchar *
+gimv_index_tag_label (const gchar *key)
+{
+   gint kind = gimv_index_tag_kind (key);
+
+   if (kind == 0) return g_strdup (key);
+   if (kind == 1) return g_strdup (key + NAME_TAG_LEN);
+   return tag_title (key);
+}
+
+
+void
+gimv_index_open_tag (GimvThumbWin *tw, const gchar *key)
+{
+   GtkWidget *page;
+   IndexView *iv;
+
+   g_return_if_fail (GIMV_IS_THUMB_WIN (tw) && key);
+   if (!(page = gimv_index_tab_get_page (tw, GIMV_INDEX_TAB_TAG))) {
+      gimv_index_tab_open (tw, GIMV_INDEX_TAB_TAG);
+      page = gimv_index_tab_get_page (tw, GIMV_INDEX_TAB_TAG);
+   }
+   iv = page ? g_object_get_data (G_OBJECT (page), "gimv-index-view") : NULL;
+   if (iv) open_key (iv, key, FALSE);
+}
+

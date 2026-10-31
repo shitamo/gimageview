@@ -31,4 +31,24 @@ GtkWidget *gimv_index_tab_get_page    (GimvThumbWin     *tw,
 /* open or close the tabs as the preferences say */
 void       gimv_index_tabs_sync       (GimvThumbWin     *tw);
 
+/* the tags of one image, from the index (in a worker thread): keys as in
+ * the tag tab, in the order to show them: the tags put by a person, the
+ * names of the people in it ("person/<name>"), the tags of these people
+ * (",person/<tag>"), the tags of the rules (",folder/...", ...).
+ * NULL (no error) for an image not in the index. */
+void       gimv_index_get_tags_async  (const gchar         *path,
+                                       GCancellable        *cancel,
+                                       GAsyncReadyCallback  callback,
+                                       gpointer             data);
+GPtrArray *gimv_index_get_tags_finish (GAsyncResult        *res);
+/* how a key is shown ("Kyoto", "Folder: 2019", "Eileen (Name)", ...) */
+gchar     *gimv_index_tag_label       (const gchar         *key);
+/* the kind of a key: 0 put by a person, 1 a name, 2 a tag of people,
+ * 3 put by a rule */
+gint       gimv_index_tag_kind        (const gchar         *key);
+/* the images of the tag in the result tab, as a click on its row in the
+ * tag tab (opened when it is not) */
+void       gimv_index_open_tag        (GimvThumbWin        *tw,
+                                       const gchar         *key);
+
 #endif /* __GIMV_INDEX_VIEW_H__ */

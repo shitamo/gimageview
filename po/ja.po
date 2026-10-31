@@ -5989,3 +5989,21 @@ msgstr "%s\n似ている度合い: %.2f (1 で同じ、0.4 前後以下は別人
 #, c-format
 msgid "%s — by date (not of one person)"
 msgstr "%s — 日付順 (一人の顔の一覧ではないため)"
+
+msgid "A tag put by a person: click to show the images with it"
+msgstr "手で付けたタグ: クリックでこのタグの画像を表示"
+
+msgid "A person in the image: click to show the images of the person"
+msgstr "写っている人物: クリックでこの人の画像を表示"
+
+msgid "A tag of a person in the image: click to show the images of these people"
+msgstr "写っている人物のタグ: クリックでこのタグの人たちの画像を表示"
+
+msgid "An automatic tag: click to show the images with it"
+msgstr "自動タグ: クリックでこのタグの画像を表示"
+
+msgid "Tags:"
+msgstr "タグ:"
+
+msgid "none"
+msgstr "なし"
