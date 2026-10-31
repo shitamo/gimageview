@@ -140,6 +140,7 @@ typedef struct {
    guchar       *next_rgb;   /* the picture after the one shown */
    gdouble       shown_ms, next_ms;
    gint          interval;
+   gint64        start_us;   /* the time 0 (g_get_monotonic_time ()) */
 } Ak5;
 
 
@@ -533,11 +534,19 @@ masl_anim_get_length (GimvAnim *anim)
 }
 
 
+/* up to the time of the next picture from the start, not from now: the
+ * work of showing a picture (and the lateness of the timer) is not added
+ * up, the pictures keep to the clock of the sound */
 static gint
 masl_anim_get_interval (GimvAnim *anim)
 {
    Ak5 *ak = anim->anim;
-   return ak ? ak->interval : -1;
+   gint64 left;
+
+   if (!ak) return -1;
+   if (!ak->next_rgb) return ak->interval;          /* the last one stays */
+   left = ak->start_us + (gint64) (ak->next_ms * 1000) - g_get_monotonic_time ();
+   return (gint) CLAMP (left / 1000, 1, G_MAXINT);
 }
 
 
@@ -566,6 +575,7 @@ masl_anim_start (GimvAnim *anim)
 
    masl_player_reset (ak->player);
    masl_sound_start (ak->sound);     /* before the player tells of PCMs */
+   ak->start_us = g_get_monotonic_time ();
    if (!masl_player_next (ak->player, rgb, &ak->shown_ms)
        || !gimv_anim_update_frame (anim, rgb, AK5_WIDTH, AK5_HEIGHT, FALSE))
    {

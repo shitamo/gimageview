@@ -28,8 +28,9 @@
  * pictures of those times are shown as the pipeline's clock goes from
  * start () on, so the sound is made at the same times: the samples of a
  * time are mixed when the sink asks for them, with the events up to it.
- * The player is read ahead a picture; past the time it has reached (it
- * was stopped, or is late) silence is made and the channels wait.
+ * The player is read ahead a picture; a little past the time it has
+ * reached (it is late) the channels go on, far past it (the animation was
+ * stopped) silence is made and they wait.
  *
  * GIMV_MASL_AUDIO_SINK replaces the sink (a gst-launch description, for
  * tests: "wavenc ! filesink location=x.wav").
@@ -49,8 +50,9 @@
 #define SOUND_RATE      44100
 #define SOUND_CHUNK     1024              /* samples a buffer */
 #define SOUND_CHANNELS  8
-/* the sound may go this far past the time the player has reached */
-#define SOUND_MARGIN    0.2               /* s */
+/* the sound goes on this far past the time the player has reached (it is
+ * late), then stops (the animation was stopped) */
+#define SOUND_MARGIN    2.0               /* s */
 
 typedef struct {
    MaslSoundWhat what;
