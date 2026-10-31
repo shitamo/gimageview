@@ -5933,3 +5933,19 @@ msgstr "機種"
 #, c-format
 msgid "In File: %s"
 msgstr "ファイル内: %s"
+
+#: plugins/image_loader/ak5.c
+msgid "The AK5 image format (MASL)"
+msgstr "AK5 画像形式 (MASL)"
+
+#: plugins/image_loader/ak5.c
+msgid "The MSL animation format (MASL)"
+msgstr "MSL アニメーション形式 (MASL)"
+
+#: plugins/image_loader/ak5.c
+msgid "AK5 Image Loader"
+msgstr "AK5画像ローダ"
+
+#: plugins/image_loader/ak5.c
+msgid "AK5 and MSL pictures of MASL (PC-9801)"
+msgstr "MASL (PC-9801) の AK5・MSL 画像"

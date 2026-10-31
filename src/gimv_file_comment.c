@@ -1,7 +1,8 @@
 /* -*- Mode: C; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 3 -*- */
 
 /*
- * GImageView: the comments written in an image file (MAG, PNG, JPEG, GIF),
+ * GImageView: the comments written in an image file (MAG, PNG, JPEG, GIF;
+ * the user name of AK5 / MSL),
  * read from its header without loading the image.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -290,6 +291,42 @@ read_gif (FILE *f, GPtrArray *list)
 }
 
 
+/******************************************************************************
+ *  AK5 / MSL (MASL, PC-9801): the user name of the .ak5 file ("AK5\0", 4
+ *  bytes, 32 bytes of name); in an .msl ("MSL\0", 4 bytes, u16 n, the
+ *  scenario, then u32 size and a file ...) that of its first .ak5
+ ******************************************************************************/
+static void
+read_ak5_head (FILE *f, GPtrArray *list)
+{
+   guchar head[40];
+
+   if (fread (head, 1, sizeof (head), f) != sizeof (head)) return;
+   if (memcmp (head, "AK5\0", 4)) return;
+   add (list, _("User Name"), (gchar *) head + 8, 32);
+}
+
+
+static void
+read_msl (FILE *f, GPtrArray *list)
+{
+   guchar b[10];
+   long pos;
+
+   if (fread (b, 1, 10, f) != 10 || memcmp (b, "MSL\0", 4)) return;
+   pos = 10 + (b[8] | (b[9] << 8));
+   while (fseek (f, pos, SEEK_SET) == 0 && fread (b, 1, 8, f) == 8) {
+      guint32 size = b[0] | (b[1] << 8) | (b[2] << 16) | ((guint32) b[3] << 24);
+      if (!memcmp (b + 4, "AK5\0", 4)) {
+         if (fseek (f, pos + 4, SEEK_SET) == 0) read_ak5_head (f, list);
+         return;
+      }
+      if (size == 0) return;
+      pos += 4 + (long) size;
+   }
+}
+
+
 GPtrArray *
 gimv_file_comment_read (const gchar *filename)
 {
@@ -309,6 +346,10 @@ gimv_file_comment_read (const gchar *filename)
          read_jpeg (f, list);
       else if (!memcmp (magic, "GIF8", 4))
          read_gif (f, list);
+      else if (!memcmp (magic, "AK5\0", 4))
+         read_ak5_head (f, list);
+      else if (!memcmp (magic, "MSL\0", 4))
+         read_msl (f, list);
    }
    fclose (f);
    return list;
