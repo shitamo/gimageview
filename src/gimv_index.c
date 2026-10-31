@@ -19,6 +19,7 @@
 #include <gio/gio.h>
 
 #include "gimv_index.h"
+#include "gimv_comment.h"
 #include "gimv_index_db.h"
 #include "gimv_index_faces.h"
 #include "gimv_index_notice.h"
@@ -707,6 +708,9 @@ start_indexer (void)
                                            conf.index_auto_folder ? "folder," : "",
                                            conf.index_auto_camera ? "camera," : "",
                                            conf.index_auto_shape  ? "shape,"  : ""));
+   /* the comment files: written by gimv in this charset (the tags) */
+   g_ptr_array_add (argv, g_strdup_printf ("--comment-charset=%s",
+                                           gimv_comment_get_file_charset ()));
    exts = ext_list ();
    if (*exts) {
       g_ptr_array_add (argv, g_strdup ("--ext"));

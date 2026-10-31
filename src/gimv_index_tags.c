@@ -87,7 +87,11 @@ read_tags (const gchar *img_path)
       lines = g_strsplit (text, "\n", -1);
       for (i = 0; lines[i] && *lines[i]; i++) {
          if (g_str_has_prefix (lines[i], GIMV_INDEX_TAGS_KEY ":")) {
-            tags = split_tags (lines[i] + strlen (GIMV_INDEX_TAGS_KEY ":"));
+            /* in the charset of the comment files (ISO-2022-JP, ...) */
+            gchar *line = gimv_comment_text_to_internal (lines[i]);
+            if (line && g_str_has_prefix (line, GIMV_INDEX_TAGS_KEY ":"))
+               tags = split_tags (line + strlen (GIMV_INDEX_TAGS_KEY ":"));
+            g_free (line);
             break;
          }
       }

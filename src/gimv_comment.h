@@ -75,6 +75,10 @@ typedef struct GimvCommentDataEntry_Tag
 GType      gimv_comment_get_type                 (void);
 
 GimvComment *gimv_comment_get_from_image_info      (GimvImageInfo *info);
+/* the charset the comment files are written in */
+const gchar *gimv_comment_get_file_charset         (void);
+/* a line of a comment file in UTF-8 (UTF-8 as it is, else converted) */
+gchar       *gimv_comment_text_to_internal        (const gchar *src);
 
 GimvComment *gimv_comment_ref                      (GimvComment *comment);
 void         gimv_comment_unref                    (GimvComment *comment);

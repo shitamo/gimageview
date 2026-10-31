@@ -239,6 +239,29 @@ get_file_charset ()
 }
 
 
+/* the charset the comment files are written in (also told to the indexer,
+ * which writes the tags) */
+const gchar *
+gimv_comment_get_file_charset (void)
+{
+   return get_file_charset ();
+}
+
+
+/* text of a comment file: UTF-8 as it is (the indexer writes UTF-8 when the
+ * charset cannot hold a tag; ISO-2022-JP has escapes, the others are
+ * hardly ever valid UTF-8), else from the charset of the comment files */
+gchar *
+gimv_comment_text_to_internal (const gchar *src)
+{
+   if (!strchr (src, '\033') && g_utf8_validate (src, -1, NULL))
+      return g_strdup (src);
+   return charset_to_internal (src, get_file_charset (),
+                               conf.charset_auto_detect_fn,
+                               conf.comment_charset_read_mode);
+}
+
+
 static gchar *
 defval_time (GimvImageInfo *info, gpointer data)
 {
@@ -437,13 +460,9 @@ parse_comment_file (GimvComment *comment)
          value = NULL;
       }
 
-      key_internal = charset_to_internal (key, get_file_charset (),
-                                          conf.charset_auto_detect_fn,
-                                          conf.comment_charset_read_mode);
+      key_internal = gimv_comment_text_to_internal (key);
       if (value && *value) {
-         value_internal = charset_to_internal (value, get_file_charset (),
-                                               conf.charset_auto_detect_fn,
-                                               conf.comment_charset_read_mode);
+         value_internal = gimv_comment_text_to_internal (value);
       } else {
          value_internal = NULL;
       }
@@ -465,9 +484,7 @@ parse_comment_file (GimvComment *comment)
    if (comment->note && *comment->note) {
       gchar *note_internal;
 
-      note_internal = charset_to_internal (comment->note, get_file_charset (),
-                                           conf.charset_auto_detect_fn,
-                                           conf.comment_charset_read_mode);
+      note_internal = gimv_comment_text_to_internal (comment->note);
 
       g_free (comment->note);
       comment->note = note_internal;

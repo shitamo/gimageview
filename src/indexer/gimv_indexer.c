@@ -9,7 +9,7 @@
  * reaches EOF (gimv has quit or crashed) the indexer stops.
  *
  *   gimv-indexer --db FILE [--dotfiles] [--ext jpg,png,...]
- *                [--auto=folder,camera,shape] DIR...
+ *                [--auto=folder,camera,shape] [--comment-charset=CS] DIR...
  *
  * Stage 1 records the files (date from mtime), stage 3 reads the tags from
  * the gimv comment files (~/.gimv/comment/<image path>.txt, the line
@@ -1811,6 +1811,79 @@ run_stage2 (Indexer *ix)
  *  stage 3: tags from the comment files
  ******************************************************************************/
 
+/* the charset gimv writes the comment files in (--comment-charset; it
+ * reads UTF-8 too); NULL: UTF-8 */
+static gchar *comment_charset = NULL;
+
+static gboolean
+charset_is_utf8 (const gchar *cs)
+{
+   return !cs || !g_ascii_strcasecmp (cs, "UTF-8") || !g_ascii_strcasecmp (cs, "UTF8");
+}
+
+
+/* a comment file as UTF-8, read as gimv does (gimv_comment.c): UTF-8 as
+ * it is, else from the charset of the comment files (ISO-2022-JP for
+ * Japanese by default) */
+static gboolean
+comment_read (const gchar *file, gchar **text)
+{
+   gchar *raw = NULL, *conv = NULL;
+   gsize len;
+
+   *text = NULL;
+   if (!g_file_get_contents (file, &raw, &len, NULL)) return FALSE;
+   if (!memchr (raw, '\033', len) && g_utf8_validate (raw, len, NULL)) {
+      *text = raw;
+      return TRUE;
+   }
+   if (!charset_is_utf8 (comment_charset))
+      conv = g_convert (raw, len, "UTF-8", comment_charset, NULL, NULL, NULL);
+   if (!conv && memchr (raw, '\033', len))
+      conv = g_convert (raw, len, "UTF-8", "ISO-2022-JP", NULL, NULL, NULL);
+   if (!conv)
+      conv = g_utf8_make_valid (raw, len);
+   g_free (raw);
+   *text = conv;
+   return TRUE;
+}
+
+
+/* written in the charset of gimv, line by line as gimv writes it (each
+ * line of ISO-2022-JP back in ASCII at its end); UTF-8 when the charset
+ * cannot hold it (gimv reads that too) */
+static gboolean
+comment_write (const gchar *file, const gchar *text)
+{
+   GString *out;
+   gchar **lines;
+   gboolean ok = TRUE;
+   gint i;
+
+   if (charset_is_utf8 (comment_charset))
+      return g_file_set_contents (file, text, -1, NULL);
+
+   out = g_string_new (NULL);
+   lines = g_strsplit (text, "\n", -1);
+   for (i = 0; lines[i] && ok; i++) {
+      gsize len;
+      gchar *conv = g_convert (lines[i], -1, comment_charset, "UTF-8", NULL, &len, NULL);
+      if (!conv) {
+         ok = FALSE;
+         break;
+      }
+      if (i) g_string_append_c (out, '\n');
+      g_string_append_len (out, conv, len);
+      g_free (conv);
+   }
+   g_strfreev (lines);
+   ok = ok ? g_file_set_contents (file, out->str, out->len, NULL)
+           : g_file_set_contents (file, text, -1, NULL);
+   g_string_free (out, TRUE);
+   return ok;
+}
+
+
 static gchar *
 comment_root (void)
 {
@@ -1828,7 +1901,7 @@ read_comment_tags (const gchar *file)
    GPtrArray *tags;
    gint i;
 
-   if (!g_file_get_contents (file, &text, NULL, NULL))
+   if (!comment_read (file, &text))
       return NULL;
 
    tags = g_ptr_array_new_with_free_func (g_free);
@@ -2089,7 +2162,7 @@ rewrite_comment_tags (const gchar *cfile, const gchar *old, const gchar *new)
    gboolean found = FALSE;
    gint i, result = 0;
 
-   if (!g_file_get_contents (cfile, &text, NULL, NULL))
+   if (!comment_read (cfile, &text))
       return 0;
    lines = g_strsplit (text, "\n", -1);
    g_free (text);
@@ -2126,7 +2199,7 @@ rewrite_comment_tags (const gchar *cfile, const gchar *old, const gchar *new)
    if (found) {
       gchar *out = g_strjoinv ("\n", lines);
       /* a new file put in place: never half written */
-      result = g_file_set_contents (cfile, out, -1, NULL) ? 1 : -1;
+      result = comment_write (cfile, out) ? 1 : -1;
       g_free (out);
    }
    g_strfreev (lines);
@@ -2395,7 +2468,7 @@ write_person_tags (const gchar *cfile, GPtrArray *names)
    GString *line;
    gint i, head, at = -1, result;
    guint j;
-   gboolean existed = g_file_get_contents (cfile, &text, NULL, NULL);
+   gboolean existed = comment_read (cfile, &text);
 
    if (existed) {
       lines = g_strsplit (text, "\n", -1);
@@ -2472,7 +2545,7 @@ write_person_tags (const gchar *cfile, GPtrArray *names)
    }
    dir = g_path_get_dirname (cfile);
    result = (g_mkdir_with_parents (dir, 0755) == 0
-             && g_file_set_contents (cfile, out, -1, NULL)) ? 1 : -1;
+             && comment_write (cfile, out)) ? 1 : -1;
    g_free (dir);
    g_free (out);
    return result;
@@ -3312,6 +3385,23 @@ open_db (Indexer *ix, const gchar *dbfile)
    /* tags to rename (from gimv), until done */
    exec (ix, "CREATE TABLE IF NOT EXISTS tag_renames (id INTEGER PRIMARY KEY, "
              "old TEXT NOT NULL, new TEXT NOT NULL)");
+   /* the comment files read again when their charset is new (before
+    * 2026-11 they were all taken as UTF-8: the tags gimv wrote in
+    * ISO-2022-JP came in with their escapes) */
+   {
+      const gchar *cs = charset_is_utf8 (comment_charset) ? "UTF-8" : comment_charset;
+      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'comment_charset'");
+      gboolean same = sqlite3_step (st) == SQLITE_ROW && sqlite3_column_text (st, 0)
+                      && !strcmp ((const gchar *) sqlite3_column_text (st, 0), cs);
+      sqlite3_finalize (st);
+      if (!same) {
+         exec (ix, "UPDATE comments SET mtime = 0");
+         st = prep (ix, "INSERT OR REPLACE INTO meta (key, value) VALUES ('comment_charset', ?)");
+         sqlite3_bind_text (st, 1, cs, -1, SQLITE_STATIC);
+         sqlite3_step (st);
+         sqlite3_finalize (st);
+      }
+   }
    /* the names of faces written to each comment file (run_name_sync) */
    exec (ix, "CREATE TABLE IF NOT EXISTS name_sync (file_id INTEGER PRIMARY KEY "
              "REFERENCES files(id) ON DELETE CASCADE, names TEXT NOT NULL)");
@@ -3381,6 +3471,8 @@ main (int argc, char *argv[])
       { "ext",      0, 0, G_OPTION_ARG_STRING, &exts, "image extensions", "LIST" },
       { "log-keep", 0, 0, G_OPTION_ARG_INT, &log_keep, "logs of missing files kept (0: none)", "N" },
       { "auto",     0, 0, G_OPTION_ARG_STRING, &auto_list, "tags put by rules (default: all)", "folder,camera,shape" },
+      { "comment-charset", 0, 0, G_OPTION_ARG_STRING, &comment_charset,
+        "the charset gimv writes the comment files in (default: UTF-8)", "CHARSET" },
       { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &dirs, NULL, "DIR..." },
       { NULL }
    };
