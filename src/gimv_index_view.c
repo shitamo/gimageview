@@ -1554,6 +1554,10 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    iv->tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (iv->store));
    gtk_widget_set_name (iv->tree, "IndexTree");
    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (iv->tree), FALSE);
+   /* no typing to search: the keys of the window (P: the faces panel) work
+    * here as in the directory view, and the search popup of GTK 4 gave a
+    * Gtk-CRITICAL (gtk_css_node_insert_after) on a tree without headers */
+   gtk_tree_view_set_enable_search (GTK_TREE_VIEW (iv->tree), FALSE);
    col = gtk_tree_view_column_new ();
    render = gtk_cell_renderer_text_new ();
    gtk_tree_view_column_pack_start (col, render, TRUE);
