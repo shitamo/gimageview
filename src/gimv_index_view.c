@@ -588,8 +588,7 @@ set_count (IndexView *iv, GtkTreeIter *iter, gint len, gint count)
 }
 
 
-/* days come newest first; years are shown newest first, months and days
- * inside a year oldest first */
+/* days come newest first, and are shown so: years, months and days */
 static void
 build_tree (IndexView *iv, GtkTreeIter *root, GArray *days)
 {
@@ -611,8 +610,7 @@ build_tree (IndexView *iv, GtkTreeIter *root, GArray *days)
       }
       if (strncmp (dc->day, cur_month, 7)) {
          if (*cur_month) set_count (iv, &month, 7, month_count);
-         /* months oldest first: put each one before the previous */
-         gtk_tree_store_prepend (iv->store, &month, &year);
+         gtk_tree_store_append (iv->store, &month, &year);
          {
             gchar *k = g_strndup (dc->day, 7);
             gtk_tree_store_set (iv->store, &month, COL_KIND, KIND_MONTH, COL_KEY, k, -1);
@@ -621,7 +619,7 @@ build_tree (IndexView *iv, GtkTreeIter *root, GArray *days)
          memcpy (cur_month, dc->day, 7);
          month_count = 0;
       }
-      gtk_tree_store_prepend (iv->store, &day, &month);
+      gtk_tree_store_append (iv->store, &day, &month);
       gtk_tree_store_set (iv->store, &day, COL_KIND, KIND_DAY, COL_KEY, dc->day, -1);
       set_count (iv, &day, 10, dc->count);
 
