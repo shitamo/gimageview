@@ -112,15 +112,30 @@ read_mag (FILE *f, GPtrArray *list)
       g_string_append_c (comment, ch);
 
    add (list, _("Comment"), comment->str, comment->len);
-   add (list, _("User Name"), (gchar *) head + 12, 18);
-   /* the machine: printable ones only (some write 0 or binary) */
+   /* the machine and the user name: by the format 4 bytes of ASCII and 18
+    * bytes, then 2 unused (spaces); but some write the name over all the 24
+    * (Shift_JIS from the first byte, its last letter in the unused bytes):
+    * with no ASCII machine the 24 are the name, else the name takes the
+    * unused 2 too (a letter cut at the 18th byte is kept whole) */
    {
-      gchar machine[5];
+      gboolean ascii = TRUE;
       gint i;
+
       for (i = 0; i < 4; i++)
-         machine[i] = g_ascii_isprint (head[8 + i]) ? head[8 + i] : ' ';
-      machine[4] = '\0';
-      add (list, _("Machine"), machine, 4);
+         if (head[8 + i] && !g_ascii_isprint (head[8 + i])) ascii = FALSE;
+      if (ascii) {
+         add (list, _("User Name"), (gchar *) head + 12, 18 + 2);
+         add (list, _("Machine"), (gchar *) head + 8, 4);
+      } else {
+         /* a binary machine code (not Shift_JIS text): the name as given */
+         gchar *sjis = g_convert ((gchar *) head + 8, 4 + 18 + 2, "UTF-8", "CP932",
+                                  NULL, NULL, NULL);
+         if (sjis)
+            add (list, _("User Name"), (gchar *) head + 8, 4 + 18 + 2);
+         else
+            add (list, _("User Name"), (gchar *) head + 12, 18 + 2);
+         g_free (sjis);
+      }
    }
    g_string_free (comment, TRUE);
 }
