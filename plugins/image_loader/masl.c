@@ -29,8 +29,10 @@
  *   line ".", then the commands, apart by spaces, tabs or newlines.
  *
  * Not on a PC-9801, so:
- *   - time is virtual: the waits of the scenario ("t", "pwt") give it, and
- *     drawing takes some (about a 386 of the time: the benchmarks go on);
+ *   - time is virtual: the waits of the scenario ("t", "pwt") give it, so
+ *     the timing it asks for is kept; drawing takes the time it really
+ *     takes here (a benchmark like 森ベンチ measures this machine), the
+ *     other commands a little (a loop of nothing but waiting goes on);
  *     a picture is taken at a wait, or after a 60th second of drawing;
  *   - no sound: PCMs only take their time ("p", "pwt");
  *   - no keys, no options; a scenario waiting for a key with nothing
@@ -49,11 +51,8 @@
 #define MASL_CALL_DEPTH   64
 #define MASL_CHANNELS     8
 
-/* virtual time of the work (ms) */
+/* virtual time of a command (ms; drawing: the real time it takes) */
 #define COST_INSN         0.01
-#define COST_DRAW         0.2
-#define COST_DRAW_BYTE    0.0015
-#define COST_PAGE         3.0
 #define FRAME_MS          (1000.0 / 60.0)
 #define IDLE_KEY_MS       3000.0
 #define KEY_PRESS_MS      100.0
@@ -697,6 +696,14 @@ spend (MaslPlayer *pl, gdouble ms)
 }
 
 
+/* drawing since t0 (g_get_monotonic_time ()) took its real time */
+static gboolean
+spend_real (MaslPlayer *pl, gint64 t0)
+{
+   return spend (pl, MAX (COST_INSN, (g_get_monotonic_time () - t0) / 1000.0));
+}
+
+
 /* a wait up to "until": a picture first if something changed */
 static gboolean
 wait_until (MaslPlayer *pl, gdouble until, gboolean *shot)
@@ -720,6 +727,7 @@ step (MaslPlayer *pl)
    Insn *insn;
    gboolean shot = FALSE;
    guint next;
+   gint64 t0 = g_get_monotonic_time ();
 
    if (pl->pc >= pl->code->len) {
       pl->ended = TRUE;
@@ -829,13 +837,13 @@ step (MaslPlayer *pl)
       ak5_decode_cg (pl->page[pl->wpage], pl->color, e->data, e->len,
                      (guint) (y * AK5_LINE + x) & 0xffff);
       if (pl->wpage == pl->dpage) pl->dirty = TRUE;
-      shot = spend (pl, COST_DRAW + e->len * COST_DRAW_BYTE);
+      shot = spend_real (pl, t0);
       break;
    }
    case OP_CLS:
       memset (pl->page[pl->wpage], 0, sizeof (pl->page[0]));
       if (pl->wpage == pl->dpage) pl->dirty = TRUE;
-      shot = spend (pl, 1.0);
+      shot = spend_real (pl, t0);
       break;
    case OP_BOX: {
       gint v[4] = { arg (pl, insn, 4, 0), arg (pl, insn, 5, 0),
@@ -843,7 +851,7 @@ step (MaslPlayer *pl)
       box (pl, arg (pl, insn, 0, 0), arg (pl, insn, 1, 0),
            arg (pl, insn, 2, 0), arg (pl, insn, 3, 0), v);
       if (pl->wpage == pl->dpage) pl->dirty = TRUE;
-      shot = spend (pl, 1.0);
+      shot = spend_real (pl, t0);
       break;
    }
    case OP_O2U:
@@ -851,14 +859,14 @@ step (MaslPlayer *pl)
       gint from = insn->op == OP_O2U ? 0 : 1;
       memcpy (pl->page[!from], pl->page[from], sizeof (pl->page[0]));
       if (pl->dpage == !from) pl->dirty = TRUE;
-      shot = spend (pl, COST_PAGE);
+      shot = spend_real (pl, t0);
       break;
    }
    case OP_MOVE:
       move (pl, arg (pl, insn, 0, 0), arg (pl, insn, 1, 0), arg (pl, insn, 2, 0),
             arg (pl, insn, 3, 0), arg (pl, insn, 4, 0), arg (pl, insn, 5, 0));
       if (pl->wpage == pl->dpage) pl->dirty = TRUE;
-      shot = spend (pl, 20.0);    /* "remarkably slow" */
+      shot = spend_real (pl, t0);
       break;
    case OP_ROLL:
       pl->roll = (guint) arg (pl, insn, 0, 0) & 0xffff;
