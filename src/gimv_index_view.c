@@ -189,6 +189,8 @@ typedef struct {
    gchar         *editing_key; /* the tag being renamed in the tree */
    guint          rename_id;
    gboolean       click_open;  /* open_key () from a click on the tree */
+   GtkWidget     *search_bar;  /* Ctrl+F: a row by its name */
+   GtkWidget     *search_entry;
 } IndexView;
 
 
@@ -1451,6 +1453,226 @@ row_copy_text (IndexView *iv, GtkTreeIter *iter)
 }
 
 
+/******************************************************************************
+ *  Ctrl+F: a row by (a part of) its name, in the rows there are (the days
+ *  of a month not opened yet are not looked at)
+ ******************************************************************************/
+
+/* the row after (forward) or before "iter" in the order shown, all levels;
+ * FALSE at the end */
+static gboolean
+tree_step (GtkTreeModel *model, GtkTreeIter *iter, gboolean forward)
+{
+   GtkTreeIter it;
+
+   if (forward) {
+      GtkTreeIter parent;
+      if (gtk_tree_model_iter_children (model, &it, iter)) { *iter = it; return TRUE; }
+      it = *iter;
+      for (;;) {
+         GtkTreeIter next = it;
+         if (gtk_tree_model_iter_next (model, &next)) { *iter = next; return TRUE; }
+         if (!gtk_tree_model_iter_parent (model, &parent, &it)) return FALSE;
+         it = parent;
+      }
+   } else {
+      GtkTreeIter prev = *iter, parent;
+      if (gtk_tree_model_iter_previous (model, &prev)) {
+         gint n;
+         /* the last row below it */
+         while ((n = gtk_tree_model_iter_n_children (model, &prev)) > 0) {
+            gtk_tree_model_iter_nth_child (model, &it, &prev, n - 1);
+            prev = it;
+         }
+         *iter = prev;
+         return TRUE;
+      }
+      if (gtk_tree_model_iter_parent (model, &parent, iter)) { *iter = parent; return TRUE; }
+      return FALSE;
+   }
+}
+
+
+static gboolean
+row_matches (GtkTreeModel *model, GtkTreeIter *iter, const gchar *folded)
+{
+   gchar *label = NULL, *norm, *fold;
+   gboolean match = FALSE;
+
+   gtk_tree_model_get (model, iter, COL_LABEL, &label, -1);
+   if (label) {
+      norm = g_utf8_normalize (label, -1, G_NORMALIZE_ALL);
+      fold = norm ? g_utf8_casefold (norm, -1) : NULL;
+      match = fold && strstr (fold, folded);
+      g_free (fold);
+      g_free (norm);
+   }
+   g_free (label);
+   return match;
+}
+
+
+/* from the row selected (itself too when "again" is FALSE) on, around at
+ * the end; the row found is selected and shown */
+static gboolean
+search_row (IndexView *iv, gboolean forward, gboolean again)
+{
+   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
+   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
+   const gchar *text = gtk_editable_get_text (GTK_EDITABLE (iv->search_entry));
+   gchar *norm, *folded;
+   GtkTreeIter start, iter;
+   gboolean found = FALSE, wrapped = FALSE;
+
+   if (!text || !*text) return FALSE;
+   norm = g_utf8_normalize (text, -1, G_NORMALIZE_ALL);
+   folded = norm ? g_utf8_casefold (norm, -1) : NULL;
+   g_free (norm);
+   if (!folded) return FALSE;
+
+   if (!gtk_tree_selection_get_selected (sel, NULL, &start)
+       && !gtk_tree_model_get_iter_first (model, &start))
+   {
+      g_free (folded);
+      return FALSE;
+   }
+   iter = start;
+   if (!again && row_matches (model, &iter, folded)) {
+      found = TRUE;
+   } else {
+      for (;;) {
+         if (!tree_step (model, &iter, forward)) {
+            /* around: from the first (the last) row */
+            if (wrapped) break;
+            wrapped = TRUE;
+            if (forward) {
+               if (!gtk_tree_model_get_iter_first (model, &iter)) break;
+            } else {
+               GtkTreeIter last;
+               gint n = gtk_tree_model_iter_n_children (model, NULL);
+               if (n < 1 || !gtk_tree_model_iter_nth_child (model, &last, NULL, n - 1)) break;
+               iter = last;
+               while ((n = gtk_tree_model_iter_n_children (model, &iter)) > 0) {
+                  gtk_tree_model_iter_nth_child (model, &last, &iter, n - 1);
+                  iter = last;
+               }
+            }
+         }
+         if (row_matches (model, &iter, folded)) { found = TRUE; break; }
+         if (wrapped && gtk_tree_store_iter_is_valid (iv->store, &iter)) {
+            GtkTreePath *a = gtk_tree_model_get_path (model, &iter);
+            GtkTreePath *b = gtk_tree_model_get_path (model, &start);
+            gboolean back = !gtk_tree_path_compare (a, b);
+            gtk_tree_path_free (a);
+            gtk_tree_path_free (b);
+            if (back) break;
+         }
+      }
+   }
+   g_free (folded);
+
+   if (found) {
+      GtkTreePath *path = gtk_tree_model_get_path (model, &iter);
+      gtk_tree_view_expand_to_path (GTK_TREE_VIEW (iv->tree), path);
+      gtk_tree_view_set_cursor (GTK_TREE_VIEW (iv->tree), path, NULL, FALSE);
+      gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (iv->tree), path, NULL, TRUE, 0.3, 0.0);
+      gtk_tree_path_free (path);
+   }
+   /* not found: the entry in red */
+   if (found || !*text)
+      gtk_widget_remove_css_class (iv->search_entry, "error");
+   else
+      gtk_widget_add_css_class (iv->search_entry, "error");
+   return found;
+}
+
+
+static void
+search_start (IndexView *iv)
+{
+   gtk_search_bar_set_search_mode (GTK_SEARCH_BAR (iv->search_bar), TRUE);
+   gtk_widget_grab_focus (iv->search_entry);
+   gtk_editable_select_region (GTK_EDITABLE (iv->search_entry), 0, -1);
+}
+
+
+static void
+search_stop (IndexView *iv)
+{
+   gtk_search_bar_set_search_mode (GTK_SEARCH_BAR (iv->search_bar), FALSE);
+   gtk_widget_grab_focus (iv->tree);
+}
+
+
+static void
+cb_search_changed (GtkSearchEntry *entry, IndexView *iv)
+{
+   search_row (iv, TRUE, FALSE);
+}
+
+
+static void
+cb_search_next (GtkSearchEntry *entry, IndexView *iv)
+{
+   search_row (iv, TRUE, TRUE);
+}
+
+
+static void
+cb_search_previous (GtkSearchEntry *entry, IndexView *iv)
+{
+   search_row (iv, FALSE, TRUE);
+}
+
+
+/* Enter: the row found is opened (as Enter on the tree) */
+static void
+cb_search_activate (GtkSearchEntry *entry, IndexView *iv)
+{
+   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
+   GtkTreeIter iter;
+   gchar *key;
+
+   if (gtk_tree_selection_get_selected (sel, NULL, &iter) && row_key (iv, &iter, &key)) {
+      open_key (iv, key, FALSE);
+      g_free (key);
+   }
+   search_stop (iv);
+}
+
+
+static void
+cb_search_stop (GtkSearchEntry *entry, IndexView *iv)
+{
+   search_stop (iv);
+}
+
+
+/* Down and Up: the next and the one before, as Ctrl+G and Shift+Ctrl+G */
+static gboolean
+cb_search_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType state,
+               IndexView *iv)
+{
+   if (keyval == GDK_KEY_Down || keyval == GDK_KEY_KP_Down) {
+      search_row (iv, TRUE, TRUE);
+      return TRUE;
+   }
+   if (keyval == GDK_KEY_Up || keyval == GDK_KEY_KP_Up) {
+      search_row (iv, FALSE, TRUE);
+      return TRUE;
+   }
+   /* the text, not the window's Ctrl+F (open a file) and Ctrl+A (select
+    * all the thumbnails) */
+   if ((keyval == GDK_KEY_f || keyval == GDK_KEY_F || keyval == GDK_KEY_a || keyval == GDK_KEY_A)
+       && (state & GDK_CONTROL_MASK))
+   {
+      gtk_editable_select_region (GTK_EDITABLE (iv->search_entry), 0, -1);
+      return TRUE;
+   }
+   return FALSE;
+}
+
+
 static gboolean
 cb_tree_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType state,
              IndexView *iv)
@@ -1459,6 +1681,13 @@ cb_tree_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierT
    GtkTreeIter iter;
    gchar *key = NULL, *text;
 
+   /* Ctrl+F here: a row by its name (not the window's "open a file") */
+   if ((keyval == GDK_KEY_f || keyval == GDK_KEY_F)
+       && (state & GDK_MODIFIER_MASK) == GDK_CONTROL_MASK)
+   {
+      search_start (iv);
+      return TRUE;
+   }
    if (!gtk_tree_selection_get_selected (sel, NULL, &iter)) return FALSE;
 
    if (keyval == GDK_KEY_F2 && !(state & GDK_MODIFIER_MASK)) {
@@ -1603,7 +1832,33 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    iv->watch_id = gimv_index_add_watch (cb_index_changed, iv);
    start_count (iv);
 
-   return iv->scroll;
+   /* Ctrl+F: a search entry above the tree (GTK's own typing search is
+    * off: see above) */
+   {
+      GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      GtkEventController *keys = gtk_event_controller_key_new ();
+
+      iv->search_entry = gtk_search_entry_new ();
+      gtk_widget_set_hexpand (iv->search_entry, TRUE);
+      iv->search_bar = gtk_search_bar_new ();
+      gtk_search_bar_set_child (GTK_SEARCH_BAR (iv->search_bar), iv->search_entry);
+      gtk_search_bar_connect_entry (GTK_SEARCH_BAR (iv->search_bar),
+                                    GTK_EDITABLE (iv->search_entry));
+      gtk_search_bar_set_show_close_button (GTK_SEARCH_BAR (iv->search_bar), TRUE);
+      g_signal_connect (iv->search_entry, "search-changed", G_CALLBACK (cb_search_changed), iv);
+      g_signal_connect (iv->search_entry, "next-match", G_CALLBACK (cb_search_next), iv);
+      g_signal_connect (iv->search_entry, "previous-match", G_CALLBACK (cb_search_previous), iv);
+      g_signal_connect (iv->search_entry, "activate", G_CALLBACK (cb_search_activate), iv);
+      g_signal_connect (iv->search_entry, "stop-search", G_CALLBACK (cb_search_stop), iv);
+      gtk_event_controller_set_propagation_phase (keys, GTK_PHASE_CAPTURE);
+      g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_search_key), iv);
+      gtk_widget_add_controller (iv->search_entry, keys);
+
+      gtk_widget_set_vexpand (iv->scroll, TRUE);
+      gtk_box_append (GTK_BOX (box), iv->search_bar);
+      gtk_box_append (GTK_BOX (box), iv->scroll);
+      return box;
+   }
 }
 
 
