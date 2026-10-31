@@ -4590,6 +4590,12 @@ gimv_thumb_win_set_tab_label_text (GtkWidget *page_container,
 
    if (tablabel) {
       button =   g_object_get_data (G_OBJECT (tablabel), "close-button");
+      /* a full path: cut at the start (the folder's own name at the end
+       * stays); the name only (of a folder or of an archive): cut at the
+       * end, its beginning stays */
+      gtk_label_set_ellipsize (GTK_LABEL (tablabel),
+                               title && strchr (title, '/')
+                               ? PANGO_ELLIPSIZE_START : PANGO_ELLIPSIZE_END);
       gtk_label_set_text (GTK_LABEL (tablabel), title);
       gtk_widget_set_tooltip_text (tablabel, title);
 
