@@ -1,8 +1,10 @@
 dir = plugindir / 'image_loader'
-foreach n : ['bmp', 'mag', 'pcx', 'pnm', 'ras', 'tga', 'wbmp', 'xbm', 'xcf', 'xpm', 'xvpics', 'zim', 'ak5']
+foreach n : ['bmp', 'mag', 'pcx', 'pnm', 'ras', 'tga', 'wbmp', 'xbm', 'xcf', 'xpm', 'xvpics', 'zim']
   shared_module('gimv_' + n + '_loader', n + '.c',
     dependencies : common_deps, install_dir : dir, kwargs : plugin_kwargs)
 endforeach
+shared_module('gimv_ak5_loader', ['ak5.c', 'masl.c'],
+  dependencies : common_deps + [m_dep], install_dir : dir, kwargs : plugin_kwargs)
 shared_module('gimv_pixbuf_loader', ['pixbuf_anim.c', 'pixbuf_loader.c'],
   dependencies : common_deps, install_dir : dir, kwargs : plugin_kwargs)
 if png_dep.found()

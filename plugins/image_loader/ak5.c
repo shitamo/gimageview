@@ -44,9 +44,11 @@
  *                    0x0b two lines, 7 (next byte + 2) lines
  *   0x0f end, 0x1f lines 2 apart / 1 apart (switches), 0x2f n: n / 4
  *   (2 apart: n / 5) lines of 2 bytes of the colour as it is
- * Positions are modulo 0x8000 (the VRAM window of a plane).  The
- * pictures of a file are shown one after another (a difference over the
- * one before), as an animation.
+ * Positions are modulo 0x8000 (the VRAM window of a plane).
+ *
+ * In a view, an .msl is played by its scenario (masl.c); an .ak5 (no
+ * scenario) shows its pictures one after another (a difference over the
+ * one before), as an animation.  A thumbnail is the first picture.
  */
 
 #include "config.h"
@@ -60,11 +62,8 @@
 #include "gimv_image_loader.h"
 #include "gimv_plugin.h"
 #include "loader_utils.h"
+#include "masl.h"
 
-#define AK5_WIDTH     640
-#define AK5_HEIGHT    400
-#define AK5_LINE      80
-#define AK5_VRAM      0x8000        /* bytes of a plane (the window) */
 #define AK5_HEAD      40
 #define AK5_NAME      16
 /* not real time: the scenario of MASL times the pictures */
@@ -122,19 +121,24 @@ GimvPluginInfo gimv_plugin_info =
 
 
 typedef struct {
-   gint          type;       /* 0 palette, 1..4 CG */
-   const guchar *data;       /* the palette (48 bytes) or the CG data */
-   gsize         len;
-} Ak5Entry;
-
-typedef struct {
    GByteArray *file;
    GArray     *entries;      /* Ak5Entry */
    guint       n_frames;     /* the CGs */
    guint       next;         /* the entry to read next */
-   guchar      planes[4][AK5_VRAM];
+   Ak5Planes   planes;
    guchar      color[4];
    guchar      pal[48];
+
+   /* an .msl played by its scenario */
+   const guchar *scenario;
+   gsize         scenario_len;
+   GArray       *pcms;       /* MaslPcm */
+   GArray       *cgs;        /* Ak5Entry: the CGs alone */
+   GPtrArray    *pals;       /* the palettes alone */
+   MaslPlayer   *player;
+   guchar       *next_rgb;   /* the picture after the one shown */
+   gdouble       shown_ms, next_ms;
+   gint          interval;
 } Ak5;
 
 
@@ -190,14 +194,41 @@ ak5_parse (Ak5 *ak, const guchar *buf, gsize len)
 }
 
 
-/* the .ak5 files in an .msl file */
+/* the PCMs of a .pkn file: "PKN\0", 4 bytes, the user name (32 bytes),
+ * then (u8 type (1: ADPCM of the X68000), name[16], u16 rate, u32 size,
+ * data[size]) ... */
+static void
+pkn_parse (Ak5 *ak, const guchar *buf, gsize len)
+{
+   gsize pos = AK5_HEAD;
+
+   if (len < AK5_HEAD || memcmp (buf, "PKN\0", 4)) return;
+   while (pos + 23 <= len) {
+      MaslPcm pcm;
+      pcm.adpcm = buf[pos] == 1;
+      pcm.rate  = ak5_le16 (buf + pos + 17);
+      pcm.len   = ak5_le32 (buf + pos + 19);
+      if (pcm.len > len - pos - 23) break;
+      g_array_append_val (ak->pcms, pcm);
+      pos += 23 + pcm.len;
+   }
+}
+
+
+/* the scenario and the .ak5 and .pkn files of an .msl file */
 static void
 msl_parse (Ak5 *ak, const guchar *buf, gsize len)
 {
    gsize pos;
 
    if (len < 10) return;
-   pos = 10 + ak5_le16 (buf + 8);          /* after the scenario */
+   ak->scenario_len = ak5_le16 (buf + 8);
+   if (ak->scenario_len > len - 10) {
+      ak->scenario_len = 0;
+      return;
+   }
+   ak->scenario = buf + 10;
+   pos = 10 + ak->scenario_len;
 
    while (pos + 4 <= len) {
       guint32 size = ak5_le32 (buf + pos);
@@ -205,6 +236,8 @@ msl_parse (Ak5 *ak, const guchar *buf, gsize len)
       if (size > len - pos) break;
       if (size >= 4 && !memcmp (buf + pos, "AK5\0", 4))
          ak5_parse (ak, buf + pos, size);
+      else if (size >= 4 && !memcmp (buf + pos, "PKN\0", 4))
+         pkn_parse (ak, buf + pos, size);
       pos += size;
    }
 }
@@ -212,19 +245,20 @@ msl_parse (Ak5 *ak, const guchar *buf, gsize len)
 
 /* one CG onto the screen; FALSE when the data is broken (what was
  * drawn stays) */
-static gboolean
-ak5_decode (Ak5 *ak, const guchar *p, gsize len)
+gboolean
+ak5_decode_cg (Ak5Planes planes, guchar color[4], const guchar *p, gsize len,
+               guint start)
 {
    const guchar *end = p + len;
-   guint di = 0, stride = AK5_LINE;
+   guint di = start & 0xffff, stride = AK5_LINE;
 
 #define NEXT(v)  G_STMT_START { if (p >= end) return FALSE; (v) = *p++; } G_STMT_END
 #define PUT(o)   G_STMT_START {                                 \
       guint _o = (o) & (AK5_VRAM - 1);                          \
-      ak->planes[0][_o] = ak->color[0];                         \
-      ak->planes[1][_o] = ak->color[1];                         \
-      ak->planes[2][_o] = ak->color[2];                         \
-      ak->planes[3][_o] = ak->color[3];                         \
+      planes[0][_o] = color[0];                                 \
+      planes[1][_o] = color[1];                                 \
+      planes[2][_o] = color[2];                                 \
+      planes[3][_o] = color[3];                                 \
    } G_STMT_END
 
    for (;;) {
@@ -288,7 +322,7 @@ ak5_decode (Ak5 *ak, const guchar *p, gsize len)
          }
          for (i = 0; i < rows; i++) {
             for (pl = 0; pl < 4; pl++)
-               if (mask & (1 << pl)) NEXT (ak->color[pl]);
+               if (mask & (1 << pl)) NEXT (color[pl]);
             PUT (di);
             di = (di + stride) & 0xffff;
          }
@@ -353,7 +387,7 @@ ak5_step (Ak5 *ak)
          for (i = 0; i < 48; i++) ak->pal[i] = e->data[i] & 0x0f;
          continue;
       }
-      ak5_decode (ak, e->data, e->len);
+      ak5_decode_cg (ak->planes, ak->color, e->data, e->len, 0);
       return TRUE;
    }
    return FALSE;
@@ -364,6 +398,11 @@ static void
 ak5_free (Ak5 *ak)
 {
    if (!ak) return;
+   masl_player_free (ak->player);
+   g_free (ak->next_rgb);
+   if (ak->pcms) g_array_free (ak->pcms, TRUE);
+   if (ak->cgs) g_array_free (ak->cgs, TRUE);
+   if (ak->pals) g_ptr_array_free (ak->pals, TRUE);
    if (ak->entries) g_array_free (ak->entries, TRUE);
    if (ak->file) g_byte_array_free (ak->file, TRUE);
    g_free (ak);
@@ -453,6 +492,106 @@ static GimvAnimFuncTable ak5_anim_table = {
 };
 
 
+/******************************************************************************
+ *  GimvAnim methods: an .msl played by its scenario (masl.c)
+ *
+ *  The player gives a picture and its time; the one after is read ahead,
+ *  for the time the shown one stays.
+ ******************************************************************************/
+
+#define MASL_LAST_HOLD   2000     /* ms the last picture stays */
+#define MASL_FRAME_SIZE  ((gsize) AK5_WIDTH * AK5_HEIGHT * 3)
+
+/* reads the picture after the one shown (now at "shown_ms") */
+static void
+masl_read_ahead (Ak5 *ak)
+{
+   gboolean got;
+
+   if (!ak->next_rgb) ak->next_rgb = g_malloc (MASL_FRAME_SIZE);
+   /* pictures of the same time: the last of them */
+   do {
+      got = masl_player_next (ak->player, ak->next_rgb, &ak->next_ms);
+   } while (got && ak->next_ms - ak->shown_ms < 1.0);
+   if (got) {
+      ak->interval = (gint) (ak->next_ms - ak->shown_ms + 0.5);
+   } else {
+      g_clear_pointer (&ak->next_rgb, g_free);
+      ak->interval = MASL_LAST_HOLD;
+   }
+}
+
+
+static gint
+masl_anim_get_length (GimvAnim *anim)
+{
+   return 0;     /* not known before it is played */
+}
+
+
+static gint
+masl_anim_get_interval (GimvAnim *anim)
+{
+   Ak5 *ak = anim->anim;
+   return ak ? ak->interval : -1;
+}
+
+
+/* the read ahead picture shown, the next one read */
+static gint
+masl_anim_iterate (GimvAnim *anim)
+{
+   Ak5 *ak = anim->anim;
+   guchar *rgb;
+
+   if (!ak || !ak->next_rgb) return -1;     /* ended: from the start again */
+   rgb = ak->next_rgb;
+   ak->next_rgb = NULL;
+   ak->shown_ms = ak->next_ms;
+   if (!gimv_anim_update_frame (anim, rgb, AK5_WIDTH, AK5_HEIGHT, FALSE)) return -1;
+   masl_read_ahead (ak);
+   return ++anim->current_frame_idx;
+}
+
+
+static gboolean
+masl_anim_start (GimvAnim *anim)
+{
+   Ak5 *ak = anim->anim;
+   guchar *rgb = g_malloc (MASL_FRAME_SIZE);
+
+   masl_player_reset (ak->player);
+   if (!masl_player_next (ak->player, rgb, &ak->shown_ms)
+       || !gimv_anim_update_frame (anim, rgb, AK5_WIDTH, AK5_HEIGHT, FALSE))
+   {
+      g_free (rgb);
+      return FALSE;
+   }
+   anim->current_frame_idx = 0;
+   masl_read_ahead (ak);
+   return TRUE;
+}
+
+
+static gboolean
+masl_anim_seek (GimvAnim *anim, gint idx)
+{
+   /* only to the start (the scenario is played on, not stepped back) */
+   if (!anim->anim || idx != 0) return FALSE;
+   return masl_anim_start (anim);
+}
+
+
+static GimvAnimFuncTable masl_anim_table = {
+   get_length   : masl_anim_get_length,
+   get_idx      : ak5_anim_get_idx,
+   get_interval : masl_anim_get_interval,
+   iterate      : masl_anim_iterate,
+   seek         : masl_anim_seek,
+   delete       : ak5_anim_delete,
+};
+
+
 static GimvImage *
 ak5_load (GimvImageLoader *loader, gpointer data)
 {
@@ -467,6 +606,7 @@ ak5_load (GimvImageLoader *loader, gpointer data)
 
    ak = g_new0 (Ak5, 1);
    ak->entries = g_array_new (FALSE, FALSE, sizeof (Ak5Entry));
+   ak->pcms = g_array_new (FALSE, FALSE, sizeof (MaslPcm));
    ak->file = gimv_loader_read_all (loader);
    if (!ak->file) goto ERROR;
 
@@ -475,6 +615,35 @@ ak5_load (GimvImageLoader *loader, gpointer data)
    else
       msl_parse (ak, ak->file->data, ak->file->len);
    if (ak->n_frames == 0) goto ERROR;
+
+   /* an .msl in a view: played by its scenario (not a MASL scenario:
+    * the CGs one after another) */
+   if (ak->scenario && gimv_image_loader_load_as_animation (loader)) {
+      guint i;
+
+      /* the scenario counts the CGs and the palettes apart */
+      ak->cgs  = g_array_new (FALSE, FALSE, sizeof (Ak5Entry));
+      ak->pals = g_ptr_array_new ();
+      for (i = 0; i < ak->entries->len; i++) {
+         Ak5Entry *e = &g_array_index (ak->entries, Ak5Entry, i);
+         if (e->type == 0) g_ptr_array_add (ak->pals, (gpointer) e->data);
+         else g_array_append_val (ak->cgs, *e);
+      }
+      ak->player = masl_player_new (ak->scenario, ak->scenario_len,
+                                    (const Ak5Entry *) ak->cgs->data, ak->cgs->len,
+                                    (const guchar **) ak->pals->pdata, ak->pals->len,
+                                    (const MaslPcm *) ak->pcms->data, ak->pcms->len);
+      if (ak->player) {
+         GimvAnim *anim = gimv_anim_new ();
+         anim->anim  = ak;
+         anim->table = &masl_anim_table;
+         if (!masl_anim_start (anim)) {
+            gimv_image_unref ((GimvImage *) anim);
+            return NULL;
+         }
+         return (GimvImage *) anim;
+      }
+   }
 
    ak5_reset (ak);
    ak5_step (ak);

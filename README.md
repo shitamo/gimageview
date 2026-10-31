@@ -24,7 +24,7 @@ Main additions (see `NEWS` for all changes):
 
 * Archives are read with libarchive (no external programs).
 
-* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801) and AK5/MSL (MASL, PC-9801); WebP, AVIF, HEIF, JPEG XL and other formats are read when their gdk-pixbuf loaders are installed.
+* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801) and AK5/MSL (MASL, PC-9801; .msl animations played by their scenarios); WebP, AVIF, HEIF, JPEG XL and other formats are read when their gdk-pixbuf loaders are installed.
 
 * Printing, setting an image as the desktop wallpaper, and remembering the rotation of each image.
 

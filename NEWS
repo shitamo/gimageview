@@ -5,7 +5,7 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* Removed lib/dllloader.
 	* The system libexif and GLib replace the bundled libexif and MD5 code.
 	* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801) and AK5/MSL (MASL,
-	  PC-9801, shown as an animation); formats of the
+	  PC-9801; an .msl is played by its scenario, without sound); formats of the
 	  installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...) are
 	  recognized, and formats nothing can read are not listed.
 	* Comments on the thumbnail view: "Subject" and "Comment" columns in
