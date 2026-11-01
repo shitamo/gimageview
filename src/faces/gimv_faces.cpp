@@ -10,9 +10,13 @@
  * exits.  The folders must be in the index (the files come from it).
  *
  *   gimv-faces --db FILE --models DIR [--regroup] [--export DIR] [--] FOLDER...
+ *   gimv-faces --evaluate --db FILE
  *
  * --regroup: make the groups again even when no faces changed
  * --export:  write the faces of the groups as small images to DIR, to look at
+ * --evaluate: the ways of grouping tried on the faces named (as if they had
+ *            no name), the names telling how right the groups are; the
+ *            database is only read
  *
  * Output (one line each):
  *   start <todo> <total>          files to read, files in the folders
@@ -908,6 +912,283 @@ make_groups (Db &d)
 
 
 /******************************************************************************
+ *  --evaluate: the ways of grouping compared on the faces named
+ *
+ *  The faces a person has named are grouped as if they had no name, and
+ *  the names tell how right the groups are: faces of another person in a
+ *  group (mixed), and one person's faces spread over many groups (split).
+ ******************************************************************************/
+
+typedef std::vector<const float *> Feats;
+
+/* means of the groups (normalized), from the faces of each */
+static void
+group_means (const Feats &f, const std::vector<int> &grp, int n_groups,
+             std::vector<std::vector<float>> &means)
+{
+   means.assign (n_groups, std::vector<float> (FEATURE_LEN, 0.0f));
+   for (size_t i = 0; i < f.size (); i++)
+      if (grp[i] >= 0)
+         for (int j = 0; j < FEATURE_LEN; j++) means[grp[i]][j] += f[i][j];
+   for (auto &m : means) normalize (m);
+}
+
+
+/* the groups numbered 0.. in order, the empty ones gone */
+static int
+renumber (std::vector<int> &grp)
+{
+   std::map<int, int> to;
+   for (int &g : grp) {
+      if (g < 0) continue;
+      auto it = to.find (g);
+      if (it == to.end ()) it = to.insert ({ g, (int) to.size () }).first;
+      g = it->second;
+   }
+   return (int) to.size ();
+}
+
+
+/* as make_groups: the clearest faces first, each into the group whose mean
+ * it is most like (at least "th"; "grow": more for larger groups), else a
+ * new group */
+static int
+leader (const Feats &f, const std::vector<float> &score, const std::vector<size_t> &idx,
+        float th, float grow, std::vector<int> &grp, int first)
+{
+   std::vector<size_t> order (idx);
+   std::sort (order.begin (), order.end (),
+              [&] (size_t a, size_t b) { return score[a] > score[b]; });
+   std::vector<std::vector<float>> sums, means;
+   std::vector<int> sizes;
+
+   for (size_t i : order) {
+      int g = -1;
+      float best = -2;
+      for (size_t c = 0; c < means.size (); c++) {
+         float need = th + grow * std::log2 ((float) sizes[c]);
+         float s = dot (f[i], means[c].data ());
+         if (s >= need && s > best) { best = s; g = (int) c; }
+      }
+      if (g < 0) {
+         g = (int) means.size ();
+         sums.emplace_back (FEATURE_LEN, 0.0f);
+         means.emplace_back ();
+         sizes.push_back (0);
+      }
+      for (int j = 0; j < FEATURE_LEN; j++) sums[g][j] += f[i][j];
+      means[g] = sums[g];
+      normalize (means[g]);
+      sizes[g]++;
+      grp[i] = first + g;
+   }
+   return (int) means.size ();
+}
+
+
+/* each face again into the group whose mean it is most like (at least
+ * "th", else alone), the means made again, till nothing moves */
+static void
+refine (const Feats &f, std::vector<int> &grp, float th, int rounds)
+{
+   for (int r = 0; r < rounds; r++) {
+      int n = renumber (grp);
+      std::vector<std::vector<float>> means;
+      std::vector<int> sizes (n, 0);
+      group_means (f, grp, n, means);
+      for (int g : grp) if (g >= 0) sizes[g]++;
+      bool moved = false;
+      int next = n;
+      for (size_t i = 0; i < f.size (); i++) {
+         int g = -1;
+         float best = th;
+         for (int c = 0; c < n; c++) {
+            /* a face alone is not drawn to its own mean */
+            if (sizes[c] < 2 && c == grp[i]) continue;
+            float s = dot (f[i], means[c].data ());
+            if (s >= best) { best = s; g = c; }
+         }
+         if (g < 0) g = (grp[i] >= 0 && sizes[grp[i]] < 2) ? grp[i] : next++;
+         if (g != grp[i]) { grp[i] = g; moved = true; }
+      }
+      if (!moved) break;
+   }
+   renumber (grp);
+}
+
+
+/* a group whose faces are far apart grouped again within, stricter */
+static void
+split_wide (const Feats &f, const std::vector<float> &score, std::vector<int> &grp,
+            float th, float strict, int min_size)
+{
+   int n = renumber (grp);
+   std::vector<std::vector<size_t>> members (n);
+   for (size_t i = 0; i < grp.size (); i++) members[grp[i]].push_back (i);
+   int next = n;
+   for (int c = 0; c < n; c++) {
+      if ((int) members[c].size () < min_size) continue;
+      std::vector<int> sub (grp.size (), -1);
+      int k = leader (f, score, members[c], strict, 0, sub, 0);
+      if (k < 2) continue;
+      /* only parts of a few faces each: a person, not poses of one */
+      std::vector<int> cnt (k, 0);
+      for (size_t i : members[c]) cnt[sub[i]]++;
+      int big = 0;
+      for (int x : cnt) if (x >= 3) big++;
+      if (big < 2) continue;
+      for (size_t i : members[c]) grp[i] = sub[i] == 0 ? c : next + sub[i] - 1;
+      next += k - 1;
+   }
+   refine (f, grp, th, 5);
+}
+
+
+struct EvalResult {
+   int groups = 0, alone = 0, in_groups = 0;
+   int wrong = 0;         /* faces of another person than most of the group */
+   int mixed = 0;         /* groups with such faces */
+   int mixed_big = 0;     /* of 10 or more faces, 10 % or more of another */
+   int outside = 0;       /* faces of a person not in the person's largest group */
+   double ms = 0;
+};
+
+
+static EvalResult
+evaluate_groups (const std::vector<long long> &person, const std::vector<int> &grp_in,
+                 const std::map<long long, std::string> &names, bool show, const char *title)
+{
+   EvalResult r;
+   std::vector<int> grp (grp_in);
+   int n = renumber (grp);
+   std::vector<std::map<long long, int>> count (n);
+   std::vector<int> size (n, 0);
+   for (size_t i = 0; i < grp.size (); i++) { count[grp[i]][person[i]]++; size[grp[i]]++; }
+
+   std::map<long long, std::map<int, int>> by_person;   /* person -> group -> faces */
+   std::vector<std::pair<int, int>> worst;               /* wrong, group */
+   for (int c = 0; c < n; c++) {
+      if (size[c] < 2) { r.alone++; continue; }
+      r.groups++;
+      r.in_groups += size[c];
+      int top = 0;
+      for (auto &p : count[c]) top = std::max (top, p.second);
+      int w = size[c] - top;
+      r.wrong += w;
+      if (w) {
+         r.mixed++;
+         worst.push_back ({ w, c });
+      }
+      if (size[c] >= 10 && w * 10 >= size[c]) r.mixed_big++;
+   }
+   for (size_t i = 0; i < grp.size (); i++) by_person[person[i]][grp[i]]++;
+   for (auto &bp : by_person) {
+      int all = 0, top = 0;
+      for (auto &g : bp.second) { all += g.second; top = std::max (top, g.second); }
+      r.outside += all - top;
+   }
+
+   if (show && !worst.empty ()) {
+      std::sort (worst.rbegin (), worst.rend ());
+      printf ("\n%s: the most mixed groups\n", title);
+      for (size_t k = 0; k < worst.size () && k < 8; k++) {
+         int c = worst[k].second;
+         std::vector<std::pair<int, long long>> ps;
+         for (auto &p : count[c]) ps.push_back ({ p.second, p.first });
+         std::sort (ps.rbegin (), ps.rend ());
+         printf ("  %d faces:", size[c]);
+         for (size_t j = 0; j < ps.size () && j < 5; j++) {
+            auto it = names.find (ps[j].second);
+            printf (" %s %d", it != names.end () ? it->second.c_str () : "?", ps[j].first);
+         }
+         if (ps.size () > 5) printf (" ...");
+         printf ("\n");
+      }
+   }
+   return r;
+}
+
+
+static int
+run_evaluate (const std::string &dbfile)
+{
+   Db d;
+   if (sqlite3_open_v2 (dbfile.c_str (), &d.db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK) {
+      fprintf (stderr, "cannot open %s\n", dbfile.c_str ());
+      return 1;
+   }
+   sqlite3_busy_handler (d.db, busy_poll, nullptr);
+
+   std::vector<std::vector<float>> store;
+   std::vector<float> score;
+   std::vector<long long> person;
+   std::map<long long, std::string> names;
+   sqlite3_stmt *st = d.prep ("SELECT fa.feature, fa.score, p.id, p.name FROM faces fa "
+                              "JOIN persons p ON p.id = fa.person_id WHERE fa.ignored = 0");
+   while (st && sqlite3_step (st) == SQLITE_ROW) {
+      if (sqlite3_column_bytes (st, 0) != FEATURE_LEN * (int) sizeof (float)) continue;
+      const float *b = (const float *) sqlite3_column_blob (st, 0);
+      store.emplace_back (b, b + FEATURE_LEN);
+      score.push_back ((float) sqlite3_column_double (st, 1));
+      person.push_back (sqlite3_column_int64 (st, 2));
+      names[person.back ()] = (const char *) sqlite3_column_text (st, 3);
+   }
+   sqlite3_finalize (st);
+   if (store.empty ()) {
+      printf ("no faces named: nothing to compare with\n");
+      return 0;
+   }
+   Feats f;
+   for (auto &v : store) f.push_back (v.data ());
+   std::vector<size_t> all (f.size ());
+   for (size_t i = 0; i < all.size (); i++) all[i] = i;
+
+   printf ("%zu faces named, %zu people: grouped as if they had no name\n",
+           f.size (), names.size ());
+   printf ("(threshold now %.2f; the guesses of the people named are not part of this)\n\n",
+           GROUP_SIM);
+
+   struct Way { const char *title; int kind; };
+   const Way ways[] = {
+      { "A now: leader",                 0 },
+      { "B A + faces moved to the nearest group", 1 },
+      { "C B + wide groups split",       2 },
+      { "D larger groups stricter + B",  3 },
+   };
+   std::vector<std::pair<std::string, EvalResult>> results;
+   std::vector<std::vector<int>> grps;
+   for (const Way &w : ways) {
+      std::vector<int> grp (f.size (), -1);
+      long long t0 = now_usec ();
+      leader (f, score, all, GROUP_SIM, w.kind == 3 ? 0.02f : 0.0f, grp, 0);
+      if (w.kind >= 1) refine (f, grp, GROUP_SIM, 10);
+      if (w.kind == 2) split_wide (f, score, grp, GROUP_SIM, 0.50f, 6);
+      EvalResult r = evaluate_groups (person, grp, names, false, w.title);
+      r.ms = (now_usec () - t0) / 1000.0;
+      results.push_back ({ w.title, r });
+      grps.push_back (grp);
+      fprintf (stderr, "%s: done\n", w.title);
+   }
+
+   printf ("%-40s %7s %6s %7s %6s %9s %8s %8s\n", "way", "groups", "alone", "wrong",
+           "mixed", "mixed>=10", "outside", "seconds");
+   for (auto &x : results)
+      printf ("%-40s %7d %6d %7d %6d %9d %8d %8.1f\n", x.first.c_str (), x.second.groups,
+              x.second.alone, x.second.wrong, x.second.mixed, x.second.mixed_big,
+              x.second.outside, x.second.ms / 1000.0);
+   printf ("\n  groups: of 2 faces or more; alone: faces in no group\n"
+           "  wrong: faces of another person than most of their group (fewer is better)\n"
+           "  mixed: groups with such faces; mixed>=10: of 10 faces or more, 10 %% or more\n"
+           "  outside: faces not in the largest group of their person (one person split\n"
+           "           over groups; fewer is better, but some is fine: they are named\n"
+           "           one group at a time)\n");
+   for (size_t k = 0; k < results.size (); k++)
+      evaluate_groups (person, grps[k], names, true, results[k].first.c_str ());
+   return 0;
+}
+
+
+/******************************************************************************
  *  --export: the faces of each group as small images, to look at
  ******************************************************************************/
 
@@ -967,7 +1248,8 @@ export_groups (Db &d, const std::string &out)
 static void
 usage (void)
 {
-   fprintf (stderr, "usage: gimv-faces --db FILE --models DIR [--regroup] [--export DIR] [--] FOLDER...\n");
+   fprintf (stderr, "usage: gimv-faces --db FILE --models DIR [--regroup] [--export DIR] [--] FOLDER...\n"
+                    "       gimv-faces --evaluate --db FILE\n");
 }
 
 
@@ -976,7 +1258,7 @@ main (int argc, char *argv[])
 {
    std::string dbfile, models, export_dir;
    std::vector<std::string> dirs;
-   bool opts = true, regroup = false;
+   bool opts = true, regroup = false, evaluate = false;
 
    signal (SIGPIPE, SIG_IGN);
 
@@ -986,11 +1268,14 @@ main (int argc, char *argv[])
       if (opts && a == "--db" && i + 1 < argc) { dbfile = argv[++i]; continue; }
       if (opts && a == "--models" && i + 1 < argc) { models = argv[++i]; continue; }
       if (opts && a == "--regroup") { regroup = true; continue; }
+      if (opts && a == "--evaluate") { evaluate = true; continue; }
       if (opts && a == "--export" && i + 1 < argc) { export_dir = argv[++i]; continue; }
       if (opts && a.size () > 1 && a[0] == '-') { usage (); return 2; }
       while (a.size () > 1 && a.back () == '/') a.pop_back ();
       if (!a.empty ()) dirs.push_back (a);
    }
+   if (evaluate && !dbfile.empty ())
+      return run_evaluate (dbfile);
    if (dbfile.empty () || models.empty () || dirs.empty ()) {
       usage ();
       return 2;
