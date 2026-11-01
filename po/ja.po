@@ -6032,3 +6032,6 @@ msgstr "オフ: GTK 4 のスクロールバーは、マウスが近づいたと�
 
 msgid "The people named, then the groups of faces without a name: a click shows the faces"
 msgstr "名前を付けた人物、続いて名前のない顔のグループ: クリックで顔を表示"
+
+msgid "The people named, each with the faces that may be the person (\"Name?\"), then the groups of faces without a name: a click shows the faces"
+msgstr "名前を付けた人物 (その人らしい候補は「名前？」)、続いて名前のない顔のグループ: クリックで顔を表示"

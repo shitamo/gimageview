@@ -1550,7 +1550,8 @@ add_button (GtkWidget *box, gint which, const gchar *label, const gchar *tip,
 #define PERSON_FACE_SIZE 72
 
 typedef struct {
-   gint64 id;       /* a person: its id; a group: - its number */
+   gint64 id;       /* the person's id, the group's number */
+   gchar  kind;     /* 'p' named, 'g' guessed as the person, 'c' a group */
    gint64 face;
    guint  n;
    gchar *name;     /* the person's name (NULL for a group) */
@@ -1573,17 +1574,20 @@ cmp_person_rows (gconstpointer a, gconstpointer b)
    gchar *kx, *ky;
    gint r;
 
-   if ((x->id > 0) != (y->id > 0)) return x->id > 0 ? -1 : 1;
-   if (x->id < 0) {
+   if ((x->kind == 'c') != (y->kind == 'c')) return x->kind == 'c' ? 1 : -1;
+   if (x->kind == 'c') {
       if (x->n != y->n) return x->n > y->n ? -1 : 1;
-      return x->id > y->id ? -1 : 1;   /* - number: the smaller number first */
+      return x->id < y->id ? -1 : 1;
    }
+   /* a person, then the faces that may be the person */
    kx = g_utf8_collate_key (x->name, -1);
    ky = g_utf8_collate_key (y->name, -1);
    r = strcmp (kx, ky);
    g_free (kx);
    g_free (ky);
-   return r;
+   if (r) return r;
+   if (x->id != y->id) return x->id < y->id ? -1 : 1;
+   return x->kind == 'p' ? -1 : (y->kind == 'p' ? 1 : 0);
 }
 
 
@@ -1595,7 +1599,7 @@ thread_list_persons (GTask *task, gpointer source, gpointer data, GCancellable *
    GArray *rows = g_array_new (FALSE, TRUE, sizeof (PersonRow));
    /* id -> index + 1 (keys of their own: the array moves as it grows) */
    GHashTable *at = g_hash_table_new_full (g_int64_hash, g_int64_equal, g_free, NULL);
-   GArray *pid = g_array_new (FALSE, FALSE, sizeof (gint64));
+   GArray *pid = g_array_new (FALSE, FALSE, sizeof (guint));   /* the row of each face */
    GArray *fid = g_array_new (FALSE, FALSE, sizeof (gint64));
    GArray *feats = g_array_new (FALSE, FALSE, sizeof (gfloat));
    GArray *means;
@@ -1611,29 +1615,38 @@ thread_list_persons (GTask *task, gpointer source, gpointer data, GCancellable *
    g_free (dbfile);
    /* the groups as "c:N" of the people tab (gimv_index_faces_key_where) */
    if (db && sqlite3_prepare_v2 (db,
-          "SELECT p.id, p.name, fa.id, fa.feature FROM persons p "
+          "SELECT p.id, p.name, fa.id, fa.feature, 'p' FROM persons p "
           "JOIN faces fa ON fa.person_id = p.id WHERE fa.ignored = 0 "
           "AND fa.id IN (SELECT face_id FROM face_thumbs) "
-          "UNION ALL SELECT - fa.cluster, NULL, fa.id, fa.feature FROM faces fa "
+          "UNION ALL SELECT p.id, p.name, fa.id, fa.feature, 'g' FROM persons p "
+          "JOIN faces fa ON fa.guess = p.id WHERE fa.person_id IS NULL AND fa.ignored = 0 "
+          "AND fa.id IN (SELECT face_id FROM face_thumbs) "
+          "UNION ALL SELECT fa.cluster, NULL, fa.id, fa.feature, 'c' FROM faces fa "
           "WHERE fa.cluster IS NOT NULL AND fa.person_id IS NULL AND fa.guess IS NULL "
           "AND fa.ignored = 0 AND fa.id IN (SELECT face_id FROM face_thumbs)",
           -1, &st, NULL) == SQLITE_OK)
    {
       while (sqlite3_step (st) == SQLITE_ROW && !g_cancellable_is_cancelled (cancel)) {
          gint64 p = sqlite3_column_int64 (st, 0), f = sqlite3_column_int64 (st, 2);
+         const gchar *kind = (const gchar *) sqlite3_column_text (st, 4);
+         gchar k = kind ? kind[0] : 'p';
+         /* the row of the person, of its guesses, of the group */
+         gint64 hkey = p * 4 + (k == 'p' ? 0 : k == 'g' ? 1 : 2);
          gpointer idx;
          PersonRow *r;
+         guint ri;
 
-         if (!(idx = g_hash_table_lookup (at, &p))) {
-            PersonRow nr = { p, f, 0, g_strdup ((const gchar *) sqlite3_column_text (st, 1)) };
+         if (!(idx = g_hash_table_lookup (at, &hkey))) {
+            PersonRow nr = { p, k, f, 0, g_strdup ((const gchar *) sqlite3_column_text (st, 1)) };
             g_array_append_val (rows, nr);
             idx = GUINT_TO_POINTER (rows->len);
-            g_hash_table_insert (at, g_memdup2 (&p, sizeof (p)), idx);
+            g_hash_table_insert (at, g_memdup2 (&hkey, sizeof (hkey)), idx);
          }
-         r = &g_array_index (rows, PersonRow, GPOINTER_TO_UINT (idx) - 1);
+         ri = GPOINTER_TO_UINT (idx) - 1;
+         r = &g_array_index (rows, PersonRow, ri);
          r->n++;
          if (sqlite3_column_bytes (st, 3) == FACE_FEATURE_LEN * (gint) sizeof (gfloat)) {
-            g_array_append_val (pid, p);
+            g_array_append_val (pid, ri);
             g_array_append_val (fid, f);
             g_array_append_vals (feats, sqlite3_column_blob (st, 3), FACE_FEATURE_LEN);
          }
@@ -1648,7 +1661,7 @@ thread_list_persons (GTask *task, gpointer source, gpointer data, GCancellable *
    best = g_new (gfloat, rows->len + 1);
    for (i = 0; i < rows->len; i++) best[i] = -2;
    for (i = 0; i < pid->len; i++) {
-      guint k = GPOINTER_TO_UINT (g_hash_table_lookup (at, &g_array_index (pid, gint64, i))) - 1;
+      guint k = g_array_index (pid, guint, i);
       for (j = 0; j < FACE_FEATURE_LEN; j++)
          g_array_index (means, gfloat, k * FACE_FEATURE_LEN + j)
             += g_array_index (feats, gfloat, i * FACE_FEATURE_LEN + j);
@@ -1656,7 +1669,7 @@ thread_list_persons (GTask *task, gpointer source, gpointer data, GCancellable *
    for (i = 0; i < rows->len; i++)
       feature_normalize (&g_array_index (means, gfloat, i * FACE_FEATURE_LEN));
    for (i = 0; i < pid->len; i++) {
-      guint k = GPOINTER_TO_UINT (g_hash_table_lookup (at, &g_array_index (pid, gint64, i))) - 1;
+      guint k = g_array_index (pid, guint, i);
       gfloat s = 0;
       for (j = 0; j < FACE_FEATURE_LEN; j++)
          s += g_array_index (means, gfloat, k * FACE_FEATURE_LEN + j)
@@ -1696,12 +1709,12 @@ cb_persons_listed (GObject *source, GAsyncResult *res, gpointer data)
    for (i = 0; i < rows->len; i++) {
       PersonRow *r = &g_array_index (rows, PersonRow, i);
       GimvPersonItem *item = g_object_new (GIMV_TYPE_PERSON_ITEM, NULL);
-      item->key = r->id > 0 ? g_strdup_printf ("p:%" G_GINT64_FORMAT, r->id)
-                            : g_strdup_printf ("c:%" G_GINT64_FORMAT, - r->id);
+      item->key = g_strdup_printf ("%c:%" G_GINT64_FORMAT, r->kind, r->id);
       item->face = r->face;
       item->n_faces = r->n;
-      item->name = r->id > 0 ? g_steal_pointer (&r->name)
-                             : g_strdup_printf (_("Group %d"), (gint) - r->id);
+      item->name = r->kind == 'p' ? g_steal_pointer (&r->name)
+                   : r->kind == 'g' ? g_strdup_printf (_("%s?"), r->name)
+                   : g_strdup_printf (_("Group %d"), (gint) r->id);
       item->fold = g_utf8_casefold (item->name, -1);
       g_ptr_array_add (items, item);
    }
@@ -1825,8 +1838,8 @@ cb_person_bind (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer dat
    gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (texture));
    if (texture) g_object_unref (texture);
    gtk_label_set_text (GTK_LABEL (label), text);
-   /* the groups without a name: dimmer than the people */
-   if (item->key[0] == 'c')
+   /* the guesses and the groups without a name: dimmer than the people */
+   if (item->key[0] != 'p')
       gtk_widget_add_css_class (label, "dim-label");
    else
       gtk_widget_remove_css_class (label, "dim-label");
@@ -1899,8 +1912,9 @@ create_person_list (void)
    g_signal_connect (factory, "unbind", G_CALLBACK (cb_person_unbind), NULL);
    fw.person_list = gtk_list_view_new (GTK_SELECTION_MODEL (g_object_ref (fw.person_sel)),
                                        factory);
-   gtk_widget_set_tooltip_text (fw.person_list, _("The people named, then the groups of faces "
-                                                  "without a name: a click shows the faces"));
+   gtk_widget_set_tooltip_text (fw.person_list, _("The people named, each with the faces that "
+                                                  "may be the person (\"Name?\"), then the groups "
+                                                  "of faces without a name: a click shows the faces"));
 
    scroll = gtk_scrolled_window_new ();
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
