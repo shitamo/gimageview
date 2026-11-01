@@ -834,6 +834,135 @@ gimv_index_faces_edit_async (GimvIndexFacesEdit edit, GArray *ids, const gchar *
 }
 
 
+gboolean
+gimv_index_faces_path_is_for_faces (const gchar *path)
+{
+   gchar **dirs;
+   gboolean in = FALSE;
+   gint i;
+
+   if (!path || !gimv_index_faces_is_configured ()) return FALSE;
+   dirs = g_strsplit (conf.index_face_dirs, ";", -1);
+   for (i = 0; dirs[i] && !in; i++) {
+      gchar *d = g_strstrip (dirs[i]);
+      gsize n = strlen (d);
+      while (n > 1 && d[n - 1] == '/') d[--n] = '\0';
+      in = n && g_str_has_prefix (path, d) && (path[n] == '/' || (n == 1 && d[0] == '/'));
+   }
+   g_strfreev (dirs);
+   return in;
+}
+
+
+typedef struct {
+   gint64   face;
+   gboolean exists, found_again;
+} AddResult;
+
+
+static void
+cb_add_done (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GTask *task = data;
+   gchar *out = NULL, *err = NULL;
+   GError *error = NULL;
+   AddResult *r = g_new0 (AddResult, 1);
+   gchar **lines;
+   guint i;
+
+   if (!g_subprocess_communicate_utf8_finish (G_SUBPROCESS (source), res, &out, &err, &error)) {
+      g_task_return_error (task, error);
+      g_object_unref (task);
+      g_free (r);
+      return;
+   }
+   lines = g_strsplit (out ? out : "", "\n", -1);
+   for (i = 0; lines[i]; i++) {
+      gint found = 0;
+      if (sscanf (lines[i], "added %" G_GINT64_FORMAT " %d", &r->face, &found) >= 1) {
+         r->found_again = found != 0;
+      } else if (sscanf (lines[i], "exists %" G_GINT64_FORMAT, &r->face) == 1) {
+         r->exists = TRUE;
+      } else if (g_str_has_prefix (lines[i], "error ") && !error) {
+         error = g_error_new (G_IO_ERROR, G_IO_ERROR_FAILED, "%s", lines[i] + 6);
+      } else if (g_str_has_prefix (lines[i], "no-models") && !error) {
+         error = g_error_new (G_IO_ERROR, G_IO_ERROR_NOT_FOUND, "%s",
+                              _("The models for faces are not there."));
+      }
+   }
+   g_strfreev (lines);
+   if (r->face) {
+      g_task_return_pointer (task, r, g_free);
+      g_clear_error (&error);
+   } else {
+      g_task_return_error (task, error ? error
+                           : g_error_new (G_IO_ERROR, G_IO_ERROR_FAILED, "%s",
+                                          err && *err ? err : "?"));
+      g_free (r);
+   }
+   g_free (out);
+   g_free (err);
+   g_object_unref (task);
+}
+
+
+void
+gimv_index_faces_add_async (const gchar *path, gint x, gint y, gint w, gint h,
+                            GAsyncReadyCallback callback, gpointer data)
+{
+   GTask *task = g_task_new (NULL, NULL, callback, data);
+   gchar *exe = find_exe (), *models = gimv_index_faces_model_dir ();
+   gchar *dbfile = gimv_index_db_default_path (), *rect;
+   GSubprocess *proc;
+   GError *error = NULL;
+
+   if (!exe || !models) {
+      g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_NOT_FOUND, "%s",
+                               !exe ? _("gimv-faces is not found")
+                                    : _("The models for faces are not there."));
+      g_object_unref (task);
+      g_free (exe);
+      g_free (models);
+      g_free (dbfile);
+      return;
+   }
+   rect = g_strdup_printf ("%d,%d,%d,%d", x, y, w, h);
+   proc = g_subprocess_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE,
+                            &error, exe, "--add-face", rect, "--db", dbfile,
+                            "--models", models, "--", path, NULL);
+   if (!proc) {
+      g_task_return_error (task, error);
+      g_object_unref (task);
+   } else {
+      g_subprocess_communicate_utf8_async (proc, NULL, NULL, cb_add_done, task);
+      g_object_unref (proc);
+   }
+   g_free (rect);
+   g_free (exe);
+   g_free (models);
+   g_free (dbfile);
+}
+
+
+gint64
+gimv_index_faces_add_finish (GAsyncResult *res, gboolean *exists, gboolean *found_again,
+                             GError **error)
+{
+   AddResult *r = g_task_propagate_pointer (G_TASK (res), error);
+   gint64 face = 0;
+
+   if (exists) *exists = r ? r->exists : FALSE;
+   if (found_again) *found_again = r ? r->found_again : FALSE;
+   if (r) {
+      face = r->face;
+      /* a new face: the groups and guesses again */
+      if (!r->exists) changed ();
+      g_free (r);
+   }
+   return face;
+}
+
+
 void
 gimv_index_faces_named_by_indexer (void)
 {

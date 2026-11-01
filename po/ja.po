@@ -6047,3 +6047,27 @@ msgstr[0] "%'u 個の顔から名前が外れ、名前のない顔に戻りま�
 
 msgid "Delete the person: the name goes from all its faces..."
 msgstr "この人物を削除: すべての顔から名前を外します..."
+
+msgid "No faces found. A face can be added with the + button."
+msgstr "顔は見つかりませんでした。＋ のボタンで顔を追加できます。"
+
+msgid "A face is there already."
+msgstr "そこには顔がもう登録されています。"
+
+msgid "Added as marked (not found as a face there: it may be guessed less well)."
+msgstr "囲んだ範囲のまま追加しました (そこで顔として見つからなかったため、候補が当たりにくいことがあります)。"
+
+msgid "adding..."
+msgstr "追加中..."
+
+msgid "Adding the face..."
+msgstr "顔を追加しています..."
+
+msgid "Drag over the face on the image (Esc: stop)."
+msgstr "写真の上で顔をドラッグして囲んでください (Esc で取り消し)。"
+
+msgid "Add a face not found: drag over it on the image"
+msgstr "見つからなかった顔を追加: 写真の上でドラッグして囲みます"
+
+msgid "The models for faces are not there."
+msgstr "顔認識のモデルがありません。"

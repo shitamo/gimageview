@@ -2536,6 +2536,38 @@ paint_face_mark (GimvImageView *iv, cairo_t *cr)
 }
 
 
+gboolean
+gimv_image_view_point_to_face (GimvImageView *iv, gdouble wx, gdouble wy,
+                               gdouble *fx, gdouble *fy)
+{
+   gint orient;
+   gdouble ox, oy, ax, ay, bx, by, vx, vy, det;
+   gdouble tw, th;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+   if (!iv->priv->pixmap) return FALSE;
+   tw = gdk_texture_get_width (iv->priv->pixmap);
+   th = gdk_texture_get_height (iv->priv->pixmap);
+   if (tw <= 0 || th <= 0) return FALSE;
+   /* [0, 1] of the image as shown here */
+   vx = (wx - iv->priv->x_pos) / tw;
+   vy = (wy - iv->priv->y_pos) / th;
+
+   /* face_point_to_view () is affine (turns and mirrors): v = o + x a + y b */
+   orient = face_orientation (iv);
+   face_point_to_view (iv, orient, 0, 0, &ox, &oy);
+   face_point_to_view (iv, orient, 1, 0, &ax, &ay);
+   face_point_to_view (iv, orient, 0, 1, &bx, &by);
+   ax -= ox; ay -= oy; bx -= ox; by -= oy;
+   det = ax * by - ay * bx;
+   if (det == 0) return FALSE;
+   vx -= ox; vy -= oy;
+   *fx = (vx * by - vy * bx) / det;
+   *fy = (ax * vy - ay * vx) / det;
+   return TRUE;
+}
+
+
 /* mark a face on the image (show FALSE: none); x, y, w, h in [0, 1] of the
  * image as its EXIF orientation shows it */
 void

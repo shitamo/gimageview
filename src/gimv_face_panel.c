@@ -52,6 +52,14 @@ typedef struct {
    PanelFace     *menu_face;   /* the face of the menu */
    guint          watch_id;
    gboolean       busy;
+
+   /* a face marked by hand: dragged on the image */
+   GtkWidget     *add_button;
+   GtkGesture    *drag;        /* on the drawing area while marking */
+   GtkEventController *keys;
+   gdouble        drag_x, drag_y;      /* where the drag began (drawing area) */
+   gdouble        mark_x, mark_y, mark_w, mark_h;   /* [0, 1] upright */
+   gboolean       adding;      /* gimv-faces works on one */
 } FacePanel;
 
 
@@ -129,7 +137,8 @@ read_faces (FacePanel *fp)
       sqlite3_finalize (st);
    }
 
-   if (scanned > 0 && upright_size (fp->iv, &w, &h)
+   /* the faces marked by hand too (an image where none was found) */
+   if (upright_size (fp->iv, &w, &h)
        && sqlite3_prepare_v2 (db,
              "SELECT fa.id, fa.x, fa.y, fa.w, fa.h, fa.person_id, fa.guess, "
              "  coalesce(p.name, g.name), fa.ignored, "
@@ -450,8 +459,15 @@ panel_reload (FacePanel *fp)
                           : _("No folders are given for faces (the Index page of the "
                               "preferences)."));
    else if (!fp->faces->len)
-      gtk_label_set_text (GTK_LABEL (fp->message), _("No faces found."));
-   gtk_widget_set_visible (fp->message, scanned < 0 || !fp->faces->len);
+      gtk_label_set_text (GTK_LABEL (fp->message),
+                          _("No faces found. A face can be added with the + button."));
+   if (scanned < 0 && fp->faces->len)
+      scanned = 0;
+   gtk_widget_set_visible (fp->message, (scanned < 0 || !fp->faces->len) && !fp->drag);
+   if (fp->add_button)
+      gtk_widget_set_sensitive (fp->add_button, !fp->adding && fp->iv->info
+                                && gimv_index_faces_path_is_for_faces (
+                                      gimv_image_info_get_path (fp->iv->info)));
 
    for (i = 0; i < fp->faces->len; i++) {
       PanelFace *f = g_ptr_array_index (fp->faces, i);
@@ -500,9 +516,190 @@ panel_reload (FacePanel *fp)
 }
 
 
+/******************************************************************************
+ *  a face marked by hand: the + button, then a drag on the image
+ ******************************************************************************/
+
+static void mark_stop (FacePanel *fp);
+
+static void
+mark_message (FacePanel *fp, const gchar *text)
+{
+   if (!fp->message) return;
+   gtk_label_set_text (GTK_LABEL (fp->message), text);
+   gtk_widget_set_visible (fp->message, text != NULL);
+}
+
+
+static void
+cb_added (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GtkWidget *box = data;   /* held till now: fp lives as long as it */
+   FacePanel *fp = g_object_get_data (G_OBJECT (box), "gimv-face-panel-data");
+   GError *error = NULL;
+   gboolean exists = FALSE, found = FALSE;
+   gint64 face = gimv_index_faces_add_finish (res, &exists, &found, &error);
+
+   if (fp && fp->box && fp->iv) {
+      fp->adding = FALSE;
+      panel_reload (fp);
+      if (!face)
+         mark_message (fp, error ? error->message : "?");
+      else if (exists)
+         mark_message (fp, _("A face is there already."));
+      else if (!found)
+         mark_message (fp, _("Added as marked (not found as a face there: it may be "
+                             "guessed less well)."));
+   }
+   g_clear_error (&error);
+   g_object_unref (box);
+}
+
+
+static void
+cb_drag_begin (GtkGestureDrag *drag, gdouble x, gdouble y, FacePanel *fp)
+{
+   gdouble fx, fy;
+
+   /* only on the image */
+   if (!gimv_image_view_point_to_face (fp->iv, x, y, &fx, &fy)
+       || fx < 0 || fy < 0 || fx > 1 || fy > 1) {
+      gtk_gesture_set_state (GTK_GESTURE (drag), GTK_EVENT_SEQUENCE_DENIED);
+      return;
+   }
+   /* not the view's own (scrolling, the next image) */
+   gtk_gesture_set_state (GTK_GESTURE (drag), GTK_EVENT_SEQUENCE_CLAIMED);
+   fp->drag_x = x;
+   fp->drag_y = y;
+   fp->mark_w = fp->mark_h = 0;
+}
+
+
+static void
+cb_drag_update (GtkGestureDrag *drag, gdouble dx, gdouble dy, FacePanel *fp)
+{
+   gdouble x0, y0, x1, y1;
+
+   if (!gimv_image_view_point_to_face (fp->iv, fp->drag_x, fp->drag_y, &x0, &y0)
+       || !gimv_image_view_point_to_face (fp->iv, fp->drag_x + dx, fp->drag_y + dy, &x1, &y1))
+      return;
+   fp->mark_x = CLAMP (MIN (x0, x1), 0, 1);
+   fp->mark_y = CLAMP (MIN (y0, y1), 0, 1);
+   fp->mark_w = CLAMP (MAX (x0, x1), 0, 1) - fp->mark_x;
+   fp->mark_h = CLAMP (MAX (y0, y1), 0, 1) - fp->mark_y;
+   gimv_image_view_set_face_mark (fp->iv, TRUE, fp->mark_x, fp->mark_y,
+                                  fp->mark_w, fp->mark_h, NULL);
+}
+
+
+/* the drag taken off the drawing area after its signal, not in it */
+static gboolean
+idle_mark_stop (gpointer data)
+{
+   GtkWidget *box = data;
+   FacePanel *fp = g_object_get_data (G_OBJECT (box), "gimv-face-panel-data");
+   if (fp && fp->box) mark_stop (fp);
+   g_object_unref (box);
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_drag_end (GtkGestureDrag *drag, gdouble dx, gdouble dy, FacePanel *fp)
+{
+   gint w, h, px, py, pw, ph;
+
+   cb_drag_update (drag, dx, dy, fp);
+   if (!upright_size (fp->iv, &w, &h) || !fp->iv->info) {
+      g_idle_add (idle_mark_stop, g_object_ref (fp->box));
+      return;
+   }
+   px = (gint) (fp->mark_x * w);
+   py = (gint) (fp->mark_y * h);
+   pw = (gint) (fp->mark_w * w);
+   ph = (gint) (fp->mark_h * h);
+   if (pw < 6 || ph < 6) {
+      /* a click, not a drag: still marking */
+      gimv_image_view_set_face_mark (fp->iv, FALSE, 0, 0, 0, 0, NULL);
+      return;
+   }
+   g_idle_add (idle_mark_stop, g_object_ref (fp->box));
+   gimv_image_view_set_face_mark (fp->iv, TRUE, fp->mark_x, fp->mark_y,
+                                  fp->mark_w, fp->mark_h, _("adding..."));
+   fp->adding = TRUE;
+   if (fp->add_button) gtk_widget_set_sensitive (fp->add_button, FALSE);
+   mark_message (fp, _("Adding the face..."));
+   gimv_index_faces_add_async (gimv_image_info_get_path (fp->iv->info), px, py, pw, ph,
+                               cb_added, g_object_ref (fp->box));
+}
+
+
+static gboolean
+cb_mark_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType state,
+             FacePanel *fp)
+{
+   if (keyval == GDK_KEY_Escape) {
+      mark_stop (fp);
+      mark_message (fp, NULL);
+      gimv_image_view_set_face_mark (fp->iv, FALSE, 0, 0, 0, 0, NULL);
+      return TRUE;
+   }
+   return FALSE;
+}
+
+
+static void
+mark_stop (FacePanel *fp)
+{
+   if (fp->drag && fp->iv && fp->iv->draw_area)
+      gtk_widget_remove_controller (fp->iv->draw_area, GTK_EVENT_CONTROLLER (fp->drag));
+   if (fp->keys && fp->iv)
+      gtk_widget_remove_controller (GTK_WIDGET (fp->iv), fp->keys);
+   fp->drag = NULL;
+   fp->keys = NULL;
+   if (fp->iv && fp->iv->draw_area)
+      gtk_widget_set_cursor (fp->iv->draw_area, NULL);
+   if (fp->add_button)
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (fp->add_button), FALSE);
+}
+
+
+static void
+cb_add_toggled (GtkToggleButton *button, FacePanel *fp)
+{
+   if (!gtk_toggle_button_get_active (button)) {
+      if (fp->drag) {
+         mark_stop (fp);
+         mark_message (fp, NULL);
+      }
+      return;
+   }
+   if (fp->drag || !fp->iv || !fp->iv->draw_area) return;
+   fp->drag = gtk_gesture_drag_new ();
+   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (fp->drag),
+                                               GTK_PHASE_CAPTURE);
+   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (fp->drag), GDK_BUTTON_PRIMARY);
+   g_signal_connect (fp->drag, "drag-begin", G_CALLBACK (cb_drag_begin), fp);
+   g_signal_connect (fp->drag, "drag-update", G_CALLBACK (cb_drag_update), fp);
+   g_signal_connect (fp->drag, "drag-end", G_CALLBACK (cb_drag_end), fp);
+   gtk_widget_add_controller (fp->iv->draw_area, GTK_EVENT_CONTROLLER (fp->drag));
+   fp->keys = gtk_event_controller_key_new ();
+   gtk_event_controller_set_propagation_phase (fp->keys, GTK_PHASE_CAPTURE);
+   g_signal_connect (fp->keys, "key-pressed", G_CALLBACK (cb_mark_key), fp);
+   gtk_widget_add_controller (GTK_WIDGET (fp->iv), fp->keys);
+   gtk_widget_set_cursor_from_name (fp->iv->draw_area, "crosshair");
+   gimv_image_view_set_face_mark (fp->iv, FALSE, 0, 0, 0, 0, NULL);
+   mark_message (fp, _("Drag over the face on the image (Esc: stop)."));
+}
+
+
 static void
 cb_image_changed (GimvImageView *iv, FacePanel *fp)
 {
+   if (fp->drag) {
+      mark_stop (fp);
+      mark_message (fp, NULL);
+   }
    panel_reload (fp);
 }
 
@@ -529,6 +726,8 @@ cb_box_destroy (GtkWidget *widget, FacePanel *fp)
 {
    if (fp->watch_id) gimv_index_remove_watch (fp->watch_id);
    fp->watch_id = 0;
+   fp->add_button = NULL;   /* gone with the box */
+   if (fp->drag || fp->keys) mark_stop (fp);
    /* not panel_clear (): the children of the box are gone already (a box
     * unparents them before its "destroy"), the rows and the popover too */
    drop_popover (fp);
@@ -583,7 +782,14 @@ gimv_face_panel_wrap (GimvImageView *iv)
    done = gtk_button_new_with_mnemonic (_("_Done"));
    gtk_button_set_has_frame (GTK_BUTTON (done), FALSE);
    g_signal_connect (done, "clicked", G_CALLBACK (cb_done), fp);
+   fp->add_button = gtk_toggle_button_new ();
+   gtk_button_set_icon_name (GTK_BUTTON (fp->add_button), "list-add-symbolic");
+   gtk_button_set_has_frame (GTK_BUTTON (fp->add_button), FALSE);
+   gtk_widget_set_tooltip_text (fp->add_button,
+                                _("Add a face not found: drag over it on the image"));
+   g_signal_connect (fp->add_button, "toggled", G_CALLBACK (cb_add_toggled), fp);
    gtk_box_append (GTK_BOX (header), title);
+   gtk_box_append (GTK_BOX (header), fp->add_button);
    gtk_box_append (GTK_BOX (header), done);
    gtk_box_append (GTK_BOX (fp->box), header);
 
@@ -627,6 +833,7 @@ gimv_face_panel_set_visible (GimvImageView *iv, gboolean visible)
    FacePanel *fp = iv ? g_object_get_data (G_OBJECT (iv), PANEL_KEY) : NULL;
 
    if (!fp || !fp->box) return;
+   if (!visible && fp->drag) mark_stop (fp);
    gtk_widget_set_visible (fp->box, visible);
    if (visible)
       panel_reload (fp);

@@ -294,6 +294,13 @@ void        gimv_image_view_set_face_mark   (GimvImageView *iv,
                                              gdouble        h,
                                              const gchar   *label);
 gint        gimv_image_view_get_exif_orientation (GimvImageView *iv);
+/* a point of the drawing area -> [0, 1] of the image as its EXIF
+ * orientation shows it (as the face marks); FALSE: no image shown */
+gboolean    gimv_image_view_point_to_face   (GimvImageView *iv,
+                                             gdouble        wx,
+                                             gdouble        wy,
+                                             gdouble       *fx,
+                                             gdouble       *fy);
 /* the image as shown (to the clipboard, for an image search and the like);
  * the face: x, y, w, h in [0, 1] of the image as its EXIF orientation shows
  * it, with some room around it */

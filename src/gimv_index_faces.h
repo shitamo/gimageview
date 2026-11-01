@@ -81,6 +81,20 @@ GPtrArray          *gimv_index_faces_get_all_person_tags (void);
 gint64              gimv_index_faces_find_person    (const gchar        *name);
 GPtrArray          *gimv_index_faces_get_names      (void);
 void                gimv_index_faces_flush          (void);
+/* a face a person marked on the image (x, y, w, h: pixels of the image as
+ * its EXIF orientation shows it), by gimv-faces in the background; the
+ * image must be in the folders for faces */
+gboolean            gimv_index_faces_path_is_for_faces (const gchar *path);
+void                gimv_index_faces_add_async      (const gchar        *path,
+                                                     gint x, gint y, gint w, gint h,
+                                                     GAsyncReadyCallback callback,
+                                                     gpointer            data);
+/* the new face (or the face there already: *exists), 0 on an error;
+ * *found_again: found by the detector there (else taken as marked) */
+gint64              gimv_index_faces_add_finish     (GAsyncResult       *res,
+                                                     gboolean           *exists,
+                                                     gboolean           *found_again,
+                                                     GError            **error);
 /* the indexer gave names back to faces (from the comment files) */
 void                gimv_index_faces_named_by_indexer (void);
 
