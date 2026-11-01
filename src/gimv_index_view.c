@@ -31,6 +31,7 @@
 #include "gimv_index_db.h"
 #include "gimv_index_faces.h"
 #include "gimv_index_faces_win.h"
+#include "gimv_prefs_win.h"
 #include "menu.h"
 #include "prefs.h"
 #include "gimv_index_view.h"
@@ -1229,7 +1230,8 @@ cb_action_no_folder_tag (GSimpleAction *action, GVariant *param, gpointer data)
    gchar **v, *list;
    guint i;
 
-   if (!name) return;
+   /* the preferences window would write its own copy back on OK */
+   if (!name || gimv_prefs_win_is_opened ()) return;
    v = g_strsplit (conf.index_auto_folder_exclude ? conf.index_auto_folder_exclude : "", ";", -1);
    for (i = 0; v[i]; i++) {
       if (!g_utf8_collate (v[i], name)) {
@@ -1313,7 +1315,10 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
          GAction *a = g_action_map_lookup_action (G_ACTION_MAP (iv->actions), "rename");
          g_simple_action_set_enabled (G_SIMPLE_ACTION (a), key_is_renamable (iv, key));
          a = g_action_map_lookup_action (G_ACTION_MAP (iv->actions), "no-folder-tag");
-         g_simple_action_set_enabled (G_SIMPLE_ACTION (a), key_folder_name (key) != NULL);
+         /* not while the preferences window is open: it has the list too
+          * and would write it back on OK */
+         g_simple_action_set_enabled (G_SIMPLE_ACTION (a), key_folder_name (key) != NULL
+                                      && !gimv_prefs_win_is_opened ());
       }
       gtk_popover_set_pointing_to (GTK_POPOVER (iv->popover), &rect);
       gtk_popover_popup (GTK_POPOVER (iv->popover));
