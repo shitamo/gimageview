@@ -6023,3 +6023,9 @@ msgstr "名前で探す"
 
 msgid "The people named: a click shows their faces"
 msgstr "名前を付けた人物: クリックでその人の顔を表示"
+
+msgid "Always show the scrollbars"
+msgstr "スクロールバーを常に表示する"
+
+msgid "Off: the scrollbars of GTK 4 show only while the pointer is near them, over the contents"
+msgstr "オフ: GTK 4 のスクロールバーは、マウスが近づいたときだけ内容の上に重ねて表示されます"

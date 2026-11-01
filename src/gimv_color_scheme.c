@@ -336,6 +336,11 @@ gimv_color_scheme_apply (void)
 
    if (!settings || !display) return;
 
+   /* the scrollbars always there, not shown over the contents only while
+    * the pointer is near (and hard to catch then); every scrolled window
+    * follows the setting, also the open ones */
+   g_object_set (settings, "gtk-overlay-scrolling", !conf.scrollbars_always, NULL);
+
    if (!initialized) {
       g_object_get (settings, "gtk-theme-name", &initial_theme, NULL);
       g_signal_connect_after (display, "setting-changed",

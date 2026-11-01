@@ -98,6 +98,7 @@ typedef struct _Config {
    gchar     *iconset;
    gboolean   use_theme_icons;
    gint       color_scheme;     /* GimvColorScheme (gimv_color_scheme.h) */
+   gboolean   scrollbars_always; /* not the overlay scrollbars of GTK 4 */
    gchar     *textentry_font;
 
    /* Charset related common option */

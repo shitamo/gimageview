@@ -112,6 +112,7 @@ static ConfParam param_common [] = {
    {"iconset",                  D_STRING, DEFAULT_ICONSET, &conf.iconset},
    {"use_theme_icons",          D_BOOL,   "TRUE",  &conf.use_theme_icons},
    {"color_scheme",             D_ENUM,   "0",     &conf.color_scheme},
+   {"scrollbars_always",        D_BOOL,   "TRUE",  &conf.scrollbars_always},
    {"textentry_font",           D_STRING,
     "-alias-fixed-medium-r-normal--14-*-*-*-*-*-*-*", &conf.textentry_font},
 

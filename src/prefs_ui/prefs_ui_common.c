@@ -669,6 +669,14 @@ prefs_common_page (void)
                                             (gint *) &config_changed->color_scheme);
    gimv_box_pack_start (GTK_BOX (hbox), option_menu, FALSE, FALSE, 5);
 
+   toggle = gtkutil_create_check_button (_("Always show the scrollbars"),
+                                         conf.scrollbars_always,
+                                         gtkutil_get_data_from_toggle_cb,
+                                         &config_changed->scrollbars_always);
+   gtk_widget_set_tooltip_text (toggle, _("Off: the scrollbars of GTK 4 show only while the "
+                                          "pointer is near them, over the contents"));
+   gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+
    toggle = gtkutil_create_check_button (_("Use icons of the desktop icon theme for buttons"),
                                          conf.use_theme_icons,
                                          gtkutil_get_data_from_toggle_cb,
