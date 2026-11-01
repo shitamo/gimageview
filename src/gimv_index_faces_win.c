@@ -810,12 +810,33 @@ cb_name_entry_key (GtkEventControllerKey *ctrl, guint keyval, guint code,
 }
 
 
+static guint name_focus_id = 0;
+
+static gboolean
+idle_name_focus_out (gpointer data)
+{
+   GtkWidget *focus;
+
+   name_focus_id = 0;
+   if (!fw.window || !gtk_widget_get_visible (fw.name_entry)) return G_SOURCE_REMOVE;
+   /* another program (to copy a name from it): the entry stays, and has
+    * the focus again when the window comes back */
+   if (!gtk_window_is_active (GTK_WINDOW (fw.window))) return G_SOURCE_REMOVE;
+   focus = gtk_root_get_focus (GTK_ROOT (fw.window));
+   if (focus && (focus == fw.name_entry || gtk_widget_is_ancestor (focus, fw.name_entry)))
+      return G_SOURCE_REMOVE;
+   /* clicked elsewhere in the window: as Escape */
+   name_edit_end ();
+   return G_SOURCE_REMOVE;
+}
+
+
 static void
 cb_name_entry_focus_out (GtkEventControllerFocus *ctrl, gpointer data)
 {
-   /* clicked elsewhere: as Escape */
-   if (gtk_widget_get_visible (fw.name_entry))
-      name_edit_end ();
+   /* looked at after the window has said whether it is still active */
+   if (gtk_widget_get_visible (fw.name_entry) && !name_focus_id)
+      name_focus_id = g_timeout_add (100, idle_name_focus_out, NULL);
 }
 
 
@@ -1425,6 +1446,10 @@ cb_destroy (GtkWidget *widget, gpointer data)
    if (fw.tw) g_object_weak_unref (G_OBJECT (fw.tw), cb_tw_gone, NULL);
    fw.tw = NULL;
    fw.window = NULL;
+   if (name_focus_id) {
+      g_source_remove (name_focus_id);
+      name_focus_id = 0;
+   }
    g_clear_object (&fw.selection);
    fw.store = NULL;   /* owned by the selection */
    g_clear_pointer (&fw.key, g_free);

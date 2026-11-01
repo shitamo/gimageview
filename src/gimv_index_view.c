@@ -182,6 +182,7 @@ typedef struct {
    GtkWidget     *popover;
    GtkWidget     *rename_popover; /* the entry a tag is renamed in */
    GtkWidget     *rename_entry;
+   guint          rename_focus_id;
    gchar         *menu_key;    /* row of the right button menu */
    gchar         *click_key;   /* row clicked with the left button */
    gchar         *shown_key;   /* what the result tab shows */
@@ -1343,9 +1344,42 @@ cb_rename_closed (GtkPopover *popover, IndexView *iv)
 
 
 static gboolean
+idle_rename_focus_out (gpointer data)
+{
+   IndexView *iv = data;
+   GtkRoot *root = gtk_widget_get_root (iv->tree);
+   GtkWidget *focus = GTK_IS_ROOT (root) ? gtk_root_get_focus (root) : NULL;
+
+   iv->rename_focus_id = 0;
+   if (!iv->editing_key || !iv->rename_popover) return G_SOURCE_REMOVE;
+   /* another program (to copy a name from it): the entry stays */
+   if (GTK_IS_WINDOW (root) && !gtk_window_is_active (GTK_WINDOW (root)))
+      return G_SOURCE_REMOVE;
+   if (focus && (focus == iv->rename_entry || gtk_widget_is_ancestor (focus, iv->rename_entry)))
+      return G_SOURCE_REMOVE;
+   /* clicked elsewhere in the window: as Escape */
+   gtk_popover_popdown (GTK_POPOVER (iv->rename_popover));
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_rename_focus_out (GtkEventControllerFocus *ctrl, IndexView *iv)
+{
+   /* looked at after the window has said whether it is still active */
+   if (!iv->rename_focus_id)
+      iv->rename_focus_id = g_timeout_add (100, idle_rename_focus_out, iv);
+}
+
+
+static gboolean
 cb_rename_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType state,
                IndexView *iv)
 {
+   if (keyval == GDK_KEY_Escape) {
+      gtk_popover_popdown (GTK_POPOVER (iv->rename_popover));
+      return TRUE;
+   }
    /* the text, not the window's Ctrl+A (select all the thumbnails) */
    if ((keyval == GDK_KEY_a || keyval == GDK_KEY_A) && (state & GDK_CONTROL_MASK)) {
       gtk_editable_select_region (GTK_EDITABLE (iv->rename_entry), 0, -1);
@@ -1385,7 +1419,13 @@ start_rename (IndexView *iv, const gchar *key)
       gtk_event_controller_set_propagation_phase (keys, GTK_PHASE_CAPTURE);
       g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_rename_key), iv);
       gtk_widget_add_controller (iv->rename_entry, keys);
+      keys = gtk_event_controller_focus_new ();
+      g_signal_connect (keys, "leave", G_CALLBACK (cb_rename_focus_out), iv);
+      gtk_widget_add_controller (iv->rename_entry, keys);
       iv->rename_popover = gtk_popover_new ();
+      /* not closed by a click on another program (a name copied from
+       * it): closed by Enter, Escape and a click elsewhere here */
+      gtk_popover_set_autohide (GTK_POPOVER (iv->rename_popover), FALSE);
       gtk_popover_set_child (GTK_POPOVER (iv->rename_popover), iv->rename_entry);
       gtk_popover_set_position (GTK_POPOVER (iv->rename_popover), GTK_POS_BOTTOM);
       /* on the scrolled window, as the menu */
@@ -1930,6 +1970,7 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
    if (iv->open_id) g_source_remove (iv->open_id);
    if (iv->rename_id) g_source_remove (iv->rename_id);
    if (iv->popover) gtk_widget_unparent (iv->popover);
+   if (iv->rename_focus_id) g_source_remove (iv->rename_focus_id);
    if (iv->rename_popover) gtk_widget_unparent (iv->rename_popover);
    set_result_tab (iv, NULL);
    g_clear_object (&iv->store);
