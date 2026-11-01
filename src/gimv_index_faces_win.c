@@ -124,6 +124,7 @@ static struct {
    GtkWidget         *count_label;
    GtkWidget         *sort_drop;    /* the order of the faces */
    GtkWidget         *tags_button;  /* the tags of the person */
+   GtkWidget         *delete_button; /* the person deleted */
    GtkWidget         *tags_label;
    GtkWidget         *grid;
    GtkWidget         *buttons[8];
@@ -187,6 +188,9 @@ update_heading (void)
    /* a named person: the tags, and the button to change them */
    gtk_widget_set_visible (fw.tags_button, fw.key && fw.key[0] == 'p');
    gtk_widget_set_sensitive (fw.tags_button, !fw.busy);
+   gtk_widget_set_visible (fw.delete_button, fw.key && fw.key[0] == 'p'
+                                             && !gtk_widget_get_visible (fw.name_entry));
+   gtk_widget_set_sensitive (fw.delete_button, !fw.busy);
    {
       gchar *tags = NULL;
       if (fw.key && fw.key[0] == 'p') {
@@ -897,6 +901,7 @@ cb_edit_name (GtkButton *button, gpointer data)
    gtk_editable_set_text (GTK_EDITABLE (fw.name_entry), fw.title ? fw.title : "");
    gtk_widget_set_visible (fw.name_label, FALSE);
    gtk_widget_set_visible (fw.edit_button, FALSE);
+   gtk_widget_set_visible (fw.delete_button, FALSE);
    gtk_widget_set_visible (fw.name_entry, TRUE);
    gtk_widget_grab_focus (fw.name_entry);
    gtk_editable_select_region (GTK_EDITABLE (fw.name_entry), 0, -1);
@@ -940,6 +945,81 @@ cb_edit_tags (GtkButton *button, gpointer data)
    gint64 me = fw.key && fw.key[0] == 'p' ? g_ascii_strtoll (fw.key + 2, NULL, 10) : 0;
    if (me)
       gimv_index_faces_ask_person_tags (GTK_WINDOW (fw.window), fw.title, me, tags_given, NULL);
+}
+
+
+/* the person deleted: its faces are shown as "Other faces" then (they are
+ * there till the groups are made again) */
+static void
+cb_person_deleted (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GError *error = NULL;
+   gboolean ok = gimv_index_faces_edit_finish (res, NULL, &error);
+
+   if (fw.window) {
+      fw.busy = FALSE;
+      g_clear_pointer (&fw.error, g_free);
+      if (ok) {
+         fw.changed = TRUE;
+         gimv_index_faces_win_show (fw.tw, "u", _("Other faces"));
+      } else {
+         fw.error = g_strdup (error ? error->message : "?");
+         update_heading ();
+         update_buttons ();
+      }
+   } else if (ok) {
+      gimv_index_faces_flush ();
+   }
+   g_clear_error (&error);
+}
+
+
+static void
+cb_delete_answer (GObject *source, GAsyncResult *res, gpointer data)
+{
+   gint64 person = GPOINTER_TO_SIZE (data);
+   gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
+
+   /* still the same person shown */
+   if (button != 1 || !fw.window || key_person () != person || fw.key[0] != 'p') return;
+   fw.busy = TRUE;
+   update_heading ();
+   update_buttons ();
+   gimv_index_faces_edit_async (GIMV_INDEX_FACES_DELETE_PERSON, NULL, NULL, person,
+                                cb_person_deleted, NULL);
+}
+
+
+static void
+cb_delete_person (GtkButton *button, gpointer data)
+{
+   gint64 person = fw.key && fw.key[0] == 'p' ? key_person () : 0;
+   guint n = fw.store ? g_list_model_get_n_items (G_LIST_MODEL (fw.store)) : 0;
+   const gchar *buttons[] = { _("_Cancel"), _("_Delete"), NULL };
+   GtkAlertDialog *dialog;
+   gchar *detail;
+
+   if (!person) return;
+   dialog = gtk_alert_dialog_new (_("Delete \"%s\"?"), fw.title ? fw.title : "");
+   detail = g_strdup_printf (ngettext ("The name goes from %'u face: it has no name again "
+                                       "(it may be put in a group or guessed as another person). "
+                                       "The tags of the person and what was said with \"Not "
+                                       "This Person\" go too, and the name goes from the tags "
+                                       "of the comment files.",
+                                       "The name goes from %'u faces: they have no name again "
+                                       "(they may be put in groups or guessed as another person). "
+                                       "The tags of the person and what was said with \"Not "
+                                       "This Person\" go too, and the name goes from the tags "
+                                       "of the comment files.", n), n);
+   gtk_alert_dialog_set_detail (dialog, detail);
+   gtk_alert_dialog_set_buttons (dialog, buttons);
+   /* Enter does not delete by mistake */
+   gtk_alert_dialog_set_cancel_button (dialog, 0);
+   gtk_alert_dialog_set_default_button (dialog, 0);
+   gtk_alert_dialog_choose (dialog, GTK_WINDOW (fw.window), NULL, cb_delete_answer,
+                            GSIZE_TO_POINTER ((gsize) person));
+   g_object_unref (dialog);
+   g_free (detail);
 }
 
 
@@ -2003,6 +2083,14 @@ create_window (void)
    gtk_widget_set_valign (fw.tags_button, GTK_ALIGN_CENTER);
    g_signal_connect (fw.tags_button, "clicked", G_CALLBACK (cb_edit_tags), NULL);
    gtk_box_append (GTK_BOX (fw.heading), fw.tags_button);
+
+   fw.delete_button = gtk_button_new_from_icon_name ("user-trash-symbolic");
+   gtk_button_set_has_frame (GTK_BUTTON (fw.delete_button), FALSE);
+   gtk_widget_set_tooltip_text (fw.delete_button,
+                                _("Delete the person: the name goes from all its faces..."));
+   gtk_widget_set_valign (fw.delete_button, GTK_ALIGN_CENTER);
+   g_signal_connect (fw.delete_button, "clicked", G_CALLBACK (cb_delete_person), NULL);
+   gtk_box_append (GTK_BOX (fw.heading), fw.delete_button);
 
    fw.count_label = gtk_label_new (NULL);
    gtk_label_set_xalign (GTK_LABEL (fw.count_label), 0.0);

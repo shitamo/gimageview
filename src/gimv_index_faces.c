@@ -752,6 +752,15 @@ edit_in_db (sqlite3 *db, EditData *e)
       return set_person_tags (db, e);
    case GIMV_INDEX_FACES_RENAME_PERSON_TAG:
       return rename_person_tag (db, e);
+   case GIMV_INDEX_FACES_DELETE_PERSON:
+      /* the faces back without a name (in no group till the groups are
+       * made again: "Other faces") */
+      return exec_person (db, "UPDATE faces SET person_id = NULL, guess = NULL, cluster = NULL "
+                              "WHERE person_id = ?1", e->person, 0)
+             && exec_person (db, "UPDATE faces SET guess = NULL WHERE guess = ?1", e->person, 0)
+             && exec_person (db, "DELETE FROM face_rejects WHERE person_id = ?1", e->person, 0)
+             && exec_person (db, "DELETE FROM person_tags WHERE person_id = ?1", e->person, 0)
+             && exec_person (db, "DELETE FROM persons WHERE id = ?1", e->person, 0);
    }
    return FALSE;
 }
@@ -811,7 +820,9 @@ gimv_index_faces_edit_async (GimvIndexFacesEdit edit, GArray *ids, const gchar *
    e->person = person;
    g_task_set_task_data (task, e, (GDestroyNotify) edit_data_free);
    if ((edit != GIMV_INDEX_FACES_RENAME && edit != GIMV_INDEX_FACES_PERSON_TAGS
-        && edit != GIMV_INDEX_FACES_RENAME_PERSON_TAG && !ids->len)
+        && edit != GIMV_INDEX_FACES_RENAME_PERSON_TAG
+        && edit != GIMV_INDEX_FACES_DELETE_PERSON && !ids->len)
+       || (edit == GIMV_INDEX_FACES_DELETE_PERSON && person <= 0)
        || ((edit == GIMV_INDEX_FACES_SET_NAME || edit == GIMV_INDEX_FACES_RENAME
             || edit == GIMV_INDEX_FACES_RENAME_PERSON_TAG)
            && (!e->name || !*e->name))) {

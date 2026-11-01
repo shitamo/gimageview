@@ -6035,3 +6035,15 @@ msgstr "名前を付けた人物、続いて名前のない顔のグループ: �
 
 msgid "The people named, each with the faces that may be the person (\"Name?\"), then the groups of faces without a name: a click shows the faces"
 msgstr "名前を付けた人物 (その人らしい候補は「名前？」)、続いて名前のない顔のグループ: クリックで顔を表示"
+
+#, c-format
+msgid "Delete \"%s\"?"
+msgstr "「%s」を削除しますか？"
+
+#, c-format
+msgid "The name goes from %'u face: it has no name again (it may be put in a group or guessed as another person). The tags of the person and what was said with \"Not This Person\" go too, and the name goes from the tags of the comment files."
+msgid_plural "The name goes from %'u faces: they have no name again (they may be put in groups or guessed as another person). The tags of the person and what was said with \"Not This Person\" go too, and the name goes from the tags of the comment files."
+msgstr[0] "%'u 個の顔から名前が外れ、名前のない顔に戻ります (似た顔のグループや別の人の候補に入ることがあります)。この人物のタグと「この人ではない」の記録もなくなり、コメントファイルのタグからも名前が外れます。"
+
+msgid "Delete the person: the name goes from all its faces..."
+msgstr "この人物を削除: すべての顔から名前を外します..."
