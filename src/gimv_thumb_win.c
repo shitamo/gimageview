@@ -60,6 +60,7 @@
 #include "gimv_index_view.h"
 #include "gimv_index_notice.h"
 #include "gimv_index_missing.h"
+#include "gimv_index_search.h"
 #endif
 
 
@@ -232,6 +233,9 @@ static void cb_clear_cache          (GimvThumbWin  *tw,
                                      CacheClearType type,
                                      GimvMenuItem     *widget);
 #ifdef ENABLE_INDEX
+static void cb_search_images        (GimvThumbWin  *tw,
+                                     guint          action,
+                                     GimvMenuItem  *widget);
 static void cb_missing_images       (GimvThumbWin  *tw,
                                      guint          action,
                                      GimvMenuItem     *widget);
@@ -479,6 +483,7 @@ GimvMenuEntry gimv_thumb_win_menu_items[] =
    {N_("/Too_ls/_Clear All Caches"),     NULL,         cb_clear_cache,    CLEAR_CACHE_ALL, NULL},
 #ifdef ENABLE_INDEX
    {N_("/Too_ls/_Missing Images..."),    NULL,         cb_missing_images, 0,               NULL},
+   {N_("/Too_ls/_Search Images..."),     NULL,         cb_search_images,  0,               NULL},
 #endif
    {N_("/Too_ls/---"),                  NULL,         NULL,              0,              "<Separator>"},
    {N_("/Too_ls/_Find Duplicates"),     NULL,         NULL,              0,              "<Branch>"},
@@ -3021,6 +3026,13 @@ cb_reload (GimvThumbWin *tw, ThumbLoadType type, GimvMenuItem *widget)
 
 
 #ifdef ENABLE_INDEX
+static void
+cb_search_images (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
+{
+   gimv_index_search_open (tw);
+}
+
+
 static void
 cb_missing_images (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 {

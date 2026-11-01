@@ -6093,3 +6093,101 @@ msgstr "%'u / %'u 枚目  %s"
 msgid "%'u file"
 msgid_plural "%'u files"
 msgstr[0] "%'u 枚"
+
+msgid "/Too_ls/_Search Images..."
+msgstr "/ツール(_L)/画像を検索(_S)..."
+
+#, c-format
+msgid "Person: %s"
+msgstr "人物名: %s"
+
+#, c-format
+msgid "not %s"
+msgstr "%s を除く"
+
+msgid "Period"
+msgstr "期間"
+
+msgid "Search: "
+msgstr "検索: "
+
+#, c-format
+msgid "%'d image found"
+msgid_plural "%'d images found"
+msgstr[0] "%'d 枚見つかりました"
+
+#, c-format
+msgid "%'d image in the index: choose tags below"
+msgid_plural "%'d images in the index: choose tags below"
+msgstr[0] "索引の画像 %'d 枚: 下のタグから選んでください"
+
+msgid "Excluded: click to look for it again"
+msgstr "除外中: クリックで含める条件に戻します"
+
+msgid "Click to exclude the images with it"
+msgstr "クリックでこれの付いた画像を除きます"
+
+msgid "Remove the condition"
+msgstr "条件を外す"
+
+#, c-format
+msgid "%'d more: type a part of the name"
+msgid_plural "%'d more: type a part of the name"
+msgstr[0] "ほか %'d 件: 名前の一部を入力してください"
+
+msgid "Exclude"
+msgstr "除く"
+
+msgid "Look for the images without it"
+msgstr "これの付いていない画像を探します"
+
+msgid "Click: only the images with it"
+msgstr "クリック: これの付いた画像だけに絞り込みます"
+
+msgid "Keep the Search"
+msgstr "検索を保存"
+
+msgid "Name of the search (the same name: replaced):"
+msgstr "検索の名前 (同じ名前なら置き換えます):"
+
+msgid "_Keep"
+msgstr "保存(_K)"
+
+msgid "Search Images"
+msgstr "画像の検索"
+
+msgid "(searches kept)"
+msgstr "(保存した検索)"
+
+msgid "A search kept: its conditions again"
+msgstr "保存した検索: その条件で検索します"
+
+msgid "_Keep..."
+msgstr "保存(_K)..."
+
+msgid "Keep these conditions under a name"
+msgstr "この条件に名前を付けて保存します"
+
+msgid "Forget the search kept"
+msgstr "保存した検索を削除"
+
+msgid "Images with all of these:"
+msgstr "次のすべてに当てはまる画像:"
+
+msgid "(none yet: click a tag below)"
+msgstr "(まだありません: 下のタグをクリック)"
+
+msgid "Taken from"
+msgstr "撮影日"
+
+msgid "to"
+msgstr "〜"
+
+msgid "The date taken: a year (2019), a month (2019-05) or a day (2019-05-03); empty: any"
+msgstr "撮影日: 年 (2019)、月 (2019-05)、日 (2019-05-03) で指定。空欄なら指定なし"
+
+msgid "Tags of these images (click to narrow down):"
+msgstr "この画像に付いているタグ (クリックで絞り込み):"
+
+msgid "A part of a tag or a name"
+msgstr "タグや名前の一部"

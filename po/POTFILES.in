@@ -106,3 +106,4 @@ src/gimv_plugin.c
 src/gimv_gtk4_compat.h
 plugins/image_view/image_view_gst.c
 src/gimv_thumb_async.c
+src/gimv_index_search.c
