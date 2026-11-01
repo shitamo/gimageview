@@ -1056,7 +1056,8 @@ struct EvalResult {
 
 static EvalResult
 evaluate_groups (const std::vector<long long> &person, const std::vector<int> &grp_in,
-                 const std::map<long long, std::string> &names, bool show, const char *title)
+                 const std::map<long long, std::string> &names, bool show, const char *title,
+                 const std::vector<int> *side = nullptr, const std::vector<float> *score = nullptr)
 {
    EvalResult r;
    std::vector<int> grp (grp_in);
@@ -1102,6 +1103,14 @@ evaluate_groups (const std::vector<long long> &person, const std::vector<int> &g
             printf (" %s %d", it != names.end () ? it->second.c_str () : "?", ps[j].first);
          }
          if (ps.size () > 5) printf (" ...");
+         if (side && score) {
+            /* small, unclear faces look alike to the recognizer */
+            double sz = 0, sc = 0;
+            int m = 0;
+            for (size_t i = 0; i < grp.size (); i++)
+               if (grp[i] == c) { sz += (*side)[i]; sc += (*score)[i]; m++; }
+            if (m) printf ("  [face %.0f px, score %.2f]", sz / m, sc / m);
+         }
          printf ("\n");
       }
    }
@@ -1123,8 +1132,10 @@ run_evaluate (const std::string &dbfile)
    std::vector<float> score;
    std::vector<long long> person;
    std::map<long long, std::string> names;
-   sqlite3_stmt *st = d.prep ("SELECT fa.feature, fa.score, p.id, p.name FROM faces fa "
-                              "JOIN persons p ON p.id = fa.person_id WHERE fa.ignored = 0");
+   std::vector<int> side;   /* the shorter side of the face in the image */
+   sqlite3_stmt *st = d.prep ("SELECT fa.feature, fa.score, p.id, p.name, min (fa.w, fa.h) "
+                              "FROM faces fa JOIN persons p ON p.id = fa.person_id "
+                              "WHERE fa.ignored = 0");
    while (st && sqlite3_step (st) == SQLITE_ROW) {
       if (sqlite3_column_bytes (st, 0) != FEATURE_LEN * (int) sizeof (float)) continue;
       const float *b = (const float *) sqlite3_column_blob (st, 0);
@@ -1132,6 +1143,7 @@ run_evaluate (const std::string &dbfile)
       score.push_back ((float) sqlite3_column_double (st, 1));
       person.push_back (sqlite3_column_int64 (st, 2));
       names[person.back ()] = (const char *) sqlite3_column_text (st, 3);
+      side.push_back (sqlite3_column_int (st, 4));
    }
    sqlite3_finalize (st);
    if (store.empty ()) {
@@ -1148,21 +1160,44 @@ run_evaluate (const std::string &dbfile)
    printf ("(threshold now %.2f; the guesses of the people named are not part of this)\n\n",
            GROUP_SIM);
 
-   struct Way { const char *title; int kind; };
+   struct Way { const char *title; int kind; float th; int min_side; float min_score; };
    const Way ways[] = {
-      { "A now: leader",                 0 },
-      { "B A + faces moved to the nearest group", 1 },
-      { "C B + wide groups split",       2 },
-      { "D larger groups stricter + B",  3 },
+      { "A now: leader",                          0, GROUP_SIM, 0, 0 },
+      { "B A + faces moved to the nearest group", 1, GROUP_SIM, 0, 0 },
+      { "C B + wide groups split",                2, GROUP_SIM, 0, 0 },
+      { "D larger groups stricter + B",           3, GROUP_SIM, 0, 0 },
+      { "E B, threshold 0.46",                    1, 0.46f, 0, 0 },
+      { "F B, threshold 0.50",                    1, 0.50f, 0, 0 },
+      { "G C, faces under 64 px alone",           2, GROUP_SIM, 64, 0 },
+      { "H C, faces under 80 px or score<0.9 alone", 2, GROUP_SIM, 80, 0.90f },
    };
    std::vector<std::pair<std::string, EvalResult>> results;
    std::vector<std::vector<int>> grps;
    for (const Way &w : ways) {
       std::vector<int> grp (f.size (), -1);
       long long t0 = now_usec ();
-      leader (f, score, all, GROUP_SIM, w.kind == 3 ? 0.02f : 0.0f, grp, 0);
-      if (w.kind >= 1) refine (f, grp, GROUP_SIM, 10);
-      if (w.kind == 2) split_wide (f, score, grp, GROUP_SIM, 0.50f, 6);
+      /* the faces left out: each alone (not in a group) */
+      std::vector<size_t> in;
+      int next = (int) f.size ();
+      for (size_t i : all) {
+         if ((w.min_side && side[i] < w.min_side) || (w.min_score > 0 && score[i] < w.min_score))
+            grp[i] = next++;
+         else
+            in.push_back (i);
+      }
+      Feats fin;
+      std::vector<float> sin;
+      std::vector<size_t> idx;
+      for (size_t k = 0; k < in.size (); k++) {
+         fin.push_back (f[in[k]]);
+         sin.push_back (score[in[k]]);
+         idx.push_back (k);
+      }
+      std::vector<int> g2 (fin.size (), -1);
+      leader (fin, sin, idx, w.th, w.kind == 3 ? 0.02f : 0.0f, g2, 0);
+      if (w.kind >= 1) refine (fin, g2, w.th, 10);
+      if (w.kind == 2) split_wide (fin, sin, g2, w.th, w.th + 0.08f, 6);
+      for (size_t k = 0; k < in.size (); k++) grp[in[k]] = g2[k];
       EvalResult r = evaluate_groups (person, grp, names, false, w.title);
       r.ms = (now_usec () - t0) / 1000.0;
       results.push_back ({ w.title, r });
@@ -1170,10 +1205,10 @@ run_evaluate (const std::string &dbfile)
       fprintf (stderr, "%s: done\n", w.title);
    }
 
-   printf ("%-40s %7s %6s %7s %6s %9s %8s %8s\n", "way", "groups", "alone", "wrong",
+   printf ("%-42s %7s %6s %7s %6s %9s %8s %8s\n", "way", "groups", "alone", "wrong",
            "mixed", "mixed>=10", "outside", "seconds");
    for (auto &x : results)
-      printf ("%-40s %7d %6d %7d %6d %9d %8d %8.1f\n", x.first.c_str (), x.second.groups,
+      printf ("%-42s %7d %6d %7d %6d %9d %8d %8.1f\n", x.first.c_str (), x.second.groups,
               x.second.alone, x.second.wrong, x.second.mixed, x.second.mixed_big,
               x.second.outside, x.second.ms / 1000.0);
    printf ("\n  groups: of 2 faces or more; alone: faces in no group\n"
@@ -1183,7 +1218,66 @@ run_evaluate (const std::string &dbfile)
            "           over groups; fewer is better, but some is fine: they are named\n"
            "           one group at a time)\n");
    for (size_t k = 0; k < results.size (); k++)
-      evaluate_groups (person, grps[k], names, true, results[k].first.c_str ());
+      evaluate_groups (person, grps[k], names, true, results[k].first.c_str (), &side, &score);
+
+   /* the guesses: each face against the mean of each person (its own
+    * person's without it), as gimv-faces guesses the faces not named */
+   {
+      std::map<long long, std::vector<float>> sums;
+      std::map<long long, int> cnt;
+      for (size_t i = 0; i < f.size (); i++) {
+         auto &m = sums[person[i]];
+         if (m.empty ()) m.assign (FEATURE_LEN, 0.0f);
+         for (int j = 0; j < FEATURE_LEN; j++) m[j] += f[i][j];
+         cnt[person[i]]++;
+      }
+      std::vector<std::pair<long long, std::vector<float>>> means;
+      for (auto &x : sums) {
+         std::vector<float> m = x.second;
+         normalize (m);
+         means.push_back ({ x.first, m });
+      }
+      const float ths[] = { 0.40f, GUESS_SIM, 0.50f, 0.55f };
+      int guessed[4] = { 0 }, right[4] = { 0 }, n = 0;
+      int small_n = 0, small_right = 0;
+      for (size_t i = 0; i < f.size (); i++) {
+         if (cnt[person[i]] < 3) continue;   /* the person known from other faces */
+         n++;
+         float best = -2;
+         long long who = 0;
+         for (auto &m : means) {
+            float s;
+            if (m.first == person[i]) {
+               /* the mean without this face */
+               std::vector<float> o = sums[person[i]];
+               for (int j = 0; j < FEATURE_LEN; j++) o[j] -= f[i][j];
+               normalize (o);
+               s = dot (f[i], o.data ());
+            } else {
+               s = dot (f[i], m.second.data ());
+            }
+            if (s > best) { best = s; who = m.first; }
+         }
+         for (int t = 0; t < 4; t++)
+            if (best >= ths[t]) {
+               guessed[t]++;
+               if (who == person[i]) right[t]++;
+            }
+         if (side[i] < 80 && best >= GUESS_SIM) {
+            small_n++;
+            if (who == person[i]) small_right++;
+         }
+      }
+      printf ("\nguesses (each face named against the faces of each person, %d faces of\n"
+              "people with 3 faces or more):\n", n);
+      for (int t = 0; t < 4; t++)
+         printf ("  at %.2f: %5.1f %% of the faces get a guess, %5.1f %% of the guesses right%s\n",
+                 ths[t], n ? 100.0 * guessed[t] / n : 0.0,
+                 guessed[t] ? 100.0 * right[t] / guessed[t] : 0.0,
+                 ths[t] == GUESS_SIM ? "  (now)" : "");
+      printf ("  faces under 80 px at %.2f: %d guesses, %.1f %% right\n", GUESS_SIM, small_n,
+              small_n ? 100.0 * small_right / small_n : 0.0);
+   }
    return 0;
 }
 
