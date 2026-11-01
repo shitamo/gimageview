@@ -41,6 +41,11 @@ GtkWidget *gimv_prefs_ui_dir_list_prefs (const gchar  *title,
                                          const gchar  *defval,
                                          gchar       **prefsval,
                                          gchar         sepchar);
+GtkWidget *gimv_prefs_ui_text_list_prefs (const gchar  *title,
+                                          const gchar  *entry_label,
+                                          const gchar  *defval,
+                                          gchar       **prefsval,
+                                          gchar         sepchar);
 GtkWidget *gimv_prefs_ui_double_clist   (const gchar  *title,
                                          const gchar  *clist1_title,
                                          const gchar  *clist2_title,

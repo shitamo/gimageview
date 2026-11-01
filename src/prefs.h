@@ -89,6 +89,7 @@ typedef struct _Config {
    gboolean   index_auto_folder;     /* tags put by rules: the folder name, */
    gboolean   index_auto_camera;     /* the camera (EXIF) */
    gboolean   index_auto_shape;      /* and portrait / landscape / square */
+   gchar     *index_auto_folder_exclude; /* ';' separated folder names ('*') not made tags */
    gchar     *index_face_dirs;       /* ';' separated: faces looked for */
    gboolean   detect_filetype_by_ext;
    gboolean   disp_filename_stdout;

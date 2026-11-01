@@ -36,13 +36,44 @@ cb_enable_toggled (GtkWidget *toggle, GtkWidget *frame)
 }
 
 
+/* a page: let it scroll instead of making the preferences window grow
+ * off the screen */
+static GtkWidget *
+page_new (GtkWidget **vbox)
+{
+   GtkWidget *scroll = gtk_scrolled_window_new ();
+
+   *vbox = gimv_vbox_new (FALSE, 0);
+   gimv_container_set_border_width (GTK_WIDGET (*vbox), 5);
+   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_propagate_natural_width (GTK_SCROLLED_WINDOW (scroll), TRUE);
+   gtk_scrolled_window_set_propagate_natural_height (GTK_SCROLLED_WINDOW (scroll), TRUE);
+   gtk_widget_set_vexpand (scroll, TRUE);
+   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll), *vbox);
+   return scroll;
+}
+
+
+static GtkWidget *
+note_label (const gchar *text, gboolean dim)
+{
+   GtkWidget *l = gtk_label_new (text);
+
+   gtk_label_set_xalign (GTK_LABEL (l), 0.0);
+   gtk_label_set_wrap (GTK_LABEL (l), TRUE);
+   gtk_widget_set_margin_bottom (l, 4);
+   if (dim) gtk_widget_add_css_class (l, "dim-label");
+   return l;
+}
+
+
 GtkWidget *
 prefs_ui_index (void)
 {
-   GtkWidget *main_vbox, *toggle, *frame, *label;
+   GtkWidget *page, *main_vbox, *toggle, *frame, *label;
 
-   main_vbox = gimv_vbox_new (FALSE, 0);
-   gimv_container_set_border_width (GTK_WIDGET (main_vbox), 5);
+   page = page_new (&main_vbox);
 
    frame = gimv_prefs_ui_dir_list_prefs (_("Directories to index"),
                                          _("Select a directory to index"),
@@ -64,10 +95,26 @@ prefs_ui_index (void)
    gtk_widget_set_margin_bottom (label, 4);
    gimv_box_pack_start (GTK_BOX (main_vbox), label, FALSE, FALSE, 0);
 
-   gtk_widget_set_size_request (frame, -1, 200);
+   gtk_widget_set_size_request (frame, -1, 240);
    gimv_box_pack_start (GTK_BOX (main_vbox), frame, FALSE, FALSE, 0);
 
-   /* new images */
+   gimv_box_pack_start (GTK_BOX (main_vbox),
+                        note_label (_("New images, automatic tags, faces and missing images "
+                                      "are set in the pages below this one."), TRUE),
+                        FALSE, FALSE, 0);
+
+   gimv_widget_show_all (main_vbox);
+   gtk_widget_set_sensitive (frame, conf.index_enable);
+   return page;
+}
+
+
+GtkWidget *
+prefs_ui_index_newimg (void)
+{
+   GtkWidget *page, *main_vbox, *label;
+
+   page = page_new (&main_vbox);
    {
       GtkWidget *nframe, *nvbox, *grid, *toggle2, *excl;
       static const struct {
@@ -124,8 +171,17 @@ prefs_ui_index (void)
       gimv_box_pack_start (GTK_BOX (nvbox), excl, FALSE, FALSE, 0);
       (void) nframe;
    }
+   gimv_widget_show_all (main_vbox);
+   return page;
+}
 
-   /* tags put by rules */
+
+GtkWidget *
+prefs_ui_index_auto (void)
+{
+   GtkWidget *page, *main_vbox;
+
+   page = page_new (&main_vbox);
    {
       GtkWidget *aframe, *avbox, *l, *t;
       static const struct {
@@ -161,8 +217,43 @@ prefs_ui_index (void)
       (void) aframe;
    }
 
-   /* faces */
-   if (gimv_index_faces_available ()) {
+   /* folder names not made tags */
+   {
+      GtkWidget *xframe, *xvbox, *list;
+
+      gimv_prefs_ui_create_frame (_("Folder Names Not Made Tags"), xframe, xvbox, main_vbox, FALSE);
+      gimv_box_pack_start (GTK_BOX (xvbox),
+                           note_label (_("Folders with these names give no folder tag "
+                                         "(\"*\" matches any letters, \"?\" one; capitals and "
+                                         "small letters are the same).  Names of numbers only "
+                                         "and \"DCIM\" are never made tags.  A name can also be "
+                                         "added from the menu of the folder in the \"Tag\" tab."),
+                                       FALSE),
+                           FALSE, FALSE, 0);
+      list = gimv_prefs_ui_text_list_prefs (NULL, _("Name to add: "),
+                                            config_prechanged->index_auto_folder_exclude,
+                                            &config_changed->index_auto_folder_exclude,
+                                            ';');
+      gtk_widget_set_size_request (list, -1, 180);
+      gimv_box_pack_start (GTK_BOX (xvbox), list, FALSE, FALSE, 0);
+      (void) xframe;
+   }
+   gimv_widget_show_all (main_vbox);
+   return page;
+}
+
+
+GtkWidget *
+prefs_ui_index_faces (void)
+{
+   GtkWidget *page, *main_vbox;
+
+   page = page_new (&main_vbox);
+   if (!gimv_index_faces_available ()) {
+      gimv_box_pack_start (GTK_BOX (main_vbox),
+                           note_label (_("GImageView was built without finding faces."), FALSE),
+                           FALSE, FALSE, 0);
+   } else {
       GtkWidget *fframe, *fvbox, *l, *dirs;
       gchar *models = gimv_index_faces_model_dir (), *udir, *text;
 
@@ -206,8 +297,17 @@ prefs_ui_index (void)
       gimv_box_pack_start (GTK_BOX (fvbox), l, FALSE, FALSE, 0);
       (void) fframe;
    }
+   gimv_widget_show_all (main_vbox);
+   return page;
+}
 
-   /* missing images */
+
+GtkWidget *
+prefs_ui_index_missing (void)
+{
+   GtkWidget *page, *main_vbox;
+
+   page = page_new (&main_vbox);
    {
       GtkWidget *mframe, *mvbox, *hbox, *l, *spin;
       GtkAdjustment *adj;
@@ -235,22 +335,34 @@ prefs_ui_index (void)
       gimv_box_pack_start (GTK_BOX (mvbox), hbox, FALSE, FALSE, 0);
       (void) mframe;
    }
-
    gimv_widget_show_all (main_vbox);
-   gtk_widget_set_sensitive (frame, conf.index_enable);
+   return page;
+}
 
-   /* taller than the other pages: let it scroll instead of making the
-    * preferences window grow off the screen */
-   {
-      GtkWidget *scroll = gtk_scrolled_window_new ();
-      gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
-                                      GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-      gtk_scrolled_window_set_propagate_natural_width (GTK_SCROLLED_WINDOW (scroll), TRUE);
-      gtk_widget_set_vexpand (scroll, TRUE);
-      gtk_widget_set_size_request (scroll, -1, 420);
-      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll), main_vbox);
-      return scroll;
+
+/* the pages all have this one: what is to be done is gathered and done
+ * once, after them */
+static guint    apply_id = 0;
+static gboolean apply_index = FALSE, apply_faces = FALSE;
+
+static gboolean
+apply_idle (gpointer data)
+{
+   GList *node;
+
+   apply_id = 0;
+   /* conf has the new values here */
+   if (apply_index)
+      gimv_index_restart ();
+   else if (apply_faces)
+      gimv_index_faces_restart ();
+   if (apply_index || apply_faces) {
+      /* the "Date" and "Tag" tabs open as soon as directories are given */
+      for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node))
+         gimv_index_tabs_sync (node->data);
    }
+   apply_index = apply_faces = FALSE;
+   return G_SOURCE_REMOVE;
 }
 
 
@@ -258,8 +370,6 @@ gboolean
 prefs_ui_index_apply (GimvPrefsWinAction action)
 {
    Config *src, *dest;
-   GList *node;
-   gboolean configured;
 
    switch (action) {
    case GIMV_PREFS_WIN_ACTION_OK:
@@ -273,28 +383,21 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
       break;
    }
 
-   if (dest->index_enable == src->index_enable
-       && dest->index_log_keep == src->index_log_keep
-       && dest->index_auto_folder == src->index_auto_folder
-       && dest->index_auto_camera == src->index_auto_camera
-       && dest->index_auto_shape  == src->index_auto_shape
-       && !g_strcmp0 (dest->index_dirs, src->index_dirs)) {
-      /* only the folders of the faces: the indexer goes on */
-      if (g_strcmp0 (dest->index_face_dirs, src->index_face_dirs)) {
-         gimv_index_faces_restart ();
-         for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node))
-            gimv_index_tabs_sync (node->data);
-      }
-      return FALSE;
-   }
+   if (dest->index_enable != src->index_enable
+       || dest->index_log_keep != src->index_log_keep
+       || dest->index_auto_folder != src->index_auto_folder
+       || dest->index_auto_camera != src->index_auto_camera
+       || dest->index_auto_shape  != src->index_auto_shape
+       || g_strcmp0 (dest->index_auto_folder_exclude ? dest->index_auto_folder_exclude : "",
+                     src->index_auto_folder_exclude ? src->index_auto_folder_exclude : "")
+       || g_strcmp0 (dest->index_dirs, src->index_dirs))
+      apply_index = TRUE;
+   /* only the folders of the faces: the indexer goes on */
+   else if (g_strcmp0 (dest->index_face_dirs, src->index_face_dirs))
+      apply_faces = TRUE;
 
-   /* conf has the new values here */
-   gimv_index_restart ();
-
-   /* the "Date" and "Tag" tabs open as soon as directories are given */
-   for (node = gimv_thumb_win_get_list (); node; node = g_list_next (node))
-      gimv_index_tabs_sync (node->data);
-   (void) configured;
+   if ((apply_index || apply_faces) && !apply_id)
+      apply_id = g_idle_add (apply_idle, NULL);
 
    return FALSE;
 }

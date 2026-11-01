@@ -708,6 +708,9 @@ start_indexer (void)
                                            conf.index_auto_folder ? "folder," : "",
                                            conf.index_auto_camera ? "camera," : "",
                                            conf.index_auto_shape  ? "shape,"  : ""));
+   if (conf.index_auto_folder_exclude && *conf.index_auto_folder_exclude)
+      g_ptr_array_add (argv, g_strdup_printf ("--folder-exclude=%s",
+                                              conf.index_auto_folder_exclude));
    /* the comment files: written by gimv in this charset (the tags) */
    g_ptr_array_add (argv, g_strdup_printf ("--comment-charset=%s",
                                            gimv_comment_get_file_charset ()));

@@ -92,6 +92,10 @@ static GimvPrefsWinPage prefs_pages[] = {
    {N_("/Comment"),                    0, NULL, NULL, prefs_comment_page,             prefs_comment_apply},
 #ifdef ENABLE_INDEX
    {N_("/Index"),                      0, NULL, NULL, prefs_ui_index,                 prefs_ui_index_apply},
+   {N_("/Index/New Images"),           0, NULL, NULL, prefs_ui_index_newimg,          prefs_ui_index_apply},
+   {N_("/Index/Automatic Tags"),       0, NULL, NULL, prefs_ui_index_auto,            prefs_ui_index_apply},
+   {N_("/Index/Faces"),                0, NULL, NULL, prefs_ui_index_faces,           prefs_ui_index_apply},
+   {N_("/Index/Missing Images"),       0, NULL, NULL, prefs_ui_index_missing,         prefs_ui_index_apply},
 #endif
    {N_("/Search"),                     0, NULL, NULL, prefs_search_page,              NULL},
    {N_("/Drag and Drop"),              0, NULL, NULL, prefs_dnd_page,                 NULL},
@@ -189,6 +193,7 @@ prefs_win_free_strings (gboolean value_changed)
       &conf.index_dirs,
       &conf.index_notify_exclude,
       &conf.index_face_dirs,
+      &conf.index_auto_folder_exclude,
    };
    gint num1 = sizeof (strings) / sizeof (gchar **);
    gint num2 = sizeof (conf.progs) / sizeof (gchar *);
@@ -557,14 +562,15 @@ prefs_win_create_navtree (void)
 static void
 cb_prefs_win_destroy ()
 {
+   /* the pages compare the old and new values (strings too): freed after */
    if (prefs_win.ok_pressed) {
-      prefs_win_free_strings (TRUE);
       conf = *config_changed;
       prefs_win_apply_config (GIMV_PREFS_WIN_ACTION_OK);
+      prefs_win_free_strings (TRUE);
    } else {
-      prefs_win_free_strings (FALSE);
       conf = *config_prechanged;
       prefs_win_apply_config (GIMV_PREFS_WIN_ACTION_CANCEL);
+      prefs_win_free_strings (FALSE);
    }
 
    g_free (config_changed);

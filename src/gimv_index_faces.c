@@ -276,10 +276,11 @@ cb_exited (GObject *source, GAsyncResult *res, gpointer data)
    g_subprocess_wait_finish (proc, res, NULL);
    if (fx.state == GIMV_INDEX_FACES_RUNNING) {
       /* ended without "done" */
-      g_free (fx.error);
-      if (g_subprocess_get_if_signaled (proc))
+      /* the message it said, if any; else how it ended */
+      if (g_subprocess_get_if_signaled (proc)) {
+         g_free (fx.error);
          fx.error = g_strdup_printf (_("signal %d"), g_subprocess_get_term_sig (proc));
-      else if (!fx.error)
+      } else if (!fx.error)
          fx.error = g_strdup_printf (_("exit status %d"), g_subprocess_get_exit_status (proc));
       set_state (GIMV_INDEX_FACES_ERROR);
    }

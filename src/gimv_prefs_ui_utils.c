@@ -408,12 +408,13 @@ cb_dirprefs_destroy (GtkWidget *widget, gpointer data)
 }
 
 
-GtkWidget *
-gimv_prefs_ui_dir_list_prefs (const gchar *title,
-                              const gchar *dialog_title,
-                              const gchar *defval,
-                              gchar **prefsval,
-                              gchar sepchar)
+static GtkWidget *
+list_prefs_new (const gchar *title,
+                const gchar *dialog_title,
+                const gchar *entry_label,
+                const gchar *defval,
+                gchar **prefsval,
+                gchar sepchar)
 {
    DirListPrefs *dirprefs = g_new0 (DirListPrefs, 1);
    GtkWidget *frame, *frame_vbox, *hbox;
@@ -453,7 +454,7 @@ gimv_prefs_ui_dir_list_prefs (const gchar *title,
    /* entry area */
    hbox = GIMV_ELIST (editlist)->edit_area;
 
-   label = gtk_label_new (_("Directory to add: "));
+   label = gtk_label_new (entry_label ? entry_label : _("Directory to add: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
 
@@ -462,12 +463,37 @@ gimv_prefs_ui_dir_list_prefs (const gchar *title,
                                  NULL, FALSE);
    gimv_box_pack_start (GTK_BOX (hbox), entry, TRUE, TRUE, 0);
 
-   button = dirprefs->select_button = gtk_button_new_with_label (_("Select"));
-   gimv_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
-   g_signal_connect (G_OBJECT (button),"clicked",
-                       G_CALLBACK (cb_dirprefs_dirsel_pressed), dirprefs);
+   if (!entry_label) {
+      button = dirprefs->select_button = gtk_button_new_with_label (_("Select"));
+      gimv_box_pack_start (GTK_BOX (hbox), button, FALSE, TRUE, 0);
+      g_signal_connect (G_OBJECT (button),"clicked",
+                          G_CALLBACK (cb_dirprefs_dirsel_pressed), dirprefs);
+   }
 
    return frame;
+}
+
+
+GtkWidget *
+gimv_prefs_ui_dir_list_prefs (const gchar *title,
+                              const gchar *dialog_title,
+                              const gchar *defval,
+                              gchar **prefsval,
+                              gchar sepchar)
+{
+   return list_prefs_new (title, dialog_title, NULL, defval, prefsval, sepchar);
+}
+
+
+/* the same with words typed in (no directory chooser) */
+GtkWidget *
+gimv_prefs_ui_text_list_prefs (const gchar *title,
+                               const gchar *entry_label,
+                               const gchar *defval,
+                               gchar **prefsval,
+                               gchar sepchar)
+{
+   return list_prefs_new (title, NULL, entry_label, defval, prefsval, sepchar);
 }
 
 

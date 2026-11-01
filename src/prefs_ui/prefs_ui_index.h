@@ -20,7 +20,11 @@
 #include "gimv_gtk4_compat.h"
 #include "gimv_prefs_win.h"
 
-GtkWidget *prefs_ui_index       (void);
+GtkWidget *prefs_ui_index         (void);
+GtkWidget *prefs_ui_index_newimg  (void);
+GtkWidget *prefs_ui_index_auto    (void);
+GtkWidget *prefs_ui_index_faces   (void);
+GtkWidget *prefs_ui_index_missing (void);
 gboolean   prefs_ui_index_apply (GimvPrefsWinAction action);
 
 #endif /* __PREFS_UI_INDEX_H__ */

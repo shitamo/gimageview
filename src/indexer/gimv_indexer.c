@@ -1261,6 +1261,56 @@ auto_kinds_parse (const gchar *list)
    return kinds;
 }
 
+/* folder names not made tags (--folder-exclude, ';' separated, '*' and
+ * '?' allowed, case ignored): casefolded patterns, and the list as given
+ * in one string (kept in meta: a change puts the folder tags again) */
+static gchar  *folder_exclude = NULL;
+static GPtrArray *folder_excl_specs = NULL;
+
+static gchar *
+name_fold (const gchar *s)
+{
+   return g_utf8_validate (s, -1, NULL) ? g_utf8_casefold (s, -1) : g_ascii_strdown (s, -1);
+}
+
+static void
+folder_exclude_init (void)
+{
+   gchar **v;
+   guint i;
+   GString *norm = g_string_new (NULL);
+
+   folder_excl_specs = g_ptr_array_new_with_free_func ((GDestroyNotify) g_pattern_spec_free);
+   v = g_strsplit (folder_exclude ? folder_exclude : "", ";", -1);
+   for (i = 0; v[i]; i++) {
+      gchar *k = g_strstrip (v[i]), *f;
+      if (!*k) continue;
+      f = name_fold (k);
+      g_ptr_array_add (folder_excl_specs, g_pattern_spec_new (f));
+      if (norm->len) g_string_append_c (norm, ';');
+      g_string_append (norm, f);
+      g_free (f);
+   }
+   g_strfreev (v);
+   g_free (folder_exclude);
+   folder_exclude = g_string_free (norm, FALSE);
+}
+
+static gboolean
+folder_excluded (const gchar *name)
+{
+   gchar *f;
+   gboolean hit = FALSE;
+   guint i;
+
+   if (!folder_excl_specs || !folder_excl_specs->len) return FALSE;
+   f = name_fold (name);
+   for (i = 0; i < folder_excl_specs->len && !hit; i++)
+      hit = g_pattern_spec_match_string (g_ptr_array_index (folder_excl_specs, i), f);
+   g_free (f);
+   return hit;
+}
+
 static gchar *
 folder_tag (const gchar *dirpath)
 {
@@ -1271,7 +1321,8 @@ folder_tag (const gchar *dirpath)
       skip = g_regex_new ("^(?:[0-9 ._-]+|[0-9]{3}[A-Za-z0-9_]{5}|DCIM)$",
                           G_REGEX_OPTIMIZE | G_REGEX_CASELESS, 0, NULL);
    if (*name && strcmp (name, "/") && strcmp (name, ".")
-       && !g_regex_match (skip, name, 0, NULL))
+       && !g_regex_match (skip, name, 0, NULL)
+       && !folder_excluded (name))
       ret = g_strconcat ("folder/", name, NULL);
    g_free (name);
    return ret;
@@ -1567,12 +1618,22 @@ auto_kind_remove (Indexer *ix, Prepare *p, const gchar *prefix)
  * the camera and the shape by reading every image again in stage 2.
  * Also the dates by an older rule: the files without one read again. */
 static void
+folder_exclude_save (Indexer *ix)
+{
+   sqlite3_stmt *st = prep (ix, "INSERT OR REPLACE INTO meta VALUES ('folder_exclude', ?)");
+   sqlite3_bind_text (st, 1, folder_exclude, -1, SQLITE_STATIC);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+}
+
+
+static void
 prepare_rules (Indexer *ix)
 {
    sqlite3_stmt *st;
    gchar *rule = NULL, kinds_str[16];
    guint had, added;
-   gboolean new_rule, dates;
+   gboolean new_rule, dates, excl_changed, refolder = FALSE;
    Prepare p = { 0, 0, 0 };
    gint64 files = max_rowid (ix, "files"), tags = max_rowid (ix, "file_tags");
    const gchar *why;
@@ -1593,8 +1654,22 @@ prepare_rules (Indexer *ix)
 
    new_rule = g_strcmp0 (rule, AUTO_RULE) != 0;
    g_free (rule);
-   if (!dates && !new_rule && had == ix->auto_kinds)
+
+   /* the folder names not made tags changed: the folder tags again */
+   st = prep (ix, "SELECT value FROM meta WHERE key = 'folder_exclude'");
+   excl_changed = g_strcmp0 (sqlite3_step (st) == SQLITE_ROW
+                             ? (const gchar *) sqlite3_column_text (st, 0) : "",
+                             folder_exclude) != 0;
+   sqlite3_finalize (st);
+   if (excl_changed && (had & AUTO_FOLDER) && (ix->auto_kinds & AUTO_FOLDER)) {
+      refolder = TRUE;
+      had &= ~AUTO_FOLDER;
+   }
+
+   if (!dates && !new_rule && had == ix->auto_kinds) {
+      if (excl_changed) folder_exclude_save (ix);
       return;
+   }
 
    if (new_rule) had = 0;
    added = ix->auto_kinds & ~had;
@@ -1604,6 +1679,7 @@ prepare_rules (Indexer *ix)
    if (new_rule) {
       p.total += tags;
    } else {
+      if (refolder) p.total += tags;
       if ((had & AUTO_FOLDER) && !(ix->auto_kinds & AUTO_FOLDER)) p.total += tags;
       if ((had & AUTO_CAMERA) && !(ix->auto_kinds & AUTO_CAMERA)) p.total += tags;
       if ((had & AUTO_SHAPE)  && !(ix->auto_kinds & AUTO_SHAPE))  p.total += tags;
@@ -1628,6 +1704,7 @@ prepare_rules (Indexer *ix)
                                       "AND auto = 1", "file_tags", NULL))
             return;
       } else {
+         if (refolder && !auto_kind_remove (ix, &p, "folder/")) return;
          if ((had & AUTO_FOLDER) && !(ix->auto_kinds & AUTO_FOLDER)
              && !auto_kind_remove (ix, &p, "folder/")) return;
          if ((had & AUTO_CAMERA) && !(ix->auto_kinds & AUTO_CAMERA)
@@ -1654,6 +1731,7 @@ prepare_rules (Indexer *ix)
       sqlite3_step (st);
       sqlite3_finalize (st);
       exec (ix, "COMMIT");
+      folder_exclude_save (ix);
    }
    say ("prepare done");
 }
@@ -3473,6 +3551,9 @@ main (int argc, char *argv[])
       { "auto",     0, 0, G_OPTION_ARG_STRING, &auto_list, "tags put by rules (default: all)", "folder,camera,shape" },
       { "comment-charset", 0, 0, G_OPTION_ARG_STRING, &comment_charset,
         "the charset gimv writes the comment files in (default: UTF-8)", "CHARSET" },
+      /* as bytes, like the folder names (no conversion from the locale) */
+      { "folder-exclude", 0, 0, G_OPTION_ARG_FILENAME, &folder_exclude,
+        "folder names not made tags (';' separated, '*' allowed)", "LIST" },
       { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &dirs, NULL, "DIR..." },
       { NULL }
    };
@@ -3505,6 +3586,7 @@ main (int argc, char *argv[])
    ix.log_missing = TRUE;
    ix.log_keep = log_keep;
    ix.auto_kinds = auto_list ? auto_kinds_parse (auto_list) : AUTO_ALL;
+   folder_exclude_init ();
    ix.missing = g_ptr_array_new_with_free_func (g_free);
    ix.log_dir = g_path_get_dirname (dbfile);
 

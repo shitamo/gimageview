@@ -103,6 +103,7 @@ static ConfParam param_common [] = {
    {"index_auto_camera",        D_BOOL,   "TRUE", &conf.index_auto_camera},
    {"index_auto_shape",         D_BOOL,   "TRUE", &conf.index_auto_shape},
    {"index_face_dirs",          D_STRING, "",     &conf.index_face_dirs},
+   {"index_auto_folder_exclude", D_STRING, "",    &conf.index_auto_folder_exclude},
 
    {"detect_filetype_by_ext",   D_BOOL,   "TRUE",  &conf.detect_filetype_by_ext},
    {"disp_filename_stdout",     D_BOOL,   "TRUE",  &conf.disp_filename_stdout},

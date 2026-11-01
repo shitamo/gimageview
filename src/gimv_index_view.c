@@ -1207,6 +1207,47 @@ cb_action_faces (GSimpleAction *action, GVariant *param, gpointer data)
 }
 
 
+/* the folder name of a folder tag (",folder/NAME"), or NULL */
+static const gchar *
+key_folder_name (const gchar *key)
+{
+   static const gchar prefix[] = { AUTO_KEY_MARK, 'f', 'o', 'l', 'd', 'e', 'r', '/', '\0' };
+
+   if (!key || !g_str_has_prefix (key, prefix) || !key[sizeof prefix - 1])
+      return NULL;
+   return key + sizeof prefix - 1;
+}
+
+
+/* "Do not make this folder name a tag": into the preferences, and the
+ * indexer started again (it takes the tags off in the background) */
+static void
+cb_action_no_folder_tag (GSimpleAction *action, GVariant *param, gpointer data)
+{
+   IndexView *iv = data;
+   const gchar *name = key_folder_name (iv->menu_key);
+   gchar **v, *list;
+   guint i;
+
+   if (!name) return;
+   v = g_strsplit (conf.index_auto_folder_exclude ? conf.index_auto_folder_exclude : "", ";", -1);
+   for (i = 0; v[i]; i++) {
+      if (!g_utf8_collate (v[i], name)) {
+         g_strfreev (v);
+         return;
+      }
+   }
+   g_strfreev (v);
+   list = conf.index_auto_folder_exclude && *conf.index_auto_folder_exclude
+      ? g_strconcat (conf.index_auto_folder_exclude, ";", name, NULL)
+      : g_strdup (name);
+   g_free (conf.index_auto_folder_exclude);
+   conf.index_auto_folder_exclude = list;
+   prefs_save_config ();
+   gimv_index_restart ();
+}
+
+
 static void
 cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
                  IndexView *iv)
@@ -1259,6 +1300,8 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
             g_menu_append (menu, _("Show the Faces..."), "index.faces");
          if (iv->type == GIMV_INDEX_TAB_TAG || iv->type == GIMV_INDEX_TAB_PERSON)
             g_menu_append (menu, _("Rename... (F2)"), "index.rename");
+         if (iv->type == GIMV_INDEX_TAB_TAG)
+            g_menu_append (menu, _("Do Not Make This Folder Name a Tag"), "index.no-folder-tag");
          iv->popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu));
          gtk_widget_set_parent (iv->popover, iv->scroll);
          gtk_popover_set_has_arrow (GTK_POPOVER (iv->popover), FALSE);
@@ -1269,6 +1312,8 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
           * persons are renamed in the faces window) */
          GAction *a = g_action_map_lookup_action (G_ACTION_MAP (iv->actions), "rename");
          g_simple_action_set_enabled (G_SIMPLE_ACTION (a), key_is_renamable (iv, key));
+         a = g_action_map_lookup_action (G_ACTION_MAP (iv->actions), "no-folder-tag");
+         g_simple_action_set_enabled (G_SIMPLE_ACTION (a), key_folder_name (key) != NULL);
       }
       gtk_popover_set_pointing_to (GTK_POPOVER (iv->popover), &rect);
       gtk_popover_popup (GTK_POPOVER (iv->popover));
@@ -2013,6 +2058,7 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
       { "open-new-tab", cb_action_open, NULL, NULL, NULL },
       { "faces",        cb_action_faces, NULL, NULL, NULL },
       { "rename",       cb_action_rename, NULL, NULL, NULL },
+      { "no-folder-tag", cb_action_no_folder_tag, NULL, NULL, NULL },
    };
    IndexView *iv = g_new0 (IndexView, 1);
    GtkTreeViewColumn *col;

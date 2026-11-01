@@ -6191,3 +6191,43 @@ msgstr "この画像に付いているタグ (クリックで絞り込み):"
 
 msgid "A part of a tag or a name"
 msgstr "タグや名前の一部"
+
+msgid "/Index/New Images"
+msgstr "/索引/新しい画像"
+
+msgid "/Index/Automatic Tags"
+msgstr "/索引/自動タグ"
+
+msgid "/Index/Faces"
+msgstr "/索引/顔"
+
+msgid "/Index/Missing Images"
+msgstr "/索引/行方不明の画像"
+
+msgid ""
+"New images, automatic tags, faces and missing images are set in the pages "
+"below this one."
+msgstr "新しい画像、自動タグ、顔、行方不明の画像の設定は、この下のページにあります。"
+
+msgid "Folder Names Not Made Tags"
+msgstr "タグにしないフォルダ名"
+
+msgid ""
+"Folders with these names give no folder tag (\"*\" matches any letters, \"?"
+"\" one; capitals and small letters are the same).  Names of numbers only and "
+"\"DCIM\" are never made tags.  A name can also be added from the menu of the "
+"folder in the \"Tag\" tab."
+msgstr ""
+"これらの名前のフォルダはフォルダタグになりません（「*」は任意の文字列、「?」は"
+"任意の1文字に一致し、大文字と小文字は区別しません）。数字だけの名前と「DCIM」は"
+"もともとタグになりません。「タグ」タブのフォルダの右クリックメニューからも追加"
+"できます。"
+
+msgid "Name to add: "
+msgstr "追加する名前: "
+
+msgid "GImageView was built without finding faces."
+msgstr "このGImageViewは顔の検出なしでビルドされています。"
+
+msgid "Do Not Make This Folder Name a Tag"
+msgstr "このフォルダ名をタグにしない"
