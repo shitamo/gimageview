@@ -6080,3 +6080,16 @@ msgstr "JPEG に埋め込まれた縮小画像 (EXIF) が十分な大きさな�
 
 msgid "Much faster (only the start of the file is read). Off: an image edited by a program that left its old thumbnail shows it."
 msgstr "ずっと速くなります (ファイルの先頭だけを読みます)。オフ: 縮小画像を更新しないプログラムで編集した画像で、古い縮小画像が出ることを避けます。"
+
+#, c-format
+msgid "%'u selected  %s"
+msgstr "%'u 枚選択  %s"
+
+#, c-format
+msgid "%'u / %'u  %s"
+msgstr "%'u / %'u 枚目  %s"
+
+#, c-format
+msgid "%'u file"
+msgid_plural "%'u files"
+msgstr[0] "%'u 枚"

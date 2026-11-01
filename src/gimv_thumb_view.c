@@ -3907,6 +3907,8 @@ gimv_thumb_view_set_selection (GimvThumb *thumb, gboolean select)
       tv->vfuncs->set_selection (tv, thumb, select);
    else
       return FALSE;
+   /* the status bar (the files selected), later and once */
+   gimv_thumb_view_focus_changed (tv);
 
    return TRUE;
 }

@@ -4379,11 +4379,8 @@ gimv_thumb_win_set_statusbar_page_info (GimvThumbWin *tw, gint pagenum)
       gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), 1);
       gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), 1, buf);
    }
-   g_snprintf (buf, BUF_SIZE, _("%'d/%'d page  %'d/%'d files  %'ld/%'ld kB"),
-               page + 1, tw->pagenum, tv_filenum, tw->filenum,
-               tv_filesize / 1024, tw->filesize / 1024);
-   gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar2), 1);
-   gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar2), 1, buf);
+   (void) tv_filenum;
+   (void) tv_filesize;
    /* update progress bar */
    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(tw->progressbar), progress);
 
@@ -4396,10 +4393,58 @@ gimv_thumb_win_set_statusbar_page_info (GimvThumbWin *tw, gint pagenum)
 #define STATUS_FILE_PATH 2   /* context of the status bar: the file path */
 
 /*
- * In a collection (the results of the dates and tags of the index, ...)
- * the files come from many folders: the status bar shows the path of the
- * focused file over "Collection View".
+ * The status bar is about the file in hand (2026-11, with the user):
+ * at the left the path of the focused file (over the place shown: the
+ * folder, or "Collection View" for the dates and tags of the index, whose
+ * files come from many folders); next to it which one it is of the tab
+ * and its size ("12 / 33  5.6 MB"), or the files selected and their size
+ * ("5 selected  812 kB"), or the number of files when none is focused.
+ * (Before: the tab of the tabs, and the files and kB of the tab and of the
+ * whole window.)
  */
+static void
+show_file_info (GimvThumbWin *tw, GimvThumbView *tv, GimvThumb *focus)
+{
+   GList *node;
+   guint n = 0, n_sel = 0, pos = 0;
+   guint64 sel_size = 0;
+   GimvThumb *one = NULL;
+   gchar *text = NULL, *size;
+
+   gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar2), 1);
+   if (!tv) return;
+
+   for (node = tv->thumblist; node; node = g_list_next (node)) {
+      GimvThumb *t = node->data;
+      n++;
+      if (t == focus) pos = n;
+      if (GIMV_IS_THUMB (t) && t->selected) {
+         n_sel++;
+         one = t;
+         if (t->info) sel_size += t->info->st.st_size;
+      }
+   }
+   if (n_sel >= 2) {
+      size = g_format_size (sel_size);
+      text = g_strdup_printf (_("%'u selected  %s"), n_sel, size);
+      g_free (size);
+   } else {
+      GimvThumb *t = pos ? focus : one;
+      if (t && !pos) pos = (guint) gimv_thumb_view_get_thumb_index (tv, t) + 1;
+      if (t && t->info && pos) {
+         size = g_format_size (t->info->st.st_size);
+         text = g_strdup_printf (_("%'u / %'u  %s"), pos, n, size);
+         g_free (size);
+      } else if (n) {
+         text = g_strdup_printf (ngettext ("%'u file", "%'u files", n), n);
+      }
+   }
+   if (text)
+      gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar2), 1, text);
+   g_free (text);
+}
+
+
 void
 gimv_thumb_win_show_file_path (GimvThumbWin *tw, GimvThumbView *tv)
 {
@@ -4409,10 +4454,15 @@ gimv_thumb_win_show_file_path (GimvThumbWin *tw, GimvThumbView *tv)
 
    g_return_if_fail (tw);
    gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), STATUS_FILE_PATH);
-   if (!tv || tv->mode != GIMV_THUMB_VIEW_MODE_COLLECTION || tv->progress) return;
+   if (!tv || tv->progress) {
+      gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar2), 1);
+      return;
+   }
 
    thumb = gimv_thumb_view_get_focus (tv);
-   if (!GIMV_IS_THUMB (thumb) || !thumb->info) return;
+   if (!GIMV_IS_THUMB (thumb)) thumb = NULL;
+   show_file_info (tw, tv, thumb);
+   if (!thumb || !thumb->info) return;
    path = gimv_image_info_get_path (thumb->info);
    if (!path || !*path) return;
 

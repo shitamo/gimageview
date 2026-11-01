@@ -1201,6 +1201,10 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    g_signal_connect_object (tv_data->treeview, "cursor-changed",
                             G_CALLBACK (gimv_thumb_view_focus_changed), tv,
                             G_CONNECT_SWAPPED);
+   /* and the files selected (Shift, Ctrl, rubber band) */
+   g_signal_connect_object (gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview)),
+                            "changed", G_CALLBACK (gimv_thumb_view_focus_changed), tv,
+                            G_CONNECT_SWAPPED);
    /* the files of a collection from the index show the name only: the full
       path as the tooltip */
    gtk_widget_set_has_tooltip (tv_data->treeview, TRUE);
