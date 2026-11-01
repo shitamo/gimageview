@@ -80,10 +80,10 @@ G_DECLARE_FINAL_TYPE (GimvPersonItem, gimv_person_item, GIMV, PERSON_ITEM, GObje
 
 struct _GimvPersonItem {
    GObject parent;
-   gint64  id;
+   gchar  *key;       /* "p:ID" a person, "c:N" a group without a name */
    gint64  face;      /* shown for the person */
    guint   n_faces;
-   gchar  *name;
+   gchar  *name;      /* the name, "Group 12" */
    gchar  *fold;      /* the name to look for (casefolded) */
 };
 
@@ -93,6 +93,7 @@ static void
 gimv_person_item_finalize (GObject *object)
 {
    GimvPersonItem *item = GIMV_PERSON_ITEM (object);
+   g_free (item->key);
    g_free (item->name);
    g_free (item->fold);
    G_OBJECT_CLASS (gimv_person_item_parent_class)->finalize (object);
@@ -1549,10 +1550,10 @@ add_button (GtkWidget *box, gint which, const gchar *label, const gchar *tip,
 #define PERSON_FACE_SIZE 72
 
 typedef struct {
-   gint64 id;
+   gint64 id;       /* a person: its id; a group: - its number */
    gint64 face;
    guint  n;
-   gchar *name;
+   gchar *name;     /* the person's name (NULL for a group) */
 } PersonRow;
 
 
@@ -1563,19 +1564,31 @@ person_row_clear (gpointer p)
 }
 
 
+/* the people by name, then the groups without a name, the larger first
+ * (as in the people tab) */
 static gint
 cmp_person_rows (gconstpointer a, gconstpointer b)
 {
    const PersonRow *x = a, *y = b;
-   gchar *kx = g_utf8_collate_key (x->name, -1), *ky = g_utf8_collate_key (y->name, -1);
-   gint r = strcmp (kx, ky);
+   gchar *kx, *ky;
+   gint r;
+
+   if ((x->id > 0) != (y->id > 0)) return x->id > 0 ? -1 : 1;
+   if (x->id < 0) {
+      if (x->n != y->n) return x->n > y->n ? -1 : 1;
+      return x->id > y->id ? -1 : 1;   /* - number: the smaller number first */
+   }
+   kx = g_utf8_collate_key (x->name, -1);
+   ky = g_utf8_collate_key (y->name, -1);
+   r = strcmp (kx, ky);
    g_free (kx);
    g_free (ky);
    return r;
 }
 
 
-/* each person, and the face most like the mean of the person's faces */
+/* each person and each group without a name, and the face most like the
+ * mean of its faces */
 static void
 thread_list_persons (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
@@ -1596,10 +1609,15 @@ thread_list_persons (GTask *task, gpointer source, gpointer data, GCancellable *
    g_array_set_clear_func (rows, person_row_clear);
    gimv_index_db_open (dbfile, FALSE, &db, NULL);
    g_free (dbfile);
+   /* the groups as "c:N" of the people tab (gimv_index_faces_key_where) */
    if (db && sqlite3_prepare_v2 (db,
           "SELECT p.id, p.name, fa.id, fa.feature FROM persons p "
           "JOIN faces fa ON fa.person_id = p.id WHERE fa.ignored = 0 "
-          "AND fa.id IN (SELECT face_id FROM face_thumbs)", -1, &st, NULL) == SQLITE_OK)
+          "AND fa.id IN (SELECT face_id FROM face_thumbs) "
+          "UNION ALL SELECT - fa.cluster, NULL, fa.id, fa.feature FROM faces fa "
+          "WHERE fa.cluster IS NOT NULL AND fa.person_id IS NULL AND fa.guess IS NULL "
+          "AND fa.ignored = 0 AND fa.id IN (SELECT face_id FROM face_thumbs)",
+          -1, &st, NULL) == SQLITE_OK)
    {
       while (sqlite3_step (st) == SQLITE_ROW && !g_cancellable_is_cancelled (cancel)) {
          gint64 p = sqlite3_column_int64 (st, 0), f = sqlite3_column_int64 (st, 2);
@@ -1678,10 +1696,12 @@ cb_persons_listed (GObject *source, GAsyncResult *res, gpointer data)
    for (i = 0; i < rows->len; i++) {
       PersonRow *r = &g_array_index (rows, PersonRow, i);
       GimvPersonItem *item = g_object_new (GIMV_TYPE_PERSON_ITEM, NULL);
-      item->id = r->id;
+      item->key = r->id > 0 ? g_strdup_printf ("p:%" G_GINT64_FORMAT, r->id)
+                            : g_strdup_printf ("c:%" G_GINT64_FORMAT, - r->id);
       item->face = r->face;
       item->n_faces = r->n;
-      item->name = g_steal_pointer (&r->name);
+      item->name = r->id > 0 ? g_steal_pointer (&r->name)
+                             : g_strdup_printf (_("Group %d"), (gint) - r->id);
       item->fold = g_utf8_casefold (item->name, -1);
       g_ptr_array_add (items, item);
    }
@@ -1736,16 +1756,14 @@ static void
 sync_person_selection (void)
 {
    GListModel *model;
-   gint64 id = fw.key && fw.key[0] == 'p' && fw.key[1] == ':'
-               ? g_ascii_strtoll (fw.key + 2, NULL, 10) : 0;
    guint i, n, pos = GTK_INVALID_LIST_POSITION;
 
    if (!fw.person_sel) return;
    model = G_LIST_MODEL (fw.person_sel);
    n = g_list_model_get_n_items (model);
-   for (i = 0; id && i < n && pos == GTK_INVALID_LIST_POSITION; i++) {
+   for (i = 0; fw.key && i < n && pos == GTK_INVALID_LIST_POSITION; i++) {
       GimvPersonItem *item = g_list_model_get_item (model, i);
-      if (item->id == id) pos = i;
+      if (!strcmp (item->key, fw.key)) pos = i;
       g_object_unref (item);
    }
    fw.person_syncing = TRUE;
@@ -1760,15 +1778,16 @@ static void
 cb_person_selected (GtkSingleSelection *sel, GParamSpec *pspec, gpointer data)
 {
    GimvPersonItem *item;
-   gchar *key;
 
    if (fw.person_syncing) return;
    item = gtk_single_selection_get_selected_item (sel);
    if (!item) return;
-   key = g_strdup_printf ("p:%" G_GINT64_FORMAT, item->id);
-   if (g_strcmp0 (key, fw.key))
-      gimv_index_faces_win_show (fw.tw, key, item->name);
-   g_free (key);
+   if (g_strcmp0 (item->key, fw.key)) {
+      gchar *key = g_strdup (item->key), *name = g_strdup (item->name);
+      gimv_index_faces_win_show (fw.tw, key, name);
+      g_free (key);
+      g_free (name);
+   }
 }
 
 
@@ -1806,6 +1825,11 @@ cb_person_bind (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer dat
    gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (texture));
    if (texture) g_object_unref (texture);
    gtk_label_set_text (GTK_LABEL (label), text);
+   /* the groups without a name: dimmer than the people */
+   if (item->key[0] == 'c')
+      gtk_widget_add_css_class (label, "dim-label");
+   else
+      gtk_widget_remove_css_class (label, "dim-label");
    gtk_widget_set_tooltip_text (box, text);
    g_free (text);
 }
@@ -1875,7 +1899,8 @@ create_person_list (void)
    g_signal_connect (factory, "unbind", G_CALLBACK (cb_person_unbind), NULL);
    fw.person_list = gtk_list_view_new (GTK_SELECTION_MODEL (g_object_ref (fw.person_sel)),
                                        factory);
-   gtk_widget_set_tooltip_text (fw.person_list, _("The people named: a click shows their faces"));
+   gtk_widget_set_tooltip_text (fw.person_list, _("The people named, then the groups of faces "
+                                                  "without a name: a click shows the faces"));
 
    scroll = gtk_scrolled_window_new ();
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),

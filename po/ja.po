@@ -6029,3 +6029,6 @@ msgstr "スクロールバーを常に表示する"
 
 msgid "Off: the scrollbars of GTK 4 show only while the pointer is near them, over the contents"
 msgstr "オフ: GTK 4 のスクロールバーは、マウスが近づいたときだけ内容の上に重ねて表示されます"
+
+msgid "The people named, then the groups of faces without a name: a click shows the faces"
+msgstr "名前を付けた人物、続いて名前のない顔のグループ: クリックで顔を表示"
