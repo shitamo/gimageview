@@ -6017,3 +6017,9 @@ msgstr "「%s」の付いた人は代わりに「%s」になり、「%s」はな
 
 msgid "The tag could not be renamed."
 msgstr "タグの名前を変更できませんでした。"
+
+msgid "Find a Name"
+msgstr "名前で探す"
+
+msgid "The people named: a click shows their faces"
+msgstr "名前を付けた人物: クリックでその人の顔を表示"

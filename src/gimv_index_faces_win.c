@@ -73,6 +73,43 @@ gimv_face_item_init (GimvFaceItem *item)
 }
 
 
+/* a person of the list on the left: the face most like the person and
+ * the name */
+#define GIMV_TYPE_PERSON_ITEM (gimv_person_item_get_type ())
+G_DECLARE_FINAL_TYPE (GimvPersonItem, gimv_person_item, GIMV, PERSON_ITEM, GObject)
+
+struct _GimvPersonItem {
+   GObject parent;
+   gint64  id;
+   gint64  face;      /* shown for the person */
+   guint   n_faces;
+   gchar  *name;
+   gchar  *fold;      /* the name to look for (casefolded) */
+};
+
+G_DEFINE_TYPE (GimvPersonItem, gimv_person_item, G_TYPE_OBJECT)
+
+static void
+gimv_person_item_finalize (GObject *object)
+{
+   GimvPersonItem *item = GIMV_PERSON_ITEM (object);
+   g_free (item->name);
+   g_free (item->fold);
+   G_OBJECT_CLASS (gimv_person_item_parent_class)->finalize (object);
+}
+
+static void
+gimv_person_item_class_init (GimvPersonItemClass *klass)
+{
+   G_OBJECT_CLASS (klass)->finalize = gimv_person_item_finalize;
+}
+
+static void
+gimv_person_item_init (GimvPersonItem *item)
+{
+}
+
+
 /******************************************************************************
  *  the window
  ******************************************************************************/
@@ -93,6 +130,17 @@ static struct {
    GtkMultiSelection *selection;
    GCancellable      *cancel;
    GimvThumbWin      *tw;        /* weak */
+
+   /* the people on the left */
+   GListStore        *persons;
+   GtkCustomFilter   *person_filter;
+   GtkSingleSelection *person_sel;
+   GtkWidget         *person_list;
+   GtkWidget         *person_search;
+   GCancellable      *persons_cancel;
+   guint              persons_watch;
+   guint              persons_timeout;
+   gboolean           person_syncing;   /* the selection set to match fw.key */
 
    gchar             *key;
    gchar             *title;
@@ -117,6 +165,7 @@ enum {
 
 static void update_buttons (void);
 static gboolean key_has_likeness (const gchar *key);
+static void sync_person_selection (void);
 
 
 static void
@@ -725,6 +774,7 @@ cb_renamed (GObject *source, GAsyncResult *res, gpointer data)
          fw.title = g_strdup (name);
          /* two made one: the faces of both */
          if (merged) reload ();
+         sync_person_selection ();
       } else {
          fw.error = g_strdup (error ? error->message : "?");
       }
@@ -1446,6 +1496,23 @@ cb_destroy (GtkWidget *widget, gpointer data)
    if (fw.tw) g_object_weak_unref (G_OBJECT (fw.tw), cb_tw_gone, NULL);
    fw.tw = NULL;
    fw.window = NULL;
+   if (fw.persons_cancel) {
+      g_cancellable_cancel (fw.persons_cancel);
+      g_clear_object (&fw.persons_cancel);
+   }
+   if (fw.persons_watch) {
+      gimv_index_remove_watch (fw.persons_watch);
+      fw.persons_watch = 0;
+   }
+   if (fw.persons_timeout) {
+      g_source_remove (fw.persons_timeout);
+      fw.persons_timeout = 0;
+   }
+   g_clear_object (&fw.person_sel);
+   g_clear_object (&fw.person_filter);
+   fw.persons = NULL;   /* owned by the filter model of the selection */
+   fw.person_list = NULL;
+   fw.person_search = NULL;
    if (name_focus_id) {
       g_source_remove (name_focus_id);
       name_focus_id = 0;
@@ -1475,6 +1542,355 @@ add_button (GtkWidget *box, gint which, const gchar *label, const gchar *tip,
 }
 
 
+/******************************************************************************
+ *  the people on the left: a click shows the faces of the person
+ ******************************************************************************/
+
+#define PERSON_FACE_SIZE 72
+
+typedef struct {
+   gint64 id;
+   gint64 face;
+   guint  n;
+   gchar *name;
+} PersonRow;
+
+
+static void
+person_row_clear (gpointer p)
+{
+   g_free (((PersonRow *) p)->name);
+}
+
+
+static gint
+cmp_person_rows (gconstpointer a, gconstpointer b)
+{
+   const PersonRow *x = a, *y = b;
+   gchar *kx = g_utf8_collate_key (x->name, -1), *ky = g_utf8_collate_key (y->name, -1);
+   gint r = strcmp (kx, ky);
+   g_free (kx);
+   g_free (ky);
+   return r;
+}
+
+
+/* each person, and the face most like the mean of the person's faces */
+static void
+thread_list_persons (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   GArray *rows = g_array_new (FALSE, TRUE, sizeof (PersonRow));
+   /* id -> index + 1 (keys of their own: the array moves as it grows) */
+   GHashTable *at = g_hash_table_new_full (g_int64_hash, g_int64_equal, g_free, NULL);
+   GArray *pid = g_array_new (FALSE, FALSE, sizeof (gint64));
+   GArray *fid = g_array_new (FALSE, FALSE, sizeof (gint64));
+   GArray *feats = g_array_new (FALSE, FALSE, sizeof (gfloat));
+   GArray *means;
+   gchar *dbfile = gimv_index_db_default_path ();
+   sqlite3 *db = NULL;
+   sqlite3_stmt *st;
+   gfloat *best;
+   guint i;
+   gint j;
+
+   g_array_set_clear_func (rows, person_row_clear);
+   gimv_index_db_open (dbfile, FALSE, &db, NULL);
+   g_free (dbfile);
+   if (db && sqlite3_prepare_v2 (db,
+          "SELECT p.id, p.name, fa.id, fa.feature FROM persons p "
+          "JOIN faces fa ON fa.person_id = p.id WHERE fa.ignored = 0 "
+          "AND fa.id IN (SELECT face_id FROM face_thumbs)", -1, &st, NULL) == SQLITE_OK)
+   {
+      while (sqlite3_step (st) == SQLITE_ROW && !g_cancellable_is_cancelled (cancel)) {
+         gint64 p = sqlite3_column_int64 (st, 0), f = sqlite3_column_int64 (st, 2);
+         gpointer idx;
+         PersonRow *r;
+
+         if (!(idx = g_hash_table_lookup (at, &p))) {
+            PersonRow nr = { p, f, 0, g_strdup ((const gchar *) sqlite3_column_text (st, 1)) };
+            g_array_append_val (rows, nr);
+            idx = GUINT_TO_POINTER (rows->len);
+            g_hash_table_insert (at, g_memdup2 (&p, sizeof (p)), idx);
+         }
+         r = &g_array_index (rows, PersonRow, GPOINTER_TO_UINT (idx) - 1);
+         r->n++;
+         if (sqlite3_column_bytes (st, 3) == FACE_FEATURE_LEN * (gint) sizeof (gfloat)) {
+            g_array_append_val (pid, p);
+            g_array_append_val (fid, f);
+            g_array_append_vals (feats, sqlite3_column_blob (st, 3), FACE_FEATURE_LEN);
+         }
+      }
+      sqlite3_finalize (st);
+   }
+   if (db) sqlite3_close (db);
+
+   /* the mean of each person, then the face nearest to it */
+   means = g_array_sized_new (FALSE, TRUE, sizeof (gfloat), rows->len * FACE_FEATURE_LEN);
+   g_array_set_size (means, rows->len * FACE_FEATURE_LEN);
+   best = g_new (gfloat, rows->len + 1);
+   for (i = 0; i < rows->len; i++) best[i] = -2;
+   for (i = 0; i < pid->len; i++) {
+      guint k = GPOINTER_TO_UINT (g_hash_table_lookup (at, &g_array_index (pid, gint64, i))) - 1;
+      for (j = 0; j < FACE_FEATURE_LEN; j++)
+         g_array_index (means, gfloat, k * FACE_FEATURE_LEN + j)
+            += g_array_index (feats, gfloat, i * FACE_FEATURE_LEN + j);
+   }
+   for (i = 0; i < rows->len; i++)
+      feature_normalize (&g_array_index (means, gfloat, i * FACE_FEATURE_LEN));
+   for (i = 0; i < pid->len; i++) {
+      guint k = GPOINTER_TO_UINT (g_hash_table_lookup (at, &g_array_index (pid, gint64, i))) - 1;
+      gfloat s = 0;
+      for (j = 0; j < FACE_FEATURE_LEN; j++)
+         s += g_array_index (means, gfloat, k * FACE_FEATURE_LEN + j)
+              * g_array_index (feats, gfloat, i * FACE_FEATURE_LEN + j);
+      if (s > best[k]) {
+         best[k] = s;
+         g_array_index (rows, PersonRow, k).face = g_array_index (fid, gint64, i);
+      }
+   }
+   g_free (best);
+   g_array_unref (means);
+   g_array_unref (pid);
+   g_array_unref (fid);
+   g_array_unref (feats);
+   g_hash_table_unref (at);
+
+   g_array_sort (rows, cmp_person_rows);
+   g_task_return_pointer (task, rows, (GDestroyNotify) g_array_unref);
+}
+
+
+static void
+cb_persons_listed (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GTask *task = G_TASK (res);
+   GArray *rows;
+   GPtrArray *items;
+   guint i;
+
+   if (g_cancellable_is_cancelled (g_task_get_cancellable (task))) return;
+   rows = g_task_propagate_pointer (task, NULL);
+   if (!rows || !fw.window) {
+      if (rows) g_array_unref (rows);
+      return;
+   }
+   items = g_ptr_array_new_with_free_func (g_object_unref);
+   for (i = 0; i < rows->len; i++) {
+      PersonRow *r = &g_array_index (rows, PersonRow, i);
+      GimvPersonItem *item = g_object_new (GIMV_TYPE_PERSON_ITEM, NULL);
+      item->id = r->id;
+      item->face = r->face;
+      item->n_faces = r->n;
+      item->name = g_steal_pointer (&r->name);
+      item->fold = g_utf8_casefold (item->name, -1);
+      g_ptr_array_add (items, item);
+   }
+   fw.person_syncing = TRUE;
+   g_list_store_splice (fw.persons, 0, g_list_model_get_n_items (G_LIST_MODEL (fw.persons)),
+                        items->pdata, items->len);
+   fw.person_syncing = FALSE;
+   g_ptr_array_unref (items);
+   g_array_unref (rows);
+   sync_person_selection ();
+}
+
+
+static void
+reload_persons (void)
+{
+   GTask *task;
+
+   if (fw.persons_cancel) {
+      g_cancellable_cancel (fw.persons_cancel);
+      g_clear_object (&fw.persons_cancel);
+   }
+   fw.persons_cancel = g_cancellable_new ();
+   task = g_task_new (NULL, fw.persons_cancel, cb_persons_listed, NULL);
+   g_task_run_in_thread (task, thread_list_persons);
+   g_object_unref (task);
+}
+
+
+static gboolean
+cb_persons_timeout (gpointer data)
+{
+   fw.persons_timeout = 0;
+   if (fw.window) reload_persons ();
+   return G_SOURCE_REMOVE;
+}
+
+
+/* names given, changed, faces found: the list again, a moment later */
+static void
+cb_persons_changed (GimvIndexChange what, gpointer data)
+{
+   if (!(what & GIMV_INDEX_CHANGED_FACES) || !fw.window) return;
+   if (fw.persons_timeout) g_source_remove (fw.persons_timeout);
+   fw.persons_timeout = g_timeout_add (500, cb_persons_timeout, NULL);
+}
+
+
+/* the person shown (fw.key "p:ID") selected on the left, without showing
+ * it again */
+static void
+sync_person_selection (void)
+{
+   GListModel *model;
+   gint64 id = fw.key && fw.key[0] == 'p' && fw.key[1] == ':'
+               ? g_ascii_strtoll (fw.key + 2, NULL, 10) : 0;
+   guint i, n, pos = GTK_INVALID_LIST_POSITION;
+
+   if (!fw.person_sel) return;
+   model = G_LIST_MODEL (fw.person_sel);
+   n = g_list_model_get_n_items (model);
+   for (i = 0; id && i < n && pos == GTK_INVALID_LIST_POSITION; i++) {
+      GimvPersonItem *item = g_list_model_get_item (model, i);
+      if (item->id == id) pos = i;
+      g_object_unref (item);
+   }
+   fw.person_syncing = TRUE;
+   gtk_single_selection_set_selected (fw.person_sel, pos);
+   fw.person_syncing = FALSE;
+   if (pos != GTK_INVALID_LIST_POSITION)
+      gtk_list_view_scroll_to (GTK_LIST_VIEW (fw.person_list), pos, GTK_LIST_SCROLL_NONE, NULL);
+}
+
+
+static void
+cb_person_selected (GtkSingleSelection *sel, GParamSpec *pspec, gpointer data)
+{
+   GimvPersonItem *item;
+   gchar *key;
+
+   if (fw.person_syncing) return;
+   item = gtk_single_selection_get_selected_item (sel);
+   if (!item) return;
+   key = g_strdup_printf ("p:%" G_GINT64_FORMAT, item->id);
+   if (g_strcmp0 (key, fw.key))
+      gimv_index_faces_win_show (fw.tw, key, item->name);
+   g_free (key);
+}
+
+
+static void
+cb_person_setup (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer data)
+{
+   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
+   GtkWidget *picture = gtk_picture_new ();
+   GtkWidget *label = gtk_label_new (NULL);
+
+   gtk_widget_set_size_request (picture, PERSON_FACE_SIZE, PERSON_FACE_SIZE);
+   gtk_widget_set_halign (picture, GTK_ALIGN_CENTER);
+   gtk_picture_set_content_fit (GTK_PICTURE (picture), GTK_CONTENT_FIT_COVER);
+   gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+   gtk_label_set_max_width_chars (GTK_LABEL (label), 12);
+   gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_CENTER);
+   gtk_widget_set_margin_top (box, 4);
+   gtk_widget_set_margin_bottom (box, 4);
+   gtk_box_append (GTK_BOX (box), picture);
+   gtk_box_append (GTK_BOX (box), label);
+   gtk_list_item_set_child (li, box);
+}
+
+
+static void
+cb_person_bind (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer data)
+{
+   GimvPersonItem *item = gtk_list_item_get_item (li);
+   GtkWidget *box = gtk_list_item_get_child (li);
+   GtkWidget *picture = gtk_widget_get_first_child (box);
+   GtkWidget *label = gtk_widget_get_next_sibling (picture);
+   GdkTexture *texture = gimv_index_faces_get_texture (item->face);
+   gchar *text = g_strdup_printf ("%s (%'u)", item->name, item->n_faces);
+
+   gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (texture));
+   if (texture) g_object_unref (texture);
+   gtk_label_set_text (GTK_LABEL (label), text);
+   gtk_widget_set_tooltip_text (box, text);
+   g_free (text);
+}
+
+
+static void
+cb_person_unbind (GtkSignalListItemFactory *factory, GtkListItem *li, gpointer data)
+{
+   GtkWidget *box = gtk_list_item_get_child (li);
+   GtkWidget *picture = box ? gtk_widget_get_first_child (box) : NULL;
+   if (GTK_IS_PICTURE (picture))
+      gtk_picture_set_paintable (GTK_PICTURE (picture), NULL);
+}
+
+
+static gboolean
+person_filter (gpointer object, gpointer data)
+{
+   GimvPersonItem *item = object;
+   const gchar *text = fw.person_search
+                       ? gtk_editable_get_text (GTK_EDITABLE (fw.person_search)) : "";
+   gchar *fold;
+   gboolean ok;
+
+   if (!text || !*text) return TRUE;
+   fold = g_utf8_casefold (text, -1);
+   ok = strstr (item->fold, fold) != NULL;
+   g_free (fold);
+   return ok;
+}
+
+
+static void
+cb_person_search (GtkSearchEntry *entry, gpointer data)
+{
+   gtk_filter_changed (GTK_FILTER (fw.person_filter), GTK_FILTER_CHANGE_DIFFERENT);
+   sync_person_selection ();
+}
+
+
+static GtkWidget *
+create_person_list (void)
+{
+   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4), *scroll;
+   GtkListItemFactory *factory;
+   GtkFilterListModel *filtered;
+
+   fw.person_search = gtk_search_entry_new ();
+   gtk_search_entry_set_placeholder_text (GTK_SEARCH_ENTRY (fw.person_search), _("Find a Name"));
+   gtk_editable_set_width_chars (GTK_EDITABLE (fw.person_search), 10);
+   g_signal_connect (fw.person_search, "search-changed", G_CALLBACK (cb_person_search), NULL);
+   gtk_box_append (GTK_BOX (box), fw.person_search);
+
+   fw.persons = g_list_store_new (GIMV_TYPE_PERSON_ITEM);
+   fw.person_filter = gtk_custom_filter_new (person_filter, NULL, NULL);
+   filtered = gtk_filter_list_model_new (G_LIST_MODEL (fw.persons),
+                                         GTK_FILTER (g_object_ref (fw.person_filter)));
+   fw.person_sel = gtk_single_selection_new (G_LIST_MODEL (filtered));
+   gtk_single_selection_set_autoselect (fw.person_sel, FALSE);
+   gtk_single_selection_set_can_unselect (fw.person_sel, TRUE);
+   gtk_single_selection_set_selected (fw.person_sel, GTK_INVALID_LIST_POSITION);
+   g_signal_connect (fw.person_sel, "notify::selected", G_CALLBACK (cb_person_selected), NULL);
+
+   factory = gtk_signal_list_item_factory_new ();
+   g_signal_connect (factory, "setup",  G_CALLBACK (cb_person_setup), NULL);
+   g_signal_connect (factory, "bind",   G_CALLBACK (cb_person_bind), NULL);
+   g_signal_connect (factory, "unbind", G_CALLBACK (cb_person_unbind), NULL);
+   fw.person_list = gtk_list_view_new (GTK_SELECTION_MODEL (g_object_ref (fw.person_sel)),
+                                       factory);
+   gtk_widget_set_tooltip_text (fw.person_list, _("The people named: a click shows their faces"));
+
+   scroll = gtk_scrolled_window_new ();
+   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_widget_set_vexpand (scroll, TRUE);
+   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll), fw.person_list);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scroll), TRUE);
+   gtk_box_append (GTK_BOX (box), scroll);
+
+   fw.persons_watch = gimv_index_add_watch (cb_persons_changed, NULL);
+   reload_persons ();
+   return box;
+}
+
+
 static void
 create_window (void)
 {
@@ -1482,7 +1898,7 @@ create_window (void)
    GtkListItemFactory *factory;
 
    fw.window = gtk_window_new ();
-   gtk_window_set_default_size (GTK_WINDOW (fw.window), 900, 640);
+   gtk_window_set_default_size (GTK_WINDOW (fw.window), 1060, 660);
    g_signal_connect (fw.window, "destroy", G_CALLBACK (cb_destroy), NULL);
 
    vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
@@ -1490,7 +1906,20 @@ create_window (void)
    gtk_widget_set_margin_end (vbox, 8);
    gtk_widget_set_margin_top (vbox, 8);
    gtk_widget_set_margin_bottom (vbox, 8);
-   gtk_window_set_child (GTK_WINDOW (fw.window), vbox);
+   {
+      /* the people on the left, the faces of one on the right */
+      GtkWidget *paned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
+      GtkWidget *people = create_person_list ();
+      gtk_widget_set_margin_start (people, 8);
+      gtk_widget_set_margin_top (people, 8);
+      gtk_widget_set_margin_bottom (people, 8);
+      gtk_paned_set_start_child (GTK_PANED (paned), people);
+      gtk_paned_set_resize_start_child (GTK_PANED (paned), FALSE);
+      gtk_paned_set_shrink_start_child (GTK_PANED (paned), FALSE);
+      gtk_paned_set_end_child (GTK_PANED (paned), vbox);
+      gtk_paned_set_shrink_end_child (GTK_PANED (paned), FALSE);
+      gtk_window_set_child (GTK_WINDOW (fw.window), paned);
+   }
 
    /* the name (selectable, to copy), the pencil to change it, the count */
    fw.heading = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
@@ -1621,6 +2050,7 @@ gimv_index_faces_win_show (GimvThumbWin *tw, const gchar *key, const gchar *titl
    fw.title = g_strdup (title ? title : key);
    if (gtk_widget_get_visible (fw.name_entry)) name_edit_end ();
    reload ();
+   sync_person_selection ();
    /* the faces have the keys (Ctrl+A), not the name (a selectable label
     * would take the focus with its text all selected) */
    gtk_widget_grab_focus (fw.grid);
