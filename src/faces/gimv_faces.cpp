@@ -11,12 +11,15 @@
  *
  *   gimv-faces --db FILE --models DIR [--regroup] [--export DIR] [--] FOLDER...
  *   gimv-faces --evaluate --db FILE
+ *   gimv-faces --group-only --db FILE
  *
  * --regroup: make the groups again even when no faces changed
  * --export:  write the faces of the groups as small images to DIR, to look at
  * --evaluate: the ways of grouping tried on the faces named (as if they had
  *            no name), the names telling how right the groups are; the
  *            database is only read
+ * --group-only: only the groups and guesses made again (no images read,
+ *            no models needed)
  *
  * Output (one line each):
  *   start <todo> <total>          files to read, files in the folders
@@ -81,7 +84,7 @@
 #define FEATURE_LEN       128
 /* cosine similarity: SFace's own threshold for "the same person" is 0.363;
  * groups are made a bit stricter to keep them clean */
-#define GROUP_SIM         0.42f
+#define GROUP_SIM         0.46f   /* 0.42 before 2026-11 (--evaluate: E) */
 #define GUESS_SIM         0.45f
 #define COMMIT_USEC       (3 * 1000000LL)
 
@@ -856,6 +859,49 @@ make_groups (Db &d)
       }
    }
 
+   /* each face of the groups again into the group whose mean it is most
+    * like (or alone), till nothing moves: the first faces of a group no
+    * longer decide it (--evaluate: "wrong" 574 -> 389 with GROUP_SIM 0.46
+    * on the faces a user had named) */
+   for (int round = 0; round < 10 && !quit; round++) {
+      int n = (int) means.size ();
+      std::vector<std::vector<float>> m (n, std::vector<float> (FEATURE_LEN, 0.0f));
+      std::vector<int> cnt (n, 0);
+      for (size_t i = 0; i < rows.size (); i++) {
+         if (group[i] < 0) continue;
+         for (int j = 0; j < FEATURE_LEN; j++) m[group[i]][j] += rows[i].f[j];
+         cnt[group[i]]++;
+      }
+      for (auto &v : m) normalize (v);
+      bool moved = false;
+      for (size_t i = 0; i < rows.size (); i++) {
+         if (group[i] < 0) continue;
+         int g = -1;
+         float best = GROUP_SIM;
+         for (int c = 0; c < n; c++) {
+            /* a face alone is not drawn to its own mean */
+            if (cnt[c] == 0 || (cnt[c] < 2 && c == group[i])) continue;
+            float sim = dot (rows[i].f.data (), m[c].data ());
+            if (sim >= best) { best = sim; g = c; }
+         }
+         if (g < 0) {
+            if (cnt[group[i]] < 2) continue;   /* alone already */
+            g = (int) means.size ();
+            means.emplace_back (FEATURE_LEN, 0.0f);
+            sums.emplace_back (FEATURE_LEN, 0.0f);
+            sizes.push_back (0);
+            m.emplace_back (FEATURE_LEN, 0.0f);
+            cnt.push_back (0);
+         }
+         if (g != group[i]) { group[i] = g; moved = true; }
+      }
+      check_stdin ();
+      if (!moved) break;
+   }
+   std::fill (sizes.begin (), sizes.end (), 0);
+   for (size_t i = 0; i < rows.size (); i++)
+      if (group[i] >= 0) sizes[group[i]]++;
+
    /* the numbers stay: a group gets the number most of its faces had
     * (the faces window shows a group by its number while names are given
     * to the others); new groups get new numbers.  Groups of one are none. */
@@ -1162,14 +1208,14 @@ run_evaluate (const std::string &dbfile)
 
    struct Way { const char *title; int kind; float th; int min_side; float min_score; };
    const Way ways[] = {
-      { "A now: leader",                          0, GROUP_SIM, 0, 0 },
-      { "B A + faces moved to the nearest group", 1, GROUP_SIM, 0, 0 },
-      { "C B + wide groups split",                2, GROUP_SIM, 0, 0 },
-      { "D larger groups stricter + B",           3, GROUP_SIM, 0, 0 },
-      { "E B, threshold 0.46",                    1, 0.46f, 0, 0 },
+      { "A before: leader 0.42",                  0, 0.42f, 0, 0 },
+      { "B A + faces moved to the nearest group", 1, 0.42f, 0, 0 },
+      { "C B + wide groups split",                2, 0.42f, 0, 0 },
+      { "D larger groups stricter + B",           3, 0.42f, 0, 0 },
+      { "E B, threshold 0.46 (now)",              1, 0.46f, 0, 0 },
       { "F B, threshold 0.50",                    1, 0.50f, 0, 0 },
-      { "G C, faces under 64 px alone",           2, GROUP_SIM, 64, 0 },
-      { "H C, faces under 80 px or score<0.9 alone", 2, GROUP_SIM, 80, 0.90f },
+      { "G C, faces under 64 px alone",           2, 0.42f, 64, 0 },
+      { "H C, faces under 80 px or score<0.9 alone", 2, 0.42f, 80, 0.90f },
    };
    std::vector<std::pair<std::string, EvalResult>> results;
    std::vector<std::vector<int>> grps;
@@ -1343,7 +1389,8 @@ static void
 usage (void)
 {
    fprintf (stderr, "usage: gimv-faces --db FILE --models DIR [--regroup] [--export DIR] [--] FOLDER...\n"
-                    "       gimv-faces --evaluate --db FILE\n");
+                    "       gimv-faces --evaluate --db FILE\n"
+                    "       gimv-faces --group-only --db FILE\n");
 }
 
 
@@ -1352,7 +1399,7 @@ main (int argc, char *argv[])
 {
    std::string dbfile, models, export_dir;
    std::vector<std::string> dirs;
-   bool opts = true, regroup = false, evaluate = false;
+   bool opts = true, regroup = false, evaluate = false, group_only = false;
 
    signal (SIGPIPE, SIG_IGN);
 
@@ -1363,6 +1410,7 @@ main (int argc, char *argv[])
       if (opts && a == "--models" && i + 1 < argc) { models = argv[++i]; continue; }
       if (opts && a == "--regroup") { regroup = true; continue; }
       if (opts && a == "--evaluate") { evaluate = true; continue; }
+      if (opts && a == "--group-only") { group_only = true; continue; }
       if (opts && a == "--export" && i + 1 < argc) { export_dir = argv[++i]; continue; }
       if (opts && a.size () > 1 && a[0] == '-') { usage (); return 2; }
       while (a.size () > 1 && a.back () == '/') a.pop_back ();
@@ -1370,6 +1418,19 @@ main (int argc, char *argv[])
    }
    if (evaluate && !dbfile.empty ())
       return run_evaluate (dbfile);
+   if (group_only && !dbfile.empty ()) {
+      std::string lockfile = dbfile + ".faces-lock";
+      int lockfd = open (lockfile.c_str (), O_RDWR | O_CREAT | O_CLOEXEC, 0600);
+      if (lockfd < 0 || flock (lockfd, LOCK_EX | LOCK_NB) < 0) {
+         say ("busy");
+         return 0;
+      }
+      Db d;
+      if (!open_db (d, dbfile.c_str ())) return 1;
+      int groups = make_groups (d);
+      say ("done 0 0 %d", groups);
+      return 0;
+   }
    if (dbfile.empty () || models.empty () || dirs.empty ()) {
       usage ();
       return 2;
