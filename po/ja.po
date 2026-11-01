@@ -6007,3 +6007,13 @@ msgstr "タグ:"
 
 msgid "none"
 msgstr "なし"
+
+msgid "A tag cannot have a tab or a new line in it."
+msgstr "タグにタブや改行は使えません。"
+
+#, c-format
+msgid "The people with \"%s\" get \"%s\" instead, and \"%s\" goes."
+msgstr "「%s」の付いた人は代わりに「%s」になり、「%s」はなくなります。"
+
+msgid "The tag could not be renamed."
+msgstr "タグの名前を変更できませんでした。"

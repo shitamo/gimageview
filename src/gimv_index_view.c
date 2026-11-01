@@ -180,6 +180,8 @@ typedef struct {
    GimvThumbView *tv;          /* the tab of the last result, weak */
    gboolean       filling;
    GtkWidget     *popover;
+   GtkWidget     *rename_popover; /* the entry a tag is renamed in */
+   GtkWidget     *rename_entry;
    gchar         *menu_key;    /* row of the right button menu */
    gchar         *click_key;   /* row clicked with the left button */
    gchar         *shown_key;   /* what the result tab shows */
@@ -201,6 +203,7 @@ typedef struct {
 
 
 static gboolean key_is_manual_tag (IndexView *iv, const gchar *key);
+static gboolean key_is_renamable (IndexView *iv, const gchar *key);
 
 typedef struct {
    GimvIndexTabType type;
@@ -1253,17 +1256,18 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
          g_menu_append (menu, _("Open in New Tab"), "index.open-new-tab");
          if (iv->type == GIMV_INDEX_TAB_PERSON)
             g_menu_append (menu, _("Show the Faces..."), "index.faces");
-         if (iv->type == GIMV_INDEX_TAB_TAG)
+         if (iv->type == GIMV_INDEX_TAB_TAG || iv->type == GIMV_INDEX_TAB_PERSON)
             g_menu_append (menu, _("Rename... (F2)"), "index.rename");
          iv->popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu));
          gtk_widget_set_parent (iv->popover, iv->scroll);
          gtk_popover_set_has_arrow (GTK_POPOVER (iv->popover), FALSE);
          g_object_unref (menu);
       }
-      if (iv->type == GIMV_INDEX_TAB_TAG) {
-         /* the tags of rules are not renamed */
+      if (iv->type == GIMV_INDEX_TAB_TAG || iv->type == GIMV_INDEX_TAB_PERSON) {
+         /* the tags of rules are not renamed; people: only their tags (the
+          * persons are renamed in the faces window) */
          GAction *a = g_action_map_lookup_action (G_ACTION_MAP (iv->actions), "rename");
-         g_simple_action_set_enabled (G_SIMPLE_ACTION (a), key_is_manual_tag (iv, key));
+         g_simple_action_set_enabled (G_SIMPLE_ACTION (a), key_is_renamable (iv, key));
       }
       gtk_popover_set_pointing_to (GTK_POPOVER (iv->popover), &rect);
       gtk_popover_popup (GTK_POPOVER (iv->popover));
@@ -1295,6 +1299,67 @@ key_is_manual_tag (IndexView *iv, const gchar *key)
 }
 
 
+/* the tag of people of a row (",person/<tag>" in the tag tab, "t:<tag>"
+ * in the people tab), NULL for the others */
+static const gchar *
+key_person_tag (IndexView *iv, const gchar *key)
+{
+   if (!key) return NULL;
+   if (iv->type == GIMV_INDEX_TAB_TAG && g_str_has_prefix (key, ",person/") && key[8])
+      return key + 8;
+   if (iv->type == GIMV_INDEX_TAB_PERSON && g_str_has_prefix (key, "t:") && key[2])
+      return key + 2;
+   return NULL;
+}
+
+
+static gboolean
+key_is_renamable (IndexView *iv, const gchar *key)
+{
+   return key_is_manual_tag (iv, key) || key_person_tag (iv, key) != NULL;
+}
+
+
+static void cb_edited (GtkCellRendererText *render, gchar *path, gchar *text, IndexView *iv);
+
+static void
+cb_rename_activate (GtkEntry *entry, IndexView *iv)
+{
+   gchar *text = g_strdup (gtk_editable_get_text (GTK_EDITABLE (entry)));
+   /* takes editing_key: the popover closing after it is no cancel */
+   cb_edited (NULL, NULL, text, iv);
+   g_free (text);
+   gtk_popover_popdown (GTK_POPOVER (iv->rename_popover));
+}
+
+
+static void
+cb_rename_closed (GtkPopover *popover, IndexView *iv)
+{
+   if (!iv->editing_key) return;
+   g_clear_pointer (&iv->editing_key, g_free);
+   if (iv->count_again) start_count (iv);
+}
+
+
+static gboolean
+cb_rename_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType state,
+               IndexView *iv)
+{
+   /* the text, not the window's Ctrl+A (select all the thumbnails) */
+   if ((keyval == GDK_KEY_a || keyval == GDK_KEY_A) && (state & GDK_CONTROL_MASK)) {
+      gtk_editable_select_region (GTK_EDITABLE (iv->rename_entry), 0, -1);
+      return TRUE;
+   }
+   return FALSE;
+}
+
+
+/*
+ * A tag is renamed in an entry in a popover on its row, not in the row
+ * itself: editing a cell of a GtkTreeView gives a Gtk-CRITICAL
+ * (gtk_css_node_insert_after) in GTK 4.14, as its search popup did.
+ */
 static void
 start_rename (IndexView *iv, const gchar *key)
 {
@@ -1302,14 +1367,53 @@ start_rename (IndexView *iv, const gchar *key)
    GtkTreeIter root, iter;
    GtkTreePath *path;
 
-   if (!key_is_manual_tag (iv, key)) return;
-   if (!gtk_tree_model_get_iter_first (model, &root) || !find_key (model, &root, key, &iter))
+   if (!key_is_renamable (iv, key)) return;
+   if (!gtk_tree_model_get_iter_first (model, &root)
+       || !(iv->type == GIMV_INDEX_TAB_PERSON ? find_key_any (model, &root, key, &iter)
+                                              : find_key (model, &root, key, &iter)))
       return;
    g_free (iv->editing_key);
    iv->editing_key = g_strdup (key);
    path = gtk_tree_model_get_path (model, &iter);
-   g_object_set (iv->render, "editable", TRUE, NULL);
-   gtk_tree_view_set_cursor (GTK_TREE_VIEW (iv->tree), path, iv->col, TRUE);
+   gtk_tree_view_set_cursor (GTK_TREE_VIEW (iv->tree), path, NULL, FALSE);
+
+   if (!iv->rename_popover) {
+      GtkEventController *keys = gtk_event_controller_key_new ();
+      iv->rename_entry = gtk_entry_new ();
+      gtk_editable_set_width_chars (GTK_EDITABLE (iv->rename_entry), 24);
+      g_signal_connect (iv->rename_entry, "activate", G_CALLBACK (cb_rename_activate), iv);
+      gtk_event_controller_set_propagation_phase (keys, GTK_PHASE_CAPTURE);
+      g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_rename_key), iv);
+      gtk_widget_add_controller (iv->rename_entry, keys);
+      iv->rename_popover = gtk_popover_new ();
+      gtk_popover_set_child (GTK_POPOVER (iv->rename_popover), iv->rename_entry);
+      gtk_popover_set_position (GTK_POPOVER (iv->rename_popover), GTK_POS_BOTTOM);
+      /* on the scrolled window, as the menu */
+      gtk_widget_set_parent (iv->rename_popover, iv->scroll);
+      g_signal_connect (iv->rename_popover, "closed", G_CALLBACK (cb_rename_closed), iv);
+   }
+   {
+      /* the name alone, not "Kyoto (12)" */
+      const gchar *tag = key_person_tag (iv, key);
+      GdkRectangle rect;
+      gint wx, wy;
+      graphene_point_t pt, out;
+
+      gtk_tree_view_get_cell_area (GTK_TREE_VIEW (iv->tree), path, iv->col, &rect);
+      gtk_tree_view_convert_bin_window_to_widget_coords (GTK_TREE_VIEW (iv->tree),
+                                                         rect.x, rect.y, &wx, &wy);
+      pt = GRAPHENE_POINT_INIT (wx, wy);
+      if (gtk_widget_compute_point (iv->tree, iv->scroll, &pt, &out)) {
+         rect.x = (gint) out.x;
+         rect.y = (gint) out.y;
+      }
+      rect.width = MAX (rect.width, 1);
+      gtk_popover_set_pointing_to (GTK_POPOVER (iv->rename_popover), &rect);
+      gtk_editable_set_text (GTK_EDITABLE (iv->rename_entry), tag ? tag : key);
+      gtk_popover_popup (GTK_POPOVER (iv->rename_popover));
+      gtk_widget_grab_focus (iv->rename_entry);
+      gtk_editable_select_region (GTK_EDITABLE (iv->rename_entry), 0, -1);
+   }
    gtk_tree_path_free (path);
 }
 
@@ -1320,7 +1424,8 @@ cb_editing_started (GtkCellRenderer *render, GtkCellEditable *editable, gchar *p
 {
    /* the name alone, not "Kyoto (12)" */
    if (GTK_IS_EDITABLE (editable) && iv->editing_key) {
-      gtk_editable_set_text (GTK_EDITABLE (editable), iv->editing_key);
+      const gchar *tag = key_person_tag (iv, iv->editing_key);
+      gtk_editable_set_text (GTK_EDITABLE (editable), tag ? tag : iv->editing_key);
       gtk_editable_select_region (GTK_EDITABLE (editable), 0, -1);
    }
 }
@@ -1350,7 +1455,37 @@ typedef struct {
    IndexView *iv;      /* the view may be gone: checked by the cancellable */
    GCancellable *cancel;
    gchar *old, *new;
+   gboolean person;    /* a tag of people */
 } RenameAsk;
+
+
+static void
+cb_person_tag_renamed (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GtkWidget *tree = data;   /* held until now */
+   GError *error = NULL;
+
+   if (!gimv_index_faces_edit_finish (res, NULL, &error)) {
+      GtkAlertDialog *dialog = gtk_alert_dialog_new ("%s", _("The tag could not be renamed."));
+      GtkRoot *root = gtk_widget_get_root (tree);
+      gtk_alert_dialog_set_detail (dialog, error ? error->message : NULL);
+      gtk_alert_dialog_show (dialog, GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL);
+      g_object_unref (dialog);
+      g_clear_error (&error);
+   }
+   g_object_unref (tree);
+}
+
+
+/* every person with the tag gets the new one (in a worker thread) */
+static void
+do_rename_person_tag (IndexView *iv, const gchar *old, const gchar *new)
+{
+   gchar *both = g_strconcat (old, "\n", new, NULL);
+   gimv_index_faces_edit_async (GIMV_INDEX_FACES_RENAME_PERSON_TAG, NULL, both, 0,
+                                cb_person_tag_renamed, g_object_ref (iv->tree));
+   g_free (both);
+}
 
 
 static void
@@ -1368,8 +1503,12 @@ cb_merge_answer (GObject *source, GAsyncResult *res, gpointer data)
    RenameAsk *ask = data;
    gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
 
-   if (button == 1 && !g_cancellable_is_cancelled (ask->cancel))
-      do_rename (ask->iv, ask->old, ask->new);
+   if (button == 1 && !g_cancellable_is_cancelled (ask->cancel)) {
+      if (ask->person)
+         do_rename_person_tag (ask->iv, ask->old, ask->new);
+      else
+         do_rename (ask->iv, ask->old, ask->new);
+   }
    g_object_unref (ask->cancel);
    g_free (ask->old);
    g_free (ask->new);
@@ -1401,9 +1540,45 @@ cb_edited (GtkCellRendererText *render, gchar *path, gchar *text, IndexView *iv)
 {
    gchar *old = g_steal_pointer (&iv->editing_key);
    gchar *new = g_strstrip (g_strdup (text ? text : ""));
+   const gchar *ptag = key_person_tag (iv, old);
 
-   g_object_set (iv->render, "editable", FALSE, NULL);
-   if (!old || !*new || !strcmp (old, new)) {
+   if (ptag) {
+      /* a tag of people: kept in the index only, renamed there */
+      if (!*new || !strcmp (ptag, new)) {
+         /* nothing */
+      } else if (strpbrk (new, "\t\n")) {
+         alert (iv, _("A tag cannot have a tab or a new line in it."), NULL);
+      } else {
+         GPtrArray *all = gimv_index_faces_get_all_person_tags ();
+         gboolean there = g_ptr_array_find_with_equal_func (all, new, g_str_equal, NULL);
+         g_ptr_array_unref (all);
+         if (there) {
+            GtkAlertDialog *dialog = gtk_alert_dialog_new (_("The tag \"%s\" is there already."),
+                                                           new);
+            const gchar *buttons[] = { _("_Cancel"), _("_Merge Them"), NULL };
+            gchar *detail = g_strdup_printf (_("The people with \"%s\" get \"%s\" instead, "
+                                               "and \"%s\" goes."), ptag, new, ptag);
+            RenameAsk *ask = g_new0 (RenameAsk, 1);
+            GtkRoot *root = gtk_widget_get_root (iv->tree);
+
+            ask->iv = iv;
+            ask->cancel = g_object_ref (iv->cancel);
+            ask->old = g_strdup (ptag);
+            ask->new = g_strdup (new);
+            ask->person = TRUE;
+            gtk_alert_dialog_set_detail (dialog, detail);
+            gtk_alert_dialog_set_buttons (dialog, buttons);
+            gtk_alert_dialog_set_cancel_button (dialog, 0);
+            gtk_alert_dialog_set_default_button (dialog, 1);
+            gtk_alert_dialog_choose (dialog, GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL,
+                                     NULL, cb_merge_answer, ask);
+            g_object_unref (dialog);
+            g_free (detail);
+         } else {
+            do_rename_person_tag (iv, ptag, new);
+         }
+      }
+   } else if (!old || !*new || !strcmp (old, new)) {
       /* nothing */
    } else if (strchr (new, ',') || strpbrk (new, "\t\n")) {
       /* the comment files keep the tags separated by commas */
@@ -1755,6 +1930,7 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
    if (iv->open_id) g_source_remove (iv->open_id);
    if (iv->rename_id) g_source_remove (iv->rename_id);
    if (iv->popover) gtk_widget_unparent (iv->popover);
+   if (iv->rename_popover) gtk_widget_unparent (iv->rename_popover);
    set_result_tab (iv, NULL);
    g_clear_object (&iv->store);
    g_free (iv->menu_key);
@@ -1830,7 +2006,7 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    gtk_tree_view_append_column (GTK_TREE_VIEW (iv->tree), col);
    iv->render = render;
    iv->col = col;
-   /* editable only while a tag is renamed (start_rename) */
+   /* not editable: a tag is renamed in a popover (start_rename) */
    g_signal_connect (render, "editing-started", G_CALLBACK (cb_editing_started), iv);
    g_signal_connect (render, "editing-canceled", G_CALLBACK (cb_editing_canceled), iv);
    g_signal_connect (render, "edited", G_CALLBACK (cb_edited), iv);

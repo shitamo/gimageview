@@ -681,6 +681,38 @@ set_person_tags (sqlite3 *db, EditData *e)
 }
 
 
+/* "old\nnew": every person with the old tag gets the new one instead */
+static gboolean
+rename_person_tag (sqlite3 *db, EditData *e)
+{
+   gchar **v = g_strsplit (e->name ? e->name : "", "\n", 2);
+   sqlite3_stmt *st;
+   gboolean ok = v[0] && v[1] && *v[0] && *v[1];
+
+   if (ok && strcmp (v[0], v[1])) {
+      ok = sqlite3_prepare_v2 (db, "INSERT OR IGNORE INTO person_tags (person_id, tag) "
+                                   "SELECT person_id, ?2 FROM person_tags WHERE tag = ?1",
+                               -1, &st, NULL) == SQLITE_OK;
+      if (ok) {
+         sqlite3_bind_text (st, 1, v[0], -1, SQLITE_TRANSIENT);
+         sqlite3_bind_text (st, 2, v[1], -1, SQLITE_TRANSIENT);
+         ok = sqlite3_step (st) == SQLITE_DONE;
+         sqlite3_finalize (st);
+      }
+      if (ok)
+         ok = sqlite3_prepare_v2 (db, "DELETE FROM person_tags WHERE tag = ?1",
+                                  -1, &st, NULL) == SQLITE_OK;
+      if (ok) {
+         sqlite3_bind_text (st, 1, v[0], -1, SQLITE_TRANSIENT);
+         ok = sqlite3_step (st) == SQLITE_DONE;
+         sqlite3_finalize (st);
+      }
+   }
+   g_strfreev (v);
+   return ok;
+}
+
+
 static gboolean
 edit_in_db (sqlite3 *db, EditData *e)
 {
@@ -718,6 +750,8 @@ edit_in_db (sqlite3 *db, EditData *e)
       return rename_person (db, e);
    case GIMV_INDEX_FACES_PERSON_TAGS:
       return set_person_tags (db, e);
+   case GIMV_INDEX_FACES_RENAME_PERSON_TAG:
+      return rename_person_tag (db, e);
    }
    return FALSE;
 }
@@ -770,13 +804,16 @@ gimv_index_faces_edit_async (GimvIndexFacesEdit edit, GArray *ids, const gchar *
    e->edit = edit;
    e->ids = ids ? g_array_ref (ids) : g_array_new (FALSE, FALSE, sizeof (gint64));
    ids = e->ids;
-   e->name = name ? (edit == GIMV_INDEX_FACES_PERSON_TAGS ? g_strdup (name)
-                                                          : g_strstrip (g_strdup (name)))
+   e->name = name ? (edit == GIMV_INDEX_FACES_PERSON_TAGS
+                     || edit == GIMV_INDEX_FACES_RENAME_PERSON_TAG
+                     ? g_strdup (name) : g_strstrip (g_strdup (name)))
                   : NULL;
    e->person = person;
    g_task_set_task_data (task, e, (GDestroyNotify) edit_data_free);
-   if ((edit != GIMV_INDEX_FACES_RENAME && edit != GIMV_INDEX_FACES_PERSON_TAGS && !ids->len)
-       || ((edit == GIMV_INDEX_FACES_SET_NAME || edit == GIMV_INDEX_FACES_RENAME)
+   if ((edit != GIMV_INDEX_FACES_RENAME && edit != GIMV_INDEX_FACES_PERSON_TAGS
+        && edit != GIMV_INDEX_FACES_RENAME_PERSON_TAG && !ids->len)
+       || ((edit == GIMV_INDEX_FACES_SET_NAME || edit == GIMV_INDEX_FACES_RENAME
+            || edit == GIMV_INDEX_FACES_RENAME_PERSON_TAG)
            && (!e->name || !*e->name))) {
       g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT, "nothing to do");
    } else {
@@ -804,7 +841,12 @@ gimv_index_faces_edit_finish (GAsyncResult *res, gint64 *person, GError **error)
    EditData *e = g_task_get_task_data (G_TASK (res));
 
    if (person) *person = ok && e ? e->result : 0;
-   if (ok) changed ();
+   if (ok && e && (e->edit == GIMV_INDEX_FACES_PERSON_TAGS
+                   || e->edit == GIMV_INDEX_FACES_RENAME_PERSON_TAG))
+      /* the tags of people: no names or faces changed */
+      gimv_index_faces_changed ();
+   else if (ok)
+      changed ();
    return ok;
 }
 

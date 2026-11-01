@@ -55,6 +55,9 @@ typedef enum {
    GIMV_INDEX_FACES_RENAME,       /* person: to "name"; when another person
                                    * has that name, the two become one */
    GIMV_INDEX_FACES_PERSON_TAGS,  /* person: the tags are "name" (one a line) */
+   GIMV_INDEX_FACES_RENAME_PERSON_TAG, /* "name" is "old\nnew": a tag of people
+                                        * renamed for all (to a tag there is
+                                        * already: the two become one) */
 } GimvIndexFacesEdit;
 
 void                gimv_index_faces_edit_async     (GimvIndexFacesEdit  edit,
