@@ -26,6 +26,7 @@
 
 #include "gimageview.h"
 #include "fileload.h"
+#include "gimv_image.h"
 
 
 #define GIMV_TYPE_THUMB            (gimv_thumb_get_type ())
@@ -74,6 +75,18 @@ GimvThumb     *gimv_thumb_new                  (GimvImageInfo  *info);
 gboolean       gimv_thumb_load                 (GimvThumb      *thumb,
                                                 gint            thumb_size,
                                                 ThumbLoadType   type);
+/* the part of gimv_thumb_load () that reads no image: the icons of a
+ * folder or an archive, the cache (not for CREATE_THUMB); TRUE: loaded */
+gboolean       gimv_thumb_load_quick           (GimvThumb      *thumb,
+                                                gint            thumb_size,
+                                                ThumbLoadType   type);
+/* the thumbnail from an image read elsewhere (gimv_thumb_async), the
+ * cache written as for an image read here */
+gboolean       gimv_thumb_set_image            (GimvThumb      *thumb,
+                                                gint            thumb_size,
+                                                GimvImage      *image,
+                                                gint            orig_width,
+                                                gint            orig_height);
 gboolean       gimv_thumb_is_loading           (GimvThumb      *thumb);
 void           gimv_thumb_load_stop            (GimvThumb      *thumb);
 void           gimv_thumb_unload               (GimvThumb      *thumb);

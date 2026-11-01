@@ -399,6 +399,84 @@ gimv_thumb_is_loaded (GimvThumb *thumb)
 
 
 gboolean
+gimv_thumb_set_image (GimvThumb *thumb, gint thumb_size, GimvImage *image,
+                      gint orig_width, gint orig_height)
+{
+   GimvImageInfo *info;
+   GimvImage *imcache = NULL, *imdisp;
+   gchar *filename;
+
+   g_return_val_if_fail (GIMV_IS_THUMB (thumb) && thumb->info && image, FALSE);
+   info = thumb->info;
+
+   /* the size the loader would have set */
+   if (orig_width > 0 && orig_height > 0 && !GIMV_IMAGE_INFO_IS_SYNCED (info)) {
+      gimv_image_info_set_size (info, orig_width, orig_height);
+      gimv_image_info_set_flags (info, GIMV_IMAGE_INFO_SYNCED_FLAG);
+   }
+
+   filename = gimv_image_info_get_path_with_archive (info);
+   if (!gimv_thumb_cache_write_disabled () && conf.cache_write_type)
+      imcache = gimv_thumb_cache_save (filename, conf.cache_write_type, image, info);
+   g_free (filename);
+   imdisp = imcache ? imcache : image;
+
+   g_clear_object (&thumb->thumbnail);
+   g_clear_object (&thumb->thumbnail_mask);
+   g_clear_object (&thumb->icon);
+   g_clear_object (&thumb->icon_mask);
+   store_thumbnail (imdisp, thumb_size, &thumb->thumbnail, &thumb->thumbnail_mask,
+                    &thumb->thumb_width, &thumb->thumb_height);
+   store_thumbnail (imdisp, ICON_SIZE, &thumb->icon, &thumb->icon_mask, NULL, NULL);
+
+   if (thumb->thumbnail && imcache) {
+      gchar *label;
+      if (!cache_type_labels)
+         cache_type_labels = g_hash_table_new (g_str_hash, g_str_equal);
+      label = g_hash_table_lookup (cache_type_labels, conf.cache_write_type);
+      if (!label) {
+         label = g_strdup (conf.cache_write_type);
+         g_hash_table_insert (cache_type_labels, label, label);
+      }
+      thumb->cache_type = label;
+   }
+   if (imcache) gimv_image_unref (imcache);
+   return thumb->thumbnail != NULL;
+}
+
+
+gboolean
+gimv_thumb_load_quick (GimvThumb *thumb, gint thumb_size, ThumbLoadType type)
+{
+   g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
+
+   gimv_thumb_unload (thumb);
+
+   /* if the file is directory */
+   if (gimv_image_info_is_dir (thumb->info)) {
+      GimvIcon *icon = gimv_icon_stock_get_icon ("folder48");
+      thumb->thumbnail      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->thumbnail_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
+      icon = gimv_icon_stock_get_icon ("folder");
+      thumb->icon      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->icon_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
+   }
+   /* if the file is archive */
+   if (!thumb->thumbnail && gimv_image_info_is_archive (thumb->info)) {
+      GimvIcon *icon = gimv_icon_stock_get_icon ("archive");
+      thumb->thumbnail      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->thumbnail_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
+      icon = gimv_icon_stock_get_icon ("small_archive");
+      thumb->icon      = icon->pixmap ? g_object_ref (icon->pixmap) : NULL;
+      thumb->icon_mask = icon->mask ? g_object_ref (icon->mask) : NULL;
+   }
+   if (!thumb->thumbnail && type != CREATE_THUMB)
+      load_thumbnail_cache (thumb, thumb_size);
+   return thumb->thumbnail != NULL;
+}
+
+
+gboolean
 gimv_thumb_load (GimvThumb    *thumb,
                 gint          thumb_size,
                 ThumbLoadType type)

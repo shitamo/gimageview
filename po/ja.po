@@ -6071,3 +6071,12 @@ msgstr "見つからなかった顔を追加: 写真の上でドラッグして�
 
 msgid "The models for faces are not there."
 msgstr "顔認識のモデルがありません。"
+
+msgid "Making thumbnails"
+msgstr "サムネイルの作成"
+
+msgid "Use the thumbnail embedded in a JPEG (EXIF) when it is big enough"
+msgstr "JPEG に埋め込まれた縮小画像 (EXIF) が十分な大きさならそれを使う"
+
+msgid "Much faster (only the start of the file is read). Off: an image edited by a program that left its old thumbnail shows it."
+msgstr "ずっと速くなります (ファイルの先頭だけを読みます)。オフ: 縮小画像を更新しないプログラムで編集した画像で、古い縮小画像が出ることを避けます。"

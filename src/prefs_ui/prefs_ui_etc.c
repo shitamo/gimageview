@@ -613,6 +613,21 @@ prefs_cache_page (void)
 
    set_sensitive_cache_write ();
 
+   /* the thumbnails made from the images */
+   gimv_prefs_ui_create_frame (_("Making thumbnails"), frame, vbox, main_vbox, FALSE);
+   {
+      GtkWidget *toggle
+         = gtkutil_create_check_button (_("Use the thumbnail embedded in a JPEG (EXIF) when it is "
+                                          "big enough"),
+                                        conf.thumbnail_use_exif,
+                                        gtkutil_get_data_from_toggle_cb,
+                                        &config_changed->thumbnail_use_exif);
+      gtk_widget_set_tooltip_text (toggle, _("Much faster (only the start of the file is read). "
+                                             "Off: an image edited by a program that left its old "
+                                             "thumbnail shows it."));
+      gimv_box_pack_start (GTK_BOX (vbox), toggle, FALSE, FALSE, 0);
+   }
+
    gimv_widget_show_all (main_vbox);
 
    return main_vbox;

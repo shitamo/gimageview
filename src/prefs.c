@@ -274,6 +274,7 @@ static ConfParam param_cache [] = {
     "GQview,Electric Eyes (Preview),Electric Eyes (Icon),XV thumbnail",
     &conf.cache_read_list},
    {"cache_write_type",         D_STRING, "GImageView", &conf.cache_write_type},
+   {"thumbnail_use_exif",       D_BOOL,   "TRUE",  &conf.thumbnail_use_exif},
    {NULL, D_NULL, NULL, NULL}
 };
 

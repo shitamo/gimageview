@@ -225,6 +225,7 @@ typedef struct _Config {
    /* Thumbnail Cache */
    gchar     *cache_read_list;
    gchar     *cache_write_type;
+   gboolean   thumbnail_use_exif;   /* the thumbnail embedded in a JPEG */
 
    /* comment */
    gchar     *comment_key_list;

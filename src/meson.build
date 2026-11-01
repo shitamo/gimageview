@@ -12,7 +12,7 @@ gimv_sources = files(
   'gimv_image_win.c', 'gimv_io.c', 'gimv_io_file.c', 'gimv_io_mem.c',
   'gimv_mime_types.c', 'gimv_nav_win.c', 'gimv_plugin.c', 'gimv_prefs.c',
   'gimv_prefs_ui_utils.c', 'gimv_prefs_win.c', 'gimv_print.c', 'gimv_slideshow.c', 'gimv_thumb.c',
-  'gimv_thumb_cache.c', 'gimv_thumb_view.c', 'gimv_thumb_win.c',
+  'gimv_thumb_async.c', 'gimv_thumb_cache.c', 'gimv_thumb_view.c', 'gimv_thumb_win.c',
   'gtk_prop.c', 'gtkutils.c', 'help.c', 'pixbuf_utils.c',
   'prefs.c', 'text_viewer.c', 'utils.c', 'gimv_xpm.c',
   'compare_filesize.c', 'compare_md5.c', 'compare_similar.c', 'image_view_draw.c',
@@ -43,6 +43,6 @@ endif
 
 gimv_exe = executable('gimv', gimv_sources,
   include_directories : [top_inc, src_inc, index_inc],
-  dependencies : common_deps + [exif_dep, sqlite_dep],
+  dependencies : common_deps + [exif_dep, sqlite_dep, jpeg_dep],
   export_dynamic : true,
   install : true)

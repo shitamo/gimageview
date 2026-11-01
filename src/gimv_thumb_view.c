@@ -45,6 +45,7 @@
 #include "gimv_image_win.h"
 #include "gimv_scrolled.h"
 #include "gimv_thumb.h"
+#include "gimv_thumb_async.h"
 #include "gimv_thumb_cache.h"
 #include "gimv_thumb_view.h"
 #ifdef ENABLE_INDEX
@@ -105,6 +106,7 @@ struct GimvThumbViewPriv_Tag
    guint                window_idle;
    gint                 win_first, win_last, win_lo, win_hi, win_step;
    gint                 win_head, win_tail;   /* the ends of the list */
+   gboolean             async_wait;  /* too many made in threads: wait for them */
 };
 
 
@@ -1795,6 +1797,17 @@ window_compute (gpointer data)
       g_list_free (drop);
    }
 
+   /* the ones being made in threads far from the view: not wanted now */
+   if (gimv_thumb_async_n_pending ()) {
+      for (i = 0; i < n; i++) {
+         GimvThumb *t;
+         if (i >= keep_lo && i <= keep_hi) continue;
+         if (i <= priv->win_head || i >= priv->win_tail) continue;
+         t = g_ptr_array_index (priv->index_array, i);
+         if (gimv_thumb_async_pending (t)) gimv_thumb_async_cancel (t);
+      }
+   }
+
    if (!priv->window_idle)
       priv->window_idle = g_idle_add (window_idle_load, tv);
 
@@ -1838,6 +1851,40 @@ window_idle_again (gpointer data)
 }
 
 
+/* a thumbnail made in a thread (gimv_thumb_async) */
+static void
+window_async_done (GimvThumb *thumb, gboolean made, gboolean cancelled, gpointer data)
+{
+   GimvThumbView *tv = data;
+   GimvThumbViewPriv *priv = tv->priv;
+
+   if (!priv || gimv_thumb_get_parent_thumbview (thumb) != tv) return;
+   if (made) {
+      window_mark_loaded (tv, thumb);
+      if (tv->vfuncs && tv->vfuncs->update_thumb)
+         tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
+   } else if (!cancelled) {
+      /* not read there: the usual way (a format of the plugins) */
+      gimv_thumb_load (thumb, tv->thumb_size, priv->load_type);
+      window_mark_loaded (tv, thumb);
+      if (tv->vfuncs && tv->vfuncs->update_thumb)
+         tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
+   } else if (priv->windowed) {
+      /* skipped: wanted again if the view came back to it */
+      priv->win_step = 0;
+   }
+   /* going on with the others */
+   if ((priv->async_wait || cancelled) && !priv->window_idle) {
+      priv->async_wait = FALSE;
+      priv->window_idle = g_idle_add (window_idle_load, tv);
+   }
+}
+
+
+/* made in threads at most this many at a time (waiting or being made):
+ * more only fill the queue with ones a scroll makes useless */
+#define WINDOW_ASYNC_MAX  48
+
 static gboolean
 window_idle_load (gpointer data)
 {
@@ -1862,14 +1909,35 @@ window_idle_load (gpointer data)
          priv->window_idle = 0;
          return G_SOURCE_REMOVE;
       }
+      thumb = gimv_thumb_view_get_nth_thumb (tv, pos);
+      if (thumb && !gimv_thumb_is_loaded (thumb) && !gimv_thumb_async_pending (thumb)
+          && gimv_thumb_async_n_pending () >= WINDOW_ASYNC_MAX
+          && gimv_thumb_async_can (thumb))
+      {
+         /* again from this one when some are done */
+         priv->async_wait = TRUE;
+         priv->window_idle = 0;
+         return G_SOURCE_REMOVE;
+      }
       priv->win_step++;
 
-      thumb = gimv_thumb_view_get_nth_thumb (tv, pos);
       if (!thumb || gimv_thumb_is_loaded (thumb)) {
          if (thumb) window_mark_loaded (tv, thumb);
          continue;
       }
-      gimv_thumb_load (thumb, tv->thumb_size, priv->load_type);
+      if (gimv_thumb_async_pending (thumb)) {
+         /* waiting (maybe cancelled before): wanted */
+         gimv_thumb_async_load (thumb, tv->thumb_size, priv->load_type,
+                                window_async_done, tv);
+         continue;
+      }
+      /* the cache (fast) here; the image itself in a thread when it can */
+      if (!gimv_thumb_load_quick (thumb, tv->thumb_size, priv->load_type)
+          && gimv_thumb_async_load (thumb, tv->thumb_size, priv->load_type,
+                                    window_async_done, tv))
+         continue;
+      if (!gimv_thumb_is_loaded (thumb))
+         gimv_thumb_load (thumb, tv->thumb_size, priv->load_type);
       window_mark_loaded (tv, thumb);
       if (tv->vfuncs && tv->vfuncs->update_thumb)
          tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
