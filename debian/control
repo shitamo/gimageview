@@ -16,7 +16,7 @@ Build-Depends:
  libjpeg-dev,
  libmng-dev,
  libpng-dev,
- librsvg2-dev,
+ librsvg2-dev (>= 2.52),
  libwmf-dev,
  libxine2-dev,
  meson (>= 0.60),

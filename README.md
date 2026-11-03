@@ -151,7 +151,7 @@ Following libraries and programs are optional. They extend the functionality whe
 
 * **libexif:** EXIF information can be displayed, and images are rotated by the EXIF orientation.
 
-* **librsvg:** SVG images can be displayed.
+* **librsvg** (2.52 or later)**:** SVG images can be displayed.
 
 * **libmng:** MNG animations can be played.
 
