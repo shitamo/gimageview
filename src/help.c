@@ -547,18 +547,18 @@ gimvhelp_create_info_widget (void)
    frame = gtk_frame_new (NULL);
    gimv_container_set_border_width (GTK_WIDGET (frame), 0);
    gimv_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
-   gtk_widget_show (frame);
+   gtk_widget_set_visible (frame, TRUE);
 
    frame_vbox = gimv_vbox_new (FALSE, 0);
    gimv_container_set_border_width (GTK_WIDGET (frame), 5);
    gimv_container_add (GTK_WIDGET (frame), frame_vbox);
-   gtk_widget_show (frame_vbox);
+   gtk_widget_set_visible (frame_vbox, TRUE);
 
    logo = gimv_icon_stock_get_widget ("gimageview");
    gimv_box_pack_start (GTK_BOX (frame_vbox), 
                        logo, FALSE, TRUE, 5);
    gimv_icon_stock_free_icon ("gimageview");
-   gtk_widget_show (logo);
+   gtk_widget_set_visible (logo, TRUE);
 
    tmpvbox = frame_vbox;
 
@@ -566,34 +566,34 @@ gimvhelp_create_info_widget (void)
    label = gtk_label_new (_(GIMV_PROG_VERSION));
    gimv_box_pack_start (GTK_BOX (tmpvbox), 
                        label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    /* Web Site Button */
    hbox1 = gimv_hbox_new (TRUE, 0);
    gimv_box_pack_start (GTK_BOX (tmpvbox), 
                        hbox1, FALSE, FALSE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
    hbox2 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox1), 
                        hbox2, TRUE, FALSE, 0);
-   gtk_widget_show (hbox2);
+   gtk_widget_set_visible (hbox2, TRUE);
 
    label = gtk_label_new (_("Website: "));
    gimv_box_pack_start (GTK_BOX (hbox2), 
                        label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    button = gtk_button_new ();
    gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
    label = gtk_label_new (GIMV_PROG_URI);
    gimv_container_add (GTK_WIDGET (button), label);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_progurl_clicked),
                        GIMV_PROG_URI);
    gimv_box_pack_start (GTK_BOX (hbox2), 
                        button, FALSE, FALSE, 0);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    /* Infomation Text Box */
    scrolledwin = gimv_scrolled_window_new (NULL, NULL);
@@ -604,48 +604,48 @@ gimvhelp_create_info_widget (void)
    gimv_box_pack_start (GTK_BOX (vbox),
                        scrolledwin, TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (scrolledwin), 5);
-   gtk_widget_show (scrolledwin);
+   gtk_widget_set_visible (scrolledwin, TRUE);
 
    text = gtk_text_view_new ();
    gimv_container_add (GTK_WIDGET (scrolledwin), text);
    info_win.text_box = text;
    set_copyleft_str ();
-   gtk_widget_show (text);
+   gtk_widget_set_visible (text, TRUE);
 
    /* Radio Button */
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), 
                        hbox1, FALSE, FALSE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
    hbox2 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox1), 
                        hbox2, TRUE, FALSE, 0);
-   gtk_widget_show (hbox2);
+   gtk_widget_set_visible (hbox2, TRUE);
 
    radio = gimv_radio_button_new_with_label (NULL, _("License"));
    g_signal_connect (G_OBJECT (radio), "toggled",
                        G_CALLBACK (cb_gimv_info_change_text), NULL);
    gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
-   gtk_widget_show (radio);
+   gtk_widget_set_visible (radio, TRUE);
 
    radio = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio), _("Authors"));
    g_signal_connect (G_OBJECT (radio), "toggled",
                        G_CALLBACK (cb_gimv_info_change_text),
                        _(authors));
    gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
-   gtk_widget_show (radio);
+   gtk_widget_set_visible (radio, TRUE);
 
    radio = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio), _("System Info"));
    g_signal_connect (G_OBJECT (radio), "toggled",
                        G_CALLBACK (cb_gimv_info_change_text), system_info);
    gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
-   gtk_widget_show (radio);
+   gtk_widget_set_visible (radio, TRUE);
 
    radio = gimv_radio_button_new_with_label_from_widget (GTK_WIDGET (radio), _("Plugin Info"));
    g_signal_connect (G_OBJECT (radio), "toggled",
                        G_CALLBACK (cb_gimv_info_change_text), plugin_info);
    gimv_box_pack_start (GTK_BOX (hbox2), radio, FALSE, FALSE, 0);
-   gtk_widget_show (radio);
+   gtk_widget_set_visible (radio, TRUE);
 
    return vbox;
 }
@@ -671,7 +671,7 @@ gimvhelp_open_info_window (void)
    widget = gimvhelp_create_info_widget ();
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), 
                        widget, TRUE, TRUE, 0);
-   gtk_widget_show (widget);
+   gtk_widget_set_visible (widget, TRUE);
 
    /* OK Button */
    button = gtk_button_new_with_label (_("OK"));
@@ -681,10 +681,10 @@ gimvhelp_open_info_window (void)
                        G_CALLBACK (cb_gimv_info_win_ok_button),
                        window);
    gtk_window_set_default_widget (GTK_WINDOW (window), button);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    gimv_window_set_default_transient (GTK_WINDOW (window));
-   gtk_widget_show (window);
+   gtk_widget_set_visible (window, TRUE);
    gimv_icon_stock_set_window_icon (window, "gimv_icon");
 
    gtk_widget_grab_focus (button);

@@ -45,10 +45,10 @@ cb_plugin_use_default_dir_list(GtkWidget *button, GtkWidget *widget)
 
    if (gimv_toggle_get_active (button)) {
       config_changed->plugin_use_default_search_dir_list = TRUE;
-      gtk_widget_hide (widget);
+      gtk_widget_set_visible (widget, FALSE);
    } else {
       config_changed->plugin_use_default_search_dir_list = FALSE;
-      gtk_widget_show (widget);
+      gtk_widget_set_visible (widget, TRUE);
    }
 }
 
@@ -80,14 +80,14 @@ prefs_ui_plugin (void)
    gimv_box_pack_start(GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
    gimv_box_pack_start(GTK_BOX (main_vbox), frame, TRUE, TRUE, 0);
 
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
    gimv_widget_show_all (frame);
-   gtk_widget_show (main_vbox);
+   gtk_widget_set_visible (main_vbox, TRUE);
 
    if (config_changed->plugin_use_default_search_dir_list)
-      gtk_widget_hide (frame);
+      gtk_widget_set_visible (frame, FALSE);
    else
-      gtk_widget_show (frame);
+      gtk_widget_set_visible (frame, TRUE);
 
    return main_vbox;
 }

@@ -1103,7 +1103,7 @@ create_filebrowser (gpointer parent)
                      G_CALLBACK (cb_filebrowser_response),
                      filesel);
 
-   gtk_widget_show(filebrowser);
+   gtk_widget_set_visible(filebrowser, TRUE);
 
    gimv_icon_stock_set_window_icon (filebrowser, "nfolder");
 

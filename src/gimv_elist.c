@@ -799,7 +799,7 @@ gimv_elist_new (gint colnum)
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_container_set_border_width (GTK_WIDGET (hbox), 0);
    gimv_box_pack_start (GTK_BOX (main_vbox), hbox, TRUE, TRUE, 0);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    scrollwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin),
@@ -808,21 +808,21 @@ gimv_elist_new (gint colnum)
    gimv_container_set_border_width (GTK_WIDGET (scrollwin), 5);
    gimv_box_pack_start (GTK_BOX (hbox), scrollwin, TRUE, TRUE, 0);
    gimv_widget_set_size (scrollwin, -1, 120);
-   gtk_widget_show (scrollwin);
+   gtk_widget_set_visible (scrollwin, TRUE);
 
    clist = gimv_elist_create_list_widget (editlist, colnum);
    gimv_container_add (GTK_WIDGET (scrollwin), clist);
-   gtk_widget_show (clist);
+   gtk_widget_set_visible (clist, TRUE);
 
 
    /* move buttons */
    vbox = editlist->move_button_area = gimv_vbox_new (TRUE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox, FALSE, FALSE, 2);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    vbox1 = gimv_vbox_new (TRUE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), vbox1, FALSE, FALSE, 2);
-   gtk_widget_show (vbox1);
+   gtk_widget_set_visible (vbox1, TRUE);
 
    button = editlist->up_button = gtk_button_new ();
 #ifdef USE_ARROW
@@ -832,9 +832,9 @@ gimv_elist_new (gint colnum)
    gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
    gimv_container_add (GTK_WIDGET (button), arrow);
-   gtk_widget_show (arrow);
+   gtk_widget_set_visible (arrow, TRUE);
    gimv_box_pack_start (GTK_BOX (vbox1), button, FALSE, FALSE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = editlist->down_button = gtk_button_new ();
 #ifdef USE_ARROW
@@ -844,9 +844,9 @@ gimv_elist_new (gint colnum)
    gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
    gimv_container_add (GTK_WIDGET (button), arrow);
-   gtk_widget_show (arrow);
+   gtk_widget_set_visible (arrow, TRUE);
    gimv_box_pack_start (GTK_BOX (vbox1), button, FALSE, FALSE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
 
    /* edit area */
@@ -854,34 +854,34 @@ gimv_elist_new (gint colnum)
    gimv_container_set_border_width (GTK_WIDGET (editlist->edit_area), 5);
    gimv_box_pack_start (GTK_BOX (main_vbox), editlist->edit_area,
                        FALSE, TRUE, 0);
-   gtk_widget_show (editlist->edit_area);
+   gtk_widget_set_visible (editlist->edit_area, TRUE);
 
 
    /* edit buttons */
    hbox = editlist->action_button_area = gimv_hbox_new (FALSE, 0);
    gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
    gimv_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, TRUE, 0);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    hbox1 = gimv_hbox_new (TRUE, 0);
    gimv_box_pack_end (GTK_BOX (hbox), hbox1, FALSE, TRUE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
 
    button = editlist->new_button = gtk_button_new_with_label (_("New"));
    gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = editlist->add_button = gtk_button_new_with_label (_("Add"));
    gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = editlist->change_button = gtk_button_new_with_label (_("Change"));
    gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = editlist->del_button = gtk_button_new_with_label (_("Delete"));
    gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
 
 
@@ -958,9 +958,9 @@ gimv_elist_set_reorderable (GimvEList *editlist, gboolean reorderble)
    gtk_tree_view_set_reorderable (GTK_TREE_VIEW (editlist->clist), reorderble);
 
    if (reorderble)
-      gtk_widget_show (editlist->move_button_area);
+      gtk_widget_set_visible (editlist->move_button_area, TRUE);
    else
-      gtk_widget_hide (editlist->move_button_area);
+      gtk_widget_set_visible (editlist->move_button_area, FALSE);
 }
 
 

@@ -351,7 +351,7 @@ gimv_slideshow_open_window (GimvSlideShow *slideshow)
       cover it.  It isn't needed while the slide show is in full screen
       mode (leaving full screen ends the slide show). */
    if (!iw->fullscreen)
-      gtk_widget_show (GTK_WIDGET (slideshow->iw));
+      gtk_widget_set_visible (GTK_WIDGET (slideshow->iw), TRUE);
 
    return iw;
 }

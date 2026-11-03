@@ -1178,7 +1178,7 @@ dirview_create_treeview (DirView *dv, const gchar *root)
    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (dv->dirtree), FALSE);
 
    gimv_container_add (GTK_WIDGET (dv->scroll_win), dv->dirtree);
-   gtk_widget_show (dv->dirtree);
+   gtk_widget_set_visible (dv->dirtree, TRUE);
 
    treepath = gtk_tree_model_get_path (GTK_TREE_MODEL (store), &root_iter);
    gtk_tree_view_expand_row (GTK_TREE_VIEW (dv->dirtree), treepath, FALSE);
@@ -2070,7 +2070,7 @@ dirview_show_toolbar (DirView *dv)
    g_return_if_fail (dv);
 
    dv->show_toolbar = TRUE;
-   gtk_widget_show (dv->toolbar_eventbox);
+   gtk_widget_set_visible (dv->toolbar_eventbox, TRUE);
 }
 
 
@@ -2080,7 +2080,7 @@ dirview_hide_toolbar (DirView *dv)
    g_return_if_fail (dv);
 
    dv->show_toolbar = FALSE;
-   gtk_widget_hide (dv->toolbar_eventbox);
+   gtk_widget_set_visible (dv->toolbar_eventbox, FALSE);
 }
 
 
@@ -2116,7 +2116,7 @@ dirview_create (const gchar *root_dir,
    /* main vbox */
    dv->container = gimv_vbox_new (FALSE, 0);
    gtk_widget_set_name (dv->container, "DirView");
-   gtk_widget_show (dv->container);
+   gtk_widget_set_visible (dv->container, TRUE);
 
    dnd_dest_set (dv->container, dnd_types_component, dnd_types_component_num);
    g_object_set_data (G_OBJECT (dv->container),
@@ -2131,13 +2131,13 @@ dirview_create (const gchar *root_dir,
    eventbox = dv->toolbar_eventbox = gimv_event_box_new ();
    gimv_container_set_border_width (GTK_WIDGET (eventbox), 1);
    gimv_box_pack_start (GTK_BOX (dv->container), eventbox, FALSE, FALSE, 0);
-   gtk_widget_show (eventbox);
+   gtk_widget_set_visible (eventbox, TRUE);
 
    dv->toolbar = dirview_create_toolbar (dv);
    gimv_container_add (GTK_WIDGET (eventbox), dv->toolbar);
 
    if (!dv->show_toolbar)
-      gtk_widget_hide (dv->toolbar_eventbox);
+      gtk_widget_set_visible (dv->toolbar_eventbox, FALSE);
 
    dnd_src_set  (eventbox, dnd_types_component, dnd_types_component_num);
    g_object_set_data (G_OBJECT (eventbox),
@@ -2154,7 +2154,7 @@ dirview_create (const gchar *root_dir,
    /* was GTK_SHADOW_IN */
    gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (dv->scroll_win), TRUE);
    gimv_box_pack_start(GTK_BOX(dv->container), dv->scroll_win, TRUE, TRUE, 0);
-   gtk_widget_show (dv->scroll_win);
+   gtk_widget_set_visible (dv->scroll_win, TRUE);
 
    /* ctree */
    dirview_create_treeview (dv, dv->root_dir);

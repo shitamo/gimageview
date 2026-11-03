@@ -533,11 +533,11 @@ gimv_dlist_new (const gchar *clist1_title,
    /* possible columns */
    vbox1 = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
-   gtk_widget_show (vbox1);
+   gtk_widget_set_visible (vbox1, TRUE);
 
    label = gtk_label_new (clist1_title);
    gimv_box_pack_start (GTK_BOX (vbox1), label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    scrollwin1 = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin1),
@@ -545,21 +545,21 @@ gimv_dlist_new (const gchar *clist1_title,
    gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrollwin1), TRUE);
    gimv_container_set_border_width (GTK_WIDGET (scrollwin1), 5);
    gimv_box_pack_start (GTK_BOX (vbox1), scrollwin1, TRUE, TRUE, 0);
-   gtk_widget_show (scrollwin1);
+   gtk_widget_set_visible (scrollwin1, TRUE);
 
    clist = dslist->clist1 = gimv_dlist_create_list_widget (dslist, FALSE);
    gimv_container_add (GTK_WIDGET (scrollwin1), clist);
-   gtk_widget_show (clist);
+   gtk_widget_set_visible (clist, TRUE);
 
 
    /* add/delete buttons */
    vbox3 = gimv_vbox_new (TRUE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox3, FALSE, FALSE, 0);
-   gtk_widget_show (vbox3);
+   gtk_widget_set_visible (vbox3, TRUE);
 
    vbox = gimv_vbox_new (TRUE, 0);
    gimv_box_pack_start (GTK_BOX (vbox3), vbox, FALSE, FALSE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    button = dslist->add_button = gtk_button_new ();
 #ifdef USE_ARROW
@@ -569,9 +569,9 @@ gimv_dlist_new (const gchar *clist1_title,
    gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
    gimv_container_add (GTK_WIDGET (button), arrow);
-   gtk_widget_show (arrow);
+   gtk_widget_set_visible (arrow, TRUE);
    gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = dslist->del_button = gtk_button_new ();
 #ifdef USE_ARROW
@@ -581,13 +581,13 @@ gimv_dlist_new (const gchar *clist1_title,
    gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
    gimv_container_add (GTK_WIDGET (button), arrow);
-   gtk_widget_show (arrow);
+   gtk_widget_set_visible (arrow, TRUE);
    gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    hseparator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
    gimv_box_pack_start (GTK_BOX (vbox), hseparator, FALSE, FALSE, 2);
-   gtk_widget_show (hseparator);
+   gtk_widget_set_visible (hseparator, TRUE);
 
 
    /* move buttons */
@@ -599,9 +599,9 @@ gimv_dlist_new (const gchar *clist1_title,
    gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
    gimv_container_add (GTK_WIDGET (button), arrow);
-   gtk_widget_show (arrow);
+   gtk_widget_set_visible (arrow, TRUE);
    gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = dslist->down_button = gtk_button_new ();
 #ifdef USE_ARROW
@@ -611,19 +611,19 @@ gimv_dlist_new (const gchar *clist1_title,
    gimv_misc_set_alignment (arrow, 0.5, 0.5);
 #endif /* USE_ARROW */
    gimv_container_add (GTK_WIDGET (button), arrow);
-   gtk_widget_show (arrow);
+   gtk_widget_set_visible (arrow, TRUE);
    gimv_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 2);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
 
    /* Use list */
    vbox2 = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 0);
-   gtk_widget_show (vbox2);
+   gtk_widget_set_visible (vbox2, TRUE);
 
    label = gtk_label_new (clist2_title);
    gimv_box_pack_start (GTK_BOX (vbox2), label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    scrollwin2 = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin2),
@@ -631,12 +631,12 @@ gimv_dlist_new (const gchar *clist1_title,
    gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrollwin2), TRUE);
    gimv_container_set_border_width (GTK_WIDGET (scrollwin2), 5);
    gimv_box_pack_start (GTK_BOX (vbox2), scrollwin2, TRUE, TRUE, 0);
-   gtk_widget_show (scrollwin2);
+   gtk_widget_set_visible (scrollwin2, TRUE);
 
    clist = dslist->clist2 = gimv_dlist_create_list_widget (dslist, TRUE);
    gimv_container_add (GTK_WIDGET (scrollwin2), clist);
    dslist->clist2_rows = list_widget_get_row_num (clist);
-   gtk_widget_show (clist);
+   gtk_widget_set_visible (clist, TRUE);
 
 
 

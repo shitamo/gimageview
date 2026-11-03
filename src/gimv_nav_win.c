@@ -122,18 +122,18 @@ gimv_nav_win_init (GimvNavWin *navwin)
 
    navwin->out_frame = gtk_frame_new (NULL);
    gimv_container_add (GTK_WIDGET (navwin), navwin->out_frame);
-   gtk_widget_show (navwin->out_frame);
+   gtk_widget_set_visible (navwin->out_frame, TRUE);
 
    navwin->in_frame = gtk_frame_new (NULL);
    gimv_container_add (GTK_WIDGET (navwin->out_frame), navwin->in_frame);
-   gtk_widget_show (navwin->in_frame);
+   gtk_widget_set_visible (navwin->in_frame, TRUE);
 
    navwin->preview = gtk_drawing_area_new ();
    gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (navwin->preview),
                                    gimv_nav_win_preview_draw,
                                    navwin, NULL);
    gimv_container_add (GTK_WIDGET (navwin->in_frame), navwin->preview);
-   gtk_widget_show (navwin->preview);
+   gtk_widget_set_visible (navwin->preview, TRUE);
 
    /* GTK2 class handlers: run after the handlers connected by users */
    gimv_event_connect_after (GTK_WIDGET (navwin), GIMV_EVENT_KEY_PRESS,

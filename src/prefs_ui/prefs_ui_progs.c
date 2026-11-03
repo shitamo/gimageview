@@ -170,10 +170,10 @@ cb_scripts_use_default_dir_list(GtkWidget *button, GtkWidget *widget)
 
    if (gimv_toggle_get_active (button)) {
       config_changed->scripts_use_default_search_dir_list = TRUE;
-      gtk_widget_hide (widget);
+      gtk_widget_set_visible (widget, FALSE);
    } else {
       config_changed->scripts_use_default_search_dir_list = FALSE;
-      gtk_widget_show (widget);
+      gtk_widget_set_visible (widget, TRUE);
    }
 }
 
@@ -354,9 +354,9 @@ prefs_scripts_page (void)
    gimv_widget_show_all (main_vbox);
 
    if (config_changed->scripts_use_default_search_dir_list)
-      gtk_widget_hide (frame);
+      gtk_widget_set_visible (frame, FALSE);
    else
-      gtk_widget_show (frame);
+      gtk_widget_set_visible (frame, TRUE);
 
    return main_vbox;
 }

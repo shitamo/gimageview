@@ -742,7 +742,7 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
       gimv_zlist_set_cell_padding (GIMV_ZLIST (tv_data->album), 5, 5);
    }
 
-   gtk_widget_show (tv_data->album);
+   gtk_widget_set_visible (tv_data->album, TRUE);
 
    gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_album_button_press), tv);
    gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_album_button_release), tv);

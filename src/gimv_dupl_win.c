@@ -229,7 +229,7 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_select_all_button), sw);
    /* GTK4: SET (GTK_CAN_DEFAULT) removed */ (void) 0;
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    /* close button */
    button = gtk_button_new_with_label (_("Stop"));
@@ -238,7 +238,7 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_finder_stop_button), sw);
    /* GTK4: SET (GTK_CAN_DEFAULT) removed */ (void) 0;
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    /* gtk_widget_grab_focus (button); */
 

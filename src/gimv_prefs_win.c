@@ -264,7 +264,7 @@ prefs_win_set_page (const gchar *path)
       prefs_win_create_page (priv);
    }
    if (priv->widget)
-      gtk_widget_show (priv->widget);
+      gtk_widget_set_visible (priv->widget, TRUE);
    else
       return;
 
@@ -647,7 +647,7 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    gimv_container_set_border_width (GTK_WIDGET (pane), 5);
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (prefs_window))), 
                        pane, TRUE, TRUE, 0);
-   gtk_widget_show (pane);
+   gtk_widget_set_visible (pane, TRUE);
 
    notebook = prefs_win.notebook = gtk_notebook_new ();
    gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), GTK_POS_TOP);
@@ -655,7 +655,7 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    /* gtk_notebook_popup_enable (GTK_NOTEBOOK (notebook)); */
    gtk_notebook_set_show_tabs (GTK_NOTEBOOK (notebook), FALSE);
    gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook), FALSE);
-   gtk_widget_show (notebook);
+   gtk_widget_set_visible (notebook, TRUE);
 
    /* scrolled window */
    scrolledwin = gimv_scrolled_window_new (NULL, NULL);
@@ -663,12 +663,12 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
    gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
    gimv_widget_set_size (scrolledwin, 170, -1);
-   gtk_widget_show (scrolledwin);
+   gtk_widget_set_visible (scrolledwin, TRUE);
 
    /* navigation tree */
    navtree = prefs_win_create_navtree ();
    gimv_container_add (GTK_WIDGET (scrolledwin), navtree);
-   gtk_widget_show (navtree);
+   gtk_widget_set_visible (navtree, TRUE);
 
    /* GTK4: children that may shrink have no minimum size, which would let
       the default window size clip the pages (GTK2 always requested the
@@ -696,7 +696,7 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    }
 
    /* GTK4: window position (GTK_WIN_POS_CENTER) is up to the compositor */
-   gtk_widget_show (prefs_window);
+   gtk_widget_set_visible (prefs_window, TRUE);
    gimv_icon_stock_set_window_icon (prefs_window, "prefs");
 
    prefs_win_set_page (NULL);

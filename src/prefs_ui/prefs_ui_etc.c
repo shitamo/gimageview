@@ -646,14 +646,14 @@ prefs_comment_page (void)
     **********************************************/
    gimv_prefs_ui_create_frame(_("Key Name Definition"),
                          frame, frame_vbox, main_vbox, TRUE);
-   gtk_widget_show (frame_vbox);
-   gtk_widget_show (frame);
+   gtk_widget_set_visible (frame_vbox, TRUE);
+   gtk_widget_set_visible (frame, TRUE);
 
    editlist = gimv_elist_new_with_titles (titles_num, titles);
    prefs_win.comment_editlist = editlist;
    gimv_elist_set_reorderable (GIMV_ELIST (editlist), FALSE);
    gimv_box_pack_start (GTK_BOX (frame_vbox), editlist, TRUE, TRUE, 0);
-   gtk_widget_show (editlist);
+   gtk_widget_set_visible (editlist, TRUE);
 
 
    /*
@@ -663,40 +663,40 @@ prefs_comment_page (void)
 
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
 
    label = gtk_label_new (_("Key Name: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    entry = gimv_elist_create_entry (GIMV_ELIST (editlist), 0, NULL, FALSE);
    prefs_win.comment_key_entry = entry;
    gimv_box_pack_start (GTK_BOX (vbox), entry, FALSE, TRUE, 0);
-   gtk_widget_show (entry);
+   gtk_widget_set_visible (entry, TRUE);
 
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
 
    label = gtk_label_new (_("Displayed Name: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
 
    entry = gimv_elist_create_entry (GIMV_ELIST (editlist), 1, NULL, FALSE);
    prefs_win.comment_name_entry = entry;
    gimv_box_pack_start (GTK_BOX (hbox1), entry, TRUE, TRUE, 0);
-   gtk_widget_show (entry);
+   gtk_widget_set_visible (entry, TRUE);
 
    /* "insert" check box */
    toggle = gimv_elist_create_check_button (GIMV_ELIST (editlist), 2,
@@ -704,7 +704,7 @@ prefs_comment_page (void)
                                             _("TRUE"), _("FALSE"));
    prefs_win.comment_status_toggle = toggle;
    gimv_box_pack_start (GTK_BOX (hbox1), toggle, FALSE, FALSE, 0);
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
 
    /* "Auto" check box */
    toggle = gimv_elist_create_check_button (GIMV_ELIST (editlist), 3,
@@ -712,7 +712,7 @@ prefs_comment_page (void)
                                             _("TRUE"), _("FALSE"));
    prefs_win.comment_auto_toggle = toggle;
    gimv_box_pack_start (GTK_BOX (hbox1), toggle, FALSE, FALSE, 0);
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
 
    /* "display" check box */
    toggle = gimv_elist_create_check_button (GIMV_ELIST (editlist), 4,
@@ -720,7 +720,7 @@ prefs_comment_page (void)
                                             _("TRUE"), _("FALSE"));
    prefs_win.comment_disp_toggle = toggle;
    gimv_box_pack_start (GTK_BOX (hbox1), toggle, FALSE, FALSE, 0);
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
 
    /* definition type column */
    gimv_elist_set_column_funcs (GIMV_ELIST (editlist),

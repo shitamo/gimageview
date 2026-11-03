@@ -803,7 +803,7 @@ gimv_image_view_init (GimvImageView *iv)
    iv->loader = gimv_image_loader_new ();
 
    iv->table = gimv_table_new (2, 2, FALSE);
-   gtk_widget_show (iv->table);
+   gtk_widget_set_visible (iv->table, TRUE);
    /* GTK4: the navigator is shown in an overlay (see gimv_nav_win.h) */
    iv->priv->overlay = gtk_overlay_new ();
    gtk_overlay_set_child (GTK_OVERLAY (iv->priv->overlay), iv->table);
@@ -818,19 +818,19 @@ gimv_image_view_init (GimvImageView *iv)
 
    iv->hadj = GTK_ADJUSTMENT (gtk_adjustment_new (0.0, 0.0, 0.0, 10.0, 10.0, 0.0));
    iv->hscrollbar = gtk_scrollbar_new (GTK_ORIENTATION_HORIZONTAL, iv->hadj);
-   gtk_widget_show (iv->hscrollbar);
+   gtk_widget_set_visible (iv->hscrollbar, TRUE);
 
    iv->vadj = GTK_ADJUSTMENT (gtk_adjustment_new (0.0, 0.0, 0.0, 10.0, 10.0, 0.0));
    iv->vscrollbar = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, iv->vadj);
-   gtk_widget_show (iv->vscrollbar);
+   gtk_widget_set_visible (iv->vscrollbar, TRUE);
 
    event_box = gimv_event_box_new ();
    gtk_widget_set_name (event_box, "NavWinButton");
-   gtk_widget_show (event_box);
+   gtk_widget_set_visible (event_box, TRUE);
 
    iv->nav_button = gimv_icon_stock_get_widget ("nav-button");
    gimv_container_add (GTK_WIDGET (event_box), iv->nav_button);
-   gtk_widget_show (iv->nav_button);
+   gtk_widget_set_visible (iv->nav_button, TRUE);
 
    gimv_table_attach (GTK_WIDGET (iv->table), iv->vscrollbar, 1, 2, 0, 1, GIMV_FILL, GIMV_FILL, 0, 0);
    gimv_table_attach (GTK_WIDGET (iv->table), iv->hscrollbar, 0, 1, 1, 2, GIMV_FILL, GIMV_FILL, 0, 0);
@@ -1007,13 +1007,13 @@ gimv_image_view_image_changed (GimvImageView *iv)
       GimvImageViewPlayableStatus status;
 
       if (iv->priv->player_visible == GimvImageViewPlayerVisibleAuto)
-         gtk_widget_show (iv->player_container);
+         gtk_widget_set_visible (iv->player_container, TRUE);
       status = gimv_image_view_playable_get_status (iv);
       gimv_image_view_playable_set_status (iv, status);
 
    } else {
       if (iv->priv->player_visible == GimvImageViewPlayerVisibleAuto)
-         gtk_widget_hide (iv->player_container);
+         gtk_widget_set_visible (iv->player_container, FALSE);
       gimv_image_view_playable_set_status (iv, GimvImageViewPlayableDisable);
    }
 }
@@ -1979,7 +1979,7 @@ gimv_image_view_change_draw_widget (GimvImageView *iv, const gchar *label)
    iv->draw_area = vftable->create_fn (iv);
    iv->draw_area_funcs = vftable;
 
-   gtk_widget_show (iv->draw_area);
+   gtk_widget_set_visible (iv->draw_area, TRUE);
 
    gimv_event_connect_after (GTK_WIDGET (iv->draw_area), GIMV_EVENT_KEY_PRESS, G_CALLBACK(cb_image_key_press), iv);
    gimv_event_connect (GTK_WIDGET (iv->draw_area), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_image_button_press), iv);
@@ -2745,7 +2745,7 @@ gimv_image_view_create_player_toolbar (GimvImageView *iv)
    toolbar = gtkutil_create_toolbar ();
    /* GTK2: GTK_TOOLBAR_ICONS */
    gimv_box_pack_start (GTK_BOX (hbox), toolbar, FALSE, FALSE, 0);
-   gtk_widget_show (toolbar);
+   gtk_widget_set_visible (toolbar, TRUE);
 
    iv->player_container = hbox;
    iv->player_toolbar = toolbar;
@@ -2790,7 +2790,7 @@ gimv_image_view_create_player_toolbar (GimvImageView *iv)
    seekbar = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adj);
    gtk_scale_set_draw_value (GTK_SCALE (seekbar), FALSE);
    gimv_box_pack_start (GTK_BOX (hbox), seekbar, TRUE, TRUE, 0);
-   gtk_widget_show (seekbar);
+   gtk_widget_set_visible (seekbar, TRUE);
    iv->player.seekbar = seekbar;
 
    gimv_event_connect (GTK_WIDGET (iv->player.seekbar), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_seekbar_pressed), iv);
@@ -3112,19 +3112,19 @@ gimv_image_view_set_player_visible (GimvImageView *iv,
 
    switch (type) {
    case GimvImageViewPlayerVisibleHide:
-      gtk_widget_hide (iv->player_container);
+      gtk_widget_set_visible (iv->player_container, FALSE);
       iv->priv->player_visible = GimvImageViewPlayerVisibleHide;
       break;
    case GimvImageViewPlayerVisibleShow:
-      gtk_widget_show (iv->player_container);
+      gtk_widget_set_visible (iv->player_container, TRUE);
       iv->priv->player_visible = GimvImageViewPlayerVisibleShow;
       break;
    case GimvImageViewPlayerVisibleAuto:
    default:
       if (gimv_image_view_is_playable (iv)) {
-         gtk_widget_show (iv->player_container);
+         gtk_widget_set_visible (iv->player_container, TRUE);
       } else {
-         gtk_widget_hide (iv->player_container);
+         gtk_widget_set_visible (iv->player_container, FALSE);
       }
       iv->priv->player_visible = GimvImageViewPlayerVisibleAuto;
       break;

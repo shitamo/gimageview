@@ -1154,7 +1154,7 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
       gtk_widget_set_name (tv_data->treeview, "DetailThumbMode");
    }
 
-   gtk_widget_show (tv_data->treeview);
+   gtk_widget_set_visible (tv_data->treeview, TRUE);
 
    gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_treeview_key_press), tv);
    gimv_event_connect (GTK_WIDGET (tv_data->treeview), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_treeview_button_press), tv);

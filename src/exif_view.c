@@ -151,7 +151,7 @@ exif_view_create_window (const gchar *filename, GtkWindow *parent)
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_exif_window_close), ev);
    gtk_window_set_default_widget (GTK_WINDOW (ev->window), button);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    gtk_widget_grab_focus (button);
 
@@ -253,12 +253,12 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
    ev->container = gimv_vbox_new (FALSE, 0);
    g_signal_connect (G_OBJECT (ev->container), "destroy",
                        G_CALLBACK (cb_exif_view_destroy), ev);
-   gtk_widget_show (ev->container);
+   gtk_widget_set_visible (ev->container, TRUE);
 
    notebook = gtk_notebook_new ();
    gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), TRUE);
    gimv_box_pack_start(GTK_BOX(ev->container), notebook, TRUE, TRUE, 0);
-   gtk_widget_show (notebook);
+   gtk_widget_set_visible (notebook, TRUE);
 
    /* Tag Tables */
    for (i = 0; i < EXIF_IFD_COUNT; i++) {
@@ -273,7 +273,7 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
       gimv_container_set_border_width (GTK_WIDGET (scrolledwin), 5);
       gtk_notebook_append_page (GTK_NOTEBOOK(notebook),
                                 scrolledwin, label);
-      gtk_widget_show (scrolledwin);
+      gtk_widget_set_visible (scrolledwin, TRUE);
 
       {
          GtkListStore *store;
@@ -306,7 +306,7 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
       }
 
       gimv_container_add (GTK_WIDGET (scrolledwin), clist);
-      gtk_widget_show (clist);
+      gtk_widget_set_visible (clist, TRUE);
 
       exif_view_content_list_set_data (clist, contents[i], i);
    }
@@ -316,7 +316,7 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
    vbox = gimv_vbox_new (TRUE, 0);
    gtk_notebook_append_page (GTK_NOTEBOOK(notebook),
                              vbox, label);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    pixmap = exif_view_get_thumbnail (edata);
 

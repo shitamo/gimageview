@@ -219,7 +219,7 @@ gimv_prefs_ui_mouse_prefs (const gchar **items,
       notebook = gtk_notebook_new ();
       gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), TRUE);
       gimv_box_pack_start(GTK_BOX(frame_vbox1), notebook, FALSE, FALSE, 5);
-      gtk_widget_show (notebook);
+      gtk_widget_set_visible (notebook, TRUE);
 
       if (buttons[i] && *buttons[i]) {
          mods = g_strsplit (buttons[i], ",", 4);
@@ -230,9 +230,9 @@ gimv_prefs_ui_mouse_prefs (const gchar **items,
       /* create notebook pages */
       for (j = 0; j < mod_keys_num; j++) {
          label = gtk_label_new (_(mod_keys[j]));
-         gtk_widget_show (label);
+         gtk_widget_set_visible (label, TRUE);
          vbox = gimv_vbox_new (FALSE, 0);
-         gtk_widget_show (vbox);
+         gtk_widget_set_visible (vbox, TRUE);
          gtk_notebook_append_page (GTK_NOTEBOOK (notebook),
                                    vbox, label);
 
@@ -563,7 +563,7 @@ gimv_prefs_ui_double_clist (const gchar *title,
    /* double stack list */
    dslist = gimv_dlist_new (clist1_title, clist2_title);
    gimv_box_pack_start (GTK_BOX (frame_vbox), dslist, TRUE, TRUE, 0);
-   gtk_widget_show (dslist);
+   gtk_widget_set_visible (dslist, TRUE);
 
    /* set available list */
    for (node = available_list; node; node = g_list_next (node)) {

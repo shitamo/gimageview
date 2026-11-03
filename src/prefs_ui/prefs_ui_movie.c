@@ -81,17 +81,17 @@ prefs_movie_page (void)
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
    gimv_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, FALSE, 0);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    if (movie_view_modes_len > 1) {
       vbox = gimv_vbox_new (FALSE, 0);
       gimv_container_set_border_width (GTK_WIDGET (vbox), 0);
       gimv_box_pack_start (GTK_BOX (hbox), vbox, FALSE, FALSE, 0);
-      gtk_widget_show (vbox);
+      gtk_widget_set_visible (vbox, TRUE);
 
       label = gtk_label_new (_("Default view mode for movie and audio: "));
       gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 2);
-      gtk_widget_show (label);
+      gtk_widget_set_visible (label, TRUE);
 
       for (i = 0; conf.movie_default_view_mode && movie_view_modes[i]; i++) {
          if (!strcmp (conf.movie_default_view_mode, movie_view_modes[i])) {
@@ -103,12 +103,12 @@ prefs_movie_page (void)
       option_menu = create_option_menu (movie_view_modes, defval,
                                         cb_movie_view_mode, NULL);
       gimv_box_pack_start (GTK_BOX (vbox), option_menu, FALSE, FALSE, 2);
-      gtk_widget_show (option_menu);
+      gtk_widget_set_visible (option_menu, TRUE);
 
    } else {
       label = gtk_label_new (_("No movie plugins are available."));
       gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
-      gtk_widget_show (label);
+      gtk_widget_set_visible (label, TRUE);
    }
 
    /* continuous play */

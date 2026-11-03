@@ -72,9 +72,9 @@ cb_switch_page (GtkNotebook *notebook,
    widget = gtk_notebook_get_nth_page (notebook, pagenum);
 
    if (widget == cv->data_page || widget == cv->note_page)
-      gtk_widget_show (cv->button_area);
+      gtk_widget_set_visible (cv->button_area, TRUE);
    else
-      gtk_widget_hide (cv->button_area);
+      gtk_widget_set_visible (cv->button_area, FALSE);
 
    gimv_comment_view_set_sensitive (cv);
 }
@@ -467,9 +467,9 @@ create_data_page (GimvCommentView *cv)
 
    label = gtk_label_new (_("Data"));
    gtk_widget_set_name (label, "TabLabel");
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
    cv->data_page = vbox = gimv_vbox_new (FALSE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    gtk_notebook_append_page (GTK_NOTEBOOK(cv->notebook),
                              vbox, label);
@@ -580,13 +580,13 @@ create_note_page (GimvCommentView *cv)
    /* "Note" page */
    label = gtk_label_new (_("Note"));
    gtk_widget_set_name (label, "TabLabel");
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    cv->note_page = scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
    gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
-   gtk_widget_show (scrolledwin);
+   gtk_widget_set_visible (scrolledwin, TRUE);
 
    {
       GtkTextBuffer *textbuf;
@@ -597,7 +597,7 @@ create_note_page (GimvCommentView *cv)
                         G_CALLBACK (cb_text_buffer_changed), cv);
    }
    gimv_container_add (GTK_WIDGET (scrolledwin), cv->note_box);
-   gtk_widget_show (cv->note_box);
+   gtk_widget_set_visible (cv->note_box, TRUE);
 
    gtk_notebook_append_page (GTK_NOTEBOOK(cv->notebook),
                              scrolledwin, label);
@@ -906,7 +906,7 @@ gimv_comment_view_create (void)
    gimv_container_set_border_width (GTK_WIDGET (cv->notebook), 1);
    gtk_notebook_set_scrollable (GTK_NOTEBOOK (cv->notebook), TRUE);
    gimv_box_pack_start(GTK_BOX(cv->main_vbox), cv->notebook, TRUE, TRUE, 0);
-   gtk_widget_show (cv->notebook);
+   gtk_widget_set_visible (cv->notebook, TRUE);
 
    g_signal_connect (G_OBJECT (cv->notebook), "switch-page",
                        G_CALLBACK(cb_switch_page), cv);
@@ -918,7 +918,7 @@ gimv_comment_view_create (void)
    /* button area */
    hbox = cv->button_area = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start(GTK_BOX(cv->main_vbox), cv->button_area, FALSE, FALSE, 2);
-   gtk_widget_show (cv->main_vbox);
+   gtk_widget_set_visible (cv->main_vbox, TRUE);
 
    hbox1 = cv->inner_button_area = gimv_hbox_new (TRUE, 0);
    gimv_box_pack_end (GTK_BOX (hbox), hbox1, FALSE, TRUE, 0);

@@ -528,11 +528,11 @@ imageview_mplayer_create (GimvImageView *iv)
       child the whole area, otherwise the video window is 0x0 */
    gtk_widget_set_hexpand (frame, TRUE);
    gtk_widget_set_vexpand (frame, TRUE);
-   gtk_widget_show (frame);
+   gtk_widget_set_visible (frame, TRUE);
 
    mplayer = gimv_mplayer_new ();
    gimv_container_add (GTK_WIDGET (frame), mplayer);
-   gtk_widget_show (mplayer);
+   gtk_widget_set_visible (mplayer, TRUE);
 
    g_signal_connect (G_OBJECT (mplayer), "play",
                        G_CALLBACK (cb_mplayer_play), iv);
