@@ -36,6 +36,9 @@
 #include "gimv_thumb.h"
 #include "gimv_thumb_cache.h"
 #include "gimv_thumb_view.h"
+#ifdef ENABLE_EXIF
+#  include <libexif/exif-data.h>
+#endif
 
 
 static void gimv_thumb_destroy    (GimvObject *obj);
@@ -285,6 +288,9 @@ create_thumbnail (GimvThumb *thumb, gint thumbsize,
 
          g_hash_table_remove (loader_table, thumb);
       }
+      /* turned as it is meant to be seen (EXIF) */
+      if (image && !gimv_image_info_is_in_archive (info))
+         gimv_thumb_image_orient (image, filename);
 
       /* write cache to disk */
       if (image && save_cache && cache_type
@@ -356,6 +362,77 @@ load_thumbnail_cache (GimvThumb *thumb, gint thumbsize)
       gchar *cache_type = node->data;
       create_thumbnail (thumb, thumbsize, cache_type, FALSE);
       if (thumb->thumbnail) return;
+   }
+}
+
+
+/******************************************************************************
+ *
+ *   The orientation of the image (EXIF): thumbnails are made turned as the
+ *   image is meant to be seen, and kept so (as the other programs keep them
+ *   in ~/.cache/thumbnails).
+ *
+ ******************************************************************************/
+gint
+gimv_thumb_file_orientation (const gchar *filename)
+{
+   gint o = 1;
+#ifdef ENABLE_EXIF
+   ExifData *edata;
+   ExifEntry *entry;
+
+   if (!filename || !*filename) return 1;
+   edata = exif_data_new_from_file (filename);
+   if (!edata) return 1;
+   entry = exif_content_get_entry (edata->ifd[EXIF_IFD_0], EXIF_TAG_ORIENTATION);
+   if (entry && entry->format == EXIF_FORMAT_SHORT && entry->size >= 2)
+      o = exif_get_short (entry->data, exif_data_get_byte_order (edata));
+   exif_data_unref (edata);
+   if (o < 1 || o > 8) o = 1;
+#endif
+   return o;
+}
+
+
+GdkPixbuf *
+gimv_thumb_pixbuf_orient (GdkPixbuf *pixbuf, gint orientation)
+{
+   GdkPixbuf *with, *turned;
+   gchar buf[4];
+
+   g_return_val_if_fail (GDK_IS_PIXBUF (pixbuf), NULL);
+
+   /* set by the loader of gdk-pixbuf: that one */
+   if (gdk_pixbuf_get_option (pixbuf, "orientation"))
+      return gdk_pixbuf_apply_embedded_orientation (pixbuf);
+   if (orientation <= 1 || orientation > 8)
+      return g_object_ref (pixbuf);
+   /* the turning of gdk-pixbuf, with the orientation given */
+   with = gdk_pixbuf_copy (pixbuf);
+   if (!with) return g_object_ref (pixbuf);
+   g_snprintf (buf, sizeof buf, "%d", orientation);
+   gdk_pixbuf_set_option (with, "orientation", buf);
+   turned = gdk_pixbuf_apply_embedded_orientation (with);
+   g_object_unref (with);
+   return turned ? turned : g_object_ref (pixbuf);
+}
+
+
+void
+gimv_thumb_image_orient (GimvImage *image, const gchar *filename)
+{
+   GdkPixbuf *pixbuf, *turned;
+
+   if (!image || !GDK_IS_PIXBUF (image->image)) return;
+   pixbuf = image->image;
+   turned = gimv_thumb_pixbuf_orient (pixbuf,
+                                      gdk_pixbuf_get_option (pixbuf, "orientation")
+                                      ? 1 : gimv_thumb_file_orientation (filename));
+   if (turned && turned != pixbuf) {
+      image->image = turned;
+      g_object_unref (pixbuf);
+   } else if (turned) {
+      g_object_unref (turned);
    }
 }
 

@@ -102,6 +102,16 @@ void           gimv_thumb_get_icon             (GimvThumb      *thumb,
 GtkWidget     *gimv_thumb_get_icon_by_widget   (GimvThumb      *thumb);
 const gchar   *gimv_thumb_get_cache_type       (GimvThumb      *thumb);
 gboolean       gimv_thumb_has_thumbnail        (GimvThumb      *thumb);
+/* the EXIF orientation of an image file (1..8; 1 when none or unknown).
+   Can be called in any thread. */
+gint           gimv_thumb_file_orientation     (const gchar    *filename);
+/* the image turned as its orientation (that of the pixbuf, set by the
+   loader of gdk-pixbuf, or the one given; 1: none): a new reference */
+GdkPixbuf     *gimv_thumb_pixbuf_orient        (GdkPixbuf      *pixbuf,
+                                                gint            orientation);
+/* the image of a thumbnail made from filename turned in place */
+void           gimv_thumb_image_orient         (GimvImage      *image,
+                                                const gchar    *filename);
 gchar         *gimv_thumb_find_thumbcache      (const gchar    *filename,
                                                 gchar         **type);
 

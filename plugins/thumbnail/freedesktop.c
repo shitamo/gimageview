@@ -38,10 +38,14 @@
 #include "intl.h"
 #include "gimv_image_loader.h"
 #include "gimv_plugin.h"
+#include "gimv_thumb.h"
 #include "gimv_thumb_cache.h"
 #include "prefs.h"
 
 #define LABEL "freedesktop.org"
+/* written by GImageView with the thumbnail turned as the image is meant
+   to be seen (EXIF orientation) */
+#define ORIENTED_KEY "tEXt::X-GImageView::Oriented"
 
 static GimvImage *load_thumb (const gchar *filename,
                               const gchar *cache_type,
@@ -251,6 +255,16 @@ load_thumb (const gchar *filename, const gchar *cache_type, GimvImageInfo *info)
       return NULL;
    }
 
+   /* made by an older GImageView, not turned as the image is meant to be
+      seen (EXIF): made again (the others keep them turned) */
+   if (!g_strcmp0 (gdk_pixbuf_get_option (pixbuf, "tEXt::Software"), "GImageView")
+       && !gdk_pixbuf_get_option (pixbuf, ORIENTED_KEY)
+       && gimv_thumb_file_orientation (filename) > 1)
+   {
+      g_object_unref (pixbuf);
+      return NULL;
+   }
+
    image = gimv_image_new ();
    image->image = pixbuf;
    return image;
@@ -286,7 +300,11 @@ image_for_size (const gchar *filename, GimvImage *image, gint max_size)
    if (bigger) {
       gint bw = -1, bh = -1;
       gimv_image_get_size (bigger, &bw, &bh);
-      if (bw * bh > w * h) return bigger;
+      /* turned as the one given */
+      if (bw * bh > w * h) {
+         gimv_thumb_image_orient (bigger, filename);
+         return bigger;
+      }
       gimv_image_unref (bigger);
    }
    return gimv_image_ref (image);
@@ -353,12 +371,14 @@ save_thumb (const gchar *filename, const gchar *cache_type,
                           "tEXt::Thumb::Image::Width", width,
                           "tEXt::Thumb::Image::Height", height,
                           "tEXt::Software", "GImageView",
+                          ORIENTED_KEY, "1",
                           NULL)
        : gdk_pixbuf_save (imcache->image, tmp, "png", &error,
                           "tEXt::Thumb::URI", uri,
                           "tEXt::Thumb::MTime", mtime,
                           "tEXt::Thumb::Size", size,
                           "tEXt::Software", "GImageView",
+                          ORIENTED_KEY, "1",
                           NULL))
    {
       if (g_rename (tmp, thumb_file) != 0)

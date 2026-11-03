@@ -308,6 +308,15 @@ thread_make (gpointer data, gpointer user_data)
          job->pixbuf = gdk_pixbuf_new_from_file_at_scale (job->path, job->size, job->size,
                                                           TRUE, NULL);
       }
+      /* turned as it is meant to be seen (EXIF): that of gdk-pixbuf, or
+       * read here for the JPEGs read by libjpeg */
+      if (job->pixbuf && !g_atomic_int_get (&job->cancel)) {
+         GdkPixbuf *turned = gimv_thumb_pixbuf_orient (
+            job->pixbuf, gdk_pixbuf_get_option (job->pixbuf, "orientation")
+                         ? 1 : gimv_thumb_file_orientation (job->path));
+         g_object_unref (job->pixbuf);
+         job->pixbuf = turned;
+      }
    }
    g_idle_add (idle_done, job);
 }
