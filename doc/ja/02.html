@@ -138,7 +138,7 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 <p class="para">
 [設定 | 索引 | 顔] の「顔を認識するフォルダ」(索引を作るディレクトリの中) の画像から、gimv-faces が顔を探し、似た顔をグループにまとめます。索引のあとで、ゆっくり動きます。OpenCV 4.8 以上を使ってビルドした場合だけの機能で、モデルファイル (OpenCV の YuNet と SFace、約 40 MB) を ~/.local/share/gimageview/models に置く必要があります (入手先は設定のページに表示されます)。
 </p>
-<div class="figure"><img src="images/faces_window.png" width="700" height="480" alt="顔の一覧ウィンドウ">
+<div class="figure"><img src="images/faces_window.png" width="700" height="390" alt="顔の一覧ウィンドウ">
 <p class="caption">顔の一覧ウィンドウ</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="people_tab"></a>人物タブ</span></dt>
@@ -166,14 +166,14 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
 <a name="02-04"></a>2.4. 画像の検索</h3></div></div>
-<div class="figure"><img src="images/search_window.png" width="620" height="520" alt="画像の検索ウィンドウ">
+<div class="figure"><img src="images/search_window.png" width="460" height="640" alt="画像の検索ウィンドウ">
 <p class="caption">画像の検索ウィンドウ</p></div>
 <p class="para">
 [ツール | 画像を検索...] で、索引から複数の条件で画像を探します。
 </p>
 <div class="itemizedlist"><ul>
 <li><p class="para">下の一覧のタグ (人物の名前、自動タグも) をクリックすると、条件が札になって上に並びます。入力欄に文字を入れると一覧を絞り込み、Enter で先頭のタグを加えます。札の条件は全て満たす (かつ) 画像を探します。札をクリックすると「除く」(赤) に変わり、そのタグの付いた画像を外します。× で札を外します。</p></li>
-<li><p class="para">「期間」で撮影日の範囲を指定します (年だけ、年月だけでも構いません)。</p></li>
+<li><p class="para">「撮影日」で撮影日の範囲を指定します (年だけ、年月だけでも構いません)。</p></li>
 <li><p class="para">条件を加えると、下の一覧は見つかった画像に付いているタグを種類ごとに件数付きで並べます。クリックでさらに絞り込み、各行の「除く」で外せます。</p></li>
 <li><p class="para">見つかった画像はサムネイルウィンドウのタブに表示します。</p></li>
 <li><p class="para">「保存...」で今の条件に名前を付けて保存し、上のドロップダウンから呼び出せます (~/.gimv/searches)。ごみ箱のボタンで削除します。</p></li>

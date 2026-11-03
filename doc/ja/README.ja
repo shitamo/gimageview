@@ -1,6 +1,6 @@
                             GImage View README.jp
                                                              ver 0.2.27+gtk4
-                                                         改訂 : 2026/10/07(Wed)
+                                                         改訂 : 2026/11/04(Wed)
                                                          制作 : 2001/09/08(Sat)
 -------------------------------------------------------------------------------
   ** GTK 4 版 (0.2.27+gtk4) **
@@ -16,12 +16,17 @@
 
   主な追加 (すべての変更は NEWS.ja を参照):
 
+  o 画像の索引 (日付・タグ)，顔と人物，画像の検索ウィンドウ (下記)．
+  o freedesktop.org のサムネイルキャッシュ，別スレッドでのサムネイル作成，
+    EXIF の向きに合わせたサムネイル．
   o GStreamer による動画・音声の再生と，動画のサムネイル作成．
   o アーカイブを libarchive で読み込み (外部コマンドは使いません)．
   o Sun raster，WBMP，PNM，XPM，ZIM (KID98)，AK5/MSL (MASL) の読み込み処理を追加．WebP，AVIF，HEIF，
     JPEG XL などは，対応する gdk-pixbuf の読み込み部品がインストールされて
     いれば読めます．
-  o 印刷，画像をデスクトップの壁紙に設定，画像ごとの回転の記憶．
+  o 印刷，画像をデスクトップの壁紙に設定，画像のクリップボードへのコピー，
+    画像ごとの回転・左右反転の記憶．
+  o 一覧の行を Ctrl+F で検索．
   o マウスのサイドボタン (ボタン 8・9) への機能の割り当て．
   o 配色: デスクトップのテーマ・ライト・ダーク．
   o 英語のマニュアル．マニュアルにこの版の画面の画像を追加．
@@ -113,13 +118,25 @@ GImage Viewは，以下のような特徴を持っています．
    GImageView (独自の形式．~/.gimv/thumbnail)，Nautilus，Nautilus-2.0，
    Konqueror (旧形式を含む)，GQview，Electric Eyes (Picview)，xvpics
 
-   freedesktop.org の Thumbnail Managing Standard (~/.cache/thumbnails) には
-   対応していません．
+   freedesktop.org の Thumbnail Managing Standard (~/.cache/thumbnails)
+   (他のプログラムと共有)
+
+   サムネイルは別スレッドで作り (JPEG は十分な大きさの EXIF の縮小画像を使い
+   ます)，EXIF の向きに合わせて回転・反転します．
 
  o スライドショー完備
 
  o 6種類のサムネイルビューの表示モード (アルバム，アルバム2，アルバム3，詳細，
    詳細 + アイコン，詳細 + サムネイル)，多数のソートタイプ
+
+ o 画像の索引
+   指定したディレクトリの画像を裏で索引 (SQLite) に登録し，撮影日やタグで開け
+   ます．タグは手で付けるほか，フォルダ・カメラ・形で自動的に付きます．複数の
+   タグ・人物名・撮影日で検索でき，新しい画像を通知します．
+
+ o 顔と人物
+   顔を見つけて似た顔をまとめ (OpenCV)，顔の一覧ウィンドウで名前を付けます．
+   「人物」タブから人物ごとの画像を開けます．
 
  o 重複画像検索機能 (ファイルサイズ，md5sum，類似度)
 
@@ -131,7 +148,7 @@ GImage Viewは，以下のような特徴を持っています．
 このプログラムのコンパイル及び実行には，以下の環境/ライブラリが必要です．
 
  * C コンパイラ，Meson，Ninja (ビルド時のみ)
- * GTK 4.10 以降 (https://www.gtk.org/)
+ * GTK 4.12 以降 (https://www.gtk.org/)
  * GLib 2.72 以降，gdk-pixbuf 2.0
  * X Window System (X11) (動作を確認している環境)
 
@@ -140,8 +157,14 @@ GImage Viewは，以下のような特徴を持っています．
  * libarchive 3.3 以降 : 書庫 (zip，rar，7z，lha，tar など) を開く事ができます．
  * libjpeg : JPEG を高速に読み込みます．
  * libpng : PNG の読み込みプラグインと保存プラグインを使えます．
- * libexif : EXIF 情報の表示と，EXIF の向き情報による自動回転ができます．
- * librsvg : SVG を表示する事ができます．
+ * libexif : EXIF 情報の表示と，EXIF の向き情報による画像とサムネイルの自動
+   回転ができます．
+ * SQLite 3.22 以降 : 画像の索引，タグ，検索ウィンドウ (と顔) を使えます．
+ * OpenCV 4.8 以降 (dnn・objdetect モジュール付き) : 顔を見つけてまとめます．
+   モデルファイル (OpenCV の YuNet と SFace，約 40 MB) を
+   ~/.local/share/gimageview/models に置きます．入手先は [設定 | 索引 | 顔] に
+   表示されます．
+ * librsvg (2.52 以降) : SVG を表示する事ができます．
  * libmng : MNG を再生する事ができます．
  * libwmf : WMF を表示する事ができます．
  * zlib，bzip2 : gzip，bzip2 で圧縮されたファイルを展開できます．
@@ -246,6 +269,10 @@ GUI からディレクトリを開きたい場合は，ディレクトリビュ�
 
 --------------------
 6. README.jp 更改履歴
+
+2026/11/04(Wed) shitamo
+ * 画像の索引，顔，検索ウィンドウ，freedesktop.org のサムネイルなどの追加，
+   SQLite と OpenCV を追記
 
 2026/10/07(Wed) shitamo
 

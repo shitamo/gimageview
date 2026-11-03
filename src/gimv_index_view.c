@@ -406,7 +406,7 @@ thread_count_people (GTask *task, gpointer source, gpointer data, GCancellable *
                if (members->len) {
                   guint j;
                   add_people_row (rows, 0, KIND_FACES, g_strdup_printf ("t:%s", cur),
-                                  g_strdup_printf (_("%s (%'d people)"), cur, members->len),
+                                  g_strdup_printf (ngettext ("%s (%'d person)", "%s (%'d people)", members->len), cur, members->len),
                                   g_strdup (cur));
                   for (j = 0; j < members->len; j++)
                      ADD_PERSON ((Person *) g_ptr_array_index (members, j), 1);

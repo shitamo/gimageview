@@ -138,7 +138,7 @@ Images with comments (tags) that went missing are listed in a log for each start
 <p class="para">
 gimv-faces looks for faces in the images of the "Folders to find faces in" of [Preferences | Index | Faces] (which must be in the index), and puts faces that look alike in groups. It runs after the rest of the index, slowly. This needs a build with OpenCV 4.8 or later, and the model files (OpenCV YuNet and SFace, about 40 MB) in ~/.local/share/gimageview/models (where to get them is shown on the preferences page).
 </p>
-<div class="figure"><img src="images/faces_window.png" width="700" height="480" alt="The faces window">
+<div class="figure"><img src="images/faces_window.png" width="700" height="415" alt="The faces window">
 <p class="caption">The faces window</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="people_tab"></a>People tab</span></dt>
@@ -166,17 +166,17 @@ Tags put on people (the group they belong to, for example), with "Tags of the Pe
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
 <a name="02-04"></a>2.4. Searching images</h3></div></div>
-<div class="figure"><img src="images/search_window.png" width="620" height="520" alt="The search window">
+<div class="figure"><img src="images/search_window.png" width="460" height="640" alt="The search window">
 <p class="caption">The search window</p></div>
 <p class="para">
 [Tools | Search Images...] finds images of the index by several conditions.
 </p>
 <div class="itemizedlist"><ul>
 <li><p class="para">A click on a tag of the list below (names of people and automatic tags too) adds it as a condition, shown as a chip at the top. Typing in the entry narrows the list; Enter adds the first tag. The images must have all the chips (and). A click on a chip turns it into "excluded" (red): the images with that tag are left out. × removes a chip.</p></li>
-<li><p class="para">"Period" limits the date taken (a year or a month alone can be given).</p></li>
+<li><p class="para">"Taken from ... to" limits the date taken (a year or a month alone can be given).</p></li>
 <li><p class="para">With conditions, the list below shows the tags of the images found, by kind and with their numbers: a click narrows the search further, and the "exclude" button of a row leaves those images out.</p></li>
 <li><p class="para">The images found are shown in a tab of the thumbnail window.</p></li>
-<li><p class="para">"Save..." keeps the conditions under a name, to be chosen again in the list at the top (~/.gimv/searches); the trash button deletes one.</p></li>
+<li><p class="para">"Keep..." keeps the conditions under a name, to be chosen again in the list at the top (~/.gimv/searches); the trash button deletes one.</p></li>
 </ul></div>
 </div>
 <div class="sect2">

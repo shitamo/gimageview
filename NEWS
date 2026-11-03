@@ -77,6 +77,38 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  are drawn with light lines in dark colors.
 	* File open dialog: "Thumbnails of the selected files" also opens the
 	  selected folders, each in a tab of its own.
+	* Image index (SQLite): gimv-indexer keeps the dates and tags of the
+	  images of the directories given in Preferences > Index, in the
+	  background.  The "Date" and "Tag" tabs of the side notebook open
+	  them in a result tab; tags are edited from the thumbnail view and
+	  kept in the comment files, renamed and merged with F2; automatic
+	  tags (folder, camera, shape); desktop notices of new images; Tools >
+	  Missing Images... for the comments of images that went missing.
+	* Faces and people (OpenCV 4.8, YuNet and SFace models): gimv-faces
+	  finds faces and groups them; the "People" tab, the faces window
+	  (naming, guesses, unnamed groups, tags of people) and the faces
+	  panel of the image view (P), where a face can also be added by hand.
+	  The names are kept in the comment files as "person/NAME" tags.
+	* Tools > Search Images...: images of the index by tags and names
+	  (and, not), by the date taken, narrowed by the tags of the images
+	  found; searches can be kept by name.
+	* Thumbnails: the freedesktop.org cache (~/.cache/thumbnails) is read
+	  and written; thumbnails are made in worker threads, from the EXIF
+	  thumbnail of a JPEG when it is big enough; they are turned and
+	  flipped by the EXIF orientation and by the rotation and flip the
+	  user gave the image.
+	* Lists: Ctrl+F searches the rows (directory view, detail view, Data
+	  tab, preferences, index tabs, ...).
+	* Status bar: the path, position and size of the focused image, or
+	  the number and total size of the images selected.
+	* Data tab: the comments written in the image file itself (JPEG, PNG,
+	  GIF, MAG) are shown in italics, and the tags of the image.
+	* Image view: Copy the Image to the Clipboard (Shift+Ctrl+C), Flip
+	  Horizontally (X, remembered with the rotation), Open the Folder.
+	* Scrollbars are always shown (a preference, on by default).
+	* GtkTreeView and the other API deprecated in GTK 4.10 are no longer
+	  used (GtkListView / GtkColumnView); GTK 4.12 and GLib 2.72 are
+	  required.
 
 Version-0.2.27
 

@@ -5875,8 +5875,9 @@ msgstr "人物: %s"
 
 #: src/gimv_index_view.c
 #, c-format
-msgid "%s (%'d people)"
-msgstr "%s (%'d 人)"
+msgid "%s (%'d person)"
+msgid_plural "%s (%'d people)"
+msgstr[0] "%s (%'d 人)"
 
 #: src/gimv_face_panel.c
 msgid "Tags of the Person..."

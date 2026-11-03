@@ -2,7 +2,7 @@
 
 * **For ver:** 0.2.27+gtk4
 
-* **Last Modified:** 2026/10/07(Wed)
+* **Last Modified:** 2026/11/04(Wed)
 
 * **Created:** 2001/09/08(Sat)
 
@@ -20,13 +20,19 @@ Removed from 0.2.27:
 
 Main additions (see `NEWS` for all changes):
 
+* An image index (dates and tags), faces and people, and a search window (see below).
+
+* Thumbnails in the freedesktop.org cache, made in worker threads, turned by the EXIF orientation.
+
 * Movie and audio playback with GStreamer, and movie thumbnails.
 
 * Archives are read with libarchive (no external programs).
 
 * New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801) and AK5/MSL (MASL, PC-9801; .msl animations played by their scenarios); WebP, AVIF, HEIF, JPEG XL and other formats are read when their gdk-pixbuf loaders are installed.
 
-* Printing, setting an image as the desktop wallpaper, and remembering the rotation of each image.
+* Printing, setting an image as the desktop wallpaper, copying an image to the clipboard, and remembering the rotation and flip of each image.
+
+* Ctrl+F searches the rows of the lists.
 
 * The mouse side buttons (buttons 8 and 9) can be assigned.
 
@@ -120,11 +126,19 @@ GImageView has following features:
 
   * GImageView (its own format, ~/.gimv/thumbnail), Nautilus, Nautilus-2.0, Konqueror (also the old format), GQview, Electric Eyes (Picview), xvpics
 
-  *The freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails) is not supported.*
+  * The freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails), shared with other programs
+
+  Thumbnails are made in worker threads (from the EXIF thumbnail of a JPEG when it is big enough), and turned and flipped by the EXIF orientation.
 
 * Supports slideshow.
 
 * Six display modes of the thumbnail view (Album, Album2, Album3, Detail, Detail + Icon, Detail + Thumbnail), and various sort types.
+
+* **Image index:**
+  The images of the directories you choose are indexed in the background (SQLite): they can be opened by the date taken and by tag, tagged by hand and automatically (folder, camera, shape), and searched by several tags, names and dates. New images are notified.
+
+* **Faces and people:**
+  Faces are found and grouped (OpenCV); the people are named in the faces window, and their images opened from the "People" tab.
 
 * **Finding duplicated images:**
   It can find duplicated image files by file size, md5sum and similarity, and display it on tree view.
@@ -149,7 +163,11 @@ Following libraries and programs are optional. They extend the functionality whe
 
 * **libpng:** PNG loader and PNG saver plugins.
 
-* **libexif:** EXIF information can be displayed, and images are rotated by the EXIF orientation.
+* **libexif:** EXIF information can be displayed, and images and thumbnails are rotated by the EXIF orientation.
+
+* **SQLite 3.22 or later:** the image index, tags, the search window (and the faces).
+
+* **OpenCV 4.8 or later** (with the dnn and objdetect modules)**:** faces are found and grouped. The model files (OpenCV YuNet and SFace, about 40 MB) go in ~/.local/share/gimageview/models; where to get them is shown in Preferences > Index > Faces.
 
 * **librsvg** (2.52 or later)**:** SVG images can be displayed.
 
@@ -251,6 +269,10 @@ To open a directory from the GUI, double-click it in the directory view, or type
 To show compressed image files, open Preferences > Common > Filtering and register file name extensions like gz or bz2.
 
 ## 6. ChangeLog of README
+
+* **2026/11/04(Wed) shitamo**
+
+  * The image index, faces, search window, freedesktop.org thumbnails and other additions; SQLite and OpenCV.
 
 * **2026/10/07(Wed) shitamo**
 
