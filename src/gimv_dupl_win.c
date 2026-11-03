@@ -573,10 +573,14 @@ insert_node (GimvDuplWin *sw, GimvRow *parent,
                  COLUMN_THUMBDATA,      thumb,
                  COLUMN_TERMINATOR);
 
-   if (parent)
+   if (parent) {
       gimv_row_append_child (parent, row);
-   else
+   } else {
+      /* expandable from the start: the tree list model asks a row for its
+         children once, when it is added (the duplicates come after) */
+      gimv_row_get_children (row, TRUE);
       g_list_store_append (sw->priv->root, row);
+   }
    g_object_unref (row);   /* the store keeps it */
 
    g_free (text[0]);
