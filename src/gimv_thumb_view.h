@@ -222,6 +222,8 @@ void           gimv_thumb_view_set_focus          (GimvThumbView    *tv,
                                                    GimvThumb        *thumb);
 GimvThumb     *gimv_thumb_view_get_focus          (GimvThumbView    *tv);
 void           gimv_thumb_view_focus_changed      (GimvThumbView    *tv);
+/* the thumbnails of the image made again (after it was turned) */
+void           gimv_thumb_view_reload_thumbnail   (GimvImageInfo    *info);
 void           gimv_thumb_view_open_folder_of     (GimvThumbWin     *tw,
                                                    const gchar      *path);
 void           gimv_thumb_view_grab_focus         (GimvThumbView    *tv);

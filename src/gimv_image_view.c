@@ -4484,6 +4484,7 @@ gimv_image_view_rotate_image (GimvImageView *iv, GimvImageViewOrientation angle)
        && !gimv_image_info_is_audio (iv->info))
    {
       gimv_comment_set_rotation (iv->info, angle);
+      gimv_thumb_view_reload_thumbnail (iv->info);
    }
 
    if (iv->priv->load_end_signal_id)
@@ -4526,6 +4527,7 @@ gimv_image_view_flip_horizontal (GimvImageView *iv)
    if (conf.imgview_remember_rotation) {
       gimv_comment_set_flip (iv->info, !iv->priv->flip);
       gimv_comment_set_rotation (iv->info, angle);
+      gimv_thumb_view_reload_thumbnail (iv->info);
    }
 
    if (iv->priv->load_end_signal_id)

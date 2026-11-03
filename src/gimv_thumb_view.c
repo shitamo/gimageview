@@ -3299,6 +3299,48 @@ gimv_thumb_view_update_info (GimvImageInfo *info)
 }
 
 
+/* the thumbnails of the image made again (turned in the image window):
+ * from the cache when there is one */
+void
+gimv_thumb_view_reload_thumbnail (GimvImageInfo *info)
+{
+   gchar *path;
+   GList *tv_node, *node;
+
+   g_return_if_fail (info);
+
+   path = gimv_image_info_get_path_with_archive (info);
+   if (!path) return;
+
+   for (tv_node = GimvThumbViewList; tv_node; tv_node = g_list_next (tv_node)) {
+      GimvThumbView *tv = tv_node->data;
+
+      if (!GIMV_IS_THUMB_VIEW (tv) || !tv->vfuncs || !tv->vfuncs->update_thumb)
+         continue;
+
+      for (node = tv->thumblist; node; node = g_list_next (node)) {
+         GimvThumb *thumb = node->data;
+         gchar *thumb_path;
+
+         if (!GIMV_IS_THUMB (thumb) || !thumb->info || !thumb->thumbnail) continue;
+         if (thumb->info != info) {
+            thumb_path = gimv_image_info_get_path_with_archive (thumb->info);
+            if (!thumb_path || strcmp (thumb_path, path)) {
+               g_free (thumb_path);
+               continue;
+            }
+            g_free (thumb_path);
+         }
+         if (!gimv_thumb_load_quick (thumb, tv->thumb_size, LOAD_CACHE))
+            gimv_thumb_load (thumb, tv->thumb_size, LOAD_CACHE);
+         tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
+      }
+   }
+
+   g_free (path);
+}
+
+
 static void
 gimv_thumb_view_destroy_dupl_win_relation (GimvDuplWin *sw,GimvThumbView *tv)
 {

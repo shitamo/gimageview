@@ -21,6 +21,7 @@
  * $Id: gimv_thumb.c,v 1.7 2004/04/08 14:11:28 makeinu Exp $
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "gimageview.h"
@@ -28,6 +29,7 @@
 #include "fileutil.h"
 #include "fr-archive.h"
 #include "gfileutil.h"
+#include "gimv_comment.h"
 #include "gimv_icon_stock.h"
 #include "gimv_image.h"
 #include "gimv_image_info.h"
@@ -220,6 +222,8 @@ cb_loader_progress_update (GimvImageLoader *loader, GimvThumb *thumb)
 }
 
 
+static GimvImage *image_for_display (GimvImage *image, GimvImageInfo *info);
+
 static void
 create_thumbnail (GimvThumb *thumb, gint thumbsize,
                   gchar *cache_type, gboolean save_cache)
@@ -311,8 +315,11 @@ create_thumbnail (GimvThumb *thumb, gint thumbsize,
       }
    }
 
-   /* get GdkPixbuf from GimvImage */
+   /* get GdkPixbuf from GimvImage (turned as the user turned the image) */
    if (imdisp) {
+      GimvImage *shown = image_for_display (imdisp, info);
+      gimv_image_unref (imdisp);
+      imdisp = shown;
       /* resize to display thumbnail size */
       store_thumbnail (imdisp, thumbsize,
                        &thumb->thumbnail,
@@ -394,27 +401,138 @@ gimv_thumb_file_orientation (const gchar *filename)
 }
 
 
+/* the turnings of the EXIF orientations, as matrices on (x, y) (y down):
+ * the image as stored -> the image as seen */
+static const gint orient_matrix[9][4] = {
+   { 0 },
+   {  1,  0,  0,  1 },   /* 1 */
+   { -1,  0,  0,  1 },   /* 2: flipped left and right */
+   { -1,  0,  0, -1 },   /* 3: 180 degrees */
+   {  1,  0,  0, -1 },   /* 4: flipped upside down */
+   {  0,  1,  1,  0 },   /* 5: transposed */
+   {  0, -1,  1,  0 },   /* 6: 90 degrees clockwise */
+   {  0, -1, -1,  0 },   /* 7: transversed */
+   {  0,  1, -1,  0 },   /* 8: 90 degrees counterclockwise */
+};
+
+static gint
+orient_from_matrix (const gint m[4])
+{
+   gint o;
+   for (o = 1; o <= 8; o++)
+      if (!memcmp (orient_matrix[o], m, sizeof (gint) * 4)) return o;
+   return 1;
+}
+
+/* a then b */
+static gint
+orient_compose (gint a, gint b)
+{
+   const gint *x = orient_matrix[b], *y = orient_matrix[a];
+   gint m[4] = { x[0] * y[0] + x[1] * y[2], x[0] * y[1] + x[1] * y[3],
+                 x[2] * y[0] + x[3] * y[2], x[2] * y[1] + x[3] * y[3] };
+   return orient_from_matrix (m);
+}
+
+static gint
+orient_inverse (gint o)
+{
+   const gint *x = orient_matrix[o];
+   gint m[4] = { x[0], x[2], x[1], x[3] };   /* orthogonal: the transpose */
+   return orient_from_matrix (m);
+}
+
+
+/* the pixbuf turned by the orientation o (its options not looked at) */
+static GdkPixbuf *
+pixbuf_turn (GdkPixbuf *pixbuf, gint o)
+{
+   GdkPixbuf *a, *b;
+
+   switch (o) {
+   case 2: return gdk_pixbuf_flip (pixbuf, TRUE);
+   case 3: return gdk_pixbuf_rotate_simple (pixbuf, GDK_PIXBUF_ROTATE_UPSIDEDOWN);
+   case 4: return gdk_pixbuf_flip (pixbuf, FALSE);
+   case 6: return gdk_pixbuf_rotate_simple (pixbuf, GDK_PIXBUF_ROTATE_CLOCKWISE);
+   case 8: return gdk_pixbuf_rotate_simple (pixbuf, GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE);
+   case 5:
+   case 7:
+      a = gdk_pixbuf_rotate_simple (pixbuf, o == 5 ? GDK_PIXBUF_ROTATE_CLOCKWISE
+                                                   : GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE);
+      if (!a) return g_object_ref (pixbuf);
+      b = gdk_pixbuf_flip (a, TRUE);
+      g_object_unref (a);
+      return b;
+   default:
+      return g_object_ref (pixbuf);
+   }
+}
+
+
 GdkPixbuf *
 gimv_thumb_pixbuf_orient (GdkPixbuf *pixbuf, gint orientation)
 {
-   GdkPixbuf *with, *turned;
-   gchar buf[4];
+   GdkPixbuf *turned;
+   const gchar *opt;
 
    g_return_val_if_fail (GDK_IS_PIXBUF (pixbuf), NULL);
 
    /* set by the loader of gdk-pixbuf: that one */
-   if (gdk_pixbuf_get_option (pixbuf, "orientation"))
-      return gdk_pixbuf_apply_embedded_orientation (pixbuf);
+   if ((opt = gdk_pixbuf_get_option (pixbuf, "orientation")))
+      orientation = atoi (opt);
    if (orientation <= 1 || orientation > 8)
       return g_object_ref (pixbuf);
-   /* the turning of gdk-pixbuf, with the orientation given */
-   with = gdk_pixbuf_copy (pixbuf);
-   if (!with) return g_object_ref (pixbuf);
-   g_snprintf (buf, sizeof buf, "%d", orientation);
-   gdk_pixbuf_set_option (with, "orientation", buf);
-   turned = gdk_pixbuf_apply_embedded_orientation (with);
-   g_object_unref (with);
+   turned = pixbuf_turn (pixbuf, orientation);
    return turned ? turned : g_object_ref (pixbuf);
+}
+
+
+/* the turning the user gave the image in the image window (remembered in
+ * the comment file) after the EXIF one the thumbnails have: 1 for none */
+static gint
+user_turn (GimvImageInfo *info)
+{
+   gint rotate = 0, wanted, exif;
+   gboolean flip;
+   gchar *path;
+
+   if (!conf.imgview_remember_rotation || !info || gimv_image_info_is_in_archive (info)
+       || gimv_image_info_is_movie (info) || gimv_image_info_is_audio (info))
+      return 1;
+   if (gimv_comment_get_rotation (info, &rotate)) {
+      flip = gimv_comment_get_flip (info);
+   } else if (gimv_comment_get_flip (info)) {
+      rotate = 0;
+      flip = TRUE;
+   } else {
+      return 1;
+   }
+   /* as the image window: turned over left and right first, then turned
+    * (1: 90 degrees counterclockwise, 2: 180, 3: 90 clockwise) */
+   wanted = orient_compose (flip ? 2 : 1, rotate == 1 ? 8 : rotate == 2 ? 3 : rotate == 3 ? 6 : 1);
+   path = gimv_image_info_get_path (info) ? g_strdup (gimv_image_info_get_path (info)) : NULL;
+   exif = gimv_thumb_file_orientation (path);
+   g_free (path);
+   /* undo the EXIF one, then the user's */
+   return orient_compose (orient_inverse (exif), wanted);
+}
+
+
+/* the image of the thumbnail as shown: turned by the user's turning */
+static GimvImage *
+image_for_display (GimvImage *image, GimvImageInfo *info)
+{
+   GimvImage *shown;
+   GdkPixbuf *turned;
+   gint o;
+
+   if (!image || !GDK_IS_PIXBUF (image->image) || (o = user_turn (info)) == 1)
+      return image ? gimv_image_ref (image) : NULL;
+   turned = pixbuf_turn (image->image, o);
+   if (!turned) return gimv_image_ref (image);
+   shown = gimv_image_new ();
+   shown->image = turned;
+   return shown;
 }
 
 
@@ -496,7 +614,8 @@ gimv_thumb_set_image (GimvThumb *thumb, gint thumb_size, GimvImage *image,
    if (!gimv_thumb_cache_write_disabled () && conf.cache_write_type)
       imcache = gimv_thumb_cache_save (filename, conf.cache_write_type, image, info);
    g_free (filename);
-   imdisp = imcache ? imcache : image;
+   /* turned as the user turned the image */
+   imdisp = image_for_display (imcache ? imcache : image, info);
 
    g_clear_object (&thumb->thumbnail);
    g_clear_object (&thumb->thumbnail_mask);
@@ -518,6 +637,7 @@ gimv_thumb_set_image (GimvThumb *thumb, gint thumb_size, GimvImage *image,
       thumb->cache_type = label;
    }
    if (imcache) gimv_image_unref (imcache);
+   gimv_image_unref (imdisp);
    return thumb->thumbnail != NULL;
 }
 
