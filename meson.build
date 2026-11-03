@@ -42,7 +42,7 @@ else
                               required : get_option('mng'))
   endif
 endif
-rsvg_dep  = dependency('librsvg-2.0', required : get_option('svg'))
+rsvg_dep  = dependency('librsvg-2.0', version : '>= 2.52', required : get_option('svg'))
 wmf_dep   = dependency('libwmf', required : get_option('wmf'))
 xine_dep  = dependency('libxine', version : '>= 1.2', required : get_option('xine'))
 gst_dep   = dependency('gstreamer-1.0', version : '>= 1.16', required : get_option('gstreamer'))

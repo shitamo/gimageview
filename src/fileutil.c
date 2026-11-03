@@ -524,6 +524,18 @@ fileutil_home2tilde (const char *path)
  *  path   : src path.
  *  Return : Base directory name.
  */
+const char *
+fileutil_basename (const char *path)
+{
+   const char *sep;
+
+   g_return_val_if_fail (path, NULL);
+
+   sep = strrchr (path, G_DIR_SEPARATOR);
+   return sep ? sep + 1 : path;
+}
+
+
 char *
 fileutil_dir_basename (const char *path)
 {
@@ -594,5 +606,5 @@ fileutil_extension_is (const char *filename, const char *ext)
 
    if (len1 < len2) return FALSE;
 
-   return !g_strcasecmp (filename + len1 - len2, ext);
+   return !g_ascii_strcasecmp (filename + len1 - len2, ext);
 }

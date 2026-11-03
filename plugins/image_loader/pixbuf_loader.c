@@ -518,7 +518,7 @@ pixbuf_load_file (GimvImageLoader *loader, gpointer data)
       anim = gdk_pixbuf_animation_new_from_file (filename, NULL);
       if (anim) {
          image = gimv_anim_new_from_gdk_pixbuf_animation (anim);
-         gdk_pixbuf_animation_unref (anim);
+         g_object_unref (anim);
       }
    } else {
       image = gimv_image_new ();

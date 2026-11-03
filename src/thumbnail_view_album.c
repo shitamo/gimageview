@@ -26,6 +26,7 @@
 #include "gimageview.h"
 
 #include "dnd.h"
+#include "fileutil.h"
 #include "gimv_comment.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_view.h"
@@ -410,7 +411,7 @@ thumbalbum_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
 
    pos = g_list_index (tv->thumblist, thumb);
 
-   filename = g_basename(gimv_image_info_get_path (thumb->info));
+   filename = fileutil_basename(gimv_image_info_get_path (thumb->info));
 
    if (!strcmp (dest_mode, THUMBALBUM3_LABEL)) {
       label = album_create_label_str (thumb);
@@ -781,7 +782,6 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
 
 
 
-#include "fileutil.h"
 #define DEFAULT_DATA_ORDER "Name,Size,Time"
 static gboolean show_data_title = FALSE;
 static const gchar *data_order = DEFAULT_DATA_ORDER;
@@ -794,7 +794,7 @@ label_filename (GimvThumb *thumb)
 
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), NULL);
 
-   filename = g_basename(gimv_image_info_get_path (thumb->info));
+   filename = fileutil_basename(gimv_image_info_get_path (thumb->info));
 
    tmpstr = gimv_image_info_get_display_name (thumb->info, filename);
 

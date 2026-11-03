@@ -28,6 +28,7 @@
 
 #include "gimageview.h"
 
+#include "fileutil.h"
 #include "gimv_hpaned.h"
 #include "gtk2-compat.h"
 #include "gimv_cell_pixmap.h"
@@ -222,7 +223,7 @@ prefs_win_create_page (GimvPrefsWinPagePrivate *priv)
 
    /* translate page title */
    if (priv->page->path)
-      title = g_basename (_(priv->page->path));
+      title = fileutil_basename (_(priv->page->path));
 
    /* create page */
    if (priv->page->create_page_fn) {
@@ -506,7 +507,7 @@ prefs_win_create_navtree (void)
       if (!page || !page->path) continue;
 
       /* translate page title */
-      title = g_basename (_(page->path));
+      title = fileutil_basename (_(page->path));
 
       /* get node icon */
       get_icon (page->icon,      &pixmap,  &mask);
@@ -626,8 +627,8 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    prefs_win.ok_pressed = FALSE;
 
    /* allocate buffer for new config */
-   config_prechanged = g_memdup (&conf, sizeof(Config));
-   config_changed = g_memdup (&conf, sizeof(Config));
+   config_prechanged = g_memdup2 (&conf, sizeof(Config));
+   config_changed = g_memdup2 (&conf, sizeof(Config));
 
    /* create config window */
    prefs_window = gtk_dialog_new ();

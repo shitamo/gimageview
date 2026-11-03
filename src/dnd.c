@@ -89,7 +89,7 @@ dnd_get_file_list (const gchar *string, gint len)
    GList *list = NULL;
    gint pos = 0;
 
-   uri = ptr = g_memdup (string, len);
+   uri = ptr = g_memdup2 (string, len);
 
    while (*ptr && (pos < len)) {
       if (!strncmp(ptr, "file:", 5)) {

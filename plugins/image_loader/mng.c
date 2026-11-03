@@ -589,7 +589,7 @@ mymng_refresh (mng_handle mng,
    bytes = sizeof (guchar)
       * mng_anim->width * mng_anim->height
       * mng_anim->bytes_per_pixel;
-   gimv_anim_update_frame (anim, g_memdup (mng_anim->canvas, bytes),
+   gimv_anim_update_frame (anim, g_memdup2 (mng_anim->canvas, bytes),
                            mng_anim->width, mng_anim->height, FALSE);
 
    /* restore angle */

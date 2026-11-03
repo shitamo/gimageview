@@ -62,6 +62,9 @@ char *fileutil_mode2str  (mode_t      mode);
 
 char *fileutil_home2tilde    (const char *path);
 char *fileutil_dir_basename  (const char *path);
+/* the part after the last '/' (an empty string for a path ending with '/'),
+   without allocation: the semantics of the deprecated fileutil_basename () */
+const char *fileutil_basename (const char *path);
 char *fileutil_get_extention (const char *path);
 int   fileutil_extension_is  (const char *filename,
                               const char *ext);
