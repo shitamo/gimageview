@@ -1731,10 +1731,9 @@ gimv_column_view_set_sort_column (GtkColumnView *view,
 
 /******************************************************************************
  *
- *   searching a row by typing (GtkTreeView had it; the list views of GTK 4
- *   have not): a search entry in a popover at the top of the list.  Typing
- *   on the list opens it (the keys of the window's shortcuts stay theirs),
- *   Ctrl+F too.  The row found is selected; Up and Down: the one before and
+ *   searching a row (GtkTreeView had it; the list views of GTK 4 have
+ *   not): Ctrl+F on the list opens a search entry in a popover at its top
+ *   (only Ctrl+F: typing on a list is left to the keys of the window).  The row found is selected; Up and Down: the one before and
  *   the next, Enter: the row is activated, Escape: closed.
  *
  ******************************************************************************/
@@ -1995,58 +1994,18 @@ list_search_start (ListSearch *ls, const gchar *text)
 }
 
 
-/* a shortcut of the window (its menus) for the key: theirs */
-gboolean
-gimv_list_view_key_is_shortcut (GtkWidget *view, GtkEventController *ctrl)
-{
-   GtkRoot *root = gtk_widget_get_root (view);
-   GdkEvent *event = gtk_event_controller_get_current_event (ctrl);
-   const gchar *keys[] = { "gimv-menu-shortcuts", "gimv-shortcut-controller" };
-   guint k, i, n;
-
-   if (!root || !event) return FALSE;
-   for (k = 0; k < G_N_ELEMENTS (keys); k++) {
-      GtkEventController *sc = g_object_get_data (G_OBJECT (root), keys[k]);
-      if (!GTK_IS_SHORTCUT_CONTROLLER (sc)
-          || gtk_event_controller_get_propagation_phase (sc) == GTK_PHASE_NONE)
-         continue;
-      n = g_list_model_get_n_items (G_LIST_MODEL (sc));
-      for (i = 0; i < n; i++) {
-         GtkShortcut *s = g_list_model_get_item (G_LIST_MODEL (sc), i);
-         gboolean hit = gtk_shortcut_trigger_trigger (gtk_shortcut_get_trigger (s), event, FALSE)
-                        == GDK_KEY_MATCH_EXACT;
-         g_object_unref (s);
-         if (hit) return TRUE;
-      }
-   }
-   return FALSE;
-}
-
-
+/* Ctrl+F on the list */
 static gboolean
 cb_list_view_search_key (GtkEventControllerKey *ctrl, guint keyval, guint code,
                          GdkModifierType state, ListSearch *ls)
 {
-   gunichar c;
-   gchar buf[8];
-   gint len;
-
    if ((keyval == GDK_KEY_f || keyval == GDK_KEY_F)
        && (state & GDK_MODIFIER_MASK) == GDK_CONTROL_MASK)
    {
       list_search_start (ls, NULL);
       return TRUE;
    }
-   if (state & (GDK_CONTROL_MASK | GDK_ALT_MASK | GDK_SUPER_MASK | GDK_META_MASK))
-      return FALSE;
-   c = gdk_keyval_to_unicode (keyval);
-   if (!c || !g_unichar_isgraph (c)) return FALSE;
-   if (gimv_list_view_key_is_shortcut (ls->view, GTK_EVENT_CONTROLLER (ctrl))) return FALSE;
-
-   len = g_unichar_to_utf8 (c, buf);
-   buf[len] = '\0';
-   list_search_start (ls, buf);
-   return TRUE;
+   return FALSE;
 }
 
 

@@ -1877,33 +1877,6 @@ cb_tree_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierT
       search_start (iv);
       return TRUE;
    }
-   /* typing a name: the same search, with what is typed (as the other
-    * lists; the keys of the window's shortcuts stay theirs) */
-   if (!(state & (GDK_CONTROL_MASK | GDK_ALT_MASK | GDK_SUPER_MASK | GDK_META_MASK))) {
-      gunichar c = gdk_keyval_to_unicode (keyval);
-      gboolean open = gtk_search_bar_get_search_mode (GTK_SEARCH_BAR (iv->search_bar));
-      /* open: typed on before the entry took the keys (it is shown with
-       * an animation), added to it */
-      if (c && g_unichar_isgraph (c)
-          && (open || !gimv_list_view_key_is_shortcut (iv->tree, GTK_EVENT_CONTROLLER (ctrl))))
-      {
-         gchar buf[8];
-         gint pos;
-         buf[g_unichar_to_utf8 (c, buf)] = '\0';
-         if (!open) {
-            search_start (iv);
-            gtk_editable_set_text (GTK_EDITABLE (iv->search_entry), buf);
-         } else {
-            pos = -1;
-            gtk_editable_set_position (GTK_EDITABLE (iv->search_entry), -1);
-            pos = gtk_editable_get_position (GTK_EDITABLE (iv->search_entry));
-            gtk_editable_insert_text (GTK_EDITABLE (iv->search_entry), buf, -1, &pos);
-            gtk_widget_grab_focus (iv->search_entry);
-         }
-         gtk_editable_set_position (GTK_EDITABLE (iv->search_entry), -1);
-         return TRUE;
-      }
-   }
    if (!(row = gimv_list_view_get_selected_row (iv->tree))) return FALSE;
 
    if (keyval == GDK_KEY_F2 && !(state & GDK_MODIFIER_MASK)) {
