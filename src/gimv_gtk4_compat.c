@@ -883,16 +883,12 @@ gimv_popup_window_new (void)
  *  GTK4 wants dialogs to have a transient parent.  GTK2 code often created
  *  them without; use the active (or any visible) application window.
  */
-void
-gimv_window_set_default_transient (GtkWindow *window)
+GtkWindow *
+gimv_get_default_transient_parent (GtkWindow *window)
 {
    GListModel *toplevels;
    GtkWindow *parent = NULL, *fallback = NULL;
    guint i, n;
-
-   g_return_if_fail (GTK_IS_WINDOW (window));
-
-   if (gtk_window_get_transient_for (window)) return;
 
    toplevels = gtk_window_get_toplevels ();
    n = g_list_model_get_n_items (toplevels);
@@ -900,7 +896,8 @@ gimv_window_set_default_transient (GtkWindow *window)
       GtkWindow *w = g_list_model_get_item (toplevels, i);
       g_object_unref (w);   /* the list keeps a reference */
       if (w == window || !gtk_widget_get_visible (GTK_WIDGET (w))) continue;
-      if (GTK_IS_DIALOG (w)) continue;
+      /* dialogs (see gimv_dialog_init ()) */
+      if (gtk_widget_has_css_class (GTK_WIDGET (w), "dialog")) continue;
       if (gtk_window_is_active (w)) {
          parent = w;
          break;
@@ -909,6 +906,20 @@ gimv_window_set_default_transient (GtkWindow *window)
    }
    if (!parent) parent = fallback;
 
+   return parent;
+}
+
+
+void
+gimv_window_set_default_transient (GtkWindow *window)
+{
+   GtkWindow *parent;
+
+   g_return_if_fail (GTK_IS_WINDOW (window));
+
+   if (gtk_window_get_transient_for (window)) return;
+
+   parent = gimv_get_default_transient_parent (window);
    if (parent)
       gtk_window_set_transient_for (window, parent);
 }
@@ -1218,31 +1229,103 @@ gimv_option_menu_set_sensitive_item (GtkWidget *option_menu,
  *   combo
  *
  ******************************************************************************/
+/*
+ *  GtkComboBoxText (with an entry) is deprecated since GTK 4.10 and GtkDropDown
+ *  has no entry, so the combo is a linked box of a GtkEntry and a
+ *  GtkMenuButton whose popover lists the strings; activating one copies it
+ *  into the entry (which emits "changed" like GtkComboBox did).
+ */
+#define COMBO_ENTRY_KEY   "gimv-combo-entry"
+#define COMBO_LIST_KEY    "gimv-combo-list"
+#define COMBO_BUTTON_KEY  "gimv-combo-button"
+
+static void
+cb_combo_row_activated (GtkListBox *listbox, GtkListBoxRow *row, GtkWidget *combo)
+{
+   GtkWidget *entry  = g_object_get_data (G_OBJECT (combo), COMBO_ENTRY_KEY);
+   GtkWidget *button = g_object_get_data (G_OBJECT (combo), COMBO_BUTTON_KEY);
+   GtkWidget *label  = gtk_list_box_row_get_child (row);
+
+   if (GTK_IS_LABEL (label))
+      gtk_editable_set_text (GTK_EDITABLE (entry),
+                             gtk_label_get_text (GTK_LABEL (label)));
+   gtk_menu_button_popdown (GTK_MENU_BUTTON (button));
+   gtk_widget_grab_focus (entry);
+}
+
+
 GtkWidget *
 gimv_combo_new (void)
 {
-   return gtk_combo_box_text_new_with_entry ();
+   GtkWidget *combo, *entry, *button, *popover, *scrolled, *listbox;
+
+   combo = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+   gtk_widget_add_css_class (combo, "linked");
+
+   entry = gtk_entry_new ();
+   gtk_widget_set_hexpand (entry, TRUE);
+   gtk_box_append (GTK_BOX (combo), entry);
+
+   listbox = gtk_list_box_new ();
+   gtk_list_box_set_selection_mode (GTK_LIST_BOX (listbox), GTK_SELECTION_NONE);
+   gtk_list_box_set_activate_on_single_click (GTK_LIST_BOX (listbox), TRUE);
+   g_signal_connect (listbox, "row-activated",
+                     G_CALLBACK (cb_combo_row_activated), combo);
+
+   scrolled = gtk_scrolled_window_new ();
+   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_propagate_natural_height (GTK_SCROLLED_WINDOW (scrolled),
+                                                     TRUE);
+   gtk_scrolled_window_set_max_content_height (GTK_SCROLLED_WINDOW (scrolled),
+                                               300);
+   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), listbox);
+
+   popover = gtk_popover_new ();
+   gtk_popover_set_child (GTK_POPOVER (popover), scrolled);
+
+   button = gtk_menu_button_new ();
+   gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (button), "pan-down-symbolic");
+   gtk_menu_button_set_popover (GTK_MENU_BUTTON (button), popover);
+   gtk_box_append (GTK_BOX (combo), button);
+
+   g_object_set_data (G_OBJECT (combo), COMBO_ENTRY_KEY,  entry);
+   g_object_set_data (G_OBJECT (combo), COMBO_LIST_KEY,   listbox);
+   g_object_set_data (G_OBJECT (combo), COMBO_BUTTON_KEY, button);
+
+   return combo;
 }
 
 
 GtkWidget *
 gimv_combo_get_entry (GtkWidget *combo)
 {
-   g_return_val_if_fail (GTK_IS_COMBO_BOX (combo), NULL);
-   return gtk_combo_box_get_child (GTK_COMBO_BOX (combo));
+   GtkWidget *entry;
+
+   g_return_val_if_fail (GTK_IS_WIDGET (combo), NULL);
+   entry = g_object_get_data (G_OBJECT (combo), COMBO_ENTRY_KEY);
+   g_return_val_if_fail (GTK_IS_ENTRY (entry), NULL);
+
+   return entry;
 }
 
 
 void
 gimv_combo_set_popdown_strings (GtkWidget *combo, GList *strings)
 {
+   GtkWidget *listbox;
    GList *node;
 
-   g_return_if_fail (GTK_IS_COMBO_BOX_TEXT (combo));
+   g_return_if_fail (GTK_IS_WIDGET (combo));
+   listbox = g_object_get_data (G_OBJECT (combo), COMBO_LIST_KEY);
+   g_return_if_fail (GTK_IS_LIST_BOX (listbox));
 
-   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (combo));
-   for (node = strings; node; node = g_list_next (node))
-      gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo), node->data);
+   gtk_list_box_remove_all (GTK_LIST_BOX (listbox));
+   for (node = strings; node; node = g_list_next (node)) {
+      GtkWidget *label = gtk_label_new (node->data);
+      gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+      gtk_list_box_append (GTK_LIST_BOX (listbox), label);
+   }
 }
 
 
@@ -1252,11 +1335,65 @@ gimv_combo_set_popdown_strings (GtkWidget *combo, GList *strings)
  *   dialogs
  *
  ******************************************************************************/
+/*
+ *  GtkDialog is deprecated since GTK 4.10.  GImageView only used it as a
+ *  window with a vertical "content area" and a row of buttons at the bottom
+ *  ("action area"), so a dialog is now a plain GtkWindow set up by
+ *  gimv_dialog_init ().  Like GtkDialog, Escape closes it (it emits
+ *  "close-request" which the owner may still block).
+ */
+#define DIALOG_VBOX_KEY        "gimv-dialog-vbox"
+#define DIALOG_ACTION_AREA_KEY "gimv-action-area"
+
+void
+gimv_dialog_init (GtkWindow *window)
+{
+   GtkWidget *vbox;
+   GtkEventController *controller;
+   GtkShortcut *shortcut;
+
+   g_return_if_fail (GTK_IS_WINDOW (window));
+   g_return_if_fail (!g_object_get_data (G_OBJECT (window), DIALOG_VBOX_KEY));
+
+   gtk_widget_add_css_class (GTK_WIDGET (window), "dialog");
+
+   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+   gtk_widget_set_hexpand (vbox, TRUE);
+   gtk_widget_set_vexpand (vbox, TRUE);
+   gtk_window_set_child (window, vbox);
+   g_object_set_data (G_OBJECT (window), DIALOG_VBOX_KEY, vbox);
+
+   controller = gtk_shortcut_controller_new ();
+   gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (controller),
+                                      GTK_SHORTCUT_SCOPE_MANAGED);
+   shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (GDK_KEY_Escape, 0),
+                                gtk_named_action_new ("window.close"));
+   gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller),
+                                         shortcut);
+   gtk_widget_add_controller (GTK_WIDGET (window), controller);
+}
+
+
+GtkWidget *
+gimv_dialog_new (void)
+{
+   GtkWidget *window = gtk_window_new ();
+   gimv_dialog_init (GTK_WINDOW (window));
+   return window;
+}
+
+
 GtkWidget *
 gimv_dialog_get_vbox (GtkWidget *dialog)
 {
-   g_return_val_if_fail (GTK_IS_DIALOG (dialog), NULL);
-   return gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+   GtkWidget *vbox;
+
+   g_return_val_if_fail (GTK_IS_WINDOW (dialog), NULL);
+
+   vbox = g_object_get_data (G_OBJECT (dialog), DIALOG_VBOX_KEY);
+   g_return_val_if_fail (vbox, NULL);
+
+   return vbox;
 }
 
 
@@ -1265,12 +1402,12 @@ gimv_dialog_get_action_area (GtkWidget *dialog)
 {
    GtkWidget *area, *vbox;
 
-   g_return_val_if_fail (GTK_IS_DIALOG (dialog), NULL);
+   vbox = gimv_dialog_get_vbox (dialog);
+   g_return_val_if_fail (vbox, NULL);
 
-   area = g_object_get_data (G_OBJECT (dialog), "gimv-action-area");
+   area = g_object_get_data (G_OBJECT (dialog), DIALOG_ACTION_AREA_KEY);
    if (area) return area;
 
-   vbox = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
    area = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
    gtk_box_set_homogeneous (GTK_BOX (area), TRUE);
    gtk_widget_set_halign (area, GTK_ALIGN_END);
@@ -1280,7 +1417,7 @@ gimv_dialog_get_action_area (GtkWidget *dialog)
    gtk_widget_set_margin_end (area, 6);
    gtk_widget_add_css_class (area, "dialog-action-area");
    gimv_box_pack_end (GTK_BOX (vbox), area, FALSE, FALSE, 0);
-   g_object_set_data (G_OBJECT (dialog), "gimv-action-area", area);
+   g_object_set_data (G_OBJECT (dialog), DIALOG_ACTION_AREA_KEY, area);
 
    return area;
 }
@@ -1288,7 +1425,6 @@ gimv_dialog_get_action_area (GtkWidget *dialog)
 
 typedef struct {
    GMainLoop *loop;
-   gint       response;
    gboolean   destroyed;
 } RunInfo;
 
@@ -1302,23 +1438,6 @@ run_shutdown_loop (RunInfo *ri)
 
 
 static void
-cb_run_response (GtkDialog *dialog, gint response_id, RunInfo *ri)
-{
-   ri->response = response_id;
-   run_shutdown_loop (ri);
-}
-
-
-static gboolean
-cb_run_close_request (GtkWindow *window, RunInfo *ri)
-{
-   ri->response = GTK_RESPONSE_DELETE_EVENT;
-   run_shutdown_loop (ri);
-   return TRUE; /* do not destroy, the caller does it */
-}
-
-
-static void
 cb_run_destroy (GtkWidget *widget, RunInfo *ri)
 {
    ri->destroyed = TRUE;
@@ -1326,52 +1445,10 @@ cb_run_destroy (GtkWidget *widget, RunInfo *ri)
 }
 
 
-gint
-gimv_dialog_run (GtkDialog *dialog)
-{
-   RunInfo ri = { NULL, GTK_RESPONSE_NONE, FALSE };
-   gulong id_response, id_close, id_destroy;
-   gboolean was_modal;
-
-   g_return_val_if_fail (GTK_IS_DIALOG (dialog), -1);
-
-   g_object_ref (dialog);
-
-   was_modal = gtk_window_get_modal (GTK_WINDOW (dialog));
-   if (!was_modal)
-      gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
-
-   id_response = g_signal_connect (dialog, "response",
-                                   G_CALLBACK (cb_run_response), &ri);
-   id_close = g_signal_connect (dialog, "close-request",
-                                G_CALLBACK (cb_run_close_request), &ri);
-   id_destroy = g_signal_connect (dialog, "destroy",
-                                  G_CALLBACK (cb_run_destroy), &ri);
-
-   gtk_window_present (GTK_WINDOW (dialog));
-
-   ri.loop = g_main_loop_new (NULL, FALSE);
-   g_main_loop_run (ri.loop);
-   g_main_loop_unref (ri.loop);
-
-   if (!ri.destroyed) {
-      g_signal_handler_disconnect (dialog, id_response);
-      g_signal_handler_disconnect (dialog, id_close);
-      g_signal_handler_disconnect (dialog, id_destroy);
-      if (!was_modal)
-         gtk_window_set_modal (GTK_WINDOW (dialog), FALSE);
-   }
-
-   g_object_unref (dialog);
-
-   return ri.response;
-}
-
-
 void
 gimv_window_run_modal (GtkWindow *window)
 {
-   RunInfo ri = { NULL, GTK_RESPONSE_NONE, FALSE };
+   RunInfo ri = { NULL, FALSE };
    gulong id;
 
    g_return_if_fail (GTK_IS_WINDOW (window));
@@ -1579,9 +1656,12 @@ get_event_data (GtkWidget *widget, gboolean create)
 static gboolean
 widget_wants_capture (GtkWidget *widget, GimvEventSignal signal)
 {
-   if (GTK_IS_TREE_VIEW (widget) || GTK_IS_TEXT_VIEW (widget)
+   /* list views: run before the click gestures of their rows (like the
+      GtkTreeView based code expected) */
+   if (GTK_IS_LIST_VIEW (widget) || GTK_IS_COLUMN_VIEW (widget)
+       || GTK_IS_TEXT_VIEW (widget)
        || GTK_IS_ENTRY (widget) || GTK_IS_TEXT (widget)
-       || GTK_IS_ICON_VIEW (widget) || GTK_IS_SPIN_BUTTON (widget)
+       || GTK_IS_SPIN_BUTTON (widget)
        || GTK_IS_NOTEBOOK (widget) || GTK_IS_SCROLLED_WINDOW (widget))
    {
       return TRUE;
@@ -2370,14 +2450,83 @@ gimv_cairo_set_source_color_name (cairo_t *cr, const gchar *spec)
 }
 
 
+/*
+ *  Look up a color defined with @define-color by the theme (the replacement
+ *  of the deprecated gtk_style_context_lookup_color ()): the color is
+ *  resolved by the CSS machinery on a private, never shown "probe" widget
+ *  whose CSS class sets "color: @<name>", and read back with
+ *  gtk_widget_get_color ().  A name the theme does not define resolves to
+ *  the same value as a probe for a name nobody defines, which is how a
+ *  failed lookup is detected.
+ */
+#define COLOR_PROBE_UNDEFINED "gimv_undefined_color_probe"
+
+static GtkWidget *
+color_probe_get (const gchar *name)
+{
+   static GHashTable *probes = NULL;
+   GtkWidget *probe;
+   GdkDisplay *display;
+
+   if (!probes)
+      probes = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                      g_free, g_object_unref);
+
+   probe = g_hash_table_lookup (probes, name);
+   if (!probe) {
+      GtkCssProvider *provider;
+      gchar *css_class, *css;
+
+      display = gdk_display_get_default ();
+      if (!display) return NULL;
+
+      css_class = g_strdup_printf ("gimv-color-probe-%s", name);
+      css = g_strdup_printf (".%s { color: @%s; }", css_class, name);
+      provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_string (provider, css);
+      gtk_style_context_add_provider_for_display (
+         display, GTK_STYLE_PROVIDER (provider),
+         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+      g_object_unref (provider);
+
+      probe = gtk_label_new (NULL);
+      gtk_widget_add_css_class (probe, css_class);
+      g_object_ref_sink (probe);
+      g_hash_table_insert (probes, g_strdup (name), probe);
+
+      g_free (css);
+      g_free (css_class);
+   }
+
+   return probe;
+}
+
+
+gboolean
+gimv_widget_lookup_color (GtkWidget *widget, const gchar *name, GdkRGBA *color)
+{
+   GtkWidget *probe, *undefined;
+   GdkRGBA undefined_color;
+
+   g_return_val_if_fail (name && *name, FALSE);
+   g_return_val_if_fail (color, FALSE);
+
+   probe     = color_probe_get (name);
+   undefined = color_probe_get (COLOR_PROBE_UNDEFINED);
+   if (!probe || !undefined) return FALSE;
+
+   gtk_widget_get_color (probe, color);
+   gtk_widget_get_color (undefined, &undefined_color);
+
+   return !gdk_rgba_equal (color, &undefined_color);
+}
+
+
 static gboolean
 lookup_color (GtkWidget *widget, const gchar *name, GdkRGBA *color)
 {
-   GtkStyleContext *context;
-
    if (!widget) return FALSE;
-   context = gtk_widget_get_style_context (widget);
-   return context && gtk_style_context_lookup_color (context, name, color);
+   return gimv_widget_lookup_color (widget, name, color);
 }
 
 
@@ -2415,15 +2564,25 @@ gimv_widget_get_base_color (GtkWidget *widget, GdkRGBA *color)
 GdkPixbuf *
 gimv_pixbuf_from_texture (GdkTexture *texture)
 {
+   GdkTextureDownloader *downloader;
    GdkPixbuf *pixbuf;
-   cairo_surface_t *surface;
+   GBytes *bytes;
+   gsize stride;
 
    g_return_val_if_fail (GDK_IS_TEXTURE (texture), NULL);
 
-   surface = texture_get_surface (texture);
-   pixbuf = gdk_pixbuf_get_from_surface (surface, 0, 0,
-                                         gdk_texture_get_width (texture),
-                                         gdk_texture_get_height (texture));
+   /* GTK 4.12: gdk_pixbuf_get_from_surface () is deprecated */
+   downloader = gdk_texture_downloader_new (texture);
+   gdk_texture_downloader_set_format (downloader, GDK_MEMORY_R8G8B8A8);
+   bytes = gdk_texture_downloader_download_bytes (downloader, &stride);
+   gdk_texture_downloader_free (downloader);
+
+   pixbuf = gdk_pixbuf_new_from_bytes (bytes, GDK_COLORSPACE_RGB, TRUE, 8,
+                                       gdk_texture_get_width (texture),
+                                       gdk_texture_get_height (texture),
+                                       stride);
+   g_bytes_unref (bytes);
+
    return pixbuf;
 }
 
@@ -2458,6 +2617,86 @@ gimv_widget_render_icon (GtkWidget *widget, const gchar *icon_name, gint size)
    return pixbuf;
 }
 
+
+
+/******************************************************************************
+ *
+ *   status bar
+ *
+ ******************************************************************************/
+GtkWidget *
+gimv_statusbar_new (void)
+{
+   GtkWidget *label;
+
+   /* what GtkStatusbar showed: one ellipsized, start aligned line */
+   label = gtk_label_new (NULL);
+   gtk_label_set_single_line_mode (GTK_LABEL (label), TRUE);
+   gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_widget_set_margin_start (label, 6);
+   gtk_widget_set_margin_end (label, 6);
+   gtk_widget_set_margin_top (label, 3);
+   gtk_widget_set_margin_bottom (label, 3);
+
+   return label;
+}
+
+
+/* the texts: the base one (set_text) and those pushed over it by a
+ * context (the highest context shown), like GtkStatusbar had */
+#define STATUSBAR_KEY "gimv-statusbar-texts"
+
+static gint
+gimv_statusbar_cmp (gconstpointer a, gconstpointer b, gpointer data)
+{
+   guint x = GPOINTER_TO_UINT (a), y = GPOINTER_TO_UINT (b);
+   return x < y ? -1 : x > y;
+}
+
+static GTree *
+statusbar_texts (GtkWidget *statusbar)
+{
+   GTree *t = g_object_get_data (G_OBJECT (statusbar), STATUSBAR_KEY);
+   if (!t) {
+      t = g_tree_new_full ((GCompareDataFunc) gimv_statusbar_cmp, NULL, NULL, g_free);
+      g_object_set_data_full (G_OBJECT (statusbar), STATUSBAR_KEY, t,
+                              (GDestroyNotify) g_tree_unref);
+   }
+   return t;
+}
+
+static void
+statusbar_update (GtkWidget *statusbar)
+{
+   GTree *t = statusbar_texts (statusbar);
+   GTreeNode *last = g_tree_node_last (t);
+   gtk_label_set_text (GTK_LABEL (statusbar),
+                       last ? g_tree_node_value (last) : "");
+}
+
+void
+gimv_statusbar_set_text (GtkWidget *statusbar, const gchar *text)
+{
+   gimv_statusbar_push (statusbar, 0, text);
+}
+
+void
+gimv_statusbar_push (GtkWidget *statusbar, guint context, const gchar *text)
+{
+   g_return_if_fail (GTK_IS_LABEL (statusbar));
+   g_tree_replace (statusbar_texts (statusbar), GUINT_TO_POINTER (context),
+                   g_strdup (text ? text : ""));
+   statusbar_update (statusbar);
+}
+
+void
+gimv_statusbar_pop (GtkWidget *statusbar, guint context)
+{
+   g_return_if_fail (GTK_IS_LABEL (statusbar));
+   g_tree_remove (statusbar_texts (statusbar), GUINT_TO_POINTER (context));
+   statusbar_update (statusbar);
+}
 
 
 /******************************************************************************
@@ -2525,216 +2764,4 @@ gimv_clipboard_set_texture (GdkTexture *texture)
    GdkDisplay *display = gdk_display_get_default ();
    if (!display || !texture) return;
    gdk_clipboard_set_texture (gdk_display_get_clipboard (display), texture);
-}
-
-
-/******************************************************************************
- *
- *   wider column resize handles for GtkTreeView headers
- *
- ******************************************************************************/
-#define COLUMN_RESIZE_HANDLE   5     /* pixels on each side of a separator */
-#define COLUMN_RESIZE_MIN      8
-#define COLUMN_RESIZE_KEY      "gimv-column-resize"
-
-typedef struct {
-   GtkTreeView       *treeview;
-   GtkTreeViewColumn *column;       /* column being resized */
-   gint               start_width;
-   GtkWidget         *cursor_widget; /* header button with our cursor */
-} ColumnResize;
-
-
-/* the resizable column whose right header edge is near (x, y), in tree view
-   coordinates; NULL if (x, y) is not on the header row near a separator */
-static GtkTreeViewColumn *
-column_resize_find (GtkTreeView *treeview, gdouble x, gdouble y,
-                    GtkWidget **button_under_pointer)
-{
-   GtkTreeViewColumn *found = NULL;
-   gdouble best = COLUMN_RESIZE_HANDLE + 1;
-   GList *columns, *node;
-
-   if (button_under_pointer) *button_under_pointer = NULL;
-   if (!gtk_tree_view_get_headers_visible (treeview)) return NULL;
-
-   columns = gtk_tree_view_get_columns (treeview);
-   for (node = columns; node; node = g_list_next (node)) {
-      GtkTreeViewColumn *col = node->data;
-      GtkWidget *button = gtk_tree_view_column_get_button (col);
-      graphene_rect_t b;
-      gdouble edge, dist;
-
-      if (!gtk_tree_view_column_get_visible (col) || !button
-          || !gtk_widget_get_realized (button)
-          || !gtk_widget_compute_bounds (button, GTK_WIDGET (treeview), &b))
-      {
-         continue;
-      }
-      if (y < b.origin.y || y >= b.origin.y + b.size.height)
-         continue;
-
-      if (button_under_pointer
-          && x >= b.origin.x && x < b.origin.x + b.size.width)
-      {
-         *button_under_pointer = button;
-      }
-
-      if (!gtk_tree_view_column_get_resizable (col)) continue;
-
-      edge = b.origin.x + b.size.width;
-      dist = fabs (x - edge);
-      if (dist <= COLUMN_RESIZE_HANDLE && dist < best) {
-         best = dist;
-         found = col;
-      }
-   }
-   g_list_free (columns);
-
-   return found;
-}
-
-
-/* "col-resize" with the core X cursor as fallback: on X11 GDK finds
-   col-resize only in cursor themes that have it (or h_double_arrow);
-   without one the cursor silently stays unchanged */
-static GdkCursor *
-column_resize_cursor (void)
-{
-   static GdkCursor *cursor = NULL;
-
-   if (!cursor) {
-      GdkCursor *core = gdk_cursor_new_from_name ("sb_h_double_arrow", NULL);
-      cursor = gdk_cursor_new_from_name ("col-resize", core);
-      g_object_unref (core);
-   }
-   return cursor;
-}
-
-
-static void
-column_resize_set_cursor (ColumnResize *cr, GtkWidget *button)
-{
-   /* the cursor is set on the header button under the pointer: the tree
-      view resets its own cursor on every motion outside its 6 pixels */
-   if (cr->cursor_widget && cr->cursor_widget != button) {
-      gtk_widget_set_cursor (cr->cursor_widget, NULL);
-      g_object_remove_weak_pointer (G_OBJECT (cr->cursor_widget),
-                                    (gpointer *) &cr->cursor_widget);
-      cr->cursor_widget = NULL;
-   }
-   if (button && cr->cursor_widget != button) {
-      gtk_widget_set_cursor (button, column_resize_cursor ());
-      cr->cursor_widget = button;
-      g_object_add_weak_pointer (G_OBJECT (button),
-                                 (gpointer *) &cr->cursor_widget);
-   }
-}
-
-
-static void
-cb_column_resize_motion (GtkEventControllerMotion *motion,
-                         gdouble x, gdouble y, ColumnResize *cr)
-{
-   GtkWidget *button = NULL;
-   GtkTreeViewColumn *col;
-
-   if (cr->column) return;   /* dragging */
-
-   col = column_resize_find (cr->treeview, x, y, &button);
-   column_resize_set_cursor (cr, col ? button : NULL);
-}
-
-
-static void
-cb_column_resize_leave (GtkEventControllerMotion *motion, ColumnResize *cr)
-{
-   if (!cr->column)
-      column_resize_set_cursor (cr, NULL);
-}
-
-
-static void
-cb_column_resize_begin (GtkGestureDrag *gesture, gdouble x, gdouble y,
-                        ColumnResize *cr)
-{
-   GtkTreeViewColumn *col = column_resize_find (cr->treeview, x, y, NULL);
-
-   if (!col) {
-      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_DENIED);
-      return;
-   }
-
-   /* claim it before the header click (sorting), column dragging and our
-      own DnD source see the press */
-   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
-   cr->column = col;
-   cr->start_width = gtk_tree_view_column_get_width (col);
-}
-
-
-static void
-cb_column_resize_update (GtkGestureDrag *gesture, gdouble dx, gdouble dy,
-                         ColumnResize *cr)
-{
-   gint width;
-
-   if (!cr->column) return;
-
-   if (gtk_widget_get_direction (GTK_WIDGET (cr->treeview)) == GTK_TEXT_DIR_RTL)
-      dx = -dx;
-   width = MAX (cr->start_width + (gint) dx, COLUMN_RESIZE_MIN);
-   if (width != gtk_tree_view_column_get_fixed_width (cr->column))
-      gtk_tree_view_column_set_fixed_width (cr->column, width);
-}
-
-
-static void
-cb_column_resize_end (GtkGesture *gesture, GdkEventSequence *sequence,
-                      ColumnResize *cr)
-{
-   cr->column = NULL;
-}
-
-
-static void
-column_resize_free (ColumnResize *cr)
-{
-   if (cr->cursor_widget)
-      g_object_remove_weak_pointer (G_OBJECT (cr->cursor_widget),
-                                    (gpointer *) &cr->cursor_widget);
-   g_free (cr);
-}
-
-
-void
-gimv_tree_view_widen_column_resize (GtkTreeView *treeview)
-{
-   ColumnResize *cr;
-   GtkEventController *motion;
-   GtkGesture *drag;
-
-   g_return_if_fail (GTK_IS_TREE_VIEW (treeview));
-
-   if (g_object_get_data (G_OBJECT (treeview), COLUMN_RESIZE_KEY)) return;
-
-   cr = g_new0 (ColumnResize, 1);
-   cr->treeview = treeview;
-   g_object_set_data_full (G_OBJECT (treeview), COLUMN_RESIZE_KEY, cr,
-                           (GDestroyNotify) column_resize_free);
-
-   motion = gtk_event_controller_motion_new ();
-   gtk_event_controller_set_propagation_phase (motion, GTK_PHASE_CAPTURE);
-   g_signal_connect (motion, "motion", G_CALLBACK (cb_column_resize_motion), cr);
-   g_signal_connect (motion, "leave", G_CALLBACK (cb_column_resize_leave), cr);
-   gtk_widget_add_controller (GTK_WIDGET (treeview), motion);
-
-   drag = gtk_gesture_drag_new ();
-   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (drag), GDK_BUTTON_PRIMARY);
-   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (drag),
-                                               GTK_PHASE_CAPTURE);
-   g_signal_connect (drag, "drag-begin", G_CALLBACK (cb_column_resize_begin), cr);
-   g_signal_connect (drag, "drag-update", G_CALLBACK (cb_column_resize_update), cr);
-   g_signal_connect (drag, "end", G_CALLBACK (cb_column_resize_end), cr);
-   gtk_widget_add_controller (GTK_WIDGET (treeview), GTK_EVENT_CONTROLLER (drag));
 }

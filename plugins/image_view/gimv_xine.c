@@ -1377,7 +1377,7 @@ gimv_xine_get_current_frame (GimvXine *gtx,
                              gint *width,
                              gint *height,
                              gint *ratio_code, gint *format,
-                             uint8_t *img)
+                             uint8_t *img, gint *img_size)
 {
    GimvXinePrivate *priv;
 
@@ -1387,8 +1387,9 @@ gimv_xine_get_current_frame (GimvXine *gtx,
    priv = gtx->private;
    g_return_val_if_fail (priv->stream, 0);
 
-   return xine_get_current_frame (priv->stream, width, height, ratio_code,
-                                  format, img);
+   /* xine_get_current_frame () (deprecated) did not know the buffer size */
+   return xine_get_current_frame_s (priv->stream, width, height, ratio_code,
+                                    format, img, img_size);
 }
 
 
@@ -1401,7 +1402,7 @@ gimv_xine_get_current_frame_rgb (GimvXine *gtx,
    gint err = 0;
    GimvXinePrivImage *image;
    guchar *rgb = NULL;
-   gint width, height;
+   gint width, height, img_size;
 
    g_return_val_if_fail (gtx, NULL);
    g_return_val_if_fail (GIMV_IS_XINE (gtx), NULL);
@@ -1413,13 +1414,14 @@ gimv_xine_get_current_frame_rgb (GimvXine *gtx,
    width  = xine_get_stream_info (priv->stream, XINE_STREAM_INFO_VIDEO_WIDTH);
    height = xine_get_stream_info (priv->stream, XINE_STREAM_INFO_VIDEO_HEIGHT);
 
-   image = gimv_xine_priv_image_new (sizeof (guchar) * width * height * 2);
+   img_size = sizeof (guchar) * width * height * 2;
+   image = gimv_xine_priv_image_new (img_size);
 
-   err = xine_get_current_frame(priv->stream,
-                                &image->width, &image->height,
-                                &image->ratio_code,
-                                &image->format,
-                                image->img);
+   err = xine_get_current_frame_s (priv->stream,
+                                   &image->width, &image->height,
+                                   &image->ratio_code,
+                                   &image->format,
+                                   image->img, &img_size);
 
    if (err == 0) goto ERROR;
 

@@ -183,7 +183,7 @@ filter_check_duplicate (const gchar *ext, gint row, gboolean dialog)
       text = gimv_elist_get_cell_text (editlist, i, 0);
       if (!text) continue;
 
-      if (text && *text && !g_strcasecmp (ext, text)) {
+      if (text && *text && !g_ascii_strcasecmp (ext, text)) {
          if (dialog) {
             g_snprintf (message, BUF_SIZE, _("\"%s\" is already defined."), ext);
             gtkutil_message_dialog (_("Error!"), message,
@@ -284,7 +284,7 @@ filter_set_value (void)
 
       text[1] = *sections[1] ? sections[1] : "UNKNOWN";
 
-      if (*sections[2] && !g_strcasecmp (sections[2], "ENABLE")) {
+      if (*sections[2] && !g_ascii_strcasecmp (sections[2], "ENABLE")) {
          text[2] = _("Enable");
          rowdata->enable = TRUE;
       } else {
@@ -752,57 +752,57 @@ prefs_filter_page (void)
     * Image Types Frame
     **********************************************/
    gimv_prefs_ui_create_frame(_("File Types"), frame, frame_vbox, main_vbox, TRUE);
-   gtk_widget_show (frame_vbox);
-   gtk_widget_show (frame);
+   gtk_widget_set_visible (frame_vbox, TRUE);
+   gtk_widget_set_visible (frame, TRUE);
 
    editlist = gimv_elist_new_with_titles (titles_num, titles);
    prefs_win.filter_editlist = editlist;
    gimv_elist_set_reorderable (GIMV_ELIST (editlist), FALSE);
    gimv_elist_set_auto_sort (GIMV_ELIST (editlist), 0);
    gimv_box_pack_start (GTK_BOX (frame_vbox), editlist, TRUE, TRUE, 0);
-   gtk_widget_show (editlist);
+   gtk_widget_set_visible (editlist, TRUE);
 
    /* entry area */
    hbox = GIMV_ELIST (editlist)->edit_area;
 
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
 
    label = gtk_label_new (_("Extension: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    entry = gimv_elist_create_entry (GIMV_ELIST (editlist), 0, NULL, FALSE);
    prefs_win.filter_ext_entry = entry;
    gimv_widget_set_size (entry, 100, -1);
    gimv_box_pack_start (GTK_BOX (vbox), entry, FALSE, TRUE, 0);
-   gtk_widget_show (entry);
+   gtk_widget_set_visible (entry, TRUE);
 
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
 
    label = gtk_label_new (_("File Type: "));
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox1, TRUE, TRUE, 0);
-   gtk_widget_show (hbox1);
+   gtk_widget_set_visible (hbox1, TRUE);
 
    entry = gimv_elist_create_entry (GIMV_ELIST (editlist), 1,
                                        "UNKNOWN", FALSE);
    prefs_win.filter_type_entry = entry;
    gimv_box_pack_start (GTK_BOX (hbox1), entry, TRUE, TRUE, 0);
-   gtk_widget_show (entry);
+   gtk_widget_set_visible (entry, TRUE);
 
    /* disable check box */
    toggle = gimv_elist_create_check_button (GIMV_ELIST (editlist), 2,
@@ -810,7 +810,7 @@ prefs_filter_page (void)
                                             _("Disable"), _("Enable"));
    prefs_win.filter_disable_toggle = toggle;
    gimv_box_pack_start (GTK_BOX (hbox1), toggle, FALSE, FALSE, 0);
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
 
    /* definition type column */
    gimv_elist_set_column_funcs (GIMV_ELIST (editlist),
@@ -838,7 +838,7 @@ prefs_filter_page (void)
                                          gtkutil_get_data_from_toggle_cb,
                                          &config_changed->read_dotfile);
    gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
 
    /* Ignore filename extension or not */
    toggle = gtkutil_create_check_button (_("Ignore file name extension"),
@@ -846,7 +846,7 @@ prefs_filter_page (void)
                                          gtkutil_get_data_from_toggle_negative_cb,
                                          &config_changed->detect_filetype_by_ext);
    gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
 
    return main_vbox;
 }

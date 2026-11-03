@@ -665,7 +665,7 @@ imageview_xine_create (GimvImageView *iv)
       child the whole area, otherwise the video window is 0x0 */
    gtk_widget_set_hexpand (gxine, TRUE);
    gtk_widget_set_vexpand (gxine, TRUE);
-   gtk_widget_show (gxine);
+   gtk_widget_set_visible (gxine, TRUE);
 
    g_signal_connect (G_OBJECT (gxine), "playback_finished",
                        G_CALLBACK (cb_playback_finished), iv);

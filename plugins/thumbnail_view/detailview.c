@@ -274,7 +274,7 @@ column_data_filename (GimvThumb *thumb)
 
    /*
    if (tv->mode == THUMB_VIEW_MODE_DIR)
-      return g_strdup (g_basename (thumb->info->filename));
+      return g_strdup (fileutil_basename (thumb->info->filename));
    else
       return g_strdup (thumb->info->filename);
    */
@@ -286,7 +286,7 @@ column_data_filename (GimvThumb *thumb)
       /* "gimv-name-only": a collection made from the image index */
       if (tv->mode == GIMV_THUMB_VIEW_MODE_DIR
           || g_object_get_data (G_OBJECT (tv), "gimv-name-only"))
-         filename = g_basename (gimv_image_info_get_path (thumb->info));
+         filename = fileutil_basename (gimv_image_info_get_path (thumb->info));
       else
          filename = gimv_image_info_get_path (thumb->info);
 

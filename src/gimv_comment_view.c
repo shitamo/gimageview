@@ -39,6 +39,7 @@
 #include "gimv_icon_stock.h"
 #include "gimv_image_info.h"
 #include "gimv_image_view.h"
+#include "gimv_list_view.h"
 #include "prefs.h"
 
 
@@ -48,7 +49,6 @@ typedef enum {
    COLUMN_VALUE,
    COLUMN_RAW_ENTRY,
    COLUMN_FILE,       /* a comment written in the image file: shown only */
-   COLUMN_STYLE,      /* PangoStyle: those in italics */
    COLUMN_TIP,        /* their whole text (markup) */
    N_COLUMN
 } ListStoreColumn;
@@ -58,22 +58,57 @@ static void gimv_comment_view_set_sensitive  (GimvCommentView *cv);
 static void gimv_comment_view_set_combo_list (GimvCommentView *cv);
 static void gimv_comment_view_data_enter     (GimvCommentView *cv);
 static void gimv_comment_view_reset_data     (GimvCommentView *cv);
+static void combo_select_name                 (GimvCommentView *cv,
+                                               const gchar     *name);
+
+
+static GimvRow *
+comment_row_new (void)
+{
+   return gimv_row_new (N_COLUMN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_POINTER,
+                        G_TYPE_BOOLEAN, G_TYPE_STRING);
+}
 
 
 /* the row selected is a comment of the image file (not to edit) */
 static gboolean
 selected_is_file (GimvCommentView *cv)
 {
-   GtkTreeSelection *selection;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gboolean file = FALSE;
+   GimvRow *row;
 
    if (!cv->comment_clist) return FALSE;
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (cv->comment_clist));
-   if (gtk_tree_selection_get_selected (selection, &model, &iter))
-      gtk_tree_model_get (model, &iter, COLUMN_FILE, &file, COLUMN_TERMINATOR);
-   return file;
+   row = gimv_list_view_get_selected_row (cv->comment_clist);
+   return row && gimv_row_peek_boolean (row, COLUMN_FILE);
+}
+
+
+/* a cell of the data list: the comments of the file in italics, with
+ * their whole text as the tooltip */
+static GtkWidget *
+data_cell_setup (gpointer data)
+{
+   GtkWidget *label = gtk_label_new (NULL);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+   return label;
+}
+
+static void
+data_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
+{
+   GtkWidget *label = gimv_cell_get_content (cell);
+   gboolean file = gimv_row_peek_boolean (row, COLUMN_FILE);
+   const gchar *text = gimv_row_peek_string (row, GPOINTER_TO_INT (data));
+   PangoAttrList *attrs = NULL;
+
+   gtk_label_set_text (GTK_LABEL (label), text ? text : "");
+   if (file) {
+      attrs = pango_attr_list_new ();
+      pango_attr_list_insert (attrs, pango_attr_style_new (PANGO_STYLE_ITALIC));
+   }
+   gtk_label_set_attributes (GTK_LABEL (label), attrs);
+   if (attrs) pango_attr_list_unref (attrs);
+   gtk_widget_set_tooltip_markup (label, file ? gimv_row_peek_string (row, COLUMN_TIP) : NULL);
 }
 
 
@@ -98,9 +133,9 @@ cb_switch_page (GtkNotebook *notebook,
    widget = gtk_notebook_get_nth_page (notebook, pagenum);
 
    if (widget == cv->data_page || widget == cv->note_page)
-      gtk_widget_show (cv->button_area);
+      gtk_widget_set_visible (cv->button_area, TRUE);
    else
-      gtk_widget_hide (cv->button_area);
+      gtk_widget_set_visible (cv->button_area, FALSE);
 
    gimv_comment_view_set_sensitive (cv);
 }
@@ -115,25 +150,21 @@ gimv_comment_view_delete_selected_data (GimvCommentView *cv)
    if (selected_is_file (cv)) return;
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (cv->comment_clist);
-      GtkTreeSelection *selection  = gtk_tree_view_get_selection (treeview);
-      GtkTreeModel *model;
-      GtkTreeIter iter;
-      gboolean found;
+      guint position = gimv_list_view_get_selected (cv->comment_clist);
+      GListModel *model = gimv_list_view_get_model (cv->comment_clist);
+      GimvRow *row = gimv_row_store_peek (model, position);
 
-      found = gtk_tree_selection_get_selected (selection, &model, &iter);
-      if (!found) return;
+      if (!row) return;
 
-      gtk_tree_model_get (model, &iter,
-                          COLUMN_RAW_ENTRY, &entry,
-                          COLUMN_TERMINATOR);
-      gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
+      entry = gimv_row_peek_pointer (row, COLUMN_RAW_ENTRY);
+      g_list_store_remove (G_LIST_STORE (model), position);
    }
 
    if (entry)
       gimv_comment_data_entry_remove (cv->comment, entry);
 
-   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), "\0");
+   gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo),
+                               GTK_INVALID_LIST_POSITION);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
    gimv_comment_view_set_sensitive (cv);
@@ -228,52 +259,31 @@ cb_destroyed (GtkWidget *widget, GimvCommentView *cv)
 
 
 static void
-cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
+cb_data_list_selection_changed (GtkSelectionModel *selection,
+                                guint position, guint n_items,
+                                GimvCommentView *cv)
 {
-   GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gboolean success;
-   gchar *key = NULL, *value = NULL;
-   gboolean file = FALSE;
-   GtkEntry *entry1, *entry2;
+   GimvRow *row;
+   const gchar *key = NULL, *value = NULL;
+   gchar *whole = NULL;
 
-   /* GTK4: also emitted while the tree view is disposed (without model) */
-   if (!gtk_tree_view_get_model (treeview)) return;
+   if (!cv->comment_clist) return;
 
-   entry1 = GTK_ENTRY (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo)));
-   entry2 = GTK_ENTRY(cv->value_entry);
-
-   success = gtk_tree_selection_get_selected (selection, &model, &iter);
-   if (success) {
-      gtk_tree_model_get (model, &iter,
-                          COLUMN_KEY,   &key,
-                          COLUMN_VALUE, &value,
-                          COLUMN_FILE,  &file,
-                          COLUMN_TERMINATOR);
-   }
-   /* a comment of the file: its whole text (the list shows its first line) */
-   if (file) {
-      gchar *tip = NULL, *text = NULL;
-      gtk_tree_model_get (model, &iter, COLUMN_TIP, &tip, COLUMN_TERMINATOR);
-      if (tip && pango_parse_markup (tip, -1, 0, NULL, &text, NULL, NULL)) {
-         g_free (value);
-         value = g_strdelimit (text, "\n", ' ');
+   row = gimv_list_view_get_selected_row (cv->comment_clist);
+   if (row) {
+      key   = gimv_row_peek_string (row, COLUMN_KEY);
+      value = gimv_row_peek_string (row, COLUMN_VALUE);
+      /* a comment of the file: its whole text (the list shows its first line) */
+      if (gimv_row_peek_boolean (row, COLUMN_FILE)) {
+         const gchar *tip = gimv_row_peek_string (row, COLUMN_TIP);
+         if (tip && pango_parse_markup (tip, -1, 0, NULL, &whole, NULL, NULL))
+            value = g_strdelimit (whole, "\n", ' ');
       }
-      g_free (tip);
    }
 
-   if (key)
-      gtk_editable_set_text (GTK_EDITABLE (entry1), key);
-   else
-      gtk_editable_set_text (GTK_EDITABLE (entry1), "\0");
-   if (value)
-      gtk_editable_set_text (GTK_EDITABLE (entry2), value);
-   else
-      gtk_editable_set_text (GTK_EDITABLE (entry2), "\0");
-
-   g_free (key);
-   g_free (value);
+   combo_select_name (cv, key);
+   gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), value ? value : "");
+   g_free (whole);
 
    gimv_comment_view_set_sensitive (cv);
 }
@@ -350,12 +360,41 @@ cb_entry_enter (GtkEditable *entry, GimvCommentView *cv)
 
 
 /*
- *  GTK4: GtkCombo is gone, the key combo is a GtkComboBoxText with an entry.
- *  The keys and the display names of the items are attached to the combo as
- *  "keys" and "names" (GPtrArray).  When an item is selected (or the entry
- *  text matches an item, like GtkCombo did), the key of it is attached as
- *  "key" and cv->selected_item points to the combo.
+ *  GTK4: GtkCombo is gone, the key combo is a GtkDropDown (its entry was
+ *  not editable).  The keys and the display names of the items are attached
+ *  to the combo as "keys" and "names" (GPtrArray).  When an item is selected
+ *  the key of it is attached as "key" and cv->selected_item points to the
+ *  combo.
  */
+static const gchar *
+combo_get_selected_name (GimvCommentView *cv)
+{
+   GPtrArray *names = g_object_get_data (G_OBJECT (cv->key_combo), "names");
+   guint idx = gtk_drop_down_get_selected (GTK_DROP_DOWN (cv->key_combo));
+
+   if (!names || idx == GTK_INVALID_LIST_POSITION || idx >= names->len)
+      return "";
+   return g_ptr_array_index (names, idx);
+}
+
+
+/* select the item whose display name is "name" (none if not found) */
+static void
+combo_select_name (GimvCommentView *cv, const gchar *name)
+{
+   GPtrArray *names = g_object_get_data (G_OBJECT (cv->key_combo), "names");
+   guint i, idx = GTK_INVALID_LIST_POSITION;
+
+   for (i = 0; name && names && i < names->len; i++) {
+      if (!strcmp (name, g_ptr_array_index (names, i))) {
+         idx = i;
+         break;
+      }
+   }
+   gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo), idx);
+}
+
+
 static void
 combo_select_key (GimvCommentView *cv, const gchar *key)
 {
@@ -370,32 +409,19 @@ combo_select_key (GimvCommentView *cv, const gchar *key)
    clist = cv->comment_clist;
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
-      gboolean go_next;
+      GListModel *model = gimv_list_view_get_model (clist);
+      guint i, n = g_list_model_get_n_items (model);
 
-      go_next = gtk_tree_model_get_iter_first (model, &iter);
-
-      for (; go_next; go_next = gtk_tree_model_iter_next (model, &iter)) {
+      for (i = 0; i < n; i++) {
          GimvCommentDataEntry *entry;
 
-         gtk_tree_model_get (model, &iter,
-                             COLUMN_RAW_ENTRY, &entry,
-                             COLUMN_TERMINATOR);
+         entry = gimv_row_peek_pointer (gimv_row_store_peek (model, i),
+                                        COLUMN_RAW_ENTRY);
          if (!entry) continue;
 
          if (entry->key && !strcmp (key, entry->key)) {
-            GtkTreePath *treepath = gtk_tree_model_get_path (model, &iter);
-            GtkTreePath *cursor = NULL;
-
-            if (!treepath) continue;
-            gtk_tree_view_get_cursor (treeview, &cursor, NULL);
-            if (!cursor || gtk_tree_path_compare (cursor, treepath))
-               gtk_tree_view_set_cursor (treeview, treepath, NULL, FALSE);
-            if (cursor)
-               gtk_tree_path_free (cursor);
-            gtk_tree_path_free (treepath);
+            if (gimv_list_view_get_selected (clist) != i)
+               gimv_list_view_select (clist, i);
             break;
          }
       }
@@ -404,49 +430,24 @@ combo_select_key (GimvCommentView *cv, const gchar *key)
 
 
 static void
-cb_combo_changed (GtkComboBox *combo, GimvCommentView *cv)
+cb_combo_changed (GtkDropDown *combo, GParamSpec *pspec, GimvCommentView *cv)
 {
-   GPtrArray *keys, *names;
-   gint idx;
+   GPtrArray *keys;
+   guint idx;
 
    g_return_if_fail (cv);
 
-   keys  = g_object_get_data (G_OBJECT (combo), "keys");
-   names = g_object_get_data (G_OBJECT (combo), "names");
-   if (!keys || !names) {
+   keys = g_object_get_data (G_OBJECT (combo), "keys");
+   if (!keys) {
       cv->selected_item = NULL;
       return;
    }
 
-   idx = gtk_combo_box_get_active (combo);
-   if (idx < 0) {
-      /* find the item which matches with the entry text */
-      const gchar *text;
-      guint i;
-
-      text = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (combo))));
-      for (i = 0; text && i < names->len; i++) {
-         if (!strcmp (text, g_ptr_array_index (names, i))) {
-            idx = i;
-            break;
-         }
-      }
-   }
-
-   if (idx >= 0 && (guint) idx < keys->len)
+   idx = gtk_drop_down_get_selected (combo);
+   if (idx != GTK_INVALID_LIST_POSITION && idx < keys->len)
       combo_select_key (cv, g_ptr_array_index (keys, idx));
    else
       cv->selected_item = NULL;
-}
-
-
-static void
-cb_combo_entry_changed (GtkEditable *entry, GimvCommentView *cv)
-{
-   g_return_if_fail (cv);
-   if (!cv->key_combo) return;
-
-   cb_combo_changed (GTK_COMBO_BOX (cv->key_combo), cv);
 }
 
 
@@ -678,9 +679,9 @@ create_data_page (GimvCommentView *cv)
 
    label = gtk_label_new (_("Data"));
    gtk_widget_set_name (label, "TabLabel");
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
    cv->data_page = vbox = gimv_vbox_new (FALSE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    gtk_notebook_append_page (GTK_NOTEBOOK(cv->notebook),
                              vbox, label);
@@ -697,46 +698,30 @@ create_data_page (GimvCommentView *cv)
    gimv_box_pack_start(GTK_BOX(vbox), scrolledwin, TRUE, TRUE, 0);
 
 {
-   GtkListStore *store;
-   GtkTreeViewColumn *col;
-   GtkCellRenderer *render;
+   GtkColumnViewColumn *col;
 
-   store = gtk_list_store_new (N_COLUMN,
-                               G_TYPE_STRING,
-                               G_TYPE_STRING,
-                               G_TYPE_POINTER,
-                               G_TYPE_BOOLEAN,
-                               G_TYPE_INT,
-                               G_TYPE_STRING);
-   clist =  gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-   gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
+   /* GTK4: GtkTreeView (deprecated) -> GtkColumnView */
+   clist = gimv_column_view_new (G_LIST_MODEL (gimv_row_store_new ()),
+                                 GTK_SELECTION_SINGLE);
    cv->comment_clist = clist;
 
-   /* GTK4: gtk_tree_view_set_rules_hint () removed */
-
    /* set column for key */
-   col = gtk_tree_view_column_new ();
-   gtk_tree_view_column_set_resizable (col, TRUE);
-   gtk_tree_view_column_set_title (col, titles[0]);
-   render = gtk_cell_renderer_text_new ();
-   gtk_tree_view_column_pack_start (col, render, TRUE);
-   gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_KEY);
-   gtk_tree_view_column_add_attribute (col, render, "style", COLUMN_STYLE);
-   gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
+   col = gimv_column_view_append (GTK_COLUMN_VIEW (clist), titles[0],
+                                  gimv_cell_factory_new (data_cell_setup, data_cell_bind,
+                                                         GINT_TO_POINTER (COLUMN_KEY),
+                                                         NULL, FALSE));
+   gtk_column_view_column_set_resizable (col, TRUE);
 
    /* set column for value */
-   col = gtk_tree_view_column_new ();
-   gtk_tree_view_column_set_resizable (col, TRUE);
-   gtk_tree_view_column_set_title (col, titles[1]);
-   render = gtk_cell_renderer_text_new ();
-   gtk_tree_view_column_pack_start (col, render, TRUE);
-   gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_VALUE);
-   gtk_tree_view_column_add_attribute (col, render, "style", COLUMN_STYLE);
-   gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
-   gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (clist), COLUMN_TIP);
+   col = gimv_column_view_append (GTK_COLUMN_VIEW (clist), titles[1],
+                                  gimv_cell_factory_new (data_cell_setup, data_cell_bind,
+                                                         GINT_TO_POINTER (COLUMN_VALUE),
+                                                         NULL, FALSE));
+   gtk_column_view_column_set_resizable (col, TRUE);
+   gtk_column_view_column_set_expand (col, TRUE);
 
-   g_signal_connect (G_OBJECT (clist),"cursor-changed",
-                       G_CALLBACK (cb_tree_view_cursor_changed), cv);
+   g_signal_connect (gimv_list_view_get_selection (clist), "selection-changed",
+                     G_CALLBACK (cb_data_list_selection_changed), cv);
 
    gimv_container_add (GTK_WIDGET (scrolledwin), clist);
 }
@@ -754,13 +739,10 @@ create_data_page (GimvCommentView *cv)
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
 
-   cv->key_combo = combo = gimv_combo_new ();
+   cv->key_combo = combo = gtk_drop_down_new_from_strings (NULL);
    gimv_box_pack_start (GTK_BOX (vbox1), combo, TRUE, TRUE, 0);
-   gtk_editable_set_editable (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), FALSE);
-   g_signal_connect (G_OBJECT (combo), "changed",
+   g_signal_connect (G_OBJECT (combo), "notify::selected",
                      G_CALLBACK (cb_combo_changed), cv);
-   g_signal_connect (G_OBJECT (gimv_combo_get_entry (combo)), "changed",
-                     G_CALLBACK (cb_combo_entry_changed), cv);
 
    vbox1 = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
@@ -801,13 +783,13 @@ create_note_page (GimvCommentView *cv)
    /* "Note" page */
    label = gtk_label_new (_("Note"));
    gtk_widget_set_name (label, "TabLabel");
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    cv->note_page = scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
    gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolledwin), TRUE);
-   gtk_widget_show (scrolledwin);
+   gtk_widget_set_visible (scrolledwin, TRUE);
 
    {
       GtkTextBuffer *textbuf;
@@ -818,7 +800,7 @@ create_note_page (GimvCommentView *cv)
                         G_CALLBACK (cb_text_buffer_changed), cv);
    }
    gimv_container_add (GTK_WIDGET (scrolledwin), cv->note_box);
-   gtk_widget_show (cv->note_box);
+   gtk_widget_set_visible (cv->note_box, TRUE);
 
    gtk_notebook_append_page (GTK_NOTEBOOK(cv->notebook),
                              scrolledwin, label);
@@ -852,7 +834,7 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
 
    g_return_if_fail (cv);
 
-   key_str   = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))));
+   key_str   = combo_get_selected_name (cv);
    value_str = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
 
    if (!cv->comment || !gtk_widget_get_visible (GTK_WIDGET (cv->button_area))) {
@@ -862,14 +844,8 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
       gimv_comment_view_set_sensitive_all (cv, TRUE);
    }
 
-   {
-      GtkTreeView *treeview = GTK_TREE_VIEW (cv->comment_clist);
-      GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-      GtkTreeModel *model;
-      GtkTreeIter iter;
-
-      selected = gtk_tree_selection_get_selected (selection, &model, &iter);
-   }
+   selected = gimv_list_view_get_selected (cv->comment_clist)
+      != GTK_INVALID_LIST_POSITION;
 
    /* a comment of the image file is only shown */
    {
@@ -886,19 +862,18 @@ gimv_comment_view_set_combo_list (GimvCommentView *cv)
 {
    GList *list;
    GPtrArray *keys, *names;
-   GtkComboBox *combo;
+   GtkDropDown *combo;
+   GtkStringList *strings;
 
    g_return_if_fail (cv);
    g_return_if_fail (cv->key_combo);
 
-   combo = GTK_COMBO_BOX (cv->key_combo);
+   combo = GTK_DROP_DOWN (cv->key_combo);
 
    g_signal_handlers_block_by_func (G_OBJECT (combo),
                                     G_CALLBACK (cb_combo_changed), cv);
-   g_signal_handlers_block_by_func (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))),
-                                    G_CALLBACK (cb_combo_entry_changed), cv);
 
-   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (combo));
+   strings = gtk_string_list_new (NULL);
    cv->selected_item = NULL;
 
    keys  = g_ptr_array_new_with_free_func (g_free);
@@ -932,18 +907,19 @@ gimv_comment_view_set_combo_list (GimvCommentView *cv)
 
       g_ptr_array_add (keys,  g_strdup (data_entry->key));
       g_ptr_array_add (names, g_strdup (_(data_entry->display_name)));
-      gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo),
-                                      _(data_entry->display_name));
+      gtk_string_list_append (strings, _(data_entry->display_name));
    }
+
+   gtk_drop_down_set_model (combo, G_LIST_MODEL (strings));
+   g_object_unref (strings);
+   gtk_drop_down_set_selected (combo, GTK_INVALID_LIST_POSITION);
 
    g_signal_handlers_unblock_by_func (G_OBJECT (combo),
                                       G_CALLBACK (cb_combo_changed), cv);
-   g_signal_handlers_unblock_by_func (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))),
-                                      G_CALLBACK (cb_combo_entry_changed), cv);
 
    /* select first item */
    if (keys->len > 0)
-      gtk_combo_box_set_active (combo, 0);
+      gtk_drop_down_set_selected (combo, 0);
 }
 
 
@@ -961,7 +937,7 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
    key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
    g_return_if_fail (key);
 
-   dname = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))));
+   dname = combo_get_selected_name (cv);
    value = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
    g_return_if_fail (dname && *dname);
 
@@ -970,31 +946,34 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
    g_return_if_fail (entry);
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (cv->comment_clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
-      gboolean go_next;
-      GimvCommentDataEntry *src_entry;
+      GListModel *model = gimv_list_view_get_model (cv->comment_clist);
+      guint i, n = g_list_model_get_n_items (model);
+      GimvRow *row = NULL;
 
-      go_next = gtk_tree_model_get_iter_first (model, &iter);
-      for (; go_next; go_next = gtk_tree_model_iter_next (model, &iter)) {
-         gtk_tree_model_get (model, &iter,
-                             COLUMN_RAW_ENTRY, &src_entry,
-                             COLUMN_TERMINATOR);
-         if (src_entry == entry) break;
+      for (i = 0; i < n; i++) {
+         GimvRow *r = gimv_row_store_peek (model, i);
+         if (gimv_row_peek_pointer (r, COLUMN_RAW_ENTRY) == entry) {
+            row = r;
+            break;
+         }
       }
 
       text[0] = entry->display_name;
       text[1] = entry->value;
       if (!entry->userdef) text[0] = _(text[0]);
 
-      if (!go_next)
-         gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          COLUMN_KEY,       text[0],
-                          COLUMN_VALUE,     text[1],
-                          COLUMN_RAW_ENTRY, entry,
-                          COLUMN_TERMINATOR);
+      if (row) {
+         g_object_ref (row);
+      } else {
+         row = comment_row_new ();
+         g_list_store_append (G_LIST_STORE (model), row);
+      }
+      gimv_row_set (row,
+                    COLUMN_KEY,       text[0],
+                    COLUMN_VALUE,     text[1],
+                    COLUMN_RAW_ENTRY, entry,
+                    COLUMN_TERMINATOR);
+      g_object_unref (row);
    }
 
    cv->changed = TRUE;
@@ -1032,15 +1011,16 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
          text[1] = entry->value;
 
          {
-            GtkTreeModel *model;
-            GtkTreeIter iter;
-            model = gtk_tree_view_get_model (GTK_TREE_VIEW (cv->comment_clist));
-            gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-            gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                                COLUMN_KEY,       text[0],
-                                COLUMN_VALUE,     text[1],
-                                COLUMN_RAW_ENTRY, entry,
-                                COLUMN_TERMINATOR);
+            GListModel *model = gimv_list_view_get_model (cv->comment_clist);
+            GimvRow *row = comment_row_new ();
+
+            gimv_row_set (row,
+                          COLUMN_KEY,       text[0],
+                          COLUMN_VALUE,     text[1],
+                          COLUMN_RAW_ENTRY, entry,
+                          COLUMN_TERMINATOR);
+            g_list_store_append (G_LIST_STORE (model), row);
+            g_object_unref (row);
          }
       }
 
@@ -1048,7 +1028,7 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
        * shown only, not saved with the data) */
       if (info && !gimv_image_info_is_in_archive (info)) {
          GPtrArray *list = gimv_file_comment_read (gimv_image_info_get_path (info));
-         GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (cv->comment_clist));
+         GListModel *model = gimv_list_view_get_model (cv->comment_clist);
          guint i;
 
          for (i = 0; i < list->len; i++) {
@@ -1058,17 +1038,17 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
             gchar *value = nl ? g_strdup_printf ("%.*s …", (gint) (nl - c->text), c->text)
                               : g_strdup (c->text);
             gchar *tip = g_markup_escape_text (c->text, -1);
-            GtkTreeIter iter;
+            GimvRow *row = comment_row_new ();
 
-            gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-            gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                                COLUMN_KEY,       name,
-                                COLUMN_VALUE,     value,
-                                COLUMN_RAW_ENTRY, NULL,
-                                COLUMN_FILE,      TRUE,
-                                COLUMN_STYLE,     PANGO_STYLE_ITALIC,
-                                COLUMN_TIP,       tip,
-                                COLUMN_TERMINATOR);
+            gimv_row_set (row,
+                          COLUMN_KEY,       name,
+                          COLUMN_VALUE,     value,
+                          COLUMN_RAW_ENTRY, NULL,
+                          COLUMN_FILE,      TRUE,
+                          COLUMN_TIP,       tip,
+                          COLUMN_TERMINATOR);
+            g_list_store_append (G_LIST_STORE (model), row);
+            g_object_unref (row);
             g_free (name);
             g_free (value);
             g_free (tip);
@@ -1100,13 +1080,10 @@ gimv_comment_view_clear (GimvCommentView *cv)
 {
    g_return_if_fail (cv);
 
-   {
-      GtkTreeModel *model
-         = gtk_tree_view_get_model (GTK_TREE_VIEW (cv->comment_clist));
-      gtk_list_store_clear (GTK_LIST_STORE (model));
-   }
+   g_list_store_remove_all (G_LIST_STORE (gimv_list_view_get_model (cv->comment_clist)));
 
-   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), "\0");
+   gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo),
+                               GTK_INVALID_LIST_POSITION);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
    {
@@ -1171,7 +1148,7 @@ gimv_comment_view_create (void)
    gimv_container_set_border_width (GTK_WIDGET (cv->notebook), 1);
    gtk_notebook_set_scrollable (GTK_NOTEBOOK (cv->notebook), TRUE);
    gimv_box_pack_start(GTK_BOX(cv->main_vbox), cv->notebook, TRUE, TRUE, 0);
-   gtk_widget_show (cv->notebook);
+   gtk_widget_set_visible (cv->notebook, TRUE);
 
    g_signal_connect (G_OBJECT (cv->notebook), "switch-page",
                        G_CALLBACK(cb_switch_page), cv);
@@ -1183,7 +1160,7 @@ gimv_comment_view_create (void)
    /* button area */
    hbox = cv->button_area = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start(GTK_BOX(cv->main_vbox), cv->button_area, FALSE, FALSE, 2);
-   gtk_widget_show (cv->main_vbox);
+   gtk_widget_set_visible (cv->main_vbox, TRUE);
 
    hbox1 = cv->inner_button_area = gimv_hbox_new (TRUE, 0);
    gimv_box_pack_end (GTK_BOX (hbox), hbox1, FALSE, TRUE, 0);

@@ -414,7 +414,7 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
    GtkWidget *vbox, *hbox, *button, *label;
    GtkWidget *icon;
 
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -429,23 +429,23 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox, TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (vbox), 15);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    /* icon */
    icon = gimv_icon_stock_get_widget ("question");
    gimv_box_pack_start (GTK_BOX (hbox), icon, TRUE, TRUE, 0);
-   gtk_widget_show (icon);
+   gtk_widget_set_visible (icon, TRUE);
 
    /* message */
    label = gtk_label_new (message);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    /* buttons */
    button = gtk_button_new_with_label (_("Yes"));
@@ -454,7 +454,7 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_confirm_yes),
                        &retval);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
    gtk_widget_grab_focus (button);
 
    if (flags & ConfirmDialogMultipleFlag) {
@@ -464,7 +464,7 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
       g_signal_connect (G_OBJECT (button), "clicked",
                           G_CALLBACK (cb_confirm_yes_to_all),
                           &retval);
-         gtk_widget_show (button);
+         gtk_widget_set_visible (button, TRUE);
    }
 
    button = gtk_button_new_with_label (_("No"));
@@ -473,7 +473,7 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_confirm_no),
                        &retval);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    if (flags & ConfirmDialogMultipleFlag) {
       button = gtk_button_new_with_label (_("Cancel"));
@@ -482,10 +482,10 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
       g_signal_connect (G_OBJECT (button), "clicked",
                           G_CALLBACK (cb_confirm_cancel),
                           &retval);
-         gtk_widget_show (button);
+         gtk_widget_set_visible (button, TRUE);
    }
 
-   gtk_widget_show (window);
+   gtk_widget_set_visible (window, TRUE);
 
    gimv_grab_add (window);
    gimv_main ();
@@ -617,7 +617,7 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
    dialog.new_path = new_path;
    dialog.new_path_len = new_path_len;
 
-   dialog.window = window = gtk_dialog_new ();
+   dialog.window = window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -632,23 +632,23 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox, TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (vbox), 15);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    /* icon */
    icon = gimv_icon_stock_get_widget ("question");
    gimv_box_pack_start (GTK_BOX (hbox), icon, TRUE, TRUE, 0);
-   gtk_widget_show (icon);
+   gtk_widget_set_visible (icon, TRUE);
 
    /* message */
    label = gtk_label_new (message);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    /* compare area */
    {
@@ -656,14 +656,14 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
       hbox = gimv_hbox_new (TRUE, 0);
       gimv_box_pack_start (GTK_BOX (vbox),
                           hbox, FALSE, FALSE, 2);
-      gtk_widget_show (hbox);
+      gtk_widget_set_visible (hbox, TRUE);
 
       label = gtk_button_new_with_label (_("Show destination"));
       gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
       g_signal_connect (G_OBJECT (label), "clicked",
                           G_CALLBACK (cb_show_image1),
                           &dialog);
-      gtk_widget_show (label);
+      gtk_widget_set_visible (label, TRUE);
 
       button = gtk_button_new_with_label (_("Show both images"));
       dialog.show_compare_button = button;
@@ -671,24 +671,24 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
       g_signal_connect (G_OBJECT (button), "clicked",
                           G_CALLBACK (cb_show_compare),
                           &dialog);
-      gtk_widget_show (button);
+      gtk_widget_set_visible (button, TRUE);
 
       label = gtk_button_new_with_label (_("Show source"));
       gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 2);
       g_signal_connect (G_OBJECT (label), "clicked",
                           G_CALLBACK (cb_show_image2),
                           &dialog);
-      gtk_widget_show (label);
+      gtk_widget_set_visible (label, TRUE);
 
       /* view */
       dialog.compare_area = hbox = gimv_hbox_new (TRUE, 0);
       gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-      gtk_widget_show (hbox);
+      gtk_widget_set_visible (hbox, TRUE);
 
       /* destination */
       vbox2 = gimv_vbox_new (FALSE, 0);
       gimv_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 2);
-      gtk_widget_show (vbox2);
+      gtk_widget_set_visible (vbox2, TRUE);
 
       dialog.iv1 = gimv_image_view_new (NULL);
       g_object_set (G_OBJECT (dialog.iv1),
@@ -699,7 +699,7 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
       gimv_image_view_hide_scrollbar (GIMV_IMAGE_VIEW (dialog.iv1));
       gimv_widget_set_size (dialog.iv1, -1, 150);
       gimv_box_pack_start (GTK_BOX (vbox2), dialog.iv1, TRUE, TRUE, 0);
-      gtk_widget_show (dialog.iv1);
+      gtk_widget_set_visible (dialog.iv1, TRUE);
 
       /* gimv_image_view_set_text (dialog.iv1, information) */
 
@@ -707,7 +707,7 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
       /* source */
       vbox2 = gimv_vbox_new (FALSE, 0);
       gimv_box_pack_start (GTK_BOX (hbox), vbox2, TRUE, TRUE, 2);
-      gtk_widget_show (vbox2);
+      gtk_widget_set_visible (vbox2, TRUE);
 
       dialog.iv2 = gimv_image_view_new (NULL);
       g_object_set (G_OBJECT (dialog.iv2),
@@ -718,7 +718,7 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
       gimv_image_view_hide_scrollbar (GIMV_IMAGE_VIEW (dialog.iv2));
       gimv_widget_set_size (dialog.iv2, -1, 150);
       gimv_box_pack_start (GTK_BOX (vbox2), dialog.iv2, TRUE, TRUE, 0);
-      gtk_widget_show (dialog.iv2);
+      gtk_widget_set_visible (dialog.iv2, TRUE);
 
       /* gimv_image_view_set_text (dialog.iv2, information) */
    }
@@ -726,45 +726,45 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))),
                        vbox, FALSE, FALSE, 0);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    /* rename entry */
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    dialog.entry = entry = gtk_entry_new ();
    gimv_box_pack_start (GTK_BOX (hbox), entry, TRUE, TRUE, 0);
    g_signal_connect (G_OBJECT (entry), "activate",
                        G_CALLBACK (cb_confirm_rename_enter), &dialog);
-   filename = charset_to_internal (g_basename (src_file),
+   filename = charset_to_internal (fileutil_basename (src_file),
                                    conf.charset_filename,
                                    conf.charset_auto_detect_fn,
                                    conf.charset_filename_mode);
    gtk_editable_set_text (GTK_EDITABLE (entry), filename);
    g_free (filename);
    filename = NULL;
-   gtk_widget_show (entry);
+   gtk_widget_set_visible (entry, TRUE);
 
    button = gtk_button_new_with_label (_("Rename"));
    gimv_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_confirm_rename),
                        &dialog);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    /* buttons */
    hbox = gimv_hbox_new (TRUE, 0);
    gimv_box_pack_start (GTK_BOX (vbox),
                        hbox, TRUE, TRUE, 0);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    button = gtk_button_new_with_label (_("Yes"));
    gimv_box_pack_start (GTK_BOX (hbox),  button, TRUE, TRUE, 0);
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_confirm_yes),
                        &dialog.retval);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
    gtk_widget_grab_focus (button);
 
    if (flags & ConfirmDialogMultipleFlag) {
@@ -773,7 +773,7 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
       g_signal_connect (G_OBJECT (button), "clicked",
                           G_CALLBACK (cb_confirm_yes_to_all),
                           &dialog.retval);
-         gtk_widget_show (button);
+         gtk_widget_set_visible (button, TRUE);
    }
 
    button = gtk_button_new_with_label (_("Skip"));
@@ -781,14 +781,14 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_confirm_no),
                        &dialog.retval);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = gtk_button_new_with_label (_("Skip all"));
    gimv_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_confirm_no_to_all),
                        &dialog.retval);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    if (flags & ConfirmDialogMultipleFlag) {
       button = gtk_button_new_with_label (_("Cancel"));
@@ -796,10 +796,10 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
       g_signal_connect (G_OBJECT (button), "clicked",
                           G_CALLBACK (cb_confirm_cancel),
                           &dialog.retval);
-         gtk_widget_show (button);
+         gtk_widget_set_visible (button, TRUE);
    }
 
-   gtk_widget_show (window);
+   gtk_widget_set_visible (window, TRUE);
 
    gimv_grab_add (window);
    gimv_main ();
@@ -833,7 +833,7 @@ gtkutil_message_dialog (const gchar *title, const gchar *message, GtkWindow *par
    GtkWidget *button, *label, *vbox, *hbox;
    GtkWidget *alert_icon;
 
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -847,23 +847,23 @@ gtkutil_message_dialog (const gchar *title, const gchar *message, GtkWindow *par
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox,
                        TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (vbox), 15);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    /* icon */
    alert_icon = gimv_icon_stock_get_widget ("alert");
    gimv_box_pack_start (GTK_BOX (hbox), alert_icon, TRUE, TRUE, 0);
-   gtk_widget_show (alert_icon);
+   gtk_widget_set_visible (alert_icon, TRUE);
 
    /* message */
    label = gtk_label_new (message);
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    /* button */
    button = gtk_button_new_with_label (_("OK"));
@@ -871,11 +871,11 @@ gtkutil_message_dialog (const gchar *title, const gchar *message, GtkWindow *par
                        button, TRUE, TRUE, 0);
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK (cb_message_dialog_quit), NULL);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    gtk_widget_grab_focus (button);
 
-   gtk_widget_show (window);
+   gtk_widget_set_visible (window, TRUE);
 
    gimv_grab_add (window);
    gimv_main ();
@@ -940,7 +940,7 @@ gtkutil_create_progress_window (gchar *title, gchar *initial_message,
    *cancel_pressed = FALSE;
 
    /* create dialog window */
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -956,7 +956,7 @@ gtkutil_create_progress_window (gchar *title, gchar *initial_message,
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox,
                        TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (vbox), 5);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    /* label */
    label = gtk_label_new (initial_message);
@@ -1110,7 +1110,7 @@ gtkutil_popup_textentry (const gchar   *title,
    gchar *str = NULL;
 
    /* dialog window */
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -1123,17 +1123,17 @@ gtkutil_popup_textentry (const gchar   *title,
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_vbox (GTK_WIDGET (window))), vbox, TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (vbox), 5);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
    gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    /* label */
    label = gtk_label_new (label_text);
    gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
-   gtk_widget_show (label);
+   gtk_widget_set_visible (label, TRUE);
 
    /* entry */
    if (flags & TEXT_ENTRY_WRAP_ENTRY)
@@ -1161,7 +1161,7 @@ gtkutil_popup_textentry (const gchar   *title,
       gimv_widget_set_size (combo, entry_width, -1);
    if (flags & TEXT_ENTRY_AUTOCOMP_PATH)
       gimv_event_connect_after (GTK_WIDGET (entry), GIMV_EVENT_KEY_PRESS, G_CALLBACK(cb_textpop_key_press), &ok_pressed);
-   gtk_widget_show (combo);
+   gtk_widget_set_visible (combo, TRUE);
 
    if (flags & TEXT_ENTRY_NO_EDITABLE)
       gtk_editable_set_editable (GTK_EDITABLE (entry), FALSE);
@@ -1174,16 +1174,16 @@ gtkutil_popup_textentry (const gchar   *title,
                        button, TRUE, TRUE, 0);
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK(cb_textpop_ok_button), &ok_pressed);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
    button = gtk_button_new_with_label (_("Cancel"));
    gimv_box_pack_start (GTK_BOX (gimv_dialog_get_action_area (GTK_WIDGET (window))), 
                        button, TRUE, TRUE, 0);
    g_signal_connect (G_OBJECT (button), "clicked",
                        G_CALLBACK(cb_textpop_cancel_button), &ok_pressed);
-   gtk_widget_show (button);
+   gtk_widget_set_visible (button, TRUE);
 
-   gtk_widget_show (window);
+   gtk_widget_set_visible (window, TRUE);
 
    gimv_grab_add (window);
    gimv_main ();
@@ -1203,79 +1203,98 @@ gtkutil_popup_textentry (const gchar   *title,
  *   modal file dialog
  *
  ******************************************************************************/
+typedef struct {
+   GMainLoop    *loop;
+   GAsyncResult *result;
+} ModalWait;
+
+
+static void
+cb_modal_wait_ready (GObject *source, GAsyncResult *result, gpointer data)
+{
+   ModalWait *wait = data;
+
+   wait->result = g_object_ref (result);
+   g_main_loop_quit (wait->loop);
+}
+
+
+/* GTK4: GtkFileChooserDialog (deprecated since 4.10) -> GtkFileDialog.
+   The dialog is asynchronous; this function waits for it in a nested main
+   loop to keep its synchronous interface. */
 gchar *
 gtkutil_modal_file_dialog (const gchar   *title,
                            const gchar   *default_path,
                            ModalFileDialogFlags flags,
                            GtkWindow *parent)
 {
-   GtkWidget *filesel;
-   GtkFileChooserAction action;
+   GtkFileDialog *dialog;
+   GFile *file = NULL;
    gchar *filename = NULL;
-   gint response;
+   gboolean dir_only = (flags & MODAL_FILE_DIALOG_DIR_ONLY) ? TRUE : FALSE;
+   ModalWait wait = { NULL, NULL };
+   GError *error = NULL;
 
-   /* GTK4: GtkFileSelection -> GtkFileChooserDialog.
-      MODAL_FILE_DIALOG_HIDE_FILEOP has no meaning any more. */
-   if (flags & MODAL_FILE_DIALOG_DIR_ONLY)
-      action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
-   else
-      action = GTK_FILE_CHOOSER_ACTION_SAVE;  /* allow any (new) file name */
+   /* MODAL_FILE_DIALOG_HIDE_FILEOP has no meaning any more. */
 
-   filesel = gtk_file_chooser_dialog_new (title, parent, action,
-                                          _("_Cancel"), GTK_RESPONSE_CANCEL,
-                                          _("_OK"),     GTK_RESPONSE_ACCEPT,
-                                          NULL);
-   gtk_dialog_set_default_response (GTK_DIALOG (filesel), GTK_RESPONSE_ACCEPT);
-   if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
-      gtk_file_chooser_set_create_folders (GTK_FILE_CHOOSER (filesel), TRUE);
+   dialog = gtk_file_dialog_new ();
+   gtk_file_dialog_set_title (dialog, title);
+   gtk_file_dialog_set_modal (dialog, TRUE);
+   gtk_file_dialog_set_accept_label (dialog, _("_OK"));
+
+   if (!parent)
+      parent = gimv_get_default_transient_parent (NULL);
 
    if (default_path && *default_path) {
-      GFile *file = g_file_new_for_path (default_path);
+      GFile *default_file = g_file_new_for_path (default_path);
 
       if (g_file_test (default_path, G_FILE_TEST_IS_DIR)) {
-         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
-                                              file, NULL);
-      } else if (action == GTK_FILE_CHOOSER_ACTION_SAVE) {
-         GFile *parent_dir = g_file_get_parent (file);
-         gchar *basename = g_file_get_basename (file);
+         gtk_file_dialog_set_initial_folder (dialog, default_file);
+      } else if (!dir_only && g_file_test (default_path, G_FILE_TEST_EXISTS)) {
+         gtk_file_dialog_set_initial_file (dialog, default_file);
+      } else {
+         GFile *parent_dir = g_file_get_parent (default_file);
 
          if (parent_dir && g_file_query_exists (parent_dir, NULL))
-            gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
-                                                 parent_dir, NULL);
-         if (basename && g_file_test (default_path, G_FILE_TEST_EXISTS)) {
-            gtk_file_chooser_set_file (GTK_FILE_CHOOSER (filesel), file, NULL);
-         } else if (basename) {
-            gchar *name = g_filename_to_utf8 (basename, -1, NULL, NULL, NULL);
+            gtk_file_dialog_set_initial_folder (dialog, parent_dir);
+         if (!dir_only) {
+            gchar *basename = g_file_get_basename (default_file);
+            gchar *name = basename
+               ? g_filename_to_utf8 (basename, -1, NULL, NULL, NULL) : NULL;
             if (name)
-               gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filesel),
-                                                  name);
+               gtk_file_dialog_set_initial_name (dialog, name);
             g_free (name);
+            g_free (basename);
          }
-         if (parent_dir) g_object_unref (parent_dir);
-         g_free (basename);
-      } else {
-         GFile *parent_dir = g_file_get_parent (file);
-         if (parent_dir && g_file_query_exists (parent_dir, NULL))
-            gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
-                                                 parent_dir, NULL);
          if (parent_dir) g_object_unref (parent_dir);
       }
 
+      g_object_unref (default_file);
+   }
+
+   wait.loop = g_main_loop_new (NULL, FALSE);
+   if (dir_only)
+      gtk_file_dialog_select_folder (dialog, parent, NULL,
+                                     cb_modal_wait_ready, &wait);
+   else  /* allow any (new) file name */
+      gtk_file_dialog_save (dialog, parent, NULL,
+                            cb_modal_wait_ready, &wait);
+   g_main_loop_run (wait.loop);
+   g_main_loop_unref (wait.loop);
+
+   if (dir_only)
+      file = gtk_file_dialog_select_folder_finish (dialog, wait.result, &error);
+   else
+      file = gtk_file_dialog_save_finish (dialog, wait.result, &error);
+   g_clear_error (&error);   /* cancelled or dismissed */
+   g_object_unref (wait.result);
+
+   if (file) {
+      filename = g_file_get_path (file);
       g_object_unref (file);
    }
 
-   response = gimv_dialog_run (GTK_DIALOG (filesel));
-
-   if (response == GTK_RESPONSE_ACCEPT) {
-      GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (filesel));
-      if (file) {
-         filename = g_file_get_path (file);
-         g_object_unref (file);
-      }
-   }
-
-   if (GTK_IS_WINDOW (filesel))
-      gimv_widget_destroy (filesel);
+   g_object_unref (dialog);
 
    return filename;
 }
@@ -1287,34 +1306,70 @@ gtkutil_modal_file_dialog (const gchar   *title,
  *   Color selection button
  *
  ******************************************************************************/
+/* GTK4: GtkColorChooserDialog (deprecated since 4.10) -> GtkColorDialog */
+static void
+cb_color_chosen (GObject *source, GAsyncResult *result, gpointer data)
+{
+   GtkWidget *button = data;
+   GdkRGBA *rgba;
+   gint *color;
+   GError *error = NULL;
+
+   rgba = gtk_color_dialog_choose_rgba_finish (GTK_COLOR_DIALOG (source),
+                                               result, &error);
+   g_clear_error (&error);
+
+   /* the button may have been destroyed while the dialog was shown */
+   color = g_object_get_data (G_OBJECT (button), "gimv-color");
+   if (rgba && color) {
+      color[0] = rgba->red   * 0xffff;
+      color[1] = rgba->green * 0xffff;
+      color[2] = rgba->blue  * 0xffff;
+   }
+
+   if (rgba) gdk_rgba_free (rgba);
+   g_object_unref (button);
+}
+
+
+static void
+cb_color_button_destroy (GtkWidget *button, gpointer data)
+{
+   GCancellable *cancellable = g_object_get_data (G_OBJECT (button),
+                                                  "gimv-color-cancellable");
+   g_object_set_data (G_OBJECT (button), "gimv-color", NULL);
+   if (cancellable)
+      g_cancellable_cancel (cancellable);
+}
+
+
 static void
 cb_choose_color (GtkWidget *widget, gint color[3])
 {
-   GtkWidget *dialog;
+   GtkColorDialog *dialog;
+   GCancellable *cancellable;
    GdkRGBA rgba;
-   gint response;
 
    g_return_if_fail (color);
 
-   /* GTK4: GtkColorSelectionDialog -> GtkColorChooserDialog */
-   dialog = gtk_color_chooser_dialog_new (_("Choose Color"),
-                                          GTK_WINDOW (gimv_widget_get_toplevel (widget)));
-   gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (dialog), FALSE);
+   dialog = gtk_color_dialog_new ();
+   gtk_color_dialog_set_title (dialog, _("Choose Color"));
+   gtk_color_dialog_set_modal (dialog, TRUE);
+   gtk_color_dialog_set_with_alpha (dialog, FALSE);
    rgba.red   = (gdouble) color[0] / 0xffff;
    rgba.green = (gdouble) color[1] / 0xffff;
    rgba.blue  = (gdouble) color[2] / 0xffff;
    rgba.alpha = 1.0;
-   gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (dialog), &rgba);
 
-   response = gimv_dialog_run (GTK_DIALOG (dialog));
-   if (response == GTK_RESPONSE_OK) {
-      gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (dialog), &rgba);
-      color[0] = rgba.red   * 0xffff;
-      color[1] = rgba.green * 0xffff;
-      color[2] = rgba.blue  * 0xffff;
-   }
-   if (GTK_IS_WINDOW (dialog))
-      gimv_widget_destroy (dialog);
+   cancellable = g_cancellable_new ();
+   g_object_set_data_full (G_OBJECT (widget), "gimv-color-cancellable",
+                           cancellable, g_object_unref);
+
+   gtk_color_dialog_choose_rgba (dialog,
+                                 GTK_WINDOW (gimv_widget_get_toplevel (widget)),
+                                 &rgba, cancellable,
+                                 cb_color_chosen, g_object_ref (widget));
+   g_object_unref (dialog);
 }
 
 
@@ -1324,9 +1379,12 @@ gtkutil_color_sel_button (const gchar *label, gint color[3])
    GtkWidget *button;
 
    button = gtk_button_new_with_label (label);
+   g_object_set_data (G_OBJECT (button), "gimv-color", color);
    g_signal_connect (G_OBJECT (button),"clicked",
                        G_CALLBACK (cb_choose_color),
                        color);
+   g_signal_connect (G_OBJECT (button), "destroy",
+                     G_CALLBACK (cb_color_button_destroy), NULL);
 
    return button;
 }

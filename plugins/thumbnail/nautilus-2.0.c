@@ -227,7 +227,7 @@ get_path (const gchar *filename, const gchar *cache_type)
    }
 
    /* get filename */
-   image_name = g_basename (abspath);
+   image_name = fileutil_basename (abspath);
    if (!image_name) goto ERROR0;
 
    /* get dir name */

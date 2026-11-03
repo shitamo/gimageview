@@ -400,7 +400,7 @@ show_splash ()
    gimv_container_add (GTK_WIDGET (window), pixmap);
    gimv_icon_stock_free_icon ("gimageview");
 
-   gtk_widget_show(pixmap);
+   gtk_widget_set_visible(pixmap, TRUE);
    gtk_window_present (GTK_WINDOW (window));
    splash_window = window;
    splash_watch_toplevels (TRUE);

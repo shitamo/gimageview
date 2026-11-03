@@ -221,8 +221,8 @@ struct GimvThumbWin_Tag
    gint   newpage_count;
    gulong filesize;
 
-   /* File open dialog */
-   GtkWidget *open_dialog;
+   /* File open dialog (while it is shown) */
+   GtkFileDialog *open_dialog;
 
    GimvThumbWinPriv *priv;
 };

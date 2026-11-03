@@ -32,6 +32,7 @@
 #include "prefs_ui_plugin.h"
 #include "gimv_prefs_ui_utils.h"
 #include "gimv_prefs_win.h"
+#include "gimv_list_view.h"
 
 
 extern Config   *config_changed;
@@ -45,10 +46,10 @@ cb_plugin_use_default_dir_list(GtkWidget *button, GtkWidget *widget)
 
    if (gimv_toggle_get_active (button)) {
       config_changed->plugin_use_default_search_dir_list = TRUE;
-      gtk_widget_hide (widget);
+      gtk_widget_set_visible (widget, FALSE);
    } else {
       config_changed->plugin_use_default_search_dir_list = FALSE;
-      gtk_widget_show (widget);
+      gtk_widget_set_visible (widget, TRUE);
    }
 }
 
@@ -80,14 +81,14 @@ prefs_ui_plugin (void)
    gimv_box_pack_start(GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
    gimv_box_pack_start(GTK_BOX (main_vbox), frame, TRUE, TRUE, 0);
 
-   gtk_widget_show (toggle);
+   gtk_widget_set_visible (toggle, TRUE);
    gimv_widget_show_all (frame);
-   gtk_widget_show (main_vbox);
+   gtk_widget_set_visible (main_vbox, TRUE);
 
    if (config_changed->plugin_use_default_search_dir_list)
-      gtk_widget_hide (frame);
+      gtk_widget_set_visible (frame, FALSE);
    else
-      gtk_widget_show (frame);
+      gtk_widget_set_visible (frame, TRUE);
 
    return main_vbox;
 }
@@ -117,49 +118,39 @@ create_plugin_admin_widget (GList *plugin_list)
    gimv_widget_set_size (scrollwin, -1, 200);
 
    {
-      GtkListStore *store;
+      GListStore *store = gimv_row_store_new ();
 
-      store = gtk_list_store_new (titles_num,
-                                  G_TYPE_STRING,
-                                  G_TYPE_STRING,
-                                  G_TYPE_STRING);
-      clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-      gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
-      /* GTK4: gtk_tree_view_set_rules_hint () removed (theme decides) */
+      /* GTK4: GtkTreeView (deprecated) -> GtkColumnView */
+      clist = gimv_column_view_new (G_LIST_MODEL (store), GTK_SELECTION_SINGLE);
       gimv_container_add (GTK_WIDGET (scrollwin), clist);
 
       /* set columns */
       for (i = 0; i < titles_num; i++) {
-         GtkTreeViewColumn *col;
-         GtkCellRenderer *render;
+         GtkColumnViewColumn *col;
 
-         col = gtk_tree_view_column_new();
-         gtk_tree_view_column_set_resizable (col, TRUE);
-         gtk_tree_view_column_set_title (col, _(titles[i]));
-         if (i == 0) {
-            gtk_tree_view_column_set_sizing(col, GTK_TREE_VIEW_COLUMN_FIXED);
-            gtk_tree_view_column_set_fixed_width (col, 200);
-         }
-         render = gtk_cell_renderer_text_new ();
-         gtk_tree_view_column_pack_start (col, render, TRUE);
-         gtk_tree_view_column_add_attribute (col, render, "text", i);
-         gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
+         col = gimv_column_view_append_text (GTK_COLUMN_VIEW (clist),
+                                             _(titles[i]), i);
+         gtk_column_view_column_set_resizable (col, TRUE);
+         if (i == 0)
+            gtk_column_view_column_set_fixed_width (col, 200);
       }
 
       for (list = plugin_list; list; list = g_list_next (list)) {
          GModule *module = list->data;
-         GtkTreeIter iter;
+         GimvRow *row;
 
          text[0] = _(gimv_plugin_get_name (module));
          text[1] = _(gimv_plugin_get_version_string (module));
          text[2] = _(gimv_plugin_get_module_name (module));
 
-         gtk_list_store_append (store, &iter);
-         gtk_list_store_set (store, &iter,
-                             0, text[0],
-                             1, text[1],
-                             2, text[2],
-                             -1);
+         row = gimv_row_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+         gimv_row_set (row,
+                       0, text[0],
+                       1, text[1],
+                       2, text[2],
+                       -1);
+         g_list_store_append (store, row);
+         g_object_unref (row);
       }
    }
 

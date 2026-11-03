@@ -558,7 +558,7 @@ cb_open_image_by_external (GimvMenuItem *menuitem, GimvThumbView *tv)
       } else {
          cmd = g_strdup (pair[1]);
       }
-      if (pair[2] && !g_strcasecmp (pair[2], "TRUE"))
+      if (pair[2] && !g_ascii_strcasecmp (pair[2], "TRUE"))
          show_dialog = TRUE;
       g_strfreev (pair);
    } else {
@@ -1321,9 +1321,9 @@ comp_func_spel (gconstpointer data1, gconstpointer data2)
    else if (!filename2 || !*filename2)
       return 1;
 
-   if (filename1 && !strcmp ("..", g_basename (filename1))) {
+   if (filename1 && !strcmp ("..", fileutil_basename (filename1))) {
       comp = -1;
-   } else if (filename2 && !strcmp ("..", g_basename (filename2))) {
+   } else if (filename2 && !strcmp ("..", fileutil_basename (filename2))) {
       comp = 1;
    } else if (!ignore_dir && gimv_image_info_is_dir (thumb1->info)
               && !gimv_image_info_is_dir (thumb2->info)) {
@@ -1333,7 +1333,7 @@ comp_func_spel (gconstpointer data1, gconstpointer data2)
       comp = 1;
    } else {
       if (flags & GIMV_SORT_CASE_INSENSITIVE)
-         comp = g_strcasecmp ((gchar *) filename1, (gchar *) filename2);
+         comp = g_ascii_strcasecmp ((gchar *) filename1, (gchar *) filename2);
       else
          comp = strcmp ((gchar *) filename1, (gchar *) filename2);
    }
@@ -1475,14 +1475,14 @@ comp_func_type (gconstpointer data1, gconstpointer data2)
       ext2 = NULL;
 
    if ((!ext1 || !*ext1) && (!ext2 || !*ext2)) {
-      return g_strcasecmp (file1, file2);
+      return g_ascii_strcasecmp (file1, file2);
    } else if (!ext1 || !*ext1) {
       return -1;
    } else if (!ext2 || !*ext2) {
       return 1;
    }
 
-   retval = g_strcasecmp (ext1, ext2);
+   retval = g_ascii_strcasecmp (ext1, ext2);
 
    if (retval == 0)
       return comp_func_spel (data1, data2);
@@ -2597,7 +2597,7 @@ gimv_thumb_view_open_image (GimvThumbView *tv, GimvThumb *thumb, gint type)
    g_return_if_fail (image_name && *image_name);
    filename = g_strdup (image_name);
 
-   if (!strcmp ("..", g_basename (filename))) {
+   if (!strcmp ("..", fileutil_basename (filename))) {
       tmpstr = filename;
       filename = g_path_get_dirname (filename);
       g_free (tmpstr);
@@ -2832,7 +2832,7 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
       const gchar *format = gimv_image_detect_type_by_ext (img_name);
       menuitem = gimv_menu_get_item (ifactory, "/Scan EXIF Data...");
 #warning FIXME!!
-      if (!format || !*format || g_strcasecmp(format, "image/jpeg")) {
+      if (!format || !*format || g_ascii_strcasecmp(format, "image/jpeg")) {
          gimv_menu_item_set_visible (menuitem, FALSE);
       }
       if (g_list_length (thumblist) > 1
@@ -2925,7 +2925,7 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
    {   /********** convert charset **********/
       gchar *tmpstr, *src_file_internal;
 
-      src_file = g_basename(gimv_image_info_get_path (thumb->info));
+      src_file = fileutil_basename(gimv_image_info_get_path (thumb->info));
       src_file_internal = charset_to_internal (src_file,
                                                conf.charset_filename,
                                                conf.charset_auto_detect_fn,
@@ -2947,7 +2947,7 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
    if (!strcmp (src_file, dest_file)) goto ERROR0;
 
    dirname = g_path_get_dirname (gimv_image_info_get_path (thumb->info));
-   dest_path = g_strconcat (dirname, "/", g_basename (dest_file), NULL);
+   dest_path = g_strconcat (dirname, "/", fileutil_basename (dest_file), NULL);
    g_free (dirname);
    exist = !lstat(dest_path, &dest_st);
    if (exist) {
@@ -3111,9 +3111,9 @@ create_scripts_submenu (GimvThumbView *tv)
       if (!filename || !*filename || !isexecutable(filename)) continue;
 
       if (conf.scripts_show_dialog)
-         label = g_strconcat (g_basename (filename), "...", NULL);
+         label = g_strconcat (fileutil_basename (filename), "...", NULL);
       else
-         label = g_strdup (g_basename (filename));
+         label = g_strdup (fileutil_basename (filename));
 
       menu_item = gimv_menu_append_item (menu, label,
                                          (GimvMenuActivateFunc) cb_open_image_by_script,
@@ -4108,7 +4108,7 @@ gimv_thumb_view_reset_tab_label (GimvThumbView *tv, const gchar *title)
          tmpstr = fileutil_home2tilde (filename);
       } else {
          if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE) {
-            tmpstr = g_strdup (g_basename (filename));
+            tmpstr = g_strdup (fileutil_basename (filename));
          } else {
             gchar *dirname = g_path_get_dirname (filename);
             tmpstr = fileutil_dir_basename (dirname);

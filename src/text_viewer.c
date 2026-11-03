@@ -94,7 +94,7 @@ text_viewer_load_file (TextViewer *text_viewer, gchar *filename)
    }
 
    tmpstr = g_strconcat (_("File Name: "), filename, NULL);
-   gtk_statusbar_push(GTK_STATUSBAR (text_viewer->statusbar), 1, tmpstr);
+   gimv_statusbar_set_text (text_viewer->statusbar, tmpstr);
    g_free (tmpstr);
 
    text_viewer->filename = g_strdup (filename);
@@ -118,35 +118,34 @@ text_viewer_create (gchar *filename)
    text_viewer->window = window = gtk_window_new ();
    gtk_window_set_title (GTK_WINDOW (window), GIMV_PROG_NAME" -Text Viewer-");
    gtk_window_set_default_size (GTK_WINDOW(window), 600, 500);
-   gtk_widget_show (window);
+   gtk_widget_set_visible (window, TRUE);
    g_signal_connect (G_OBJECT (window), "destroy",
                        G_CALLBACK (cb_text_viewer_destroy), text_viewer);
 
    /* main vbox */
    vbox = gimv_vbox_new (FALSE, 0);
    gimv_container_add (GTK_WIDGET (window), vbox);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    /* text box */
    scrolledwin = gimv_scrolled_window_new (NULL, NULL);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
    gimv_box_pack_start (GTK_BOX (vbox), scrolledwin, TRUE, TRUE, 0);
-   gtk_widget_show (scrolledwin);
+   gtk_widget_set_visible (scrolledwin, TRUE);
 
    text = gtk_text_view_new ();
    /* plain text documents are laid out for a fixed width font */
    gtk_text_view_set_monospace (GTK_TEXT_VIEW (text), TRUE);
    text_viewer->textbox = text;
    gimv_container_add (GTK_WIDGET (scrolledwin), text);
-   gtk_widget_show (text);
+   gtk_widget_set_visible (text, TRUE);
 
    /* statusbar */
-   text_viewer->statusbar = statusbar = gtk_statusbar_new ();
-   gimv_container_set_border_width (statusbar, 1);
+   text_viewer->statusbar = statusbar = gimv_statusbar_new ();
    gimv_box_pack_start (GTK_BOX (vbox), statusbar, FALSE, TRUE, 0);
-   gtk_statusbar_push(GTK_STATUSBAR (statusbar), 1, "New Window");
-   gtk_widget_show (statusbar);
+   gimv_statusbar_set_text (statusbar, "New Window");
+   gtk_widget_set_visible (statusbar, TRUE);
 
    /* set text from file */
    if (filename)

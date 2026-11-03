@@ -45,7 +45,7 @@ typedef struct GimvDuplWinPriv_Tag  GimvDuplWinPriv;
 
 struct GimvDuplWin_Tag
 {
-   GtkDialog         parent;
+   GtkWindow         parent;
 
    GtkWidget        *ctree;
    GtkWidget        *radio_thumb;
@@ -63,7 +63,7 @@ struct GimvDuplWin_Tag
 
 struct GimvDuplWinClass_Tag
 {
-   GtkDialogClass parent_class;
+   GtkWindowClass parent_class;
 };
 
 

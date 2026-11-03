@@ -60,11 +60,11 @@ GtkWidget *gimv_prefs_ui_double_clist   (const gchar  *title,
    frame = gtk_frame_new (label); \
    gimv_container_set_border_width (GTK_WIDGET (frame), 0); \
    gimv_box_pack_start(GTK_BOX (parent), frame, expand, TRUE, 0); \
-   gtk_widget_show (frame); \
+   gtk_widget_set_visible (frame, TRUE); \
    vbox = gimv_vbox_new (FALSE, 0); \
    gimv_container_set_border_width (GTK_WIDGET (frame), 5); \
    gimv_container_add (GTK_WIDGET (frame), vbox); \
-   gtk_widget_show (vbox); \
+   gtk_widget_set_visible (vbox, TRUE); \
 }
 
 #endif /* __GIMV_PREFS_UI_UTILS_H__ */

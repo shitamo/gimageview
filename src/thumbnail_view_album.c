@@ -27,6 +27,7 @@
 #include "charset.h"
 
 #include "dnd.h"
+#include "fileutil.h"
 #include "gimv_comment.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_view.h"
@@ -412,7 +413,7 @@ thumbalbum_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
 
    pos = gimv_thumb_view_get_thumb_index (tv, thumb);
 
-   filename = g_basename(gimv_image_info_get_path (thumb->info));
+   filename = fileutil_basename(gimv_image_info_get_path (thumb->info));
 
    if (!strcmp (dest_mode, THUMBALBUM3_LABEL)) {
       label = album_create_label_str (thumb);
@@ -762,7 +763,7 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
       gimv_zlist_set_cell_padding (GIMV_ZLIST (tv_data->album), 5, 5);
    }
 
-   gtk_widget_show (tv_data->album);
+   gtk_widget_set_visible (tv_data->album, TRUE);
 
    gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_album_button_press), tv);
    gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_album_button_release), tv);
@@ -802,7 +803,6 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
 
 
 
-#include "fileutil.h"
 #define DEFAULT_DATA_ORDER "Name,Size,Time"
 static gboolean show_data_title = FALSE;
 static const gchar *data_order = DEFAULT_DATA_ORDER;
@@ -815,7 +815,7 @@ label_filename (GimvThumb *thumb)
 
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), NULL);
 
-   filename = g_basename(gimv_image_info_get_path (thumb->info));
+   filename = fileutil_basename(gimv_image_info_get_path (thumb->info));
 
    tmpstr = gimv_image_info_get_display_name (thumb->info, filename);
 

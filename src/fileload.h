@@ -118,7 +118,7 @@ gint         open_images_dirs                   (GList           *list,
                                                  ThumbLoadType    type,
                                                  gboolean         scan_subdir);
 
-GtkWidget   *create_filebrowser                 (gpointer         parent);
+void         create_filebrowser                 (gpointer         parent);
 
 #ifdef GIMV_DEBUG
 void file_disp_loading_status (FilesLoader *files);

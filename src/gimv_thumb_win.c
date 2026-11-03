@@ -675,7 +675,7 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    vbox = gimv_vbox_new (FALSE, 0);
    tw->main_vbox = vbox;
    gimv_container_add (GTK_WIDGET (tw), vbox);
-   gtk_widget_show (vbox);
+   gtk_widget_set_visible (vbox, TRUE);
 
    /* Menu Bar */
    /* GTK4: GtkHandleBox is gone, use a plain box */
@@ -683,22 +683,22 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gtk_widget_set_name (tw->menubar_handle, "MenuBarContainer");
    gimv_container_set_border_width (GTK_WIDGET (tw->menubar_handle), 2);
    gimv_box_pack_start(GTK_BOX(vbox), tw->menubar_handle, FALSE, FALSE, 0);
-   gtk_widget_show (tw->menubar_handle);
+   gtk_widget_set_visible (tw->menubar_handle, TRUE);
 
    /* toolbar */
    tw->toolbar_handle = gimv_hbox_new (FALSE, 0);
    gtk_widget_set_name (tw->toolbar_handle, "ToolBarContainer");
    gimv_container_set_border_width (GTK_WIDGET (tw->toolbar_handle), 2);
    gimv_box_pack_start(GTK_BOX(vbox), tw->toolbar_handle, FALSE, FALSE, 0);
-   gtk_widget_show (tw->toolbar_handle);
+   gtk_widget_set_visible (tw->toolbar_handle, TRUE);
 
    hbox = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (tw->toolbar_handle), hbox, TRUE, TRUE, 0);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
    tw->toolbar = create_toolbar (tw, tw->toolbar_handle);
    gimv_box_pack_start (GTK_BOX (hbox), tw->toolbar, FALSE, FALSE, 0);
-   gtk_widget_show (tw->toolbar);
+   gtk_widget_set_visible (tw->toolbar, TRUE);
    gtkutil_toolbar_set_style (tw->toolbar, conf.thumbwin_toolbar_style);
 
    /* location entry */
@@ -712,7 +712,7 @@ gimv_thumb_win_init (GimvThumbWin *tw)
                       G_CALLBACK (cb_location_entry_enter), tw);
    gimv_event_connect (GTK_WIDGET (tw->location_entry), GIMV_EVENT_FOCUS_IN, G_CALLBACK (cb_focus_in), tw);
    gimv_event_connect (GTK_WIDGET (tw->location_entry), GIMV_EVENT_FOCUS_OUT, G_CALLBACK (cb_focus_out), tw);
-   gtk_widget_show (entry);
+   gtk_widget_set_visible (entry, TRUE);
 
    /* option menu for display mode */
    if (!summary_mode_labels)
@@ -729,41 +729,39 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gtk_widget_set_name (tw->summary_mode_menu, "DispModeOptionMenu");
    add_accel_label_to_disp_mode_menu (tw);
    gimv_box_pack_end (GTK_BOX (hbox), tw->summary_mode_menu, FALSE, FALSE, 0);
-   gtk_widget_show (tw->summary_mode_menu);
+   gtk_widget_set_visible (tw->summary_mode_menu, TRUE);
 
    /* separator */
    separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
    gimv_box_pack_start (GTK_BOX (vbox), separator, FALSE, FALSE, 0);
-   gtk_widget_show (separator);
+   gtk_widget_set_visible (separator, TRUE);
 
    /* main contents */
    tw->main_contents = thumbnail_window_contents_new (tw);
    gtk_widget_set_name (tw->main_contents, "MainArea");
    /* GTK2: gtk_container_add () = pack_start (expand, fill) */
    gimv_box_pack_start (GTK_BOX (vbox), tw->main_contents, TRUE, TRUE, 0);
-   gtk_widget_show (tw->main_contents);
+   gtk_widget_set_visible (tw->main_contents, TRUE);
 
    /* status bar */
    hbox = gimv_hbox_new (FALSE, 0);
    gtk_widget_set_name (hbox, "StatusBarContainer");
    tw->status_bar_container = hbox;
    gimv_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-   gtk_widget_show (hbox);
+   gtk_widget_set_visible (hbox, TRUE);
 
-   tw->status_bar1 = gtk_statusbar_new ();
+   tw->status_bar1 = gimv_statusbar_new ();
    gtk_widget_set_name (tw->status_bar1, "StatusBar1");
-   gimv_container_set_border_width (tw->status_bar1, 1);
    gimv_widget_set_size(tw->status_bar1, 150, -1);
    gimv_box_pack_start (GTK_BOX (hbox), tw->status_bar1, TRUE, TRUE, 0);
-   gtk_widget_show (tw->status_bar1);
-   gtk_statusbar_push(GTK_STATUSBAR (tw->status_bar1), 1, _("New Window"));
+   gtk_widget_set_visible (tw->status_bar1, TRUE);
+   gimv_statusbar_set_text (tw->status_bar1, _("New Window"));
 
-   tw->status_bar2 = gtk_statusbar_new ();
+   tw->status_bar2 = gimv_statusbar_new ();
    gtk_widget_set_name (tw->status_bar2, "StatusBar2");
-   gimv_container_set_border_width (tw->status_bar2, 1);
    gimv_widget_set_size(tw->status_bar2, 150, -1);
    gimv_box_pack_start (GTK_BOX (hbox), tw->status_bar2, TRUE, TRUE, 0);
-   gtk_widget_show (tw->status_bar2);
+   gtk_widget_set_visible (tw->status_bar2, TRUE);
 
 #ifdef ENABLE_INDEX
    tw->index_label = gtk_label_new (gimv_index_get_status_text ());
@@ -783,7 +781,7 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    tw->progressbar = gtk_progress_bar_new();
    gtk_widget_set_name (tw->progressbar, "ProgressBar");
    gimv_box_pack_end (GTK_BOX (hbox), tw->progressbar, FALSE, FALSE, 0);
-   gtk_widget_show (tw->progressbar);
+   gtk_widget_set_visible (tw->progressbar, TRUE);
 
    /* create menus */
    create_gimv_thumb_win_menus (tw);
@@ -811,7 +809,7 @@ gimv_thumb_win_open_window (void)
 {
    GimvThumbWin *tw = GIMV_THUMB_WIN (gimv_thumb_win_new());
 
-   gtk_widget_show (GTK_WIDGET (tw));
+   gtk_widget_set_visible (GTK_WIDGET (tw), TRUE);
 
 #ifdef ENABLE_INDEX
    /* the "Date" tab is there as soon as directories are given for the index */
@@ -1936,7 +1934,7 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
                                  n_menu_items, "<ThumbWinMainMenu>", tw);
 
    gimv_box_pack_start (GTK_BOX (tw->menubar_handle), tw->menubar, TRUE, TRUE, 0);
-   gtk_widget_show (tw->menubar);
+   gtk_widget_set_visible (tw->menubar, TRUE);
 
    /* sub menu */
    n_menu_items = sizeof(gimv_thumb_win_view_items)
@@ -2133,11 +2131,11 @@ sync_widget_state_to_menu (GimvThumbWin *tw)
    gimv_thumb_win_pane_set_visible (tw, GIMV_COM_IMAGE_VIEW);
 
    if (!gimv_menu_item_get_active (GIMV_MENU_ITEM (tw->menuitem.menubar)))
-      gtk_widget_hide (tw->menubar_handle);
+      gtk_widget_set_visible (tw->menubar_handle, FALSE);
    if (!gimv_menu_item_get_active (GIMV_MENU_ITEM (tw->menuitem.toolbar)))
-      gtk_widget_hide (tw->toolbar_handle);
+      gtk_widget_set_visible (tw->toolbar_handle, FALSE);
    if (!gimv_menu_item_get_active (GIMV_MENU_ITEM (tw->menuitem.statusbar)))
-      gtk_widget_hide (tw->status_bar_container);
+      gtk_widget_set_visible (tw->status_bar_container, FALSE);
    thumb_win_update_show_tabs (tw);
    if (tw->cv)
       gtk_notebook_set_show_tabs (GTK_NOTEBOOK (tw->cv->notebook),
@@ -2299,7 +2297,7 @@ create_toolbar (GimvThumbWin *tw, GtkWidget *container)
    gimv_widget_set_tooltip (spinner, _("Thumbnail Size"));
    gimv_box_pack_start (GTK_BOX (toolbar), spinner, FALSE, FALSE, 0);
    gimv_event_connect (GTK_WIDGET (spinner), GIMV_EVENT_KEY_PRESS, G_CALLBACK(cb_size_spinner_key_press), tw);
-   gtk_widget_show (spinner);
+   gtk_widget_set_visible (spinner, TRUE);
 
    toolbar_append_space (toolbar);
 
@@ -2312,7 +2310,7 @@ create_toolbar (GimvThumbWin *tw, GtkWidget *container)
                                    G_CALLBACK (cb_quit_button),
                                    NULL);
    tw->button.quit = button;
-   gtk_widget_hide (tw->button.quit);
+   gtk_widget_set_visible (tw->button.quit, FALSE);
 
    return toolbar;
 }
@@ -2505,10 +2503,10 @@ thumbnail_window_contents_new (GimvThumbWin *tw)
                             tw->pane_size2);
 
    /* show widget */
-   gtk_widget_show (widget[0]);
-   gtk_widget_show (widget[1]);
-   gtk_widget_show (widget[2]);
-   gtk_widget_show (tw->pane2);
+   gtk_widget_set_visible (widget[0], TRUE);
+   gtk_widget_set_visible (widget[1], TRUE);
+   gtk_widget_set_visible (widget[2], TRUE);
+   gtk_widget_set_visible (tw->pane2, TRUE);
 
    return tw->pane1;
 }
@@ -2581,7 +2579,7 @@ thumbnail_view_new (GimvThumbWin *tw)
 
    notebook = gtk_notebook_new ();
    gtk_widget_set_name (notebook, "ThumbViewNoteBook");
-   gtk_widget_show (notebook);
+   gtk_widget_set_visible (notebook, TRUE);
    gimv_container_set_border_width (GTK_WIDGET (vbox), 2);
    gimv_box_pack_start (GTK_BOX (vbox), notebook, TRUE, TRUE, 0);
 
@@ -2833,7 +2831,7 @@ image_preview_new (GimvThumbWin *tw)
    gimv_event_connect (GTK_WIDGET (gtk_widget_get_parent (tw->cv->note_box)), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_reset_com_dnd), tw);
    /* END FIXME!! */
 
-   gtk_widget_show (GTK_WIDGET (tw->iv));
+   gtk_widget_set_visible (GTK_WIDGET (tw->iv), TRUE);
    g_object_get (G_OBJECT (tw->iv),
                    "show_scrollbar", &show_scrollbar,
                    NULL);
@@ -2946,10 +2944,9 @@ cb_open (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 {
    switch (action) {
    case OPEN_FILE:
-      if (tw->open_dialog)
-         gtk_window_present (GTK_WINDOW (tw->open_dialog));
-      else
-         tw->open_dialog = (GtkWidget *) create_filebrowser (tw);
+      /* GtkFileDialog can not be raised: do not open a second one */
+      if (!tw->open_dialog)
+         create_filebrowser (tw);
       break;
    case OPEN_IMAGEWIN:
       gimv_image_win_open_window (NULL);   
@@ -3418,9 +3415,9 @@ cb_toggle_show (GimvThumbWin *tw, ShowItem sitem, GimvMenuItem *widget)
       return;
 
    if (gimv_menu_item_get_active (GIMV_MENU_ITEM (widget))) {
-      gtk_widget_show (item);
+      gtk_widget_set_visible (item, TRUE);
    } else {
-      gtk_widget_hide (item);
+      gtk_widget_set_visible (item, FALSE);
    }
 }
 
@@ -3647,10 +3644,9 @@ cb_location_entry_drag_data_received (GtkWidget *widget,
 static void
 cb_open_button (GtkWidget *widget, GimvThumbWin *tw)
 {
-   if (tw->open_dialog)
-      gtk_window_present (GTK_WINDOW (tw->open_dialog));
-   else
-      tw->open_dialog = (GtkWidget *) create_filebrowser (tw);
+   /* GtkFileDialog can not be raised: do not open a second one */
+   if (!tw->open_dialog)
+      create_filebrowser (tw);
 }
 
 
@@ -4388,8 +4384,7 @@ gimv_thumb_win_set_statusbar_page_info (GimvThumbWin *tw, gint pagenum)
 
    /* update status bar */
    if (update_statusbar1) {
-      gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), 1);
-      gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), 1, buf);
+      gimv_statusbar_set_text (tw->status_bar1, buf);
    }
    (void) tv_filenum;
    (void) tv_filesize;
@@ -4423,7 +4418,7 @@ show_file_info (GimvThumbWin *tw, GimvThumbView *tv, GimvThumb *focus)
    GimvThumb *one = NULL;
    gchar *text = NULL, *size;
 
-   gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar2), 1);
+   gimv_statusbar_pop (tw->status_bar2, 1);
    if (!tv) return;
 
    for (node = tv->thumblist; node; node = g_list_next (node)) {
@@ -4452,7 +4447,7 @@ show_file_info (GimvThumbWin *tw, GimvThumbView *tv, GimvThumb *focus)
       }
    }
    if (text)
-      gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar2), 1, text);
+      gimv_statusbar_push (tw->status_bar2, 1, text);
    g_free (text);
 }
 
@@ -4465,9 +4460,9 @@ gimv_thumb_win_show_file_path (GimvThumbWin *tw, GimvThumbView *tv)
    gchar *tilde, *text;
 
    g_return_if_fail (tw);
-   gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), STATUS_FILE_PATH);
+   gimv_statusbar_pop (tw->status_bar1, STATUS_FILE_PATH);
    if (!tv || tv->progress) {
-      gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar2), 1);
+      gimv_statusbar_pop (tw->status_bar2, 1);
       return;
    }
 
@@ -4482,7 +4477,7 @@ gimv_thumb_win_show_file_path (GimvThumbWin *tw, GimvThumbView *tv)
    text = charset_to_internal (tilde, conf.charset_filename,
                                conf.charset_auto_detect_fn,
                                conf.charset_filename_mode);
-   gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), STATUS_FILE_PATH, text);
+   gimv_statusbar_push (tw->status_bar1, STATUS_FILE_PATH, text);
    g_free (text);
    g_free (tilde);
 }
@@ -4521,8 +4516,7 @@ gimv_thumb_win_loading_update_progress (GimvThumbWin *tw, gint pagenum)
                                     conf.charset_filename_mode);
       g_snprintf (buf, BUF_SIZE, "%s", tmpstr);
       g_free (tmpstr);
-      gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), 1);
-      gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), 1, buf);
+      gimv_statusbar_set_text (tw->status_bar1, buf);
    }
    progress = (gfloat) tv->progress->pos / (gfloat) tv->progress->num;
 
@@ -4662,9 +4656,9 @@ gimv_thumb_win_set_tab_label_text (GtkWidget *page_container,
       gtk_widget_set_tooltip_text (tablabel, title);
 
       if (conf.thumbwin_show_tab_close) {
-         gtk_widget_show (button);
+         gtk_widget_set_visible (button, TRUE);
       } else {
-         gtk_widget_hide (button);
+         gtk_widget_set_visible (button, FALSE);
       }
    }
 
@@ -4744,7 +4738,7 @@ gimv_thumb_win_create_tab_container (GimvThumbWin *tw)
    scrollwin = GTK_SCROLLED_WINDOW (scrolled_window);
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolled_window),
                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-   gtk_widget_show (scrolled_window);
+   gtk_widget_set_visible (scrolled_window, TRUE);
    gimv_event_connect_after (GTK_WIDGET (scrolled_window), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK(cb_pagecontainer_button_press), tw);
    gimv_event_connect_after (GTK_WIDGET (scrolled_window), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK(cb_pagecontainer_thumb_button_release), tw);
    scrollbar = gtk_scrolled_window_get_hscrollbar (scrollwin);
@@ -4787,9 +4781,9 @@ gimv_thumb_win_create_tab_container (GimvThumbWin *tw)
    gimv_widget_show_all (hbox);
 
    if (conf.thumbwin_show_tab_close) {
-      gtk_widget_show (button);
+      gtk_widget_set_visible (button, TRUE);
    } else {
-      gtk_widget_hide (button);
+      gtk_widget_set_visible (button, FALSE);
    }
 
    dnd_dest_set (hbox, dnd_types_all, dnd_types_all_num);
@@ -5213,7 +5207,7 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
    /* attach new main contents */
    gimv_box_pack_start (GTK_BOX (tw->main_vbox), new_main_contents, TRUE, TRUE, 0);
    sync_widget_state_to_menu (tw);  /* reset widget state */
-   gtk_widget_show (new_main_contents);
+   gtk_widget_set_visible (new_main_contents, TRUE);
    tw->main_contents = new_main_contents;
    tw->pagenum = pagenum;
 

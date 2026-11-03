@@ -19,7 +19,7 @@ gimv_helpdir = gimv_datadir / 'doc'
 gimv_icondir = gimv_datadir / 'pixmaps'
 plugindir    = libdir / package
 
-gtk_dep   = dependency('gtk4', version : '>= 4.10')
+gtk_dep   = dependency('gtk4', version : '>= 4.12')
 glib_dep  = dependency('glib-2.0', version : '>= 2.72')
 gmod_dep  = dependency('gmodule-2.0')
 gio_dep   = dependency('gio-2.0')
@@ -42,7 +42,7 @@ else
                               required : get_option('mng'))
   endif
 endif
-rsvg_dep  = dependency('librsvg-2.0', required : get_option('svg'))
+rsvg_dep  = dependency('librsvg-2.0', version : '>= 2.52', required : get_option('svg'))
 wmf_dep   = dependency('libwmf', required : get_option('wmf'))
 xine_dep  = dependency('libxine', version : '>= 1.2', required : get_option('xine'))
 gst_dep   = dependency('gstreamer-1.0', version : '>= 1.16', required : get_option('gstreamer'))
@@ -126,13 +126,14 @@ configure_file(output : 'config.h', configuration : conf)
 
 add_project_arguments(
   '-DHAVE_CONFIG_H',
-  # GtkTreeView/GtkComboBox/GtkDialog & friends are deprecated since 4.10 but
-  # remain fully supported for the whole GTK 4 series.
-  '-DGDK_DISABLE_DEPRECATION_WARNINGS',
-  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_10',
+  # warn about API deprecated in, or newer than, the required versions
+  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_12',
+  '-DGDK_VERSION_MAX_ALLOWED=GDK_VERSION_4_12',
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72',
+  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_72',
   cc.get_supported_arguments([
     '-Wno-unused-parameter', '-Wno-sign-compare', '-Wno-pointer-sign',
-    '-Wno-deprecated-declarations', '-Wno-missing-field-initializers',
+    '-Wno-missing-field-initializers',
     '-Werror=implicit-function-declaration', '-Werror=incompatible-pointer-types',
     '-Werror=int-conversion', '-Werror=return-type',
   ]),

@@ -189,7 +189,7 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
 
    dl.result = 0;
    dl.prop = prop;
-   dl.top = gtk_dialog_new ();
+   dl.top = gimv_dialog_new ();
    gtk_window_set_title (GTK_WINDOW (dl.top), _("Properties"));
    gimv_window_set_default_transient (GTK_WINDOW (dl.top));
    g_signal_connect (G_OBJECT (dl.top), "destroy",

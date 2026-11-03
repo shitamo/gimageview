@@ -40,6 +40,7 @@
 #include "fileutil.h"
 #include "gfileutil.h"
 #include "gtk2-compat.h"
+#include "gimv_list_view.h"
 #include "prefs.h"
 
 #define MAX_VISIBLE_ROWS 8
@@ -54,7 +55,7 @@ static GList *ac_alternatives   = NULL;
 static GtkWidget *ac_window     = NULL;
 static GtkWidget *ac_clist      = NULL;
 static GtkWidget *ac_entry      = NULL;
-static GtkListStore *ac_list_store = NULL;
+static GListStore *ac_list_store = NULL;   /* of GimvRow */
 
 static void 
 ac_dir_free (void)
@@ -289,7 +290,7 @@ ac_window_key_press_cb (GtkEventControllerKey *controller,
       return FALSE;
 
    if (keyval == GDK_KEY_Return || keyval == GDK_KEY_KP_Enter) {
-      /* the selected row is already in the entry (see cursor_changed) */
+      /* the selected row is already in the entry (see selection-changed) */
       auto_compl_hide_alternatives ();
       return TRUE;
    }
@@ -361,32 +362,25 @@ ac_basename (const gchar *path)
 }
 
 
+/* the selected alternative goes to the entry (GtkTreeView: "cursor_changed";
+   moving the focus of GtkListView with the keyboard selects the row) */
 static void
-cb_tree_cursor_changed (GtkTreeView *treeview, gpointer data)
+cb_ac_selection_changed (GtkSelectionModel *selection,
+                         guint position, guint n_items, gpointer data)
 {
-   GtkTreeSelection *selection;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gchar *text, *full_path;
+   GimvRow *row;
+   const gchar *text;
+   gchar *full_path;
 
-   /* GTK4: also emitted while the tree view is disposed (without model) */
-   if (!gtk_tree_view_get_model (treeview)) return;
+   if (!ac_entry || !ac_clist) return;
 
-   g_return_if_fail (GTK_IS_TREE_VIEW (treeview));
-
-   if (!ac_entry) return;
-
-   selection = gtk_tree_view_get_selection (treeview);
-   if (!gtk_tree_selection_get_selected (selection, &model, &iter)) return;
-   gtk_tree_model_get (model, &iter,
-                       0, &text,
-                       -1);
+   row = gimv_list_view_get_selected_row (ac_clist);
+   if (!row) return;
+   text = gimv_row_peek_string (row, 0);
    if (!text) return;
 
    full_path = g_strconcat (ac_dir, "/", text, NULL);
    gtk_editable_set_text (GTK_EDITABLE (ac_entry), full_path);
-
-   g_free (text);
    g_free (full_path);
 
    gtk_editable_set_position (GTK_EDITABLE (ac_entry), -1);
@@ -415,23 +409,11 @@ auto_compl_show_alternatives (GtkWidget *entry)
       gtk_popover_set_position (GTK_POPOVER (ac_window), GTK_POS_BOTTOM);
       gtk_popover_set_autohide (GTK_POPOVER (ac_window), TRUE);
 
-      {
-         GtkTreeViewColumn *col;
-         GtkCellRenderer *render;
-
-         ac_list_store = gtk_list_store_new (1, G_TYPE_STRING);
-         ac_clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (ac_list_store));
-         /* GTK4: gtk_tree_view_set_rules_hint () removed */
-         gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (ac_clist), FALSE);
-         gtk_tree_view_set_enable_search (GTK_TREE_VIEW (ac_clist), FALSE);
-
-         col = gtk_tree_view_column_new();
-         render = gtk_cell_renderer_text_new ();
-         gtk_tree_view_column_pack_start (col, render, FALSE);
-         gtk_tree_view_column_add_attribute (col, render, "text", 0);
-
-         gtk_tree_view_append_column (GTK_TREE_VIEW (ac_clist), col);
-      }
+      /* GTK4: GtkTreeView (deprecated) -> GtkListView */
+      ac_list_store = gimv_row_store_new ();
+      ac_clist = gimv_list_view_new (G_LIST_MODEL (g_object_ref (ac_list_store)),
+                                     GTK_SELECTION_SINGLE,
+                                     gimv_text_factory_new (0, FALSE));
 
       scroll = gimv_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll),
@@ -451,9 +433,9 @@ auto_compl_show_alternatives (GtkWidget *entry)
       g_signal_connect (ac_window, "closed",
                         G_CALLBACK (cb_ac_popover_closed), NULL);
 
-      g_signal_connect (G_OBJECT (ac_clist),
-                        "cursor_changed",
-                        G_CALLBACK (cb_tree_cursor_changed),
+      g_signal_connect (gimv_list_view_get_selection (ac_clist),
+                        "selection-changed",
+                        G_CALLBACK (cb_ac_selection_changed),
                         NULL);
 
       gtk_widget_set_parent (ac_window, entry);
@@ -464,32 +446,17 @@ auto_compl_show_alternatives (GtkWidget *entry)
    ac_entry = entry;
    n = 0;
 
-   {
-      GtkTreeIter iter;
+   /* the first alternative is selected, but not put into the entry */
+   g_signal_handlers_block_by_func (gimv_list_view_get_selection (ac_clist),
+                                    (gpointer) cb_ac_selection_changed, NULL);
 
-      gtk_list_store_clear (ac_list_store);
-
-      for (scan = ac_alternatives; scan; scan = scan->next) {
-         gtk_list_store_append (ac_list_store, &iter);
-         gtk_list_store_set (ac_list_store, &iter,
-                             0, ac_basename (scan->data),
-                             -1);
-
-         if (n == 0) {
-            GtkTreeSelection *selection;
-            GtkTreePath *treepath;
-            selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (ac_clist));
-            treepath = gtk_tree_model_get_path (GTK_TREE_MODEL (ac_list_store),
-                                                &iter);
-            gtk_tree_selection_select_path (selection, treepath);
-            gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (ac_clist),
-                                          treepath, NULL,
-                                          TRUE, 0.0, 0.0);
-            gtk_tree_path_free (treepath);
-         }
-
-         n++;
-      }
+   g_list_store_remove_all (ac_list_store);
+   for (scan = ac_alternatives; scan; scan = scan->next) {
+      GimvRow *row = gimv_row_new (1, G_TYPE_STRING);
+      gimv_row_set (row, 0, ac_basename (scan->data), -1);
+      g_list_store_append (ac_list_store, row);
+      g_object_unref (row);
+      n++;
    }
 
    /* GTK4: the popover is placed under the entry (no window positioning) */
@@ -499,12 +466,12 @@ auto_compl_show_alternatives (GtkWidget *entry)
                                 -1, 200);
    gtk_popover_popup (GTK_POPOVER (ac_window));
 
-   /* focusing the tree view may move its cursor: don't touch the entry */
-   g_signal_handlers_block_by_func (ac_clist, (gpointer) cb_tree_cursor_changed,
-                                    NULL);
+   if (n > 0)
+      gimv_list_view_scroll_to (ac_clist, 0, TRUE, TRUE);
    gtk_widget_grab_focus (ac_clist);
-   g_signal_handlers_unblock_by_func (ac_clist,
-                                      (gpointer) cb_tree_cursor_changed, NULL);
+
+   g_signal_handlers_unblock_by_func (gimv_list_view_get_selection (ac_clist),
+                                      (gpointer) cb_ac_selection_changed, NULL);
 }
 
 

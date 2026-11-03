@@ -152,6 +152,8 @@ void       gimv_paned_pack2             (GtkPaned    *paned,
 /* windows */
 GtkWidget *gimv_popup_window_new        (void);  /* undecorated window */
 void       gimv_window_set_default_transient (GtkWindow *window);
+/* the window gimv_window_set_default_transient () would use (or NULL) */
+GtkWindow *gimv_get_default_transient_parent (GtkWindow *window);
 void       gimv_grab_add                (GtkWidget   *widget);
 void       gimv_grab_remove             (GtkWidget   *widget);
 
@@ -218,10 +220,11 @@ void       gimv_combo_set_popdown_strings (GtkWidget *combo,
 /******************************************************************************
  *  dialogs
  ******************************************************************************/
+/* GtkDialog replacement: a GtkWindow with a content area and an action area */
+GtkWidget *gimv_dialog_new              (void);
+void       gimv_dialog_init             (GtkWindow   *window);  /* for subclasses */
 GtkWidget *gimv_dialog_get_vbox         (GtkWidget   *dialog);
 GtkWidget *gimv_dialog_get_action_area  (GtkWidget   *dialog);
-/* run a dialog modally, like gtk_dialog_run () of GTK2 */
-gint       gimv_dialog_run              (GtkDialog   *dialog);
 /* run until the window is closed/destroyed */
 void       gimv_window_run_modal        (GtkWindow   *window);
 void       gimv_window_set_icon_pixbuf  (GtkWindow   *window,
@@ -433,7 +436,7 @@ void       gimv_drag_set_icon_texture   (GimvDragContext       *context,
                                          GdkTexture            *texture,
                                          gint                   hot_x,
                                          gint                   hot_y);
-/* GdkContentFormats for a target list (for GtkTreeView model DnD) */
+/* GdkContentFormats for a target list */
 GdkContentFormats *gimv_target_entries_to_formats (const GimvTargetEntry *targets,
                                                    gint                   n_targets);
 
@@ -452,6 +455,10 @@ void       gimv_cairo_draw_pixbuf       (cairo_t     *cr,
                                          gdouble      y);
 void       gimv_cairo_set_source_color_name (cairo_t *cr,
                                          const gchar *spec);
+/* a color the theme defines with @define-color (FALSE if it is undefined) */
+gboolean   gimv_widget_lookup_color     (GtkWidget   *widget,
+                                         const gchar *name,
+                                         GdkRGBA     *color);
 /* foreground/background colors of a widget's CSS style */
 void       gimv_widget_get_fg_color     (GtkWidget   *widget,
                                          GdkRGBA     *color);
@@ -465,6 +472,19 @@ GdkPixbuf *gimv_widget_render_icon      (GtkWidget   *widget,
                                          gint         size);
 
 /******************************************************************************
+ *  status bar (GtkStatusbar replacement: a single line GtkLabel)
+ ******************************************************************************/
+GtkWidget *gimv_statusbar_new           (void);
+void       gimv_statusbar_set_text      (GtkWidget   *statusbar,
+                                         const gchar *text);
+/* over the text: one per context, the highest shown; popped: the one below */
+void       gimv_statusbar_push          (GtkWidget   *statusbar,
+                                         guint        context,
+                                         const gchar *text);
+void       gimv_statusbar_pop           (GtkWidget   *statusbar,
+                                         guint        context);
+
+/******************************************************************************
  *  misc
  ******************************************************************************/
 void       gimv_widget_set_tooltip      (GtkWidget   *widget,
@@ -475,10 +495,6 @@ void       gimv_screen_get_size         (gint        *width,
                                          gint        *height);
 void       gimv_clipboard_set_text      (const gchar *text);
 void       gimv_clipboard_set_texture   (GdkTexture  *texture);
-
-/* GtkTreeView reacts to column resizing only in a 6 pixel strip left of
-   each header separator; make the strip wider, on both sides */
-void       gimv_tree_view_widen_column_resize (GtkTreeView *treeview);
 
 G_END_DECLS
 

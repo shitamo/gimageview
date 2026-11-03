@@ -75,7 +75,7 @@ remove_slash (const gchar *path)
    g_return_val_if_fail (*path, g_strdup (path));
 
    if (path[strlen (path) - 1] == '/')
-      return g_dirname (path);
+      return g_path_get_dirname (path);
    else
       return g_strdup (path);
 }
@@ -496,7 +496,7 @@ move_file_check_path (const gchar *from_path,
    /*******************
     * check source dir
     *******************/
-   from_dir = g_dirname (from_path);
+   from_dir = g_path_get_dirname (from_path);
    if (!iswritable (from_dir)) {
       if (show_error) {
          gchar *from_dir_internal;
@@ -642,7 +642,7 @@ move_file (const gchar *from_path, const gchar *dir,
    if (!retval) return FALSE;
 
    /* set dest path */
-   to_path = g_strconcat (dir, g_basename (from_path), NULL);
+   to_path = g_strconcat (dir, fileutil_basename (from_path), NULL);
 
    move_file = move_file_check_over_write (from_path, &from_st,
                                            to_path, &to_st,
@@ -861,7 +861,7 @@ copy_dir (const gchar *from_path, const gchar *dir,
    if (dirname[strlen (dirname) - 1] == '/')
       dirname[strlen (dirname) - 1] = '\0';
 
-   to_dir = g_strconcat (dirname, "/", g_basename (from_dir), NULL);
+   to_dir = g_strconcat (dirname, "/", fileutil_basename (from_dir), NULL);
 
    /*******************
     * check source dir
@@ -1167,7 +1167,7 @@ copy_file (const gchar *from_path, const gchar *dir,
       return FALSE;
    }
 
-   to_path = g_strconcat (dir, g_basename (from_path), NULL);
+   to_path = g_strconcat (dir, fileutil_basename (from_path), NULL);
    retval = copy_file_to_file (from_path, to_path, action, show_error, window);
    g_free (to_path);
 
@@ -1230,7 +1230,7 @@ link_file (const gchar *from_path, const gchar *dir,
       goto ERROR0;
    }
 
-   to_path = g_strconcat(dir_internal, g_basename(from_path), NULL);
+   to_path = g_strconcat(dir_internal, fileutil_basename(from_path), NULL);
    to_path_internal = charset_to_internal (to_path,
                                            conf.charset_filename,
                                            conf.charset_auto_detect_fn,
@@ -1289,7 +1289,7 @@ get_dest_cache_dir (const gchar *src_file,
 
    if (!src_file || !dest_dir || !cache_type) return NULL;
 
-   dest_file = g_strconcat (dest_dir, g_basename (src_file), NULL);
+   dest_file = g_strconcat (dest_dir, fileutil_basename (src_file), NULL);
    dest_cache_dir = gimv_thumb_cache_get_path (dest_file, cache_type);
 
    if (dest_cache_dir) {
@@ -1318,7 +1318,7 @@ get_dest_comment_dir (const gchar *src_file,
 
    if (!src_file || !dest_dir) return NULL;
 
-   dest_file = g_strconcat (dest_dir, g_basename (src_file), NULL);
+   dest_file = g_strconcat (dest_dir, fileutil_basename (src_file), NULL);
    dest_comment_dir = gimv_comment_get_path (dest_file);
 
    if (dest_comment_dir) {
@@ -1808,7 +1808,7 @@ delete_files (GList *filelist, ConfirmType confirm, GtkWindow *window)
                                          message, NULL, progress);
       }
 
-      dirname = g_dirname (filename);
+      dirname = g_path_get_dirname (filename);
       dirname_internal =  charset_to_internal (dirname,
                                                conf.charset_filename,
                                                conf.charset_auto_detect_fn,
@@ -1941,10 +1941,10 @@ rename_dir_dialog (const gchar *dir, GtkWindow *window)
    }
 
    src_path = remove_slash (path);
-   parent_dir = g_dirname (src_path);
+   parent_dir = g_path_get_dirname (src_path);
 
    /* popup rename directory dialog */
-   src_file_internal = charset_locale_to_internal (g_basename (src_path));
+   src_file_internal = charset_locale_to_internal (fileutil_basename (src_path));
    dirname = gtkutil_popup_textentry (_("Rename Directory"),
                                       _("New directory name: "),
                                       src_file_internal,

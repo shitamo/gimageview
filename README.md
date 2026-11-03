@@ -135,7 +135,7 @@ You need following environment/libraries to build GImageView:
 
 * A C compiler, Meson and Ninja (build time only)
 
-* GTK 4.10 or later (<https://www.gtk.org/>)
+* GTK 4.12 or later (<https://www.gtk.org/>)
 
 * GLib 2.72 or later, gdk-pixbuf 2.0
 
@@ -151,7 +151,7 @@ Following libraries and programs are optional. They extend the functionality whe
 
 * **libexif:** EXIF information can be displayed, and images are rotated by the EXIF orientation.
 
-* **librsvg:** SVG images can be displayed.
+* **librsvg** (2.52 or later)**:** SVG images can be displayed.
 
 * **libmng:** MNG animations can be played.
 

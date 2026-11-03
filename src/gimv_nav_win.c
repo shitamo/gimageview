@@ -122,18 +122,18 @@ gimv_nav_win_init (GimvNavWin *navwin)
 
    navwin->out_frame = gtk_frame_new (NULL);
    gimv_container_add (GTK_WIDGET (navwin), navwin->out_frame);
-   gtk_widget_show (navwin->out_frame);
+   gtk_widget_set_visible (navwin->out_frame, TRUE);
 
    navwin->in_frame = gtk_frame_new (NULL);
    gimv_container_add (GTK_WIDGET (navwin->out_frame), navwin->in_frame);
-   gtk_widget_show (navwin->in_frame);
+   gtk_widget_set_visible (navwin->in_frame, TRUE);
 
    navwin->preview = gtk_drawing_area_new ();
    gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (navwin->preview),
                                    gimv_nav_win_preview_draw,
                                    navwin, NULL);
    gimv_container_add (GTK_WIDGET (navwin->in_frame), navwin->preview);
-   gtk_widget_show (navwin->preview);
+   gtk_widget_set_visible (navwin->preview, TRUE);
 
    /* GTK2 class handlers: run after the handlers connected by users */
    gimv_event_connect_after (GTK_WIDGET (navwin), GIMV_EVENT_KEY_PRESS,
@@ -286,18 +286,19 @@ gimv_nav_win_motion_notify (GtkWidget *widget,
 {
    GimvNavWin *navwin;
    gint mx, my;
-   gdouble x, y, px, py;
+   gdouble x, y;
+   graphene_point_t point, preview_point;
 
    g_return_val_if_fail (GIMV_IS_NAV_WIN (widget), FALSE);
 
    navwin = GIMV_NAV_WIN (widget);
 
    /* GTK2 used window coordinates which are BORDER_WIDTH off the preview */
-   if (gtk_widget_translate_coordinates (widget, navwin->preview,
-                                         event->x, event->y, &px, &py))
+   graphene_point_init (&point, event->x, event->y);
+   if (gtk_widget_compute_point (widget, navwin->preview, &point, &preview_point))
    {
-      mx = (gint) px + BORDER_WIDTH;
-      my = (gint) py + BORDER_WIDTH;
+      mx = (gint) preview_point.x + BORDER_WIDTH;
+      my = (gint) preview_point.y + BORDER_WIDTH;
    } else {
       mx = (gint) event->x;
       my = (gint) event->y;
