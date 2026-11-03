@@ -86,6 +86,132 @@ Usage: gimv [OPTION...] [Image Files...]
 To open a directory from the GUI, double-click it in the directory view, or type its path in the directory entry of the thumbnail window toolbar and press Enter (a new tab is opened only if the directory has images). You can also select directories in the file open dialog and press "Thumbnails of the selected files".
 </p>
 </div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-02"></a>2.2. Image index (dates and tags)</h3></div></div>
+<p class="para">
+When "Directories to index" are given in [Preferences | Index], an indexer process (gimv-indexer) looks at the images below them while GImageView runs, and keeps their dates and tags in a database (~/.local/share/gimageview/index.db). The indexer runs at a low priority, and also takes in files added, moved and deleted while GImageView runs. Its progress is shown at the right end of the status bar ("Index: ..."). This needs a build with SQLite.
+</p>
+<div class="figure"><img src="images/index_tag.png" width="700" height="450" alt="The Tag tab and a result tab">
+<p class="caption">The Tag tab and a result tab</p></div>
+<p class="para">
+With an index, the side notebook of the thumbnail window (where the directory view is) gets the "Date" and "Tag" tabs (and "People" when faces can be found).
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="index_date_tab"></a>Date tab</span></dt>
+<dd><p class="para">
+The images by the date they were taken, in years, months and days, newest first, with their numbers. The date is the EXIF date, else a date in the file name, else the modification time.
+</p></dd>
+<dt><span class="term"><a name="index_tag_tab"></a>Tag tab</span></dt>
+<dd><p class="para">
+The tags put by hand at the top, then "Names of People" and the groups of the tags put automatically (in blue: Folders, Cameras, Shape, Tags of People).
+</p></dd>
+<dt><span class="term"><a name="index_open"></a>Opening</span></dt>
+<dd><p class="para">
+A click on the text of a row shows its images in the result tab of the thumbnail view (one tab, whose contents are replaced). The middle button, or "Open in New Tab" of the right button menu, opens a new tab. Moving with the arrow keys opens nothing; Enter does. A result tab shows the file names only; the full path is in the tooltip and the status bar. "Open the Folder" of the right button menu opens the folder of the image. With tens of thousands of images, only the thumbnails near the part shown are made.
+</p></dd>
+<dt><span class="term"><a name="index_tags"></a>Tagging</span></dt>
+<dd><p class="para">
+"Edit Tags..." of the right button menu of the thumbnail view tags the images selected (one or more). Tags are separated by commas and may have "/" in them, like "travel/Kyoto". They are written in the "X-IMG-Tags:" line of the comment files (~/.gimv/comment), so they are kept when the index is made again. The "Tags:" row of the "Data" tab (comment window and preview) shows the tags of the image; a click opens the images with the tag.
+</p></dd>
+<dt><span class="term"><a name="index_rename"></a>Renaming and merging tags</span></dt>
+<dd><p class="para">
+Select a tag put by hand (or a tag of people) in the Tag tab and press F2, or choose "Rename... (F2)" in the right button menu. When the new name is there already, you are asked whether to merge them. The comment files are rewritten in the background. Ctrl+C copies the name of a row.
+</p></dd>
+<dt><span class="term"><a name="index_auto_tags"></a>Automatic tags</span></dt>
+<dd><p class="para">
+The index tags the images with their folder name, their camera (EXIF) and their shape (portrait, landscape, square) ([Preferences | Index | Automatic Tags]). Folder names of numbers only and DCIM are not made tags. Other folder names can be added to "Folder Names Not Made Tags" ("*" and "?" can be used), or with "Do Not Make This Folder Name a Tag" in the right button menu of a folder in the Tag tab (not while the preferences window is open). The automatic tags are kept in the index only, not in the comment files.
+</p></dd>
+<dt><span class="term"><a name="index_notify"></a>New images and notices</span></dt>
+<dd><p class="para">
+New images in the indexed directories are notified on the desktop (the time to gather them, the interval and the folders not to notify are in [Preferences | Index | New Images]). The "Notices" button of the status bar shows the number of new images since the last time, and asks things such as whether to move the comments of images another program moved.
+</p></dd>
+<dt><span class="term"><a name="index_missing"></a>Missing images</span></dt>
+<dd><p class="para">
+Images with comments (tags) that went missing are listed in a log for each start (~/.local/share/gimageview/missing-*.log). In [Tools | Missing Images...] their comments can be put on where the image went, put on another image, deleted, or the lines removed from the log.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-03"></a>2.3. Faces and people</h3></div></div>
+<p class="para">
+gimv-faces looks for faces in the images of the "Folders to find faces in" of [Preferences | Index | Faces] (which must be in the index), and puts faces that look alike in groups. It runs after the rest of the index, slowly. This needs a build with OpenCV 4.8 or later, and the model files (OpenCV YuNet and SFace, about 40 MB) in ~/.local/share/gimageview/models (where to get them is shown on the preferences page).
+</p>
+<div class="figure"><img src="images/faces_window.png" width="700" height="480" alt="The faces window">
+<p class="caption">The faces window</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="people_tab"></a>People tab</span></dt>
+<dd><p class="para">
+The people named (grouped by their tags), the guesses ("name?"), the unnamed groups, the other faces and the ignored faces. A click opens the images of the person; "Show the Faces..." of the right button menu opens the faces window.
+</p></dd>
+<dt><span class="term"><a name="faces_window"></a>Faces window</span></dt>
+<dd><p class="para">
+The people (also the unnamed groups and the guesses) are listed at the left with a face and their name, and the faces of the one selected at the right. Select faces (Ctrl+A: all of them) and choose "Name...", "Right", "Not This Person", "Remove the Name" or "Ignore". A double click opens the image. The buttons of the heading rename the person (merging two people of the same name), copy the name, edit the tags of the person and delete the person. The faces can be sorted oldest first, newest first, or least like the person first (to find the faces put there by mistake).
+</p></dd>
+<dt><span class="term"><a name="face_panel"></a>Faces panel</span></dt>
+<dd><p class="para">
+"Edit Faces (People)" (P) in the right button menu of an image view shows the faces of the image at its right, where they can be named too. Press "+" and drag over the image to add a face that was not found (a small face, for example). The right button menu of a face copies it to the clipboard.
+</p></dd>
+<dt><span class="term"><a name="person_names"></a>Names and the comment files</span></dt>
+<dd><p class="para">
+The names given to the faces are written in the comment files of the images too, as the tags "person/NAME"; when the index is made again, the names are given back to the faces from them. The "Names of People" group of the Tag tab shows these tags.
+</p></dd>
+<dt><span class="term"><a name="person_tags"></a>Tags of people</span></dt>
+<dd><p class="para">
+Tags put on people (the group they belong to, for example), with "Tags of the Person..." in the faces window. They are kept in the index only, and used by the "Tags of People" group of the Tag tab and the groups of the People tab. Renaming one renames it for everyone who has it.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-04"></a>2.4. Searching images</h3></div></div>
+<div class="figure"><img src="images/search_window.png" width="620" height="520" alt="The search window">
+<p class="caption">The search window</p></div>
+<p class="para">
+[Tools | Search Images...] finds images of the index by several conditions.
+</p>
+<div class="itemizedlist"><ul>
+<li><p class="para">A click on a tag of the list below (names of people and automatic tags too) adds it as a condition, shown as a chip at the top. Typing in the entry narrows the list; Enter adds the first tag. The images must have all the chips (and). A click on a chip turns it into "excluded" (red): the images with that tag are left out. × removes a chip.</p></li>
+<li><p class="para">"Period" limits the date taken (a year or a month alone can be given).</p></li>
+<li><p class="para">With conditions, the list below shows the tags of the images found, by kind and with their numbers: a click narrows the search further, and the "exclude" button of a row leaves those images out.</p></li>
+<li><p class="para">The images found are shown in a tab of the thumbnail window.</p></li>
+<li><p class="para">"Save..." keeps the conditions under a name, to be chosen again in the list at the top (~/.gimv/searches); the trash button deletes one.</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-05"></a>2.5. Lists</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="list_search"></a>Searching a list (Ctrl+F)</span></dt>
+<dd><p class="para">
+Ctrl+F in a list (the directory view, the detail view, the Data tab, the lists of the preferences, ...) opens a search entry at its top. The row beginning with what is typed (else having it) is selected. Up and Down go to the one before and the next, Enter closes it on the row, Escape closes it (and so do 5 seconds without typing). In the index tabs, the rows not opened are looked at too.
+</p></dd>
+<dt><span class="term"><a name="statusbar"></a>Status bar</span></dt>
+<dd><p class="para">
+At the left, the full path of the focused image; in the middle, its position ("12 / 33") and its file size. With several images selected, their number and their total size ("5 selected  812 kB"). At the right end, the state of the index and the notices.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-06"></a>2.6. Thumbnails</h3></div></div>
+<div class="itemizedlist"><ul>
+<li><p class="para">Thumbnails can be read and written in the format of the freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails), shared with other programs ([Preferences | Thumbnail Cache]).</p></li>
+<li><p class="para">The thumbnails of the images GdkPixbuf reads (JPEG, PNG, ...) are made in worker threads, so the window can be used while they are made. A JPEG's embedded (EXIF) thumbnail is used when it is big enough ("Making thumbnails" in [Preferences | Thumbnail Cache]).</p></li>
+<li><p class="para">Thumbnails are turned and flipped by the EXIF orientation, and kept so in the cache. When an image was turned or flipped in an image view (and that is remembered), its thumbnail is shown so (not kept in the cache).</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-07"></a>2.7. Other features</h3></div></div>
+<div class="itemizedlist"><ul>
+<li><p class="para">"Copy the Image to the Clipboard" (Shift+Ctrl+C) in the right button menu of an image view copies the image shown, to be pasted in other programs.</p></li>
+<li><p class="para">"Flip Horizontally" (X) and the rotation of an image view are remembered for each image and restored when it is opened again ("Remember the rotation and flip of each image" in [Preferences | Image Window | Image]).</p></li>
+<li><p class="para">The "Data" tab of the preview and of the comment window shows the comments written in the image file itself (JPEG, PNG, GIF, MAG) in italics (shown only).</p></li>
+<li><p class="para">"Open the Folder" in the right button menus of the thumbnail view and the image view opens the folder of the image.</p></li>
+</ul></div>
+</div>
 </div>
 <div class="navfooter">
 <hr>

@@ -109,6 +109,12 @@
 独自のアイコンを使いたい場合は、~/.gimv/icons/&lt;名前&gt;/ にアイコン名のファイル (back.png、zoom_in.svg、refresh.xpm など。PNG、SVG、XPM が使えます) を置き、~/.gimv/gimvrc の iconset= にその名前を書いて下さい。置いたアイコンはテーマのアイコンより優先されます。
 </p>
 </dd>
+<dt><span class="term"><a name="Scrollbars_always"></a>スクロールバーを常に表示する</span></dt>
+<dd>
+<p class="para">
+一覧などのスクロールバーを常に表示します。OFF にすると、GTK 4 の標準どおり、ポインタを近づけたときだけ内容に重ねて表示します。GTK 4 版で追加した項目です (初期値は ON)。
+</p>
+</dd>
 <dt><span class="term"><a name="Open_thumbnail_window"></a>サムネイルウィンドウを開く</span></dt>
 <dd>
 <p class="para">
@@ -665,6 +671,18 @@ GTK 4 版では、コメントの「題名」と「コメント」(メモ欄の 
 サムネイルを作成した時に保存するキャッシュの形式を選びます。「設定」で、選んだ形式の設定を変更できます。
 </p>
 </dd>
+<dt><span class="term"><a name="Cache_freedesktop"></a>freedesktop.org</span></dt>
+<dd>
+<p class="para">
+GTK 4 版で追加したキャッシュ形式です。freedesktop.org の Thumbnail Managing Standard に従い、~/.cache/thumbnails に他のプログラム (Nautilus、Thunar など) と共有するサムネイルを読み書きします。画像が更新されると、古いサムネイルは使いません。サムネイルは EXIF の向きどおりに回して保存します。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbnail_use_exif"></a>サムネイルの作成</span></dt>
+<dd>
+<p class="para">
+「JPEG に埋め込まれた縮小画像 (EXIF) が十分な大きさならそれを使う」を ON にすると、JPEG のサムネイルをファイルの先頭だけ読んで速く作ります。OFF にすると、常に画像そのものから作ります (縮小画像を更新しないソフトで編集した画像でも、正しいサムネイルになります)。GTK 4 版で追加した項目です (初期値は ON)。
+</p>
+</dd>
 </dl></div>
 </div>
 <div class="sect2">
@@ -776,6 +794,35 @@ GImageView が検索する、プラグインのディレクトリパスを指定
 </p>
 <div class="figure"><img src="images/prefs_plugin_loader.png" width="756" height="698" alt="[設定 | プラグイン | 画像読み込み]">
 <p class="caption">[設定 | プラグイン | 画像読み込み] (モジュール名の場所はインストール先によって異なります)</p></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-12"></a>6.12. 索引</h3></div></div>
+<p class="para">
+画像の索引 (<a href="02.html#02-02">2.2</a>) と顔の認識 (<a href="02.html#02-03">2.3</a>) の設定です。SQLite を使ってビルドした場合だけのページです。変更は「適用」または「了解」の後、索引プロセスを起動し直して反映します。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Index_dirs"></a>索引</span></dt>
+<dd><p class="para">
+「画像の索引を作り、日付で見られるようにする」と「索引を作るディレクトリ」です。指定したディレクトリの下の画像が索引の対象になります。
+</p></dd>
+<dt><span class="term"><a name="Index_newimg"></a>索引 | 新しい画像</span></dt>
+<dd><p class="para">
+新しい画像をデスクトップに通知するかどうか、まとめて通知するまでの待ち時間、通知の最小間隔、通知の表示時間、通知しないフォルダです。通知の出る場所は、デスクトップの通知の設定によります。
+</p></dd>
+<dt><span class="term"><a name="Index_auto"></a>索引 | 自動タグ</span></dt>
+<dd><p class="para">
+自動で付けるタグの種類 (フォルダ名、カメラ、形) と、タグにしないフォルダ名 (「*」は任意の文字列、「?」は任意の 1 文字。大文字と小文字は区別しません) です。カメラや形をオンにすると全ての画像を読み直すので、画像が多いと時間がかかります。
+</p></dd>
+<dt><span class="term"><a name="Index_faces"></a>索引 | 顔</span></dt>
+<dd><p class="para">
+顔を認識するフォルダ (索引を作るディレクトリの中) と、モデルファイルの場所です。モデルファイルが見つからない場合は、置き場所と入手先 (URL) を表示します。顔の認識が使える場合だけの項目です。
+</p></dd>
+<dt><span class="term"><a name="Index_missing"></a>索引 | 行方不明の画像</span></dt>
+<dd><p class="para">
+コメント (タグ) の付いた画像が見つからなくなったときのログを、いくつ残すかです (0 は作りません)。
+</p></dd>
+</dl></div>
 </div>
 </div>
 <div class="navfooter">

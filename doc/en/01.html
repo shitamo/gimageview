@@ -56,9 +56,12 @@ GImageView has the following features.
 <li><p class="para">Image management functions</p></li>
 <li><p class="para">Full slideshow support</p></li>
 <li><p class="para">Rich list view (supports multiple sort orders)</p></li>
+<li><p class="para">Image index: images by the date taken, by tags and automatic tags (folder name, camera, shape), searches by several conditions, saved searches (<a href="02.html#02-02">2.2</a>, <a href="02.html#02-04">2.4</a>)</p></li>
+<li><p class="para">Face recognition: images by the people in them, naming the faces (<a href="02.html#02-03">2.3</a>)</p></li>
 <li><p class="para">File operations by drag and drop</p></li>
 <li><p class="para">Support for many thumbnail cache formats (all read and write)
    <div class="itemizedlist"><ul>
+<li><p class="para">The freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails, shared with other programs)</p></li>
 <li><p class="para">GImageView (its own format, ~/.gimv/thumbnail)</p></li>
 <li><p class="para">Nautilus, Nautilus-2.0</p></li>
 <li><p class="para">Konqueror (also the old format)</p></li>
@@ -66,7 +69,6 @@ GImageView has the following features.
 <li><p class="para">Electric Eyes (Picview)</p></li>
 <li><p class="para">.xvpics</p></li>
 </ul></div>
-   The freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails) is not supported.
   </p></li>
 <li>
 <p class="para">Supported image formats
@@ -115,7 +117,7 @@ GImageView has the following features.
 <p class="para">
 The following are required to compile and run this program.
 <div class="itemizedlist"><ul>
-<li><p class="para">GTK 4.10 or later : <a href="https://www.gtk.org/" target="_top">https://www.gtk.org/</a></p></li>
+<li><p class="para">GTK 4.12 or later : <a href="https://www.gtk.org/" target="_top">https://www.gtk.org/</a></p></li>
 <li><p class="para">GLib 2.72 or later, gdk-pixbuf 2.0</p></li>
 <li><p class="para">Meson and Ninja (build time only)</p></li>
 <li><p class="para">X Window System (X11) (the environment it has been tested on). On Wayland, embedded movie playback with the MPlayer and xine plugins is not possible.</p></li>
@@ -127,8 +129,10 @@ In addition, the following libraries and programs, if present, extend the functi
 <div class="itemizedlist"><ul>
 <li><p class="para">libarchive : Archives (zip, rar, 7z, lha, tar, etc.) can be opened.</p></li>
 <li><p class="para">libjpeg : JPEG images are loaded faster.</p></li>
-<li><p class="para">libexif : EXIF information can be displayed, and images can be rotated automatically according to the EXIF orientation information.</p></li>
-<li><p class="para">librsvg : SVG images can be displayed.</p></li>
+<li><p class="para">libexif : EXIF information can be displayed, and images (and thumbnails) can be rotated automatically according to the EXIF orientation information. Thumbnails of JPEG files are made faster from their embedded (EXIF) thumbnails.</p></li>
+<li><p class="para">SQLite 3.22 or later : the image index (dates, tags, search) can be used.</p></li>
+<li><p class="para">OpenCV 4.8 or later (and a C++ compiler) : faces can be found in the index. The model files (OpenCV YuNet and SFace) are needed too.</p></li>
+<li><p class="para">librsvg (2.52 or later) : SVG images can be displayed.</p></li>
 <li><p class="para">libmng : MNG animations can be played.</p></li>
 <li><p class="para">libwmf : WMF images can be displayed.</p></li>
 <li><p class="para">GStreamer 1.16 or later, xine-lib 1.2 or later, or MPlayer : Movie and audio files can be played.</p></li>

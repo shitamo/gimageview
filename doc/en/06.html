@@ -107,6 +107,12 @@ Toolbar and other buttons use icons of the desktop icon theme (Adwaita, Papirus,
 To use your own icons, put files named after the icons (back.png, zoom_in.svg, refresh.xpm, ...; PNG, SVG and XPM can be used) in ~/.gimv/icons/&lt;name&gt;/ and write that name as iconset= in ~/.gimv/gimvrc.  These icons take precedence over the icons of the theme.
 </p>
 </dd>
+<dt><span class="term"><a name="Scrollbars_always"></a>Always show the scrollbars</span></dt>
+<dd>
+<p class="para">
+Shows the scrollbars of the lists and other views all the time. Off: as GTK 4 does by default, they are shown over the contents only while the pointer is near them. Added in the GTK 4 port (on by default).
+</p>
+</dd>
 <dt><span class="term"><a name="Open_thumbnail_window"></a>Open thumbnail window</span></dt>
 <dd>
 <p class="para">
@@ -661,6 +667,18 @@ Caches of the formats in "Cache type to use" on the right are searched from the 
 The format of the cache saved when a thumbnail is made.  "Preferences" changes the settings of the chosen format.
 </p>
 </dd>
+<dt><span class="term"><a name="Cache_freedesktop"></a>freedesktop.org</span></dt>
+<dd>
+<p class="para">
+A cache type added in the GTK 4 port: thumbnails of the freedesktop.org Thumbnail Managing Standard in ~/.cache/thumbnails, shared with other programs (Nautilus, Thunar, ...). A thumbnail older than its image is not used. Thumbnails are kept turned by the EXIF orientation.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbnail_use_exif"></a>Making thumbnails</span></dt>
+<dd>
+<p class="para">
+"Use the thumbnail embedded in a JPEG (EXIF) when it is big enough": the thumbnail of a JPEG is made fast from the start of the file. Off: always made from the image itself (right also for an image edited by a program that left its old thumbnail). Added in the GTK 4 port (on by default).
+</p>
+</dd>
 </dl></div>
 </div>
 <div class="sect2">
@@ -772,6 +790,35 @@ The pages below it, "Image Loader", "Image Saver", "IO Stream", "Archiver", "Thu
 </p>
 <div class="figure"><img src="images/prefs_plugin_loader.png" width="953" height="674" alt="[Preferences | Plugin | Image Loader]">
 <p class="caption">[Preferences | Plugin | Image Loader] (the location in "Module name" depends on where it is installed)</p></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-12"></a>6.12. Index</h3></div></div>
+<p class="para">
+The image index (<a href="02.html#02-02">2.2</a>) and face recognition (<a href="02.html#02-03">2.3</a>). Only in a build with SQLite. Changes take effect after "Apply" or "OK", with the indexer started again.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Index_dirs"></a>Index</span></dt>
+<dd><p class="para">
+"Index images by date" and "Directories to index": the images below these directories are indexed.
+</p></dd>
+<dt><span class="term"><a name="Index_newimg"></a>Index | New Images</span></dt>
+<dd><p class="para">
+Whether new images are notified on the desktop, how long they are gathered into one notification, the interval between two notifications, how long one is shown, and the folders not to notify. Where the notifications appear is set in the desktop's notification settings.
+</p></dd>
+<dt><span class="term"><a name="Index_auto"></a>Index | Automatic Tags</span></dt>
+<dd><p class="para">
+The kinds of automatic tags (folder name, camera, shape) and the folder names not made tags ("*" matches any letters, "?" one; capitals and small letters are the same). Turning the camera or the shape on reads every image again, which takes long with many images.
+</p></dd>
+<dt><span class="term"><a name="Index_faces"></a>Index | Faces</span></dt>
+<dd><p class="para">
+The folders to find faces in (inside the directories to index), and where the model files are. When they are not found, where to put them and where to get them (URLs) are shown. Only with face recognition.
+</p></dd>
+<dt><span class="term"><a name="Index_missing"></a>Index | Missing Images</span></dt>
+<dd><p class="para">
+How many logs of the images with comments (tags) that went missing are kept (0: none).
+</p></dd>
+</dl></div>
 </div>
 </div>
 <div class="navfooter">

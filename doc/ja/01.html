@@ -56,9 +56,12 @@ GImageView は、以下のような特徴を持っています。
 <li><p class="para">画像管理機能</p></li>
 <li><p class="para">スライドショー完備</p></li>
 <li><p class="para">充実したリストビュー(複数の並び換えに対応)</p></li>
+<li><p class="para">画像の索引: 撮影日・タグ・自動タグ (フォルダ名、カメラ、形) で画像を探す、複数の条件での検索と検索の保存 (<a href="02.html#02-02">2.2</a>、<a href="02.html#02-04">2.4</a>)</p></li>
+<li><p class="para">顔の認識: 写っている人で画像を探す、顔に名前を付ける (<a href="02.html#02-03">2.3</a>)</p></li>
 <li><p class="para">ドラッグ&amp;ドロップによるファイル操作</p></li>
 <li><p class="para">多数のサムネイルキャッシュ形式に対応 (いずれも読み書き対応)
    <div class="itemizedlist"><ul>
+<li><p class="para">freedesktop.org の Thumbnail Managing Standard (~/.cache/thumbnails。他のプログラムと共有)</p></li>
 <li><p class="para">GImageView (独自の形式。~/.gimv/thumbnail)</p></li>
 <li><p class="para">Nautilus、Nautilus-2.0</p></li>
 <li><p class="para">Konqueror (旧形式を含む)</p></li>
@@ -66,7 +69,6 @@ GImageView は、以下のような特徴を持っています。
 <li><p class="para">Electric Eyes (Picview)</p></li>
 <li><p class="para">.xvpics</p></li>
 </ul></div>
-   freedesktop.org の Thumbnail Managing Standard (~/.cache/thumbnails) には対応していません。
   </p></li>
 <li>
 <p class="para">対応画像形式
@@ -115,7 +117,7 @@ GImageView は、以下のような特徴を持っています。
 <p class="para">
 このプログラムのコンパイル及び実行には、以下のものが必要です。
 <div class="itemizedlist"><ul>
-<li><p class="para">GTK 4.10 以降 : <a href="https://www.gtk.org/" target="_top">https://www.gtk.org/</a></p></li>
+<li><p class="para">GTK 4.12 以降 : <a href="https://www.gtk.org/" target="_top">https://www.gtk.org/</a></p></li>
 <li><p class="para">GLib 2.72 以降、gdk-pixbuf 2.0</p></li>
 <li><p class="para">Meson と Ninja (ビルド時のみ)</p></li>
 <li><p class="para">X Window System (X11) (動作を確認している環境)。Wayland では MPlayer・xine プラグインによる動画の埋め込み再生はできません。</p></li>
@@ -127,8 +129,10 @@ GImageView は、以下のような特徴を持っています。
 <div class="itemizedlist"><ul>
 <li><p class="para">libarchive : 書庫 (zip、rar、7z、lha、tar など) を開く事ができます。</p></li>
 <li><p class="para">libjpeg : JPEG を高速に読み込みます。</p></li>
-<li><p class="para">libexif : EXIF 情報の表示と、EXIF の向き情報による自動回転ができます。</p></li>
-<li><p class="para">librsvg : SVG を表示する事ができます。</p></li>
+<li><p class="para">libexif : EXIF 情報の表示と、EXIF の向き情報による自動回転 (サムネイルも) ができます。JPEG の縮小画像 (EXIF) でサムネイルを速く作れます。</p></li>
+<li><p class="para">SQLite 3.22 以降 : 画像の索引 (日付・タグ・検索) が使えます。</p></li>
+<li><p class="para">OpenCV 4.8 以降 (C++ コンパイラも必要) : 索引で顔を認識できます。別にモデルファイル (OpenCV の YuNet と SFace) が必要です。</p></li>
+<li><p class="para">librsvg (2.52 以降) : SVG を表示する事ができます。</p></li>
 <li><p class="para">libmng : MNG を再生する事ができます。</p></li>
 <li><p class="para">libwmf : WMF を表示する事ができます。</p></li>
 <li><p class="para">GStreamer 1.16 以降、xine-lib 1.2 以降、または MPlayer : 動画・音声ファイルを再生する事ができます。</p></li>
