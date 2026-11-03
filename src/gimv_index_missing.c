@@ -23,6 +23,7 @@
 #include <glib/gstdio.h>
 
 #include "gimv_index.h"
+#include "gimv_list_view.h"
 #include "gimv_index_missing.h"
 
 enum {
@@ -41,7 +42,7 @@ typedef struct {
    GtkWidget    *logs;       /* GtkDropDown */
    GtkStringList *log_names;
    GtkWidget    *tree;
-   GtkListStore *store;
+   GListStore   *store;       /* GimvRow */
    GtkWidget    *info;
    GtkWidget    *btn_moved, *btn_other, *btn_delete, *btn_drop;
    gchar        *log_path;   /* shown */
@@ -126,7 +127,7 @@ load_log (MissingWin *mw, const gchar *path)
    gchar *text = NULL, **lines;
    guint i;
 
-   gtk_list_store_clear (mw->store);
+   g_list_store_remove_all (mw->store);
    g_ptr_array_set_size (mw->header, 0);
    g_free (mw->log_path);
    mw->log_path = path ? g_strdup (path) : NULL;
@@ -136,7 +137,7 @@ load_log (MissingWin *mw, const gchar *path)
    lines = g_strsplit (text, "\n", -1);
    for (i = 0; lines[i]; i++) {
       gchar **f;
-      GtkTreeIter iter;
+      GimvRow *row;
       const gchar *moved = NULL;
 
       if (!*lines[i]) continue;
@@ -151,8 +152,11 @@ load_log (MissingWin *mw, const gchar *path)
       }
       if (f[1] && f[2] && f[3] && g_str_has_prefix (f[3], MOVED_PREFIX))
          moved = f[3] + strlen (MOVED_PREFIX);
-      gtk_list_store_append (mw->store, &iter);
-      gtk_list_store_set (mw->store, &iter,
+      row = gimv_row_new (N_COLS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+                          G_TYPE_STRING, G_TYPE_STRING);
+      g_list_store_append (mw->store, row);
+      g_object_unref (row);
+      gimv_row_set (row,
                           COL_PATH,  f[0],
                           COL_LAST,  f[1] ? f[1] : "",
                           COL_TAGS,  (f[1] && f[2]) ? f[2] : "",
@@ -170,11 +174,10 @@ load_log (MissingWin *mw, const gchar *path)
 static void
 save_log (MissingWin *mw)
 {
-   GtkTreeModel *model = GTK_TREE_MODEL (mw->store);
-   GtkTreeIter iter;
+   GListModel *model = G_LIST_MODEL (mw->store);
    GString *s;
-   gboolean any = FALSE, valid;
-   guint i;
+   gboolean any = FALSE;
+   guint i, n;
 
    if (!mw->log_path) return;
 
@@ -182,16 +185,15 @@ save_log (MissingWin *mw)
    for (i = 0; i < mw->header->len; i++)
       g_string_append_printf (s, "%s\n", (gchar *) g_ptr_array_index (mw->header, i));
 
-   for (valid = gtk_tree_model_get_iter_first (model, &iter); valid;
-        valid = gtk_tree_model_iter_next (model, &iter))
-   {
-      gchar *path, *last, *tags, *moved;
-      gtk_tree_model_get (model, &iter, COL_PATH, &path, COL_LAST, &last,
-                          COL_TAGS, &tags, COL_MOVED, &moved, -1);
-      g_string_append_printf (s, "%s\t%s\t%s", path, last, tags);
+   n = g_list_model_get_n_items (model);
+   for (i = 0; i < n; i++) {
+      GimvRow *row = gimv_row_store_peek (model, i);
+      const gchar *moved = gimv_row_peek_string (row, COL_MOVED);
+      g_string_append_printf (s, "%s\t%s\t%s", gimv_row_peek_string (row, COL_PATH),
+                              gimv_row_peek_string (row, COL_LAST),
+                              gimv_row_peek_string (row, COL_TAGS));
       if (moved && *moved) g_string_append_printf (s, "\t" MOVED_PREFIX "%s", moved);
       g_string_append_c (s, '\n');
-      g_free (path); g_free (last); g_free (tags); g_free (moved);
       any = TRUE;
    }
 
@@ -245,31 +247,48 @@ typedef enum {
 } Action;
 
 
+/* the rows selected (referenced), in order */
+static GPtrArray *
+selected_rows (MissingWin *mw)
+{
+   GtkSelectionModel *sel = gimv_list_view_get_selection (mw->tree);
+   GtkBitset *set = gtk_selection_model_get_selection (sel);
+   GtkBitsetIter it;
+   GPtrArray *rows = g_ptr_array_new_with_free_func (g_object_unref);
+   guint pos;
+
+   if (gtk_bitset_iter_init_first (&it, set, &pos)) {
+      do {
+         GimvRow *row = gimv_row_store_peek (G_LIST_MODEL (mw->store), pos);
+         if (row) g_ptr_array_add (rows, g_object_ref (row));
+      } while (gtk_bitset_iter_next (&it, &pos));
+   }
+   gtk_bitset_unref (set);
+   return rows;
+}
+
+
+static void
+remove_row (MissingWin *mw, GimvRow *row)
+{
+   guint pos;
+   if (gimv_row_store_find (G_LIST_MODEL (mw->store), row, &pos))
+      g_list_store_remove (mw->store, pos);
+}
+
+
 static void
 apply_to_selected (MissingWin *mw, Action act)
 {
-   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (mw->tree));
-   GtkTreeModel *model;
-   GList *rows = gtk_tree_selection_get_selected_rows (sel, &model), *node;
-   GList *refs = NULL;
+   GPtrArray *rows = selected_rows (mw);
    GString *errors = g_string_new (NULL);
-   guint done = 0;
+   guint done = 0, i;
 
-   for (node = rows; node; node = g_list_next (node))
-      refs = g_list_append (refs, gtk_tree_row_reference_new (model, node->data));
-   g_list_free_full (rows, (GDestroyNotify) gtk_tree_path_free);
-
-   for (node = refs; node; node = g_list_next (node)) {
-      GtkTreePath *tp = gtk_tree_row_reference_get_path (node->data);
-      GtkTreeIter iter;
-      gchar *path = NULL, *moved = NULL;
+   for (i = 0; i < rows->len; i++) {
+      GimvRow *row = g_ptr_array_index (rows, i);
+      const gchar *path = gimv_row_peek_string (row, COL_PATH);
+      const gchar *moved = gimv_row_peek_string (row, COL_MOVED);
       gboolean handled = FALSE;
-
-      if (!tp || !gtk_tree_model_get_iter (model, &iter, tp)) {
-         if (tp) gtk_tree_path_free (tp);
-         continue;
-      }
-      gtk_tree_model_get (model, &iter, COL_PATH, &path, COL_MOVED, &moved, -1);
 
       switch (act) {
       case ACT_MOVED:
@@ -289,14 +308,11 @@ apply_to_selected (MissingWin *mw, Action act)
          break;
       }
       if (handled) {
-         gtk_list_store_remove (mw->store, &iter);
+         remove_row (mw, row);
          done++;
       }
-      g_free (path);
-      g_free (moved);
-      gtk_tree_path_free (tp);
    }
-   g_list_free_full (refs, (GDestroyNotify) gtk_tree_row_reference_free);
+   g_ptr_array_unref (rows);
 
    if (done) save_log (mw);
 
@@ -333,9 +349,7 @@ cb_other_chosen (GObject *source, GAsyncResult *res, gpointer data)
 {
    MissingWin *mw = data;
    GFile *file = gtk_file_dialog_open_finish (GTK_FILE_DIALOG (source), res, NULL);
-   GtkTreeSelection *sel;
-   GtkTreeModel *model;
-   GList *rows;
+   GPtrArray *rows;
    gchar *to;
 
    if (!file || mw != the_win) {
@@ -345,28 +359,22 @@ cb_other_chosen (GObject *source, GAsyncResult *res, gpointer data)
    to = g_file_get_path (file);
    g_object_unref (file);
 
-   sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (mw->tree));
-   rows = gtk_tree_selection_get_selected_rows (sel, &model);
-   if (to && rows && !rows->next) {
-      GtkTreeIter iter;
-      if (gtk_tree_model_get_iter (model, &iter, rows->data)) {
-         gchar *path = NULL;
-         GString *errors = g_string_new (NULL);
-         gtk_tree_model_get (model, &iter, COL_PATH, &path, -1);
-         if (reattach (mw, path, to, errors)) {
-            gtk_list_store_remove (mw->store, &iter);
-            save_log (mw);
-            if (mw->log_path && !g_file_test (mw->log_path, G_FILE_TEST_EXISTS))
-               fill_logs (mw, NULL);
-            set_info (mw, _("1 line done."));
-         } else {
-            set_info (mw, errors->str);
-         }
-         g_string_free (errors, TRUE);
-         g_free (path);
+   rows = selected_rows (mw);
+   if (to && rows->len == 1) {
+      GimvRow *row = g_ptr_array_index (rows, 0);
+      GString *errors = g_string_new (NULL);
+      if (reattach (mw, gimv_row_peek_string (row, COL_PATH), to, errors)) {
+         remove_row (mw, row);
+         save_log (mw);
+         if (mw->log_path && !g_file_test (mw->log_path, G_FILE_TEST_EXISTS))
+            fill_logs (mw, NULL);
+         set_info (mw, _("1 line done."));
+      } else {
+         set_info (mw, errors->str);
       }
+      g_string_free (errors, TRUE);
    }
-   g_list_free_full (rows, (GDestroyNotify) gtk_tree_path_free);
+   g_ptr_array_unref (rows);
    g_free (to);
 }
 
@@ -375,16 +383,11 @@ static void
 cb_other (GtkButton *b, MissingWin *mw)
 {
    GtkFileDialog *dialog = gtk_file_dialog_new ();
-   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (mw->tree));
-   GtkTreeModel *model;
-   GList *rows = gtk_tree_selection_get_selected_rows (sel, &model);
+   GPtrArray *rows = selected_rows (mw);
 
    /* start in the folder the image was in */
-   if (rows) {
-      GtkTreeIter iter;
-      gchar *path = NULL;
-      if (gtk_tree_model_get_iter (model, &iter, rows->data))
-         gtk_tree_model_get (model, &iter, COL_PATH, &path, -1);
+   if (rows->len) {
+      const gchar *path = gimv_row_peek_string (g_ptr_array_index (rows, 0), COL_PATH);
       if (path) {
          gchar *dir = g_path_get_dirname (path);
          if (g_file_test (dir, G_FILE_TEST_IS_DIR)) {
@@ -393,10 +396,9 @@ cb_other (GtkButton *b, MissingWin *mw)
             g_object_unref (f);
          }
          g_free (dir);
-         g_free (path);
       }
    }
-   g_list_free_full (rows, (GDestroyNotify) gtk_tree_path_free);
+   g_ptr_array_unref (rows);
 
    gtk_file_dialog_set_title (dialog, _("The Image to Put the Comment On"));
    gtk_file_dialog_open (dialog, GTK_WINDOW (mw->window), NULL, cb_other_chosen, mw);
@@ -407,21 +409,15 @@ cb_other (GtkButton *b, MissingWin *mw)
 static void
 update_buttons (MissingWin *mw)
 {
-   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (mw->tree));
-   GtkTreeModel *model;
-   GList *rows = gtk_tree_selection_get_selected_rows (sel, &model), *node;
+   GPtrArray *rows = selected_rows (mw);
    gboolean any_moved = FALSE;
-   guint n = g_list_length (rows);
+   guint n = rows->len, i;
 
-   for (node = rows; node && !any_moved; node = g_list_next (node)) {
-      GtkTreeIter iter;
-      gchar *moved = NULL;
-      if (gtk_tree_model_get_iter (model, &iter, node->data))
-         gtk_tree_model_get (model, &iter, COL_MOVED, &moved, -1);
+   for (i = 0; i < n && !any_moved; i++) {
+      const gchar *moved = gimv_row_peek_string (g_ptr_array_index (rows, i), COL_MOVED);
       any_moved = moved && *moved;
-      g_free (moved);
    }
-   g_list_free_full (rows, (GDestroyNotify) gtk_tree_path_free);
+   g_ptr_array_unref (rows);
 
    gtk_widget_set_sensitive (mw->btn_moved, any_moved);
    gtk_widget_set_sensitive (mw->btn_other, n == 1);
@@ -431,7 +427,7 @@ update_buttons (MissingWin *mw)
 
 
 static void
-cb_selection_changed (GtkTreeSelection *sel, MissingWin *mw)
+cb_selection_changed (GtkSelectionModel *sel, guint pos, guint n, MissingWin *mw)
 {
    update_buttons (mw);
 }
@@ -504,18 +500,56 @@ cb_destroy (GtkWidget *w, MissingWin *mw)
 }
 
 
+static GtkWidget *
+cell_setup (gpointer data)
+{
+   GtkWidget *label = gtk_label_new (NULL);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   if (GPOINTER_TO_INT (data))
+      gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_MIDDLE);
+   return label;
+}
+
+
+static void
+cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
+{
+   gint col = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cell), "gimv-missing-col"));
+   const gchar *text = gimv_row_peek_string (row, col);
+   gtk_label_set_text (GTK_LABEL (gimv_cell_get_content (cell)), text ? text : "");
+   gtk_widget_set_tooltip_text (cell, GPOINTER_TO_INT (data) ? text : NULL);
+}
+
+
+static GtkWidget *
+cell_setup_col (gpointer data)
+{
+   /* data: (col << 1) | ellipsize */
+   GtkWidget *label = cell_setup (GINT_TO_POINTER (GPOINTER_TO_INT (data) & 1));
+   g_object_set_data (G_OBJECT (label), "gimv-missing-col",
+                      GINT_TO_POINTER (GPOINTER_TO_INT (data) >> 1));
+   return label;
+}
+
+
+static void
+cell_bind_col (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
+{
+   cell_bind (cell, row, item, GINT_TO_POINTER (GPOINTER_TO_INT (data) & 1));
+}
+
+
 static void
 add_column (MissingWin *mw, const gchar *title, gint col, gint width)
 {
-   GtkCellRenderer *r = gtk_cell_renderer_text_new ();
-   GtkTreeViewColumn *c = gtk_tree_view_column_new_with_attributes (title, r, "text", col, NULL);
-   gtk_tree_view_column_set_resizable (c, TRUE);
-   if (width > 0) {
-      gtk_tree_view_column_set_sizing (c, GTK_TREE_VIEW_COLUMN_FIXED);
-      gtk_tree_view_column_set_fixed_width (c, width);
-      g_object_set (r, "ellipsize", PANGO_ELLIPSIZE_MIDDLE, NULL);
-   }
-   gtk_tree_view_append_column (GTK_TREE_VIEW (mw->tree), c);
+   gpointer data = GINT_TO_POINTER ((col << 1) | (width > 0));
+   GtkColumnViewColumn *c
+      = gimv_column_view_append (GTK_COLUMN_VIEW (mw->tree), title,
+                                 gimv_cell_factory_new (cell_setup_col, cell_bind_col,
+                                                        data, NULL, FALSE));
+   gtk_column_view_column_set_resizable (c, TRUE);
+   if (width > 0)
+      gtk_column_view_column_set_fixed_width (c, width);
 }
 
 
@@ -523,7 +557,7 @@ static GtkWidget *
 button_new (const gchar *label, GCallback cb, MissingWin *mw)
 {
    GtkWidget *b = gtk_button_new_with_label (label);
-   g_signal_connect (b, "clicked", cb, mw);
+   if (cb) g_signal_connect (b, "clicked", cb, mw);
    return b;
 }
 
@@ -533,7 +567,6 @@ gimv_index_missing_open (GtkWindow *parent, const gchar *log_path)
 {
    MissingWin *mw;
    GtkWidget *vbox, *hbox, *scroll, *label, *b;
-   GtkTreeSelection *sel;
 
    if (the_win) {
       fill_logs (the_win, log_path);
@@ -543,8 +576,7 @@ gimv_index_missing_open (GtkWindow *parent, const gchar *log_path)
 
    mw = the_win = g_new0 (MissingWin, 1);
    mw->header = g_ptr_array_new_with_free_func (g_free);
-   mw->store = gtk_list_store_new (N_COLS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
-                                   G_TYPE_STRING, G_TYPE_STRING);
+   mw->store = gimv_row_store_new ();
 
    mw->window = gtk_window_new ();
    gtk_window_set_title (GTK_WINDOW (mw->window), _("Missing Images"));
@@ -574,15 +606,15 @@ gimv_index_missing_open (GtkWindow *parent, const gchar *log_path)
    gtk_box_append (GTK_BOX (hbox), mw->logs);
    gtk_box_append (GTK_BOX (vbox), hbox);
 
-   mw->tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (mw->store));
+   mw->tree = gimv_column_view_new (G_LIST_MODEL (g_object_ref (mw->store)),
+                                    GTK_SELECTION_MULTIPLE);
    add_column (mw, _("Path"), COL_PATH, 280);
    add_column (mw, _("Last Seen"), COL_LAST, 0);
    add_column (mw, _("Tags"), COL_TAGS, 90);
    add_column (mw, _("Moved To"), COL_MOVED, 200);
    add_column (mw, _("State"), COL_STATE, 0);
-   sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (mw->tree));
-   gtk_tree_selection_set_mode (sel, GTK_SELECTION_MULTIPLE);
-   g_signal_connect (sel, "changed", G_CALLBACK (cb_selection_changed), mw);
+   g_signal_connect (gimv_list_view_get_selection (mw->tree), "selection-changed",
+                     G_CALLBACK (cb_selection_changed), mw);
 
    scroll = gtk_scrolled_window_new ();
    gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroll), mw->tree);

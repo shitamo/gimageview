@@ -25,6 +25,7 @@
 #include <gio/gio.h>
 
 #include "fileload.h"
+#include "gimv_list_view.h"
 #include "gtkutils.h"
 #include "gimv_icon_stock.h"
 #include "gimv_index.h"
@@ -174,8 +175,10 @@ typedef struct {
    GimvIndexTabType type;
    GimvThumbWin  *tw;
    GtkWidget     *scroll;
-   GtkWidget     *tree;
-   GtkTreeStore  *store;
+   GtkWidget     *tree;        /* a GtkListView */
+   GListStore    *store;       /* the root row (a GimvRow; the rest below it) */
+   GimvRow       *root;
+   GtkTreeListModel *model;
    guint          watch_id;
    guint          open_id;
    GimvThumbView *tv;          /* the tab of the last result, weak */
@@ -193,8 +196,6 @@ typedef struct {
    gboolean       count_again; /* the database changed meanwhile */
    gboolean       listing;     /* a file list query is running */
    gboolean       filled;      /* refilled once: what is open is kept */
-   GtkCellRenderer    *render;
-   GtkTreeViewColumn  *col;
    GSimpleActionGroup *actions;
    gchar         *editing_key; /* the tag being renamed in the tree */
    guint          rename_id;
@@ -570,40 +571,38 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
  *  tree
  ******************************************************************************/
 
-static void
-append_row (IndexView *iv, GtkTreeIter *iter, GtkTreeIter *parent,
-            RowKind kind, const gchar *key, gint len, gint count)
+static GimvRow *
+row_new (GimvRow *parent, const gchar *label, RowKind kind, const gchar *key,
+         const gchar *color, const gchar *title)
 {
-   gchar *k = g_strndup (key, len);
-   /* the last part of the key: "2019", "05", "03" */
-   gchar *label = g_strdup_printf ("%s (%'d)", k + (len == 4 ? 0 : len - 2), count);
-
-   gtk_tree_store_append (iv->store, iter, parent);
-   gtk_tree_store_set (iv->store, iter,
-                       COL_LABEL, label, COL_KIND, kind, COL_KEY, k, -1);
-   g_free (label);
-   g_free (k);
+   GimvRow *row = gimv_row_new (N_COLS, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING,
+                                G_TYPE_STRING, G_TYPE_STRING);
+   gimv_row_set (row, COL_LABEL, label, COL_KIND, kind, COL_KEY, key,
+                 COL_COLOR, color, COL_TITLE, title, -1);
+   if (parent) {
+      gimv_row_append_child (parent, row);
+      g_object_unref (row);   /* the parent holds it */
+   }
+   return row;
 }
 
 
 static void
-set_count (IndexView *iv, GtkTreeIter *iter, gint len, gint count)
+set_count (GimvRow *row, gint len, gint count)
 {
-   gchar *k = NULL, *label;
-
-   gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter, COL_KEY, &k, -1);
-   label = g_strdup_printf ("%s (%'d)", k + (len == 4 ? 0 : len - 2), count);
-   gtk_tree_store_set (iv->store, iter, COL_LABEL, label, -1);
+   const gchar *k = gimv_row_peek_string (row, COL_KEY);
+   /* the last part of the key: "2019", "05", "03" */
+   gchar *label = g_strdup_printf ("%s (%'d)", k + (len == 4 ? 0 : len - 2), count);
+   gimv_row_set (row, COL_LABEL, label, -1);
    g_free (label);
-   g_free (k);
 }
 
 
 /* days come newest first, and are shown so: years, months and days */
 static void
-build_tree (IndexView *iv, GtkTreeIter *root, GArray *days)
+build_tree (IndexView *iv, GimvRow *root, GArray *days)
 {
-   GtkTreeIter year, month, day;
+   GimvRow *year = NULL, *month = NULL, *day;
    gchar cur_year[5] = "", cur_month[8] = "";
    gint year_count = 0, month_count = 0;
    gint i;
@@ -612,132 +611,86 @@ build_tree (IndexView *iv, GtkTreeIter *root, GArray *days)
       DayCount *dc = &g_array_index (days, DayCount, i);
 
       if (strncmp (dc->day, cur_year, 4)) {
-         if (*cur_month) set_count (iv, &month, 7, month_count);
-         if (*cur_year) set_count (iv, &year, 4, year_count);
-         append_row (iv, &year, root, KIND_YEAR, dc->day, 4, 0);
+         gchar *k = g_strndup (dc->day, 4);
+         if (*cur_month) set_count (month, 7, month_count);
+         if (*cur_year) set_count (year, 4, year_count);
+         year = row_new (root, NULL, KIND_YEAR, k, NULL, NULL);
+         g_free (k);
          memcpy (cur_year, dc->day, 4);
          year_count = 0;
          *cur_month = '\0';
       }
       if (strncmp (dc->day, cur_month, 7)) {
-         if (*cur_month) set_count (iv, &month, 7, month_count);
-         gtk_tree_store_append (iv->store, &month, &year);
-         {
-            gchar *k = g_strndup (dc->day, 7);
-            gtk_tree_store_set (iv->store, &month, COL_KIND, KIND_MONTH, COL_KEY, k, -1);
-            g_free (k);
-         }
+         gchar *k = g_strndup (dc->day, 7);
+         if (*cur_month) set_count (month, 7, month_count);
+         month = row_new (year, NULL, KIND_MONTH, k, NULL, NULL);
+         g_free (k);
          memcpy (cur_month, dc->day, 7);
          month_count = 0;
       }
-      gtk_tree_store_append (iv->store, &day, &month);
-      gtk_tree_store_set (iv->store, &day, COL_KIND, KIND_DAY, COL_KEY, dc->day, -1);
-      set_count (iv, &day, 10, dc->count);
+      day = row_new (month, NULL, KIND_DAY, dc->day, NULL, NULL);
+      set_count (day, 10, dc->count);
 
       year_count  += dc->count;
       month_count += dc->count;
    }
-   if (*cur_month) set_count (iv, &month, 7, month_count);
-   if (*cur_year)  set_count (iv, &year, 4, year_count);
+   if (*cur_month) set_count (month, 7, month_count);
+   if (*cur_year)  set_count (year, 4, year_count);
 }
 
 
-static void
-collect_expanded (GtkTreeView *tree, GtkTreePath *path, gpointer data)
+/* the row of the key below parent (any depth), NULL if none */
+static GimvRow *
+find_key (GimvRow *parent, const gchar *key)
 {
-   GPtrArray *keys = data;
-   GtkTreeModel *model = gtk_tree_view_get_model (tree);
-   GtkTreeIter iter;
-   gchar *key = NULL;
+   GListStore *children = parent ? gimv_row_get_children (parent, FALSE) : NULL;
+   guint i, n;
 
-   if (gtk_tree_model_get_iter (model, &iter, path))
-      gtk_tree_model_get (model, &iter, COL_KEY, &key, -1);
-   if (key) g_ptr_array_add (keys, key);
-}
-
-
-static gboolean
-find_key (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
-          GtkTreeIter *found)
-{
-   GtkTreeIter iter;
-
-   if (!gtk_tree_model_iter_children (model, &iter, parent))
-      return FALSE;
-   do {
-      gchar *k = NULL;
-      gtk_tree_model_get (model, &iter, COL_KEY, &k, -1);
-      if (k && !strcmp (k, key)) {
-         g_free (k);
-         *found = iter;
-         return TRUE;
-      }
-      /* dates: "2019-05" is below "2019"; tags: ",folder/x" below ",folder/" */
-      if (k && g_str_has_prefix (key, k)
-          && (key[strlen (k)] == '-' || (k[0] == AUTO_KEY_MARK && g_str_has_suffix (k, "/"))
-              || !strcmp (k, NAME_TAG)))
-      {
-         gboolean exact = !strcmp (k, key);
-         g_free (k);
-         if (exact) {
-            *found = iter;
-            return TRUE;
-         }
-         return find_key (model, &iter, key, found);
-      }
-      g_free (k);
-   } while (gtk_tree_model_iter_next (model, &iter));
-   return FALSE;
+   if (!children || !key) return NULL;
+   n = g_list_model_get_n_items (G_LIST_MODEL (children));
+   for (i = 0; i < n; i++) {
+      GimvRow *row = gimv_row_store_peek (G_LIST_MODEL (children), i), *found;
+      if (!g_strcmp0 (gimv_row_peek_string (row, COL_KEY), key)) return row;
+      if ((found = find_key (row, key))) return found;
+   }
+   return NULL;
 }
 
 
 /* the tags put by a person at the top, then a group for each rule */
 static void
-build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
+build_tag_list (IndexView *iv, GimvRow *root, GPtrArray *tags)
 {
-   GtkTreeIter groups[G_N_ELEMENTS (auto_kinds)];
-   gboolean has_group[G_N_ELEMENTS (auto_kinds)] = { FALSE };
-   GtkTreeIter names;
-   gboolean has_names = FALSE;
+   GimvRow *groups[G_N_ELEMENTS (auto_kinds)] = { NULL };
+   GimvRow *names = NULL;
    guint i, k;
 
    for (i = 0; i < tags->len; i++) {
       TagCount *tc = g_ptr_array_index (tags, i);
-      GtkTreeIter iter;
       gchar *label;
 
       if (tc->auto_tag || g_str_has_prefix (tc->name, NAME_TAG)) continue;
       label = g_strdup_printf ("%s (%'d)", tc->name, tc->count);
-      gtk_tree_store_append (iv->store, &iter, root);
-      gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
-                          COL_KEY, tc->name, -1);
+      row_new (root, label, KIND_TAG, tc->name, NULL, NULL);
       g_free (label);
    }
 
    /* the names of faces in the comment files */
    for (i = 0; i < tags->len; i++) {
       TagCount *tc = g_ptr_array_index (tags, i);
-      GtkTreeIter iter;
       gchar *label;
 
       if (tc->auto_tag || !g_str_has_prefix (tc->name, NAME_TAG)) continue;
-      if (!has_names) {
-         gtk_tree_store_append (iv->store, &names, root);
-         gtk_tree_store_set (iv->store, &names, COL_LABEL, _("Names of People"),
-                             COL_KIND, KIND_GROUP, COL_KEY, NAME_TAG, -1);
-         has_names = TRUE;
-      }
+      if (!names)
+         names = row_new (root, _("Names of People"), KIND_GROUP, NAME_TAG, NULL, NULL);
       label = g_strdup_printf ("%s (%'d)", tc->name + NAME_TAG_LEN, tc->count);
-      gtk_tree_store_append (iv->store, &iter, &names);
-      gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
-                          COL_KEY, tc->name, -1);
+      row_new (names, label, KIND_TAG, tc->name, NULL, NULL);
       g_free (label);
    }
 
    for (k = 0; k < G_N_ELEMENTS (auto_kinds); k++) {
       for (i = 0; i < tags->len; i++) {
          TagCount *tc = g_ptr_array_index (tags, i);
-         GtkTreeIter iter;
          gchar *label, *key;
          gint kind;
          const gchar *v;
@@ -746,20 +699,15 @@ build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
          v = auto_tag_value (tc->name, &kind);
          if (kind != (gint) k) continue;
 
-         if (!has_group[k]) {
+         if (!groups[k]) {
             gchar *gkey = g_strdup_printf ("%c%s", AUTO_KEY_MARK, auto_kinds[k].prefix);
-            gtk_tree_store_append (iv->store, &groups[k], root);
-            gtk_tree_store_set (iv->store, &groups[k], COL_LABEL, _(auto_kinds[k].group),
-                                COL_KIND, KIND_GROUP, COL_KEY, gkey,
-                                COL_COLOR, AUTO_TAG_COLOR, -1);
+            groups[k] = row_new (root, _(auto_kinds[k].group), KIND_GROUP, gkey,
+                                 AUTO_TAG_COLOR, NULL);
             g_free (gkey);
-            has_group[k] = TRUE;
          }
          label = g_strdup_printf ("%s (%'d)", v, tc->count);
          key = g_strdup_printf ("%c%s", AUTO_KEY_MARK, tc->name);
-         gtk_tree_store_append (iv->store, &iter, &groups[k]);
-         gtk_tree_store_set (iv->store, &iter, COL_LABEL, label, COL_KIND, KIND_TAG,
-                             COL_KEY, key, COL_COLOR, AUTO_TAG_COLOR, -1);
+         row_new (groups[k], label, KIND_TAG, key, AUTO_TAG_COLOR, NULL);
          g_free (key);
          g_free (label);
       }
@@ -768,52 +716,36 @@ build_tag_list (IndexView *iv, GtkTreeIter *root, GPtrArray *tags)
 
 
 static void
-build_people_list (IndexView *iv, GtkTreeIter *root, GPtrArray *rows)
+build_people_list (IndexView *iv, GimvRow *root, GPtrArray *rows)
 {
    /* the last row at each depth: the parent of the rows below it */
-   GtkTreeIter at[4], iter;
+   GimvRow *at[4];
    gint have = -1;
    guint i;
 
    for (i = 0; i < rows->len; i++) {
       PeopleRow *r = g_ptr_array_index (rows, i);
       gint depth = MIN (r->depth, have + 1);
-      GtkTreeIter *parent = depth > 0 ? &at[depth - 1] : root;
+      GimvRow *parent;
 
       depth = MIN (depth, (gint) G_N_ELEMENTS (at) - 1);
-      gtk_tree_store_append (iv->store, &iter, parent);
-      gtk_tree_store_set (iv->store, &iter, COL_LABEL, r->label, COL_KIND, r->kind,
-                          COL_KEY, r->key, COL_TITLE, r->title,
-                          COL_COLOR, r->kind == KIND_FACES && r->key[0] != 'p'
-                                     && r->key[0] != 't' ? AUTO_TAG_COLOR : NULL, -1);
-      at[depth] = iter;
+      parent = depth > 0 ? at[depth - 1] : root;
+      at[depth] = row_new (parent, r->label, r->kind, r->key,
+                           r->kind == KIND_FACES && r->key[0] != 'p' && r->key[0] != 't'
+                           ? AUTO_TAG_COLOR : NULL, r->title);
       have = depth;
    }
 }
 
 
-/* anywhere in the tree (people: the keys say nothing of the place) */
-static gboolean
-find_key_any (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
-              GtkTreeIter *found)
+static void
+expand_row (IndexView *iv, GimvRow *row, gboolean expand)
 {
-   GtkTreeIter iter;
-
-   if (!gtk_tree_model_iter_children (model, &iter, parent))
-      return FALSE;
-   do {
-      gchar *k = NULL;
-      gboolean same;
-      gtk_tree_model_get (model, &iter, COL_KEY, &k, -1);
-      same = k && !strcmp (k, key);
-      g_free (k);
-      if (same) {
-         *found = iter;
-         return TRUE;
-      }
-      if (find_key_any (model, &iter, key, found)) return TRUE;
-   } while (gtk_tree_model_iter_next (model, &iter));
-   return FALSE;
+   GtkTreeListRow *tree_row = gimv_tree_list_model_get_row_for (iv->model, row, NULL);
+   if (tree_row) {
+      gtk_tree_list_row_set_expanded (tree_row, expand);
+      g_object_unref (tree_row);
+   }
 }
 
 
@@ -822,60 +754,73 @@ find_key_any (GtkTreeModel *model, GtkTreeIter *parent, const gchar *key,
 static void
 refill (IndexView *iv, gpointer result)
 {
-   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
-   GtkTreeIter root, child;
+   GListModel *model = G_LIST_MODEL (iv->model);
    GPtrArray *keys = g_ptr_array_new_with_free_func (g_free);
-   GtkTreePath *path;
+   GimvRow *row, *selected_row;
    gchar *selected = NULL;
-   GtkTreeSelection *sel;
-   guint i;
+   guint i, n;
 
-   if (!gtk_tree_model_get_iter_first (model, &root)) return;
-
-   gtk_tree_view_map_expanded_rows (GTK_TREE_VIEW (iv->tree), collect_expanded, keys);
-   sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
-   if (gtk_tree_selection_get_selected (sel, NULL, &child))
-      gtk_tree_model_get (model, &child, COL_KEY, &selected, -1);
+   /* the rows open, in the order shown: a year before its months */
+   n = g_list_model_get_n_items (model);
+   for (i = 0; i < n; i++) {
+      GtkTreeListRow *tree_row = g_list_model_get_item (model, i);
+      if (gtk_tree_list_row_get_expanded (tree_row)) {
+         row = gimv_row_from_item (tree_row);
+         if (row && row != iv->root && gimv_row_peek_string (row, COL_KEY))
+            g_ptr_array_add (keys, g_strdup (gimv_row_peek_string (row, COL_KEY)));
+      }
+      g_object_unref (tree_row);
+   }
+   selected_row = gimv_list_view_get_selected_row (iv->tree);
+   if (selected_row)
+      selected = g_strdup (gimv_row_peek_string (selected_row, COL_KEY));
 
    iv->filling = TRUE;
-   while (gtk_tree_model_iter_children (model, &child, &root))
-      gtk_tree_store_remove (iv->store, &child);
-   if (iv->type == GIMV_INDEX_TAB_TAG)
-      build_tag_list (iv, &root, result);
-   else if (iv->type == GIMV_INDEX_TAB_PERSON)
-      build_people_list (iv, &root, result);
-   else
-      build_tree (iv, &root, result);
+   /* built apart, then put below the root: a row shows an arrow when it
+    * has rows below it as it goes into the tree */
+   {
+      GimvRow *tmp = row_new (NULL, NULL, KIND_ROOT, NULL, NULL, NULL);
+      GListStore *built;
+
+      if (iv->type == GIMV_INDEX_TAB_TAG)
+         build_tag_list (iv, tmp, result);
+      else if (iv->type == GIMV_INDEX_TAB_PERSON)
+         build_people_list (iv, tmp, result);
+      else
+         build_tree (iv, tmp, result);
+      gimv_row_remove_children (iv->root);
+      built = gimv_row_get_children (tmp, FALSE);
+      n = built ? g_list_model_get_n_items (G_LIST_MODEL (built)) : 0;
+      for (i = 0; i < n; i++)
+         gimv_row_append_child (iv->root, gimv_row_store_peek (G_LIST_MODEL (built), i));
+      g_object_unref (tmp);
+   }
 
    /* the root is always open */
-   path = gtk_tree_model_get_path (model, &root);
-   gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
-   gtk_tree_path_free (path);
-   /* shorter keys first: a month row is shown only when its year is open */
+   expand_row (iv, iv->root, TRUE);
    for (i = 0; i < keys->len; i++) {
-      if (iv->type == GIMV_INDEX_TAB_PERSON
-          ? find_key_any (model, &root, g_ptr_array_index (keys, i), &child)
-          : find_key (model, &root, g_ptr_array_index (keys, i), &child)) {
-         path = gtk_tree_model_get_path (model, &child);
-         gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
-         gtk_tree_path_free (path);
-      }
+      if ((row = find_key (iv->root, g_ptr_array_index (keys, i))))
+         expand_row (iv, row, TRUE);
    }
    /* people: the groups and the guesses open the first time */
-   if (!iv->filled && iv->type == GIMV_INDEX_TAB_PERSON
-       && gtk_tree_model_iter_children (model, &child, &root)) {
-      do {
-         if (!gtk_tree_model_iter_has_child (model, &child)) continue;
-         path = gtk_tree_model_get_path (model, &child);
-         gtk_tree_view_expand_row (GTK_TREE_VIEW (iv->tree), path, FALSE);
-         gtk_tree_path_free (path);
-      } while (gtk_tree_model_iter_next (model, &child));
+   if (!iv->filled && iv->type == GIMV_INDEX_TAB_PERSON) {
+      GListStore *children = gimv_row_get_children (iv->root, FALSE);
+      n = children ? g_list_model_get_n_items (G_LIST_MODEL (children)) : 0;
+      for (i = 0; i < n; i++) {
+         row = gimv_row_store_peek (G_LIST_MODEL (children), i);
+         if (gimv_row_get_children (row, FALSE))
+            expand_row (iv, row, TRUE);
+      }
    }
    iv->filled = TRUE;
-   if (selected && (iv->type == GIMV_INDEX_TAB_PERSON
-                    ? find_key_any (model, &root, selected, &child)
-                    : find_key (model, &root, selected, &child)))
-      gtk_tree_selection_select_iter (sel, &child);
+   if (selected && (row = find_key (iv->root, selected))) {
+      GtkTreeListRow *tree_row;
+      guint pos;
+      if ((tree_row = gimv_tree_list_model_get_row_for (iv->model, row, &pos))) {
+         gimv_list_view_select (iv->tree, pos);
+         g_object_unref (tree_row);
+      }
+   }
    iv->filling = FALSE;
 
    g_free (selected);
@@ -1056,15 +1001,11 @@ cb_listed (GObject *source, GAsyncResult *res, gpointer data)
 static gchar *
 row_title (IndexView *iv, const gchar *key)
 {
-   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
-   GtkTreeIter root, iter;
-   gchar *title = NULL;
+   GimvRow *row;
 
    if (iv->type != GIMV_INDEX_TAB_PERSON) return NULL;
-   if (gtk_tree_model_get_iter_first (model, &root)
-       && find_key_any (model, &root, key, &iter))
-      gtk_tree_model_get (model, &iter, COL_TITLE, &title, -1);
-   return title;
+   row = find_key (iv->root, key);
+   return row ? g_strdup (gimv_row_peek_string (row, COL_TITLE)) : NULL;
 }
 
 
@@ -1106,33 +1047,30 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
 }
 
 
-static gboolean
-row_key (IndexView *iv, GtkTreeIter *iter, gchar **key)
+/* the key of a row that opens images (not a group), or NULL */
+static gchar *
+row_key (GimvRow *row)
 {
-   gint kind = 0;
+   gint kind;
+   const gchar *key;
 
-   *key = NULL;
-   gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter,
-                       COL_KIND, &kind, COL_KEY, key, -1);
-   if (*key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY
-                || kind == KIND_TAG || kind == KIND_FACES))
-      return TRUE;
-   g_free (*key);
-   *key = NULL;
-   return FALSE;
+   if (!row) return NULL;
+   kind = gimv_row_peek_int (row, COL_KIND);
+   key = gimv_row_peek_string (row, COL_KEY);
+   if (key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY
+               || kind == KIND_TAG || kind == KIND_FACES))
+      return g_strdup (key);
+   return NULL;
 }
 
 
+/* Enter (and a double click) */
 static void
-cb_row_activated (GtkTreeView *tree, GtkTreePath *path, GtkTreeViewColumn *col,
-                  IndexView *iv)
+cb_activate (GtkListView *list, guint position, IndexView *iv)
 {
-   GtkTreeIter iter;
-   gchar *key;
+   gchar *key = row_key (gimv_row_store_peek (G_LIST_MODEL (iv->model), position));
 
-   if (gtk_tree_model_get_iter (GTK_TREE_MODEL (iv->store), &iter, path)
-       && row_key (iv, &iter, &key))
-   {
+   if (key) {
       open_key (iv, key, FALSE);
       g_free (key);
    }
@@ -1162,26 +1100,26 @@ idle_open_key (gpointer data)
 static gchar *
 key_at (IndexView *iv, gdouble x, gdouble y, gboolean *on_text)
 {
-   GtkTreePath *path = NULL;
-   GtkTreeViewColumn *col = NULL;
-   GtkTreeIter iter;
-   gint bx, by;
-   gchar *key = NULL;
+   GimvRow *row = NULL;
 
-   gtk_tree_view_convert_widget_to_bin_window_coords (GTK_TREE_VIEW (iv->tree),
-                                                      x, y, &bx, &by);
-   if (!gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (iv->tree), bx, by,
-                                       &path, &col, NULL, NULL))
+   if (!gimv_list_view_get_row_at (iv->tree, x, y, NULL, &row) || !row)
       return NULL;
    if (on_text) {
-      GdkRectangle cell;
-      gtk_tree_view_get_cell_area (GTK_TREE_VIEW (iv->tree), path, col, &cell);
-      *on_text = bx >= cell.x;
+      /* right of the arrow: the content of the expander (the label) */
+      GtkWidget *w = gtk_widget_pick (iv->tree, x, y, GTK_PICK_DEFAULT);
+      graphene_rect_t b;
+
+      *on_text = FALSE;
+      for (; w && w != iv->tree; w = gtk_widget_get_parent (w)) {
+         if (GTK_IS_TREE_EXPANDER (w)) {
+            GtkWidget *child = gtk_tree_expander_get_child (GTK_TREE_EXPANDER (w));
+            *on_text = child && gtk_widget_compute_bounds (child, iv->tree, &b)
+                       && x >= b.origin.x;
+            break;
+         }
+      }
    }
-   if (gtk_tree_model_get_iter (GTK_TREE_MODEL (iv->store), &iter, path))
-      row_key (iv, &iter, &key);
-   gtk_tree_path_free (path);
-   return key;
+   return row_key (row);
 }
 
 
@@ -1288,8 +1226,7 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
    } else if (button == GDK_BUTTON_SECONDARY) {
       GdkRectangle rect = { (gint) x, (gint) y, 1, 1 };
       graphene_point_t pt = GRAPHENE_POINT_INIT (x, y), out;
-      /* on the scrolled window: a tree view does not take a popover as a
-       * child well (a critical about its CSS nodes) */
+      /* on the scrolled window (with the rename popover) */
       if (gtk_widget_compute_point (iv->tree, iv->scroll, &pt, &out)) {
          rect.x = (gint) out.x;
          rect.y = (gint) out.y;
@@ -1334,19 +1271,15 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
 static gboolean
 key_is_manual_tag (IndexView *iv, const gchar *key)
 {
-   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
-   GtkTreeIter root, iter;
-   gint kind = -1;
+   GimvRow *row;
 
    if (iv->type != GIMV_INDEX_TAB_TAG || !key || !*key || key[0] == AUTO_KEY_MARK)
       return FALSE;
    /* the names of faces: renamed as the person (the faces window) */
    if (g_str_has_prefix (key, NAME_TAG))
       return FALSE;
-   if (!gtk_tree_model_get_iter_first (model, &root) || !find_key (model, &root, key, &iter))
-      return FALSE;
-   gtk_tree_model_get (model, &iter, COL_KIND, &kind, -1);
-   return kind == KIND_TAG;
+   row = find_key (iv->root, key);
+   return row && gimv_row_peek_int (row, COL_KIND) == KIND_TAG;
 }
 
 
@@ -1371,14 +1304,14 @@ key_is_renamable (IndexView *iv, const gchar *key)
 }
 
 
-static void cb_edited (GtkCellRendererText *render, gchar *path, gchar *text, IndexView *iv);
+static void rename_done (IndexView *iv, const gchar *text);
 
 static void
 cb_rename_activate (GtkEntry *entry, IndexView *iv)
 {
    gchar *text = g_strdup (gtk_editable_get_text (GTK_EDITABLE (entry)));
    /* takes editing_key: the popover closing after it is no cancel */
-   cb_edited (NULL, NULL, text, iv);
+   rename_done (iv, text);
    g_free (text);
    gtk_popover_popdown (GTK_POPOVER (iv->rename_popover));
 }
@@ -1439,27 +1372,23 @@ cb_rename_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifie
 }
 
 
-/*
- * A tag is renamed in an entry in a popover on its row, not in the row
- * itself: editing a cell of a GtkTreeView gives a Gtk-CRITICAL
- * (gtk_css_node_insert_after) in GTK 4.14, as its search popup did.
- */
+/* a tag is renamed in an entry in a popover on its row */
 static void
 start_rename (IndexView *iv, const gchar *key)
 {
-   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
-   GtkTreeIter root, iter;
-   GtkTreePath *path;
+   GtkTreeListRow *tree_row;
+   GimvRow *row, *parent;
+   guint pos;
 
    if (!key_is_renamable (iv, key)) return;
-   if (!gtk_tree_model_get_iter_first (model, &root)
-       || !(iv->type == GIMV_INDEX_TAB_PERSON ? find_key_any (model, &root, key, &iter)
-                                              : find_key (model, &root, key, &iter)))
-      return;
+   if (!(row = find_key (iv->root, key))) return;
+   if ((parent = gimv_row_get_parent (row)))
+      gimv_tree_list_model_expand_to (iv->model, parent);
+   if (!(tree_row = gimv_tree_list_model_get_row_for (iv->model, row, &pos))) return;
+   g_object_unref (tree_row);
    g_free (iv->editing_key);
    iv->editing_key = g_strdup (key);
-   path = gtk_tree_model_get_path (model, &iter);
-   gtk_tree_view_set_cursor (GTK_TREE_VIEW (iv->tree), path, NULL, FALSE);
+   gimv_list_view_set_focus_position (iv->tree, pos, TRUE);
 
    if (!iv->rename_popover) {
       GtkEventController *keys = gtk_event_controller_key_new ();
@@ -1485,48 +1414,25 @@ start_rename (IndexView *iv, const gchar *key)
    {
       /* the name alone, not "Kyoto (12)" */
       const gchar *tag = key_person_tag (iv, key);
-      GdkRectangle rect;
-      gint wx, wy;
+      GdkRectangle rect = { 0, 0, 1, 1 };
+      graphene_rect_t area;
       graphene_point_t pt, out;
 
-      gtk_tree_view_get_cell_area (GTK_TREE_VIEW (iv->tree), path, iv->col, &rect);
-      gtk_tree_view_convert_bin_window_to_widget_coords (GTK_TREE_VIEW (iv->tree),
-                                                         rect.x, rect.y, &wx, &wy);
-      pt = GRAPHENE_POINT_INIT (wx, wy);
-      if (gtk_widget_compute_point (iv->tree, iv->scroll, &pt, &out)) {
-         rect.x = (gint) out.x;
-         rect.y = (gint) out.y;
+      if (gimv_list_view_get_row_area (iv->tree, pos, &area)) {
+         pt = GRAPHENE_POINT_INIT (area.origin.x, area.origin.y);
+         if (gtk_widget_compute_point (iv->tree, iv->scroll, &pt, &out)) {
+            rect.x = (gint) out.x;
+            rect.y = (gint) out.y;
+         }
+         rect.width = MAX ((gint) area.size.width, 1);
+         rect.height = MAX ((gint) area.size.height, 1);
       }
-      rect.width = MAX (rect.width, 1);
       gtk_popover_set_pointing_to (GTK_POPOVER (iv->rename_popover), &rect);
       gtk_editable_set_text (GTK_EDITABLE (iv->rename_entry), tag ? tag : key);
       gtk_popover_popup (GTK_POPOVER (iv->rename_popover));
       gtk_widget_grab_focus (iv->rename_entry);
       gtk_editable_select_region (GTK_EDITABLE (iv->rename_entry), 0, -1);
    }
-   gtk_tree_path_free (path);
-}
-
-
-static void
-cb_editing_started (GtkCellRenderer *render, GtkCellEditable *editable, gchar *path,
-                    IndexView *iv)
-{
-   /* the name alone, not "Kyoto (12)" */
-   if (GTK_IS_EDITABLE (editable) && iv->editing_key) {
-      const gchar *tag = key_person_tag (iv, iv->editing_key);
-      gtk_editable_set_text (GTK_EDITABLE (editable), tag ? tag : iv->editing_key);
-      gtk_editable_select_region (GTK_EDITABLE (editable), 0, -1);
-   }
-}
-
-
-static void
-cb_editing_canceled (GtkCellRenderer *render, IndexView *iv)
-{
-   g_object_set (iv->render, "editable", FALSE, NULL);
-   g_clear_pointer (&iv->editing_key, g_free);
-   if (iv->count_again) start_count (iv);
 }
 
 
@@ -1626,7 +1532,7 @@ manual_tag_exists (const gchar *name)
 
 
 static void
-cb_edited (GtkCellRendererText *render, gchar *path, gchar *text, IndexView *iv)
+rename_done (IndexView *iv, const gchar *text)
 {
    gchar *old = g_steal_pointer (&iv->editing_key);
    gchar *new = g_strstrip (g_strdup (text ? text : ""));
@@ -1729,27 +1635,20 @@ cb_action_rename (GSimpleAction *action, GVariant *param, gpointer data)
 
 /* the text of the row: a tag's name, a person's name, a date */
 static gchar *
-row_copy_text (IndexView *iv, GtkTreeIter *iter)
+row_copy_text (IndexView *iv, GimvRow *row)
 {
-   gchar *key = NULL, *title = NULL, *text;
-   gint kind = -1;
+   const gchar *key = gimv_row_peek_string (row, COL_KEY);
+   gint kind = gimv_row_peek_int (row, COL_KIND);
 
-   gtk_tree_model_get (GTK_TREE_MODEL (iv->store), iter, COL_KEY, &key, COL_TITLE, &title,
-                       COL_KIND, &kind, -1);
-   if (!key || kind == KIND_ROOT || kind == KIND_GROUP || kind == KIND_HEADER) {
-      text = NULL;
-   } else if (iv->type == GIMV_INDEX_TAB_PERSON) {
-      text = g_strdup (title);
-   } else if (iv->type == GIMV_INDEX_TAB_TAG && key[0] == AUTO_KEY_MARK) {
-      text = g_strdup (auto_tag_value (key + 1, NULL));
-   } else if (iv->type == GIMV_INDEX_TAB_TAG && g_str_has_prefix (key, NAME_TAG)) {
-      text = g_strdup (key + NAME_TAG_LEN);
-   } else {
-      text = g_strdup (key);
-   }
-   g_free (key);
-   g_free (title);
-   return text;
+   if (!key || kind == KIND_ROOT || kind == KIND_GROUP || kind == KIND_HEADER)
+      return NULL;
+   if (iv->type == GIMV_INDEX_TAB_PERSON)
+      return g_strdup (gimv_row_peek_string (row, COL_TITLE));
+   if (iv->type == GIMV_INDEX_TAB_TAG && key[0] == AUTO_KEY_MARK)
+      return g_strdup (auto_tag_value (key + 1, NULL));
+   if (iv->type == GIMV_INDEX_TAB_TAG && g_str_has_prefix (key, NAME_TAG))
+      return g_strdup (key + NAME_TAG_LEN);
+   return g_strdup (key);
 }
 
 
@@ -1758,48 +1657,65 @@ row_copy_text (IndexView *iv, GtkTreeIter *iter)
  *  of a month not opened yet are not looked at)
  ******************************************************************************/
 
-/* the row after (forward) or before "iter" in the order shown, all levels;
- * FALSE at the end */
-static gboolean
-tree_step (GtkTreeModel *model, GtkTreeIter *iter, gboolean forward)
+/* the rows below parent (NULL if none) */
+static GListModel *
+row_children (GimvRow *parent)
 {
-   GtkTreeIter it;
+   GListStore *c = gimv_row_get_children (parent, FALSE);
+   return c && g_list_model_get_n_items (G_LIST_MODEL (c)) ? G_LIST_MODEL (c) : NULL;
+}
+
+
+/* the last row below row, all levels (row itself if none) */
+static GimvRow *
+row_last (GimvRow *row)
+{
+   GListModel *c;
+   while ((c = row_children (row)))
+      row = gimv_row_store_peek (c, g_list_model_get_n_items (c) - 1);
+   return row;
+}
+
+
+/* the row after (forward) or before "row" in the order shown, all levels
+ * (also those not opened); NULL at the end */
+static GimvRow *
+tree_step (IndexView *iv, GimvRow *row, gboolean forward)
+{
+   GimvRow *parent;
+   GListModel *siblings;
+   guint pos;
 
    if (forward) {
-      GtkTreeIter parent;
-      if (gtk_tree_model_iter_children (model, &it, iter)) { *iter = it; return TRUE; }
-      it = *iter;
+      GListModel *c = row_children (row);
+      if (c) return gimv_row_store_peek (c, 0);
       for (;;) {
-         GtkTreeIter next = it;
-         if (gtk_tree_model_iter_next (model, &next)) { *iter = next; return TRUE; }
-         if (!gtk_tree_model_iter_parent (model, &parent, &it)) return FALSE;
-         it = parent;
+         parent = gimv_row_get_parent (row);
+         siblings = parent ? G_LIST_MODEL (gimv_row_get_children (parent, FALSE))
+                           : G_LIST_MODEL (iv->store);
+         if (gimv_row_store_find (siblings, row, &pos)
+             && pos + 1 < g_list_model_get_n_items (siblings))
+            return gimv_row_store_peek (siblings, pos + 1);
+         if (!parent) return NULL;
+         row = parent;
       }
-   } else {
-      GtkTreeIter prev = *iter, parent;
-      if (gtk_tree_model_iter_previous (model, &prev)) {
-         gint n;
-         /* the last row below it */
-         while ((n = gtk_tree_model_iter_n_children (model, &prev)) > 0) {
-            gtk_tree_model_iter_nth_child (model, &it, &prev, n - 1);
-            prev = it;
-         }
-         *iter = prev;
-         return TRUE;
-      }
-      if (gtk_tree_model_iter_parent (model, &parent, iter)) { *iter = parent; return TRUE; }
-      return FALSE;
    }
+   parent = gimv_row_get_parent (row);
+   siblings = parent ? G_LIST_MODEL (gimv_row_get_children (parent, FALSE))
+                     : G_LIST_MODEL (iv->store);
+   if (gimv_row_store_find (siblings, row, &pos) && pos > 0)
+      return row_last (gimv_row_store_peek (siblings, pos - 1));
+   return parent;
 }
 
 
 static gboolean
-row_matches (GtkTreeModel *model, GtkTreeIter *iter, const gchar *folded)
+row_matches (GimvRow *row, const gchar *folded)
 {
-   gchar *label = NULL, *norm, *fold;
+   const gchar *label = gimv_row_peek_string (row, COL_LABEL);
+   gchar *norm, *fold;
    gboolean match = FALSE;
 
-   gtk_tree_model_get (model, iter, COL_LABEL, &label, -1);
    if (label) {
       norm = g_utf8_normalize (label, -1, G_NORMALIZE_ALL);
       fold = norm ? g_utf8_casefold (norm, -1) : NULL;
@@ -1807,7 +1723,6 @@ row_matches (GtkTreeModel *model, GtkTreeIter *iter, const gchar *folded)
       g_free (fold);
       g_free (norm);
    }
-   g_free (label);
    return match;
 }
 
@@ -1817,12 +1732,10 @@ row_matches (GtkTreeModel *model, GtkTreeIter *iter, const gchar *folded)
 static gboolean
 search_row (IndexView *iv, gboolean forward, gboolean again)
 {
-   GtkTreeModel *model = GTK_TREE_MODEL (iv->store);
-   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
    const gchar *text = gtk_editable_get_text (GTK_EDITABLE (iv->search_entry));
    gchar *norm, *folded;
-   GtkTreeIter start, iter;
-   gboolean found = FALSE, wrapped = FALSE;
+   GimvRow *start, *row;
+   gboolean found = FALSE;
 
    if (!text || !*text) return FALSE;
    norm = g_utf8_normalize (text, -1, G_NORMALIZE_ALL);
@@ -1830,53 +1743,32 @@ search_row (IndexView *iv, gboolean forward, gboolean again)
    g_free (norm);
    if (!folded) return FALSE;
 
-   if (!gtk_tree_selection_get_selected (sel, NULL, &start)
-       && !gtk_tree_model_get_iter_first (model, &start))
-   {
-      g_free (folded);
-      return FALSE;
-   }
-   iter = start;
-   if (!again && row_matches (model, &iter, folded)) {
+   start = gimv_list_view_get_selected_row (iv->tree);
+   if (!start) start = iv->root;
+   row = start;
+   if (!again && row_matches (row, folded)) {
       found = TRUE;
    } else {
       for (;;) {
-         if (!tree_step (model, &iter, forward)) {
-            /* around: from the first (the last) row */
-            if (wrapped) break;
-            wrapped = TRUE;
-            if (forward) {
-               if (!gtk_tree_model_get_iter_first (model, &iter)) break;
-            } else {
-               GtkTreeIter last;
-               gint n = gtk_tree_model_iter_n_children (model, NULL);
-               if (n < 1 || !gtk_tree_model_iter_nth_child (model, &last, NULL, n - 1)) break;
-               iter = last;
-               while ((n = gtk_tree_model_iter_n_children (model, &iter)) > 0) {
-                  gtk_tree_model_iter_nth_child (model, &last, &iter, n - 1);
-                  iter = last;
-               }
-            }
-         }
-         if (row_matches (model, &iter, folded)) { found = TRUE; break; }
-         if (wrapped && gtk_tree_store_iter_is_valid (iv->store, &iter)) {
-            GtkTreePath *a = gtk_tree_model_get_path (model, &iter);
-            GtkTreePath *b = gtk_tree_model_get_path (model, &start);
-            gboolean back = !gtk_tree_path_compare (a, b);
-            gtk_tree_path_free (a);
-            gtk_tree_path_free (b);
-            if (back) break;
-         }
+         row = tree_step (iv, row, forward);
+         /* around: from the first (the last) row */
+         if (!row) row = forward ? iv->root : row_last (iv->root);
+         if (row == start) break;
+         if (row_matches (row, folded)) { found = TRUE; break; }
       }
    }
    g_free (folded);
 
    if (found) {
-      GtkTreePath *path = gtk_tree_model_get_path (model, &iter);
-      gtk_tree_view_expand_to_path (GTK_TREE_VIEW (iv->tree), path);
-      gtk_tree_view_set_cursor (GTK_TREE_VIEW (iv->tree), path, NULL, FALSE);
-      gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (iv->tree), path, NULL, TRUE, 0.3, 0.0);
-      gtk_tree_path_free (path);
+      GtkTreeListRow *tree_row;
+      GimvRow *parent = gimv_row_get_parent (row);
+      guint pos;
+
+      if (parent) gimv_tree_list_model_expand_to (iv->model, parent);
+      if ((tree_row = gimv_tree_list_model_get_row_for (iv->model, row, &pos))) {
+         gimv_list_view_scroll_to (iv->tree, pos, TRUE, FALSE);
+         g_object_unref (tree_row);
+      }
    }
    /* not found: the entry in red */
    if (found || !*text)
@@ -1929,11 +1821,9 @@ cb_search_previous (GtkSearchEntry *entry, IndexView *iv)
 static void
 cb_search_activate (GtkSearchEntry *entry, IndexView *iv)
 {
-   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
-   GtkTreeIter iter;
-   gchar *key;
+   gchar *key = row_key (gimv_list_view_get_selected_row (iv->tree));
 
-   if (gtk_tree_selection_get_selected (sel, NULL, &iter) && row_key (iv, &iter, &key)) {
+   if (key) {
       open_key (iv, key, FALSE);
       g_free (key);
    }
@@ -1977,9 +1867,8 @@ static gboolean
 cb_tree_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType state,
              IndexView *iv)
 {
-   GtkTreeSelection *sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (iv->tree));
-   GtkTreeIter iter;
-   gchar *key = NULL, *text;
+   GimvRow *row;
+   gchar *text;
 
    /* Ctrl+F here: a row by its name (not the window's "open a file") */
    if ((keyval == GDK_KEY_f || keyval == GDK_KEY_F)
@@ -1988,16 +1877,14 @@ cb_tree_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierT
       search_start (iv);
       return TRUE;
    }
-   if (!gtk_tree_selection_get_selected (sel, NULL, &iter)) return FALSE;
+   if (!(row = gimv_list_view_get_selected_row (iv->tree))) return FALSE;
 
    if (keyval == GDK_KEY_F2 && !(state & GDK_MODIFIER_MASK)) {
-      gtk_tree_model_get (GTK_TREE_MODEL (iv->store), &iter, COL_KEY, &key, -1);
-      start_rename (iv, key);
-      g_free (key);
+      start_rename (iv, gimv_row_peek_string (row, COL_KEY));
       return TRUE;
    }
    if ((keyval == GDK_KEY_c || keyval == GDK_KEY_C) && (state & GDK_CONTROL_MASK)) {
-      text = row_copy_text (iv, &iter);
+      text = row_copy_text (iv, row);
       if (text)
          gdk_clipboard_set_text (gtk_widget_get_clipboard (iv->tree), text);
       g_free (text);
@@ -2023,6 +1910,7 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
    if (iv->rename_focus_id) g_source_remove (iv->rename_focus_id);
    if (iv->rename_popover) gtk_widget_unparent (iv->rename_popover);
    set_result_tab (iv, NULL);
+   g_clear_object (&iv->model);
    g_clear_object (&iv->store);
    g_free (iv->menu_key);
    g_free (iv->click_key);
@@ -2056,6 +1944,54 @@ tab_icon (GimvIndexTabType type)
 
 
 static GtkWidget *
+tree_cell_setup (gpointer data)
+{
+   static gboolean css = FALSE;
+
+   if (!css) {
+      GtkCssProvider *provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_string (provider,
+         "label.gimv-auto-tag { color: " AUTO_TAG_COLOR "; }\n"
+         "row:selected label.gimv-auto-tag { color: inherit; }\n");
+      gtk_style_context_add_provider_for_display (gdk_display_get_default (),
+                                                  GTK_STYLE_PROVIDER (provider),
+                                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+      g_object_unref (provider);
+      css = TRUE;
+   }
+
+   GtkWidget *label = gtk_label_new (NULL);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   return label;
+}
+
+
+static void
+tree_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
+{
+   GtkWidget *label = gimv_cell_get_content (cell);
+   GtkWidget *expander = gtk_widget_get_parent (cell);
+   GListStore *children = gimv_row_get_children (row, FALSE);
+
+   gtk_label_set_text (GTK_LABEL (label), gimv_row_peek_string (row, COL_LABEL));
+   /* the tags put by rules have a color of their own (not when selected) */
+   if (gimv_row_peek_string (row, COL_COLOR))
+      gtk_widget_add_css_class (label, "gimv-auto-tag");
+   else
+      gtk_widget_remove_css_class (label, "gimv-auto-tag");
+   /* no arrow on a row without rows below it (the root has one always) */
+   if (GTK_IS_TREE_EXPANDER (expander)) {
+      /* the names line up, with an arrow or not (as GtkTreeView) */
+      gtk_tree_expander_set_indent_for_icon (GTK_TREE_EXPANDER (expander), TRUE);
+   }
+   if (GTK_IS_TREE_EXPANDER (expander))
+      gtk_tree_expander_set_hide_expander (GTK_TREE_EXPANDER (expander),
+                                           gimv_row_peek_int (row, COL_KIND) != KIND_ROOT
+                                           && !(children && g_list_model_get_n_items (G_LIST_MODEL (children))));
+}
+
+
+static GtkWidget *
 index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
 {
    static const GActionEntry actions[] = {
@@ -2066,49 +2002,32 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
       { "no-folder-tag", cb_action_no_folder_tag, NULL, NULL, NULL },
    };
    IndexView *iv = g_new0 (IndexView, 1);
-   GtkTreeViewColumn *col;
-   GtkCellRenderer *render;
-   GtkTreeIter root;
    GtkGesture *click;
    GSimpleActionGroup *group;
 
    iv->type = type;
    iv->tw = tw;
-   iv->store = gtk_tree_store_new (N_COLS, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING,
-                                   G_TYPE_STRING, G_TYPE_STRING);
-
-   gtk_tree_store_append (iv->store, &root, NULL);
-   gtk_tree_store_set (iv->store, &root,
-                       COL_LABEL, tab_title (type),
-                       COL_KIND, KIND_ROOT, -1);
+   iv->store = gimv_row_store_new ();
+   iv->root = row_new (NULL, tab_title (type), KIND_ROOT, NULL, NULL, NULL);
+   /* expandable from the start */
+   gimv_row_get_children (iv->root, TRUE);
+   g_list_store_append (iv->store, iv->root);
+   g_object_unref (iv->root);
+   iv->model = gimv_tree_list_model_new (G_LIST_MODEL (iv->store));
    iv->cancel = g_cancellable_new ();
 
-   iv->tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (iv->store));
+   iv->tree = gimv_list_view_new (G_LIST_MODEL (g_object_ref (iv->model)), GTK_SELECTION_SINGLE,
+                                  gimv_cell_factory_new (tree_cell_setup, tree_cell_bind,
+                                                         NULL, NULL, TRUE));
    gtk_widget_set_name (iv->tree, "IndexTree");
-   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (iv->tree), FALSE);
-   /* no typing to search: the keys of the window (P: the faces panel) work
-    * here as in the directory view, and the search popup of GTK 4 gave a
-    * Gtk-CRITICAL (gtk_css_node_insert_after) on a tree without headers */
-   gtk_tree_view_set_enable_search (GTK_TREE_VIEW (iv->tree), FALSE);
-   col = gtk_tree_view_column_new ();
-   render = gtk_cell_renderer_text_new ();
-   gtk_tree_view_column_pack_start (col, render, TRUE);
-   gtk_tree_view_column_add_attribute (col, render, "text", COL_LABEL);
-   gtk_tree_view_column_add_attribute (col, render, "foreground", COL_COLOR);
-   gtk_tree_view_append_column (GTK_TREE_VIEW (iv->tree), col);
-   iv->render = render;
-   iv->col = col;
-   /* not editable: a tag is renamed in a popover (start_rename) */
-   g_signal_connect (render, "editing-started", G_CALLBACK (cb_editing_started), iv);
-   g_signal_connect (render, "editing-canceled", G_CALLBACK (cb_editing_canceled), iv);
-   g_signal_connect (render, "edited", G_CALLBACK (cb_edited), iv);
    {
       GtkEventController *keys = gtk_event_controller_key_new ();
       g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_tree_key), iv);
       gtk_widget_add_controller (iv->tree, keys);
    }
    /* Enter (and a double click) */
-   g_signal_connect (iv->tree, "row-activated", G_CALLBACK (cb_row_activated), iv);
+   g_signal_connect (iv->tree, "activate", G_CALLBACK (cb_activate), iv);
+   expand_row (iv, iv->root, TRUE);
 
    click = gtk_gesture_click_new ();
    gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (click), 0);

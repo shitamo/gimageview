@@ -1106,7 +1106,6 @@ gboolean
 detailview_set_selection (GimvThumbView *tv, GimvThumb *thumb, gboolean select)
 {
    DetailViewData *tv_data;
-   GList *node;
    gint pos;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
