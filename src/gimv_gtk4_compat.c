@@ -1656,9 +1656,12 @@ get_event_data (GtkWidget *widget, gboolean create)
 static gboolean
 widget_wants_capture (GtkWidget *widget, GimvEventSignal signal)
 {
-   if (GTK_IS_TREE_VIEW (widget) || GTK_IS_TEXT_VIEW (widget)
+   /* list views: run before the click gestures of their rows (like the
+      GtkTreeView based code expected) */
+   if (GTK_IS_LIST_VIEW (widget) || GTK_IS_COLUMN_VIEW (widget)
+       || GTK_IS_TEXT_VIEW (widget)
        || GTK_IS_ENTRY (widget) || GTK_IS_TEXT (widget)
-       || GTK_IS_ICON_VIEW (widget) || GTK_IS_SPIN_BUTTON (widget)
+       || GTK_IS_SPIN_BUTTON (widget)
        || GTK_IS_NOTEBOOK (widget) || GTK_IS_SCROLLED_WINDOW (widget))
    {
       return TRUE;

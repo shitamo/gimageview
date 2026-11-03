@@ -224,6 +224,15 @@ void                gimv_list_view_select             (GtkWidget  *view,
                                                        guint       position);
 void                gimv_list_view_unselect_all       (GtkWidget  *view);
 
+/* the position of the focused row (the "cursor" of GtkTreeView): the row
+   having the keyboard focus, or the one that had it last.
+   GTK_INVALID_LIST_POSITION if unknown. */
+guint               gimv_list_view_get_focus_position (GtkWidget  *view);
+/* move the focus to the row at position (and scroll to it) */
+void                gimv_list_view_set_focus_position (GtkWidget  *view,
+                                                       guint       position,
+                                                       gboolean    select);
+
 /* move the row at from to position to (of a view on a GListStore) and keep
    it selected if it was */
 void                gimv_list_view_move_row           (GtkWidget  *view,

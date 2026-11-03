@@ -36,7 +36,7 @@
 #include "detailview_prefs.h"
 #include "detailview_priv.h"
 #include "fileutil.h"
-#include "gimv_cell_pixmap.h"
+#include "gimv_list_view.h"
 #include "gimv_image.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_win.h"
@@ -46,15 +46,14 @@ enum {
    COLUMN_TERMINATOR = -1,
    COLUMN_THUMB_DATA,
    COLUMN_PIXMAP,
-   COLUMN_MASK,
-   COLUMN_EDITABLE,
    N_COLUMN
 };
 
 
 typedef struct DetailViewData_Tag
 {
-   GtkWidget *treeview;
+   GtkWidget *treeview;      /* GtkColumnView */
+   GListStore *store;        /* rows (GimvRow) */
    gboolean   dragging;
    gint       press_button;
    gint       press_mask;
@@ -64,11 +63,6 @@ typedef struct DetailViewData_Tag
 
 
 /* callback functions */
-static gboolean cb_tree_selected               (GtkTreeSelection  *selection,
-                                                GtkTreeModel      *model,
-                                                GtkTreePath       *treepath,
-                                                gboolean           selected,
-                                                gpointer           data);
 static gboolean cb_treeview_button_press       (GtkWidget         *widget,
                                                 GimvEventButton    *event,
                                                 GimvThumbView     *tv);
@@ -86,33 +80,265 @@ static void     cb_treeview_drag_data_received (GtkWidget         *widget,
                                                 guint              info,
                                                 guint              time,
                                                 gpointer           data);
-static void     cb_column_clicked              (GtkTreeViewColumn *column,
+static void     cb_sorter_changed              (GtkSorter         *sorter,
+                                                GtkSorterChange    change,
                                                 GimvThumbView     *tv);
 
 /* other private function */
 static DetailViewData *detailview_new          (GimvThumbView  *tv);
 static void            set_column_types        (GimvThumbView  *tv,
                                                 DetailViewData *tv_data,
-                                                GtkListStore   *store,
                                                 const gchar    *dest_mode);
 static void            detailview_set_pixmaps  (GimvThumbView  *tv,
                                                 const gchar    *dest_mode);
 
 
 
-/*
- *  GTK4: gtk_tree_view_get_path_at_pos () takes bin window coordinates,
- *  event coordinates are relative to the widget.
- */
-static gboolean
-get_path_at_widget_pos (GtkTreeView *treeview, gint x, gint y,
-                        GtkTreePath **path, GtkTreeViewColumn **column)
+/* the thumbnail of the row at widget coordinates x, y (NULL if none) */
+static GimvThumb *
+thumb_at_widget_pos (DetailViewData *tv_data, gdouble x, gdouble y,
+                     guint *position)
 {
-   gint bx, by;
+   GimvRow *row = NULL;
 
-   gtk_tree_view_convert_widget_to_bin_window_coords (treeview, x, y, &bx, &by);
-   return gtk_tree_view_get_path_at_pos (treeview, bx, by,
-                                         path, column, NULL, NULL);
+   if (!gimv_list_view_get_row_at (tv_data->treeview, x, y, position, &row)
+       || !row)
+   {
+      return NULL;
+   }
+
+   return gimv_row_peek_pointer (row, COLUMN_THUMB_DATA);
+}
+
+
+static GimvThumb *
+thumb_at_position (DetailViewData *tv_data, guint position)
+{
+   GimvRow *row = gimv_row_store_peek (G_LIST_MODEL (tv_data->store), position);
+   return row ? gimv_row_peek_pointer (row, COLUMN_THUMB_DATA) : NULL;
+}
+
+
+
+/******************************************************************************
+ *
+ *   selection model
+ *
+ *   GTK4: GtkTreeView and its select function are deprecated.  The thumbnail
+ *   view keeps the selection in GimvThumb::selected, so the selection model
+ *   of the column view reads it from there, and it accepts the changes
+ *   requested by the view (clicks, keyboard) under the conditions the select
+ *   function of the GtkTreeView based version used.
+ *
+ ******************************************************************************/
+#define DETAIL_TYPE_SELECTION (detail_selection_get_type ())
+G_DECLARE_FINAL_TYPE (DetailSelection, detail_selection,
+                      DETAIL, SELECTION, GObject)
+
+struct _DetailSelection
+{
+   GObject        parent;
+   GListModel    *model;   /* of GimvRow */
+   GimvThumbView *tv;      /* weak */
+};
+
+static void detail_selection_list_model_init      (GListModelInterface        *iface);
+static void detail_selection_selection_model_init (GtkSelectionModelInterface *iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (DetailSelection, detail_selection, G_TYPE_OBJECT,
+   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL,
+                          detail_selection_list_model_init)
+   G_IMPLEMENT_INTERFACE (GTK_TYPE_SELECTION_MODEL,
+                          detail_selection_selection_model_init))
+
+
+static GType
+detail_selection_get_item_type (GListModel *list)
+{
+   return GIMV_TYPE_ROW;
+}
+
+
+static guint
+detail_selection_get_n_items (GListModel *list)
+{
+   DetailSelection *self = DETAIL_SELECTION (list);
+   return self->model ? g_list_model_get_n_items (self->model) : 0;
+}
+
+
+static gpointer
+detail_selection_get_item (GListModel *list, guint position)
+{
+   DetailSelection *self = DETAIL_SELECTION (list);
+   return self->model ? g_list_model_get_item (self->model, position) : NULL;
+}
+
+
+static void
+detail_selection_list_model_init (GListModelInterface *iface)
+{
+   iface->get_item_type = detail_selection_get_item_type;
+   iface->get_n_items   = detail_selection_get_n_items;
+   iface->get_item      = detail_selection_get_item;
+}
+
+
+static gboolean
+detail_selection_is_selected (GtkSelectionModel *model, guint position)
+{
+   DetailSelection *self = DETAIL_SELECTION (model);
+   GimvRow *row;
+   GimvThumb *thumb;
+
+   if (!self->model) return FALSE;
+
+   row = gimv_row_store_peek (self->model, position);
+   thumb = row ? gimv_row_peek_pointer (row, COLUMN_THUMB_DATA) : NULL;
+
+   return thumb ? thumb->selected : FALSE;
+}
+
+
+/* the conditions of the select function of the GtkTreeView based version */
+static gboolean
+detail_selection_change_allowed (DetailSelection *self)
+{
+   DetailViewData *tv_data;
+
+   if (!self->tv) return FALSE;
+
+   tv_data = g_object_get_data (G_OBJECT (self->tv), DETAIL_VIEW_LABEL);
+   if (!tv_data) return FALSE;
+
+   /* only by a mouse button (keyboard navigation moves the focus only) */
+   if (tv_data->press_button <= 0 && !tv_data->set_selection)
+      return FALSE;
+
+   /*
+    *  For DnD and popup, should not change selection when selected path was
+    *  pressed.
+    *  Selection should be changed when mouse button was released.
+    */
+   if (tv_data->press_button > 0
+       && !(tv_data->press_mask & GDK_CONTROL_MASK)
+       && !(tv_data->press_mask & GDK_SHIFT_MASK)
+       && !tv_data->dragging
+       && tv_data->treeview
+       && gtk_widget_get_mapped (tv_data->treeview))
+   {
+      GimvThumb *thumb = thumb_at_widget_pos (tv_data,
+                                              tv_data->press_x,
+                                              tv_data->press_y, NULL);
+      if (thumb && thumb->selected)
+         return FALSE;
+   }
+
+   return TRUE;
+}
+
+
+static gboolean
+detail_selection_set_selection (GtkSelectionModel *model,
+                                GtkBitset *selected, GtkBitset *mask)
+{
+   DetailSelection *self = DETAIL_SELECTION (model);
+   DetailViewData *tv_data;
+   GtkBitsetIter iter;
+   guint position, min = G_MAXUINT, max = 0;
+   gboolean valid;
+
+   if (!self->model) return FALSE;
+   if (!detail_selection_change_allowed (self)) return FALSE;
+
+   for (valid = gtk_bitset_iter_init_first (&iter, mask, &position);
+        valid;
+        valid = gtk_bitset_iter_next (&iter, &position))
+   {
+      GimvRow *row = gimv_row_store_peek (self->model, position);
+      GimvThumb *thumb = row ? gimv_row_peek_pointer (row, COLUMN_THUMB_DATA) : NULL;
+      gboolean select = gtk_bitset_contains (selected, position);
+
+      if (!thumb || thumb->selected == select) continue;
+
+      thumb->selected = select;
+      min = MIN (min, position);
+      max = MAX (max, position);
+   }
+
+   tv_data = g_object_get_data (G_OBJECT (self->tv), DETAIL_VIEW_LABEL);
+   if (tv_data)
+      tv_data->set_selection = FALSE;
+
+   if (min <= max)
+      gtk_selection_model_selection_changed (model, min, max - min + 1);
+
+   return TRUE;
+}
+
+
+static void
+detail_selection_selection_model_init (GtkSelectionModelInterface *iface)
+{
+   iface->is_selected   = detail_selection_is_selected;
+   iface->set_selection = detail_selection_set_selection;
+}
+
+
+static void
+cb_detail_selection_items_changed (GListModel *model, guint position,
+                                   guint removed, guint added,
+                                   DetailSelection *self)
+{
+   g_list_model_items_changed (G_LIST_MODEL (self), position, removed, added);
+}
+
+
+static void
+detail_selection_dispose (GObject *object)
+{
+   DetailSelection *self = DETAIL_SELECTION (object);
+
+   if (self->model) {
+      g_signal_handlers_disconnect_by_func (self->model,
+                                            cb_detail_selection_items_changed,
+                                            self);
+      g_clear_object (&self->model);
+   }
+   if (self->tv) {
+      g_object_remove_weak_pointer (G_OBJECT (self->tv), (gpointer *) &self->tv);
+      self->tv = NULL;
+   }
+
+   G_OBJECT_CLASS (detail_selection_parent_class)->dispose (object);
+}
+
+
+static void
+detail_selection_class_init (DetailSelectionClass *klass)
+{
+   G_OBJECT_CLASS (klass)->dispose = detail_selection_dispose;
+}
+
+
+static void
+detail_selection_init (DetailSelection *self)
+{
+}
+
+
+static GtkSelectionModel *
+detail_selection_new (GListModel *model, GimvThumbView *tv)
+{
+   DetailSelection *self = g_object_new (DETAIL_TYPE_SELECTION, NULL);
+
+   self->model = g_object_ref (model);
+   g_signal_connect (model, "items-changed",
+                     G_CALLBACK (cb_detail_selection_items_changed), self);
+   self->tv = tv;
+   g_object_add_weak_pointer (G_OBJECT (tv), (gpointer *) &self->tv);
+
+   return GTK_SELECTION_MODEL (self);
 }
 
 
@@ -122,74 +348,6 @@ get_path_at_widget_pos (GtkTreeView *treeview, gint x, gint y,
  *   Callback functions.
  *
  ******************************************************************************/
-static gboolean
-cb_tree_selected (GtkTreeSelection *selection, GtkTreeModel *model,
-                  GtkTreePath *treepath, gboolean selected, gpointer data)
-{
-   DetailViewData *tv_data;
-   GimvThumbView *tv = data;
-   GimvThumb *thumb = NULL;
-   GtkTreeIter iter;
-   gint sel_row_pos = 0;
-   gboolean success;
-   gboolean under_cursor = FALSE, under_cursor_is_selected = FALSE;
-
-   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
-
-   tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
-   g_return_val_if_fail (tv_data, FALSE);
-
-   if (tv_data->press_button <= 0 && !tv_data->set_selection)
-      return FALSE;
-
-   /* get state of row under mouse cursor */
-   if (!tv_data->dragging && gtk_widget_get_mapped (GTK_WIDGET (tv_data->treeview))) {
-      GtkTreePath *sel_treepath;
-      success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                        tv_data->press_x, tv_data->press_y,
-                                        &sel_treepath, NULL);
-      if (success) {
-         sel_row_pos = gtk_tree_path_compare (sel_treepath, treepath);
-         if (!sel_row_pos)
-            under_cursor = TRUE;
-
-         if (gtk_tree_selection_path_is_selected (selection, sel_treepath))
-            under_cursor_is_selected = TRUE;
-
-         gtk_tree_path_free (sel_treepath);
-      }
-   }
-
-   /*
-    *  For DnD and popup, should not change selection when selected path was
-    *  pressed.
-    *  Selection should be changed when mouse button was released.
-    *  F*ck'in GTK!
-    */
-   if (tv_data->press_button > 0
-       && under_cursor_is_selected
-       && !(tv_data->press_mask & GDK_CONTROL_MASK)
-       && !(tv_data->press_mask & GDK_SHIFT_MASK))
-   {
-      return FALSE;
-   }
-
-   success = gtk_tree_model_get_iter (model, &iter, treepath);
-   g_return_val_if_fail (success, FALSE);
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_THUMB_DATA, &thumb,
-                       COLUMN_TERMINATOR);
-
-   if (thumb) {
-      thumb->selected = !selected;
-   }
-
-   tv_data->set_selection = FALSE;
-
-   return TRUE;
-}
-
-
 static gint
 cb_treeview_key_press (GtkWidget *widget,
                        GimvEventKey *event,
@@ -197,28 +355,16 @@ cb_treeview_key_press (GtkWidget *widget,
 {
    DetailViewData *tv_data;
    GimvThumb *thumb = NULL;
-   GtkTreePath *treepath;
+   guint position;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
 
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_val_if_fail (tv_data, FALSE);
 
-   gtk_tree_view_get_cursor (GTK_TREE_VIEW (tv_data->treeview),
-                             &treepath, NULL);
-
-   if (treepath) {
-      GtkTreeModel *model;
-      GtkTreeIter iter;
-
-      model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-      if (gtk_tree_model_get_iter (model, &iter, treepath)) {
-         gtk_tree_model_get (model, &iter,
-                             COLUMN_THUMB_DATA, &thumb,
-                             COLUMN_TERMINATOR);
-      }
-      gtk_tree_path_free (treepath);
-   }
+   position = gimv_list_view_get_focus_position (tv_data->treeview);
+   if (position != GTK_INVALID_LIST_POSITION)
+      thumb = thumb_at_position (tv_data, position);
 
    if (gimv_thumb_view_thumb_key_press_cb(widget, event, thumb))
       return FALSE;
@@ -263,13 +409,8 @@ cb_treeview_button_press (GtkWidget *widget,
                           GimvThumbView *tv)
 {
    DetailViewData *tv_data;
-   GtkTreeModel *model;
-   GtkTreeSelection *selection;
-   GtkTreeIter iter;
-   GtkTreePath *treepath = NULL;
-   GtkTreeViewColumn *column;
    GimvThumb *thumb = NULL;
-   gboolean success, retval1 = FALSE, retval2 = FALSE;
+   gboolean retval2 = FALSE;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
 
@@ -282,28 +423,12 @@ cb_treeview_button_press (GtkWidget *widget,
    tv_data->press_x      = event->x;
    tv_data->press_y      = event->y;
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview));
-
    /* get state of row under mouse cursor */
-   success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                     event->x, event->y,
-                                     &treepath, &column);
-   if (success) {
-      retval1 = gtk_tree_selection_path_is_selected (selection, treepath);
-      gtk_tree_model_get_iter (model, &iter, treepath);
-      gtk_tree_model_get (model, &iter,
-                          COLUMN_THUMB_DATA, &thumb,
-                          COLUMN_TERMINATOR);
-   }
+   thumb = thumb_at_widget_pos (tv_data, event->x, event->y, NULL);
 
    if (thumb) {
       retval2 = gimv_thumb_view_thumb_button_press_cb (widget, event, thumb);
    }
-
-   if (treepath)
-      gtk_tree_path_free (treepath);
-
    /*
    if (retval1) {
       return TRUE;
@@ -322,12 +447,7 @@ cb_treeview_motion_notify (GtkWidget *widget,
 {
    DetailViewData *tv_data;
    GimvThumbView *tv = data;
-   GtkTreeModel *model;
-   GtkTreeSelection *selection;
-   GtkTreePath *treepath = NULL;
-   GtkTreeViewColumn *column;
    GimvThumb *thumb = NULL;
-   gboolean success;
    gint dx, dy;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
@@ -342,22 +462,7 @@ cb_treeview_motion_notify (GtkWidget *widget,
    if (abs (dx) > 2 || abs (dy) > 2)
       tv_data->dragging = TRUE;
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview));
-
-   success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                     event->x, event->y,
-                                     &treepath, &column);
-   if (success) {
-      GtkTreeIter iter;
-      gtk_tree_model_get_iter (model, &iter, treepath);
-      gtk_tree_model_get (model, &iter,
-                          COLUMN_THUMB_DATA, &thumb,
-                          COLUMN_TERMINATOR);
-   }
-
-   if (treepath)
-      gtk_tree_path_free (treepath);
+   thumb = thumb_at_widget_pos (tv_data, event->x, event->y, NULL);
 
    return gimv_thumb_view_motion_notify_cb (widget, event, thumb);
 }
@@ -369,13 +474,8 @@ cb_treeview_button_release (GtkWidget *widget,
                             GimvThumbView *tv)
 {
    DetailViewData *tv_data;
-   GtkTreeModel *model;
-   GtkTreeSelection *selection;
-   GtkTreeIter iter;
-   GtkTreePath *treepath = NULL;
-   GtkTreeViewColumn *column;
    GimvThumb *thumb = NULL;
-   gboolean success, retval1 = FALSE, retval2 = FALSE;
+   gboolean retval2 = FALSE;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
 
@@ -392,20 +492,9 @@ cb_treeview_button_release (GtkWidget *widget,
       return FALSE;
    }
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview));
-
    /* get state of row under mouse cursor */
-   success = get_path_at_widget_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                     event->x, event->y,
-                                     &treepath, &column);
-   if (success) {
-      retval1 = gtk_tree_selection_path_is_selected (selection, treepath);
-      gtk_tree_model_get_iter (model, &iter, treepath);
-      gtk_tree_model_get (model, &iter,
-                          COLUMN_THUMB_DATA, &thumb,
-                          COLUMN_TERMINATOR);
-
+   thumb = thumb_at_widget_pos (tv_data, event->x, event->y, NULL);
+   if (thumb) {
       if (event->type == GDK_BUTTON_RELEASE
           && (event->button == 1)
           && !(event->state & GDK_SHIFT_MASK)
@@ -420,10 +509,6 @@ cb_treeview_button_release (GtkWidget *widget,
    if (thumb) {
       retval2 = gimv_thumb_view_thumb_button_release_cb (widget, event, thumb);
    }
-
-   if (treepath)
-      gtk_tree_path_free (treepath);
-
    /*
    if (retval1) {
       return TRUE;
@@ -498,12 +583,24 @@ cb_treeview_drag_data_received (GtkWidget *widget,
 }
 
 
-static void
-cb_column_clicked (GtkTreeViewColumn *column, GimvThumbView *tv)
+/* GTK4: GtkColumnView has no "clicked" signal for the columns.  The
+   columns get a sorter, which makes their titles clickable; the view sorter
+   changes when a title is clicked.  The rows are sorted by the thumbnail
+   window like before (the sorters themselves do not sort anything). */
+static gint
+dummy_sorter_compare (gconstpointer a, gconstpointer b, gpointer data)
 {
+   return 0;
+}
+
+
+static void
+cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
+{
+   GtkColumnViewColumn *column;
    GimvThumbWin *tw;
    DetailViewData *tv_data;
-   GList *col_list, *node;
+   GList *node;
    gint col, idx;
    GimvSortItem sort_item, current_item;
    GimvSortFlag sort_flag = 0, current_flag;
@@ -518,8 +615,23 @@ cb_column_clicked (GtkTreeViewColumn *column, GimvThumbView *tv)
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data && tv_data->treeview);
 
-   col_list = gtk_tree_view_get_columns (GTK_TREE_VIEW (tv_data->treeview));
-   col = g_list_index (col_list, column);
+   column = gtk_column_view_sorter_get_primary_sort_column (GTK_COLUMN_VIEW_SORTER (sorter));
+   if (!column) return;
+   {
+      GListModel *columns = gtk_column_view_get_columns (GTK_COLUMN_VIEW (tv_data->treeview));
+      guint i, n = g_list_model_get_n_items (columns);
+
+      col = -1;
+      for (i = 0; i < n; i++) {
+         GtkColumnViewColumn *c = g_list_model_get_item (columns, i);
+         g_object_unref (c);
+         if (c == column) {
+            col = i;
+            break;
+         }
+      }
+      if (col < 0) return;
+   }
 
    node = g_list_nth (detailview_title_idx_list, col - 1);
    if (!node) return;
@@ -568,6 +680,15 @@ cb_column_clicked (GtkTreeViewColumn *column, GimvThumbView *tv)
  *   private functions.
  *
  ******************************************************************************/
+static void
+detailview_data_free (DetailViewData *tv_data)
+{
+   if (tv_data->store)
+      g_object_unref (tv_data->store);
+   g_free (tv_data);
+}
+
+
 static DetailViewData *
 detailview_new (GimvThumbView *tv)
 {
@@ -586,51 +707,95 @@ detailview_new (GimvThumbView *tv)
       tv_data->press_y       = -1;
       tv_data->set_selection = FALSE;
       g_object_set_data_full (G_OBJECT (tv), DETAIL_VIEW_LABEL, tv_data,
-                              (GDestroyNotify) g_free);
+                              (GDestroyNotify) detailview_data_free);
    }
 
    return tv_data;
 }
 
 
+/* the thumbnail (or icon) column */
+static GtkWidget *
+pixmap_cell_setup (gpointer data)
+{
+   GtkWidget *picture = gtk_picture_new ();
+   gint size = GPOINTER_TO_INT (data);
+
+   gtk_picture_set_can_shrink (GTK_PICTURE (picture), FALSE);
+   gtk_widget_set_halign (picture, GTK_ALIGN_CENTER);
+   gtk_widget_set_valign (picture, GTK_ALIGN_CENTER);
+   if (size > 0)
+      gtk_widget_set_size_request (picture, size, size);
+
+   return picture;
+}
+
+
+static void
+pixmap_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
+{
+   GdkTexture *texture = gimv_row_peek_object (row, COLUMN_PIXMAP);
+   gtk_picture_set_paintable (GTK_PICTURE (cell), GDK_PAINTABLE (texture));
+}
+
+
+/* text columns */
+typedef struct {
+   gint   column;
+   gfloat xalign;
+} TextCell;
+
+
+static GtkWidget *
+text_cell_setup (gpointer data)
+{
+   TextCell *tc = data;
+   GtkWidget *label = gtk_label_new (NULL);
+
+   gtk_label_set_xalign (GTK_LABEL (label), tc->xalign);
+   gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+   gtk_label_set_single_line_mode (GTK_LABEL (label), TRUE);
+   gtk_widget_set_hexpand (label, TRUE);
+
+   return label;
+}
+
+
+static void
+text_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
+{
+   TextCell *tc = data;
+   const gchar *text = gimv_row_peek_string (row, tc->column);
+
+   gtk_label_set_text (GTK_LABEL (cell), text ? text : "");
+}
+
+
 static void
 set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
-                  GtkListStore *store, const gchar *dest_mode)
+                  const gchar *dest_mode)
 {
-   GtkTreeViewColumn *col;
-   GtkCellRenderer *render;
+   GtkColumnView *view = GTK_COLUMN_VIEW (tv_data->treeview);
+   GtkColumnViewColumn *col;
    GList *node;
-   gint i, xpad, ypad;
+   gint i, size = 0;
+   /* the padding of the GtkCellRenderer used for the pixmap */
+   const gint pad = 2;
 
    /* pixmap column */
-   col = gtk_tree_view_column_new();
-   gtk_tree_view_column_set_title (col, "");
-   /* gtk_tree_view_column_set_sizing(col, GTK_TREE_VIEW_COLUMN_FIXED); */
-   /* gtk_tree_view_column_set_resizable(col, TRUE); */
+   if (!strcmp (DETAIL_ICON_LABEL, dest_mode))
+      size = ICON_SIZE + pad * 2;
+   if (!strcmp (DETAIL_THUMB_LABEL, dest_mode))
+      size = tv->thumb_size + pad * 2;
 
-   render = gimv_cell_renderer_pixmap_new ();
-   gtk_cell_renderer_get_padding (GTK_CELL_RENDERER (render), &xpad, &ypad);
-   ypad = xpad;   /* the GTK2 version used xpad for both */
-
-   if (!strcmp (DETAIL_ICON_LABEL, dest_mode)) {
-      gint xsize = ICON_SIZE + xpad * 2, ysize = ICON_SIZE + ypad * 2;
-      gtk_cell_renderer_set_fixed_size (render, xsize, ysize);
-   }
-
-   if (!strcmp (DETAIL_THUMB_LABEL, dest_mode)) {
-      gint xsize = tv->thumb_size + xpad * 2;
-      gint ysize = tv->thumb_size + ypad * 2;
-      gtk_cell_renderer_set_fixed_size (render, xsize, ysize);
-   }
-
-   gtk_tree_view_column_pack_start (col, render, FALSE);
-   gtk_tree_view_column_add_attribute (col, render,
-                                       "pixmap", COLUMN_PIXMAP);
-   gtk_tree_view_column_add_attribute (col, render,
-                                       "mask", COLUMN_MASK);
-   
-   gtk_tree_view_append_column (GTK_TREE_VIEW (tv_data->treeview), col);
-
+   col = gimv_column_view_append (view, "",
+                                  gimv_cell_factory_new (pixmap_cell_setup,
+                                                         pixmap_cell_bind,
+                                                         GINT_TO_POINTER (size),
+                                                         NULL, FALSE));
+   /* "Detail" mode: no pixmaps */
+   if (size <= 0)
+      gtk_column_view_column_set_fixed_width (col, 1);
 
    /* other column */
    for (node = detailview_title_idx_list, i = N_COLUMN;
@@ -638,45 +803,40 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
         node = g_list_next (node), i++)
    {
       gint idx = GPOINTER_TO_INT (node->data);
+      TextCell *tc = g_new0 (TextCell, 1);
+      GtkSorter *sorter;
 
-      col = gtk_tree_view_column_new();
-      gtk_tree_view_column_set_title (col, _(detailview_columns[idx].title));
-      gtk_tree_view_column_set_sizing(col, GTK_TREE_VIEW_COLUMN_FIXED);
-      gtk_tree_view_column_set_fixed_width (col, detailview_columns[idx].width);
-      gtk_tree_view_column_set_resizable(col, TRUE);
-
-      render = gtk_cell_renderer_text_new ();
+      tc->column = i;
       switch (detailview_columns[idx].justification) {
       case GTK_JUSTIFY_CENTER:
-         g_object_set(G_OBJECT(render), "xalign", 0.5, NULL);
-         gtk_tree_view_column_set_alignment(col, 0.5);
+         tc->xalign = 0.5;
          break;
       case GTK_JUSTIFY_RIGHT:
-         g_object_set(G_OBJECT(render), "xalign", 1.0, NULL);
-         gtk_tree_view_column_set_alignment(col, 0.5);
+         tc->xalign = 1.0;
          break;
       case GTK_JUSTIFY_LEFT:
-         g_object_set(G_OBJECT(render), "xalign", 0.0, NULL);
-         break;
       default:
+         tc->xalign = 0.0;
          break;
       }
-      gtk_tree_view_column_pack_start (col, render, TRUE);
-      gtk_tree_view_column_add_attribute (col, render,
-                                          "text", i);
-      if (!strcmp (detailview_columns[idx].title, "Name")) {
-         /*
-         gtk_tree_view_column_add_attribute (col, render,
-                                             "editable", COLUMN_EDITABLE);
-         */
-      }
 
-      gtk_tree_view_append_column (GTK_TREE_VIEW (tv_data->treeview), col);
+      col = gimv_column_view_append (view, _(detailview_columns[idx].title),
+                                     gimv_cell_factory_new (text_cell_setup,
+                                                            text_cell_bind,
+                                                            tc, g_free,
+                                                            FALSE));
+      gtk_column_view_column_set_fixed_width (col, detailview_columns[idx].width);
+      gtk_column_view_column_set_resizable (col, TRUE);
 
-      gtk_tree_view_column_set_clickable (col, TRUE);
-      g_signal_connect (G_OBJECT (col), "clicked",
-                        G_CALLBACK (cb_column_clicked), tv);
+      /* clicking the title sorts the thumbnails (see cb_sorter_changed ()) */
+      sorter = GTK_SORTER (gtk_custom_sorter_new (dummy_sorter_compare,
+                                                  NULL, NULL));
+      gtk_column_view_column_set_sorter (col, sorter);
+      g_object_unref (sorter);
    }
+
+   g_signal_connect (gtk_column_view_get_sorter (view), "changed",
+                     G_CALLBACK (cb_sorter_changed), tv);
 }
 
 
@@ -724,10 +884,10 @@ detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
                                const gchar *dest_mode)
 {
    DetailViewData *tv_data;
-   GtkTreeModel *model;
    GList *data_node;
    gint j, pos, colnum;
-   GtkTreeIter iter;
+   GimvRow *row;
+   GType *types;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
@@ -740,17 +900,17 @@ detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
    tv_data = g_object_get_data (G_OBJECT(tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data && tv_data->treeview);
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
+   types = g_new0 (GType, colnum);
+   for (j = 0; j < colnum; j++)
+      types[j] = G_TYPE_STRING;
+   types[COLUMN_THUMB_DATA] = G_TYPE_POINTER;
+   types[COLUMN_PIXMAP]     = GDK_TYPE_TEXTURE;
+   row = gimv_row_newv (colnum, types);
+   g_free (types);
 
-   gtk_list_store_insert (GTK_LIST_STORE (model), &iter, pos);
-   gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                       COLUMN_THUMB_DATA, thumb,
-                       COLUMN_TERMINATOR);
-
-   gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                       COLUMN_EDITABLE, TRUE,
-                       COLUMN_TERMINATOR);
-
+   gimv_row_set (row,
+                 COLUMN_THUMB_DATA, thumb,
+                 COLUMN_TERMINATOR);
    data_node = detailview_title_idx_list;
    for (j = N_COLUMN;
         j < colnum && data_node;
@@ -762,13 +922,18 @@ detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
       if (detailview_columns[idx].func)
          text = detailview_columns[idx].func (thumb);
 
-      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          j, text,
-                          COLUMN_TERMINATOR);
+      gimv_row_set (row,
+                    j, text,
+                    COLUMN_TERMINATOR);
 
       if (detailview_columns[idx].free && text)
          g_free (text);
    }
+
+   if (pos < 0 || (guint) pos > g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)))
+      pos = g_list_model_get_n_items (G_LIST_MODEL (tv_data->store));
+   g_list_store_insert (tv_data->store, pos, row);
+   g_object_unref (row);
 
    detailview_set_selection (tv, thumb, thumb->selected);
 }
@@ -782,9 +947,8 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
    GdkTexture *pixmap = NULL;
    GdkTexture *mask = NULL;
    GList *node;
-   gint pos, row, col, i;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
+   gint pos, i;
+   GimvRow *row;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
    g_return_if_fail (GIMV_IS_THUMB (thumb));
@@ -795,9 +959,6 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
    node = g_list_find (tv->thumblist, thumb);
    pos = g_list_position (tv->thumblist, node);
 
-   row = pos;
-   col = 0;
-
    /* set thumbnail */
    if (!strcmp (DETAIL_ICON_LABEL, dest_mode)) {
       gimv_thumb_get_icon (thumb, &pixmap, &mask);
@@ -805,17 +966,16 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
       gimv_thumb_get_thumb (thumb, &pixmap, &mask);
    }
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-   if (pos < 0 || !gtk_tree_model_iter_nth_child (model, &iter, NULL, row))
-      return;
+   if (pos < 0) return;
+   row = gimv_row_store_peek (G_LIST_MODEL (tv_data->store), pos);
+   if (!row) return;
 
    /* GTK4 port: the text columns are also synced without a pixmap (plain
       "Detail" mode), e.g. after a comment was saved */
    if (pixmap)
-      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          COLUMN_PIXMAP,   pixmap,
-                          COLUMN_MASK,     mask,
-                          COLUMN_TERMINATOR);
+      gimv_row_set (row,
+                    COLUMN_PIXMAP,   pixmap,
+                    COLUMN_TERMINATOR);
 
    /* reset column data */
    node = detailview_title_idx_list;
@@ -830,9 +990,9 @@ detailview_update_thumbnail (GimvThumbView  *tv, GimvThumb *thumb,
 
       str = detailview_columns[idx].func (thumb);
 
-      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          i, str,
-                          COLUMN_TERMINATOR);
+      gimv_row_set (row,
+                    i, str,
+                    COLUMN_TERMINATOR);
 
       if (detailview_columns[idx].free)
          g_free (str);
@@ -869,8 +1029,6 @@ void
 detailview_remove_thumbnail (GimvThumbView *tv, GimvThumb *thumb)
 {
    DetailViewData *tv_data;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
    gint pos;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
@@ -882,10 +1040,8 @@ detailview_remove_thumbnail (GimvThumbView *tv, GimvThumb *thumb)
    pos = g_list_index (tv->thumblist, thumb);
    if (pos < 0) return;
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-
-   if (gtk_tree_model_iter_nth_child (model, &iter, NULL, pos))
-      gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
+   if ((guint) pos < g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)))
+      g_list_store_remove (tv_data->store, pos);
 }
 
 
@@ -895,9 +1051,6 @@ detailview_adjust (GimvThumbView *tv, GimvThumb *thumb)
    DetailViewData *tv_data;
    GList *node;
    gint pos;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gboolean success;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
@@ -910,16 +1063,8 @@ detailview_adjust (GimvThumbView *tv, GimvThumb *thumb)
    pos = g_list_index (tv->thumblist, thumb);
    if (pos < 0) return;
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
-   success = gtk_tree_model_iter_nth_child (model, &iter, NULL, pos);
-   if (success) {
-      GtkTreePath *treepath;
-      treepath = gtk_tree_model_get_path (model, &iter);
-      gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (tv_data->treeview),
-                                    treepath, NULL,
-                                    TRUE, 0.0, 0.0);
-      gtk_tree_path_free (treepath);
-   }
+   if ((guint) pos < g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)))
+      gimv_list_view_scroll_to (tv_data->treeview, pos, FALSE, FALSE);
 }
 
 
@@ -942,23 +1087,15 @@ detailview_set_selection (GimvThumbView *tv, GimvThumb *thumb, gboolean select)
    pos = g_list_position (tv->thumblist, node);
 
    if (pos >= 0) {
-      GtkTreeView *treeview = GTK_TREE_VIEW (tv_data->treeview);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-      GtkTreeIter iter;
-      gboolean found;
+      GtkSelectionModel *selection
+         = gimv_list_view_get_selection (tv_data->treeview);
 
-      found = gtk_tree_model_iter_nth_child (model, &iter, NULL, pos);
-      if (!found) return TRUE;
+      if ((guint) pos >= g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)))
+         return TRUE;
 
+      /* the selection model reads GimvThumb::selected */
       thumb->selected = select;
-      tv_data->set_selection = TRUE;
-      if (thumb->selected) {
-         gtk_tree_selection_select_iter (selection, &iter);
-      } else {
-         gtk_tree_selection_unselect_iter (selection, &iter);
-      }
-      tv_data->set_selection = FALSE;
+      gtk_selection_model_selection_changed (selection, pos, 1);
    }
 
    return TRUE;
@@ -980,17 +1117,9 @@ detailview_set_focus (GimvThumbView *tv, GimvThumb *thumb)
    pos = g_list_index (tv->thumblist, thumb);
 
    if (pos >= 0) {
-      GtkTreeView *treeview = GTK_TREE_VIEW (tv_data->treeview);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
-      GtkTreePath *path;
-      gboolean found;
-
-      found = gtk_tree_model_iter_nth_child (model, &iter, NULL, pos);
-      if (!found) return;
-      path = gtk_tree_model_get_path (model, &iter);
-      gtk_tree_view_set_cursor (treeview, path, NULL, FALSE);
-      gtk_tree_path_free (path);
+      if ((guint) pos >= g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)))
+         return;
+      gimv_list_view_set_focus_position (tv_data->treeview, pos, FALSE);
    } else {
       gtk_widget_grab_focus (tv_data->treeview);
    }
@@ -1010,19 +1139,10 @@ detailview_get_focus (GimvThumbView *tv)
    g_return_val_if_fail (tv_data && tv_data->treeview, NULL);
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (tv_data->treeview);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
-      GtkTreePath *path;
+      guint position = gimv_list_view_get_focus_position (tv_data->treeview);
 
-      gtk_tree_view_get_cursor (treeview, &path, NULL);
-      if (path) {
-         if (gtk_tree_model_get_iter (model, &iter, path))
-            gtk_tree_model_get (model, &iter,
-                                COLUMN_THUMB_DATA, &thumb,
-                                COLUMN_TERMINATOR);
-         gtk_tree_path_free (path);
-      }
+      if (position != GTK_INVALID_LIST_POSITION)
+         thumb = thumb_at_position (tv_data, position);
    }
 
    return thumb;
@@ -1033,15 +1153,9 @@ gboolean
 detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
 {
    DetailViewData *tv_data;
-   GList *node;
-   gint row, row_top, row_bottom;
-   GdkRectangle area;
-
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   GtkTreePath *treepath;
-   GimvThumb *tmp_thumb;
-   gboolean success;
+   gint row;
+   graphene_rect_t area;
+   gint height;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
@@ -1049,45 +1163,18 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_val_if_fail (tv_data, FALSE);
 
-   node = g_list_find (tv->thumblist, thumb);
-   row = g_list_position (tv->thumblist, node);
-
-   /* widget area */
-   gtkutil_get_widget_area (tv_data->treeview, &area);
-
-   /* get row range */
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv_data->treeview));
+   row = g_list_index (tv->thumblist, thumb);
+   if (row < 0) return FALSE;
 
    if (!gtk_widget_get_mapped (GTK_WIDGET (tv_data->treeview))) return FALSE;
 
-   /* get index of top row */
-   success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                            0, 0, &treepath, NULL, NULL, NULL);
-   if (!success) return FALSE;
-   gtk_tree_model_get_iter (model, &iter, treepath);
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_THUMB_DATA, &tmp_thumb,
-                       COLUMN_TERMINATOR);
-   row_top = g_list_index (tv->thumblist, tmp_thumb);
-   gtk_tree_path_free (treepath);
-
-   /* get index of bottom row */
-   success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (tv_data->treeview),
-                                            0, area.height, &treepath,
-                                            NULL, NULL, NULL);
-   if (!success) return FALSE;
-   gtk_tree_model_get_iter (model, &iter, treepath);
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_THUMB_DATA, &tmp_thumb,
-                       COLUMN_TERMINATOR);
-   row_bottom = g_list_index (tv->thumblist, tmp_thumb);
-   gtk_tree_path_free (treepath);
+   /* rows far from the visible area have no widgets */
+   if (!gimv_list_view_get_row_area (tv_data->treeview, row, &area))
+      return FALSE;
 
    /* intersect? */
-   if (row >= row_top && row <= row_bottom)
-      return TRUE;
-   else
-      return FALSE;
+   height = gtk_widget_get_height (tv_data->treeview);
+   return area.origin.y + area.size.height > 0 && area.origin.y < height;
 }
 
 
@@ -1095,11 +1182,8 @@ GtkWidget *
 detailview_create (GimvThumbView *tv, const gchar *dest_mode)
 {
    DetailViewData *tv_data;
-   GtkListStore *store;
-   GtkTreeSelection *selection;
-   GType types[128];
-   const gint ntypes   = sizeof (types) / sizeof (GType);
-   gint i, ncolumns;
+   const gint ntypes = 128;
+   gint ncolumns;
    gboolean show_title;
 
    g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
@@ -1118,35 +1202,22 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    }
 
 
-   /* create tree view widget */
-   store = gtk_list_store_new (1, G_TYPE_STRING);   /* this column is dummy */
-
-   /* set real columns */
-   for (i = 0; i < ncolumns; i++)
-      types[i] = G_TYPE_STRING;
-   types[COLUMN_THUMB_DATA] = G_TYPE_POINTER;
-   types[COLUMN_PIXMAP]     = GDK_TYPE_TEXTURE;
-   types[COLUMN_MASK]       = GDK_TYPE_TEXTURE;
-   types[COLUMN_EDITABLE]   = G_TYPE_BOOLEAN;
-   gtk_list_store_set_column_types (store, ncolumns, types);
-
+   /* create the list widget
+      (GTK4: GtkTreeView (deprecated) -> GtkColumnView) */
+   if (tv_data->store)
+      g_object_unref (tv_data->store);
+   tv_data->store = gimv_row_store_new ();
    tv_data->treeview
-      = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-   gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (tv_data->treeview));
+      = gtk_column_view_new (detail_selection_new (G_LIST_MODEL (tv_data->store),
+                                                   tv));
+   gtk_column_view_set_enable_rubberband (GTK_COLUMN_VIEW (tv_data->treeview),
+                                          FALSE);
+   gtk_column_view_set_reorderable (GTK_COLUMN_VIEW (tv_data->treeview), FALSE);
 
-   /* GTK4: gtk_tree_view_set_rules_hint () was removed (theme hint for
-      alternating row colors) */
-   set_column_types (tv, tv_data, store, dest_mode);
+   set_column_types (tv, tv_data, dest_mode);
    detailview_prefs_get_value ("show_title", (gpointer) &show_title);
-   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (tv_data->treeview),
-                                      show_title);
-
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv_data->treeview));
-   gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
-   gtk_tree_selection_set_select_function (selection,
-                                           cb_tree_selected,
-                                           tv, NULL);
-
+   gimv_column_view_set_headers_visible (GTK_COLUMN_VIEW (tv_data->treeview),
+                                         show_title);
    if (!strcmp (DETAIL_ICON_LABEL, dest_mode)) {
       gtk_widget_set_name (tv_data->treeview, "DetailIconMode");
    }

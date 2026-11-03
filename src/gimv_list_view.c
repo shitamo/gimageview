@@ -1287,6 +1287,66 @@ gimv_list_view_scroll_to (GtkWidget *view, guint position,
 }
 
 
+#define FOCUS_POSITION_KEY "gimv-list-view-focus-position"
+
+guint
+gimv_list_view_get_focus_position (GtkWidget *view)
+{
+   GtkRoot *root;
+   GtkWidget *focus;
+   guint position, n;
+
+   g_return_val_if_fail (GTK_IS_WIDGET (view), GTK_INVALID_LIST_POSITION);
+
+   root = gtk_widget_get_root (view);
+   focus = root ? gtk_root_get_focus (root) : NULL;
+
+   if (focus && gtk_widget_is_ancestor (focus, view)) {
+      GtkWidget *widget;
+      GtkListItem *item = NULL;
+
+      for (widget = focus; widget && widget != view;
+           widget = gtk_widget_get_parent (widget))
+      {
+         item = widget_get_list_item (widget);
+         if (item) break;
+         if (is_row_widget (widget)) {
+            item = find_list_item_in (widget);
+            break;
+         }
+      }
+
+      if (item && gtk_list_item_get_position (item) != GTK_INVALID_LIST_POSITION) {
+         position = gtk_list_item_get_position (item);
+         g_object_set_data (G_OBJECT (view), FOCUS_POSITION_KEY,
+                            GUINT_TO_POINTER (position + 1));
+         return position;
+      }
+   }
+
+   /* not focused: the row focused last */
+   position = GPOINTER_TO_UINT (g_object_get_data (G_OBJECT (view),
+                                                   FOCUS_POSITION_KEY));
+   if (position == 0) return GTK_INVALID_LIST_POSITION;
+   position--;
+
+   n = g_list_model_get_n_items (G_LIST_MODEL (gimv_list_view_get_selection (view)));
+   return position < n ? position : GTK_INVALID_LIST_POSITION;
+}
+
+
+void
+gimv_list_view_set_focus_position (GtkWidget *view, guint position,
+                                   gboolean select)
+{
+   g_return_if_fail (GTK_IS_WIDGET (view));
+
+   g_object_set_data (G_OBJECT (view), FOCUS_POSITION_KEY,
+                      GUINT_TO_POINTER (position + 1));
+   gimv_list_view_scroll_to (view, position, select, TRUE);
+}
+
+
 guint
 gimv_list_view_get_selected (GtkWidget *view)
 {
