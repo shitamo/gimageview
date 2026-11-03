@@ -135,7 +135,7 @@ You need following environment/libraries to build GImageView:
 
 * A C compiler, Meson and Ninja (build time only)
 
-* GTK 4.10 or later (<https://www.gtk.org/>)
+* GTK 4.12 or later (<https://www.gtk.org/>)
 
 * GLib 2.72 or later, gdk-pixbuf 2.0
 

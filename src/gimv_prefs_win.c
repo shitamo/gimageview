@@ -579,23 +579,25 @@ cb_prefs_win_destroy ()
 
 
 static void
-cb_dialog_response (GtkDialog *dialog, gint arg, gpointer data)
+cb_prefs_win_ok (GtkButton *button, gpointer data)
 {
-   switch (arg) {
-   case GTK_RESPONSE_ACCEPT:
-      prefs_win.ok_pressed = TRUE;
-      gimv_widget_destroy (prefs_window);
-      break;
-   case GTK_RESPONSE_APPLY:
-      memcpy (&conf, config_changed, sizeof(Config));
-      prefs_win_apply_config (GIMV_PREFS_WIN_ACTION_APPLY);
-      break;
-   case GTK_RESPONSE_REJECT:
-      gimv_widget_destroy (prefs_window);
-      break;
-   default:
-      break;
-   }
+   prefs_win.ok_pressed = TRUE;
+   gimv_widget_destroy (prefs_window);
+}
+
+
+static void
+cb_prefs_win_apply (GtkButton *button, gpointer data)
+{
+   memcpy (&conf, config_changed, sizeof(Config));
+   prefs_win_apply_config (GIMV_PREFS_WIN_ACTION_APPLY);
+}
+
+
+static void
+cb_prefs_win_cancel (GtkButton *button, gpointer data)
+{
+   gimv_widget_destroy (prefs_window);
 }
 
 
@@ -631,7 +633,7 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    config_changed = g_memdup2 (&conf, sizeof(Config));
 
    /* create config window */
-   prefs_window = gtk_dialog_new ();
+   prefs_window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (prefs_window), parent);
    else
@@ -677,14 +679,25 @@ gimv_prefs_win_open (const gchar *path, GtkWindow *parent)
    gimv_paned_pack2 (GTK_PANED (pane), notebook, TRUE, FALSE);
 
    /* button */
-   gtk_dialog_add_buttons (GTK_DIALOG (prefs_window),
-                           GIMV_STOCK_APPLY,  GTK_RESPONSE_APPLY,
-                           GIMV_STOCK_CANCEL, GTK_RESPONSE_REJECT,
-                           GIMV_STOCK_OK,     GTK_RESPONSE_ACCEPT,
-                           NULL);
-   g_signal_connect (G_OBJECT (prefs_window), "response",
-                     G_CALLBACK (cb_dialog_response),
-                     NULL);
+   {
+      GtkWidget *action_area = gimv_dialog_get_action_area (prefs_window);
+      GtkWidget *button;
+
+      button = gtk_button_new_with_mnemonic (GIMV_STOCK_APPLY);
+      gimv_box_pack_start (GTK_BOX (action_area), button, TRUE, TRUE, 0);
+      g_signal_connect (button, "clicked",
+                        G_CALLBACK (cb_prefs_win_apply), NULL);
+
+      button = gtk_button_new_with_mnemonic (GIMV_STOCK_CANCEL);
+      gimv_box_pack_start (GTK_BOX (action_area), button, TRUE, TRUE, 0);
+      g_signal_connect (button, "clicked",
+                        G_CALLBACK (cb_prefs_win_cancel), NULL);
+
+      button = gtk_button_new_with_mnemonic (GIMV_STOCK_OK);
+      gimv_box_pack_start (GTK_BOX (action_area), button, TRUE, TRUE, 0);
+      g_signal_connect (button, "clicked",
+                        G_CALLBACK (cb_prefs_win_ok), NULL);
+   }
 
    /* GTK4: create all pages before showing, so that the notebook requests
       the size of the largest one: created on demand, a larger page grew the

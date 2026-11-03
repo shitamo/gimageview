@@ -103,10 +103,10 @@ gchar *simwin_titles[4] = {
 };
 gint simwin_column_num = sizeof (simwin_titles) / sizeof (gchar *);
 
-static GtkDialogClass *parent_class = NULL;
+static GtkWindowClass *parent_class = NULL;
 
 
-G_DEFINE_TYPE (GimvDuplWin, gimv_dupl_win, GTK_TYPE_DIALOG)
+G_DEFINE_TYPE (GimvDuplWin, gimv_dupl_win, GTK_TYPE_WINDOW)
 
 
 static void
@@ -132,6 +132,7 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    sw->priv->pixmap_renderer = NULL;
 
    /* window */
+   gimv_dialog_init (GTK_WINDOW (sw));
    gtk_window_set_title (GTK_WINDOW (sw), _("Find Duplicates - Results")); 
    gtk_window_set_default_size (GTK_WINDOW (sw), 500, 400);
    /* GTK4: gtk_window_set_position (GTK_WIN_POS_MOUSE) is not available */

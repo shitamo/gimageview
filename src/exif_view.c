@@ -129,7 +129,7 @@ exif_view_create_window (const gchar *filename, GtkWindow *parent)
    ev = exif_view_create (filename, parent);
    if (!ev) return NULL;
 
-   ev->window = gtk_dialog_new ();
+   ev->window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (ev->window), parent);
    else

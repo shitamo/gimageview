@@ -47,21 +47,13 @@
 #include "gimv_thumb_win.h"
 
 
-/* for filebrowser call back functions */
-typedef struct _FileSel
-{
-   GtkWidget    *filebrowser;
-   GimvThumbWin *tw;
-} FileSel;
-
-
 static void cb_file_load_cancel                (GtkWidget *widget, FilesLoader *files);
 static void cb_file_load_stop                  (GtkWidget *widget, FilesLoader *files);
-static void filebrowser_open_files             (FileSel *filesel, ImgWinType type);
-static void cb_filebrowser_open_selected_files (GtkWidget *widget, FileSel *filesel);
-static void cb_filebrowser_add_thumbnail       (GtkWidget *widget, FileSel *filesel);
-static void cb_filebrowser_ok_sel              (GtkWidget *widget, FileSel *filesel);
-static void cb_filebrowser_close               (GtkWidget *widget, gpointer parent);
+static void filebrowser_open_files             (gchar          **path,
+                                                GimvThumbWin    *tw,
+                                                ImgWinType       type);
+static void filebrowser_open_file              (const gchar     *filename,
+                                                GimvThumbWin    *tw);
 
 
 GList *files_loader_list = NULL;
@@ -813,15 +805,32 @@ open_images_dirs (GList *list, GimvThumbWin *tw,
 }
 
 
-/* GTK4: replacement of gtk_file_selection_get_selections () */
-static gchar **
-filebrowser_get_selections (GtkWidget *filebrowser)
+/*
+ *  The file open dialog.
+ *
+ *  GTK4: GtkFileSelection is gone and GtkFileChooserDialog is deprecated
+ *  since GTK 4.10.  GtkFileDialog, its replacement, can not have extra
+ *  buttons and closes once files are chosen, so the former actions are
+ *  chosen from the selection:
+ *    - one file or archive:  opened as with the former "OK" button
+ *                            (archives and images in a new window);
+ *    - several files:        "Thumbnails of the selected files" when the
+ *                            dialog was opened from a thumbnail window,
+ *                            "Open selected files" otherwise.
+ */
+typedef struct _FileSel
 {
-   GListModel *model;
+   GtkFileDialog *dialog;
+   GimvThumbWin  *tw;
+} FileSel;
+
+
+static gchar **
+filebrowser_get_selections (GListModel *model)
+{
    GPtrArray *array;
    guint i, n;
 
-   model = gtk_file_chooser_get_files (GTK_FILE_CHOOSER (filebrowser));
    if (!model) return NULL;
 
    n = g_list_model_get_n_items (model);
@@ -835,7 +844,6 @@ filebrowser_get_selections (GtkWidget *filebrowser)
       if (file)
          g_object_unref (file);
    }
-   g_object_unref (model);
 
    if (array->len == 0) {
       g_ptr_array_free (array, TRUE);
@@ -848,14 +856,10 @@ filebrowser_get_selections (GtkWidget *filebrowser)
 
 
 static void
-filebrowser_open_files (FileSel *filesel, ImgWinType type)
+filebrowser_open_files (gchar **path, GimvThumbWin *tw, ImgWinType type)
 {
    FilesLoader *files;
    gint i;
-   gchar **path = filebrowser_get_selections (filesel->filebrowser);
-   /* loading handles events: the dialog (and filesel) may be destroyed
-      meanwhile, so filesel is not used after this */
-   GimvThumbWin *tw = filesel->tw;
 
    if (!path) return;
 
@@ -902,62 +906,14 @@ filebrowser_open_files (FileSel *filesel, ImgWinType type)
                           conf.scan_dir_recursive);
       }
    }
-
-   g_strfreev (path);
 }
 
 
 static void
-cb_filebrowser_open_selected_files(GtkWidget *widget, FileSel *filesel)
-{
-   /* GtkFileSelection *fsel = GTK_FILE_SELECTION(filesel->filebrowser); */
-
-   filebrowser_open_files (filesel, IMAGE_VIEW_WINDOW);
-
-#if 0
-   /* FIXME!! If filebrowser is destoryed before loading complete,
-      this will cause segmentation fault */
-   gtk_clist_unselect_all(GTK_CLIST (fsel->file_list));
-   gtk_editable_set_text (GTK_EDITABLE (fsel->selection_entry), "");
-#endif
-}
-
-
-static void
-cb_filebrowser_add_thumbnail (GtkWidget *widget, FileSel *filesel)
-{
-   /* GtkFileSelection *fsel = GTK_FILE_SELECTION(filesel->filebrowser); */
-
-   filebrowser_open_files (filesel, THUMBNAIL_WINDOW);
-
-#if 0
-   /* FIXME!! If filebrowser is destoryed before loading complete,
-      this will cause segmentation fault */
-   gtk_clist_unselect_all(GTK_CLIST (fsel->file_list));
-   gtk_editable_set_text (GTK_EDITABLE (fsel->selection_entry), "");
-#endif
-}
-
-
-static void
-cb_filebrowser_ok_sel (GtkWidget *widget, FileSel *filesel)
+filebrowser_open_file (const gchar *filename, GimvThumbWin *tw)
 {
    GimvImageWin *iw;
-   gchar *filename;
    struct stat st;
-
-   {
-      GtkFileChooser *chooser = GTK_FILE_CHOOSER (filesel->filebrowser);
-      GFile *file = gtk_file_chooser_get_file (chooser);
-
-      /* GTK4: no selection -> use the current folder (GtkFileSelection
-         returned the directory in this case) */
-      if (!file)
-         file = gtk_file_chooser_get_current_folder (chooser);
-      filename = file ? g_file_get_path (file) : NULL;
-      if (file)
-         g_object_unref (file);
-   }
 
    if (!filename) {
       g_print (_("No file name specified!\n"));
@@ -967,12 +923,12 @@ cb_filebrowser_ok_sel (GtkWidget *widget, FileSel *filesel)
    if (!stat(filename, &st)) {
       /* if path is directory */
       if (S_ISDIR(st.st_mode)) {
-         open_dir_images(filename, filesel->tw, NULL, LOAD_CACHE,
+         open_dir_images(filename, tw, NULL, LOAD_CACHE,
                          conf.scan_dir_recursive);
 
          /* if path is archvie file */
       } else if (fr_archive_utils_get_file_name_ext (filename)) {
-         open_archive_images (filename, filesel->tw, NULL, LOAD_CACHE);
+         open_archive_images (filename, tw, NULL, LOAD_CACHE);
 
          /* if path is file */
       } else if (!(conf.detect_filetype_by_ext)
@@ -985,129 +941,85 @@ cb_filebrowser_ok_sel (GtkWidget *widget, FileSel *filesel)
          g_print (_("Not an image file (or an unsupported format)!\n"));
       }
    }
-
-   g_free (filename);
 }
 
 
-/*
- *  cb_filebrowser_ok_sel:
- *     @ Callback function for filebrowser "Close" button.
- *
- *  widget :
- *  parent :
- */
 static void
-cb_filebrowser_close (GtkWidget *widget, gpointer parent)
+cb_filebrowser_ready (GObject *source, GAsyncResult *result, gpointer data)
 {
-   GimvThumbWin *tw = parent;
+   FileSel *filesel = data;
+   GimvThumbWin *tw = filesel->tw;
+   GListModel *files;
+   gchar **path = NULL;
+   GError *error = NULL;
 
-   if (tw && g_list_find (gimv_thumb_win_get_list(), tw)) {
+   files = gtk_file_dialog_open_multiple_finish (GTK_FILE_DIALOG (source),
+                                                 result, &error);
+   g_clear_error (&error);   /* cancelled or dismissed */
+
+   /* the thumbnail window may have been closed meanwhile */
+   if (tw && !g_list_find (gimv_thumb_win_get_list (), tw))
+      tw = NULL;
+   if (tw && tw->open_dialog == filesel->dialog)
       tw->open_dialog = NULL;
+
+   if (files) {
+      path = filebrowser_get_selections (files);
+      g_object_unref (files);
    }
-}
 
-
-enum {
-   FILEBROWSER_RESPONSE_OPEN_SELECTED = 1,
-   FILEBROWSER_RESPONSE_ADD_THUMBNAIL  = 2
-};
-
-
-static void
-cb_filebrowser_response (GtkDialog *dialog, gint response, FileSel *filesel)
-{
-   switch (response) {
-   case GTK_RESPONSE_ACCEPT:
-      cb_filebrowser_ok_sel (GTK_WIDGET (dialog), filesel);
-      break;
-   case FILEBROWSER_RESPONSE_OPEN_SELECTED:
-      cb_filebrowser_open_selected_files (GTK_WIDGET (dialog), filesel);
-      break;
-   case FILEBROWSER_RESPONSE_ADD_THUMBNAIL:
-      cb_filebrowser_add_thumbnail (GTK_WIDGET (dialog), filesel);
-      break;
-   case GTK_RESPONSE_CANCEL:
-      gimv_widget_destroy (GTK_WIDGET (dialog));
-      break;
-   case GTK_RESPONSE_DELETE_EVENT:
-   default:
-      /* the window is destroyed by the default close handler */
-      break;
+   if (path && path[0] && !path[1]) {
+      filebrowser_open_file (path[0], tw);
+   } else if (path) {
+      filebrowser_open_files (path, tw,
+                              tw ? THUMBNAIL_WINDOW : IMAGE_VIEW_WINDOW);
    }
+
+   g_strfreev (path);
+   g_object_unref (filesel->dialog);
+   g_free (filesel);
 }
 
 
 /*
  *  create_filebrowser:
- *     @ File open dialog (extend Gtk+'s original file open dialog widget)
+ *     @ Show the file open dialog.
  *
- *  parent : Pointer to parent window.
- *  Return : Pointer to new filebrowser.
- *
- *  GTK4: GtkFileSelection is gone, this is a non modal GtkFileChooserDialog
- *        with multiple selection.  The extra buttons ("Open selected files",
- *        "Thumbnail for selected files") are dialog buttons.
+ *  parent : The thumbnail window to open the files in (or NULL).
  */
-GtkWidget *
+void
 create_filebrowser (gpointer parent)
 {
-   GtkWidget *filebrowser;
    FileSel *filesel;
-
-   filebrowser = gtk_file_chooser_dialog_new (_("Load file(s)"),
-                                              NULL,
-                                              GTK_FILE_CHOOSER_ACTION_OPEN,
-                                              NULL, NULL);
-   g_signal_connect (G_OBJECT (filebrowser), "destroy",
-                       G_CALLBACK(cb_filebrowser_close), parent);
+   GtkWindow *transient_for;
 
    filesel = g_new0 (FileSel, 1);
-   filesel->filebrowser = filebrowser;
-   filesel->tw          = (GimvThumbWin *) parent;
-   g_object_set_data_full (G_OBJECT (filebrowser), "filesel",
-                             filesel, (GDestroyNotify) g_free);
+   filesel->dialog = gtk_file_dialog_new ();
+   filesel->tw     = (GimvThumbWin *) parent;
 
-   if (filesel->tw)
-      gtk_window_set_transient_for (GTK_WINDOW (filebrowser),
-                                    GTK_WINDOW (filesel->tw));
-
-   gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (filebrowser),
-                                         TRUE);
+   gtk_file_dialog_set_title (filesel->dialog, _("Load file(s)"));
+   /* GtkFileSelection was not modal */
+   gtk_file_dialog_set_modal (filesel->dialog, FALSE);
 
    /* GtkFileSelection started in the current directory, GtkFileChooser
       would show "Recent" */
    {
       gchar *cwd = g_get_current_dir ();
       GFile *folder = g_file_new_for_path (cwd);
-      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filebrowser),
-                                           folder, NULL);
+      gtk_file_dialog_set_initial_folder (filesel->dialog, folder);
       g_object_unref (folder);
       g_free (cwd);
    }
 
-   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
-                          _("Open selected files"),
-                          FILEBROWSER_RESPONSE_OPEN_SELECTED);
-   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
-                          _("Thumbnails of the selected files"),
-                          FILEBROWSER_RESPONSE_ADD_THUMBNAIL);
-   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
-                          GIMV_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-   gtk_dialog_add_button (GTK_DIALOG (filebrowser),
-                          GIMV_STOCK_OK, GTK_RESPONSE_ACCEPT);
-   gtk_dialog_set_default_response (GTK_DIALOG (filebrowser),
-                                    GTK_RESPONSE_ACCEPT);
+   if (filesel->tw) {
+      filesel->tw->open_dialog = filesel->dialog;
+      transient_for = GTK_WINDOW (filesel->tw);
+   } else {
+      transient_for = gimv_get_default_transient_parent (NULL);
+   }
 
-   g_signal_connect (G_OBJECT (filebrowser), "response",
-                     G_CALLBACK (cb_filebrowser_response),
-                     filesel);
-
-   gtk_widget_set_visible(filebrowser, TRUE);
-
-   gimv_icon_stock_set_window_icon (filebrowser, "nfolder");
-
-   return filebrowser;
+   gtk_file_dialog_open_multiple (filesel->dialog, transient_for, NULL,
+                                  cb_filebrowser_ready, filesel);
 }
 
 

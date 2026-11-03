@@ -19,7 +19,7 @@ gimv_helpdir = gimv_datadir / 'doc'
 gimv_icondir = gimv_datadir / 'pixmaps'
 plugindir    = libdir / package
 
-gtk_dep   = dependency('gtk4', version : '>= 4.10')
+gtk_dep   = dependency('gtk4', version : '>= 4.12')
 glib_dep  = dependency('glib-2.0', version : '>= 2.72')
 gmod_dep  = dependency('gmodule-2.0')
 gio_dep   = dependency('gio-2.0')

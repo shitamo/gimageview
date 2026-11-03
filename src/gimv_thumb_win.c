@@ -724,17 +724,15 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gimv_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_set_visible (hbox, TRUE);
 
-   tw->status_bar1 = gtk_statusbar_new ();
+   tw->status_bar1 = gimv_statusbar_new ();
    gtk_widget_set_name (tw->status_bar1, "StatusBar1");
-   gimv_container_set_border_width (tw->status_bar1, 1);
    gimv_widget_set_size(tw->status_bar1, 150, -1);
    gimv_box_pack_start (GTK_BOX (hbox), tw->status_bar1, TRUE, TRUE, 0);
    gtk_widget_set_visible (tw->status_bar1, TRUE);
-   gtk_statusbar_push(GTK_STATUSBAR (tw->status_bar1), 1, _("New Window"));
+   gimv_statusbar_set_text (tw->status_bar1, _("New Window"));
 
-   tw->status_bar2 = gtk_statusbar_new ();
+   tw->status_bar2 = gimv_statusbar_new ();
    gtk_widget_set_name (tw->status_bar2, "StatusBar2");
-   gimv_container_set_border_width (tw->status_bar2, 1);
    gimv_widget_set_size(tw->status_bar2, 150, -1);
    gimv_box_pack_start (GTK_BOX (hbox), tw->status_bar2, TRUE, TRUE, 0);
    gtk_widget_set_visible (tw->status_bar2, TRUE);
@@ -2830,10 +2828,9 @@ cb_open (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 {
    switch (action) {
    case OPEN_FILE:
-      if (tw->open_dialog)
-         gtk_window_present (GTK_WINDOW (tw->open_dialog));
-      else
-         tw->open_dialog = (GtkWidget *) create_filebrowser (tw);
+      /* GtkFileDialog can not be raised: do not open a second one */
+      if (!tw->open_dialog)
+         create_filebrowser (tw);
       break;
    case OPEN_IMAGEWIN:
       gimv_image_win_open_window (NULL);   
@@ -3514,10 +3511,9 @@ cb_location_entry_drag_data_received (GtkWidget *widget,
 static void
 cb_open_button (GtkWidget *widget, GimvThumbWin *tw)
 {
-   if (tw->open_dialog)
-      gtk_window_present (GTK_WINDOW (tw->open_dialog));
-   else
-      tw->open_dialog = (GtkWidget *) create_filebrowser (tw);
+   /* GtkFileDialog can not be raised: do not open a second one */
+   if (!tw->open_dialog)
+      create_filebrowser (tw);
 }
 
 
@@ -4255,14 +4251,12 @@ gimv_thumb_win_set_statusbar_page_info (GimvThumbWin *tw, gint pagenum)
 
    /* update status bar */
    if (update_statusbar1) {
-      gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), 1);
-      gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), 1, buf);
+      gimv_statusbar_set_text (tw->status_bar1, buf);
    }
    g_snprintf (buf, BUF_SIZE, _("%d/%d page  %d/%d files  %ld/%ld kB"),
                page + 1, tw->pagenum, tv_filenum, tw->filenum,
                tv_filesize / 1024, tw->filesize / 1024);
-   gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar2), 1);
-   gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar2), 1, buf);
+   gimv_statusbar_set_text (tw->status_bar2, buf);
    /* update progress bar */
    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(tw->progressbar), progress);
 }
@@ -4301,8 +4295,7 @@ gimv_thumb_win_loading_update_progress (GimvThumbWin *tw, gint pagenum)
                                     conf.charset_filename_mode);
       g_snprintf (buf, BUF_SIZE, "%s", tmpstr);
       g_free (tmpstr);
-      gtk_statusbar_pop (GTK_STATUSBAR (tw->status_bar1), 1);
-      gtk_statusbar_push (GTK_STATUSBAR (tw->status_bar1), 1, buf);
+      gimv_statusbar_set_text (tw->status_bar1, buf);
    }
    progress = (gfloat) tv->progress->pos / (gfloat) tv->progress->num;
 

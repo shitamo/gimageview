@@ -94,7 +94,7 @@ text_viewer_load_file (TextViewer *text_viewer, gchar *filename)
    }
 
    tmpstr = g_strconcat (_("File Name: "), filename, NULL);
-   gtk_statusbar_push(GTK_STATUSBAR (text_viewer->statusbar), 1, tmpstr);
+   gimv_statusbar_set_text (text_viewer->statusbar, tmpstr);
    g_free (tmpstr);
 
    text_viewer->filename = g_strdup (filename);
@@ -142,10 +142,9 @@ text_viewer_create (gchar *filename)
    gtk_widget_set_visible (text, TRUE);
 
    /* statusbar */
-   text_viewer->statusbar = statusbar = gtk_statusbar_new ();
-   gimv_container_set_border_width (statusbar, 1);
+   text_viewer->statusbar = statusbar = gimv_statusbar_new ();
    gimv_box_pack_start (GTK_BOX (vbox), statusbar, FALSE, TRUE, 0);
-   gtk_statusbar_push(GTK_STATUSBAR (statusbar), 1, "New Window");
+   gimv_statusbar_set_text (statusbar, "New Window");
    gtk_widget_set_visible (statusbar, TRUE);
 
    /* set text from file */

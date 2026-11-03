@@ -559,17 +559,15 @@ gimv_image_win_init (GimvImageWin *iw)
    gimv_box_pack_end (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
    gtk_widget_set_visible (hbox, TRUE);
 
-   iw->status_bar1 = gtk_statusbar_new ();
+   iw->status_bar1 = gimv_statusbar_new ();
    gtk_widget_set_name (iw->status_bar1, "StatuBar1");
-   gimv_container_set_border_width (iw->status_bar1, 1);
    gimv_widget_set_size(iw->status_bar1, 200, -1);
    gimv_box_pack_start (GTK_BOX (hbox), iw->status_bar1, TRUE, TRUE, 0);
-   gtk_statusbar_push(GTK_STATUSBAR (iw->status_bar1), 1, _("New Window"));
+   gimv_statusbar_set_text (iw->status_bar1, _("New Window"));
    gtk_widget_set_visible (iw->status_bar1, TRUE);
 
-   iw->status_bar2 = gtk_statusbar_new ();
+   iw->status_bar2 = gimv_statusbar_new ();
    gtk_widget_set_name (iw->status_bar1, "StatuBar2");
-   gimv_container_set_border_width (iw->status_bar2, 1);
    gimv_widget_set_size(iw->status_bar2, 50, -1);
    gimv_box_pack_start (GTK_BOX (hbox), iw->status_bar2, TRUE, TRUE, 0);
    gtk_widget_set_visible (iw->status_bar2, TRUE);
@@ -1235,18 +1233,18 @@ gimv_image_win_set_statusbar_info (GimvImageWin *iw)
       else
          g_snprintf (buf, BUF_SIZE, _("%s (Buffer OFF)"), tmpstr);
 
-      gtk_statusbar_push (GTK_STATUSBAR (iw->status_bar1), 1, buf);
+      gimv_statusbar_set_text (iw->status_bar1, buf);
    } else {
       if (keep_buffer)
          g_snprintf (buf, BUF_SIZE, _("(Buffer ON)"));
       else
          g_snprintf (buf, BUF_SIZE, _("(Buffer OFF)"));
-      gtk_statusbar_push (GTK_STATUSBAR (iw->status_bar1), 1, buf);
+      gimv_statusbar_set_text (iw->status_bar1, buf);
    }
    g_free (tmpstr);
 
    g_snprintf (buf, BUF_SIZE, "%s %d x %d", format, width, height);
-   gtk_statusbar_push (GTK_STATUSBAR (iw->status_bar2), 1, buf);
+   gimv_statusbar_set_text (iw->status_bar2, buf);
 }
 
 

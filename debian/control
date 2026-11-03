@@ -12,7 +12,7 @@ Build-Depends:
  libglib2.0-dev (>= 2.72),
  libgstreamer-plugins-base1.0-dev,
  libgstreamer1.0-dev,
- libgtk-4-dev (>= 4.10),
+ libgtk-4-dev (>= 4.12),
  libjpeg-dev,
  libmng-dev,
  libpng-dev,

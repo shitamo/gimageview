@@ -154,7 +154,7 @@ cb_cache_write_prefs_button_pressed (GtkWidget *option_menu)
    if (!widget) return;
 
    /* create dialog window */
-   dialog = gtk_dialog_new ();
+   dialog = gimv_dialog_new ();
    gtk_window_set_title (GTK_WINDOW (dialog), _("Preferences - Cache Writing -")); 
    gimv_window_set_default_transient (GTK_WINDOW (dialog));
    gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);

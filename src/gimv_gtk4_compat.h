@@ -152,6 +152,8 @@ void       gimv_paned_pack2             (GtkPaned    *paned,
 /* windows */
 GtkWidget *gimv_popup_window_new        (void);  /* undecorated window */
 void       gimv_window_set_default_transient (GtkWindow *window);
+/* the window gimv_window_set_default_transient () would use (or NULL) */
+GtkWindow *gimv_get_default_transient_parent (GtkWindow *window);
 void       gimv_grab_add                (GtkWidget   *widget);
 void       gimv_grab_remove             (GtkWidget   *widget);
 
@@ -218,10 +220,11 @@ void       gimv_combo_set_popdown_strings (GtkWidget *combo,
 /******************************************************************************
  *  dialogs
  ******************************************************************************/
+/* GtkDialog replacement: a GtkWindow with a content area and an action area */
+GtkWidget *gimv_dialog_new              (void);
+void       gimv_dialog_init             (GtkWindow   *window);  /* for subclasses */
 GtkWidget *gimv_dialog_get_vbox         (GtkWidget   *dialog);
 GtkWidget *gimv_dialog_get_action_area  (GtkWidget   *dialog);
-/* run a dialog modally, like gtk_dialog_run () of GTK2 */
-gint       gimv_dialog_run              (GtkDialog   *dialog);
 /* run until the window is closed/destroyed */
 void       gimv_window_run_modal        (GtkWindow   *window);
 void       gimv_window_set_icon_pixbuf  (GtkWindow   *window,
@@ -452,6 +455,10 @@ void       gimv_cairo_draw_pixbuf       (cairo_t     *cr,
                                          gdouble      y);
 void       gimv_cairo_set_source_color_name (cairo_t *cr,
                                          const gchar *spec);
+/* a color the theme defines with @define-color (FALSE if it is undefined) */
+gboolean   gimv_widget_lookup_color     (GtkWidget   *widget,
+                                         const gchar *name,
+                                         GdkRGBA     *color);
 /* foreground/background colors of a widget's CSS style */
 void       gimv_widget_get_fg_color     (GtkWidget   *widget,
                                          GdkRGBA     *color);
@@ -463,6 +470,13 @@ GdkPixbuf *gimv_pixbuf_from_texture     (GdkTexture  *texture);
 GdkPixbuf *gimv_widget_render_icon      (GtkWidget   *widget,
                                          const gchar *icon_name,
                                          gint         size);
+
+/******************************************************************************
+ *  status bar (GtkStatusbar replacement: a single line GtkLabel)
+ ******************************************************************************/
+GtkWidget *gimv_statusbar_new           (void);
+void       gimv_statusbar_set_text      (GtkWidget   *statusbar,
+                                         const gchar *text);
 
 /******************************************************************************
  *  misc

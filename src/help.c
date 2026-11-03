@@ -658,7 +658,7 @@ gimvhelp_open_info_window (void)
    gchar buf[BUF_SIZE];
 
    /* window */
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    info_win.window = window;
    gimv_container_set_border_width (GTK_WIDGET (gimv_dialog_get_vbox (GTK_WIDGET (window))), 0);
    /* GTK4: window position (GTK_WIN_POS_CENTER) can't be set */

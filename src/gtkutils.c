@@ -367,7 +367,7 @@ gtkutil_confirm_dialog (const gchar *title, const gchar *message,
    GtkWidget *vbox, *hbox, *button, *label;
    GtkWidget *icon;
 
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -570,7 +570,7 @@ gtkutil_overwrite_confirm_dialog (const gchar *title, const gchar *message,
    dialog.new_path = new_path;
    dialog.new_path_len = new_path_len;
 
-   dialog.window = window = gtk_dialog_new ();
+   dialog.window = window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -786,7 +786,7 @@ gtkutil_message_dialog (const gchar *title, const gchar *message, GtkWindow *par
    GtkWidget *button, *label, *vbox, *hbox;
    GtkWidget *alert_icon;
 
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -893,7 +893,7 @@ gtkutil_create_progress_window (gchar *title, gchar *initial_message,
    *cancel_pressed = FALSE;
 
    /* create dialog window */
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -1063,7 +1063,7 @@ gtkutil_popup_textentry (const gchar   *title,
    gchar *str = NULL;
 
    /* dialog window */
-   window = gtk_dialog_new ();
+   window = gimv_dialog_new ();
    if (parent)
       gtk_window_set_transient_for (GTK_WINDOW (window), parent);
    else
@@ -1156,79 +1156,98 @@ gtkutil_popup_textentry (const gchar   *title,
  *   modal file dialog
  *
  ******************************************************************************/
+typedef struct {
+   GMainLoop    *loop;
+   GAsyncResult *result;
+} ModalWait;
+
+
+static void
+cb_modal_wait_ready (GObject *source, GAsyncResult *result, gpointer data)
+{
+   ModalWait *wait = data;
+
+   wait->result = g_object_ref (result);
+   g_main_loop_quit (wait->loop);
+}
+
+
+/* GTK4: GtkFileChooserDialog (deprecated since 4.10) -> GtkFileDialog.
+   The dialog is asynchronous; this function waits for it in a nested main
+   loop to keep its synchronous interface. */
 gchar *
 gtkutil_modal_file_dialog (const gchar   *title,
                            const gchar   *default_path,
                            ModalFileDialogFlags flags,
                            GtkWindow *parent)
 {
-   GtkWidget *filesel;
-   GtkFileChooserAction action;
+   GtkFileDialog *dialog;
+   GFile *file = NULL;
    gchar *filename = NULL;
-   gint response;
+   gboolean dir_only = (flags & MODAL_FILE_DIALOG_DIR_ONLY) ? TRUE : FALSE;
+   ModalWait wait = { NULL, NULL };
+   GError *error = NULL;
 
-   /* GTK4: GtkFileSelection -> GtkFileChooserDialog.
-      MODAL_FILE_DIALOG_HIDE_FILEOP has no meaning any more. */
-   if (flags & MODAL_FILE_DIALOG_DIR_ONLY)
-      action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
-   else
-      action = GTK_FILE_CHOOSER_ACTION_SAVE;  /* allow any (new) file name */
+   /* MODAL_FILE_DIALOG_HIDE_FILEOP has no meaning any more. */
 
-   filesel = gtk_file_chooser_dialog_new (title, parent, action,
-                                          _("_Cancel"), GTK_RESPONSE_CANCEL,
-                                          _("_OK"),     GTK_RESPONSE_ACCEPT,
-                                          NULL);
-   gtk_dialog_set_default_response (GTK_DIALOG (filesel), GTK_RESPONSE_ACCEPT);
-   if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
-      gtk_file_chooser_set_create_folders (GTK_FILE_CHOOSER (filesel), TRUE);
+   dialog = gtk_file_dialog_new ();
+   gtk_file_dialog_set_title (dialog, title);
+   gtk_file_dialog_set_modal (dialog, TRUE);
+   gtk_file_dialog_set_accept_label (dialog, _("_OK"));
+
+   if (!parent)
+      parent = gimv_get_default_transient_parent (NULL);
 
    if (default_path && *default_path) {
-      GFile *file = g_file_new_for_path (default_path);
+      GFile *default_file = g_file_new_for_path (default_path);
 
       if (g_file_test (default_path, G_FILE_TEST_IS_DIR)) {
-         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
-                                              file, NULL);
-      } else if (action == GTK_FILE_CHOOSER_ACTION_SAVE) {
-         GFile *parent_dir = g_file_get_parent (file);
-         gchar *basename = g_file_get_basename (file);
+         gtk_file_dialog_set_initial_folder (dialog, default_file);
+      } else if (!dir_only && g_file_test (default_path, G_FILE_TEST_EXISTS)) {
+         gtk_file_dialog_set_initial_file (dialog, default_file);
+      } else {
+         GFile *parent_dir = g_file_get_parent (default_file);
 
          if (parent_dir && g_file_query_exists (parent_dir, NULL))
-            gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
-                                                 parent_dir, NULL);
-         if (basename && g_file_test (default_path, G_FILE_TEST_EXISTS)) {
-            gtk_file_chooser_set_file (GTK_FILE_CHOOSER (filesel), file, NULL);
-         } else if (basename) {
-            gchar *name = g_filename_to_utf8 (basename, -1, NULL, NULL, NULL);
+            gtk_file_dialog_set_initial_folder (dialog, parent_dir);
+         if (!dir_only) {
+            gchar *basename = g_file_get_basename (default_file);
+            gchar *name = basename
+               ? g_filename_to_utf8 (basename, -1, NULL, NULL, NULL) : NULL;
             if (name)
-               gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filesel),
-                                                  name);
+               gtk_file_dialog_set_initial_name (dialog, name);
             g_free (name);
+            g_free (basename);
          }
-         if (parent_dir) g_object_unref (parent_dir);
-         g_free (basename);
-      } else {
-         GFile *parent_dir = g_file_get_parent (file);
-         if (parent_dir && g_file_query_exists (parent_dir, NULL))
-            gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filesel),
-                                                 parent_dir, NULL);
          if (parent_dir) g_object_unref (parent_dir);
       }
 
+      g_object_unref (default_file);
+   }
+
+   wait.loop = g_main_loop_new (NULL, FALSE);
+   if (dir_only)
+      gtk_file_dialog_select_folder (dialog, parent, NULL,
+                                     cb_modal_wait_ready, &wait);
+   else  /* allow any (new) file name */
+      gtk_file_dialog_save (dialog, parent, NULL,
+                            cb_modal_wait_ready, &wait);
+   g_main_loop_run (wait.loop);
+   g_main_loop_unref (wait.loop);
+
+   if (dir_only)
+      file = gtk_file_dialog_select_folder_finish (dialog, wait.result, &error);
+   else
+      file = gtk_file_dialog_save_finish (dialog, wait.result, &error);
+   g_clear_error (&error);   /* cancelled or dismissed */
+   g_object_unref (wait.result);
+
+   if (file) {
+      filename = g_file_get_path (file);
       g_object_unref (file);
    }
 
-   response = gimv_dialog_run (GTK_DIALOG (filesel));
-
-   if (response == GTK_RESPONSE_ACCEPT) {
-      GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (filesel));
-      if (file) {
-         filename = g_file_get_path (file);
-         g_object_unref (file);
-      }
-   }
-
-   if (GTK_IS_WINDOW (filesel))
-      gimv_widget_destroy (filesel);
+   g_object_unref (dialog);
 
    return filename;
 }
@@ -1240,34 +1259,70 @@ gtkutil_modal_file_dialog (const gchar   *title,
  *   Color selection button
  *
  ******************************************************************************/
+/* GTK4: GtkColorChooserDialog (deprecated since 4.10) -> GtkColorDialog */
+static void
+cb_color_chosen (GObject *source, GAsyncResult *result, gpointer data)
+{
+   GtkWidget *button = data;
+   GdkRGBA *rgba;
+   gint *color;
+   GError *error = NULL;
+
+   rgba = gtk_color_dialog_choose_rgba_finish (GTK_COLOR_DIALOG (source),
+                                               result, &error);
+   g_clear_error (&error);
+
+   /* the button may have been destroyed while the dialog was shown */
+   color = g_object_get_data (G_OBJECT (button), "gimv-color");
+   if (rgba && color) {
+      color[0] = rgba->red   * 0xffff;
+      color[1] = rgba->green * 0xffff;
+      color[2] = rgba->blue  * 0xffff;
+   }
+
+   if (rgba) gdk_rgba_free (rgba);
+   g_object_unref (button);
+}
+
+
+static void
+cb_color_button_destroy (GtkWidget *button, gpointer data)
+{
+   GCancellable *cancellable = g_object_get_data (G_OBJECT (button),
+                                                  "gimv-color-cancellable");
+   g_object_set_data (G_OBJECT (button), "gimv-color", NULL);
+   if (cancellable)
+      g_cancellable_cancel (cancellable);
+}
+
+
 static void
 cb_choose_color (GtkWidget *widget, gint color[3])
 {
-   GtkWidget *dialog;
+   GtkColorDialog *dialog;
+   GCancellable *cancellable;
    GdkRGBA rgba;
-   gint response;
 
    g_return_if_fail (color);
 
-   /* GTK4: GtkColorSelectionDialog -> GtkColorChooserDialog */
-   dialog = gtk_color_chooser_dialog_new (_("Choose Color"),
-                                          GTK_WINDOW (gimv_widget_get_toplevel (widget)));
-   gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (dialog), FALSE);
+   dialog = gtk_color_dialog_new ();
+   gtk_color_dialog_set_title (dialog, _("Choose Color"));
+   gtk_color_dialog_set_modal (dialog, TRUE);
+   gtk_color_dialog_set_with_alpha (dialog, FALSE);
    rgba.red   = (gdouble) color[0] / 0xffff;
    rgba.green = (gdouble) color[1] / 0xffff;
    rgba.blue  = (gdouble) color[2] / 0xffff;
    rgba.alpha = 1.0;
-   gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (dialog), &rgba);
 
-   response = gimv_dialog_run (GTK_DIALOG (dialog));
-   if (response == GTK_RESPONSE_OK) {
-      gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (dialog), &rgba);
-      color[0] = rgba.red   * 0xffff;
-      color[1] = rgba.green * 0xffff;
-      color[2] = rgba.blue  * 0xffff;
-   }
-   if (GTK_IS_WINDOW (dialog))
-      gimv_widget_destroy (dialog);
+   cancellable = g_cancellable_new ();
+   g_object_set_data_full (G_OBJECT (widget), "gimv-color-cancellable",
+                           cancellable, g_object_unref);
+
+   gtk_color_dialog_choose_rgba (dialog,
+                                 GTK_WINDOW (gimv_widget_get_toplevel (widget)),
+                                 &rgba, cancellable,
+                                 cb_color_chosen, g_object_ref (widget));
+   g_object_unref (dialog);
 }
 
 
@@ -1277,9 +1332,12 @@ gtkutil_color_sel_button (const gchar *label, gint color[3])
    GtkWidget *button;
 
    button = gtk_button_new_with_label (label);
+   g_object_set_data (G_OBJECT (button), "gimv-color", color);
    g_signal_connect (G_OBJECT (button),"clicked",
                        G_CALLBACK (cb_choose_color),
                        color);
+   g_signal_connect (G_OBJECT (button), "destroy",
+                     G_CALLBACK (cb_color_button_destroy), NULL);
 
    return button;
 }

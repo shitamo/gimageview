@@ -2276,9 +2276,8 @@ gimv_image_view_get_bg_rgba (GimvImageView *iv, GdkRGBA *color)
 
    widget = iv && iv->draw_area ? iv->draw_area : GTK_WIDGET (iv);
    if (widget) {
-      GtkStyleContext *context = gtk_widget_get_style_context (widget);
-      if (gtk_style_context_lookup_color (context, "theme_bg_color", color)
-          || gtk_style_context_lookup_color (context, "window_bg_color", color))
+      if (gimv_widget_lookup_color (widget, "theme_bg_color", color)
+          || gimv_widget_lookup_color (widget, "window_bg_color", color))
       {
          color->alpha = 1.0;
          return;

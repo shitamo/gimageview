@@ -168,10 +168,8 @@ static void
 get_style_color (GtkWidget *widget, const gchar *name1, const gchar *name2,
                  const gchar *fallback, GdkRGBA *color)
 {
-   GtkStyleContext *context = gtk_widget_get_style_context (widget);
-
-   if (gtk_style_context_lookup_color (context, name1, color)) return;
-   if (name2 && gtk_style_context_lookup_color (context, name2, color)) return;
+   if (gimv_widget_lookup_color (widget, name1, color)) return;
+   if (name2 && gimv_widget_lookup_color (widget, name2, color)) return;
    gdk_rgba_parse (color, fallback);
 }
 

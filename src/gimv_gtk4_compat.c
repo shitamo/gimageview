@@ -883,16 +883,12 @@ gimv_popup_window_new (void)
  *  GTK4 wants dialogs to have a transient parent.  GTK2 code often created
  *  them without; use the active (or any visible) application window.
  */
-void
-gimv_window_set_default_transient (GtkWindow *window)
+GtkWindow *
+gimv_get_default_transient_parent (GtkWindow *window)
 {
    GListModel *toplevels;
    GtkWindow *parent = NULL, *fallback = NULL;
    guint i, n;
-
-   g_return_if_fail (GTK_IS_WINDOW (window));
-
-   if (gtk_window_get_transient_for (window)) return;
 
    toplevels = gtk_window_get_toplevels ();
    n = g_list_model_get_n_items (toplevels);
@@ -900,7 +896,8 @@ gimv_window_set_default_transient (GtkWindow *window)
       GtkWindow *w = g_list_model_get_item (toplevels, i);
       g_object_unref (w);   /* the list keeps a reference */
       if (w == window || !gtk_widget_get_visible (GTK_WIDGET (w))) continue;
-      if (GTK_IS_DIALOG (w)) continue;
+      /* dialogs (see gimv_dialog_init ()) */
+      if (gtk_widget_has_css_class (GTK_WIDGET (w), "dialog")) continue;
       if (gtk_window_is_active (w)) {
          parent = w;
          break;
@@ -909,6 +906,20 @@ gimv_window_set_default_transient (GtkWindow *window)
    }
    if (!parent) parent = fallback;
 
+   return parent;
+}
+
+
+void
+gimv_window_set_default_transient (GtkWindow *window)
+{
+   GtkWindow *parent;
+
+   g_return_if_fail (GTK_IS_WINDOW (window));
+
+   if (gtk_window_get_transient_for (window)) return;
+
+   parent = gimv_get_default_transient_parent (window);
    if (parent)
       gtk_window_set_transient_for (window, parent);
 }
@@ -1252,11 +1263,65 @@ gimv_combo_set_popdown_strings (GtkWidget *combo, GList *strings)
  *   dialogs
  *
  ******************************************************************************/
+/*
+ *  GtkDialog is deprecated since GTK 4.10.  GImageView only used it as a
+ *  window with a vertical "content area" and a row of buttons at the bottom
+ *  ("action area"), so a dialog is now a plain GtkWindow set up by
+ *  gimv_dialog_init ().  Like GtkDialog, Escape closes it (it emits
+ *  "close-request" which the owner may still block).
+ */
+#define DIALOG_VBOX_KEY        "gimv-dialog-vbox"
+#define DIALOG_ACTION_AREA_KEY "gimv-action-area"
+
+void
+gimv_dialog_init (GtkWindow *window)
+{
+   GtkWidget *vbox;
+   GtkEventController *controller;
+   GtkShortcut *shortcut;
+
+   g_return_if_fail (GTK_IS_WINDOW (window));
+   g_return_if_fail (!g_object_get_data (G_OBJECT (window), DIALOG_VBOX_KEY));
+
+   gtk_widget_add_css_class (GTK_WIDGET (window), "dialog");
+
+   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+   gtk_widget_set_hexpand (vbox, TRUE);
+   gtk_widget_set_vexpand (vbox, TRUE);
+   gtk_window_set_child (window, vbox);
+   g_object_set_data (G_OBJECT (window), DIALOG_VBOX_KEY, vbox);
+
+   controller = gtk_shortcut_controller_new ();
+   gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (controller),
+                                      GTK_SHORTCUT_SCOPE_MANAGED);
+   shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (GDK_KEY_Escape, 0),
+                                gtk_named_action_new ("window.close"));
+   gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller),
+                                         shortcut);
+   gtk_widget_add_controller (GTK_WIDGET (window), controller);
+}
+
+
+GtkWidget *
+gimv_dialog_new (void)
+{
+   GtkWidget *window = gtk_window_new ();
+   gimv_dialog_init (GTK_WINDOW (window));
+   return window;
+}
+
+
 GtkWidget *
 gimv_dialog_get_vbox (GtkWidget *dialog)
 {
-   g_return_val_if_fail (GTK_IS_DIALOG (dialog), NULL);
-   return gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+   GtkWidget *vbox;
+
+   g_return_val_if_fail (GTK_IS_WINDOW (dialog), NULL);
+
+   vbox = g_object_get_data (G_OBJECT (dialog), DIALOG_VBOX_KEY);
+   g_return_val_if_fail (vbox, NULL);
+
+   return vbox;
 }
 
 
@@ -1265,12 +1330,12 @@ gimv_dialog_get_action_area (GtkWidget *dialog)
 {
    GtkWidget *area, *vbox;
 
-   g_return_val_if_fail (GTK_IS_DIALOG (dialog), NULL);
+   vbox = gimv_dialog_get_vbox (dialog);
+   g_return_val_if_fail (vbox, NULL);
 
-   area = g_object_get_data (G_OBJECT (dialog), "gimv-action-area");
+   area = g_object_get_data (G_OBJECT (dialog), DIALOG_ACTION_AREA_KEY);
    if (area) return area;
 
-   vbox = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
    area = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
    gtk_box_set_homogeneous (GTK_BOX (area), TRUE);
    gtk_widget_set_halign (area, GTK_ALIGN_END);
@@ -1280,7 +1345,7 @@ gimv_dialog_get_action_area (GtkWidget *dialog)
    gtk_widget_set_margin_end (area, 6);
    gtk_widget_add_css_class (area, "dialog-action-area");
    gimv_box_pack_end (GTK_BOX (vbox), area, FALSE, FALSE, 0);
-   g_object_set_data (G_OBJECT (dialog), "gimv-action-area", area);
+   g_object_set_data (G_OBJECT (dialog), DIALOG_ACTION_AREA_KEY, area);
 
    return area;
 }
@@ -1288,7 +1353,6 @@ gimv_dialog_get_action_area (GtkWidget *dialog)
 
 typedef struct {
    GMainLoop *loop;
-   gint       response;
    gboolean   destroyed;
 } RunInfo;
 
@@ -1302,23 +1366,6 @@ run_shutdown_loop (RunInfo *ri)
 
 
 static void
-cb_run_response (GtkDialog *dialog, gint response_id, RunInfo *ri)
-{
-   ri->response = response_id;
-   run_shutdown_loop (ri);
-}
-
-
-static gboolean
-cb_run_close_request (GtkWindow *window, RunInfo *ri)
-{
-   ri->response = GTK_RESPONSE_DELETE_EVENT;
-   run_shutdown_loop (ri);
-   return TRUE; /* do not destroy, the caller does it */
-}
-
-
-static void
 cb_run_destroy (GtkWidget *widget, RunInfo *ri)
 {
    ri->destroyed = TRUE;
@@ -1326,52 +1373,10 @@ cb_run_destroy (GtkWidget *widget, RunInfo *ri)
 }
 
 
-gint
-gimv_dialog_run (GtkDialog *dialog)
-{
-   RunInfo ri = { NULL, GTK_RESPONSE_NONE, FALSE };
-   gulong id_response, id_close, id_destroy;
-   gboolean was_modal;
-
-   g_return_val_if_fail (GTK_IS_DIALOG (dialog), -1);
-
-   g_object_ref (dialog);
-
-   was_modal = gtk_window_get_modal (GTK_WINDOW (dialog));
-   if (!was_modal)
-      gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
-
-   id_response = g_signal_connect (dialog, "response",
-                                   G_CALLBACK (cb_run_response), &ri);
-   id_close = g_signal_connect (dialog, "close-request",
-                                G_CALLBACK (cb_run_close_request), &ri);
-   id_destroy = g_signal_connect (dialog, "destroy",
-                                  G_CALLBACK (cb_run_destroy), &ri);
-
-   gtk_window_present (GTK_WINDOW (dialog));
-
-   ri.loop = g_main_loop_new (NULL, FALSE);
-   g_main_loop_run (ri.loop);
-   g_main_loop_unref (ri.loop);
-
-   if (!ri.destroyed) {
-      g_signal_handler_disconnect (dialog, id_response);
-      g_signal_handler_disconnect (dialog, id_close);
-      g_signal_handler_disconnect (dialog, id_destroy);
-      if (!was_modal)
-         gtk_window_set_modal (GTK_WINDOW (dialog), FALSE);
-   }
-
-   g_object_unref (dialog);
-
-   return ri.response;
-}
-
-
 void
 gimv_window_run_modal (GtkWindow *window)
 {
-   RunInfo ri = { NULL, GTK_RESPONSE_NONE, FALSE };
+   RunInfo ri = { NULL, FALSE };
    gulong id;
 
    g_return_if_fail (GTK_IS_WINDOW (window));
@@ -2370,14 +2375,83 @@ gimv_cairo_set_source_color_name (cairo_t *cr, const gchar *spec)
 }
 
 
+/*
+ *  Look up a color defined with @define-color by the theme (the replacement
+ *  of the deprecated gtk_style_context_lookup_color ()): the color is
+ *  resolved by the CSS machinery on a private, never shown "probe" widget
+ *  whose CSS class sets "color: @<name>", and read back with
+ *  gtk_widget_get_color ().  A name the theme does not define resolves to
+ *  the same value as a probe for a name nobody defines, which is how a
+ *  failed lookup is detected.
+ */
+#define COLOR_PROBE_UNDEFINED "gimv_undefined_color_probe"
+
+static GtkWidget *
+color_probe_get (const gchar *name)
+{
+   static GHashTable *probes = NULL;
+   GtkWidget *probe;
+   GdkDisplay *display;
+
+   if (!probes)
+      probes = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                      g_free, g_object_unref);
+
+   probe = g_hash_table_lookup (probes, name);
+   if (!probe) {
+      GtkCssProvider *provider;
+      gchar *css_class, *css;
+
+      display = gdk_display_get_default ();
+      if (!display) return NULL;
+
+      css_class = g_strdup_printf ("gimv-color-probe-%s", name);
+      css = g_strdup_printf (".%s { color: @%s; }", css_class, name);
+      provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_string (provider, css);
+      gtk_style_context_add_provider_for_display (
+         display, GTK_STYLE_PROVIDER (provider),
+         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+      g_object_unref (provider);
+
+      probe = gtk_label_new (NULL);
+      gtk_widget_add_css_class (probe, css_class);
+      g_object_ref_sink (probe);
+      g_hash_table_insert (probes, g_strdup (name), probe);
+
+      g_free (css);
+      g_free (css_class);
+   }
+
+   return probe;
+}
+
+
+gboolean
+gimv_widget_lookup_color (GtkWidget *widget, const gchar *name, GdkRGBA *color)
+{
+   GtkWidget *probe, *undefined;
+   GdkRGBA undefined_color;
+
+   g_return_val_if_fail (name && *name, FALSE);
+   g_return_val_if_fail (color, FALSE);
+
+   probe     = color_probe_get (name);
+   undefined = color_probe_get (COLOR_PROBE_UNDEFINED);
+   if (!probe || !undefined) return FALSE;
+
+   gtk_widget_get_color (probe, color);
+   gtk_widget_get_color (undefined, &undefined_color);
+
+   return !gdk_rgba_equal (color, &undefined_color);
+}
+
+
 static gboolean
 lookup_color (GtkWidget *widget, const gchar *name, GdkRGBA *color)
 {
-   GtkStyleContext *context;
-
    if (!widget) return FALSE;
-   context = gtk_widget_get_style_context (widget);
-   return context && gtk_style_context_lookup_color (context, name, color);
+   return gimv_widget_lookup_color (widget, name, color);
 }
 
 
@@ -2458,6 +2532,38 @@ gimv_widget_render_icon (GtkWidget *widget, const gchar *icon_name, gint size)
    return pixbuf;
 }
 
+
+
+/******************************************************************************
+ *
+ *   status bar
+ *
+ ******************************************************************************/
+GtkWidget *
+gimv_statusbar_new (void)
+{
+   GtkWidget *label;
+
+   /* what GtkStatusbar showed: one ellipsized, start aligned line */
+   label = gtk_label_new (NULL);
+   gtk_label_set_single_line_mode (GTK_LABEL (label), TRUE);
+   gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_widget_set_margin_start (label, 6);
+   gtk_widget_set_margin_end (label, 6);
+   gtk_widget_set_margin_top (label, 3);
+   gtk_widget_set_margin_bottom (label, 3);
+
+   return label;
+}
+
+
+void
+gimv_statusbar_set_text (GtkWidget *statusbar, const gchar *text)
+{
+   g_return_if_fail (GTK_IS_LABEL (statusbar));
+   gtk_label_set_text (GTK_LABEL (statusbar), text ? text : "");
+}
 
 
 /******************************************************************************
