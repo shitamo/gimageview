@@ -31,7 +31,7 @@
 #include "fileutil.h"
 #include "gimv_hpaned.h"
 #include "gtk2-compat.h"
-#include "gimv_cell_pixmap.h"
+#include "gimv_list_view.h"
 #include "gimv_icon_stock.h"
 #include "help.h"
 #include "prefs.h"
@@ -308,135 +308,113 @@ get_icon (const gchar *name, GdkTexture **pixmap, GdkTexture **mask)
 typedef enum {
    COLUMN_TERMINATOR = -1,
    COLUMN_ICON_OPEN,
-   COLUMN_ICON_OPEN_MASK,
    COLUMN_ICON_CLOSE,
-   COLUMN_ICON_CLOSE_MASK,
    COLUMN_NAME,
    COLUMN_PRIV_DATA,
    N_COLUMN
 } TreeStoreColumn;
 
 
-struct FindNode {
-   gchar               *path;
-   GimvPrefsWinPagePrivate *priv;
-   GtkTreeIter         iter;
-};
-
-
-static gboolean
-find_node_by_path (GtkTreeModel *model,
-                   GtkTreePath *path, GtkTreeIter *iter,
-                   gpointer data)
+/* the row of the page whose path is "path" in rows (and their children) */
+static GimvRow *
+find_row_by_path (GListModel *rows, const gchar *path)
 {
-   struct FindNode *node = data;
-   GimvPrefsWinPagePrivate *priv;
+   guint i, n = g_list_model_get_n_items (rows);
 
-   gtk_tree_model_get (model, iter,
-                       COLUMN_PRIV_DATA, &priv,
-                       COLUMN_TERMINATOR);
-   if (priv && !strcmp (priv->page->path, node->path)) {
-      node->priv = priv;
-      node->iter = *iter;
-      return TRUE;
+   for (i = 0; i < n; i++) {
+      GimvRow *row = gimv_row_store_peek (rows, i), *found;
+      GimvPrefsWinPagePrivate *priv;
+      GListStore *children;
+
+      priv = gimv_row_peek_pointer (row, COLUMN_PRIV_DATA);
+      if (priv && !strcmp (priv->page->path, path))
+         return row;
+
+      children = gimv_row_get_children (row, FALSE);
+      if (children) {
+         found = find_row_by_path (G_LIST_MODEL (children), path);
+         if (found) return found;
+      }
    }
 
-   return FALSE;
+   return NULL;
 }
 
 
-static gboolean
-prefs_win_navtree_get_parent (GimvPrefsWinPagePrivate *priv, GtkTreeIter *iter)
+static GimvRow *
+prefs_win_navtree_get_parent (GListModel *root, GimvPrefsWinPagePrivate *priv)
 {
-   GtkTreeModel *model;
-   struct FindNode node;
+   GimvRow *row;
+   gchar *path;
 
-   g_return_val_if_fail (priv, FALSE);
-   g_return_val_if_fail (priv->page, FALSE);
-   g_return_val_if_fail (priv->page->path, FALSE);
+   g_return_val_if_fail (priv, NULL);
+   g_return_val_if_fail (priv->page, NULL);
+   g_return_val_if_fail (priv->page->path, NULL);
 
-   node.path = g_path_get_dirname (priv->page->path);
-   node.priv  = NULL;
+   path = g_path_get_dirname (priv->page->path);
+   row = find_row_by_path (root, path);
+   g_free (path);
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (prefs_win.tree));
-   gtk_tree_model_foreach (model, find_node_by_path, &node);
-
-   g_free (node.path);
-
-   if (node.priv) {
-      *iter = node.iter;
-      return TRUE;
-   }
-
-   return FALSE;
+   return row;
 }
 
 
 static gboolean
 cb_tree_key_press (GtkWidget *widget, GimvEventKey *event, gpointer data)
 {
-   GtkTreeSelection *selection;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   GtkTreePath *treepath;
-   gboolean success, retval = FALSE;
+   GtkTreeListRow *tree_row;
+   gboolean retval = FALSE;
+   guint position;
 
-   g_return_val_if_fail (GTK_IS_TREE_VIEW (widget), FALSE);
-
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (widget));
-   if (!selection) return FALSE;
-   success = gtk_tree_selection_get_selected (selection, &model, &iter);
-   if (!success) return FALSE;
-   treepath = gtk_tree_model_get_path (model, &iter);
-   if (!treepath) return FALSE;
+   position = gimv_list_view_get_selected (widget);
+   if (position == GTK_INVALID_LIST_POSITION) return FALSE;
+   tree_row = g_list_model_get_item (G_LIST_MODEL (gimv_list_view_get_selection (widget)),
+                                     position);
+   if (!GTK_IS_TREE_LIST_ROW (tree_row)) {
+      if (tree_row) g_object_unref (tree_row);
+      return FALSE;
+   }
 
    switch (event->keyval) {
    case GDK_KEY_KP_Enter:
    case GDK_KEY_Return:
    case GDK_KEY_ISO_Enter:
    case GDK_KEY_space:
-      if (gtk_tree_view_row_expanded (GTK_TREE_VIEW (widget), treepath))
-         gtk_tree_view_collapse_row (GTK_TREE_VIEW (widget), treepath);
-      else
-         gtk_tree_view_expand_row (GTK_TREE_VIEW (widget), treepath, FALSE);
+      gtk_tree_list_row_set_expanded (tree_row,
+                                      !gtk_tree_list_row_get_expanded (tree_row));
       retval = TRUE;
       break;
    case GDK_KEY_Right:
-      gtk_tree_view_expand_row (GTK_TREE_VIEW (widget), treepath, FALSE);
+      gtk_tree_list_row_set_expanded (tree_row, TRUE);
       retval = TRUE;
       break;
    case GDK_KEY_Left:
-      gtk_tree_view_collapse_row (GTK_TREE_VIEW (widget), treepath);
+      gtk_tree_list_row_set_expanded (tree_row, FALSE);
       retval = TRUE;
       break;
    default:
       break;
    }
 
-   gtk_tree_path_free(treepath);
+   g_object_unref (tree_row);
 
    return retval;
 }
 
 
 static void
-cb_tree_cursor_changed (GtkTreeView *treeview, gpointer data)
+cb_tree_selection_changed (GtkSelectionModel *selection,
+                           guint position, guint n_items, gpointer data)
 {
-   GtkTreeSelection *selection;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
    GimvPrefsWinPagePrivate *priv;
+   GimvRow *row;
 
-   g_return_if_fail (treeview);
+   if (!prefs_win.tree) return;
 
-   /* GTK4: also emitted while the tree view is disposed (without model) */
-   if (!gtk_tree_view_get_model (treeview)) return;
-   selection = gtk_tree_view_get_selection (treeview);
-   if (!selection) return;
-   if (!gtk_tree_selection_get_selected (selection, &model, &iter)) return;
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_PRIV_DATA, &priv,
-                       COLUMN_TERMINATOR);
+   row = gimv_list_view_get_selected_row (prefs_win.tree);
+   if (!row) return;
+
+   priv = gimv_row_peek_pointer (row, COLUMN_PRIV_DATA);
 
    g_return_if_fail (priv);
    g_return_if_fail (priv->page);
@@ -445,64 +423,73 @@ cb_tree_cursor_changed (GtkTreeView *treeview, gpointer data)
 }
 
 
+/* the icon of a page (the open icon if it is expanded) and its name */
+static void
+navtree_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item,
+                   gpointer data)
+{
+   GtkTreeListRow *tree_row = gimv_list_item_get_tree_row (item);
+   gint icon_col = COLUMN_ICON_CLOSE;
+
+   if (tree_row && gtk_tree_list_row_get_expanded (tree_row)
+       && gimv_row_peek_object (row, COLUMN_ICON_OPEN))
+      icon_col = COLUMN_ICON_OPEN;
+
+   gimv_icon_text_cell_set_icon (cell, gimv_row_peek_value (row, icon_col));
+   gtk_label_set_text (GTK_LABEL (gimv_icon_text_cell_get_label (cell)),
+                       gimv_row_peek_string (row, COLUMN_NAME));
+}
+
+
+static GtkWidget *
+navtree_cell_setup (gpointer data)
+{
+   GtkWidget *box, *picture, *label;
+
+   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+
+   picture = gtk_picture_new ();
+   gtk_picture_set_can_shrink (GTK_PICTURE (picture), FALSE);
+   gtk_box_append (GTK_BOX (box), picture);
+   g_object_set_data (G_OBJECT (box), "gimv-cell-image", picture);
+
+   label = gtk_label_new (NULL);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_box_append (GTK_BOX (box), label);
+   g_object_set_data (G_OBJECT (box), "gimv-cell-label", label);
+
+   return box;
+}
+
+
 static GtkWidget *
 prefs_win_create_navtree (void)
 {
-   GtkTreeStore *store;
-   GtkTreeViewColumn *col;
-   GtkCellRenderer *render;
+   GListStore *root;
+   GtkTreeListModel *model;
    GtkWidget *tree;
    GList *node;
 
-   store = gtk_tree_store_new (N_COLUMN,
-                               GDK_TYPE_TEXTURE,
-                               GDK_TYPE_TEXTURE,
-                               GDK_TYPE_TEXTURE,
-                               GDK_TYPE_TEXTURE,
-                               G_TYPE_STRING,
-                               G_TYPE_POINTER);
-   tree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+   /* GTK4: GtkTreeView (deprecated) -> GtkListView of a GtkTreeListModel */
+   root = gimv_row_store_new ();
+   model = gimv_tree_list_model_new (G_LIST_MODEL (root));
+   tree = gimv_list_view_new (G_LIST_MODEL (model), GTK_SELECTION_BROWSE,
+                              gimv_cell_factory_new (navtree_cell_setup,
+                                                     navtree_cell_bind,
+                                                     NULL, NULL, TRUE));
    prefs_win.tree = tree;
-   /* GTK4: gtk_tree_view_set_rules_hint () removed */
-   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (tree), FALSE);
 
    gimv_event_connect (GTK_WIDGET (tree), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_tree_key_press), NULL);
-   g_signal_connect (G_OBJECT (tree), "cursor_changed",
-                     G_CALLBACK (cb_tree_cursor_changed), NULL);
-
-   /* name column */
-   col = gtk_tree_view_column_new();
-
-   render = gimv_cell_renderer_pixmap_new ();
-   gtk_tree_view_column_pack_start (col, render, FALSE);
-   gtk_tree_view_column_add_attribute (col, render, "pixmap",
-                                       COLUMN_ICON_CLOSE);
-   gtk_tree_view_column_add_attribute (col, render, "mask",
-                                       COLUMN_ICON_CLOSE_MASK);
-   gtk_tree_view_column_add_attribute (col, render, "pixmap_expander_open",
-                                       COLUMN_ICON_OPEN);
-   gtk_tree_view_column_add_attribute (col, render, "mask_expander_open",
-                                       COLUMN_ICON_OPEN_MASK);
-   gtk_tree_view_column_add_attribute (col, render, "pixmap_expander_closed",
-                                       COLUMN_ICON_CLOSE);
-   gtk_tree_view_column_add_attribute (col, render, "mask_expander_closed",
-                                       COLUMN_ICON_CLOSE_MASK);
-
-   render = gtk_cell_renderer_text_new ();
-   gtk_tree_view_column_pack_start (col, render, TRUE);
-   gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_NAME);
-
-   gtk_tree_view_append_column (GTK_TREE_VIEW (tree), col);
-   gtk_tree_view_set_expander_column (GTK_TREE_VIEW (tree), col);
+   g_signal_connect (gimv_list_view_get_selection (tree), "selection-changed",
+                     G_CALLBACK (cb_tree_selection_changed), NULL);
 
    /* create pages */
    for (node = get_page_entries_list(); node; node = g_list_next (node)) {
       GimvPrefsWinPage *page = node->data;
       const gchar *title;
       GdkTexture *pixmap = NULL, *opixmap = NULL;
-      GdkTexture *mask = NULL, *omask = NULL;
       GimvPrefsWinPagePrivate *priv;
-      GtkTreeIter iter, parent_iter;
+      GimvRow *row, *parent_row;
 
       if (!page || !page->path) continue;
 
@@ -510,8 +497,8 @@ prefs_win_create_navtree (void)
       title = fileutil_basename (_(page->path));
 
       /* get node icon */
-      get_icon (page->icon,      &pixmap,  &mask);
-      get_icon (page->icon_open, &opixmap, &omask);
+      get_icon (page->icon,      &pixmap,  NULL);
+      get_icon (page->icon_open, &opixmap, NULL);
 
       /* set private data */
       priv = g_new0 (GimvPrefsWinPagePrivate, 1);
@@ -520,20 +507,27 @@ prefs_win_create_navtree (void)
 
       priv_page_list = g_list_append (priv_page_list, priv);
 
-      if (prefs_win_navtree_get_parent (priv, &parent_iter)) {
-         gtk_tree_store_append (store, &iter, &parent_iter);
-      } else {
-         gtk_tree_store_append (store, &iter, NULL);
-      }
-      gtk_tree_store_set (store, &iter,
-                          COLUMN_ICON_CLOSE,      pixmap,
-                          COLUMN_ICON_CLOSE_MASK, mask,
-                          COLUMN_ICON_OPEN,       opixmap,
-                          COLUMN_ICON_OPEN_MASK,  omask,
-                          COLUMN_NAME,            title,
-                          COLUMN_PRIV_DATA,       priv,
-                          COLUMN_TERMINATOR);
+      row = gimv_row_new (N_COLUMN,
+                          GDK_TYPE_TEXTURE,
+                          GDK_TYPE_TEXTURE,
+                          G_TYPE_STRING,
+                          G_TYPE_POINTER);
+      gimv_row_set (row,
+                    COLUMN_ICON_CLOSE,      pixmap,
+                    COLUMN_ICON_OPEN,       opixmap,
+                    COLUMN_NAME,            title,
+                    COLUMN_PRIV_DATA,       priv,
+                    COLUMN_TERMINATOR);
+
+      parent_row = prefs_win_navtree_get_parent (G_LIST_MODEL (root), priv);
+      if (parent_row)
+         gimv_row_append_child (parent_row, row);
+      else
+         g_list_store_append (root, row);
+      g_object_unref (row);
    }
+
+   g_object_unref (root);
 
    return tree;
 }

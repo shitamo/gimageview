@@ -33,6 +33,7 @@
 #include "gtkutils.h"
 #include "gimv_icon_stock.h"
 #include "gimv_image_loader.h"
+#include "gimv_list_view.h"
 
 
 typedef enum {
@@ -82,15 +83,14 @@ exif_view_content_list_set_data (GtkWidget *clist,
 {
    const gchar *text[2];
    gchar value[1024];
+   GListStore *store;
    guint i;
 
    g_return_if_fail (clist);
    g_return_if_fail (content);
 
-   {
-      GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (clist));
-      gtk_list_store_clear (GTK_LIST_STORE (model));
-   }
+   store = G_LIST_STORE (gimv_list_view_get_model (clist));
+   g_list_store_remove_all (store);
 
    for (i = 0; i < content->count; i++) {
       /* system libexif: titles and values are translated by libexif */
@@ -99,14 +99,14 @@ exif_view_content_list_set_data (GtkWidget *clist,
          text[0] = exif_tag_get_name (content->entries[i]->tag);
       text[1] = exif_entry_get_value (content->entries[i], value, sizeof (value));
       {
-         GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (clist));
-         GtkTreeIter iter;
+         GimvRow *row = gimv_row_new (N_COLUMN, G_TYPE_STRING, G_TYPE_STRING);
 
-         gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-         gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                             COLUMN_KEY,       text[0],
-                             COLUMN_VALUE,     text[1],
-                             COLUMN_TERMINATOR);
+         gimv_row_set (row,
+                       COLUMN_KEY,       text[0],
+                       COLUMN_VALUE,     text[1],
+                       COLUMN_TERMINATOR);
+         g_list_store_append (store, row);
+         g_object_unref (row);
       }
    }
 }
@@ -276,33 +276,22 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
       gtk_widget_set_visible (scrolledwin, TRUE);
 
       {
-         GtkListStore *store;
-         GtkTreeViewColumn *col;
-         GtkCellRenderer *render;
+         GtkColumnViewColumn *col;
 
-         store = gtk_list_store_new (N_COLUMN, G_TYPE_STRING, G_TYPE_STRING);
-         clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-         gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
-
-         /* GTK4: gtk_tree_view_set_rules_hint () removed (no striped rows) */
+         /* GTK4: GtkTreeView (deprecated) -> GtkColumnView */
+         clist = gimv_column_view_new (G_LIST_MODEL (gimv_row_store_new ()),
+                                       GTK_SELECTION_SINGLE);
 
          /* set column for key */
-         col = gtk_tree_view_column_new();
-         gtk_tree_view_column_set_resizable (col, TRUE);
-         gtk_tree_view_column_set_title (col, _(titles[0]));
-         render = gtk_cell_renderer_text_new ();
-         gtk_tree_view_column_pack_start (col, render, TRUE);
-         gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_KEY);
-         gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
+         col = gimv_column_view_append_text (GTK_COLUMN_VIEW (clist),
+                                             _(titles[0]), COLUMN_KEY);
+         gtk_column_view_column_set_resizable (col, TRUE);
 
          /* set column for value */
-         col = gtk_tree_view_column_new();
-         gtk_tree_view_column_set_resizable (col, TRUE);
-         gtk_tree_view_column_set_title (col, _(titles[1]));
-         render = gtk_cell_renderer_text_new ();
-         gtk_tree_view_column_pack_start (col, render, TRUE);
-         gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_VALUE);
-         gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
+         col = gimv_column_view_append_text (GTK_COLUMN_VIEW (clist),
+                                             _(titles[1]), COLUMN_VALUE);
+         gtk_column_view_column_set_resizable (col, TRUE);
+         gtk_column_view_column_set_expand (col, TRUE);
       }
 
       gimv_container_add (GTK_WIDGET (scrolledwin), clist);
