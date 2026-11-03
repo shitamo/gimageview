@@ -1740,6 +1740,7 @@ gimv_column_view_set_sort_column (GtkColumnView *view,
 typedef struct {
    GtkWidget          *view;
    GtkWidget          *popover;
+   GtkWidget          *anchor;   /* the parent of the popover (weak) */
    GtkWidget          *entry;
    gint                text_col;
    GimvListSearchFunc  func;
@@ -1973,7 +1974,8 @@ list_search_start (ListSearch *ls, const gchar *text)
       gtk_popover_set_position (GTK_POPOVER (ls->popover), GTK_POS_BOTTOM);
       /* not on the list view itself: it manages its children */
       gtk_widget_set_parent (ls->popover, anchor);
-      g_object_set_data (G_OBJECT (ls->popover), "gimv-list-search-anchor", anchor);
+      ls->anchor = anchor;
+      g_object_add_weak_pointer (G_OBJECT (anchor), (gpointer *) &ls->anchor);
       g_signal_connect (ls->popover, "closed", G_CALLBACK (cb_list_search_closed), ls);
    }
    {
@@ -2014,7 +2016,12 @@ list_search_free (ListSearch *ls)
 {
    if (ls->idle_id) g_source_remove (ls->idle_id);
    if (ls->focus_id) g_source_remove (ls->focus_id);
-   if (ls->popover) gtk_widget_unparent (ls->popover);
+   /* the popover goes with its parent, if that is gone first */
+   if (ls->anchor) {
+      g_object_remove_weak_pointer (G_OBJECT (ls->anchor), (gpointer *) &ls->anchor);
+      if (ls->popover && gtk_widget_get_parent (ls->popover) == ls->anchor)
+         gtk_widget_unparent (ls->popover);
+   }
    g_free (ls);
 }
 

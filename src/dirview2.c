@@ -324,8 +324,10 @@ cb_dirview_destroyed (GtkWidget *widget, DirView *dv)
       gimv_menu_destroy (dv->popup_menu);
    dv->popup_menu = NULL;
 
-   if (dv->dirtree)
+   if (dv->dirtree) {
+      g_object_remove_weak_pointer (G_OBJECT (dv->dirtree), (gpointer *) &dv->dirtree);
       g_object_set_data (G_OBJECT (dv->dirtree), DIRVIEW_KEY, NULL);
+   }
 
    g_free (dv->root_dir);
    g_free (dv->priv);
@@ -1153,6 +1155,9 @@ dirview_create_treeview (DirView *dv, const gchar *root)
    g_object_set_data_full (G_OBJECT (dv->dirtree), ROOT_STORE_KEY,
                            store, g_object_unref);
    g_object_set_data (G_OBJECT (dv->dirtree), DIRVIEW_KEY, dv);
+   /* the tree may go before the container (its "destroy" comes after the
+      children are gone, when the layout is changed) */
+   g_object_add_weak_pointer (G_OBJECT (dv->dirtree), (gpointer *) &dv->dirtree);
 
    root_row = insert_row (dv, NULL, root, root);
 
