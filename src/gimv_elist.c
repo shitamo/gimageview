@@ -28,8 +28,7 @@
 
 #include "intl.h"
 #include "gimv_marshal.h"
-
-
+#include "gimv_list_view.h"
 enum {
    LIST_UPDATED_SIGNAL,
    EDIT_AREA_SET_DATA_SIGNAL,
@@ -39,11 +38,15 @@ enum {
 
 
 
-#include <gobject/gvaluecollector.h>
-
+/* GTK4: GtkTreeView (deprecated) -> GtkColumnView of GimvRow */
 #define list_widget_get_row_num(widget) \
-   gtk_tree_model_iter_n_children (gtk_tree_view_get_model (GTK_TREE_VIEW (widget)), NULL);
+   g_list_model_get_n_items (gimv_list_view_get_model (widget))
 
+#define list_widget_get_store(widget) \
+   G_LIST_STORE (gimv_list_view_get_model (widget))
+
+#define list_widget_get_row(widget, row) \
+   gimv_row_store_peek (gimv_list_view_get_model (widget), (row))
 #define ROWDATA(columns)     columns
 #define ROWDESTROY(columns)  columns + 1
 #define ALL_COLUMNS(columns) columns + 2
@@ -231,34 +234,20 @@ gimv_elist_finalize (GObject *object)
  *******************************************************************************/
 
 static void
-cb_editlist_cursor_changed (GtkTreeView *treeview, gpointer data)
+cb_editlist_selection_changed (GtkSelectionModel *selection,
+                               guint position, guint n_items, gpointer data)
 {
    GimvEList *editlist = data;
-   GtkTreeSelection *selection;
-   GtkTreeModel *model = NULL;
-   GtkTreeIter iter;
-   gboolean success;
+   guint selected;
 
-   /* GTK4: also emitted while the tree view is disposed (without model) */
-   if (!gtk_tree_view_get_model (treeview)) return;
-
-   g_return_if_fail (treeview);
    g_return_if_fail (editlist);
+   if (!editlist->clist) return;
 
-   selection = gtk_tree_view_get_selection (treeview);
-   success = gtk_tree_selection_get_selected (selection, &model, &iter);
-
-   if (success) {
-      GtkTreePath *treepath = gtk_tree_model_get_path (model, &iter);
-      gchar *path = gtk_tree_path_to_string (treepath);
-
-      editlist->selected = atoi (path);
-
-      gtk_tree_path_free (treepath);
-      g_free (path);
-   } else {
+   selected = gimv_list_view_get_selected (editlist->clist);
+   if (selected == GTK_INVALID_LIST_POSITION)
       editlist->selected = -1;
-   }
+   else
+      editlist->selected = selected;
 
    gimv_elist_edit_area_set_data (editlist, editlist->selected);
 
@@ -266,37 +255,40 @@ cb_editlist_cursor_changed (GtkTreeView *treeview, gpointer data)
 }
 
 
+/* "row_changed" and "row_deleted" of the GtkListStore */
 static void
-cb_editlist_row_changed (GtkTreeModel *model,
-                         GtkTreePath *treepath,
-                         GtkTreeIter *iter,
-                         gpointer data)
+cb_editlist_items_changed (GListModel *model, guint position,
+                           guint removed, guint added, gpointer data)
 {
    GimvEList *editlist = data;
 
+   editlist->rows = g_list_model_get_n_items (model);
+
    gimv_elist_updated (editlist);
+
+   if (removed > 0) {
+      if (editlist->dest_row < 0) {
+         editlist->selected = -1;
+         gimv_elist_set_sensitive (editlist);
+      }
+      editlist->dest_row = -1;
+
+      if (editlist->selected >= editlist->rows)
+         editlist->selected = -1;
+      gimv_elist_edit_area_set_data (editlist, editlist->selected);
+   }
 
    gimv_elist_set_sensitive (editlist);
 }
 
 
+/* a row was moved by drag and drop */
 static void
-cb_editlist_row_deleted (GtkTreeModel *model,
-                         GtkTreePath *treepath,
-                         gpointer data)
+cb_editlist_reordered (GtkWidget *view, guint from, guint to, gpointer data)
 {
    GimvEList *editlist = data;
 
    gimv_elist_updated (editlist);
-
-   if (editlist->dest_row < 0) {
-      editlist->selected = -1;
-      gimv_elist_set_sensitive (editlist);
-   }
-   editlist->dest_row = -1;
-
-   gimv_elist_edit_area_set_data (editlist, editlist->selected);
-
    gimv_elist_set_sensitive (editlist);
 }
 
@@ -315,59 +307,7 @@ cb_editlist_up_button (GtkButton *button, gpointer data)
    if (selected < 1 || selected > rows - 1) return;
 
    editlist->dest_row = editlist->selected - 1;
-
-   {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-      GtkTreePath *treepath;
-      GtkTreeIter iter, prev_iter, dest_iter;
-      gboolean success;
-
-      GValue *values;
-      gint i, colnum = gtk_tree_model_get_n_columns (model);
-
-      /* get src row */
-      selection = gtk_tree_view_get_selection (treeview);
-      success = gtk_tree_selection_get_selected (selection, &model, &iter);
-      if (!success) return;
-      treepath = gtk_tree_model_get_path (model, &iter);
-
-      /* get prev row */
-      success = gtk_tree_path_prev (treepath);
-      if (!success) {
-         gtk_tree_path_free (treepath);
-         return;
-      }
-      gtk_tree_model_get_iter (model, &prev_iter, treepath);
-
-      /* get src data */
-      values = g_new0 (GValue, colnum);
-      for (i = 0; i < colnum; i++) {
-         gtk_tree_model_get_value (model, &iter, i, &values[i]);
-      }
-
-      /* insert dest row before prev */
-      gtk_list_store_insert_before (GTK_LIST_STORE (model),
-                                    &dest_iter, &prev_iter);
-      for (i = 0; i < colnum; i++) {
-         gtk_list_store_set_value (GTK_LIST_STORE (model), &dest_iter,
-                                   i, &values[i]);
-         g_value_unset (&values[i]);
-      }
-      g_free (values);
-
-      /* delete src */
-      gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
-
-      /* select dest */
-      gtk_tree_path_free (treepath);
-      treepath = gtk_tree_model_get_path (model, &dest_iter);
-      gtk_tree_view_set_cursor (treeview, treepath, NULL, FALSE);
-
-      /* clean */
-      gtk_tree_path_free (treepath);
-   }
+   gimv_list_view_move_row (editlist->clist, selected, selected - 1);
 }
 
 
@@ -383,54 +323,7 @@ cb_editlist_down_button (GtkButton *button, gpointer data)
    if (selected < 0 || selected > rows - 2) return;
 
    editlist->dest_row = editlist->selected + 1;
-
-   {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-      GtkTreeIter iter, next_iter, dest_iter;
-      GtkTreePath *treepath;
-      gboolean success;
- 
-      GValue *values;
-      gint i, colnum = gtk_tree_model_get_n_columns (model);
-
-      /* get src row */
-      selection = gtk_tree_view_get_selection (treeview);
-      success = gtk_tree_selection_get_selected (selection, &model, &iter);
-      if (!success) return;
-
-      /* get prev row */
-      next_iter = iter;
-      success = gtk_tree_model_iter_next (model, &next_iter);
-      if (!success) return;
-
-      /* get src data */
-      values = g_new0 (GValue, colnum);
-      for (i = 0; i < colnum; i++) {
-         gtk_tree_model_get_value (model, &iter, i, &values[i]);
-      }
-
-      /* insert dest row before prev */
-      gtk_list_store_insert_after (GTK_LIST_STORE (model),
-                                   &dest_iter, &next_iter);
-      for (i = 0; i < colnum; i++) {
-         gtk_list_store_set_value (GTK_LIST_STORE (model), &dest_iter,
-                                   i, &values[i]);
-         g_value_unset (&values[i]);
-      }
-      g_free (values);
-
-      /* delete src */
-      gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
-
-      /* select dest */
-      treepath = gtk_tree_model_get_path (model, &dest_iter);
-      gtk_tree_view_set_cursor (treeview, treepath, NULL, FALSE);
-
-      /* clean */
-      gtk_tree_path_free (treepath);
-   }
+   gimv_list_view_move_row (editlist->clist, selected, selected + 1);
 }
 
 
@@ -509,21 +402,15 @@ cb_editlist_change_button (GtkButton *button, gpointer data)
    g_return_if_fail (text);
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model;
-      GtkTreeSelection *selection;
-      GtkTreeIter iter;
-      gboolean success;
+      GimvRow *row = gimv_list_view_get_selected_row (editlist->clist);
 
-      selection = gtk_tree_view_get_selection (treeview);
-      success = gtk_tree_selection_get_selected (selection, &model, &iter);
-      if (!success) {
+      if (!row) {
          g_strfreev (text);
          return;
       }
 
       for (i = 0; i < editlist->columns; i++) {
-         gtk_list_store_set (GTK_LIST_STORE (model), &iter, i, text[i], -1);
+         gimv_row_set (row, i, text[i], -1);
       }
    }
 
@@ -610,52 +497,36 @@ static GtkWidget *
 gimv_elist_create_list_widget (GimvEList *editlist, gint colnum)
 {
    GtkWidget *clist;
-
-   GtkListStore *store;
-   GtkTreeViewColumn *col;
-   GtkCellRenderer *render;
-   GType *types;
+   GListStore *store;
+   GtkColumnViewColumn *col = NULL;
    gint i;
 
-   store = gtk_list_store_new (1, G_TYPE_STRING); /* this column is dummy */
-
    /*
-    *  types[colnum] is row data
-    *  types[colnum+1] is GDestroyNotify
+    *  columns: [0, colnum) are strings,
+    *  ROWDATA(colnum) is row data,
+    *  ROWDESTROY(colnum) is GDestroyNotify
     */
-   types = g_new0 (GType, ALL_COLUMNS(colnum));
-   for (i = 0; i < colnum; i++)
-      types[i] = G_TYPE_STRING;
-   types[ROWDATA(colnum)]    = G_TYPE_POINTER;
-   types[ROWDESTROY(colnum)] = G_TYPE_POINTER;
-   gtk_list_store_set_column_types (store, ALL_COLUMNS (colnum), types);
-   g_free (types);
-
-   clist = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-   gimv_tree_view_widen_column_resize (GTK_TREE_VIEW (clist));
+   store = gimv_row_store_new ();
+   clist = gimv_column_view_new (G_LIST_MODEL (store), GTK_SELECTION_SINGLE);
    editlist->clist = clist;
-   /* GTK4: gtk_tree_view_set_rules_hint () was removed (row striping is up to the theme) */
-   gtk_tree_view_set_reorderable (GTK_TREE_VIEW (clist), TRUE);
+   gimv_list_view_set_reorderable (clist, TRUE,
+                                   cb_editlist_reordered, editlist);
 
-   g_signal_connect (G_OBJECT (store), "row_changed",
-                     G_CALLBACK (cb_editlist_row_changed),
+   g_signal_connect (G_OBJECT (store), "items-changed",
+                     G_CALLBACK (cb_editlist_items_changed),
                      editlist);
-   g_signal_connect (G_OBJECT (store), "row_deleted",
-                     G_CALLBACK (cb_editlist_row_deleted),
-                     editlist);
-   g_signal_connect (G_OBJECT (clist),"cursor_changed",
-                     G_CALLBACK (cb_editlist_cursor_changed),
+   g_signal_connect (gimv_list_view_get_selection (clist), "selection-changed",
+                     G_CALLBACK (cb_editlist_selection_changed),
                      editlist);
 
    /* set column */
    for (i = 0; i < colnum; i++) {
-      col = gtk_tree_view_column_new();
-      gtk_tree_view_column_set_resizable (col, TRUE);
-      render = gtk_cell_renderer_text_new ();
-      gtk_tree_view_column_pack_start (col, render, TRUE);
-      gtk_tree_view_column_add_attribute (col, render, "text", i);
-      gtk_tree_view_append_column (GTK_TREE_VIEW (clist), col);
+      col = gimv_column_view_append_text (GTK_COLUMN_VIEW (clist), NULL, i);
+      gtk_column_view_column_set_resizable (col, TRUE);
    }
+   /* GtkTreeView let the last column take the remaining width */
+   if (col)
+      gtk_column_view_column_set_expand (col, TRUE);
 
    editlist->columns = colnum;
 
@@ -697,15 +568,10 @@ gimv_elist_edit_area_set_data (GimvEList *editlist, gint row)
       if (!table->set_data_fn) continue;
 
       if (row >= 0) {
-         GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-         GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-         GtkTreeIter iter;
-         gboolean success;
+         GimvRow *r = list_widget_get_row (editlist->clist, row);
 
-         success = gtk_tree_model_iter_nth_child (model, &iter, NULL, row);
-         if (success) {
-            gtk_tree_model_get (model, &iter, i, &text, -1);
-         }
+         if (r)
+            gimv_row_get (r, i, &text, -1);
       } 
 
       table->set_data_fn (editlist, table->widget, row, i,
@@ -927,15 +793,13 @@ gimv_elist_new_with_titles (gint colnum, gchar *titles[])
 
    editlist = GIMV_ELIST (gimv_elist_new (colnum));
 
-   {
-      GList *list, *node;
-      list = gtk_tree_view_get_columns (GTK_TREE_VIEW (editlist->clist));
-      for (node = list, i = 0; node; node = g_list_next (node), i++) {
-         GtkTreeViewColumn *col = node->data;
-         gtk_tree_view_column_set_title (col, titles[i]);
-      }
+   for (i = 0; i < editlist->columns; i++) {
+      GtkColumnViewColumn *col
+         = gimv_column_view_get_column (GTK_COLUMN_VIEW (editlist->clist), i);
+      gtk_column_view_column_set_title (col, titles[i]);
    }
-   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (editlist->clist), TRUE);
+
+   gimv_column_view_set_headers_visible (GTK_COLUMN_VIEW (editlist->clist), TRUE);
 
    return GTK_WIDGET (editlist);
 }
@@ -946,7 +810,8 @@ gimv_elist_set_column_title_visible (GimvEList *editlist, gboolean visible)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
 
-   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (editlist->clist), visible);
+   gimv_column_view_set_headers_visible (GTK_COLUMN_VIEW (editlist->clist),
+                                         visible);
 }
 
 
@@ -955,7 +820,8 @@ gimv_elist_set_reorderable (GimvEList *editlist, gboolean reorderble)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
 
-   gtk_tree_view_set_reorderable (GTK_TREE_VIEW (editlist->clist), reorderble);
+   gimv_list_view_set_reorderable (editlist->clist, reorderble,
+                                   cb_editlist_reordered, editlist);
 
    if (reorderble)
       gtk_widget_set_visible (editlist->move_button_area, TRUE);
@@ -970,26 +836,15 @@ gimv_elist_set_auto_sort (GimvEList *editlist, gint column)
    g_return_if_fail (GIMV_IS_ELIST (editlist));
    g_return_if_fail (column < editlist->columns);
 
-   {
-      GList *list, *node;
-      list = gtk_tree_view_get_columns (GTK_TREE_VIEW (editlist->clist));
-
-      for (node = list; node; node = g_list_next (node)) {
-         GtkTreeViewColumn *treecolumn = node->data;
-         gtk_tree_view_column_set_reorderable (treecolumn, FALSE);
-      }
-
-      if (column >= 0) {
-         GtkTreeViewColumn *treecolumn;
-         node = g_list_nth (list, column);
-         treecolumn = node->data;
-         gtk_tree_view_column_set_reorderable (treecolumn, TRUE);
-         gtk_tree_view_column_set_sort_column_id (treecolumn, column);
-         gtk_tree_view_column_set_sort_order (treecolumn, GTK_SORT_ASCENDING);
-      }
-
-      g_list_free (list);
-   }
+   /* clicking the title of the column sorts the list */
+   if (column >= 0)
+      gimv_column_view_set_sort_column (
+         GTK_COLUMN_VIEW (editlist->clist),
+         gimv_column_view_get_column (GTK_COLUMN_VIEW (editlist->clist), column),
+         column);
+   else
+      gimv_column_view_set_sort_column (GTK_COLUMN_VIEW (editlist->clist),
+                                        NULL, -1);
 }
 
 
@@ -998,7 +853,7 @@ gimv_elist_get_reorderable (GimvEList *editlist)
 {
    g_return_val_if_fail (GIMV_IS_ELIST (editlist), FALSE);
 
-   return gtk_tree_view_get_reorderable (GTK_TREE_VIEW (editlist->clist));
+   return gimv_list_view_get_reorderable (editlist->clist);
 }
 
 
@@ -1013,17 +868,23 @@ gimv_elist_append_row (GimvEList *editlist, gchar *data[])
 
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkListStore *store = GTK_LIST_STORE (model);
-      GtkTreeIter iter;
+      GimvRow *row;
+      GType *types;
       gint i;
 
-      gtk_list_store_append (store, &iter);
+      types = g_new0 (GType, ALL_COLUMNS (editlist->columns));
+      for (i = 0; i < editlist->columns; i++)
+         types[i] = G_TYPE_STRING;
+      types[ROWDATA (editlist->columns)]    = G_TYPE_POINTER;
+      types[ROWDESTROY (editlist->columns)] = G_TYPE_POINTER;
+      row = gimv_row_newv (ALL_COLUMNS (editlist->columns), types);
+      g_free (types);
 
       for (i = 0; i < editlist->columns; i++) {
-         gtk_list_store_set (store, &iter, i, data[i], -1);
+         gimv_row_set (row, i, data[i], -1);
       }
+      g_list_store_append (list_widget_get_store (editlist->clist), row);
+      g_object_unref (row);
    }
    editlist->rows = list_widget_get_row_num(editlist->clist);
    retval = editlist->rows - 1;
@@ -1043,18 +904,9 @@ gimv_elist_remove_row (GimvEList *editlist, gint row)
 
    gimv_elist_set_row_data (editlist, row, NULL);
 
-   {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkListStore *store = GTK_LIST_STORE (model);
-      GtkTreeIter iter;
-      gboolean success;
-
-      success = gtk_tree_model_iter_nth_child (model, &iter, NULL, row);
-      if (success) {
-         gtk_list_store_remove (store, &iter);
-         editlist->selected = -1;
-      }
+   if ((guint) row < list_widget_get_row_num (editlist->clist)) {
+      g_list_store_remove (list_widget_get_store (editlist->clist), row);
+      editlist->selected = -1;
    }
 
    editlist->rows = list_widget_get_row_num(editlist->clist);
@@ -1096,17 +948,16 @@ gimv_elist_get_row_text (GimvEList *editlist, gint row)
 
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
-      gboolean success;
+      GimvRow *r = list_widget_get_row (editlist->clist, row);
 
-      success = gtk_tree_model_iter_nth_child (model, &iter, NULL, row);
-      g_return_val_if_fail (success, NULL);
+      if (!r) {
+         g_free (text);
+         g_return_val_if_reached (NULL);
+      }
 
       for (i = 0; i < editlist->columns; i++) {
          text[i] = NULL;
-         gtk_tree_model_get (model, &iter, i, &text[i], -1);
+         gimv_row_get (r, i, &text[i], -1);
          if (!text[i])
             text[i] = g_strdup ("");
       }
@@ -1131,15 +982,11 @@ gimv_elist_get_cell_text (GimvEList *editlist, gint row, gint col)
 
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
-      gboolean success;
+      GimvRow *r = list_widget_get_row (editlist->clist, row);
 
-      success = gtk_tree_model_iter_nth_child (model, &iter, NULL, row);
-      g_return_val_if_fail (success, NULL);
+      g_return_val_if_fail (r, NULL);
 
-      gtk_tree_model_get (model, &iter, col, &text, -1);
+      gimv_row_get (r, col, &text, -1);
    }
 
 
@@ -1169,11 +1016,8 @@ gimv_elist_set_row_data_full (GimvEList *editlist,
    g_return_if_fail (row >= 0 &&  row < editlist->rows);
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
+      GimvRow *r;
       GDestroyNotify destroy;
-      gboolean success;
       gpointer rowdata = gimv_elist_get_row_data (editlist, row);
 
       if (rowdata) {
@@ -1187,13 +1031,13 @@ gimv_elist_set_row_data_full (GimvEList *editlist,
          g_hash_table_remove (editlist->rowdata_table, rowdata);
       }
 
-      success = gtk_tree_model_iter_nth_child (model, &iter, NULL, row);
-      g_return_if_fail (success);
+      r = list_widget_get_row (editlist->clist, row);
+      g_return_if_fail (r);
 
-      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          ROWDATA(editlist->columns),    data,
-                          ROWDESTROY(editlist->columns), destroy_fn,
-                          -1);
+      gimv_row_set (r,
+                    ROWDATA(editlist->columns),    data,
+                    ROWDESTROY(editlist->columns), destroy_fn,
+                    -1);
 
       if (data) {
          g_hash_table_insert (editlist->rowdata_table,
@@ -1215,19 +1059,11 @@ gimv_elist_get_row_data (GimvEList *editlist,
    g_return_val_if_fail (row >= 0 &&  row < editlist->rows, NULL);
 
    {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeModel *model = gtk_tree_view_get_model (treeview);
-      GtkTreeIter iter;
-      gboolean success;
-      gpointer data;
+      GimvRow *r = list_widget_get_row (editlist->clist, row);
 
-      success = gtk_tree_model_iter_nth_child (model, &iter, NULL, row);
-      if (!success) return NULL;
+      if (!r) return NULL;
 
-      gtk_tree_model_get (model, &iter,
-                          ROWDATA (editlist->columns), &data, -1);
-
-      return data;
+      return gimv_row_peek_pointer (r, ROWDATA (editlist->columns));
    }
 }
 
@@ -1237,13 +1073,8 @@ gimv_elist_unselect_all (GimvEList *editlist)
 {
    g_return_if_fail (GIMV_IS_ELIST (editlist));
 
-   {
-      GtkTreeView *treeview = GTK_TREE_VIEW (editlist->clist);
-      GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-
-      gtk_tree_selection_unselect_all (selection);
-      editlist->selected = -1;
-   }
+   gimv_list_view_unselect_all (editlist->clist);
+   editlist->selected = -1;
 
    gimv_elist_set_sensitive (editlist);
 }

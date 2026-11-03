@@ -1343,3 +1343,316 @@ gimv_list_view_unselect_all (GtkWidget *view)
    g_return_if_fail (selection);
    gtk_selection_model_unselect_all (selection);
 }
+
+
+
+/******************************************************************************
+ *
+ *   reordering
+ *
+ ******************************************************************************/
+void
+gimv_list_view_move_row (GtkWidget *view, guint from, guint to)
+{
+   GListModel *model = gimv_list_view_get_model (view);
+   GtkSelectionModel *selection = gimv_list_view_get_selection (view);
+   GimvRow *row;
+   gboolean selected;
+   guint n;
+
+   g_return_if_fail (G_IS_LIST_STORE (model));
+
+   n = g_list_model_get_n_items (model);
+   if (from >= n || from == to) return;
+   if (to >= n) to = n - 1;
+
+   row = g_list_model_get_item (model, from);
+   selected = gtk_selection_model_is_selected (selection, from);
+
+   g_list_store_remove (G_LIST_STORE (model), from);
+   g_list_store_insert (G_LIST_STORE (model), to, row);
+   g_object_unref (row);
+
+   if (selected)
+      gtk_selection_model_select_item (selection, to, TRUE);
+}
+
+
+#define REORDER_KEY "gimv-list-view-reorder"
+
+typedef struct {
+   GtkWidget            *view;
+   GtkDragSource        *source;
+   GtkDropTarget        *target;
+   gboolean              enabled;
+   GimvListReorderedFunc func;
+   gpointer              data;
+} Reorder;
+
+
+static GdkContentProvider *
+cb_reorder_drag_prepare (GtkDragSource *source, gdouble x, gdouble y,
+                         Reorder *reorder)
+{
+   guint position;
+   GValue value = G_VALUE_INIT;
+   GdkContentProvider *content;
+
+   if (!reorder->enabled) return NULL;
+   if (!gimv_list_view_get_row_at (reorder->view, x, y, &position, NULL))
+      return NULL;
+
+   g_value_init (&value, G_TYPE_UINT);
+   g_value_set_uint (&value, position);
+   content = gdk_content_provider_new_for_value (&value);
+   g_value_unset (&value);
+
+   g_object_set_data (G_OBJECT (source), "gimv-reorder-source",
+                      GUINT_TO_POINTER (position + 1));
+
+   return content;
+}
+
+
+/* the position a row dropped at x, y goes to (before or after the row
+   under the pointer, like GtkTreeView did) */
+static guint
+reorder_dest_position (Reorder *reorder, gdouble x, gdouble y, guint from)
+{
+   GListModel *model = gimv_list_view_get_model (reorder->view);
+   guint n = g_list_model_get_n_items (model);
+   guint position, dest;
+   graphene_rect_t area;
+
+   if (!gimv_list_view_get_row_at (reorder->view, x, y, &position, NULL))
+      return n - 1;   /* below the last row */
+
+   dest = position;
+   if (gimv_list_view_get_row_area (reorder->view, position, &area)
+       && y > area.origin.y + area.size.height / 2)
+   {
+      dest = position + 1;   /* after the row */
+   }
+
+   /* the source row is removed first */
+   if (dest > from) dest--;
+   if (dest >= n) dest = n - 1;
+
+   return dest;
+}
+
+
+static gboolean
+cb_reorder_drop (GtkDropTarget *target, const GValue *value,
+                 gdouble x, gdouble y, Reorder *reorder)
+{
+   guint from, to;
+
+   gimv_list_view_set_drop_highlight (reorder->view, -1, -1);
+
+   if (!reorder->enabled) return FALSE;
+   if (!G_VALUE_HOLDS_UINT (value)) return FALSE;
+   /* only rows of this view */
+   if (!g_object_get_data (G_OBJECT (reorder->source), "gimv-reorder-source"))
+      return FALSE;
+
+   from = g_value_get_uint (value);
+   to = reorder_dest_position (reorder, x, y, from);
+   if (from == to) return TRUE;
+
+   gimv_list_view_move_row (reorder->view, from, to);
+   if (reorder->func)
+      reorder->func (reorder->view, from, to, reorder->data);
+
+   return TRUE;
+}
+
+
+static GdkDragAction
+cb_reorder_motion (GtkDropTarget *target, gdouble x, gdouble y, Reorder *reorder)
+{
+   if (!reorder->enabled
+       || !g_object_get_data (G_OBJECT (reorder->source), "gimv-reorder-source"))
+      return 0;
+
+   gimv_list_view_set_drop_highlight (reorder->view, x, y);
+   return GDK_ACTION_MOVE;
+}
+
+
+static void
+cb_reorder_leave (GtkDropTarget *target, Reorder *reorder)
+{
+   gimv_list_view_set_drop_highlight (reorder->view, -1, -1);
+}
+
+
+static void
+cb_reorder_drag_end (GtkDragSource *source, GdkDrag *drag, gboolean delete_data,
+                     Reorder *reorder)
+{
+   g_object_set_data (G_OBJECT (source), "gimv-reorder-source", NULL);
+}
+
+
+void
+gimv_list_view_set_reorderable (GtkWidget *view, gboolean reorderable,
+                                GimvListReorderedFunc func, gpointer data)
+{
+   Reorder *reorder;
+
+   g_return_if_fail (GTK_IS_WIDGET (view));
+
+   reorder = g_object_get_data (G_OBJECT (view), REORDER_KEY);
+
+   if (!reorder && reorderable) {
+      reorder = g_new0 (Reorder, 1);
+      reorder->view = view;
+
+      reorder->source = gtk_drag_source_new ();
+      gtk_drag_source_set_actions (reorder->source, GDK_ACTION_MOVE);
+      g_signal_connect (reorder->source, "prepare",
+                        G_CALLBACK (cb_reorder_drag_prepare), reorder);
+      g_signal_connect (reorder->source, "drag-end",
+                        G_CALLBACK (cb_reorder_drag_end), reorder);
+      gtk_widget_add_controller (view, GTK_EVENT_CONTROLLER (reorder->source));
+
+      reorder->target = gtk_drop_target_new (G_TYPE_UINT, GDK_ACTION_MOVE);
+      g_signal_connect (reorder->target, "drop",
+                        G_CALLBACK (cb_reorder_drop), reorder);
+      g_signal_connect (reorder->target, "motion",
+                        G_CALLBACK (cb_reorder_motion), reorder);
+      g_signal_connect (reorder->target, "leave",
+                        G_CALLBACK (cb_reorder_leave), reorder);
+      gtk_widget_add_controller (view, GTK_EVENT_CONTROLLER (reorder->target));
+
+      g_object_set_data_full (G_OBJECT (view), REORDER_KEY, reorder, g_free);
+   }
+
+   if (reorder) {
+      reorder->enabled = reorderable;
+      reorder->func    = func;
+      reorder->data    = data;
+   }
+}
+
+
+gboolean
+gimv_list_view_get_reorderable (GtkWidget *view)
+{
+   Reorder *reorder;
+
+   g_return_val_if_fail (GTK_IS_WIDGET (view), FALSE);
+
+   reorder = g_object_get_data (G_OBJECT (view), REORDER_KEY);
+   return reorder ? reorder->enabled : FALSE;
+}
+
+
+
+/******************************************************************************
+ *
+ *   sorting by clicking a column title
+ *
+ ******************************************************************************/
+#define SORT_KEY "gimv-column-view-sort"
+
+typedef struct {
+   GtkColumnView       *view;
+   GtkColumnViewColumn *column;   /* not referenced (the view keeps it) */
+   gint                 text_col;
+   GtkSortType          order;
+} SortInfo;
+
+
+static gint
+sort_compare_rows (gconstpointer a, gconstpointer b, gpointer data)
+{
+   SortInfo *info = data;
+   const gchar *str1 = gimv_row_peek_string (GIMV_ROW ((gpointer) a), info->text_col);
+   const gchar *str2 = gimv_row_peek_string (GIMV_ROW ((gpointer) b), info->text_col);
+   gint retval;
+
+   retval = g_strcmp0 (str1, str2);
+   return info->order == GTK_SORT_DESCENDING ? -retval : retval;
+}
+
+
+/* the column sorter only makes the title clickable and shows the sort
+   indicator; the rows are sorted in their store */
+static gint
+sort_compare_dummy (gconstpointer a, gconstpointer b, gpointer data)
+{
+   return 0;
+}
+
+
+static void
+cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, SortInfo *info)
+{
+   GtkColumnViewSorter *cv_sorter;
+   GListModel *model;
+   GimvRow *selected;
+   guint position;
+
+   if (!info->column) return;
+   if (!GTK_IS_COLUMN_VIEW_SORTER (sorter)) return;
+
+   cv_sorter = GTK_COLUMN_VIEW_SORTER (sorter);
+   if (gtk_column_view_sorter_get_primary_sort_column (cv_sorter) != info->column)
+      return;
+
+   info->order = gtk_column_view_sorter_get_primary_sort_order (cv_sorter);
+
+   model = gimv_list_view_get_model (GTK_WIDGET (info->view));
+   if (!G_IS_LIST_STORE (model)) return;
+
+   /* keep the selected row selected */
+   selected = gimv_list_view_get_selected_row (GTK_WIDGET (info->view));
+   if (selected) g_object_ref (selected);
+
+   g_list_store_sort (G_LIST_STORE (model), sort_compare_rows, info);
+
+   if (selected) {
+      if (g_list_store_find (G_LIST_STORE (model), selected, &position))
+         gimv_list_view_select (GTK_WIDGET (info->view), position);
+      g_object_unref (selected);
+   }
+}
+
+
+void
+gimv_column_view_set_sort_column (GtkColumnView *view,
+                                  GtkColumnViewColumn *column,
+                                  gint text_col)
+{
+   SortInfo *info;
+   guint i, n;
+
+   g_return_if_fail (GTK_IS_COLUMN_VIEW (view));
+
+   info = g_object_get_data (G_OBJECT (view), SORT_KEY);
+   if (!info) {
+      info = g_new0 (SortInfo, 1);
+      info->view = view;
+      g_object_set_data_full (G_OBJECT (view), SORT_KEY, info, g_free);
+      g_signal_connect (gtk_column_view_get_sorter (view), "changed",
+                        G_CALLBACK (cb_sorter_changed), info);
+   }
+
+   n = gimv_column_view_get_n_columns (view);
+   for (i = 0; i < n; i++)
+      gtk_column_view_column_set_sorter (gimv_column_view_get_column (view, i),
+                                         NULL);
+
+   info->column   = column;
+   info->text_col = text_col;
+   info->order    = GTK_SORT_ASCENDING;
+
+   if (column) {
+      GtkSorter *sorter = GTK_SORTER (gtk_custom_sorter_new (sort_compare_dummy,
+                                                             NULL, NULL));
+      gtk_column_view_column_set_sorter (column, sorter);
+      g_object_unref (sorter);
+   }
+}

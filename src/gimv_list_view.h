@@ -224,6 +224,31 @@ void                gimv_list_view_select             (GtkWidget  *view,
                                                        guint       position);
 void                gimv_list_view_unselect_all       (GtkWidget  *view);
 
+/* move the row at from to position to (of a view on a GListStore) and keep
+   it selected if it was */
+void                gimv_list_view_move_row           (GtkWidget  *view,
+                                                       guint       from,
+                                                       guint       to);
+/* rows can be moved by drag and drop (like gtk_tree_view_set_reorderable ()).
+   func (may be NULL) is called after a row is moved. */
+typedef void (*GimvListReorderedFunc) (GtkWidget *view,
+                                       guint      from,
+                                       guint      to,
+                                       gpointer   data);
+void                gimv_list_view_set_reorderable    (GtkWidget  *view,
+                                                       gboolean    reorderable,
+                                                       GimvListReorderedFunc func,
+                                                       gpointer    data);
+gboolean            gimv_list_view_get_reorderable    (GtkWidget  *view);
+
+/* clicking the title of column sorts the rows of the GListStore of the view
+   by the string in text_col (the order of the rows changes like it did in a
+   sortable GtkListStore, the model is not a GtkSortListModel).  column NULL
+   removes the sort column. */
+void                gimv_column_view_set_sort_column  (GtkColumnView       *view,
+                                                       GtkColumnViewColumn *column,
+                                                       gint                 text_col);
+
 G_END_DECLS
 
 #endif /* __GIMV_LIST_VIEW_H__ */
