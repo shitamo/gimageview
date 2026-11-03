@@ -49,6 +49,8 @@ static void gimv_comment_view_set_sensitive  (GimvCommentView *cv);
 static void gimv_comment_view_set_combo_list (GimvCommentView *cv);
 static void gimv_comment_view_data_enter     (GimvCommentView *cv);
 static void gimv_comment_view_reset_data     (GimvCommentView *cv);
+static void combo_select_name                 (GimvCommentView *cv,
+                                               const gchar     *name);
 
 
 /******************************************************************************
@@ -106,7 +108,8 @@ gimv_comment_view_delete_selected_data (GimvCommentView *cv)
    if (entry)
       gimv_comment_data_entry_remove (cv->comment, entry);
 
-   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), "\0");
+   gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo),
+                               GTK_INVALID_LIST_POSITION);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
    gimv_comment_view_set_sensitive (cv);
@@ -200,12 +203,11 @@ cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
    GtkTreeIter iter;
    gboolean success;
    gchar *key = NULL, *value = NULL;
-   GtkEntry *entry1, *entry2;
+   GtkEntry *entry2;
 
    /* GTK4: also emitted while the tree view is disposed (without model) */
    if (!gtk_tree_view_get_model (treeview)) return;
 
-   entry1 = GTK_ENTRY (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo)));
    entry2 = GTK_ENTRY(cv->value_entry);
 
    success = gtk_tree_selection_get_selected (selection, &model, &iter);
@@ -216,10 +218,7 @@ cb_tree_view_cursor_changed (GtkTreeView *treeview, GimvCommentView *cv)
                           COLUMN_TERMINATOR);
    }
 
-   if (key)
-      gtk_editable_set_text (GTK_EDITABLE (entry1), key);
-   else
-      gtk_editable_set_text (GTK_EDITABLE (entry1), "\0");
+   combo_select_name (cv, key);
    if (value)
       gtk_editable_set_text (GTK_EDITABLE (entry2), value);
    else
@@ -303,12 +302,41 @@ cb_entry_enter (GtkEditable *entry, GimvCommentView *cv)
 
 
 /*
- *  GTK4: GtkCombo is gone, the key combo is a GtkComboBoxText with an entry.
- *  The keys and the display names of the items are attached to the combo as
- *  "keys" and "names" (GPtrArray).  When an item is selected (or the entry
- *  text matches an item, like GtkCombo did), the key of it is attached as
- *  "key" and cv->selected_item points to the combo.
+ *  GTK4: GtkCombo is gone, the key combo is a GtkDropDown (its entry was
+ *  not editable).  The keys and the display names of the items are attached
+ *  to the combo as "keys" and "names" (GPtrArray).  When an item is selected
+ *  the key of it is attached as "key" and cv->selected_item points to the
+ *  combo.
  */
+static const gchar *
+combo_get_selected_name (GimvCommentView *cv)
+{
+   GPtrArray *names = g_object_get_data (G_OBJECT (cv->key_combo), "names");
+   guint idx = gtk_drop_down_get_selected (GTK_DROP_DOWN (cv->key_combo));
+
+   if (!names || idx == GTK_INVALID_LIST_POSITION || idx >= names->len)
+      return "";
+   return g_ptr_array_index (names, idx);
+}
+
+
+/* select the item whose display name is "name" (none if not found) */
+static void
+combo_select_name (GimvCommentView *cv, const gchar *name)
+{
+   GPtrArray *names = g_object_get_data (G_OBJECT (cv->key_combo), "names");
+   guint i, idx = GTK_INVALID_LIST_POSITION;
+
+   for (i = 0; name && names && i < names->len; i++) {
+      if (!strcmp (name, g_ptr_array_index (names, i))) {
+         idx = i;
+         break;
+      }
+   }
+   gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo), idx);
+}
+
+
 static void
 combo_select_key (GimvCommentView *cv, const gchar *key)
 {
@@ -357,49 +385,24 @@ combo_select_key (GimvCommentView *cv, const gchar *key)
 
 
 static void
-cb_combo_changed (GtkComboBox *combo, GimvCommentView *cv)
+cb_combo_changed (GtkDropDown *combo, GParamSpec *pspec, GimvCommentView *cv)
 {
-   GPtrArray *keys, *names;
-   gint idx;
+   GPtrArray *keys;
+   guint idx;
 
    g_return_if_fail (cv);
 
-   keys  = g_object_get_data (G_OBJECT (combo), "keys");
-   names = g_object_get_data (G_OBJECT (combo), "names");
-   if (!keys || !names) {
+   keys = g_object_get_data (G_OBJECT (combo), "keys");
+   if (!keys) {
       cv->selected_item = NULL;
       return;
    }
 
-   idx = gtk_combo_box_get_active (combo);
-   if (idx < 0) {
-      /* find the item which matches with the entry text */
-      const gchar *text;
-      guint i;
-
-      text = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (combo))));
-      for (i = 0; text && i < names->len; i++) {
-         if (!strcmp (text, g_ptr_array_index (names, i))) {
-            idx = i;
-            break;
-         }
-      }
-   }
-
-   if (idx >= 0 && (guint) idx < keys->len)
+   idx = gtk_drop_down_get_selected (combo);
+   if (idx != GTK_INVALID_LIST_POSITION && idx < keys->len)
       combo_select_key (cv, g_ptr_array_index (keys, idx));
    else
       cv->selected_item = NULL;
-}
-
-
-static void
-cb_combo_entry_changed (GtkEditable *entry, GimvCommentView *cv)
-{
-   g_return_if_fail (cv);
-   if (!cv->key_combo) return;
-
-   cb_combo_changed (GTK_COMBO_BOX (cv->key_combo), cv);
 }
 
 
@@ -533,13 +536,10 @@ create_data_page (GimvCommentView *cv)
    gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
    gimv_box_pack_start (GTK_BOX (hbox1), label, FALSE, FALSE, 0);
 
-   cv->key_combo = combo = gimv_combo_new ();
+   cv->key_combo = combo = gtk_drop_down_new_from_strings (NULL);
    gimv_box_pack_start (GTK_BOX (vbox1), combo, TRUE, TRUE, 0);
-   gtk_editable_set_editable (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), FALSE);
-   g_signal_connect (G_OBJECT (combo), "changed",
+   g_signal_connect (G_OBJECT (combo), "notify::selected",
                      G_CALLBACK (cb_combo_changed), cv);
-   g_signal_connect (G_OBJECT (gimv_combo_get_entry (combo)), "changed",
-                     G_CALLBACK (cb_combo_entry_changed), cv);
 
    vbox1 = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
@@ -631,7 +631,7 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
 
    g_return_if_fail (cv);
 
-   key_str   = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))));
+   key_str   = combo_get_selected_name (cv);
    value_str = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
 
    if (!cv->comment || !gtk_widget_get_visible (GTK_WIDGET (cv->button_area))) {
@@ -657,19 +657,18 @@ gimv_comment_view_set_combo_list (GimvCommentView *cv)
 {
    GList *list;
    GPtrArray *keys, *names;
-   GtkComboBox *combo;
+   GtkDropDown *combo;
+   GtkStringList *strings;
 
    g_return_if_fail (cv);
    g_return_if_fail (cv->key_combo);
 
-   combo = GTK_COMBO_BOX (cv->key_combo);
+   combo = GTK_DROP_DOWN (cv->key_combo);
 
    g_signal_handlers_block_by_func (G_OBJECT (combo),
                                     G_CALLBACK (cb_combo_changed), cv);
-   g_signal_handlers_block_by_func (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))),
-                                    G_CALLBACK (cb_combo_entry_changed), cv);
 
-   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (combo));
+   strings = gtk_string_list_new (NULL);
    cv->selected_item = NULL;
 
    keys  = g_ptr_array_new_with_free_func (g_free);
@@ -703,18 +702,19 @@ gimv_comment_view_set_combo_list (GimvCommentView *cv)
 
       g_ptr_array_add (keys,  g_strdup (data_entry->key));
       g_ptr_array_add (names, g_strdup (_(data_entry->display_name)));
-      gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo),
-                                      _(data_entry->display_name));
+      gtk_string_list_append (strings, _(data_entry->display_name));
    }
+
+   gtk_drop_down_set_model (combo, G_LIST_MODEL (strings));
+   g_object_unref (strings);
+   gtk_drop_down_set_selected (combo, GTK_INVALID_LIST_POSITION);
 
    g_signal_handlers_unblock_by_func (G_OBJECT (combo),
                                       G_CALLBACK (cb_combo_changed), cv);
-   g_signal_handlers_unblock_by_func (G_OBJECT (gimv_combo_get_entry (GTK_WIDGET (combo))),
-                                      G_CALLBACK (cb_combo_entry_changed), cv);
 
    /* select first item */
    if (keys->len > 0)
-      gtk_combo_box_set_active (combo, 0);
+      gtk_drop_down_set_selected (combo, 0);
 }
 
 
@@ -731,7 +731,7 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
    key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
    g_return_if_fail (key);
 
-   dname = gtk_editable_get_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))));
+   dname = combo_get_selected_name (cv);
    value = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
    g_return_if_fail (dname && *dname);
 
@@ -844,7 +844,8 @@ gimv_comment_view_clear (GimvCommentView *cv)
       gtk_list_store_clear (GTK_LIST_STORE (model));
    }
 
-   gtk_editable_set_text (GTK_EDITABLE (gimv_combo_get_entry (GTK_WIDGET (cv->key_combo))), "\0");
+   gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo),
+                               GTK_INVALID_LIST_POSITION);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
    {

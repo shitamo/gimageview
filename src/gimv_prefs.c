@@ -683,7 +683,7 @@ gimv_prefs_get_value (GimvPrefs *profile,
 		if (!(array = misc_str_to_array(&n, p->value, 10, FALSE)))
 			return FALSE;
 		if (size <= n)
-			g_memmove(value, array, size);
+			memmove(value, array, size);
 		g_free(array);
 		if (n < size)
 			return FALSE;

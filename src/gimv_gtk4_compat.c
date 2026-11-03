@@ -1229,31 +1229,103 @@ gimv_option_menu_set_sensitive_item (GtkWidget *option_menu,
  *   combo
  *
  ******************************************************************************/
+/*
+ *  GtkComboBoxText (with an entry) is deprecated since GTK 4.10 and GtkDropDown
+ *  has no entry, so the combo is a linked box of a GtkEntry and a
+ *  GtkMenuButton whose popover lists the strings; activating one copies it
+ *  into the entry (which emits "changed" like GtkComboBox did).
+ */
+#define COMBO_ENTRY_KEY   "gimv-combo-entry"
+#define COMBO_LIST_KEY    "gimv-combo-list"
+#define COMBO_BUTTON_KEY  "gimv-combo-button"
+
+static void
+cb_combo_row_activated (GtkListBox *listbox, GtkListBoxRow *row, GtkWidget *combo)
+{
+   GtkWidget *entry  = g_object_get_data (G_OBJECT (combo), COMBO_ENTRY_KEY);
+   GtkWidget *button = g_object_get_data (G_OBJECT (combo), COMBO_BUTTON_KEY);
+   GtkWidget *label  = gtk_list_box_row_get_child (row);
+
+   if (GTK_IS_LABEL (label))
+      gtk_editable_set_text (GTK_EDITABLE (entry),
+                             gtk_label_get_text (GTK_LABEL (label)));
+   gtk_menu_button_popdown (GTK_MENU_BUTTON (button));
+   gtk_widget_grab_focus (entry);
+}
+
+
 GtkWidget *
 gimv_combo_new (void)
 {
-   return gtk_combo_box_text_new_with_entry ();
+   GtkWidget *combo, *entry, *button, *popover, *scrolled, *listbox;
+
+   combo = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+   gtk_widget_add_css_class (combo, "linked");
+
+   entry = gtk_entry_new ();
+   gtk_widget_set_hexpand (entry, TRUE);
+   gtk_box_append (GTK_BOX (combo), entry);
+
+   listbox = gtk_list_box_new ();
+   gtk_list_box_set_selection_mode (GTK_LIST_BOX (listbox), GTK_SELECTION_NONE);
+   gtk_list_box_set_activate_on_single_click (GTK_LIST_BOX (listbox), TRUE);
+   g_signal_connect (listbox, "row-activated",
+                     G_CALLBACK (cb_combo_row_activated), combo);
+
+   scrolled = gtk_scrolled_window_new ();
+   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_propagate_natural_height (GTK_SCROLLED_WINDOW (scrolled),
+                                                     TRUE);
+   gtk_scrolled_window_set_max_content_height (GTK_SCROLLED_WINDOW (scrolled),
+                                               300);
+   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), listbox);
+
+   popover = gtk_popover_new ();
+   gtk_popover_set_child (GTK_POPOVER (popover), scrolled);
+
+   button = gtk_menu_button_new ();
+   gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (button), "pan-down-symbolic");
+   gtk_menu_button_set_popover (GTK_MENU_BUTTON (button), popover);
+   gtk_box_append (GTK_BOX (combo), button);
+
+   g_object_set_data (G_OBJECT (combo), COMBO_ENTRY_KEY,  entry);
+   g_object_set_data (G_OBJECT (combo), COMBO_LIST_KEY,   listbox);
+   g_object_set_data (G_OBJECT (combo), COMBO_BUTTON_KEY, button);
+
+   return combo;
 }
 
 
 GtkWidget *
 gimv_combo_get_entry (GtkWidget *combo)
 {
-   g_return_val_if_fail (GTK_IS_COMBO_BOX (combo), NULL);
-   return gtk_combo_box_get_child (GTK_COMBO_BOX (combo));
+   GtkWidget *entry;
+
+   g_return_val_if_fail (GTK_IS_WIDGET (combo), NULL);
+   entry = g_object_get_data (G_OBJECT (combo), COMBO_ENTRY_KEY);
+   g_return_val_if_fail (GTK_IS_ENTRY (entry), NULL);
+
+   return entry;
 }
 
 
 void
 gimv_combo_set_popdown_strings (GtkWidget *combo, GList *strings)
 {
+   GtkWidget *listbox;
    GList *node;
 
-   g_return_if_fail (GTK_IS_COMBO_BOX_TEXT (combo));
+   g_return_if_fail (GTK_IS_WIDGET (combo));
+   listbox = g_object_get_data (G_OBJECT (combo), COMBO_LIST_KEY);
+   g_return_if_fail (GTK_IS_LIST_BOX (listbox));
 
-   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (combo));
-   for (node = strings; node; node = g_list_next (node))
-      gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo), node->data);
+   gtk_list_box_remove_all (GTK_LIST_BOX (listbox));
+   for (node = strings; node; node = g_list_next (node)) {
+      GtkWidget *label = gtk_label_new (node->data);
+      gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+      gtk_list_box_append (GTK_LIST_BOX (listbox), label);
+   }
 }
 
 
