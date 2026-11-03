@@ -613,6 +613,7 @@ gimv_index_missing_open (GtkWindow *parent, const gchar *log_path)
    add_column (mw, _("Tags"), COL_TAGS, 90);
    add_column (mw, _("Moved To"), COL_MOVED, 200);
    add_column (mw, _("State"), COL_STATE, 0);
+   gimv_list_view_enable_search (mw->tree, COL_PATH, NULL, NULL);
    g_signal_connect (gimv_list_view_get_selection (mw->tree), "selection-changed",
                      G_CALLBACK (cb_selection_changed), mw);
 

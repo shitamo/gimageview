@@ -704,6 +704,7 @@ create_data_page (GimvCommentView *cv)
    clist = gimv_column_view_new (G_LIST_MODEL (gimv_row_store_new ()),
                                  GTK_SELECTION_SINGLE);
    cv->comment_clist = clist;
+   gimv_list_view_enable_search (clist, COLUMN_KEY, NULL, NULL);
 
    /* set column for key */
    col = gimv_column_view_append (GTK_COLUMN_VIEW (clist), titles[0],

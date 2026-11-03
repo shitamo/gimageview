@@ -492,6 +492,7 @@ prefs_win_create_navtree (void)
                                                      navtree_cell_bind,
                                                      NULL, NULL, TRUE));
    prefs_win.tree = tree;
+   gimv_list_view_enable_search (tree, COLUMN_NAME, NULL, NULL);
 
    gimv_event_connect (GTK_WIDGET (tree), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_tree_key_press), NULL);
    g_signal_connect (gimv_list_view_get_selection (tree), "selection-changed",

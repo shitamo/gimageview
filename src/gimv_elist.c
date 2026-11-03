@@ -513,6 +513,7 @@ gimv_elist_create_list_widget (GimvEList *editlist, gint colnum)
    store = gimv_row_store_new ();
    clist = gimv_column_view_new (G_LIST_MODEL (store), GTK_SELECTION_SINGLE);
    editlist->clist = clist;
+   gimv_list_view_enable_search (clist, 0, NULL, NULL);
    gimv_list_view_set_reorderable (clist, TRUE,
                                    cb_editlist_reordered, editlist);
 

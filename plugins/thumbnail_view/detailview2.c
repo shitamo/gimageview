@@ -1210,6 +1210,42 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
 }
 
 
+/* typing on the list: a file by its name */
+static gchar *
+detail_search_text (GimvRow *row, gpointer data)
+{
+   GimvThumb *thumb = gimv_row_peek_pointer (row, COLUMN_THUMB_DATA);
+   const gchar *path;
+
+   if (!GIMV_IS_THUMB (thumb) || !thumb->info
+       || !(path = gimv_image_info_get_path (thumb->info)))
+      return NULL;
+   return charset_to_internal (fileutil_basename (path), conf.charset_filename,
+                               conf.charset_auto_detect_fn, conf.charset_filename_mode);
+}
+
+
+/* the file found: selected alone and focused, as a click does */
+static void
+detail_search_select (GtkWidget *view, guint position, gpointer data)
+{
+   GimvThumbView *tv = data;
+   DetailViewData *tv_data;
+   GimvRow *row;
+   GimvThumb *thumb;
+
+   if (!GIMV_IS_THUMB_VIEW (tv)) return;
+   tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
+   if (!tv_data) return;
+   row = gimv_row_store_peek (G_LIST_MODEL (tv_data->store), position);
+   thumb = row ? gimv_row_peek_pointer (row, COLUMN_THUMB_DATA) : NULL;
+   if (!GIMV_IS_THUMB (thumb)) return;
+   gimv_thumb_view_set_selection_all (tv, FALSE);
+   gimv_thumb_view_set_selection (thumb, TRUE);
+   gimv_thumb_view_set_focus (tv, thumb);
+}
+
+
 static gboolean
 cb_treeview_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
                            GtkTooltip *tooltip, GimvThumbView *tv)
@@ -1297,6 +1333,8 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    /* the files of a collection from the index show the name only: the full
       path as the tooltip */
    gtk_widget_set_has_tooltip (tv_data->treeview, TRUE);
+   gimv_list_view_enable_search (tv_data->treeview, -1, detail_search_text, NULL);
+   gimv_list_view_set_search_select (tv_data->treeview, detail_search_select, tv);
    g_signal_connect_object (tv_data->treeview, "query-tooltip",
                             G_CALLBACK (cb_treeview_query_tooltip), tv, 0);
 

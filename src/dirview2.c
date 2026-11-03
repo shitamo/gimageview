@@ -1148,6 +1148,7 @@ dirview_create_treeview (DirView *dv, const gchar *root)
                                                             dirtree_ptr, g_free,
                                                             TRUE));
    *dirtree_ptr = dv->dirtree;
+   gimv_list_view_enable_search (dv->dirtree, COLUMN_LABEL, NULL, NULL);
    g_object_add_weak_pointer (G_OBJECT (dv->dirtree), (gpointer *) dirtree_ptr);
    g_object_set_data_full (G_OBJECT (dv->dirtree), ROOT_STORE_KEY,
                            store, g_object_unref);

@@ -377,6 +377,7 @@ gimv_dlist_create_list_widget (GimvDList *dslist, gboolean reorderble)
    clist = gimv_list_view_new (G_LIST_MODEL (store), GTK_SELECTION_SINGLE,
                                gimv_text_factory_new (0, FALSE));
    dslist->clist2 = clist;
+   gimv_list_view_enable_search (clist, 0, NULL, NULL);
 
    if (reorderble)
       gimv_list_view_set_reorderable (clist, TRUE,

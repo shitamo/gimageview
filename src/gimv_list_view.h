@@ -258,6 +258,25 @@ void                gimv_column_view_set_sort_column  (GtkColumnView       *view
                                                        GtkColumnViewColumn *column,
                                                        gint                 text_col);
 
+/* searching a row by typing on the list (or Ctrl+F), as GtkTreeView did:
+   the text of a row is the string of text_col, or what func returns (a new
+   string; then text_col is not used) */
+/* the key being handled by ctrl (a key controller on view) is a shortcut
+   of the window's menus: left to them */
+gboolean            gimv_list_view_key_is_shortcut    (GtkWidget  *view,
+                                                       GtkEventController *ctrl);
+typedef gchar *(*GimvListSearchFunc) (GimvRow *row, gpointer data);
+void                gimv_list_view_enable_search      (GtkWidget  *view,
+                                                       gint        text_col,
+                                                       GimvListSearchFunc func,
+                                                       gpointer    data);
+/* how the row found is selected, when not by the selection model */
+typedef void (*GimvListSearchSelectFunc) (GtkWidget *view, guint position,
+                                          gpointer data);
+void                gimv_list_view_set_search_select  (GtkWidget  *view,
+                                                       GimvListSearchSelectFunc func,
+                                                       gpointer    data);
+
 G_END_DECLS
 
 #endif /* __GIMV_LIST_VIEW_H__ */

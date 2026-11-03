@@ -123,6 +123,7 @@ create_plugin_admin_widget (GList *plugin_list)
       /* GTK4: GtkTreeView (deprecated) -> GtkColumnView */
       clist = gimv_column_view_new (G_LIST_MODEL (store), GTK_SELECTION_SINGLE);
       gimv_container_add (GTK_WIDGET (scrollwin), clist);
+      gimv_list_view_enable_search (clist, 0, NULL, NULL);
 
       /* set columns */
       for (i = 0; i < titles_num; i++) {

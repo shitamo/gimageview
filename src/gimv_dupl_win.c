@@ -158,6 +158,7 @@ gimv_dupl_win_init (GimvDuplWin *sw)
       sw->ctree = gimv_column_view_new (G_LIST_MODEL (model),
                                         GTK_SELECTION_SINGLE);
       gimv_container_add (GTK_WIDGET (scrolledwin), sw->ctree);
+      gimv_list_view_enable_search (sw->ctree, COLUMN_NAME, NULL, NULL);
 
       /* name column: the thumbnail (or the icon) and the name */
       col = gimv_column_view_append (GTK_COLUMN_VIEW (sw->ctree),

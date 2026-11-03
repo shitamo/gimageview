@@ -283,6 +283,7 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
                                        GTK_SELECTION_SINGLE);
 
          /* set column for key */
+         gimv_list_view_enable_search (clist, COLUMN_KEY, NULL, NULL);
          col = gimv_column_view_append_text (GTK_COLUMN_VIEW (clist),
                                              _(titles[0]), COLUMN_KEY);
          gtk_column_view_column_set_resizable (col, TRUE);

@@ -1726,3 +1726,373 @@ gimv_column_view_set_sort_column (GtkColumnView *view,
       g_object_unref (sorter);
    }
 }
+
+
+
+/******************************************************************************
+ *
+ *   searching a row by typing (GtkTreeView had it; the list views of GTK 4
+ *   have not): a search entry in a popover at the top of the list.  Typing
+ *   on the list opens it (the keys of the window's shortcuts stay theirs),
+ *   Ctrl+F too.  The row found is selected; Up and Down: the one before and
+ *   the next, Enter: the row is activated, Escape: closed.
+ *
+ ******************************************************************************/
+typedef struct {
+   GtkWidget          *view;
+   GtkWidget          *popover;
+   GtkWidget          *entry;
+   gint                text_col;
+   GimvListSearchFunc  func;
+   gpointer            data;
+   GimvListSearchSelectFunc select;   /* NULL: the selection model */
+   gpointer            select_data;
+   guint               found;    /* position of the row found */
+   guint               idle_id;  /* closed when nothing is typed for a while */
+   guint               focus_id;
+} ListSearch;
+
+#define LIST_SEARCH_KEY     "gimv-list-search"
+#define LIST_SEARCH_TIMEOUT 5     /* seconds, as GtkTreeView */
+
+
+static gchar *
+list_search_fold (const gchar *text)
+{
+   gchar *norm = text ? g_utf8_normalize (text, -1, G_NORMALIZE_ALL) : NULL;
+   gchar *fold = norm ? g_utf8_casefold (norm, -1) : NULL;
+   g_free (norm);
+   return fold;
+}
+
+
+/* the rows (a selection model of its own is a list of them too) */
+static GListModel *
+list_search_model (ListSearch *ls)
+{
+   GListModel *model = gimv_list_view_get_model (ls->view);
+   if (!model) model = G_LIST_MODEL (gimv_list_view_get_selection (ls->view));
+   return model;
+}
+
+
+static gchar *
+list_search_row_text (ListSearch *ls, guint pos)
+{
+   GListModel *model = list_search_model (ls);
+   GimvRow *row = model ? gimv_row_store_peek (model, pos) : NULL;
+
+   if (!row) return NULL;
+   if (ls->func) return ls->func (row, ls->data);
+   return value_to_string (gimv_row_peek_value (row, ls->text_col));
+}
+
+
+/* from start (itself too unless again), around; prefix first, else a part */
+static gboolean
+list_search_find (ListSearch *ls, guint start, gboolean forward, gboolean again)
+{
+   GListModel *model = list_search_model (ls);
+   gchar *key = list_search_fold (gtk_editable_get_text (GTK_EDITABLE (ls->entry)));
+   guint n = model ? g_list_model_get_n_items (model) : 0, i, pass;
+   gboolean found = FALSE;
+
+   if (!key || !*key || !n) {
+      g_free (key);
+      return FALSE;
+   }
+   if (start >= n) start = 0;
+   for (pass = 0; pass < 2 && !found; pass++) {
+      for (i = again ? 1 : 0; i <= n && !found; i++) {
+         guint pos = forward ? (start + i) % n : (start + n - (i % n)) % n;
+         gchar *text = list_search_row_text (ls, pos), *fold = list_search_fold (text);
+
+         if (fold && (pass == 0 ? g_str_has_prefix (fold, key) : strstr (fold, key) != NULL)) {
+            found = TRUE;
+            ls->found = pos;
+         }
+         g_free (fold);
+         g_free (text);
+         if (i == n && !again) break;
+      }
+   }
+   g_free (key);
+
+   if (found) {
+      if (ls->select) {
+         ls->select (ls->view, ls->found, ls->select_data);
+         gimv_list_view_scroll_to (ls->view, ls->found, FALSE, FALSE);
+      } else {
+         /* selected alone (the others unselected) */
+         gimv_list_view_scroll_to (ls->view, ls->found, TRUE, FALSE);
+      }
+      gtk_widget_remove_css_class (ls->entry, "error");
+   } else {
+      gtk_widget_add_css_class (ls->entry, "error");
+   }
+   return found;
+}
+
+
+static gboolean
+list_search_timeout (gpointer data)
+{
+   ListSearch *ls = data;
+   ls->idle_id = 0;
+   gtk_popover_popdown (GTK_POPOVER (ls->popover));
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+list_search_touch (ListSearch *ls)
+{
+   if (ls->idle_id) g_source_remove (ls->idle_id);
+   ls->idle_id = g_timeout_add_seconds (LIST_SEARCH_TIMEOUT, list_search_timeout, ls);
+}
+
+
+/* the row found, or the one selected */
+static guint
+list_search_current (ListSearch *ls)
+{
+   if (ls->found != GTK_INVALID_LIST_POSITION) return ls->found;
+   return gimv_list_view_get_selected (ls->view);
+}
+
+
+static void
+cb_list_search_changed (GtkSearchEntry *entry, ListSearch *ls)
+{
+   guint sel = list_search_current (ls);
+   list_search_touch (ls);
+   list_search_find (ls, sel == GTK_INVALID_LIST_POSITION ? 0 : sel, TRUE, FALSE);
+}
+
+
+static void
+cb_list_search_activate (GtkSearchEntry *entry, ListSearch *ls)
+{
+   guint pos = list_search_current (ls);
+
+   gtk_popover_popdown (GTK_POPOVER (ls->popover));
+   if (pos == GTK_INVALID_LIST_POSITION) return;
+   gimv_list_view_set_focus_position (ls->view, pos, TRUE);
+   gtk_widget_activate_action (ls->view, "list.activate-item", "u", pos);
+}
+
+
+static gboolean
+cb_list_search_key (GtkEventControllerKey *ctrl, guint keyval, guint code,
+                    GdkModifierType state, ListSearch *ls)
+{
+   guint sel = list_search_current (ls);
+
+   list_search_touch (ls);
+   if (sel == GTK_INVALID_LIST_POSITION) sel = 0;
+   if (keyval == GDK_KEY_Down || keyval == GDK_KEY_KP_Down) {
+      list_search_find (ls, sel, TRUE, TRUE);
+      return TRUE;
+   }
+   if (keyval == GDK_KEY_Up || keyval == GDK_KEY_KP_Up) {
+      list_search_find (ls, sel, FALSE, TRUE);
+      return TRUE;
+   }
+   if (keyval == GDK_KEY_Escape) {
+      gtk_popover_popdown (GTK_POPOVER (ls->popover));
+      return TRUE;
+   }
+   /* the text, not the window's Ctrl+A, Ctrl+F */
+   if ((keyval == GDK_KEY_a || keyval == GDK_KEY_A || keyval == GDK_KEY_f || keyval == GDK_KEY_F)
+       && (state & GDK_CONTROL_MASK))
+   {
+      gtk_editable_select_region (GTK_EDITABLE (ls->entry), 0, -1);
+      return TRUE;
+   }
+   return FALSE;
+}
+
+
+/* after the popover has given the focus back where it was */
+static gboolean
+list_search_refocus (gpointer data)
+{
+   ListSearch *ls = data;
+   guint pos = list_search_current (ls);
+
+   ls->focus_id = 0;
+   if (gtk_widget_get_mapped (ls->view)) {
+      gtk_widget_grab_focus (ls->view);
+      if (pos != GTK_INVALID_LIST_POSITION)
+         gimv_list_view_set_focus_position (ls->view, pos, FALSE);
+   }
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_list_search_closed (GtkPopover *popover, ListSearch *ls)
+{
+   if (ls->idle_id) {
+      g_source_remove (ls->idle_id);
+      ls->idle_id = 0;
+   }
+   /* the keys go back to the list, on the row found */
+   if (!ls->focus_id)
+      ls->focus_id = g_timeout_add (50, list_search_refocus, ls);
+}
+
+
+static GtkWidget *
+list_search_anchor (ListSearch *ls)
+{
+   GtkWidget *w = gtk_widget_get_ancestor (ls->view, GTK_TYPE_SCROLLED_WINDOW);
+   return w ? w : ls->view;
+}
+
+
+static void
+list_search_start (ListSearch *ls, const gchar *text)
+{
+   GtkWidget *anchor = list_search_anchor (ls);
+
+   if (!ls->popover) {
+      GtkEventController *keys;
+
+      ls->entry = gtk_search_entry_new ();
+      gtk_editable_set_width_chars (GTK_EDITABLE (ls->entry), 16);
+      g_signal_connect (ls->entry, "search-changed", G_CALLBACK (cb_list_search_changed), ls);
+      g_signal_connect (ls->entry, "activate", G_CALLBACK (cb_list_search_activate), ls);
+      keys = gtk_event_controller_key_new ();
+      gtk_event_controller_set_propagation_phase (keys, GTK_PHASE_CAPTURE);
+      g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_list_search_key), ls);
+      gtk_widget_add_controller (ls->entry, keys);
+
+      ls->popover = gtk_popover_new ();
+      gtk_popover_set_child (GTK_POPOVER (ls->popover), ls->entry);
+      gtk_popover_set_has_arrow (GTK_POPOVER (ls->popover), FALSE);
+      gtk_popover_set_position (GTK_POPOVER (ls->popover), GTK_POS_BOTTOM);
+      /* not on the list view itself: it manages its children */
+      gtk_widget_set_parent (ls->popover, anchor);
+      g_object_set_data (G_OBJECT (ls->popover), "gimv-list-search-anchor", anchor);
+      g_signal_connect (ls->popover, "closed", G_CALLBACK (cb_list_search_closed), ls);
+   }
+   {
+      /* at the top right of the list */
+      GdkRectangle rect = { MAX (gtk_widget_get_width (anchor) - 1, 0), 0, 1, 1 };
+      gtk_popover_set_pointing_to (GTK_POPOVER (ls->popover), &rect);
+   }
+   ls->found = GTK_INVALID_LIST_POSITION;
+   g_signal_handlers_block_by_func (ls->entry, cb_list_search_changed, ls);
+   gtk_editable_set_text (GTK_EDITABLE (ls->entry), text ? text : "");
+   g_signal_handlers_unblock_by_func (ls->entry, cb_list_search_changed, ls);
+   gtk_widget_remove_css_class (ls->entry, "error");
+   gtk_popover_popup (GTK_POPOVER (ls->popover));
+   gtk_widget_grab_focus (ls->entry);
+   gtk_editable_set_position (GTK_EDITABLE (ls->entry), -1);
+   list_search_touch (ls);
+   if (text && *text) cb_list_search_changed (NULL, ls);
+}
+
+
+/* a shortcut of the window (its menus) for the key: theirs */
+gboolean
+gimv_list_view_key_is_shortcut (GtkWidget *view, GtkEventController *ctrl)
+{
+   GtkRoot *root = gtk_widget_get_root (view);
+   GdkEvent *event = gtk_event_controller_get_current_event (ctrl);
+   const gchar *keys[] = { "gimv-menu-shortcuts", "gimv-shortcut-controller" };
+   guint k, i, n;
+
+   if (!root || !event) return FALSE;
+   for (k = 0; k < G_N_ELEMENTS (keys); k++) {
+      GtkEventController *sc = g_object_get_data (G_OBJECT (root), keys[k]);
+      if (!GTK_IS_SHORTCUT_CONTROLLER (sc)
+          || gtk_event_controller_get_propagation_phase (sc) == GTK_PHASE_NONE)
+         continue;
+      n = g_list_model_get_n_items (G_LIST_MODEL (sc));
+      for (i = 0; i < n; i++) {
+         GtkShortcut *s = g_list_model_get_item (G_LIST_MODEL (sc), i);
+         gboolean hit = gtk_shortcut_trigger_trigger (gtk_shortcut_get_trigger (s), event, FALSE)
+                        == GDK_KEY_MATCH_EXACT;
+         g_object_unref (s);
+         if (hit) return TRUE;
+      }
+   }
+   return FALSE;
+}
+
+
+static gboolean
+cb_list_view_search_key (GtkEventControllerKey *ctrl, guint keyval, guint code,
+                         GdkModifierType state, ListSearch *ls)
+{
+   gunichar c;
+   gchar buf[8];
+   gint len;
+
+   if ((keyval == GDK_KEY_f || keyval == GDK_KEY_F)
+       && (state & GDK_MODIFIER_MASK) == GDK_CONTROL_MASK)
+   {
+      list_search_start (ls, NULL);
+      return TRUE;
+   }
+   if (state & (GDK_CONTROL_MASK | GDK_ALT_MASK | GDK_SUPER_MASK | GDK_META_MASK))
+      return FALSE;
+   c = gdk_keyval_to_unicode (keyval);
+   if (!c || !g_unichar_isgraph (c)) return FALSE;
+   if (gimv_list_view_key_is_shortcut (ls->view, GTK_EVENT_CONTROLLER (ctrl))) return FALSE;
+
+   len = g_unichar_to_utf8 (c, buf);
+   buf[len] = '\0';
+   list_search_start (ls, buf);
+   return TRUE;
+}
+
+
+static void
+list_search_free (ListSearch *ls)
+{
+   if (ls->idle_id) g_source_remove (ls->idle_id);
+   if (ls->focus_id) g_source_remove (ls->focus_id);
+   if (ls->popover) gtk_widget_unparent (ls->popover);
+   g_free (ls);
+}
+
+
+void
+gimv_list_view_enable_search (GtkWidget *view, gint text_col,
+                              GimvListSearchFunc func, gpointer data)
+{
+   ListSearch *ls;
+   GtkEventController *keys;
+
+   g_return_if_fail (GTK_IS_WIDGET (view));
+   if (g_object_get_data (G_OBJECT (view), LIST_SEARCH_KEY)) return;
+
+   ls = g_new0 (ListSearch, 1);
+   ls->view = view;
+   ls->text_col = text_col;
+   ls->func = func;
+   ls->data = data;
+   ls->found = GTK_INVALID_LIST_POSITION;
+   g_object_set_data_full (G_OBJECT (view), LIST_SEARCH_KEY, ls,
+                           (GDestroyNotify) list_search_free);
+
+   /* after the list's own keys (the arrows, Enter) */
+   keys = gtk_event_controller_key_new ();
+   g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_list_view_search_key), ls);
+   gtk_widget_add_controller (view, keys);
+}
+
+
+void
+gimv_list_view_set_search_select (GtkWidget *view, GimvListSearchSelectFunc func,
+                                  gpointer data)
+{
+   ListSearch *ls = g_object_get_data (G_OBJECT (view), LIST_SEARCH_KEY);
+
+   g_return_if_fail (ls);
+   ls->select = func;
+   ls->select_data = data;
+}
