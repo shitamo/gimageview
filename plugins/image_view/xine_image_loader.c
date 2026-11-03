@@ -60,7 +60,7 @@ gimv_xine_image_loader_load_file (GimvImageLoader *loader, gpointer data)
    xine_video_port_t *vo_driver;
    xine_audio_port_t *ao_driver;
    guchar *rgb = NULL;
-   gint width, height;
+   gint width, height, img_size;
    gint ret = 0;
    gfloat pos, ppos;
    gint pos_stream, pos_time, length_time;
@@ -107,13 +107,15 @@ gimv_xine_image_loader_load_file (GimvImageLoader *loader, gpointer data)
    width  = xine_get_stream_info (stream, XINE_STREAM_INFO_VIDEO_WIDTH);
    height = xine_get_stream_info (stream, XINE_STREAM_INFO_VIDEO_HEIGHT);
 
-   pimage = gimv_xine_priv_image_new (sizeof (guchar) * width * height * 2);
+   img_size = sizeof (guchar) * width * height * 2;
+   pimage = gimv_xine_priv_image_new (img_size);
 
-   ret = xine_get_current_frame(stream,
-                                &pimage->width, &pimage->height,
-                                &pimage->ratio_code,
-                                &pimage->format,
-                                pimage->img);
+   /* xine_get_current_frame () (deprecated) did not know the buffer size */
+   ret = xine_get_current_frame_s (stream,
+                                   &pimage->width, &pimage->height,
+                                   &pimage->ratio_code,
+                                   &pimage->format,
+                                   pimage->img, &img_size);
    if (!ret) goto ERROR;
    if (!pimage->img) goto ERROR;
 

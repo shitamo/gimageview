@@ -43,7 +43,7 @@ struct DirViewPrivate_Tag {
    guint        button_action_id;
    guint        swap_com_id;       
 
-   GtkTreePath *drag_tree_row;
+
    guint        adjust_tree_id;
 };
 

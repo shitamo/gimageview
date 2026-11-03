@@ -286,18 +286,19 @@ gimv_nav_win_motion_notify (GtkWidget *widget,
 {
    GimvNavWin *navwin;
    gint mx, my;
-   gdouble x, y, px, py;
+   gdouble x, y;
+   graphene_point_t point, preview_point;
 
    g_return_val_if_fail (GIMV_IS_NAV_WIN (widget), FALSE);
 
    navwin = GIMV_NAV_WIN (widget);
 
    /* GTK2 used window coordinates which are BORDER_WIDTH off the preview */
-   if (gtk_widget_translate_coordinates (widget, navwin->preview,
-                                         event->x, event->y, &px, &py))
+   graphene_point_init (&point, event->x, event->y);
+   if (gtk_widget_compute_point (widget, navwin->preview, &point, &preview_point))
    {
-      mx = (gint) px + BORDER_WIDTH;
-      my = (gint) py + BORDER_WIDTH;
+      mx = (gint) preview_point.x + BORDER_WIDTH;
+      my = (gint) preview_point.y + BORDER_WIDTH;
    } else {
       mx = (gint) event->x;
       my = (gint) event->y;

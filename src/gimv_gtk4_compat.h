@@ -436,7 +436,7 @@ void       gimv_drag_set_icon_texture   (GimvDragContext       *context,
                                          GdkTexture            *texture,
                                          gint                   hot_x,
                                          gint                   hot_y);
-/* GdkContentFormats for a target list (for GtkTreeView model DnD) */
+/* GdkContentFormats for a target list */
 GdkContentFormats *gimv_target_entries_to_formats (const GimvTargetEntry *targets,
                                                    gint                   n_targets);
 
@@ -488,10 +488,6 @@ GdkDisplay *gimv_display                (void);
 void       gimv_screen_get_size         (gint        *width,
                                          gint        *height);
 void       gimv_clipboard_set_text      (const gchar *text);
-
-/* GtkTreeView reacts to column resizing only in a 6 pixel strip left of
-   each header separator; make the strip wider, on both sides */
-void       gimv_tree_view_widen_column_resize (GtkTreeView *treeview);
 
 G_END_DECLS
 

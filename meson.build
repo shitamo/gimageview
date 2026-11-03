@@ -114,13 +114,14 @@ configure_file(output : 'config.h', configuration : conf)
 
 add_project_arguments(
   '-DHAVE_CONFIG_H',
-  # GtkTreeView/GtkComboBox/GtkDialog & friends are deprecated since 4.10 but
-  # remain fully supported for the whole GTK 4 series.
-  '-DGDK_DISABLE_DEPRECATION_WARNINGS',
-  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_10',
+  # warn about API deprecated in, or newer than, the required versions
+  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_12',
+  '-DGDK_VERSION_MAX_ALLOWED=GDK_VERSION_4_12',
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72',
+  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_72',
   cc.get_supported_arguments([
     '-Wno-unused-parameter', '-Wno-sign-compare', '-Wno-pointer-sign',
-    '-Wno-deprecated-declarations', '-Wno-missing-field-initializers',
+    '-Wno-missing-field-initializers',
     '-Werror=implicit-function-declaration', '-Werror=incompatible-pointer-types',
     '-Werror=int-conversion', '-Werror=return-type',
   ]),

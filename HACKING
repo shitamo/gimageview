@@ -42,8 +42,6 @@ Objects without "Gimv" prefix will be replaced to new implementation.
 
 * Common widgets
 
-  GimvCellRendererPixmap : Cell renderer for GdkPixmap mainly used by
-                           GtkTreeView (for Gtk+2 only).
   GimvDList              : Double stack list widget.
                            (The code is still durty)
   GimvEList              : Editable list widget.

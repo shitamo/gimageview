@@ -33,18 +33,26 @@
 #include "gfileutil.h"
 #include "gtk_prop.h"
 #include "gimv_icon_stock.h"
+#include "gimv_list_view.h"
 #include "gimv_thumb_win.h"
 #include "menu.h"
 #include "prefs.h"
 
 
+/*
+ *  GTK4: GtkTreeView/GtkTreeStore (deprecated) -> GtkListView of a
+ *  GtkTreeListModel of GimvRow.  The subdirectories of a directory are read
+ *  when it is expanded the first time (the GtkTreeStore version used dummy
+ *  child rows for that); until then the row has an empty list of children,
+ *  which makes it expandable.
+ */
 typedef enum {
    COLUMN_TERMINATOR = -1,
    COLUMN_LABEL,
    COLUMN_FULLPATH,
    COLUMN_ICON_OPEN,
    COLUMN_ICON_CLOSE,
-   COLUMN_IS_DUMMY,
+   COLUMN_LOADED,      /* the subdirectories were read */
    N_COLUMN
 } TreeStoreColumn;
 
@@ -64,10 +72,8 @@ static gboolean   cb_scroll                      (GtkWidget      *widget,
 static gboolean   cb_key_press                   (GtkWidget      *widget,
                                                   GimvEventKey    *event,
                                                   DirView        *dv);
-static void       cb_tree_expand                 (GtkTreeView    *treeview,
-                                                  GtkTreeIter    *parent_iter,
-                                                  GtkTreePath    *treepath,
-                                                  gpointer        data);
+static void       dirview_load_subdirs           (DirView        *dv,
+                                                  GimvRow        *row);
 
 
 /* callback functions for popup menu */
@@ -151,29 +157,22 @@ static void       cb_com_swap_drag_data_received (GtkWidget        *widget,
 
 /* other private functions */
 static void       get_icon_pixbufs               (void);
-static void       set_columns_type               (GtkTreeView    *tree_view);
+
 static void       dirview_create_treeview        (DirView        *dv,
                                                   const gchar    *root);
 static GtkWidget *dirview_create_toolbar         (DirView        *dv);
-static void       insert_dummy_row               (GtkTreeStore   *store,
-                                                  GtkTreeIter    *parent_iter);
-static void       insert_row                     (GtkTreeStore   *store,
-                                                  GtkTreeIter    *iter,
-                                                  GtkTreeIter    *parent_iter,
+static GimvRow    *insert_row                     (DirView        *dv,
+                                                  GimvRow        *parent,
                                                   const gchar    *label,
                                                   const gchar    *fullpath);
-static gboolean   get_iter_from_path             (DirView        *dv,
-                                                  const gchar    *str,
-                                                  GtkTreeIter    *iter);
-static void       adjust_tree                    (GtkTreeView    *treeview,
-                                                  GtkTreeIter    *iter);
+static GimvRow    *get_iter_from_path             (DirView        *dv,
+                                                  const gchar    *str);
+static void       adjust_tree                    (DirView        *dv,
+                                                  GimvRow        *row);
 static void       adjust_tree_idle               (DirView        *dv,
-                                                  GtkTreeIter    *iter);
-static void       get_expanded_dirs              (GtkTreeView    *treeview,
-                                                  GtkTreePath    *treepath,
-                                                  gpointer        data);
+                                                  GimvRow        *row);
 static void       refresh_dir_tree               (DirView        *dv,
-                                                  GtkTreeIter    *parent_iter);
+                                                  GimvRow        *parent);
 static void       dirview_popup_menu             (DirView        *dv,
                                                   GimvEventButton *event);
 static gboolean   dirview_button_action          (DirView        *dv,
@@ -211,6 +210,96 @@ static GdkPixbuf *lock_folder = NULL;
 
 /******************************************************************************
  *
+ *   tree model helpers
+ *
+ ******************************************************************************/
+#define DIRVIEW_KEY       "gimv-dirview"
+#define ROOT_STORE_KEY    "gimv-dirview-root-store"
+
+static GListStore *
+dirview_root_store (DirView *dv)
+{
+   return g_object_get_data (G_OBJECT (dv->dirtree), ROOT_STORE_KEY);
+}
+
+
+static GtkTreeListModel *
+dirview_tree_model (DirView *dv)
+{
+   GtkSelectionModel *selection = gimv_list_view_get_selection (dv->dirtree);
+   return GTK_TREE_LIST_MODEL (gtk_single_selection_get_model (GTK_SINGLE_SELECTION (selection)));
+}
+
+
+/* the row of the root directory */
+static GimvRow *
+dirview_get_root_row (DirView *dv)
+{
+   return gimv_row_store_peek (G_LIST_MODEL (dirview_root_store (dv)), 0);
+}
+
+
+static GimvRow *
+dirview_get_selected_row (DirView *dv)
+{
+   return gimv_list_view_get_selected_row (dv->dirtree);
+}
+
+
+/* the row at widget coordinates x, y */
+static GimvRow *
+dirview_row_at (DirView *dv, gdouble x, gdouble y, guint *position)
+{
+   GimvRow *row = NULL;
+
+   if (!gimv_list_view_get_row_at (dv->dirtree, x, y, position, &row))
+      return NULL;
+   return row;
+}
+
+
+static gboolean
+dirview_row_is_expanded (DirView *dv, GimvRow *row)
+{
+   GtkTreeListRow *tree_row;
+   gboolean expanded = FALSE;
+
+   tree_row = gimv_tree_list_model_get_row_for (dirview_tree_model (dv), row, NULL);
+   if (tree_row) {
+      expanded = gtk_tree_list_row_get_expanded (tree_row);
+      g_object_unref (tree_row);
+   }
+
+   return expanded;
+}
+
+
+/* read the subdirectories (once) and expand the row (and its parents) */
+static void
+dirview_expand_row (DirView *dv, GimvRow *row)
+{
+   g_return_if_fail (row);
+
+   dirview_load_subdirs (dv, row);
+   gimv_tree_list_model_expand_to (dirview_tree_model (dv), row);
+}
+
+
+static void
+dirview_collapse_row (DirView *dv, GimvRow *row)
+{
+   GtkTreeListRow *tree_row;
+
+   tree_row = gimv_tree_list_model_get_row_for (dirview_tree_model (dv), row, NULL);
+   if (tree_row) {
+      gtk_tree_list_row_set_expanded (tree_row, FALSE);
+      g_object_unref (tree_row);
+   }
+}
+
+
+/******************************************************************************
+ *
  *   Callback functions
  *
  ******************************************************************************/
@@ -234,6 +323,9 @@ cb_dirview_destroyed (GtkWidget *widget, DirView *dv)
    if (dv->popup_menu)
       gimv_menu_destroy (dv->popup_menu);
    dv->popup_menu = NULL;
+
+   if (dv->dirtree)
+      g_object_set_data (G_OBJECT (dv->dirtree), DIRVIEW_KEY, NULL);
 
    g_free (dv->root_dir);
    g_free (dv->priv);
@@ -338,16 +430,12 @@ cb_key_press (GtkWidget *widget, GimvEventKey *event, DirView *dv)
 {
    guint keyval, popup_key;
    GdkModifierType modval, popup_mod;
-   gboolean success;
-   GtkTreeSelection *selection;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   GtkTreePath *treepath;
+   GimvRow *row;
    gboolean retval = FALSE;
    gchar *label, *path;
 
    g_return_val_if_fail (dv, FALSE);
-   g_return_val_if_fail (GTK_IS_TREE_VIEW (widget), FALSE);
+   g_return_val_if_fail (GTK_IS_LIST_VIEW (widget), FALSE);
 
    keyval = event->keyval;
    modval = event->state;
@@ -357,18 +445,14 @@ cb_key_press (GtkWidget *widget, GimvEventKey *event, DirView *dv)
    else
       return FALSE;
 
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (dv->dirtree));
-   g_return_val_if_fail (selection, FALSE);
+   row = dirview_get_selected_row (dv);
+   if (!row) return FALSE;
+   g_object_ref (row);
 
-   success = gtk_tree_selection_get_selected (selection, &model, &iter);
-   if (!success) return FALSE;
-   treepath = gtk_tree_model_get_path (model, &iter);
-   if (!treepath) return FALSE;
-
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_LABEL,    &label,
-                       COLUMN_FULLPATH, &path,
-                       COLUMN_TERMINATOR);
+   gimv_row_get (row,
+                 COLUMN_LABEL,    &label,
+                 COLUMN_FULLPATH, &path,
+                 COLUMN_TERMINATOR);
 
    if (keyval == popup_key && (!popup_mod || (modval & popup_mod))) {
       dirview_popup_menu (dv, NULL);
@@ -388,17 +472,17 @@ cb_key_press (GtkWidget *widget, GimvEventKey *event, DirView *dv)
          break;
       }
       case GDK_KEY_space:
-         if (gtk_tree_view_row_expanded (GTK_TREE_VIEW (widget), treepath))
-            gtk_tree_view_collapse_row (GTK_TREE_VIEW (widget), treepath);
+         if (dirview_row_is_expanded (dv, row))
+            dirview_collapse_row (dv, row);
          else
-            gtk_tree_view_expand_row (GTK_TREE_VIEW (widget), treepath, FALSE);
+            dirview_expand_row (dv, row);
          retval = TRUE;
          break;
       case GDK_KEY_Right:
          if (modval & GDK_CONTROL_MASK) {
             dirview_change_root (dv, path);
          } else {
-            gtk_tree_view_expand_row (GTK_TREE_VIEW (widget), treepath, FALSE);
+            dirview_expand_row (dv, row);
          }
          retval = TRUE;
          break;
@@ -406,7 +490,7 @@ cb_key_press (GtkWidget *widget, GimvEventKey *event, DirView *dv)
          if (modval & GDK_CONTROL_MASK) {
             dirview_change_root_to_parent (dv);
          } else {
-            gtk_tree_view_collapse_row (GTK_TREE_VIEW (widget), treepath);
+            dirview_collapse_row (dv, row);
          }
          retval = TRUE;
          break;
@@ -427,46 +511,35 @@ cb_key_press (GtkWidget *widget, GimvEventKey *event, DirView *dv)
 
    g_free (label);
    g_free (path);
-   gtk_tree_path_free(treepath);
+   g_object_unref (row);
 
    return retval;
 }
 
 
+/* the replacement of the "row-expanded" handler: read the subdirectories of
+   the directory of row (the first time it is expanded) */
 static void
-cb_tree_expand (GtkTreeView *treeview,
-                GtkTreeIter *parent_iter,
-                GtkTreePath *treepath,
-                gpointer data)
+dirview_load_subdirs (DirView *dv, GimvRow *row)
 {
-   DirView *dv = data;
-   GtkTreeStore *store;
-   GtkTreeIter child_iter, iter;
-   gchar *parent_dir;
-   gboolean dummy;
+   const gchar *parent_dir;
    GList *subdir_list = NULL, *node;
    GetDirFlags flags;
 
    g_return_if_fail (dv);
+   g_return_if_fail (row);
 
-   store = GTK_TREE_STORE (gtk_tree_view_get_model (treeview));
+   if (gimv_row_peek_boolean (row, COLUMN_LOADED)) return;
+   gimv_row_set (row, COLUMN_LOADED, TRUE, COLUMN_TERMINATOR);
 
-   gtk_tree_model_iter_children (GTK_TREE_MODEL (store),
-                                 &child_iter, parent_iter);
-   gtk_tree_model_get (GTK_TREE_MODEL (store), &child_iter,
-                       COLUMN_IS_DUMMY, &dummy,
-                       COLUMN_TERMINATOR);
-   if (!dummy) return;
-
-   gtk_tree_model_get (GTK_TREE_MODEL (store), parent_iter,
-                       COLUMN_FULLPATH, &parent_dir,
-                       COLUMN_TERMINATOR);
+   parent_dir = gimv_row_peek_string (row, COLUMN_FULLPATH);
+   if (!parent_dir) return;
 
    flags = GETDIR_FOLLOW_SYMLINK | GETDIR_READ_DOT;
    get_dir (parent_dir, flags, NULL, &subdir_list);
 
    if (dv->show_dotfile || conf.dirview_show_current_dir) {
-      insert_row (store, &iter, parent_iter, ".", parent_dir);
+      insert_row (dv, row, ".", parent_dir);
    }
 
    if (dv->show_dotfile || conf.dirview_show_parent_dir) {
@@ -475,7 +548,7 @@ cb_tree_expand (GtkTreeView *treeview,
       end = strrchr (grandparent, '/');
       if (end) *(end + 1) = '\0';
 
-      insert_row (store, &iter, parent_iter, "..", grandparent);
+      insert_row (dv, row, "..", grandparent);
 
       g_free (grandparent);
    }
@@ -490,15 +563,30 @@ cb_tree_expand (GtkTreeView *treeview,
          || (conf.dirview_show_parent_dir  && !strcmp (fileutil_basename(path), ".."));
 
       if (isdir (path) && dot_file_check) {
-         insert_row (store, &iter, parent_iter, fileutil_basename (path), path);
+         insert_row (dv, row, fileutil_basename (path), path);
       }
    }
    g_list_foreach (subdir_list, (GFunc) g_free, NULL);
    g_list_free (subdir_list);
 
-   gtk_tree_store_remove (store, &child_iter);
+   /* the expander and the folder icon depend on the children */
+   gimv_row_changed (row);
+}
 
-   g_free (parent_dir);
+
+static void
+cb_tree_row_expanded (GtkTreeListRow *tree_row, GParamSpec *pspec,
+                      GtkWidget *dirtree)
+{
+   DirView *dv = g_object_get_data (G_OBJECT (dirtree), DIRVIEW_KEY);
+   GimvRow *row;
+
+   if (!dv) return;
+   if (!gtk_tree_list_row_get_expanded (tree_row)) return;
+
+   row = gimv_row_from_item (tree_row);
+   if (row)
+      dirview_load_subdirs (dv, row);
 }
 
 
@@ -539,17 +627,11 @@ cb_go_to_here (DirView *dv, guint action, GimvMenuItem *menuitem)
 static void
 cb_refresh_dir_tree (DirView *dv, guint action, GimvMenuItem *menuitem)
 {
-   GtkTreeModel *model;
-   GtkTreeSelection *selection;
-   GtkTreeIter iter;
-   gboolean success;
+   GimvRow *row = dirview_get_selected_row (dv);
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (dv->dirtree));
-   success = gtk_tree_selection_get_selected (selection, &model, &iter);
-   if (!success) return;
+   if (!row) return;
 
-   refresh_dir_tree (dv, &iter);
+   refresh_dir_tree (dv, row);
 }
 
 
@@ -585,7 +667,6 @@ cb_mkdir (DirView *dv, guint action, GimvMenuItem *menuitem)
 {
    gchar *parent_path;
    gboolean success;
-   GtkTreeIter iter;
 
    g_return_if_fail (dv);
 
@@ -596,12 +677,8 @@ cb_mkdir (DirView *dv, guint action, GimvMenuItem *menuitem)
       parent_path,
       GTK_WINDOW(gimv_widget_get_toplevel(dv->container)));
 
-   if (success) {
-      if (get_iter_from_path (dv, parent_path, &iter))
-         refresh_dir_tree (dv, &iter);
-      else
-         refresh_dir_tree (dv, NULL);
-   }
+   if (success)
+      refresh_dir_tree (dv, get_iter_from_path (dv, parent_path));
 
    g_free (parent_path);
 }
@@ -623,15 +700,11 @@ cb_rename_dir (DirView *dv, guint action, GimvMenuItem *menuitem)
 
    if (success) {
       gchar *tmp_path, *parent_dir;
-      GtkTreeIter iter;
 
       tmp_path = remove_slash (path);
       parent_dir = g_path_get_dirname (tmp_path);
 
-      if (get_iter_from_path (dv, parent_dir, &iter))
-         refresh_dir_tree (dv, &iter);
-      else
-         refresh_dir_tree (dv, NULL);
+      refresh_dir_tree (dv, get_iter_from_path (dv, parent_dir));
 
       g_free (tmp_path);
       g_free (parent_dir);
@@ -643,7 +716,6 @@ static void
 cb_delete_dir (DirView *dv, guint action, GimvMenuItem *menuitem)
 {
    gchar *path, *parent_dir;
-   GtkTreeIter iter;
 
    g_return_if_fail (dv);
 
@@ -659,10 +731,7 @@ cb_delete_dir (DirView *dv, guint action, GimvMenuItem *menuitem)
    g_free (path);
 
    /* refresh dir tree */
-   if (get_iter_from_path (dv, parent_dir, &iter))
-      refresh_dir_tree (dv, &iter);
-   else
-      refresh_dir_tree (dv, NULL);
+   refresh_dir_tree (dv, get_iter_from_path (dv, parent_dir));
 
    g_free (parent_dir);
 }
@@ -693,36 +762,30 @@ cb_up_button (GtkWidget *widget, DirView *dv)
 static void
 cb_refresh_button (GtkWidget *widget, DirView *dv)
 {
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gboolean success;
+   GimvRow *root;
 
    g_return_if_fail (widget && dv);
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-   success = gtk_tree_model_get_iter_first (model, &iter);
-   if (!success) return;
+   root = dirview_get_root_row (dv);
+   if (!root) return;
 
-   refresh_dir_tree (dv, &iter);
+   refresh_dir_tree (dv, root);
 }
 
 
 static void
 cb_dotfile_button (GtkWidget *widget, DirView *dv)
 {
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gboolean success;
+   GimvRow *root;
 
    g_return_if_fail (widget && dv);
 
    dv->show_dotfile = !dv->show_dotfile;
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-   success = gtk_tree_model_get_iter_first (model, &iter);
-   if (!success) return;
+   root = dirview_get_root_row (dv);
+   if (!root) return;
 
-   refresh_dir_tree (dv, &iter);
+   refresh_dir_tree (dv, root);
 }
 
 
@@ -769,52 +832,22 @@ cb_drag_motion (GtkWidget *widget,
                 gint x, gint y, guint time,
                 gpointer data)
 {
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	GtkTreePath *dest_path = NULL;
-	GtkTreeViewDropPosition pos;
-	gboolean success, retval = FALSE;
-   /* DirView *dv = data; */
+   DirView *dv = data;
 
-   g_return_val_if_fail(GTK_IS_TREE_VIEW(widget), FALSE);
-	g_return_val_if_fail(data, FALSE);
+   g_return_val_if_fail(GTK_IS_LIST_VIEW(widget), FALSE);
+   g_return_val_if_fail(dv, FALSE);
 
-	success = gtk_tree_view_get_dest_row_at_pos(GTK_TREE_VIEW(widget),
-                                               x, y,
-                                               &dest_path, &pos);
-	if (!success) {
-      gtk_tree_view_set_drag_dest_row (GTK_TREE_VIEW (widget), NULL, 0);
+   if (!dirview_row_at (dv, x, y, NULL)) {
+      gimv_list_view_set_drop_highlight (widget, -1, -1);
       return FALSE;
    }
 
-   /* GTK4: was done by the model drag dest of GtkTreeView */
-   gtk_tree_view_set_drag_dest_row (GTK_TREE_VIEW (widget), dest_path,
-                                    GTK_TREE_VIEW_DROP_INTO_OR_AFTER);
+   /* GTK4: was done by the model drag dest of GtkTreeView (dropping into
+      the directory) */
+   gimv_list_view_set_drop_highlight (widget, x, y);
+   gimv_drag_status (drag_context, GDK_ACTION_MOVE, time);
 
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(widget));
-	gtk_tree_model_get_iter(model, &iter, dest_path);
-   /*
-	gtk_tree_model_get(model, &iter,
-                      COLUMN_FULLPATH, &path,
-                      COLUMN_TERMINATOR);
-   */
-
-	if (pos == GTK_TREE_VIEW_DROP_INTO_OR_BEFORE ||
-	    pos == GTK_TREE_VIEW_DROP_INTO_OR_AFTER)
-	{
-			gimv_drag_status(drag_context, GDK_ACTION_MOVE, time);
-	}
-	else if (pos == GTK_TREE_VIEW_DROP_BEFORE ||
-            pos == GTK_TREE_VIEW_DROP_AFTER)
-	{
-			gimv_drag_status(drag_context, 0, time);
-			retval = TRUE;
-	}
-
-	if (dest_path)
-		gtk_tree_path_free(dest_path);
-
-	return retval;
+   return FALSE;
 }
 
 
@@ -822,7 +855,7 @@ static void
 cb_drag_leave (GtkWidget *dirtree, GimvDragContext *context,
                guint time, gpointer data)
 {
-   gtk_tree_view_set_drag_dest_row (GTK_TREE_VIEW (dirtree), NULL, 0);
+   gimv_list_view_set_drop_highlight (dirtree, -1, -1);
 }
 
 
@@ -836,39 +869,24 @@ cb_drag_data_received (GtkWidget *dirtree,
                        gpointer data)
 {
    DirView *dv = data;
-   GtkTreePath *treepath;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gboolean success;
-   gchar *path;
-   gint bx, by;
+   GimvRow *row;
+   gchar *path = NULL;
 
    g_return_if_fail (dv);
 
-   gtk_tree_view_set_drag_dest_row (GTK_TREE_VIEW (dirtree), NULL, 0);
+   gimv_list_view_set_drop_highlight (dirtree, -1, -1);
 
-   gtk_tree_view_convert_widget_to_bin_window_coords (GTK_TREE_VIEW (dirtree),
-                                                      x, y, &bx, &by);
-   success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (dirtree),
-                                            bx, by,
-                                            &treepath, NULL,
-                                            NULL, NULL);
-   if (!success) return;
+   row = dirview_row_at (dv, x, y, NULL);
+   if (!row) return;
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dirtree));
-   gtk_tree_model_get_iter (model, &iter, treepath);
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_FULLPATH, &path,
-                       COLUMN_TERMINATOR);
+   gimv_row_get (row,
+                 COLUMN_FULLPATH, &path,
+                 COLUMN_TERMINATOR);
 
    if (path && *path) {
       if (iswritable (path)) {
          dnd_file_operation (path, context, seldata, time, dv->tw);
-         success = gtk_tree_model_get_iter_first (model, &iter);
-         if (success)
-            refresh_dir_tree (dv, &iter);
-         else
-            refresh_dir_tree (dv, NULL);
+         refresh_dir_tree (dv, dirview_get_root_row (dv));
       } else {
          gchar error_message[BUF_SIZE], *dir_internal;
 
@@ -887,7 +905,6 @@ cb_drag_data_received (GtkWidget *dirtree,
       }
    }
 
-   gtk_tree_path_free (treepath);
    g_free (path);
 }
 
@@ -896,16 +913,10 @@ static void
 cb_drag_end (GtkWidget *dirtree, GimvDragContext *context, gpointer data)
 {
    DirView *dv = data;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
 
    g_return_if_fail (dirtree && dv);
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dirtree));
-   if (gtk_tree_model_get_iter_first (model, &iter))
-      refresh_dir_tree (dv, &iter);
-   else
-      refresh_dir_tree (dv, NULL);
+   refresh_dir_tree (dv, dirview_get_root_row (dv));
 }
 
 
@@ -1052,89 +1063,98 @@ get_icon_pixbufs (void)
 }
 
 
-static void
-cell_data_func_folder_icon (GtkTreeViewColumn *column,
-                            GtkCellRenderer   *cell,
-                            GtkTreeModel      *model,
-                            GtkTreeIter       *iter,
-                            gpointer           data)
+/* the folder icon (open when the row is expanded) and the name */
+static GtkWidget *
+dirtree_cell_setup (gpointer data)
 {
-   GtkTreeView *tree_view = data;
-   GdkPixbuf *icon = NULL, *oicon = NULL;
-   gboolean expanded = FALSE;
+   GtkWidget *box, *picture, *label;
 
-   gtk_tree_model_get (model, iter,
-                       COLUMN_ICON_OPEN,  &oicon,
-                       COLUMN_ICON_CLOSE, &icon,
-                       -1);
+   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
 
-   if (oicon && gtk_tree_model_iter_has_child (model, iter)) {
-      GtkTreePath *path = gtk_tree_model_get_path (model, iter);
-      expanded = gtk_tree_view_row_expanded (tree_view, path);
-      gtk_tree_path_free (path);
-   }
+   picture = gtk_picture_new ();
+   gtk_picture_set_can_shrink (GTK_PICTURE (picture), FALSE);
+   gtk_widget_set_valign (picture, GTK_ALIGN_CENTER);
+   gtk_box_append (GTK_BOX (box), picture);
+   g_object_set_data (G_OBJECT (box), "gimv-cell-image", picture);
 
-   g_object_set (cell, "pixbuf", expanded ? oicon : icon, NULL);
+   label = gtk_label_new (NULL);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_box_append (GTK_BOX (box), label);
+   g_object_set_data (G_OBJECT (box), "gimv-cell-label", label);
 
-   if (oicon) g_object_unref (oicon);
-   if (icon)  g_object_unref (icon);
+   return box;
 }
 
 
 static void
-set_columns_type (GtkTreeView *tree_view)
+dirtree_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item,
+                   gpointer data)
 {
-   GtkTreeViewColumn *col;
-   GtkCellRenderer *render;
+   GtkWidget **dirtree = data;
+   GtkTreeListRow *tree_row = gimv_list_item_get_tree_row (item);
+   GtkWidget *expander = gtk_widget_get_parent (cell);
+   GListStore *children = gimv_row_get_children (row, FALSE);
+   gboolean has_child, loaded, expanded = FALSE;
+   gint icon_col = COLUMN_ICON_CLOSE;
 
-   /* GTK4: gtk_tree_view_set_rules_hint () was removed (it was set to
-      FALSE and TRUE here, a theme hint only) */
+   loaded    = gimv_row_peek_boolean (row, COLUMN_LOADED);
+   has_child = children
+      && (!loaded || g_list_model_get_n_items (G_LIST_MODEL (children)) > 0);
 
-   col = gtk_tree_view_column_new();
-   gtk_tree_view_column_set_title (col, "Directory Name");
+   if (tree_row)
+      expanded = gtk_tree_list_row_get_expanded (tree_row);
+   if (expanded && has_child)
+      icon_col = COLUMN_ICON_OPEN;
 
-   render = gtk_cell_renderer_pixbuf_new ();
-   gtk_tree_view_column_pack_start (col, render, FALSE);
-   /* GTK4: the "pixbuf-expander-open/closed" properties of
-      GtkCellRendererPixbuf don't accept NULL and show the "open" icon for
-      closed rows (GTK 4.14), so choose the icon in a cell data func. */
-   gtk_tree_view_column_set_cell_data_func (col, render,
-                                            cell_data_func_folder_icon,
-                                            tree_view, NULL);
+   gimv_icon_text_cell_set_icon (cell, gimv_row_peek_value (row, icon_col));
+   gtk_label_set_text (GTK_LABEL (gimv_icon_text_cell_get_label (cell)),
+                       gimv_row_peek_string (row, COLUMN_LABEL));
 
-   render = gtk_cell_renderer_text_new ();
-   gtk_tree_view_column_pack_start (col, render, TRUE);
-   gtk_tree_view_column_add_attribute (col, render, "text", COLUMN_LABEL);
+   /* no expander for directories without subdirectories (GtkTreeView
+      removed it when the dummy child row was removed) */
+   if (GTK_IS_TREE_EXPANDER (expander))
+      gtk_tree_expander_set_hide_expander (GTK_TREE_EXPANDER (expander),
+                                           !has_child);
 
-   gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), col);
-   gtk_tree_view_set_expander_column (tree_view, col);
+   /* read the subdirectories when the user expands the row */
+   if (tree_row && *dirtree
+       && !g_object_get_data (G_OBJECT (tree_row), "gimv-dirview-expanded"))
+   {
+      g_signal_connect_object (tree_row, "notify::expanded",
+                               G_CALLBACK (cb_tree_row_expanded), *dirtree, 0);
+      g_object_set_data (G_OBJECT (tree_row), "gimv-dirview-expanded",
+                         GINT_TO_POINTER (1));
+   }
 }
 
 
 static void
 dirview_create_treeview (DirView *dv, const gchar *root)
 {
-   GtkTreeStore *store;
-   GtkTreeIter root_iter;
-   GtkTreePath *treepath;
+   GListStore *store;
+   GtkTreeListModel *model;
+   GtkWidget **dirtree_ptr;
+   GimvRow *root_row;
 
    get_icon_pixbufs();
 
-   store = gtk_tree_store_new (N_COLUMN,
-                               G_TYPE_STRING,
-                               G_TYPE_STRING,
-                               GDK_TYPE_PIXBUF,
-                               GDK_TYPE_PIXBUF,
-                               G_TYPE_BOOLEAN);
+   store = gimv_row_store_new ();
+   model = gimv_tree_list_model_new (G_LIST_MODEL (store));
 
-   dv->dirtree = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
+   dirtree_ptr = g_new0 (GtkWidget *, 1);
+   dv->dirtree = gimv_list_view_new (G_LIST_MODEL (model), GTK_SELECTION_SINGLE,
+                                     gimv_cell_factory_new (dirtree_cell_setup,
+                                                            dirtree_cell_bind,
+                                                            dirtree_ptr, g_free,
+                                                            TRUE));
+   *dirtree_ptr = dv->dirtree;
+   g_object_add_weak_pointer (G_OBJECT (dv->dirtree), (gpointer *) dirtree_ptr);
+   g_object_set_data_full (G_OBJECT (dv->dirtree), ROOT_STORE_KEY,
+                           store, g_object_unref);
+   g_object_set_data (G_OBJECT (dv->dirtree), DIRVIEW_KEY, dv);
 
-   insert_row (store, &root_iter, NULL, root, root);
+   root_row = insert_row (dv, NULL, root, root);
 
-   g_object_unref (G_OBJECT (store));
-
-   g_signal_connect (G_OBJECT (dv->dirtree), "row-expanded",
-                     G_CALLBACK (cb_tree_expand), dv);
    gimv_event_connect (GTK_WIDGET (dv->dirtree), GIMV_EVENT_BUTTON_PRESS, G_CALLBACK (cb_button_press), dv);
    gimv_event_connect (GTK_WIDGET (dv->dirtree), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_button_release), dv);
    gimv_event_connect (GTK_WIDGET (dv->dirtree), GIMV_EVENT_SCROLL, G_CALLBACK(cb_scroll), dv);
@@ -1142,9 +1162,7 @@ dirview_create_treeview (DirView *dv, const gchar *root)
 
    /*
     *  for DnD
-    *  GTK4: the model DnD of GtkTreeView only transfers GtkTreeRowData, so
-    *  the tree view is made a plain drag source/destination (the drop row is
-    *  highlighted by cb_drag_motion ()).
+    *  the drop row is highlighted by cb_drag_motion ().
     */
    gimv_drag_source_set (GTK_WIDGET (dv->dirtree),
                          GDK_BUTTON1_MASK
@@ -1159,31 +1177,17 @@ dirview_create_treeview (DirView *dv, const gchar *root)
                        dnd_types_uri_num,
                        GDK_ACTION_ASK  | GDK_ACTION_COPY
                        | GDK_ACTION_MOVE | GDK_ACTION_LINK);
-   /* GTK4 (4.14): gtk_tree_view_set_drag_dest_row () crashes while drawing
-      the drop highlight unless model DnD was enabled (it needs the tree
-      view's internal drag info).  A model drag dest with no formats creates
-      that info and never accepts a drop itself. */
-   {
-      GdkContentFormats *none = gdk_content_formats_new (NULL, 0);
-      gtk_tree_view_enable_model_drag_dest (GTK_TREE_VIEW (dv->dirtree), none, 0);
-      gdk_content_formats_unref (none);
-   }
    gimv_dnd_connect (GTK_WIDGET (dv->dirtree), GIMV_DND_DRAG_DATA_GET, G_CALLBACK (cb_drag_data_get), dv);
    gimv_dnd_connect (GTK_WIDGET (dv->dirtree), GIMV_DND_DRAG_MOTION, G_CALLBACK (cb_drag_motion), dv);
    gimv_dnd_connect (GTK_WIDGET (dv->dirtree), GIMV_DND_DRAG_LEAVE, G_CALLBACK (cb_drag_leave), dv);
    gimv_dnd_connect (GTK_WIDGET (dv->dirtree), GIMV_DND_DRAG_DATA_RECEIVED, G_CALLBACK (cb_drag_data_received), dv);
    gimv_dnd_connect (GTK_WIDGET (dv->dirtree), GIMV_DND_DRAG_END, G_CALLBACK (cb_drag_end), dv);
 
-   set_columns_type (GTK_TREE_VIEW (dv->dirtree));
-   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (dv->dirtree), FALSE);
-
    gimv_container_add (GTK_WIDGET (dv->scroll_win), dv->dirtree);
    gtk_widget_set_visible (dv->dirtree, TRUE);
 
-   treepath = gtk_tree_model_get_path (GTK_TREE_MODEL (store), &root_iter);
-   gtk_tree_view_expand_row (GTK_TREE_VIEW (dv->dirtree), treepath, FALSE);
-
-   gtk_tree_path_free (treepath);
+   if (root_row)
+      dirview_expand_row (dv, root_row);
 
    adjust_tree_idle (dv, NULL);
 }
@@ -1272,49 +1276,21 @@ dirview_create_toolbar (DirView *dv)
 
 
 /*
- *  remove all children, and insert dummy row.
- */
-static void
-insert_dummy_row (GtkTreeStore *store, GtkTreeIter *parent_iter)
-{
-   GtkTreeIter iter;
-   gboolean success;
-
-   g_return_if_fail (store);
-
-   gtk_tree_store_prepend (store, &iter, parent_iter);
-   gtk_tree_store_set (store, &iter,
-                       COLUMN_IS_DUMMY,   TRUE,
-                       COLUMN_TERMINATOR);
-
-   success = gtk_tree_model_iter_nth_child (GTK_TREE_MODEL (store),
-                                            &iter,
-                                            parent_iter,
-                                            1);
-   if (!success) return;
-
-   while (gtk_tree_store_is_ancestor (store, parent_iter, &iter)) {
-      gtk_tree_store_remove (store, &iter);
-   }
-}
-
-
-/*
  *  fullpath shouldn't be terminated with "/" character.
+ *  The row is appended to the children of parent (to the root if NULL).
  */
-static void
-insert_row (GtkTreeStore *store,
-            GtkTreeIter *iter, GtkTreeIter *parent_iter,
+static GimvRow *
+insert_row (DirView *dv, GimvRow *parent,
             const gchar *label, const gchar *fullpath)
 {
    GdkPixbuf *icon, *oicon;
    gchar *path, *tmpstr;
    gchar *label_internal;
+   GimvRow *row;
 
-   g_return_if_fail (store);
-   g_return_if_fail (iter);
-   g_return_if_fail (label && *label);
-   g_return_if_fail (fullpath && *fullpath);
+   g_return_val_if_fail (dv, NULL);
+   g_return_val_if_fail (label && *label, NULL);
+   g_return_val_if_fail (fullpath && *fullpath, NULL);
 
    path = remove_slash (fullpath);
 
@@ -1334,7 +1310,8 @@ insert_row (GtkTreeStore *store,
       icon  = folder;
       oicon = ofolder;
    } else {
-      return;
+      g_free (path);
+      return NULL;
    }
 
    tmpstr = add_slash (path);
@@ -1346,91 +1323,94 @@ insert_row (GtkTreeStore *store,
                                          conf.charset_auto_detect_fn,
                                          conf.charset_filename_mode);
 
-   gtk_tree_store_append (store, iter, parent_iter);
-   gtk_tree_store_set (store, iter,
-                       COLUMN_LABEL,      label_internal,
-                       COLUMN_FULLPATH,   path,
-                       COLUMN_ICON_OPEN,  oicon,
-                       COLUMN_ICON_CLOSE, icon,
-                       COLUMN_IS_DUMMY,   FALSE,
-                       COLUMN_TERMINATOR);
+   row = gimv_row_new (N_COLUMN,
+                       G_TYPE_STRING,
+                       G_TYPE_STRING,
+                       GDK_TYPE_PIXBUF,
+                       GDK_TYPE_PIXBUF,
+                       G_TYPE_BOOLEAN);
+   gimv_row_set (row,
+                 COLUMN_LABEL,      label_internal,
+                 COLUMN_FULLPATH,   path,
+                 COLUMN_ICON_OPEN,  oicon,
+                 COLUMN_ICON_CLOSE, icon,
+                 COLUMN_LOADED,     TRUE,
+                 COLUMN_TERMINATOR);
 
-   if (strcmp (label, ".") && strcmp (label, "..") && !access(path, R_OK))
-      insert_dummy_row (store, iter);
+   /* expandable: the subdirectories are read when it is expanded */
+   if (strcmp (label, ".") && strcmp (label, "..") && !access(path, R_OK)) {
+      gimv_row_get_children (row, TRUE);
+      gimv_row_set (row, COLUMN_LOADED, FALSE, COLUMN_TERMINATOR);
+   }
+
+   if (parent)
+      gimv_row_append_child (parent, row);
+   else
+      g_list_store_append (dirview_root_store (dv), row);
+   g_object_unref (row);   /* the store keeps it */
 
    g_free (label_internal);
    g_free (path);
+
+   return row;
 }
 
 
 static gboolean
-is_in_view (GtkTreeView *treeview, GtkTreePath *treepath)
+is_in_view (DirView *dv, guint position)
 {
-   GdkRectangle widget_area, cell_area;
+   graphene_rect_t area;
 
-   if (!gtk_widget_get_realized (GTK_WIDGET (treeview)))
+   if (!gtk_widget_get_realized (dv->dirtree))
       return FALSE;
 
-   /* widget area */
-   gtkutil_get_widget_area (GTK_WIDGET (treeview), &widget_area);
+   if (!gimv_list_view_get_row_area (dv->dirtree, position, &area))
+      return FALSE;
 
-   gtk_tree_view_get_cell_area(treeview, treepath, NULL, &cell_area);
-
-   if (cell_area.y >= 0 && cell_area.y < widget_area.height)
+   if (area.origin.y >= 0 && area.origin.y < gtk_widget_get_height (dv->dirtree))
       return TRUE;
    else
       return FALSE;
 }
 
 
+/* select row (the root if NULL) and scroll to it */
 static void
-adjust_tree (GtkTreeView *treeview, GtkTreeIter *iter)
+adjust_tree (DirView *dv, GimvRow *row)
 {
-   GtkTreeModel *model;
-   GtkTreePath *treepath;
-   GtkTreeSelection *selection;
-   GtkTreeIter tmp_iter;
-   gboolean success;
+   GtkTreeListRow *tree_row;
+   guint position;
 
-   model = gtk_tree_view_get_model (treeview);
-   selection = gtk_tree_view_get_selection (treeview);
+   if (!row)
+      row = dirview_get_root_row (dv);
+   if (!row) return;
 
-   if (iter) {
-      treepath = gtk_tree_model_get_path (model, iter);
-      tmp_iter = *iter;
-   } else {
-      treepath = gtk_tree_path_new_from_string ("0");
-      success = gtk_tree_model_get_iter (model, &tmp_iter, treepath);
-      if (!success) goto FUNC_END;
-   }
+   tree_row = gimv_tree_list_model_get_row_for (dirview_tree_model (dv), row,
+                                                &position);
+   if (!tree_row) return;
+   g_object_unref (tree_row);
 
-   gtk_tree_selection_select_path (selection, treepath);
-   if (!is_in_view(treeview, treepath))
-      gtk_tree_view_scroll_to_cell (treeview, treepath, NULL,
-                                    TRUE, 0.0, 0.0);
-
- FUNC_END:
-   gtk_tree_path_free (treepath);
-   treepath = NULL;
+   gimv_list_view_select (dv->dirtree, position);
+   if (!is_in_view (dv, position))
+      gimv_list_view_scroll_to (dv->dirtree, position, FALSE, FALSE);
 }
 
 
-static gboolean
-get_iter_from_path (DirView *dv, const gchar *str, GtkTreeIter *iter)
+/* the row of the directory str (its parents are expanded) */
+static GimvRow *
+get_iter_from_path (DirView *dv, const gchar *str)
 {
-   GtkTreeModel *model;
-   GtkTreeIter parent_iter, child_iter;
-   GtkTreePath *treepath;
-   GtkTreeSelection *selection;
+   GimvRow *root, *retval = NULL;
+   GListModel *children;
    gchar *destpath;
    gint len_src, len_dest;
-   gboolean go_next, retval = FALSE;
+   guint i;
 
-   g_return_val_if_fail (dv, FALSE);
-   g_return_val_if_fail (iter, FALSE);
+   g_return_val_if_fail (dv, NULL);
 
+   if (!str) return NULL;
    destpath = add_slash (str);
-   if (!destpath) return FALSE;
+   if (!destpath) return NULL;
 
    len_src  = strlen (dv->root_dir);
    len_dest = strlen (destpath);
@@ -1439,82 +1419,68 @@ get_iter_from_path (DirView *dv, const gchar *str, GtkTreeIter *iter)
       goto ERROR;
    }
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (dv->dirtree));
-
-   go_next = gtk_tree_model_get_iter_from_string (model, &parent_iter, "0");
-   if (!go_next) goto ERROR;
-   treepath = gtk_tree_model_get_path (model, &parent_iter);
+   root = dirview_get_root_row (dv);
+   if (!root) goto ERROR;
 
    if (!strcmp (destpath, dv->root_dir)) {
-      gtk_tree_path_free (treepath);
       g_free (destpath);
-      return gtk_tree_model_get_iter_first (model, iter);
+      return root;
    }
 
-   gtk_tree_view_expand_row (GTK_TREE_VIEW (dv->dirtree), treepath, FALSE);
-   gtk_tree_path_free (treepath);
-   treepath = NULL;
+   dirview_expand_row (dv, root);
+   children = G_LIST_MODEL (gimv_row_get_children (root, FALSE));
 
-   go_next = gtk_tree_model_get_iter_from_string (model, &parent_iter, "0:0");
-
-   while (go_next) {
+   for (i = 0; children && i < g_list_model_get_n_items (children); ) {
+      GimvRow *row = gimv_row_store_peek (children, i);
+      const gchar *path, *label;
       gint len;
-      gchar *path, *label;
 
-      gtk_tree_model_get (model, &parent_iter,
-                          COLUMN_LABEL,    &label,
-                          COLUMN_FULLPATH, &path,
-                          COLUMN_TERMINATOR);
+      label = gimv_row_peek_string (row, COLUMN_LABEL);
+      path  = gimv_row_peek_string (row, COLUMN_FULLPATH);
 
       len = strlen (path); /* path will be terminated by "/" */
 
       /* It is just the directory! */
       if (!strcmp (label, ".") || !strcmp (label, "..")) {
-         go_next = gtk_tree_model_iter_next (model, &parent_iter);
+         i++;
       } else if (!strcmp (destpath, path)) {
-         *iter = parent_iter;
-         go_next = FALSE;
-         retval = TRUE;
+         retval = row;
+         break;
 
       /* It is the parent directory of the destpath */
       } else if (!strncmp (destpath, path, len)) {
-         treepath = gtk_tree_model_get_path (model, &parent_iter);
-         go_next = gtk_tree_view_expand_row (GTK_TREE_VIEW (dv->dirtree), treepath,
-                                             FALSE);
-         go_next = gtk_tree_model_iter_children (model,
-                                                 &child_iter,
-                                                 &parent_iter);
-         parent_iter = child_iter;
-
-         gtk_tree_path_free (treepath);
-         treepath = NULL;
+         dirview_expand_row (dv, row);
+         children = G_LIST_MODEL (gimv_row_get_children (row, FALSE));
+         i = 0;
 
       /* No match. Search the next... */
       } else {
-         go_next = gtk_tree_model_iter_next (model, &parent_iter);
+         i++;
       }
-
-      g_free (path);
-      g_free (label);
    }
-
 
    g_free (destpath);
    return retval;
 
  ERROR:
    g_free (destpath);
-   return FALSE;
+   return NULL;
 }
 
 
 struct AdjustTreeIdle {
    DirView     *dv;
-   GtkTreeView *treeview;
-   gboolean     has_iter;
-   GtkTreeIter  iter;
+   GimvRow     *row;
 };
+
+
+static void
+adjust_tree_idle_free (struct AdjustTreeIdle *idle)
+{
+   if (idle->row)
+      g_object_unref (idle->row);
+   g_free (idle);
+}
 
 
 static gint
@@ -1523,77 +1489,59 @@ idle_adjust_tree (gpointer data)
    struct AdjustTreeIdle *idle = data;
 
    idle->dv->priv->adjust_tree_id = 0;
-   if (idle->has_iter)
-      adjust_tree (idle->treeview, &idle->iter);
-   else
-      adjust_tree (idle->treeview, NULL);
+   adjust_tree (idle->dv, idle->row);
 
    return FALSE;
 }
 
 
 static void
-adjust_tree_idle (DirView *dv, GtkTreeIter *iter)
+adjust_tree_idle (DirView *dv, GimvRow *row)
 {
-   GtkTreeView *treeview = GTK_TREE_VIEW (dv->dirtree);
    struct AdjustTreeIdle *idle;
 
-   g_return_if_fail (GTK_IS_TREE_VIEW (treeview));
+   g_return_if_fail (dv && GTK_IS_LIST_VIEW (dv->dirtree));
 
    idle = g_new0(struct AdjustTreeIdle, 1);
 
    idle->dv = dv;
-   idle->treeview = treeview;
-   if (iter) {
-      idle->iter = *iter;
-      idle->has_iter = TRUE;
-   } else {
-      idle->has_iter = FALSE;
-   }
+   idle->row = row ? g_object_ref (row) : NULL;
 
    if (dv->priv->adjust_tree_id)
       g_source_remove (dv->priv->adjust_tree_id);
    dv->priv->adjust_tree_id =
       g_idle_add_full (G_PRIORITY_DEFAULT,
                        idle_adjust_tree, idle,
-                       (GDestroyNotify) g_free);
+                       (GDestroyNotify) adjust_tree_idle_free);
+}
+
+
+/* the replacement of gtk_tree_view_map_expanded_rows () */
+static void
+get_expanded_dirs (DirView *dv, GListModel *rows, GList **list)
+{
+   guint i, n = g_list_model_get_n_items (rows);
+
+   for (i = 0; i < n; i++) {
+      GimvRow *row = gimv_row_store_peek (rows, i);
+      GListStore *children = gimv_row_get_children (row, FALSE);
+
+      if (!children || !gimv_row_peek_boolean (row, COLUMN_LOADED)) continue;
+      if (!dirview_row_is_expanded (dv, row)) continue;
+
+      *list = g_list_append (*list,
+                             g_strdup (gimv_row_peek_string (row, COLUMN_FULLPATH)));
+      get_expanded_dirs (dv, G_LIST_MODEL (children), list);
+   }
 }
 
 
 static void
-get_expanded_dirs (GtkTreeView *treeview, GtkTreePath *treepath, gpointer data)
+refresh_dir_tree (DirView *dv, GimvRow *parent)
 {
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   GList **list;
-   gchar *path;
-
-   g_return_if_fail (data);
-   list = data;
-
-   model = gtk_tree_view_get_model (treeview);
-
-   gtk_tree_model_get_iter (model, &iter, treepath);
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_FULLPATH, &path,
-                       COLUMN_TERMINATOR);
-
-   g_return_if_fail (path && *path);
-
-   *list = g_list_append (*list, path);
-}
-
-
-static void
-refresh_dir_tree (DirView *dv, GtkTreeIter *parent_iter)
-{
-   GtkTreeView *treeview;
-   GtkTreeStore *store;
-   GtkTreeIter root_iter, iter;
-   GtkTreePath *treepath;
    gchar *root_dir, *selected_path;
    GList *expand_list = NULL, *node;
-   gboolean selected;
+   GimvRow *row;
 
    g_return_if_fail (dv);
 
@@ -1601,9 +1549,7 @@ refresh_dir_tree (DirView *dv, GtkTreeIter *parent_iter)
    if (!selected_path) selected_path = g_strdup (dv->root_dir);
 
    /* get expanded directory list */
-   gtk_tree_view_map_expanded_rows (GTK_TREE_VIEW (dv->dirtree),
-                                    get_expanded_dirs,
-                                    &expand_list);
+   get_expanded_dirs (dv, G_LIST_MODEL (dirview_root_store (dv)), &expand_list);
 
    /* replace root node */
    root_dir = g_strdup (dv->root_dir);
@@ -1611,15 +1557,8 @@ refresh_dir_tree (DirView *dv, GtkTreeIter *parent_iter)
    g_free (dv->root_dir);
    dv->root_dir = add_slash (root_dir);
 
-   treeview = GTK_TREE_VIEW (dv->dirtree);
-
-   store = GTK_TREE_STORE (gtk_tree_view_get_model (treeview));
-   gtk_tree_store_clear (store);
-   insert_row (store, &root_iter, NULL, dv->root_dir, dv->root_dir);
-
-   treepath = gtk_tree_model_get_path (GTK_TREE_MODEL (store), &root_iter);
-
-   gtk_tree_path_free (treepath);
+   g_list_store_remove_all (dirview_root_store (dv));
+   insert_row (dv, NULL, dv->root_dir, dv->root_dir);
 #endif
    g_free (root_dir);
 
@@ -1632,9 +1571,9 @@ refresh_dir_tree (DirView *dv, GtkTreeIter *parent_iter)
    g_list_free (expand_list);
 
    /* adjust tree pos */
-   selected = get_iter_from_path (dv, selected_path, &iter);
-   if (selected)
-      adjust_tree_idle (dv, &iter);
+   row = get_iter_from_path (dv, selected_path);
+   if (row)
+      adjust_tree_idle (dv, row);
 
    g_free (selected_path);
 }
@@ -1643,10 +1582,7 @@ refresh_dir_tree (DirView *dv, GtkTreeIter *parent_iter)
 static void
 dirview_popup_menu (DirView *dv, GimvEventButton *event)
 {
-   GtkTreeModel *model;
-   GtkTreePath *treepath = NULL;
-   GtkTreeIter iter;
-   gboolean success;
+   GimvRow *row;
    gchar *path, *parent, *tmpstr, *label;
 
    GtkWidget *ifactory;
@@ -1658,46 +1594,33 @@ dirview_popup_menu (DirView *dv, GimvEventButton *event)
    g_return_if_fail (dv);
 
    if (event) {
-      gint bx, by;
-
-      gtk_tree_view_convert_widget_to_bin_window_coords (GTK_TREE_VIEW (dv->dirtree),
-                                                         event->x, event->y,
-                                                         &bx, &by);
-      success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (dv->dirtree),
-                                               bx, by,
-                                               &treepath, NULL, NULL, NULL);
-      if (!success) return;
-
-      model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-      gtk_tree_model_get_iter (model, &iter, treepath);
+      row = dirview_row_at (dv, event->x, event->y, NULL);
+      if (!row) return;
 
       x = event->x;
       y = event->y;
    } else {
       /* popup by key: use the selected row */
-      GtkTreeSelection *selection;
-      GdkRectangle area;
-      gint wx, wy;
+      graphene_rect_t area;
+      guint position;
 
-      selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (dv->dirtree));
-      success = gtk_tree_selection_get_selected (selection, &model, &iter);
-      if (!success) return;
-      treepath = gtk_tree_model_get_path (model, &iter);
+      position = gimv_list_view_get_selected (dv->dirtree);
+      row = dirview_get_selected_row (dv);
+      if (!row) return;
 
       /* was menu_calc_popup_position () */
-      gtk_tree_view_get_cell_area (GTK_TREE_VIEW (dv->dirtree), treepath,
-                                   NULL, &area);
-      gtk_tree_view_convert_bin_window_to_widget_coords (GTK_TREE_VIEW (dv->dirtree),
-                                                         area.x, area.y + area.height,
-                                                         &wx, &wy);
-      x = MAX (wx, 0);
-      y = MAX (wy, 0);
+      if (gimv_list_view_get_row_area (dv->dirtree, position, &area)) {
+         x = MAX (area.origin.x, 0);
+         y = MAX (area.origin.y + area.size.height, 0);
+      } else {
+         x = y = 0;
+      }
    }
 
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_LABEL,    &label,
-                       COLUMN_FULLPATH, &path,
-                       COLUMN_TERMINATOR);
+   gimv_row_get (row,
+                 COLUMN_LABEL,    &label,
+                 COLUMN_FULLPATH, &path,
+                 COLUMN_TERMINATOR);
 
    tmpstr = remove_slash (path);
    parent = g_path_get_dirname (tmpstr);
@@ -1739,7 +1662,6 @@ dirview_popup_menu (DirView *dv, GimvEventButton *event)
       gimv_menu_item_set_sensitive (menuitem, FALSE);
    }
 
-   gtk_tree_path_free (treepath);
    g_free (label);
    g_free (path);
    g_free (parent);
@@ -1815,33 +1737,20 @@ idle_dirview_button_action (gpointer data)
 static gboolean
 dirview_button_action (DirView *dv, GimvEventButton *event, gint num)
 {
-   gchar *path = NULL, *label;
-   GtkTreeSelection *selection;
-   GtkTreeModel *model;
-   gboolean success, retval = FALSE;
-   GtkTreePath *treepath;
-   GtkTreeViewColumn *treecolumn;
-   gint cell_x, cell_y, bx, by;
-   GtkTreeIter iter;
+   gchar *path = NULL, *label = NULL;
+   gboolean retval = FALSE;
+   GimvRow *row;
+   guint position;
 
-   gtk_tree_view_convert_widget_to_bin_window_coords (GTK_TREE_VIEW (dv->dirtree),
-                                                      event->x, event->y,
-                                                      &bx, &by);
-   success = gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (dv->dirtree),
-                                            bx, by,
-                                            &treepath, &treecolumn,
-                                            &cell_x, &cell_y);
-   if (!success) return FALSE;
+   row = dirview_row_at (dv, event->x, event->y, &position);
+   if (!row) return FALSE;
 
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (dv->dirtree));
-   gtk_tree_selection_select_path (selection, treepath);
+   gimv_list_view_select (dv->dirtree, position);
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-   gtk_tree_model_get_iter (model, &iter, treepath);
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_LABEL,    &label,
-                       COLUMN_FULLPATH, &path,
-                       COLUMN_TERMINATOR);
+   gimv_row_get (row,
+                 COLUMN_LABEL,    &label,
+                 COLUMN_FULLPATH, &path,
+                 COLUMN_TERMINATOR);
 
    switch (abs(num)) {
    case MouseActLoadThumb:
@@ -1859,8 +1768,6 @@ dirview_button_action (DirView *dv, GimvEventButton *event, gint num)
       dv->priv->button_action_id
          = g_idle_add (idle_dirview_button_action, data);
 
-      gtk_tree_path_free (treepath);
-
       return FALSE;
       break;
    }
@@ -1874,7 +1781,6 @@ dirview_button_action (DirView *dv, GimvEventButton *event, gint num)
 
    g_free (path);
    g_free (label);
-   gtk_tree_path_free (treepath);
 
    return retval;
 }
@@ -1889,10 +1795,7 @@ dirview_button_action (DirView *dv, GimvEventButton *event, gint num)
 void
 dirview_change_root (DirView *dv, const gchar *root_dir)
 {
-   GtkTreeView *treeview;
-   GtkTreeStore *store;
-   GtkTreeIter root_iter;
-   GtkTreePath *treepath;
+   GimvRow *root_row;
    gchar *dest_dir;
 
    g_return_if_fail (dv);
@@ -1908,16 +1811,10 @@ dirview_change_root (DirView *dv, const gchar *root_dir)
    g_free (dv->root_dir);
    dv->root_dir = dest_dir;
 
-   treeview = GTK_TREE_VIEW (dv->dirtree);
-
-   store = GTK_TREE_STORE (gtk_tree_view_get_model (treeview));
-   gtk_tree_store_clear (store);
-   insert_row (store, &root_iter, NULL, dv->root_dir, dv->root_dir);
-
-   treepath = gtk_tree_model_get_path (GTK_TREE_MODEL (store), &root_iter);
-   gtk_tree_view_expand_row (treeview, treepath, FALSE);
-
-   gtk_tree_path_free (treepath);
+   g_list_store_remove_all (dirview_root_store (dv));
+   root_row = insert_row (dv, NULL, dv->root_dir, dv->root_dir);
+   if (root_row)
+      dirview_expand_row (dv, root_row);
 
    adjust_tree_idle (dv, NULL);
 }
@@ -1945,10 +1842,8 @@ dirview_change_root_to_parent (DirView *dv)
 void
 dirview_change_dir (DirView *dv, const gchar *str)
 {
-   GtkTreeModel *model;
-   GtkTreeIter iter;
+   GimvRow *row;
    gchar *destpath;
-  gboolean success;
 
    g_return_if_fail (dv);
 
@@ -1964,11 +1859,10 @@ dirview_change_dir (DirView *dv, const gchar *str)
    /* if selected path in directory view is same as str, adjust to it */
    /* END FIXME */
 
-   success = get_iter_from_path (dv, destpath, &iter);
+   row = get_iter_from_path (dv, destpath);
 
-   if (success) {
-      model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-      adjust_tree_idle (dv, &iter);
+   if (row) {
+      adjust_tree_idle (dv, row);
    } else {
       dirview_change_root (dv, str);
    }
@@ -1990,61 +1884,60 @@ dirview_go_home (DirView *dv)
 void
 dirview_refresh_list (DirView *dv)
 {
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gboolean success;
+   GimvRow *root = dirview_get_root_row (dv);
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-   success = gtk_tree_model_get_iter_first (model, &iter);
-   if (!success) return;
+   if (!root) return;
 
-   refresh_dir_tree (dv, &iter);
+   refresh_dir_tree (dv, root);
 }
 
 
 gchar *
 dirview_get_selected_path (DirView *dv)
 {
-   gboolean success;
-   GtkTreeSelection *selection;
-   GtkTreeModel *model;
-   GtkTreeIter iter;
-   gchar *path;
+   GimvRow *row;
 
    g_return_val_if_fail (dv, NULL);
    g_return_val_if_fail (dv->dirtree, NULL);
 
-   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (dv->dirtree));
-   g_return_val_if_fail (selection, NULL);
+   row = dirview_get_selected_row (dv);
+   if (!row) return NULL;
 
-   success = gtk_tree_selection_get_selected (selection, &model, &iter);
-   if (!success) return NULL;
+   return g_strdup (gimv_row_peek_string (row, COLUMN_FULLPATH));
+}
 
-   gtk_tree_model_get (model, &iter,
-                       COLUMN_FULLPATH, &path,
-                       COLUMN_TERMINATOR);
 
-   return path;
+/* gtk_tree_view_expand_row (open_all) */
+static void
+dirview_expand_row_all (DirView *dv, GimvRow *row, gboolean open_all)
+{
+   GListModel *children;
+   guint i;
+
+   dirview_expand_row (dv, row);
+   if (!open_all) return;
+
+   children = G_LIST_MODEL (gimv_row_get_children (row, FALSE));
+   for (i = 0; children && i < g_list_model_get_n_items (children); i++) {
+      GimvRow *child = gimv_row_store_peek (children, i);
+      const gchar *label = gimv_row_peek_string (child, COLUMN_LABEL);
+
+      if (!strcmp (label, ".") || !strcmp (label, "..")) continue;
+      if (!gimv_row_get_children (child, FALSE)) continue;
+      dirview_expand_row_all (dv, child, TRUE);
+   }
 }
 
 
 void
 dirview_expand_dir (DirView *dv, const gchar *dir, gboolean open_all)
 {
-   GtkTreeIter iter;
-   GtkTreeModel *model;
-   GtkTreePath *treepath;
-   gboolean success;
+   GimvRow *row;
 
-   success = get_iter_from_path (dv, dir, &iter);
-   if (!success) return;
+   row = get_iter_from_path (dv, dir);
+   if (!row) return;
 
-   model = gtk_tree_view_get_model (GTK_TREE_VIEW (dv->dirtree));
-   treepath = gtk_tree_model_get_path (model, &iter);
-
-   gtk_tree_view_expand_row (GTK_TREE_VIEW (dv->dirtree), treepath, open_all);
-
-   gtk_tree_path_free (treepath);
+   dirview_expand_row_all (dv, row, open_all);
 }
 
 
@@ -2108,7 +2001,6 @@ dirview_create (const gchar *root_dir,
    dv->show_dotfile      = conf.dirview_show_dotfile;
    dv->priv->hilit_dir         = -1;
    dv->priv->scroll_timer_id   = 0;
-   dv->priv->drag_tree_row     = NULL;
    dv->priv->button_action_id  = 0;
    dv->priv->swap_com_id       = 0;
    dv->priv->adjust_tree_id    = 0;

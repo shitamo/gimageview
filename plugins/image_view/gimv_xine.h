@@ -159,7 +159,8 @@ gint         gimv_xine_get_current_frame      (GimvXine    *gtx,
                                                gint        *height,
                                                gint        *ratio_code,
                                                gint        *format,
-                                               uint8_t     *img);
+                                               uint8_t     *img,
+                                               gint        *img_size);
 guchar      *gimv_xine_get_current_frame_rgb  (GimvXine    *gtx,
                                                gint        *width_ret,
                                                gint        *height_ret);

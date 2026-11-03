@@ -1,7 +1,7 @@
 gimv_sources = files(
   'gimv_gtk4_compat.c', 'gimv_list_view.c', 'gimv_object.c', 'gimv_dnd_compat.c',
   'menu.c',
-  'gimv_dlist.c', 'gimv_elist.c', 'gimv_cell_pixmap.c', 'gimv_marshal.c',
+  'gimv_dlist.c', 'gimv_elist.c', 'gimv_marshal.c',
   'gimv_scrolled.c', 'gimv_zalbum.c', 'gimv_zlist.c',
   'argparse.c', 'auto_completion.c', 'charset.c', 'cursors.c',
   'dirview2.c', 'dither.c', 'dnd.c', 'exif_view.c', 'fileload.c', 'fileutil.c',
