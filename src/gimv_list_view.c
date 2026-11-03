@@ -576,6 +576,8 @@ cb_cell_setup (GtkSignalListItemFactory *f, GObject *object, CellFactory *factor
 
    if (factory->expander) {
       child = gtk_tree_expander_new ();
+      /* leaves are aligned with the rows having an expander (GtkTreeView) */
+      gtk_tree_expander_set_indent_for_icon (GTK_TREE_EXPANDER (child), TRUE);
       gtk_tree_expander_set_child (GTK_TREE_EXPANDER (child), ci->content);
    } else {
       child = ci->content;
@@ -927,7 +929,15 @@ gimv_list_view_new (GListModel *model, GtkSelectionMode mode,
 GtkWidget *
 gimv_column_view_new (GListModel *model, GtkSelectionMode mode)
 {
-   return gtk_column_view_new (gimv_selection_model_new (model, mode));
+   GtkWidget *view;
+
+   view = gtk_column_view_new (gimv_selection_model_new (model, mode));
+   /* columns are as wide as their contents and the view scrolls
+      horizontally (like GtkTreeView) */
+   gtk_scrollable_set_hscroll_policy (GTK_SCROLLABLE (view), GTK_SCROLL_NATURAL);
+   gtk_column_view_set_reorderable (GTK_COLUMN_VIEW (view), FALSE);
+
+   return view;
 }
 
 

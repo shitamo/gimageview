@@ -267,8 +267,12 @@ cb_editlist_items_changed (GListModel *model, guint position,
    gimv_elist_updated (editlist);
 
    if (removed > 0) {
+      /* the selection model keeps the selected row selected if it was only
+         moved (up/down buttons, sorting) */
       if (editlist->dest_row < 0) {
-         editlist->selected = -1;
+         guint selected = gimv_list_view_get_selected (editlist->clist);
+         editlist->selected = selected == GTK_INVALID_LIST_POSITION
+            ? -1 : (gint) selected;
          gimv_elist_set_sensitive (editlist);
       }
       editlist->dest_row = -1;

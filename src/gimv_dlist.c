@@ -201,8 +201,10 @@ cb_gimv_dlist_items_changed (GListModel *model, guint position,
    gimv_dlist_enabled_list_updated (dslist);
 
    if (removed > 0) {
-      if (dslist->clist2_dest_row < 0) {
-         dslist->clist2_selected = -1;
+      if (dslist->clist2_dest_row < 0 && dslist->clist2) {
+         guint selected = gimv_list_view_get_selected (dslist->clist2);
+         dslist->clist2_selected = selected == GTK_INVALID_LIST_POSITION
+            ? -1 : (gint) selected;
          gimv_dlist_set_sensitive (dslist);
       }
       dslist->clist2_dest_row = -1;

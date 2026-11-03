@@ -59,6 +59,10 @@ typedef struct DetailViewData_Tag
    gint       press_mask;
    gint       press_x, press_y;
    gboolean   set_selection;
+   /* GTK4: the list widgets change the selection when the button is
+      released, after cb_treeview_button_release () (capture phase) */
+   gboolean   releasing;
+   guint      releasing_id;
 } DetailViewData;
 
 
@@ -212,8 +216,11 @@ detail_selection_change_allowed (DetailSelection *self)
    if (!tv_data) return FALSE;
 
    /* only by a mouse button (keyboard navigation moves the focus only) */
-   if (tv_data->press_button <= 0 && !tv_data->set_selection)
+   if (tv_data->press_button <= 0 && !tv_data->set_selection
+       && !tv_data->releasing)
+   {
       return FALSE;
+   }
 
    /*
     *  For DnD and popup, should not change selection when selected path was
@@ -469,6 +476,18 @@ cb_treeview_motion_notify (GtkWidget *widget,
 
 
 static gboolean
+idle_releasing_done (gpointer data)
+{
+   DetailViewData *tv_data = data;
+
+   tv_data->releasing    = FALSE;
+   tv_data->releasing_id = 0;
+
+   return G_SOURCE_REMOVE;
+}
+
+
+static gboolean
 cb_treeview_button_release (GtkWidget *widget,
                             GimvEventButton *event,
                             GimvThumbView *tv)
@@ -486,6 +505,16 @@ cb_treeview_button_release (GtkWidget *widget,
    tv_data->press_mask   = -1;
    tv_data->press_x      = -1;
    tv_data->press_y      = -1;
+
+   /* the selection may be changed by the view while this release event is
+      handled (see detail_selection_change_allowed ()) */
+   if (!tv_data->dragging && event->type == GDK_BUTTON_RELEASE) {
+      tv_data->releasing = TRUE;
+      if (!tv_data->releasing_id)
+         tv_data->releasing_id = g_idle_add_full (G_PRIORITY_HIGH,
+                                                  idle_releasing_done,
+                                                  tv_data, NULL);
+   }
 
    if (tv_data->dragging) {
       tv_data->dragging = FALSE;
@@ -683,6 +712,8 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
 static void
 detailview_data_free (DetailViewData *tv_data)
 {
+   if (tv_data->releasing_id)
+      g_source_remove (tv_data->releasing_id);
    if (tv_data->store)
       g_object_unref (tv_data->store);
    g_free (tv_data);
@@ -1213,6 +1244,8 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    gtk_column_view_set_enable_rubberband (GTK_COLUMN_VIEW (tv_data->treeview),
                                           FALSE);
    gtk_column_view_set_reorderable (GTK_COLUMN_VIEW (tv_data->treeview), FALSE);
+   gtk_scrollable_set_hscroll_policy (GTK_SCROLLABLE (tv_data->treeview),
+                                      GTK_SCROLL_NATURAL);
 
    set_column_types (tv, tv_data, dest_mode);
    detailview_prefs_get_value ("show_title", (gpointer) &show_title);
