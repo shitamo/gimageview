@@ -345,6 +345,7 @@ relpath2abs (const gchar *path)
       {
          len -= 2;
          memmove (dest + i, dest + i + 2, len - i);
+         continue;   /* the same place again: "/./." */
       }
 
       i++;
@@ -366,9 +367,16 @@ relpath2abs (const gchar *path)
             len -= i - j;
             i = j;
          }
+         continue;   /* the same place again: "/../.." */
       }
 
       i++;
+   }
+
+   /* "/a/.." and "/..": the root */
+   if (!*dest) {
+      g_free (dest);
+      dest = g_strdup ("/");
    }
 
    return dest;

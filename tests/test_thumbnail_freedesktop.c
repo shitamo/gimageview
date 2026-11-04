@@ -153,10 +153,6 @@ test_relative_dots (void)
 {
    gchar *path, *want, *cwd, *uri;
 
-   if (gimv_test_known_bug ("relpath2abs () leaves the second of two \"./\" in a row "
-                            "(\"a/././b\" -> \"a/./b\"): a URI unlike the one of the "
-                            "file managers"))
-      return;
    set_thumb_size (96);
    uri = g_strconcat ("file://", img_dir, "/c.png", NULL);
    want = expected_path (uri, "normal");
