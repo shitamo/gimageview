@@ -11,7 +11,7 @@ gimv_sources = files(
   'gimv_image_loader.c', 'gimv_image_saver.c', 'gimv_image_view.c',
   'gimv_image_win.c', 'gimv_io.c', 'gimv_io_file.c', 'gimv_io_mem.c',
   'gimv_mime_types.c', 'gimv_nav_win.c', 'gimv_plugin.c', 'gimv_prefs.c',
-  'gimv_prefs_ui_utils.c', 'gimv_prefs_win.c', 'gimv_print.c', 'gimv_slideshow.c', 'gimv_thumb.c',
+  'gimv_prefs_ui_utils.c', 'gimv_prefs_win.c', 'gimv_print.c', 'gimv_slideshow.c', 'gimv_thumb.c', 'gimv_orient.c',
   'gimv_thumb_async.c', 'gimv_thumb_cache.c', 'gimv_thumb_view.c', 'gimv_thumb_win.c',
   'gtk_prop.c', 'gtkutils.c', 'help.c', 'pixbuf_utils.c',
   'prefs.c', 'text_viewer.c', 'utils.c', 'gimv_xpm.c',
