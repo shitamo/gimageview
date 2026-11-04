@@ -876,11 +876,6 @@ test_watch_dir_move_utf8 (void)
    const gchar *args[] = { "--auto=folder", NULL };
    Indexer *ix;
 
-   if (gimv_test_known_bug ("gimv-indexer, a folder moved while watching: the paths "
-                            "below it are cut with substr () (characters) at strlen () "
-                            "(bytes); wrong when the old path is not ASCII"))
-      return;
-
    write_png (x, 4, 4);
    ix = ix_start ("utf8.db", root, args);
    ix_wait (ix, "idle");
@@ -906,10 +901,6 @@ test_dir_remove_case (void)
    const gchar *args[] = { "--auto=folder", NULL };
    Indexer *ix;
 
-   if (gimv_test_known_bug ("gimv-indexer: a folder removed (or moved) takes the rows "
-                            "of the folders below another folder whose name differs "
-                            "only in case (LIKE ignores the case of ASCII letters)"))
-      return;
 
    write_png (x, 4, 4);
    write_png (y, 4, 4);

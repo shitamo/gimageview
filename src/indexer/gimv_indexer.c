@@ -496,9 +496,14 @@ missing_file (Indexer *ix, gint64 dir_id, const gchar *dirpath, const gchar *nam
 }
 
 
-/* the directory tree is about to be dropped (like: "path/%" escaped) */
+/* the paths below a directory: path > "dir/" AND path < "dir0" ("0" comes
+ * right after "/").  The comparison is of the bytes, with the case: LIKE
+ * ignored the case of ASCII letters and took "Trip/..." for "trip/...". */
+#define BELOW_DIR "(path > ?2 || '/' AND path < ?2 || '0')"
+
+/* the directory tree is about to be dropped */
 static void
-missing_tree (Indexer *ix, const gchar *path, const gchar *like)
+missing_tree (Indexer *ix, const gchar *path)
 {
    sqlite3_stmt *st;
    GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
@@ -508,9 +513,8 @@ missing_tree (Indexer *ix, const gchar *path, const gchar *like)
    if (!ix->log_missing) goto out;
    st = prep (ix, "SELECT d.path, f.name, f.id FROM files f "
                   "JOIN comments c ON c.file_id = f.id JOIN dirs d ON d.id = f.dir_id "
-                  "WHERE d.path = ?1 OR d.path LIKE ?2 ESCAPE '\\'");
+                  "WHERE d.path = ?1 OR (d.path > ?1 || '/' AND d.path < ?1 || '0')");
    sqlite3_bind_text (st, 1, path, -1, SQLITE_STATIC);
-   sqlite3_bind_text (st, 2, like, -1, SQLITE_STATIC);
    while (sqlite3_step (st) == SQLITE_ROW) {
       gint64 id = sqlite3_column_int64 (st, 2);
       g_ptr_array_add (paths, g_build_filename ((const gchar *) sqlite3_column_text (st, 0),
@@ -704,41 +708,21 @@ static void
 dir_remove_tree (Indexer *ix, const gchar *path)
 {
    sqlite3_stmt *st;
-   gchar *like, *esc;
    gint n;
 
-   /* "path/%" with LIKE wildcards escaped */
-   esc = g_strdup (path);
-   {
-      GString *s = g_string_new (NULL);
-      const gchar *p;
-      for (p = esc; *p; p++) {
-         if (*p == '%' || *p == '_' || *p == '\\') g_string_append_c (s, '\\');
-         g_string_append_c (s, *p);
-      }
-      g_free (esc);
-      esc = g_string_free (s, FALSE);
-   }
-   like = g_strconcat (esc, "/%", NULL);
-
-   missing_tree (ix, path, like);
+   missing_tree (ix, path);
 
    st = prep (ix, "SELECT count(*) FROM files WHERE dir_id IN "
-                  "(SELECT id FROM dirs WHERE path = ?1 OR path LIKE ?2 ESCAPE '\\')");
-   sqlite3_bind_text (st, 1, path, -1, SQLITE_STATIC);
-   sqlite3_bind_text (st, 2, like, -1, SQLITE_STATIC);
+                  "(SELECT id FROM dirs WHERE path = ?2 OR " BELOW_DIR ")");
+   sqlite3_bind_text (st, 2, path, -1, SQLITE_STATIC);
    n = sqlite3_step (st) == SQLITE_ROW ? sqlite3_column_int (st, 0) : 0;
    sqlite3_finalize (st);
    ix->n_removed += n;
 
-   st = prep (ix, "DELETE FROM dirs WHERE path = ?1 OR path LIKE ?2 ESCAPE '\\'");
-   sqlite3_bind_text (st, 1, path, -1, SQLITE_STATIC);
-   sqlite3_bind_text (st, 2, like, -1, SQLITE_STATIC);
+   st = prep (ix, "DELETE FROM dirs WHERE path = ?2 OR " BELOW_DIR);
+   sqlite3_bind_text (st, 2, path, -1, SQLITE_STATIC);
    sqlite3_step (st);
    sqlite3_finalize (st);
-
-   g_free (like);
-   g_free (esc);
 }
 
 
@@ -3200,28 +3184,15 @@ watch_dir_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar 
       return;
    }
 
-   /* "old" and "old/..." -> "new" and "new/..." */
-   {
-      GString *esc = g_string_new (NULL);
-      const gchar *p;
-      gchar *like;
-
-      for (p = old; *p; p++) {
-         if (*p == '%' || *p == '_' || *p == '\\') g_string_append_c (esc, '\\');
-         g_string_append_c (esc, *p);
-      }
-      like = g_strconcat (esc->str, "/%", NULL);
-      st = prep (ix, "UPDATE dirs SET path = ?1 || substr(path, ?2) "
-                     "WHERE path = ?3 OR path LIKE ?4 ESCAPE '\\'");
-      sqlite3_bind_text (st, 1, new, -1, SQLITE_STATIC);
-      sqlite3_bind_int  (st, 2, strlen (old) + 1);
-      sqlite3_bind_text (st, 3, old, -1, SQLITE_STATIC);
-      sqlite3_bind_text (st, 4, like, -1, SQLITE_STATIC);
-      sqlite3_step (st);
-      sqlite3_finalize (st);
-      g_free (like);
-      g_string_free (esc, TRUE);
-   }
+   /* "old" and "old/..." -> "new" and "new/...": the rest cut in bytes
+    * (substr () of a text counts characters) */
+   st = prep (ix, "UPDATE dirs SET path = ?1 || CAST(substr(CAST(path AS BLOB), ?3) AS TEXT) "
+                  "WHERE path = ?2 OR " BELOW_DIR);
+   sqlite3_bind_text (st, 1, new, -1, SQLITE_STATIC);
+   sqlite3_bind_text (st, 2, old, -1, SQLITE_STATIC);
+   sqlite3_bind_int  (st, 3, strlen (old) + 1);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
    st = prep (ix, "UPDATE dirs SET parent = ? WHERE id = ?");
    sqlite3_bind_int64 (st, 1, pid);
    sqlite3_bind_int64 (st, 2, oid);
