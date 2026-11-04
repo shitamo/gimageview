@@ -169,6 +169,25 @@ exited (GSubprocess *proc)
 }
 
 
+/* the messages of gimv, kept apart: xvfb-run puts them into the TAP
+ * output, where they are not TAP.  Shown as comments when the test fails. */
+static gchar *gimv_log = NULL;
+
+static void
+show_gimv_log (void)
+{
+   gchar *text = NULL, **lines;
+   guint i;
+
+   if (!gimv_log || !g_file_get_contents (gimv_log, &text, NULL, NULL)) return;
+   lines = g_strsplit (text, "\n", -1);
+   for (i = 0; lines[i]; i++)
+      if (*lines[i]) g_print ("# gimv: %s\n", lines[i]);
+   g_strfreev (lines);
+   g_free (text);
+}
+
+
 static void
 test_startup (void)
 {
@@ -213,6 +232,8 @@ test_startup (void)
 
    /* its stdout is not TAP */
    l = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_SILENCE);
+   gimv_log = g_build_filename (tmp, "gimv.log", NULL);
+   g_subprocess_launcher_set_stderr_file_path (l, gimv_log);
    g_subprocess_launcher_setenv (l, "HOME", home, TRUE);
    g_subprocess_launcher_setenv (l, "XDG_CACHE_HOME", cache, TRUE);
    g_subprocess_launcher_setenv (l, "XDG_CONFIG_HOME", home, TRUE);
@@ -236,9 +257,13 @@ test_startup (void)
       if (exited (proc)) break;
       g_usleep (100 * 1000);
    }
-   if (exited (proc)) g_error ("gimv ended before closing it");
+   if (exited (proc)) {
+      show_gimv_log ();
+      g_error ("gimv ended before closing it");
+   }
    if (found < N_IMAGES) {
       g_subprocess_force_exit (proc);
+      show_gimv_log ();
       g_error ("%u of %u thumbnails made in 60 seconds", found, N_IMAGES);
    }
    for (i = 0; i < N_IMAGES; i++) {
@@ -256,10 +281,12 @@ test_startup (void)
    }
    if (!exited (proc)) {
       g_subprocess_force_exit (proc);
+      show_gimv_log ();
       g_error ("gimv still runs 30 seconds after its window was closed (%u windows)", sent);
    }
    g_assert_cmpuint (sent, >=, 1);
    g_assert_true (g_subprocess_get_if_exited (proc));
+   if (g_subprocess_get_exit_status (proc) != 0) show_gimv_log ();
    g_assert_cmpint (g_subprocess_get_exit_status (proc), ==, 0);
 
    /* the preferences saved on the way out */
