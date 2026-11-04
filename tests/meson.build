@@ -67,3 +67,23 @@ test('thumbnail-freedesktop',
   executable('test-thumbnail-freedesktop', 'test_thumbnail_freedesktop.c', 'gimv_test_core.c',
     kwargs : core_test_kwargs),
   kwargs : test_kwargs)
+
+if sqlite_dep.found()
+  test('index-db',
+    executable('test-index-db', 'test_index_db.c',
+      objects : gimv_exe.extract_objects(index_db_src),
+      include_directories : test_inc,
+      dependencies : [glib_dep, sqlite_dep]),
+    kwargs : test_kwargs)
+
+  test('indexer',
+    executable('test-indexer', 'test_indexer.c',
+      include_directories : test_inc,
+      c_args : exif_dep.found() ? ['-DHAVE_EXIF'] : [],
+      dependencies : [glib_dep, gio_dep, sqlite_dep, pixbuf_dep, exif_dep]),
+    depends : gimv_indexer_exe,
+    env : test_env,
+    protocol : 'tap',
+    args : ['--tap'],
+    timeout : 120)
+endif
