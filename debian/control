@@ -15,9 +15,10 @@ Build-Depends:
  libgtk-4-dev (>= 4.12),
  libjpeg-dev,
  libmng-dev,
+ libopencv-dev (>= 4.8),
  libpng-dev,
  librsvg2-dev (>= 2.52),
- libsqlite3-dev,
+ libsqlite3-dev (>= 3.22),
  libwmf-dev,
  libxine2-dev,
  meson (>= 0.60),
@@ -56,6 +57,14 @@ Description: image viewer and thumbnail browser for GTK 4
  browsed (read with libarchive).  Thumbnail caches of other viewers
  (GQview, Nautilus, Konqueror, xv, ...) can be read.  Formats such as WebP,
  AVIF, HEIF and JPEG XL are shown when their gdk-pixbuf loaders are
- installed.
+ installed.  Thumbnails are kept in the freedesktop.org cache too, made in
+ the background and turned by the EXIF orientation.
+ .
+ An image index (SQLite) of the chosen folders, kept up to date in the
+ background, shows the images by date taken and by tag (tags put by hand,
+ and by folder, camera and shape), searches them by several tags and
+ dates, and notifies new images.  Faces in the photos are found and
+ grouped (OpenCV; the YuNet and SFace model files are downloaded by the
+ user), named in a faces window, and the images of each person opened.
  .
  This is a port of GImageView 0.2.27 from GTK+ 2 to GTK 4.

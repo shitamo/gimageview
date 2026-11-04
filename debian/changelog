@@ -17,6 +17,18 @@ gimageview (0.2.27+gtk4) unstable; urgency=medium
   * Manuals in Japanese and English with screenshots; the Help menu
     shows English for languages without documents.  README in Markdown
     (README.md).
+  * Image index (SQLite): dates and tags of the chosen folders, kept by
+    gimv-indexer in the background; Date, Tag and People tabs, automatic
+    tags (folder, camera, shape), notices of new images, missing images.
+  * Faces (OpenCV >= 4.8, gimv-faces): faces found and grouped, named in
+    the faces window and the faces panel of the image view.
+  * Tools > Search Images: by tags, names and dates, searches kept.
+  * Thumbnails: freedesktop.org cache, made in worker threads, from the
+    EXIF thumbnail, turned by the EXIF orientation and the user's rotation.
+  * Lists searched with Ctrl+F; status bar with the focused image; no
+    GTK API deprecated in 4.10 (GTK >= 4.12, GLib >= 2.72).
+  * Build-Depends: libopencv-dev (>= 4.8), libsqlite3-dev (>= 3.22);
+    -Dindex=enabled -Dfaces=enabled.
   * See NEWS for all changes.
 
- -- shitamo <sitamo@gmail.com>  Wed, 07 Oct 2026 21:00:00 +0900
+ -- shitamo <sitamo@gmail.com>  Wed, 04 Nov 2026 21:00:00 +0900

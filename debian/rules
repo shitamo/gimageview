@@ -16,7 +16,9 @@ override_dh_auto_configure:
 		-Dwmf=enabled \
 		-Dgstreamer=enabled \
 		-Dxine=enabled \
-		-Dmplayer=true
+		-Dmplayer=true \
+		-Dindex=enabled \
+		-Dfaces=enabled
 
 override_dh_auto_install:
 	dh_auto_install
