@@ -911,26 +911,14 @@ detailview_thaw (GimvThumbView *tv)
 }
 
 
-void
-detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
-                               const gchar *dest_mode)
+/* the row of a thumbnail */
+static GimvRow *
+detailview_new_row (GimvThumb *thumb)
 {
-   DetailViewData *tv_data;
    GList *data_node;
-   gint j, pos, colnum;
+   gint j, colnum = detailview_title_idx_list_num + N_COLUMN;
    GimvRow *row;
    GType *types;
-
-   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
-
-   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
-   colnum = detailview_title_idx_list_num + N_COLUMN;
-
-   /* image sizes from the file headers, in the background */
-   detailview_size_job_start (tv, pos == 0);
-
-   tv_data = g_object_get_data (G_OBJECT(tv), DETAIL_VIEW_LABEL);
-   g_return_if_fail (tv_data && tv_data->treeview);
 
    types = g_new0 (GType, colnum);
    for (j = 0; j < colnum; j++)
@@ -962,12 +950,63 @@ detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
          g_free (text);
    }
 
+   return row;
+}
+
+
+void
+detailview_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
+                               const gchar *dest_mode)
+{
+   DetailViewData *tv_data;
+   gint pos;
+   GimvRow *row;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+
+   pos = gimv_thumb_view_get_thumb_index (tv, thumb);
+
+   /* image sizes from the file headers, in the background */
+   detailview_size_job_start (tv, pos == 0);
+
+   tv_data = g_object_get_data (G_OBJECT(tv), DETAIL_VIEW_LABEL);
+   g_return_if_fail (tv_data && tv_data->treeview);
+
+   row = detailview_new_row (thumb);
    if (pos < 0 || (guint) pos > g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)))
       pos = g_list_model_get_n_items (G_LIST_MODEL (tv_data->store));
    g_list_store_insert (tv_data->store, pos, row);
    g_object_unref (row);
 
    detailview_set_selection (tv, thumb, thumb->selected);
+}
+
+
+/* all the thumbnails of the list into an empty view, in one change of the
+ * model: one by one, 80,000 rows took minutes */
+static void
+detailview_append_all (GimvThumbView *tv)
+{
+   DetailViewData *tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
+   GPtrArray *rows;
+   GList *node;
+
+   g_return_if_fail (tv_data && tv_data->store);
+
+   detailview_size_job_start (tv, TRUE);
+   rows = g_ptr_array_new_with_free_func (g_object_unref);
+   for (node = tv->thumblist; node; node = g_list_next (node))
+      g_ptr_array_add (rows, detailview_new_row (node->data));
+   g_list_store_splice (tv_data->store,
+                        0, g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)),
+                        rows->pdata, rows->len);
+   g_ptr_array_unref (rows);
+
+   for (node = tv->thumblist; node; node = g_list_next (node)) {
+      GimvThumb *thumb = node->data;
+      if (thumb->selected)
+         detailview_set_selection (tv, thumb, TRUE);
+   }
 }
 
 
@@ -1070,6 +1109,13 @@ detailview_remove_thumbnail (GimvThumbView *tv, GimvThumb *thumb)
 
    tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
    g_return_if_fail (tv_data);
+
+   /* all of them: at once (removing 80,000 rows one by one takes minutes) */
+   if (gimv_thumb_view_is_clearing (tv)) {
+      if (g_list_model_get_n_items (G_LIST_MODEL (tv_data->store)) > 0)
+         g_list_store_remove_all (tv_data->store);
+      return;
+   }
 
    pos = gimv_thumb_view_get_thumb_index (tv, thumb);
    if (pos < 0) return;
@@ -1359,10 +1405,7 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
 
    /* set data */
    if (tv->thumblist) {
-      GList *node;
-
-      for (node = tv->thumblist; node; node = g_list_next (node))
-         detailview_append_thumb_frame (tv, node->data, dest_mode);
+      detailview_append_all (tv);
       detailview_set_pixmaps (tv, dest_mode);
    }
 

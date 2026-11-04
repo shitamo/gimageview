@@ -94,6 +94,7 @@ struct GimvThumbViewPriv_Tag
     * views must not walk the list for every one of them */
    GPtrArray           *index_array;   /* position -> GimvThumb */
    GHashTable          *index_table;   /* GimvThumb -> position + 1 */
+   gboolean             clearing;      /* in gimv_thumb_view_clear () */
 
    /* windowed: only the thumbnails near the visible part are loaded, the
     * ones far from it are dropped (large collections from the image
@@ -1673,6 +1674,16 @@ gimv_thumb_view_get_thumb_index (GimvThumbView *tv, GimvThumb *thumb)
    if (!tv->thumblist || !thumb) return -1;
    build_index (tv);
    return (gint) GPOINTER_TO_UINT (g_hash_table_lookup (tv->priv->index_table, thumb)) - 1;
+}
+
+
+/* TRUE while gimv_thumb_view_clear () takes off all the thumbnails: the
+ * remove_thumb of a view may then empty the view at once */
+gboolean
+gimv_thumb_view_is_clearing (GimvThumbView *tv)
+{
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
+   return tv->priv->clearing;
 }
 
 
@@ -3577,7 +3588,10 @@ gimv_thumb_view_clear (GimvThumbView *tv)
 
    /* from the last one, without changing thumblist on the way: the views
     * find a thumbnail by its position, and the list is dropped at once
-    * afterwards (tens of thousands of thumbnails) */
+    * afterwards (tens of thousands of thumbnails).  A view may empty
+    * itself at once on the first one (gimv_thumb_view_is_clearing ()):
+    * one by one, a list of 80,000 took minutes. */
+   tv->priv->clearing = TRUE;
    for (node = g_list_last (tv->thumblist); node; node = g_list_previous (node)) {
       thumb = node->data;
       if (GIMV_IS_THUMB (thumb))
@@ -3593,6 +3607,7 @@ gimv_thumb_view_clear (GimvThumbView *tv)
       tv->filesize -= thumb->info->st.st_size;
       g_object_unref (G_OBJECT (thumb));
    }
+   tv->priv->clearing = FALSE;
    g_list_free (tv->thumblist);
    tv->thumblist = NULL;
    thumblist_changed (tv);

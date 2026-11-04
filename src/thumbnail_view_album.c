@@ -510,6 +510,14 @@ thumbalbum_remove_thumbnail (GimvThumbView *tv, GimvThumb *thumb)
    tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
    g_return_if_fail (tv_data && tv_data->album);
 
+   /* all of them: at once (one by one, each cell is looked for from the
+    * first one) */
+   if (gimv_thumb_view_is_clearing (tv)) {
+      if (GIMV_ZLIST (tv_data->album)->cell_count > 0)
+         gimv_zlist_clear (GIMV_ZLIST (tv_data->album));
+      return;
+   }
+
    pos = gimv_thumb_view_get_thumb_index (tv, thumb);
    g_return_if_fail (pos >= 0);
 

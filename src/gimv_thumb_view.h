@@ -164,6 +164,7 @@ GList         *gimv_thumb_view_get_summary_mode_list
                                                   (void);
 
 GType        gimv_thumb_view_get_type           (void);
+gboolean       gimv_thumb_view_is_clearing        (GimvThumbView    *tv);
 GimvThumbView *gimv_thumb_view_new                (void);
 gboolean       gimv_thumb_view_set_widget         (GimvThumbView    *tv,
                                                    GimvThumbWin     *tw,

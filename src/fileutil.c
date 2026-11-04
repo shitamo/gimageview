@@ -367,6 +367,38 @@ fileutil_time2str (time_t time)
 }
 
 
+/* the names of the user and group ids, remembered: the detail view asks
+ * for every file, and each getpwuid () reads /etc/passwd again (80,000
+ * files took seconds) */
+static gchar *
+id_name (gboolean group, guint id)
+{
+   static GMutex lock;
+   static GHashTable *names[2];
+   gchar *name;
+
+   g_mutex_lock (&lock);
+   if (!names[group])
+      names[group] = g_hash_table_new_full (g_direct_hash, g_direct_equal,
+                                            NULL, g_free);
+   name = g_hash_table_lookup (names[group], GUINT_TO_POINTER (id));
+   if (!name) {
+      if (group) {
+         struct group *gr = getgrgid ((gid_t) id);
+         name = gr ? g_strdup (gr->gr_name) : g_strdup_printf ("%u", id);
+      } else {
+         struct passwd *pw = getpwuid ((uid_t) id);
+         name = pw ? g_strdup (pw->pw_name) : g_strdup_printf ("%u", id);
+      }
+      g_hash_table_insert (names[group], GUINT_TO_POINTER (id), name);
+   }
+   name = g_strdup (name);
+   g_mutex_unlock (&lock);
+
+   return name;
+}
+
+
 /*
  *  fileutile_uid2str:
  *  uid    :
@@ -375,15 +407,7 @@ fileutil_time2str (time_t time)
 char *
 fileutil_uid2str (uid_t uid)
 {
-   struct passwd *pw = getpwuid (uid);
-   char buf[16];
-
-   if (pw) {
-      return g_strdup (pw->pw_name);
-   } else {
-      g_snprintf (buf, 16, "%d", uid);
-      return g_strdup (buf);
-   }
+   return id_name (FALSE, uid);
 }
 
 
@@ -395,15 +419,7 @@ fileutil_uid2str (uid_t uid)
 char *
 fileutil_gid2str (gid_t gid)
 {
-   struct group *gr = getgrgid (gid);
-   char buf[16];
-
-   if (gr) {
-      return g_strdup (gr->gr_name);
-   } else {
-      g_snprintf (buf, 16, "%d", gid);
-      return g_strdup (buf);
-   }
+   return id_name (TRUE, gid);
 }
 
 

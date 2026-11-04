@@ -26,6 +26,7 @@
 
 #include "fileload.h"
 #include "gimv_index_newimg.h"
+#include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
 #include "prefs.h"
 
@@ -91,7 +92,9 @@ open_paths (GPtrArray *paths)
    GList *wins = gimv_thumb_win_get_list ();
    GimvThumbWin *tw = wins ? g_list_last (wins)->data : NULL;
    FilesLoader *files;
-   gchar *folder = NULL;
+   gchar *folder = NULL, *title;
+   GimvThumbView *tv;
+   gint page;
    guint i;
 
    if (!paths || !paths->len || files_loader_query_loading ()) return;
@@ -116,7 +119,18 @@ open_paths (GPtrArray *paths)
                                            g_strdup (g_ptr_array_index (paths, i)));
       files->filelist = g_list_reverse (files->filelist);
       files->status = END;
-      open_image_files_in_thumbnail_view (files, tw, NULL);
+      files->thumb_load_type = LOAD_CACHE;
+      /* like the tabs of the index: the file names (the path in the
+       * tooltip and the status bar) */
+      tv = gimv_thumb_win_create_new_tab (tw);
+      g_object_set_data (G_OBJECT (tv), "gimv-name-only", GINT_TO_POINTER (TRUE));
+      gimv_thumb_view_set_windowed (tv, TRUE);
+      page = gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), tv->container);
+      if (page >= 0) gtk_notebook_set_current_page (GTK_NOTEBOOK (tw->notebook), page);
+      title = g_strdup_printf (_("%'u new images"), paths->len);
+      gimv_thumb_view_reset_tab_label (tv, title);
+      g_free (title);
+      open_image_files_in_thumbnail_view (files, tw, tv);
       files_loader_delete (files);
    }
 }
