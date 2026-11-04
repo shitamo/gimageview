@@ -27,6 +27,8 @@ gimageview (0.2.27+gtk4) unstable; urgency=medium
     EXIF thumbnail, turned by the EXIF orientation and the user's rotation.
   * Lists searched with Ctrl+F; status bar with the focused image; no
     GTK API deprecated in 4.10 (GTK >= 4.12, GLib >= 2.72).
+  * Build-Depends: libdav1d-dev (librsvg-2.0.pc asks for dav1d.pc, and
+    librsvg2-dev does not bring it in sid).
   * Build-Depends: libopencv-dev (>= 4.8), libsqlite3-dev (>= 3.22);
     -Dindex=enabled -Dfaces=enabled.
   * See NEWS for all changes.
