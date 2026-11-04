@@ -1212,9 +1212,6 @@ xpm_no_strings (void)
 static void
 test_xpm_no_strings (void)
 {
-   if (gimv_test_known_bug ("XPM: a file with the magic and no strings makes "
-                            "gimv_xpm_decode () fail an assertion (a CRITICAL)"))
-      return;
    IN_SUBPROCESS (xpm_no_strings ());
 }
 

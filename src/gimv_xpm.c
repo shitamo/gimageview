@@ -140,7 +140,8 @@ gimv_xpm_decode (const gchar * const *lines, guint n_lines,
    guint width, height, ncolors, cpp, x, y, i;
    guchar *dest = NULL, *d;
 
-   g_return_val_if_fail (lines && n_lines > 0, NULL);
+   /* no strings: a broken file, not a mistake of the caller */
+   if (!lines || n_lines == 0) return NULL;
 
    if (sscanf (lines[0], "%u %u %u %u", &width, &height, &ncolors, &cpp) != 4)
       return NULL;
