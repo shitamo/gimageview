@@ -1,3 +1,6 @@
+# every plugin built (the tests depend on them)
+gimv_plugins = []
+
 plugin_inc = [top_inc, src_inc]
 plugin_kwargs = {
   'include_directories' : plugin_inc,
