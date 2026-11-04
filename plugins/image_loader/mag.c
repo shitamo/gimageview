@@ -161,24 +161,31 @@ mag_load (GimvImageLoader *loader, gpointer data)
 
    minfo.ncolors = (minfo.screen & COLOR256) ? 256 : 16;
 
-   minfo.width  = minfo.rx - minfo.lx + 1;
-   minfo.height = minfo.dy - minfo.uy + 1;
-   minfo.lpad   = minfo.lx & 7;
-   minfo.rpad   = 7 - (minfo.rx & 7);
-   minfo.lx    -= minfo.lpad;
-   minfo.rx    += minfo.rpad;
+   /* the values of the header are not to be trusted */
+   if (minfo.rx < minfo.lx || minfo.dy < minfo.uy) return NULL;
 
+   /* the rows of the file are whole units: 8 dots (16 colours) or 4 (256),
+    * the image is the part of the header */
+   {
+      guint unit = (minfo.screen & COLOR256) ? 4 : 8;
+      minfo.width  = minfo.rx - minfo.lx + 1;
+      minfo.height = minfo.dy - minfo.uy + 1;
+      minfo.lpad   = minfo.lx % unit;
+      minfo.rpad   = unit - 1 - (minfo.rx % unit);
+      minfo.lx    -= minfo.lpad;
+      minfo.rx    += minfo.rpad;
+      minfo.flagperline = (minfo.rx - minfo.lx + 1) / (unit / 2) / 2;
+   }
 
    /* read palette */
    for (i = 0; i < minfo.ncolors; i++) {
       /* ORDER: GRB */
-      gimv_io_read (gio, buffer, 3, &bytes_read);
+      status = gimv_io_read (gio, buffer, 3, &bytes_read);
+      if (status != GIMV_IO_STATUS_NORMAL || bytes_read != 3) return NULL;
       colormap[i][1] = buffer[0]; /* G */
       colormap[i][0] = buffer[1]; /* R */
       colormap[i][2] = buffer[2]; /* B */
    }
-
-   minfo.flagperline = minfo.width >> ((minfo.screen & COLOR256) ? 2 : 3);
 
    if (!gimv_image_loader_progress_update (loader))
       return NULL;
@@ -194,167 +201,139 @@ mag_load (GimvImageLoader *loader, gpointer data)
 }
 
 
+/* the largest image taken (dots), and the largest part read at once */
+#define MAG_MAX_DOTS  (64 * 1024 * 1024)
+#define MAG_MAX_READ  (256 * 1024 * 1024)
+
+static gboolean
+mag_read_at (GimvIO *gio, gulong pos, guchar *buf, gulong len)
+{
+   guint bytes_read = 0;
+
+   if (gimv_io_seek (gio, pos, SEEK_SET) != GIMV_IO_STATUS_NORMAL)
+      return FALSE;
+   if (!len) return TRUE;
+   if (gimv_io_read (gio, buf, len, &bytes_read) != GIMV_IO_STATUS_NORMAL)
+      return FALSE;
+   return bytes_read == len;
+}
+
+
+/* The image is decoded into rows of the padded width (the width of the
+ * file), then the part of the header is taken.  Every value of the file
+ * is checked: a broken file gives NULL, never a read or a write out of
+ * the buffers. */
 static guchar *
 mag_decode_image (GimvImageLoader *loader, mag_info *minfo, guchar colormap[256][3])
 {
-   GimvIO *gio;
-   guint bytes_read;
-   guint i, j, k, sa;
-   gint pr, f, t, width, height;
-   guchar *flaga, *flagb, *fa, *fb, *pix, *d, *dest, *src;
-   guchar bitmask[] = {
-      128, 64, 32, 16, 8, 4, 2, 1
-   };
-   gint offset[][2] = {
+   static const gint offset[][2] = {
       { 0,  0},    {-1,  0},    {-2,  0},    {-4,  0},
       { 0, -1},    {-1, -1},    { 0, -2},    {-1, -2},
       {-2, -2},    { 0, -4},    {-1, -4},    {-2, -4},
       { 0, -8},    {-1, -8},    {-2, -8},    { 0, -16}
    };
-   GimvIOStatus status;
+   GimvIO *gio;
+   gboolean c256 = (minfo->screen & COLOR256) != 0;
+   /* a nibble of a flag: 2 bytes of pixels, 4 dots (16 colours) or 2 (256) */
+   guint dots = c256 ? 2 : 4;
+   gsize pwidth, height, nflags, nflag_a, nflag_b, n, i, x, y;
+   guchar *flaga = NULL, *flagb = NULL, *pix = NULL, *buf = NULL, *dest = NULL;
+   gsize pr = 0, nb = 0;
 
    gio = gimv_image_loader_get_gio (loader);
    g_return_val_if_fail (gio, NULL);
-
    g_return_val_if_fail (minfo, NULL);
 
-   width  = minfo->width;
+   pwidth = minfo->rx - minfo->lx + 1;
    height = minfo->height;
-
-   /* memory allocate for flag */
-   sa = minfo->off_b - minfo->off_a;
-   fa = flaga = g_malloc(sa);
-   if (!fa)
+   if (!minfo->flagperline || !height || pwidth * height > MAG_MAX_DOTS)
       return NULL;
-   fb = flagb = g_malloc(sa << 3);
-   if (!fb) {
-      free(flaga);
+
+   nflags  = (gsize) minfo->flagperline * height;   /* bytes of flag B decoded */
+   nflag_a = (nflags + 7) / 8;
+   if (minfo->off_b < minfo->off_a || minfo->off_b - minfo->off_a < nflag_a
+       || minfo->size_p > MAG_MAX_READ || minfo->size_b > MAG_MAX_READ)
+   {
       return NULL;
    }
 
-   /* decode flag */
-   gimv_io_seek (gio, minfo->offset + minfo->off_a, 0);
-   gimv_io_read (gio, flaga, sa, &bytes_read);
-   gimv_io_seek (gio, minfo->offset + minfo->off_b, 0);
-   for (i = 0; i < sa; i++) {
-      f = *fa++;
-      for (j = 0; j < 8; j++) {
-         guchar c;
-         if (f & bitmask[j]) {
-            gimv_io_read (gio, &c, 1, &bytes_read);
-            *fb++ = c;
-         } else {
-            *fb++ = 0;
-         }
-      }
-   }
-   free(flaga);
+   /* flag A: a bit for each byte of flag B, which holds only the ones
+    * not 0 */
+   flaga = g_malloc (nflag_a);
+   if (!mag_read_at (gio, minfo->offset + minfo->off_a, flaga, nflag_a))
+      goto ERROR;
+   for (i = 0, nflag_b = 0; i < nflags; i++)
+      if (flaga[i / 8] & (0x80 >> (i % 8))) nflag_b++;
 
-   /* do xor */
-   fb = flagb + minfo->flagperline;
-   for (i = 0; i < minfo->flagperline * (height - 1); i++, fb++)
-      *fb ^= *(fb - minfo->flagperline);
+   flagb = g_malloc0 (nflags);
+   buf = g_malloc (MAX (nflag_b, 1));
+   if (!mag_read_at (gio, minfo->offset + minfo->off_b, buf, nflag_b))
+      goto ERROR;
+   for (i = 0; i < nflags; i++)
+      if (flaga[i / 8] & (0x80 >> (i % 8))) flagb[i] = buf[nb++];
+   g_clear_pointer (&buf, g_free);
+   g_clear_pointer (&flaga, g_free);
+
+   /* each line XORed with the one above */
+   for (i = minfo->flagperline; i < nflags; i++)
+      flagb[i] ^= flagb[i - minfo->flagperline];
 
    if (!gimv_image_loader_progress_update (loader))
-      goto ERROR0;
+      goto ERROR;
 
-   /* memory allocate for data  */
-   dest = d = g_malloc0 (sizeof(guchar) * width * height * 3);
-   if (!dest) goto ERROR0;
-			 
-   /* read pixel */
-   gimv_io_seek(gio, minfo->offset + minfo->off_p, SEEK_SET);
-   pix = g_malloc0 (minfo->size_p);
-   if (!pix) goto ERROR1;
-
-   status = gimv_io_read (gio, pix, minfo->size_p, &bytes_read);
-   if (status != GIMV_IO_STATUS_NORMAL) {
-      fprintf(stderr, "Premature MAG file\n");
-      goto ERROR2;
-   }
+   /* pixels */
+   pix = g_malloc (MAX (minfo->size_p, 1));
+   if (!mag_read_at (gio, minfo->offset + minfo->off_p, pix, minfo->size_p))
+      goto ERROR;
 
    if (!gimv_image_loader_progress_update (loader))
-      goto ERROR2;
+      goto ERROR;
 
-   /* put pixels */
-   pr = 0;
-   fb = flagb;
-   for (i = 0; i < minfo->flagperline * height; i++) {
-      f = *fb++;
-      j = f >> 4;
-      if (j) {   /* copy from specified pixel */
-         if (minfo->screen & COLOR256) {
-            src = d + (offset[j][0] * 2 + offset[j][1] * width) * 3;
-            for (k = 0; k < 6; k++)
-               *d++ = *src++;
-         } else {
-            src = d + (offset[j][0] * 4 + offset[j][1] * width) * 3;
-            for (k = 0; k < 12; k++)
-               *d++ = *src++;
-         }
-      } else {  /* put pixel directly */
-         if (minfo->screen & COLOR256) {
-            for (k = 0; k < 2; k++) {
-               t = pix[pr++];
-               *d++ = colormap[t][0];
-               *d++ = colormap[t][1];
-               *d++ = colormap[t][2];
-            }
-         } else {
-            for (k = 0; k < 2; k++) {
-               t = pix[pr++];
-               *d++ = colormap[t >> 4][0];
-               *d++ = colormap[t >> 4][1];
-               *d++ = colormap[t >> 4][2];
-               *d++ = colormap[t & 15][0];
-               *d++ = colormap[t & 15][1];
-               *d++ = colormap[t & 15][2];
-            }
-         }
-      }
-      j = f & 15;
-      if (j) {
-         if (minfo->screen & COLOR256) {
-            src = d + (offset[j][0] * 2 + offset[j][1] * width) * 3;
-            for (k = 0; k < 6; k++)
-               *d++ = *src++;
-         } else {
-            src = d + (offset[j][0] * 4 + offset[j][1] * width) * 3;
-            for (k = 0; k < 12; k++)
-               *d++ = *src++;
-         }
-      } else {
-         if (minfo->screen & COLOR256) {
-            for (k = 0; k < 2; k++) {
-               t = pix[pr++];
-               *d++ = colormap[t][0];
-               *d++ = colormap[t][1];
-               *d++ = colormap[t][2];
-            }
-         } else {
-            for (k = 0; k < 2; k++) {
-               t = pix[pr++];
-               *d++ = colormap[t >> 4][0];
-               *d++ = colormap[t >> 4][1];
-               *d++ = colormap[t >> 4][2];
-               *d++ = colormap[t & 15][0];
-               *d++ = colormap[t & 15][1];
-               *d++ = colormap[t & 15][2];
+   buf = g_malloc0 (pwidth * height * 3);
+   for (i = 0; i < nflags; i++) {
+      guint nib;
+
+      y = i / minfo->flagperline;
+      for (nib = 0; nib < 2; nib++) {
+         guint f = nib ? (flagb[i] & 15) : (flagb[i] >> 4);
+         guchar *d;
+
+         x = ((i % minfo->flagperline) * 2 + nib) * dots;
+         d = buf + (y * pwidth + x) * 3;
+
+         if (f) {   /* copy from a place before */
+            gssize sx = (gssize) x + offset[f][0] * (gssize) dots;
+            gssize sy = (gssize) y + offset[f][1];
+            if (sx < 0 || sy < 0) goto ERROR;
+            memcpy (d, buf + ((gsize) sy * pwidth + sx) * 3, dots * 3);
+         } else {   /* 2 bytes of pixels */
+            if (pr + 2 > minfo->size_p) goto ERROR;
+            for (n = 0; n < 2; n++) {
+               guint t = pix[pr++];
+               if (c256) {
+                  memcpy (d, colormap[t], 3);
+                  d += 3;
+               } else {
+                  memcpy (d, colormap[t >> 4], 3);
+                  memcpy (d + 3, colormap[t & 15], 3);
+                  d += 6;
+               }
             }
          }
       }
    }
 
-   free(flagb);
-   free(pix);
+   /* the part of the header */
+   dest = g_malloc ((gsize) minfo->width * height * 3);
+   for (y = 0; y < height; y++)
+      memcpy (dest + y * minfo->width * 3,
+              buf + (y * pwidth + minfo->lpad) * 3,
+              (gsize) minfo->width * 3);
 
+ERROR:
+   g_free (flaga);
+   g_free (flagb);
+   g_free (pix);
+   g_free (buf);
    return dest;
-
-ERROR2:
-   free (pix);
-ERROR1:
-   free (dest);
-ERROR0:
-   free (flagb);
-   return NULL;
 }

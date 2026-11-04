@@ -611,10 +611,6 @@ test_mag_odd_width (void)
    GimvImage *image;
    guint x, y;
 
-   if (gimv_test_known_bug ("MAG: an image whose width is not a multiple of 8 (16 "
-                            "colours) or 4 (256) is decoded with the rows of the "
-                            "width, not of the padded width the file holds"))
-      return;
 
    a = make_mag16_shown (16, 12, 3, 99);
    image = load_array ("mag", a);
@@ -650,10 +646,6 @@ mag_broken_header (void)
 static void
 test_mag_broken_header (void)
 {
-   if (gimv_test_known_bug ("MAG: the values of the header are not checked (g_malloc () "
-                            "of a size from the file, reads and writes out of the "
-                            "buffers)"))
-      return;
    IN_SUBPROCESS (mag_broken_header ());
 }
 
@@ -669,9 +661,6 @@ mag_truncated (void)
 static void
 test_mag_truncated (void)
 {
-   if (gimv_test_known_bug ("MAG: a file cut short still gives an image (what was not "
-                            "read is taken as zeros or as what the buffer held)"))
-      return;
    IN_SUBPROCESS (mag_truncated ());
 }
 
@@ -687,8 +676,6 @@ mag_fuzz (void)
 static void
 test_mag_fuzz (void)
 {
-   if (gimv_test_known_bug ("MAG: bytes changed at random take the loader down"))
-      return;
    IN_SUBPROCESS (mag_fuzz ());
 }
 
