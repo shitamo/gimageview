@@ -127,9 +127,9 @@ test_mode2str (void)
    check_mode (S_IFIFO | 0600, "?rw-------");
    check_mode (S_IFREG, "----------");
    /* set-id and sticky bits: always the capital letter (as it was) */
-   check_mode (S_IFREG | S_ISUID | 0755, "-rwSr-xr-x");
-   check_mode (S_IFREG | S_ISGID | 0755, "-rwxr-Sr-x");
-   check_mode (S_IFDIR | S_ISVTX | 0777, "drwxrwxrwT");
+   check_mode (S_IFREG | S_ISUID | 0644, "-rwSr--r--");
+   check_mode (S_IFREG | S_ISGID | 0644, "-rw-r-Sr--");
+   check_mode (S_IFDIR | S_ISVTX | 0776, "drwxrwxrwT");
 }
 
 
@@ -137,9 +137,6 @@ static void
 test_mode2str_setid_exec (void)
 {
    /* ls -l: "s" / "t" when the execute bit is set too, "S" / "T" when not */
-   if (gimv_test_known_bug ("fileutil_mode2str () shows S and T also with the x bit set "
-                            "(ls -l shows s and t)"))
-      return;
    check_mode (S_IFREG | S_ISUID | 0755, "-rwsr-xr-x");
    check_mode (S_IFDIR | S_ISVTX | 0777, "drwxrwxrwt");
 }
@@ -173,11 +170,6 @@ test_home2tilde_long (void)
 {
    GString *path;
    gchar *expected;
-
-   if (gimv_test_known_bug ("fileutil_home2tilde () writes up to BUF_SIZE (4096) bytes "
-                            "into a buffer of MAX_PATH_LEN (1024): a long path below "
-                            "HOME overflows the stack"))
-      return;
 
    if (g_test_subprocess ()) {
       gchar *s;
@@ -336,10 +328,6 @@ mkdirs_long (void)
 static void
 test_mkdirs_long (void)
 {
-   if (gimv_test_known_bug ("mkdirs () copies a path of MAX_PATH_LEN (1024) bytes or "
-                            "more into its buffer of 1024 with the NUL one past the "
-                            "end (the stack is smashed), and stops there"))
-      return;
    if (g_test_subprocess ()) {
       mkdirs_long ();
       return;

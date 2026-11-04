@@ -237,24 +237,23 @@ makedir (const char *dir)
 int
 mkdirs (const char *path)
 {
-   char ss[MAX_PATH_LEN];
-   int  i, ii;
+   /* each directory up to the last "/" (any length: it was copied into a
+    * buffer of MAX_PATH_LEN, past its end for a longer path) */
+   char *ss = g_strdup (path);
+   char *p;
+   int ok = TRUE;
 
-   i = 0;
-   ii = 0;
-   while (path[i] && i < MAX_PATH_LEN) {
-      ss[ii++] = path[i];
-      ss[ii] = '\0';
-      if (i + 1 < MAX_PATH_LEN && path[i + 1] == '/') {
-         if (!file_exists(ss)) {
-            if (!makedir(ss))
-               return FALSE;
-         } else if (!isdir(ss))
-            return FALSE;
-      }
-      i++;
+   for (p = ss; *p && ok; p++) {
+      if (p[1] != '/') continue;
+      p[1] = '\0';
+      if (!file_exists (ss))
+         ok = makedir (ss);
+      else if (!isdir (ss))
+         ok = FALSE;
+      p[1] = '/';
    }
-   return TRUE;
+   g_free (ss);
+   return ok;
 }
 
 
@@ -469,12 +468,13 @@ fileutil_mode2str (mode_t mode)
    if (mode & S_IXOTH)
       permission[9] = 'x';
 
+   /* as ls -l: "s" / "t" with the execute bit, "S" / "T" without */
    if (mode & S_ISUID)
-      permission[3] = 'S';
+      permission[3] = (mode & S_IXUSR) ? 's' : 'S';
    if (mode & S_ISGID)
-      permission[6] = 'S';
+      permission[6] = (mode & S_IXGRP) ? 's' : 'S';
    if (mode & S_ISVTX)
-      permission[9] = 'T';
+      permission[9] = (mode & S_IXOTH) ? 't' : 'T';
 
    permission[10] = 0;
 
@@ -494,25 +494,21 @@ fileutil_mode2str (mode_t mode)
 char *
 fileutil_home2tilde (const char *path)
 {
-   char *home = NULL;
-   char  buf[MAX_PATH_LEN];
-   char *retval;
+   const char *home = getenv ("HOME");
    size_t len;
 
-   home = getenv("HOME");
+   if (!home || !*home) return g_strdup (path);
 
+   /* (it was written with BUF_SIZE into a buffer of MAX_PATH_LEN) */
    len = strlen (home);
    if (strlen (path) > len
        && !strncmp (path, home, len)
-       && (path[len] == '/' || path[len] == '\0'))
+       && path[len] == '/')
    {
-      g_snprintf (buf, BUF_SIZE, "~/%s", path + len + 1);
-      retval = g_strdup (buf);
-   } else {
-      retval = g_strdup (path);
+      return g_strconcat ("~/", path + len + 1, NULL);
    }
 
-   return retval;
+   return g_strdup (path);
 }
 
 
