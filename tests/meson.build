@@ -87,3 +87,19 @@ if sqlite_dep.found()
     args : ['--tap'],
     timeout : 120)
 endif
+
+# gimv started on a virtual X display (xvfb-run -a): skipped without
+# xvfb-run or Xlib
+x11_dep = dependency('x11', required : false)
+if x11_dep.found()
+  startup_exe = executable('test-startup', 'test_startup.c',
+    include_directories : test_inc,
+    dependencies : [glib_dep, gio_dep, pixbuf_dep, x11_dep])
+  xvfb_run = find_program('xvfb-run', required : false)
+  test('startup', xvfb_run.found() ? xvfb_run : startup_exe,
+    args : xvfb_run.found() ? ['-a', startup_exe.full_path(), '--tap'] : ['--tap'],
+    depends : [gimv_exe, startup_exe] + gimv_plugins,
+    env : test_env,
+    protocol : 'tap',
+    timeout : 180)
+endif
