@@ -148,6 +148,9 @@ subdir('src')
 subdir('plugins')
 subdir('etc')
 subdir('po')
+if get_option('tests')
+  subdir('tests')
+endif
 if import('fs').is_dir('doc')
   subdir('doc')
 endif

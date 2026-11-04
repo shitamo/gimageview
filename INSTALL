@@ -59,11 +59,25 @@ change them later with meson configure _build -Doption=value.
     gstreamer (auto)  GStreamer movie plugin
     mplayer  (true)   MPlayer movie plugin
     xine     (auto)   xine movie plugin
+    tests    (true)   the tests (meson test)
 
 "auto" enables a feature when its library is found; "enabled" makes a
 missing library an error.  Example:
 
     $ meson setup _build -Dxine=enabled -Dsvg=enabled -Dexif=enabled
+
+
+Tests
+-----
+
+    $ meson test -C _build
+
+runs the tests in tests/ (GLib test programs).  The test of the start of
+gimv needs an X display: it runs under xvfb-run (package xvfb), and is
+skipped without it.  The tests of bugs not fixed yet are reported as TODO
+(expected failures); to run them as well:
+
+    $ GIMV_TEST_KNOWN_BUGS=1 meson test -C _build
 
 
 Debian package

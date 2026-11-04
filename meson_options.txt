@@ -11,3 +11,4 @@ option('gstreamer', type : 'feature', value : 'auto', description : 'GStreamer m
 option('xine', type : 'feature', value : 'auto', description : 'xine movie plugin (libxine >= 1.2)')
 option('index', type : 'feature', value : 'auto', description : 'image index by date and tag (gimv-indexer, SQLite)')
 option('faces', type : 'feature', value : 'auto', description : 'face recognition in the index (gimv-faces, OpenCV >= 4.8)')
+option('tests', type : 'boolean', value : true, description : 'Build the tests (meson test)')
