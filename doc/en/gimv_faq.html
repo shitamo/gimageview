@@ -83,23 +83,14 @@ If you change the key bindings, only you know how it will behave. Please do this
 <div class="titlepage"><div><h3 class="title">
 <a name="gimv_faq_03"></a>8.3. Thumbnail Window</h3></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_03-01"></a>What does &quot;**/** files&quot; shown in the status bar mean?</span></dt>
+<dt><span class="term"><a name="gimv_faq_03-01"></a>What is shown in the status bar?</span></dt>
 <dd><p class="para">
-It is the total number of files open in GImageView and the number of images in the displayed tab. It is also how many image files there are under that directory.
+From the left: the full path of the focused image (&quot;~&quot; for the home directory), its position in the tab (&quot;10 / 16&quot;) and its file size. With several images selected, their number and their total size (&quot;5 selected  812 kB&quot;). At the right end, the state of the image index (&quot;Index: 28 images&quot; and so on; the details are in the tooltip) and the &quot;Notices&quot; button (<a href="02.html#statusbar">2.5</a>).
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_03-02"></a>What does &quot;**/** kB&quot; shown in the status bar mean?</span></dt>
+<dt><span class="term"><a name="gimv_faq_03-02"></a>Where are the numbers of files, the total size and the tab number of the older versions?</span></dt>
 <dd><p class="para">
-It is the total size of the files open in GImageView and the total size of the images in the displayed tab. It lets you know how much disk space the files directly under that directory use.
+In the GTK 4 version, the status bar shows only the image in hand; the numbers of files, the total sizes and the tab numbers of all the tabs (&quot;**/** files&quot;, &quot;**/** kB&quot;, &quot;**/** page&quot;) are no longer shown. The number of images in the tab is the second number of the position (&quot;10 / 16&quot;). A right click on the tabs shows the list of the open tabs.
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_03-03"></a>What does &quot;**/** page&quot; shown in the status bar mean?</span></dt>
-<dd>
-<p class="para">
-It is the total number of tabs open in GImageView and the number of the currently displayed tab. You can see how many tabs are open now and which tab is the open one.
-</p>
-<p class="para">
-The deeper the hierarchy of the opened directory, the more characters a tab has. Depending on the hierarchy, it can happen that &quot;only one tab can be shown on the screen&quot;. In such a case, you can grasp the whole picture from the numbers in the status bar. The numbers are 1 for the leftmost tab, followed by 2, 3, 4... When you close a tab, the numbers increase or decrease automatically.
-</p>
-</dd>
 <dt><span class="term"><a name="gimv_faq_03-04"></a>How do I use the input entry on the right of the toolbar?</span></dt>
 <dd>
 <p class="para">
@@ -140,7 +131,7 @@ Right-click on the tab area. A list of the currently open tabs is shown. You can
 </p></dd>
 <dt><span class="term"><a name="gimv_faq_04-02"></a>Stopping the full path display on tabs</span></dt>
 <dd><p class="para">
-Uncheck &quot;Show full path&quot; in <span class="emphasis"><i>[Preferences | Thumbnail Window | Tab]</i></span>. Only the directory name will be shown on the tab. The full path of the open tab is then shown in the status bar, so check it there.
+Uncheck &quot;Show full path&quot; in <span class="emphasis"><i>[Preferences | Thumbnail Window | Tab]</i></span>. Only the directory name will be shown on the tab. The full path of a tab is then shown in its tooltip.
 </p></dd>
 <dt><span class="term"><a name="gimv_faq_04-03"></a>What is a collection tab?</span></dt>
 <dd>

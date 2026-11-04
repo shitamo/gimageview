@@ -28,6 +28,105 @@
 <div class="titlepage"><div><h2 class="title" style="clear: both">
 <a name="gimv_history"></a>10. GImageView History</h2></div></div>
 <pre class="screen">
+2026-11-04: Version 0.2.27+gtk4 (GTK 4 version), changes since 2026-09-26
+    o Corrected spelling and wording of the English messages and menus
+      (Faild -&gt; Failed, Buttton, Thumnail, Tool -&gt; Tools, ...); old key
+      bindings in ~/.gimv/keyaccelrc for renamed menu items are migrated.
+      po/gimageview.pot regenerated (tools/po-update.py).
+    o Dialog buttons (OK, Cancel, Apply, ...) are translated again.
+    o Help &gt; Document shows the (Japanese) documents in other locales too.
+    o View &gt; Layout and Window Composition show pictures of the layouts
+      (a row of icon buttons; name and shortcut in the tooltip).
+    o New GStreamer movie plugin: plays movies and audio in the image view
+      (the formats depend on the installed GStreamer plugins) and makes
+      movie thumbnails.  It is the default player when no default view
+      mode for movies is set.
+    o Archives are read with libarchive instead of running lha, unzip, rar
+      and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS file
+      names in old zip/lha archives are converted.
+    o Buttons use the icons of the desktop icon theme (Preferences &gt;
+      Common &gt; Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/&lt;name&gt;)
+      may contain PNG and SVG files.
+    o Tools &gt; Set as Wallpaper sets the selected image as the desktop
+      wallpaper (Xfce, GNOME, KDE Plasma, MATE, Cinnamon, LXDE/LXQt, feh;
+      "This Desktop" picks the running one).  Other formats and images in
+      archives are converted to PNG in ~/.gimv/wallpaper.
+    o The movie player shows the elapsed and the total time; a click on a
+      playing movie no longer moves on to the next file.
+    o Top-down BMP and CMYK JPEG files are loaded.
+    o Printing (GTK print dialog): File &gt; Print... (Ctrl+P) in the image
+      window and the thumbnail window (selected images, one per page), and
+      Print... in the popup menus.  The "Image" tab of the print dialog
+      chooses fit to the page or a resolution in dpi, turning the image to
+      the page orientation, and printing the file name.
+    o Movie seek bar: pointing at it shows the frame and the time there
+      (GStreamer player; the time only for audio).
+    o Transparent images are shown over a checkerboard (View &gt;
+      Checkerboard Behind Transparency, also in the popup menu and in
+      Preferences &gt; Image Window &gt; Background); off blends them with the
+      background colour as before.
+    o Preferences &gt; Movie and Audio: continuous play on/off.
+    o Preferences &gt; Movie and Audio: optionally ignore mouse actions for
+      next/previous image, zoom, rotation and scrolling while a movie or
+      audio file plays (off by default: the mouse settings apply).
+    o Thumbnail view: directory names end with "/" in all view modes.
+    o Movies and audio files in archives can be played (they are extracted
+      first; before, the player reported "Resource not found").
+    o Detail view: the image size is read from the file header (formats
+      of gdk-pixbuf, and JPEG) instead of "Unknown" until the image was
+      loaded; it is also updated when an image is opened.  The sizes are
+      read in the background after the list is shown.
+    o The rotation of each image is remembered (kept in its comment file
+      under ~/.gimv/comment, hidden in the comment editor) and restored
+      when it is opened again; Preferences &gt; Image Window &gt; Image.
+    o The HTML manual (Japanese) has screenshots, and its descriptions of
+      the menus, toolbars, mouse menus, preferences and key bindings were
+      changed to match this version.
+    o Mouse button preferences: the side buttons "back" (button 8) and
+      "forward" (button 9) can be assigned (nothing by default).
+    o English manual (HTML) and English plain text documents in the Help
+      menu; they are shown for every language that has no documents of its
+      own (only Japanese has).
+    o Color scheme (Preferences &gt; Common &gt; Appearance): the desktop theme,
+      light or dark.  With the desktop theme, a dark theme that GTK 4
+      cannot read (no gtk-4.0 directory, e.g. Greybird-dark) is shown with
+      the dark Adwaita.  Icons of GImageView drawn only with black lines
+      are drawn with light lines in dark colors.
+    o File open dialog: "Thumbnails of the selected files" also opens the
+      selected folders, each in a tab of its own.
+    o Image index (SQLite): gimv-indexer keeps the dates and tags of the
+      images of the directories given in Preferences &gt; Index, in the
+      background.  The "Date" and "Tag" tabs of the side notebook open
+      them in a result tab; tags are edited from the thumbnail view and
+      kept in the comment files, renamed and merged with F2; automatic
+      tags (folder, camera, shape); desktop notices of new images; Tools &gt;
+      Missing Images... for the comments of images that went missing.
+    o Faces and people (OpenCV 4.8, YuNet and SFace models): gimv-faces
+      finds faces and groups them; the "People" tab, the faces window
+      (naming, guesses, unnamed groups, tags of people) and the faces
+      panel of the image view (P), where a face can also be added by hand.
+      The names are kept in the comment files as "person/NAME" tags.
+    o Tools &gt; Search Images...: images of the index by tags and names
+      (and, not), by the date taken, narrowed by the tags of the images
+      found; searches can be kept by name.
+    o Thumbnails: the freedesktop.org cache (~/.cache/thumbnails) is read
+      and written; thumbnails are made in worker threads, from the EXIF
+      thumbnail of a JPEG when it is big enough; they are turned and
+      flipped by the EXIF orientation and by the rotation and flip the
+      user gave the image.
+    o Lists: Ctrl+F searches the rows (directory view, detail view, Data
+      tab, preferences, index tabs, ...).
+    o Status bar: the path, position and size of the focused image, or
+      the number and total size of the images selected.
+    o Data tab: the comments written in the image file itself (JPEG, PNG,
+      GIF, MAG) are shown in italics, and the tags of the image.
+    o Image view: Copy the Image to the Clipboard (Shift+Ctrl+C), Flip
+      Horizontally (X, remembered with the rotation), Open the Folder.
+    o Scrollbars are always shown (a preference, on by default).
+    o GtkTreeView and the other API deprecated in GTK 4.10 are no longer
+      used (GtkListView / GtkColumnView); GTK 4.12 and GLib 2.72 are
+      required.
+
 2026-09-26: Version 0.2.27+gtk4 (GTK 4 version)
     o Ported to GTK 4, built with Meson
     o Removed the support for Susie plugins

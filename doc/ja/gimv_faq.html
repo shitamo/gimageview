@@ -83,25 +83,14 @@ $ <b>gimv</b>
 <div class="titlepage"><div><h3 class="title">
 <a name="gimv_faq_03"></a>8.3. サムネイルウィンドウ</h3></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_faq_03-01"></a>ステータスバーに表示されている、&quot;**/** files&quot;の意味は?</span></dt>
+<dt><span class="term"><a name="gimv_faq_03-01"></a>ステータスバーに表示されているものは?</span></dt>
 <dd><p class="para">
-GImageView で開いているファイルの総数と、表示されてるタブ内の画像枚数です。そのディ
-レクトリ下に一体いくつの画像ファイルがあるか、でもあります。
+左から、フォーカスのある画像のフルパス (ホームディレクトリの下は「~」で表示)、その画像がタブの中で何枚目か (&quot;10 / 16 枚目&quot;) とファイルサイズです。複数の画像を選んでいるときは、選んだ枚数と合計サイズ (&quot;5 枚選択  812 kB&quot;) を表示します。右端は画像の索引の状態 (&quot;索引: 28 枚&quot; など。詳しくはツールチップ) と「お知らせ」ボタンです (<a href="02.html#statusbar">2.5</a>)。
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_03-02"></a>ステータスバーに表示されている、&quot;**/** kB&quot;の意味は?</span></dt>
+<dt><span class="term"><a name="gimv_faq_03-02"></a>以前の版のファイル数・合計サイズ・タブの番号はどこに?</span></dt>
 <dd><p class="para">
-GImageView で開いているファイルの総容量と、表示されてるタブ内の画像の総容量です。そのディ
-レクトリ直下の下のファイルが、どのくらいディスクを食っているのか知ることができます。
+GTK 4 版では、ステータスバーには開いている画像の情報だけを表示し、全部のタブのファイル数・合計サイズ・タブの番号 (&quot;**/** files&quot;、&quot;**/** kB&quot;、&quot;**/** page&quot;) は表示しなくなりました。タブの中の画像の枚数は、画像の位置の表示 (&quot;10 / 16 枚目&quot;) の後ろの数でわかります。開いているタブの一覧は、タブの部分を右クリックすると表示されます。
 </p></dd>
-<dt><span class="term"><a name="gimv_faq_03-03"></a>ステータスバーに表示されている、&quot;**/** page&quot;の意味は?</span></dt>
-<dd>
-<p class="para">
-GImageView で開いているタブの総数と、現在表示しているタブの番号です。今、いくつタブを開いているのか、開いているタブは何番目なのかが分かります。
-</p>
-<p class="para">
-開いたディレクトリの階層が深ければ深いほど、タブの文字数が多くなります。階層によっては、「画面に 1タブしか表示できない」ということもあり得ます。このような時、ステータスバーの数字によって全体を把握することができます。番号は一番左側を 1 として、2,3,4...となっています。タブを閉じれば、自動的に番号が増減します。
-</p>
-</dd>
 <dt><span class="term"><a name="gimv_faq_03-04"></a>ツールバーの右にある、入力エントリはどうやって使うの?</span></dt>
 <dd>
 <p class="para">
@@ -142,7 +131,7 @@ GImageView から別のウィンドウに(たとえば rxvt とか)にフォー�
 </p></dd>
 <dt><span class="term"><a name="gimv_faq_04-02"></a>タブのフルパス表示を止める</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>[設定 | サムネイルウィンドウ | タブ]</i></span> の &quot;フルパスを表示(show full path)&quot;のチェックを外してください。ディレクトリ名だけがタブに表示されるようになります。この時、開いているタブのフルパスは、ステータスバーに表示されていますので、そちらで確認してください。
+<span class="emphasis"><i>[設定 | サムネイルウィンドウ | タブ]</i></span> の &quot;フルパスを表示(show full path)&quot;のチェックを外してください。ディレクトリ名だけがタブに表示されるようになります。この時、タブのフルパスは、タブにマウスポインタを置くとツールチップで表示されます。
 </p></dd>
 <dt><span class="term"><a name="gimv_faq_04-03"></a>コレクションタブとは</span></dt>
 <dd>
