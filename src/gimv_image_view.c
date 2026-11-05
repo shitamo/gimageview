@@ -2806,8 +2806,10 @@ gimv_image_view_paint (GimvImageView *iv, cairo_t *cr,
 void
 gimv_image_view_draw_image (GimvImageView *iv)
 {
-   if (!gtk_widget_get_mapped (GTK_WIDGET (iv))) return;
-   if (!iv->draw_area) return;
+   /* the drawing area, not the view: in a window without the frame (the
+    * slide show) the view itself is not mapped, and the images after the
+    * first one were not drawn until something else redrew the window */
+   if (!iv->draw_area || !gtk_widget_get_mapped (iv->draw_area)) return;
 
    /* GTK4: drawing is done in the draw function; just request a redraw */
    gtk_widget_queue_draw (iv->draw_area);
