@@ -119,10 +119,14 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  of the keys to edit there (X-IMG-Tags, a comment of the file) shows
 	  its own key and is only shown.  A line break in a tag or a value
 	  (a pasted text) becomes a space.
-	* Automatic tags: the keywords other programs put (XMP dc:subject in
-	  JPEG, PNG, WebP, TIFF and raw files; IPTC Keywords; the sidecar
-	  files "x.jpg.xmp" and "x.xmp", followed while watching), in the
-	  group "Keywords".
+	* The keywords other programs put (XMP dc:subject, IPTC Keywords, the
+	  sidecar files "x.jpg.xmp" and "x.xmp", followed while watching):
+	  kept apart in the index (an automatic kind that can be turned off),
+	  shown and looked for with the tags put by hand: a keyword and a tag of the same name are one tag
+	  in the Tag tab, the Data tab, the search window and Edit Tags.
+	* The index reads EXIF, XMP and IPTC with gexiv2 (Exiv2) when built
+	  with it: the date, the camera and the keywords of HEIF, PNG, WebP,
+	  TIFF and raw files too, not of JPEG only.
 	* Data tab: "Remove Item" removes the item selected; "Delete
 	  Comment..." (was "Delete", which removed the whole comment file at
 	  once) asks first and keeps the tags.  The index reads the tags of a

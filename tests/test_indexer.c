@@ -761,6 +761,103 @@ test_keywords (void)
 }
 
 
+#if defined (HAVE_GEXIV2) && defined (HAVE_EXIF)
+static guint32
+png_crc (const guint8 *d, gsize n)
+{
+   guint32 c = 0xffffffff;
+   gsize i;
+   gint k;
+
+   for (i = 0; i < n; i++) {
+      c ^= d[i];
+      for (k = 0; k < 8; k++) c = (c >> 1) ^ (0xedb88320 & -(c & 1));
+   }
+   return c ^ 0xffffffff;
+}
+
+
+/* EXIF in a PNG (eXIf, after IHDR) and IPTC Keywords in Shift_JIS in a
+ * JPEG: read by Exiv2 (libexif reads only JPEG) */
+static void
+test_exiv2 (void)
+{
+   gchar *root = new_root ();
+   gchar *png = in (root, "exif.png"), *jpg = in (root, "iptc.jpg");
+   const gchar *args[] = { "--auto=camera,keyword", NULL };
+   Indexer *ix;
+
+   {
+      GdkPixbuf *px = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, 4, 4);
+      gchar *buf; gsize len;
+      ExifData *ed = exif_data_new ();
+      guchar *d = NULL; guint ds = 0;
+      GByteArray *b = g_byte_array_new (), *chunk = g_byte_array_new ();
+      guint8 be[4];
+      guint32 crc;
+
+      gdk_pixbuf_save_to_buffer (px, &buf, &len, "png", NULL, NULL);
+      g_object_unref (px);
+      exif_data_set_byte_order (ed, EXIF_BYTE_ORDER_INTEL);
+      gimv_test_exif_ascii (ed, EXIF_IFD_0, EXIF_TAG_MAKE, "FUJIFILM");
+      gimv_test_exif_ascii (ed, EXIF_IFD_0, EXIF_TAG_MODEL, "X-T5");
+      gimv_test_exif_ascii (ed, EXIF_IFD_EXIF, EXIF_TAG_DATE_TIME_ORIGINAL, "2019:05:03 10:15:00");
+      exif_data_save_data (ed, &d, &ds);
+      exif_data_unref (ed);
+      g_assert_cmpuint (ds, >, 6);           /* "Exif\0\0" first */
+      g_byte_array_append (chunk, (const guint8 *) "eXIf", 4);
+      g_byte_array_append (chunk, d + 6, ds - 6);
+      crc = png_crc (chunk->data, chunk->len);
+      g_byte_array_append (b, (const guint8 *) buf, 33);      /* signature, IHDR */
+      be[0] = (ds - 6) >> 24; be[1] = (ds - 6) >> 16; be[2] = (ds - 6) >> 8; be[3] = ds - 6;
+      g_byte_array_append (b, be, 4);
+      g_byte_array_append (b, chunk->data, chunk->len);
+      be[0] = crc >> 24; be[1] = crc >> 16; be[2] = crc >> 8; be[3] = crc;
+      g_byte_array_append (b, be, 4);
+      g_byte_array_append (b, (const guint8 *) buf + 33, len - 33);
+      g_assert_true (g_file_set_contents (png, (const gchar *) b->data, b->len, NULL));
+      free (d);
+      g_free (buf);
+      g_byte_array_unref (b);
+      g_byte_array_unref (chunk);
+   }
+   {
+      GByteArray *b = gimv_test_jpeg (4, 4, 0, NULL, NULL, NULL), *ps = g_byte_array_new ();
+      gchar *sjis = g_convert ("桜", -1, "CP932", "UTF-8", NULL, NULL, NULL);
+      gsize n = strlen (sjis);
+      guint8 rec[5] = { 0x1c, 2, 25, n >> 8, n };
+      guint8 res[12] = { '8', 'B', 'I', 'M', 4, 4, 0, 0, 0, 0, 0, 5 + n };
+      guint8 h[4];
+      GByteArray *out = g_byte_array_new ();
+
+      g_byte_array_append (ps, (const guint8 *) "Photoshop 3.0", 14);
+      g_byte_array_append (ps, res, 12);
+      g_byte_array_append (ps, rec, 5);
+      g_byte_array_append (ps, (const guint8 *) sjis, n);
+      if ((5 + n) & 1) g_byte_array_append (ps, (const guint8 *) "", 1);
+      h[0] = 0xff; h[1] = 0xed; h[2] = (ps->len + 2) >> 8; h[3] = ps->len + 2;
+      g_byte_array_append (out, b->data, 2);
+      g_byte_array_append (out, h, 4);
+      g_byte_array_append (out, ps->data, ps->len);
+      g_byte_array_append (out, b->data + 2, b->len - 2);
+      g_assert_true (g_file_set_contents (jpg, (const gchar *) out->data, out->len, NULL));
+      g_byte_array_unref (b);
+      g_byte_array_unref (ps);
+      g_byte_array_unref (out);
+      g_free (sjis);
+   }
+
+   ix = ix_start ("exiv2.db", root, args);
+   ix_wait (ix, "idle");
+   assert_date (ix, png, "2019-05-03 10:15:00 2");
+   assert_tags (ix, png, "camera/FUJIFILM X-T5*");
+   assert_tags (ix, jpg, "keyword/桜*");
+   ix_stop (ix);
+   g_free (png); g_free (jpg); g_free (root);
+}
+#endif
+
+
 /* the tags of a person and of a rule may have the same name: both kept */
 static void
 test_manual_and_auto (void)
@@ -1077,6 +1174,9 @@ main (int argc, char *argv[])
    g_test_add_func ("/indexer/auto-tags", test_auto_tags);
    g_test_add_func ("/indexer/manual-and-auto", test_manual_and_auto);
    g_test_add_func ("/indexer/keywords", test_keywords);
+#if defined (HAVE_GEXIV2) && defined (HAVE_EXIF)
+   g_test_add_func ("/indexer/exiv2", test_exiv2);
+#endif
    g_test_add_func ("/indexer/watch", test_watch);
    g_test_add_func ("/indexer/offline-changes", test_offline_changes);
    g_test_add_func ("/indexer/watch-dir-move-utf8", test_watch_dir_move_utf8);

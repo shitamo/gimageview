@@ -100,6 +100,9 @@
 #  include <libexif/exif-data.h>
 #  include <libexif/exif-utils.h>
 #endif
+#ifdef ENABLE_GEXIV2
+#  include <gexiv2/gexiv2.h>
+#endif
 
 #include "gimv_index_keywords.h"
 #include "gimv_index_db.h"
@@ -1122,20 +1125,6 @@ image_info_clear (ImageInfo *ii)
 }
 
 
-#ifdef ENABLE_EXIF
-static gchar *
-exif_string (ExifData *ed, ExifTag tag)
-{
-   ExifEntry *e = exif_data_get_entry (ed, tag);
-   gchar buf[128];
-
-   if (!e) return NULL;
-   exif_entry_get_value (e, buf, sizeof (buf));
-   g_strstrip (buf);
-   return *buf ? g_strdup (buf) : NULL;
-}
-
-
 /* "Canon" + "Canon EOS 5D" -> "Canon EOS 5D", "Apple" + "iPhone 12" ->
  * "Apple iPhone 12", "NIKON CORPORATION" + "NIKON D90" -> "NIKON D90" */
 static gchar *
@@ -1154,6 +1143,20 @@ camera_name (gchar *make, gchar *model)
    g_free (make);
    g_free (model);
    return ret;
+}
+
+
+#ifdef ENABLE_EXIF
+static gchar *
+exif_string (ExifData *ed, ExifTag tag)
+{
+   ExifEntry *e = exif_data_get_entry (ed, tag);
+   gchar buf[128];
+
+   if (!e) return NULL;
+   exif_entry_get_value (e, buf, sizeof (buf));
+   g_strstrip (buf);
+   return *buf ? g_strdup (buf) : NULL;
 }
 
 
@@ -1195,6 +1198,123 @@ exif_read (const gchar *path, ImageInfo *ii)
       ii->orient = exif_get_short (e->data, exif_data_get_byte_order (ed));
 
    exif_data_unref (ed);
+}
+#endif
+
+
+#ifdef ENABLE_GEXIV2
+/* "YYYY:MM:DD HH:MM:SS" (EXIF) or "YYYY-MM-DDTHH:MM:SS..." (XMP, the time
+ * may be left out): "YYYY-MM-DD HH:MM:SS" when it is a date in range */
+static gchar *
+parse_date (const gchar *v)
+{
+   gint y = 0, mo = 0, d = 0, h = 0, mi = 0, sec = 0, n;
+   gchar *ret;
+
+   if (!v) return NULL;
+   n = sscanf (v, "%d%*1[:-]%d%*1[:-]%d%*1[ T]%d:%d:%d", &y, &mo, &d, &h, &mi, &sec);
+   if (n < 3 || !valid_date (y, mo, d, h, mi, sec)) return NULL;
+   ret = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d", y, mo, d, h, mi, sec);
+   if (!date_in_range (ret)) {
+      g_free (ret);
+      ret = NULL;
+   }
+   return ret;
+}
+
+
+/* Exiv2 reads EXIF, XMP and IPTC of nearly every format (HEIF, PNG, WebP,
+ * TIFF and the raw files, JPEG): the date, the camera, the orientation and
+ * the keywords at once.  FALSE when it cannot read the file (then libexif
+ * and the reader of gimv_index_keywords.c are tried). */
+static gchar *
+gx_string (GExiv2Metadata *m, const gchar *tag)
+{
+   gchar *v;
+
+   G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+   v = gexiv2_metadata_try_get_tag_string (m, tag, NULL);
+   G_GNUC_END_IGNORE_DEPRECATIONS
+   if (v) {
+      g_strstrip (v);
+      if (!*v || !g_utf8_validate (v, -1, NULL)) g_clear_pointer (&v, g_free);
+   }
+   return v;
+}
+
+static gchar **
+gx_multiple (GExiv2Metadata *m, const gchar *tag)
+{
+   gchar **v;
+
+   G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+   v = gexiv2_metadata_try_get_tag_multiple (m, tag, NULL);
+   G_GNUC_END_IGNORE_DEPRECATIONS
+   return v;
+}
+
+static gboolean
+gexiv2_read (const gchar *path, ImageInfo *ii, GimvIndexEmbedded *em)
+{
+   static const gchar *const dates[] = {
+      "Exif.Photo.DateTimeOriginal", "Exif.Photo.DateTimeDigitized", "Exif.Image.DateTime",
+      "Xmp.exif.DateTimeOriginal", "Xmp.photoshop.DateCreated", "Xmp.xmp.CreateDate",
+   };
+   GExiv2Metadata *m = gexiv2_metadata_new ();
+   guint i;
+
+   if (!gexiv2_metadata_open_path (m, path, NULL)) {
+      g_object_unref (m);
+      return FALSE;
+   }
+   for (i = 0; i < G_N_ELEMENTS (dates) && !ii->date; i++) {
+      gchar *v = gx_string (m, dates[i]);
+      ii->date = parse_date (v);
+      g_free (v);
+   }
+   ii->camera = camera_name (gx_string (m, "Exif.Image.Make"), gx_string (m, "Exif.Image.Model"));
+   {
+      gchar *v = gx_string (m, "Exif.Image.Orientation");
+      ii->orient = v ? atoi (v) : 0;
+      if (ii->orient < 0 || ii->orient > 8) ii->orient = 0;
+      g_free (v);
+   }
+   if (em) {
+      gchar *cs;
+      gchar **flat = gx_multiple (m, "Xmp.dc.subject");
+      gchar **ms = gx_multiple (m, "Xmp.MicrosoftPhoto.LastKeywordXMP");
+      /* the two in one list */
+      if (ms && ms[0]) {
+         GStrvBuilder *b = g_strv_builder_new ();
+         if (flat) g_strv_builder_addv (b, (const gchar **) flat);
+         g_strv_builder_addv (b, (const gchar **) ms);
+         g_strfreev (flat);
+         flat = g_strv_builder_end (b);
+         g_strv_builder_unref (b);
+      }
+      g_strfreev (ms);
+      em->flat = flat;
+      em->iptc = gx_multiple (m, "Iptc.Application2.Keywords");
+      G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+      cs = gexiv2_metadata_try_get_tag_string (m, "Iptc.Envelope.CharacterSet", NULL);
+      G_GNUC_END_IGNORE_DEPRECATIONS
+      em->iptc_utf8 = cs && strstr (cs, "\033%G") != NULL;
+      g_free (cs);
+      em->hier_bar = gx_multiple (m, "Xmp.lr.hierarchicalSubject");
+      em->hier_slash = gx_multiple (m, "Xmp.digiKam.TagsList");
+   }
+   g_object_unref (m);
+   return TRUE;
+}
+
+static void
+embedded_clear (GimvIndexEmbedded *em)
+{
+   g_strfreev (em->flat);
+   g_strfreev (em->iptc);
+   g_strfreev (em->hier_bar);
+   g_strfreev (em->hier_slash);
+   memset (em, 0, sizeof (*em));
 }
 #endif
 
@@ -1904,12 +2024,21 @@ run_stage2 (Indexer *ix)
          gint src = GIMV_INDEX_DATE_MTIME, w = 0, h = 0;
          ImageInfo ii = { 0 };
 
+         gboolean embedded = FALSE;
+#ifdef ENABLE_GEXIV2
+         GimvIndexEmbedded em = { 0 };
+#endif
+
          guard_set (ix, id);
+#ifdef ENABLE_GEXIV2
+         embedded = gexiv2_read (path, &ii, (ix->auto_kinds & AUTO_KEYWORD) ? &em : NULL);
+#endif
 #ifdef ENABLE_EXIF
-         exif_read (path, &ii);
+         if (!embedded) exif_read (path, &ii);
+#endif
+         (void) embedded;
          date = g_steal_pointer (&ii.date);
          if (date) src = GIMV_INDEX_DATE_EXIF;
-#endif
          /* the size from the header only */
          if (ix->auto_kinds & AUTO_SHAPE)
             image_size (path, &w, &h);
@@ -1922,7 +2051,13 @@ run_stage2 (Indexer *ix)
          }
          auto_tag_add (&at, id, shape_tag (w, h, ii.orient));
          if (ix->auto_kinds & AUTO_KEYWORD) {
-            GPtrArray *kw = gimv_index_keywords_read (path);
+            GPtrArray *kw;
+#ifdef ENABLE_GEXIV2
+            kw = gimv_index_keywords_read_with (path, embedded ? &em : NULL);
+            embedded_clear (&em);
+#else
+            kw = gimv_index_keywords_read_with (path, NULL);
+#endif
             guint k;
             for (k = 0; kw && k < kw->len; k++) {
                gchar *tag = g_strconcat ("keyword/", (gchar *) g_ptr_array_index (kw, k), NULL);
@@ -3601,6 +3736,29 @@ open_db (Indexer *ix, const gchar *dbfile)
    /* the dates and the tags put by rules, when their rules changed */
    prepare_rules (ix);
    if (ix->quit) return TRUE;
+#ifdef ENABLE_GEXIV2
+   {
+      /* Exiv2 reads the EXIF of more than JPEG: once, the images without an
+       * EXIF date read again (their date, camera and keywords) */
+      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'exif_reader'");
+      gboolean done = sqlite3_step (st) == SQLITE_ROW
+                      && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "exiv2");
+      sqlite3_finalize (st);
+      if (!done) {
+         exec (ix, "BEGIN");
+         /* not those that took an indexer down (left as they are) */
+         st = prep (ix, "UPDATE files SET stage = 1 WHERE stage >= 2 AND date_src NOT IN (?, ?, ?)");
+         sqlite3_bind_int (st, 1, GIMV_INDEX_DATE_EXIF);
+         sqlite3_bind_int (st, 2, GIMV_INDEX_DATE_SKIPPED);
+         sqlite3_bind_int (st, 3, GIMV_INDEX_DATE_SKIPPED_TWICE);
+         sqlite3_step (st);
+         sqlite3_finalize (st);
+         exec (ix, "INSERT OR IGNORE INTO meta VALUES ('reread', 'auto-tags')");
+         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('exif_reader', 'exiv2')");
+         exec (ix, "COMMIT");
+      }
+   }
+#endif
    {
       /* once: a database in the middle of reading every image again for the
        * automatic tags (made before 'reread' was kept) says so */
@@ -3672,6 +3830,13 @@ main (int argc, char *argv[])
       return 2;
    }
    g_option_context_free (ctx);
+
+#ifdef ENABLE_GEXIV2
+   /* Exiv2 says nothing on stdout (the lines to gimv) or stderr */
+   gexiv2_log_set_level (GEXIV2_LOG_LEVEL_MUTE);
+   if (!gexiv2_initialize ())
+      say ("error gexiv2 could not be initialized");
+#endif
 
    if (!dbfile) {
       gchar *dir = g_build_filename (g_get_user_data_dir (), "gimageview", NULL);

@@ -95,7 +95,7 @@ if sqlite_dep.found()
   test('indexer',
     executable('test-indexer', 'test_indexer.c',
       include_directories : test_inc,
-      c_args : exif_dep.found() ? ['-DHAVE_EXIF'] : [],
+      c_args : (exif_dep.found() ? ['-DHAVE_EXIF'] : []) + (gexiv2_dep.found() ? ['-DHAVE_GEXIV2'] : []),
       dependencies : [glib_dep, gio_dep, sqlite_dep, pixbuf_dep, exif_dep]),
     depends : gimv_indexer_exe,
     env : test_env,

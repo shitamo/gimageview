@@ -47,6 +47,24 @@ gchar     *gimv_index_tag_label       (const gchar         *key);
 /* the kind of a key: 0 put by a person, 1 a name, 2 a tag of people,
  * 3 put by a rule */
 gint       gimv_index_tag_kind        (const gchar         *key);
+/*
+ * The keywords of other programs (the rule tags "keyword/<name>") are kept
+ * apart in the index, but shown and looked for as the tags put by a
+ * person: a key "Kyoto" is the tag Kyoto and the keyword Kyoto.
+ * GIMV_INDEX_TAG_FILES_SQL: the file ids of such a key (the name bound to
+ * both '?').  A key ",keyword/Kyoto" (made before) is "Kyoto".
+ */
+#define GIMV_INDEX_TAG_FILES_SQL \
+   "SELECT ft.file_id FROM file_tags ft JOIN tags t ON t.id = ft.tag_id " \
+   "WHERE (t.name = ? AND ft.auto = 0) OR (t.name = 'keyword/' || ? AND ft.auto = 1)"
+/* the tags of file_tags ft, t as one name n: the keywords as plain names */
+#define GIMV_INDEX_TAG_NAME_SQL \
+   "CASE WHEN ft.auto = 1 AND t.name >= 'keyword/' AND t.name < 'keyword0' " \
+   "THEN substr (t.name, 9) ELSE t.name END"
+#define GIMV_INDEX_TAG_AUTO_SQL \
+   "(ft.auto = 1 AND NOT (t.name >= 'keyword/' AND t.name < 'keyword0'))"
+const gchar *gimv_index_plain_key     (const gchar         *key);
+
 /* the images of the tag in the result tab, as a click on its row in the
  * tag tab (opened when it is not) */
 void       gimv_index_open_tag        (GimvThumbWin        *tw,

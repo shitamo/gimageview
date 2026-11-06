@@ -60,6 +60,12 @@ if sqlite_dep.found() and not get_option('faces').disabled()
   endif
 endif
 exif_dep  = dependency('libexif', version : '>= 0.6.16', required : get_option('exif'))
+# the indexer: EXIF beyond JPEG, XMP and IPTC (0.14: gexiv2; 0.16: versioned)
+gexiv2_dep = dependency('', required : false)
+if sqlite_dep.found()
+  gexiv2_dep = dependency('gexiv2', 'gexiv2-0.16', version : '>= 0.12.2',
+                          required : get_option('gexiv2'))
+endif
 
 conf = configuration_data()
 conf.set_quoted('PACKAGE', package)
@@ -89,6 +95,7 @@ conf.set('ENABLE_INDEX', sqlite_dep.found() ? 1 : false)
 conf.set('ENABLE_FACES', opencv_dep.found() ? 1 : false)
 conf.set_quoted('LIBEXECDIR', prefix / get_option('libexecdir') / 'gimageview')
 conf.set('ENABLE_EXIF', exif_dep.found() ? 1 : false)
+conf.set('ENABLE_GEXIV2', gexiv2_dep.found() ? 1 : false)
 conf.set('ENABLE_SPLASH', get_option('splash') ? 1 : false)
 conf.set('ENABLE_JPEG', jpeg_dep.found() ? 1 : false)
 conf.set('HAVE_PROGRESSIVE_JPEG', jpeg_dep.found() ? 1 : false)

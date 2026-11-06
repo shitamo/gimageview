@@ -220,6 +220,24 @@ gimv_index_keywords_from_xmp (const gchar *xmp, gssize len, GPtrArray *out)
  *  the TIFF tag 33723
  ******************************************************************************/
 
+/* a keyword of IPTC: UTF-8 when the record says so (or it is valid
+ * UTF-8), else often Shift_JIS from Japanese programs, else Latin-1 */
+static void
+add_iptc_keyword (GPtrArray *a, const gchar *d, gsize len, gboolean utf8)
+{
+   gchar *k = NULL;
+
+   if (utf8 || g_utf8_validate (d, len, NULL))
+      k = g_strndup (d, len);
+   else
+      k = g_convert (d, len, "UTF-8", "CP932", NULL, NULL, NULL);
+   if (!k)
+      k = g_convert (d, len, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
+   add_keyword (a, k, -1);
+   g_free (k);
+}
+
+
 static void
 iptc_parse (const guchar *d, gsize n, Found *found)
 {
@@ -235,18 +253,8 @@ iptc_parse (const guchar *d, gsize n, Found *found)
       if (i + len > n) break;
       if (rec == 1 && ds == 90 && len >= 3 && !memcmp (d + i, "\x1b%G", 3))
          utf8 = TRUE;
-      if (rec == 2 && ds == 25 && len) {
-         gchar *k = NULL;
-         if (utf8 || g_utf8_validate ((const gchar *) d + i, len, NULL))
-            k = g_strndup ((const gchar *) d + i, len);
-         else
-            /* not said: often Shift_JIS from Japanese programs, else Latin-1 */
-            k = g_convert ((const gchar *) d + i, len, "UTF-8", "CP932", NULL, NULL, NULL);
-         if (!k)
-            k = g_convert ((const gchar *) d + i, len, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
-         add_keyword (found->flat, k, -1);
-         g_free (k);
-      }
+      if (rec == 2 && ds == 25 && len)
+         add_iptc_keyword (found->flat, (const gchar *) d + i, len, utf8);
       i += len;
    }
 }
@@ -451,21 +459,49 @@ gimv_index_is_sidecar_name (const gchar *name)
 }
 
 
+/* "Places|Japan|Kyoto" -> "Kyoto" */
+static void
+add_last_part (GPtrArray *a, const gchar *text, gchar sep)
+{
+   const gchar *last = text ? strrchr (text, sep) : NULL;
+   add_keyword (a, last ? last + 1 : text, -1);
+}
+
+
 GPtrArray *
 gimv_index_keywords_read (const gchar *path)
+{
+   return gimv_index_keywords_read_with (path, NULL);
+}
+
+
+GPtrArray *
+gimv_index_keywords_read_with (const gchar *path, const GimvIndexEmbedded *em)
 {
    Found found;
    GPtrArray *ret;
    guchar head[16];
    gsize n;
-   FILE *f;
+   FILE *f = NULL;
    guint i;
 
    g_return_val_if_fail (path, NULL);
    found.flat = g_ptr_array_new_with_free_func (g_free);
    found.hier = g_ptr_array_new_with_free_func (g_free);
 
-   f = fopen (path, "rb");
+   if (em) {
+      /* read by Exiv2 already */
+      for (i = 0; em->flat && em->flat[i]; i++)
+         add_keyword (found.flat, em->flat[i], -1);
+      for (i = 0; em->iptc && em->iptc[i]; i++)
+         add_iptc_keyword (found.flat, em->iptc[i], strlen (em->iptc[i]), em->iptc_utf8);
+      for (i = 0; em->hier_bar && em->hier_bar[i]; i++)
+         add_last_part (found.hier, em->hier_bar[i], '|');
+      for (i = 0; em->hier_slash && em->hier_slash[i]; i++)
+         add_last_part (found.hier, em->hier_slash[i], '/');
+   } else {
+      f = fopen (path, "rb");
+   }
    if (f) {
       n = fread (head, 1, sizeof head, f);
       if (n >= 4 && head[0] == 0xff && head[1] == 0xd8)

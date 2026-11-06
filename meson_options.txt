@@ -10,5 +10,6 @@ option('libarchive', type : 'feature', value : 'auto', description : 'archive su
 option('gstreamer', type : 'feature', value : 'auto', description : 'GStreamer movie plugin (GStreamer >= 1.16)')
 option('xine', type : 'feature', value : 'auto', description : 'xine movie plugin (libxine >= 1.2)')
 option('index', type : 'feature', value : 'auto', description : 'image index by date and tag (gimv-indexer, SQLite)')
+option('gexiv2', type : 'feature', value : 'auto', description : 'the index reads EXIF, XMP and IPTC of every format Exiv2 knows (HEIF, PNG, WebP, TIFF, raw) with gexiv2')
 option('faces', type : 'feature', value : 'auto', description : 'face recognition in the index (gimv-faces, OpenCV >= 4.8)')
 option('tests', type : 'boolean', value : true, description : 'Build the tests (meson test)')

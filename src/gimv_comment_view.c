@@ -710,7 +710,8 @@ cb_got_tags (GObject *source, GAsyncResult *res, gpointer data)
       gtk_button_set_child (GTK_BUTTON (button), box);
       gtk_widget_add_css_class (button, "flat");
       gtk_widget_set_tooltip_text (button,
-         kind == 0 ? _("A tag put by a person: click to show the images with it")
+         kind == 0 ? _("A tag (put by a person, or a keyword of another program): "
+                       "click to show the images with it")
          : kind == 1 ? _("A person in the image: click to show the images of the person")
          : kind == 2 ? _("A tag of a person in the image: click to show the images of these people")
          : _("An automatic tag: click to show the images with it"));

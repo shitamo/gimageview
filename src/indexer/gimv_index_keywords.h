@@ -28,6 +28,21 @@
  */
 GPtrArray *gimv_index_keywords_read      (const gchar *path);
 
+/* the keywords in the image as Exiv2 (gexiv2) read them, for
+ * gimv_index_keywords_read_with (): NULL-terminated, any may be NULL */
+typedef struct {
+   gchar    **flat;        /* Xmp.dc.subject, Xmp.MicrosoftPhoto.LastKeywordXMP */
+   gchar    **iptc;        /* Iptc.Application2.Keywords as written */
+   gboolean   iptc_utf8;   /* Iptc.Envelope.CharacterSet says UTF-8 */
+   gchar    **hier_bar;    /* Xmp.lr.hierarchicalSubject ("a|b|c") */
+   gchar    **hier_slash;  /* Xmp.digiKam.TagsList ("a/b/c") */
+} GimvIndexEmbedded;
+
+/* as gimv_index_keywords_read (), with the keywords in the image given
+ * (em; NULL: read here from the file) and the sidecars read here */
+GPtrArray *gimv_index_keywords_read_with (const gchar             *path,
+                                          const GimvIndexEmbedded *em);
+
 /* the keywords of an XMP packet (for the tests): appended to out */
 void       gimv_index_keywords_from_xmp  (const gchar *xmp,
                                           gssize       len,

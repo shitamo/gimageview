@@ -93,7 +93,6 @@ static const struct {
    { "folder/", N_("Folders"), N_("Folder: %s") },
    { "camera/", N_("Cameras"), N_("Camera: %s") },
    { "shape/",  N_("Shape"),   N_("Shape: %s") },
-   { "keyword/", N_("Keywords"), N_("Keyword: %s") },
    /* not put by a rule, but kept in the index only too: the tags of the
     * people named in the image (person_tags) */
    { "person/", N_("Tags of People"), N_("People: %s") },
@@ -158,12 +157,23 @@ add_people_row (GPtrArray *rows, gint depth, RowKind kind, gchar *key,
 
 
 /* the title of a result tab of the tag (or the key of a tag row) */
+const gchar *
+gimv_index_plain_key (const gchar *key)
+{
+   static const gchar kw[] = { AUTO_KEY_MARK, 'k', 'e', 'y', 'w', 'o', 'r', 'd', '/', '\0' };
+
+   if (key && g_str_has_prefix (key, kw) && key[sizeof kw - 1]) return key + sizeof kw - 1;
+   return key;
+}
+
+
 static gchar *
 tag_title (const gchar *key)
 {
    gint kind;
    const gchar *v;
 
+   key = gimv_index_plain_key (key);
    if (g_str_has_prefix (key, NAME_TAG) && key[NAME_TAG_LEN])
       return g_strdup_printf (_("%s (Name)"), key + NAME_TAG_LEN);
    if (key[0] != AUTO_KEY_MARK)
@@ -281,11 +291,19 @@ thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *ca
    sqlite3_stmt *st;
    GPtrArray *tags = g_ptr_array_new_with_free_func ((GDestroyNotify) tag_count_free);
 
-   /* the tags put by a person and those put by rules apart (the same
-    * name can be both; it is not usual: the rules make "folder/...") */
+   /* the tags put by a person with the keywords of other programs of the
+    * same name (each image once), then those put by rules (the same name
+    * can be both; it is not usual: the rules make "folder/...") */
    if (db && sqlite3_prepare_v2 (db,
-          "SELECT t.name, ft.auto, count(*) FROM file_tags ft "
-          "JOIN tags t ON t.id = ft.tag_id GROUP BY t.id, ft.auto ORDER BY t.name",
+          "SELECT n, 0, count(DISTINCT id) FROM ("
+          " SELECT t.name AS n, ft.file_id AS id FROM file_tags ft"
+          "  JOIN tags t ON t.id = ft.tag_id WHERE ft.auto = 0"
+          " UNION ALL SELECT substr (t.name, 9), ft.file_id FROM file_tags ft"
+          "  JOIN tags t ON t.id = ft.tag_id WHERE ft.auto = 1"
+          "  AND t.name >= 'keyword/' AND t.name < 'keyword0') GROUP BY n "
+          "UNION ALL SELECT t.name, 1, count(*) FROM file_tags ft"
+          " JOIN tags t ON t.id = ft.tag_id WHERE " GIMV_INDEX_TAG_AUTO_SQL
+          " GROUP BY t.id ORDER BY 1",
           -1, &st, NULL) == SQLITE_OK)
    {
       while (sqlite3_step (st) == SQLITE_ROW) {
@@ -527,7 +545,13 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
             "JOIN dirs d ON d.id = f.dir_id WHERE f.id IN (SELECT fa.file_id FROM faces fa "
             "JOIN person_tags pt ON pt.person_id = fa.person_id "
             "WHERE 'person/' || pt.tag = ?1 AND ?2 = 1) ORDER BY f.date, f.name";
-   } else if (req->type == GIMV_INDEX_TAB_TAG)
+   } else if (req->type == GIMV_INDEX_TAB_TAG && gimv_index_plain_key (key)[0] != AUTO_KEY_MARK)
+      /* put by a person, or a keyword of the same name */
+      sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM files f "
+            "JOIN dirs d ON d.id = f.dir_id WHERE f.id IN (SELECT ft.file_id FROM file_tags ft "
+            "JOIN tags t ON t.id = ft.tag_id WHERE (t.name = ?1 AND ft.auto = ?2) "
+            "OR (t.name = 'keyword/' || ?1 AND ft.auto = 1)) ORDER BY f.date, f.name";
+   else if (req->type == GIMV_INDEX_TAB_TAG)
       sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM file_tags ft "
             "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
             "JOIN dirs d ON d.id = f.dir_id WHERE t.name = ?1 AND ft.auto = ?2 "
@@ -540,7 +564,9 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
    if (db && sqlite3_prepare_v2 (db, sql, -1, &st, NULL) == SQLITE_OK)
    {
       if (req->type == GIMV_INDEX_TAB_TAG) {
-         gboolean is_auto = key[0] == AUTO_KEY_MARK;
+         gboolean is_auto;
+         key = gimv_index_plain_key (key);
+         is_auto = key[0] == AUTO_KEY_MARK;
          sqlite3_bind_text (st, 1, is_auto ? key + 1 : key, -1, SQLITE_TRANSIENT);
          sqlite3_bind_int  (st, 2, is_auto);
       } else if (req->type == GIMV_INDEX_TAB_DATE) {
@@ -1205,6 +1231,8 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
    OpenRequest *req;
    GTask *task;
 
+   if (iv->type == GIMV_INDEX_TAB_TAG) key = gimv_index_plain_key (key);
+
    /* the faces window, when open, shows the faces of the row too */
    if (iv->type == GIMV_INDEX_TAB_PERSON && gimv_index_faces_win_is_open ()) {
       gchar *title = row_title (iv, key);
@@ -1462,7 +1490,10 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
  *  renaming a tag in the tree (F2, or the menu); copying a row (Ctrl+C)
  ******************************************************************************/
 
-/* a tag a person put (those of rules are made by the rules) */
+static gboolean manual_tag_exists (const gchar *name);
+
+/* a tag a person put (those of rules are made by the rules; a keyword of
+ * another program alone is renamed there) */
 static gboolean
 key_is_manual_tag (IndexView *iv, const gchar *key)
 {
@@ -1474,7 +1505,7 @@ key_is_manual_tag (IndexView *iv, const gchar *key)
    if (g_str_has_prefix (key, NAME_TAG))
       return FALSE;
    row = find_key (iv->root, key);
-   return row && gimv_row_peek_int (row, COL_KIND) == KIND_TAG;
+   return row && gimv_row_peek_int (row, COL_KIND) == KIND_TAG && manual_tag_exists (key);
 }
 
 
@@ -2438,9 +2469,13 @@ thread_get_tags (GTask *task, gpointer source, gpointer data, GCancellable *canc
    if (file_id && !g_cancellable_is_cancelled (cancel)) {
       keys = g_ptr_array_new_with_free_func (g_free);
       /* put by a person (the names apart, after them) */
+      /* put by a person, and the keywords of other programs as they are */
       add_strings (db, "SELECT t.name FROM file_tags ft JOIN tags t ON t.id = ft.tag_id "
                        "WHERE ft.file_id = ?1 AND ft.auto = 0 "
-                       "AND NOT (t.name >= 'person/' AND t.name < 'person0') ORDER BY t.name",
+                       "AND NOT (t.name >= 'person/' AND t.name < 'person0') "
+                       "UNION SELECT substr (t.name, 9) FROM file_tags ft JOIN tags t "
+                       "ON t.id = ft.tag_id WHERE ft.file_id = ?1 AND ft.auto = 1 "
+                       "AND t.name >= 'keyword/' AND t.name < 'keyword0' ORDER BY 1",
                    file_id, "", keys);
       /* the names: given to the faces, and in the comment file (one not
        * given back to a face yet) */
@@ -2453,7 +2488,7 @@ thread_get_tags (GTask *task, gpointer source, gpointer data, GCancellable *canc
                        "ON pt.person_id = fa.person_id WHERE fa.file_id = ?1 ORDER BY 1",
                    file_id, ",person/", keys);
       add_strings (db, "SELECT t.name FROM file_tags ft JOIN tags t ON t.id = ft.tag_id "
-                       "WHERE ft.file_id = ?1 AND ft.auto = 1 ORDER BY t.name",
+                       "WHERE ft.file_id = ?1 AND " GIMV_INDEX_TAG_AUTO_SQL " ORDER BY t.name",
                    file_id, ",", keys);
    }
    if (db) sqlite3_close (db);
@@ -2487,6 +2522,7 @@ gint
 gimv_index_tag_kind (const gchar *key)
 {
    if (!key) return 0;
+   key = gimv_index_plain_key (key);
    if (key[0] == AUTO_KEY_MARK)
       return g_str_has_prefix (key + 1, "person/") ? 2 : 3;
    return g_str_has_prefix (key, NAME_TAG) ? 1 : 0;
@@ -2498,7 +2534,7 @@ gimv_index_tag_label (const gchar *key)
 {
    gint kind = gimv_index_tag_kind (key);
 
-   if (kind == 0) return g_strdup (key);
+   if (kind == 0) return g_strdup (gimv_index_plain_key (key));
    if (kind == 1) return g_strdup (key + NAME_TAG_LEN);
    return tag_title (key);
 }

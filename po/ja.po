@@ -6404,14 +6404,10 @@ msgstr "コメントを削除(_D)..."
 msgid "Delete the data and the note of the image (the tags are kept)"
 msgstr "画像のデータとノートを削除します (タグは残ります)"
 
-#: src/gimv_index_view.c
-msgid "Keywords"
-msgstr "キーワード"
-
-#: src/gimv_index_view.c
-msgid "Keyword: %s"
-msgstr "キーワード: %s"
-
 #: src/prefs_ui/prefs_ui_index.c
 msgid "The keywords of other programs (XMP, IPTC, sidecar files)"
 msgstr "他のプログラムが付けたキーワード (XMP・IPTC・サイドカーファイル)"
+
+#: src/gimv_comment_view.c
+msgid "A tag (put by a person, or a keyword of another program): click to show the images with it"
+msgstr "タグ (手で付けたもの、または他のプログラムのキーワード): クリックでこのタグの画像を表示"

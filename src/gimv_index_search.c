@@ -160,7 +160,7 @@ cond_label (const Cond *c)
 static gchar *
 cond_sql (const Cond *c, GPtrArray *args)
 {
-   const gchar *k = c->key;
+   const gchar *k = gimv_index_plain_key (c->key);
    const gchar *in = c->exclude ? "NOT IN" : "IN";
    gint kind = gimv_index_tag_kind (k);
 
@@ -180,10 +180,10 @@ cond_sql (const Cond *c, GPtrArray *args)
       g_ptr_array_add (args, g_strdup (k + 1));
       return g_strdup_printf ("f.id %s (SELECT file_id FROM file_tags WHERE auto = 1 AND "
                               "tag_id = (SELECT id FROM tags WHERE name = ?))", in);
-   default:  /* put by a person */
+   default:  /* put by a person, or a keyword of another program */
       g_ptr_array_add (args, g_strdup (k));
-      return g_strdup_printf ("f.id %s (SELECT file_id FROM file_tags WHERE auto = 0 AND "
-                              "tag_id = (SELECT id FROM tags WHERE name = ?))", in);
+      g_ptr_array_add (args, g_strdup (k));
+      return g_strdup_printf ("f.id %s (" GIMV_INDEX_TAG_FILES_SQL ")", in);
    }
 }
 
@@ -286,8 +286,12 @@ thread_search (GTask *task, gpointer source, gpointer data, GCancellable *cancel
 
    /* the tags of the images found */
    if (!g_cancellable_is_cancelled (cancel)) {
-      add_facets (db, "SELECT t.name, count(*), ft.auto FROM r JOIN file_tags ft ON ft.file_id = r.id "
-                      "JOIN tags t ON t.id = ft.tag_id GROUP BY ft.tag_id, ft.auto", -1, r->facets);
+      /* the keywords as the tags put by a person of the same name */
+      add_facets (db, "SELECT n, count(DISTINCT id), a FROM ("
+                      " SELECT " GIMV_INDEX_TAG_NAME_SQL " AS n, ft.file_id AS id,"
+                      "  " GIMV_INDEX_TAG_AUTO_SQL " AS a FROM r"
+                      "  JOIN file_tags ft ON ft.file_id = r.id JOIN tags t ON t.id = ft.tag_id)"
+                      " GROUP BY n, a", -1, r->facets);
       add_facets (db, "SELECT n, count(DISTINCT id) FROM ("
                       " SELECT p.name AS n, fa.file_id AS id FROM r JOIN faces fa ON fa.file_id = r.id"
                       "  JOIN persons p ON p.id = fa.person_id"

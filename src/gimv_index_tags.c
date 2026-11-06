@@ -495,7 +495,8 @@ cb_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType s
 }
 
 
-/* the tags put by people in the index, the most used first */
+/* the tags put by people in the index with the keywords of other programs
+ * (the same name, each image once), the most used first */
 static GPtrArray *
 known_tags (void)
 {
@@ -505,10 +506,14 @@ known_tags (void)
    sqlite3_stmt *st;
 
    if (db && sqlite3_prepare_v2 (db,
-                                 "SELECT t.name, count(*) AS n FROM file_tags ft "
-                                 "JOIN tags t ON t.id = ft.tag_id WHERE ft.auto = 0 "
-                                 "AND NOT (t.name >= 'person/' AND t.name < 'person0') "
-                                 "GROUP BY t.id ORDER BY n DESC, t.name", -1, &st, NULL) == SQLITE_OK)
+                                 "SELECT name, count(DISTINCT id) AS n FROM ("
+                                 " SELECT t.name AS name, ft.file_id AS id FROM file_tags ft"
+                                 "  JOIN tags t ON t.id = ft.tag_id WHERE ft.auto = 0"
+                                 "  AND NOT (t.name >= 'person/' AND t.name < 'person0')"
+                                 " UNION ALL SELECT substr (t.name, 9), ft.file_id FROM file_tags ft"
+                                 "  JOIN tags t ON t.id = ft.tag_id WHERE ft.auto = 1"
+                                 "  AND t.name >= 'keyword/' AND t.name < 'keyword0')"
+                                 " GROUP BY name ORDER BY n DESC, name", -1, &st, NULL) == SQLITE_OK)
    {
       while (sqlite3_step (st) == SQLITE_ROW) {
          Item *k = g_new0 (Item, 1);
