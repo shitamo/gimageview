@@ -212,6 +212,41 @@ At the left, the full path of the focused image; in the middle, its position ("1
 <li><p class="para">"Open the Folder" in the right button menus of the thumbnail view and the image view opens the folder of the image.</p></li>
 </ul></div>
 </div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-08"></a>2.8. Bookmarks</h3></div></div>
+<p class="para">
+Images can be bookmarked to look at them again later, in the indexed directories or not. The bookmarks are kept in ~/.gimv/bookmarks (apart from the index database: making the index again keeps them).
+</p>
+<div class="figure"><img src="images/bookmark.png" width="700" height="450" alt="The Bookmarks tab and a note">
+<p class="caption">The Bookmarks tab and a note</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="bookmark_add"></a>Bookmarking</span></dt>
+<dd><p class="para">
+Select images in the thumbnail view (one or more) and choose [Edit | Bookmark...] or "Bookmark..." in the right button menu; in the image window [Edit | Bookmark...], in the preview "Bookmark..." in the right button menu. The images are bookmarked at once, and a field for a note comes up. It can be closed with Escape without writing anything (a note can be written later). Enter, or a click elsewhere, keeps the note written. Chosen on a bookmarked image, it changes the note, or "Remove" takes the bookmark off.
+</p></dd>
+<dt><span class="term"><a name="bookmark_key"></a>Key</span></dt>
+<dd><p class="para">
+No key is given by default. With lines like these in ~/.gimv/keyaccelrc (Ctrl+K here; a line starting with ";" does nothing), the key bookmarks from the next start.
+</p>
+<pre class="programlisting">(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ImageWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ThumbWinPreviewPop&gt;/Bookmark..." "&lt;Control&gt;k")</pre>
+</dd>
+<dt><span class="term"><a name="bookmark_tab"></a>Bookmarks tab</span></dt>
+<dd><p class="para">
+The "Bookmarks" tab (a star) next to the directory view lists the bookmarks by the day they were added (Today, Yesterday, This Week, then by month), and "All", "With a Note", "Without a Note", with their numbers. A click on a row opens them in the result tab, the newest first (the file names only, as the index tabs). Choosing a sort in the menu sorts them so.
+</p></dd>
+<dt><span class="term"><a name="bookmark_note"></a>The notes</span></dt>
+<dd><p class="para">
+The tooltip of the thumbnail of a bookmarked image starts with "&#9733; the note" ("&#9733; Bookmarked" without a note).
+</p></dd>
+<dt><span class="term"><a name="bookmark_move"></a>Moved and missing images</span></dt>
+<dd><p class="para">
+An image renamed or moved with GImageView keeps its bookmark. In the indexed directories, the bookmarks also follow images and folders moved or renamed by other programs. Other images not found any more are counted in "Not Found" of the tab.
+</p></dd>
+</dl></div>
+</div>
 </div>
 <div class="navfooter">
 <hr>

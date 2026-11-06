@@ -212,6 +212,41 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 <li><p class="para">サムネイルビューとイメージビューの右クリックの「元のフォルダを開く」で、画像のあるフォルダを開きます。</p></li>
 </ul></div>
 </div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-08"></a>2.8. ブックマーク</h3></div></div>
+<p class="para">
+気になった画像に、後から見返すための印を付けられます。索引の対象外のフォルダの画像にも付けられます。ブックマークは ~/.gimv/bookmarks に保存します (索引のデータベースとは別なので、索引を作り直しても消えません)。
+</p>
+<div class="figure"><img src="images/bookmark.png" width="700" height="450" alt="ブックマークタブとメモの入力">
+<p class="caption">ブックマークタブとメモの入力</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="bookmark_add"></a>付け方</span></dt>
+<dd><p class="para">
+サムネイルビューで画像を選び (複数可)、[編集 | ブックマーク...] か右クリックの「ブックマーク...」を選びます。イメージウィンドウでは [編集 | ブックマーク...]、プレビューでは右クリックの「ブックマーク...」です。選んだ時点でブックマークが付き、メモの欄が出ます。メモは何も書かずに Esc で閉じてもかまいません (雑に付けておいて、後から書けます)。Enter か欄の外をクリックすると、書いたメモを保存します。すでに付いている画像で選ぶと、メモを直したり「外す」で外したりできます。
+</p></dd>
+<dt><span class="term"><a name="bookmark_key"></a>キー</span></dt>
+<dd><p class="para">
+標準ではキーは割り当てていません。~/.gimv/keyaccelrc に次のように書くと、次の起動からそのキーで付けられます (Ctrl+K の例。行の先頭に「;」があると無効です)。
+</p>
+<pre class="programlisting">(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ImageWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ThumbWinPreviewPop&gt;/Bookmark..." "&lt;Control&gt;k")</pre>
+</dd>
+<dt><span class="term"><a name="bookmark_tab"></a>ブックマークタブ</span></dt>
+<dd><p class="para">
+ディレクトリビューの並びの「ブックマーク」タブ (星) に、付けた日ごと (今日、昨日、1 週間以内、それより前は月ごと) と、「全て」「メモあり」「メモなし」が件数付きで並びます。行をクリックすると、結果のタブに新しく付けたものから順に開きます (索引のタブと同じく、ファイル名だけを表示)。並べ替えのメニューを選ぶと、その順になります。
+</p></dd>
+<dt><span class="term"><a name="bookmark_note"></a>メモの表示</span></dt>
+<dd><p class="para">
+ブックマークを付けた画像は、サムネイルのツールチップの先頭に「★ メモ」(メモがなければ「★ ブックマークしました」) を表示します。
+</p></dd>
+<dt><span class="term"><a name="bookmark_move"></a>移動と行方不明</span></dt>
+<dd><p class="para">
+GImageView で名前を変えたり移動したりした画像は、ブックマークも一緒に移ります。索引の対象のフォルダでは、ほかのプログラムで移動・名前変更した画像やフォルダにも付いていきます。それ以外で見つからなくなった画像は、タブの「見つからない」に件数だけ表示します。
+</p></dd>
+</dl></div>
+</div>
 </div>
 <div class="navfooter">
 <hr>

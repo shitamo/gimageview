@@ -34,6 +34,8 @@ Main additions (see `NEWS` for all changes):
 
 * Ctrl+F searches the rows of the lists.
 
+* Bookmarks of images, with an optional note, in a tab of their own (in the index or not).
+
 * The mouse side buttons (buttons 8 and 9) can be assigned.
 
 * Color scheme: the desktop theme, light or dark.
