@@ -730,7 +730,8 @@ gimv_comment_append_data (GimvComment *comment, const gchar *key, const gchar *v
    if (entry->auto_val && entry->def_val_fn) {
       entry->value = entry->def_val_fn (comment->info, NULL);
    } else if (value) {
-      entry->value = g_strdup (value);
+      /* a line of the file each: no line breaks (a pasted text) */
+      entry->value = g_strdelimit (g_strdup (value), "\r\n", ' ');
    } else {
       entry->value = NULL;
    }

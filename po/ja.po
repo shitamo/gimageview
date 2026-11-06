@@ -6375,3 +6375,7 @@ msgstr "使われているタグ (クリックで付けます)"
 #: src/gimv_image_win.c
 msgid "/_Edit/Edit Ta_gs..."
 msgstr "/編集(_E)/タグを編集(_G)..."
+
+#: src/gimv_comment_view.c
+msgid "The tags are edited with Edit Tags... (the right button menu or the Edit menu)"
+msgstr "タグは「タグを編集...」(右クリックか [編集] メニュー) で編集します"

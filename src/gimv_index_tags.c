@@ -29,6 +29,7 @@
 
 #include <string.h>
 
+#include "gimv_wrap_box.h"
 #include "gimv_comment.h"
 #include "gimv_image_info.h"
 #include "gimv_index.h"
@@ -58,7 +59,8 @@ split_tags (const gchar *text)
    gint i;
 
    if (!text) return tags;
-   v = g_strsplit (text, ",", -1);
+   /* a line break (a pasted text) parts tags as a comma does */
+   v = g_strsplit_set (text, ",\r\n", -1);
    for (i = 0; v[i]; i++) {
       gchar *t = g_strstrip (v[i]);
       if (*t && !g_ptr_array_find_with_equal_func (tags, t, g_str_equal, NULL))
@@ -319,11 +321,9 @@ cb_suggest_activated (GtkListBox *list, GtkListBoxRow *row, TagsDialog *td)
 static void
 rebuild_chips (TagsDialog *td)
 {
-   GtkWidget *child;
    guint i;
 
-   while ((child = gtk_widget_get_first_child (td->chips)))
-      gtk_flow_box_remove (GTK_FLOW_BOX (td->chips), child);
+   gimv_wrap_box_clear (GIMV_WRAP_BOX (td->chips));
    gtk_widget_set_visible (td->none_label, td->items->len == 0);
 
    for (i = 0; i < td->items->len; i++) {
@@ -353,7 +353,7 @@ rebuild_chips (TagsDialog *td)
       g_signal_connect (x, "clicked", G_CALLBACK (cb_chip_remove), td);
       gtk_box_append (GTK_BOX (box), label_button);
       gtk_box_append (GTK_BOX (box), x);
-      gtk_flow_box_append (GTK_FLOW_BOX (td->chips), box);
+      gimv_wrap_box_append (GIMV_WRAP_BOX (td->chips), box);
       g_free (text);
    }
 }
@@ -407,6 +407,18 @@ rebuild_suggest (TagsDialog *td)
    }
    gtk_widget_set_visible (td->suggest, shown > 0);
    gtk_widget_set_visible (td->suggest_heading, shown > 0);
+   /* not squeezed to a row when the tags above take more lines (the
+      window keeps its height): a few rows at least, the window grows */
+   {
+      GtkWidget *scroll = gtk_widget_get_ancestor (td->suggest, GTK_TYPE_SCROLLED_WINDOW);
+      gint nat = 0;
+      if (scroll) {
+         if (shown) gtk_widget_measure (td->suggest, GTK_ORIENTATION_VERTICAL, -1,
+                                        NULL, &nat, NULL, NULL);
+         gtk_scrolled_window_set_min_content_height (GTK_SCROLLED_WINDOW (scroll),
+                                                     shown ? MIN (nat, 125) : -1);
+      }
+   }
    g_free (fold);
    g_free (last);
 }
@@ -603,10 +615,7 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
 
    /* the tags now */
    gtk_box_append (GTK_BOX (vbox), heading (_("Tags")));
-   td->chips = gtk_flow_box_new ();
-   gtk_flow_box_set_selection_mode (GTK_FLOW_BOX (td->chips), GTK_SELECTION_NONE);
-   gtk_flow_box_set_max_children_per_line (GTK_FLOW_BOX (td->chips), 20);
-   gtk_flow_box_set_homogeneous (GTK_FLOW_BOX (td->chips), FALSE);
+   td->chips = gimv_wrap_box_new (6, 6);
    gtk_box_append (GTK_BOX (vbox), td->chips);
    td->none_label = gtk_label_new (_("No tags"));
    gtk_widget_add_css_class (td->none_label, "dim-label");
@@ -615,16 +624,14 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
 
    /* the names: shown, not taken away here */
    if (names->len) {
-      GtkWidget *flow = gtk_flow_box_new ();
+      GtkWidget *flow = gimv_wrap_box_new (12, 4);
 
       gtk_box_append (GTK_BOX (vbox), heading (_("People")));
-      gtk_flow_box_set_selection_mode (GTK_FLOW_BOX (flow), GTK_SELECTION_NONE);
-      gtk_flow_box_set_max_children_per_line (GTK_FLOW_BOX (flow), 20);
       for (i = 0; i < names->len; i++) {
          GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
          gtk_box_append (GTK_BOX (box), gtk_image_new_from_icon_name ("avatar-default-symbolic"));
          gtk_box_append (GTK_BOX (box), gtk_label_new (g_ptr_array_index (names, i)));
-         gtk_flow_box_append (GTK_FLOW_BOX (flow), box);
+         gimv_wrap_box_append (GIMV_WRAP_BOX (flow), box);
       }
       gtk_box_append (GTK_BOX (vbox), flow);
       label = gtk_label_new (_("Names are given to the faces (the faces window, or the "

@@ -21,6 +21,7 @@
  * $Id: gimv_comment_view.c,v 1.6 2004/09/22 15:37:11 makeinu Exp $
  */
 
+#include "gimv_wrap_box.h"
 #include "gimv_comment_view.h"
 
 #include <string.h>
@@ -58,8 +59,10 @@ static void gimv_comment_view_set_sensitive  (GimvCommentView *cv);
 static void gimv_comment_view_set_combo_list (GimvCommentView *cv);
 static void gimv_comment_view_data_enter     (GimvCommentView *cv);
 static void gimv_comment_view_reset_data     (GimvCommentView *cv);
+static void combo_remove_extra                (GimvCommentView *cv);
 static void combo_select_name                 (GimvCommentView *cv,
-                                               const gchar     *name);
+                                               const gchar     *name,
+                                               const gchar     *key);
 
 
 static GimvRow *
@@ -165,6 +168,7 @@ gimv_comment_view_delete_selected_data (GimvCommentView *cv)
 
    gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo),
                                GTK_INVALID_LIST_POSITION);
+   combo_remove_extra (cv);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
    gimv_comment_view_set_sensitive (cv);
@@ -264,13 +268,15 @@ cb_data_list_selection_changed (GtkSelectionModel *selection,
                                 GimvCommentView *cv)
 {
    GimvRow *row;
-   const gchar *key = NULL, *value = NULL;
+   const gchar *key = NULL, *value = NULL, *raw_key = NULL;
    gchar *whole = NULL;
 
    if (!cv->comment_clist) return;
 
    row = gimv_list_view_get_selected_row (cv->comment_clist);
    if (row) {
+      GimvCommentDataEntry *entry = gimv_row_peek_pointer (row, COLUMN_RAW_ENTRY);
+      if (entry) raw_key = entry->key;
       key   = gimv_row_peek_string (row, COLUMN_KEY);
       value = gimv_row_peek_string (row, COLUMN_VALUE);
       /* a comment of the file: its whole text (the list shows its first line) */
@@ -281,7 +287,7 @@ cb_data_list_selection_changed (GtkSelectionModel *selection,
       }
    }
 
-   combo_select_name (cv, key);
+   combo_select_name (cv, key, raw_key);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), value ? value : "");
    g_free (whole);
 
@@ -378,18 +384,59 @@ combo_get_selected_name (GimvCommentView *cv)
 }
 
 
-/* select the item whose display name is "name" (none if not found) */
+/* the key of a row that is not one of the keys of the combo (a comment of
+ * the file, X-IMG-Tags, a line of another program) is put at the end of
+ * the combo while it is selected, so the combo shows the key of the row
+ * and not the one selected before; such a row is only shown */
 static void
-combo_select_name (GimvCommentView *cv, const gchar *name)
+combo_remove_extra (GimvCommentView *cv)
 {
+   GPtrArray *keys  = g_object_get_data (G_OBJECT (cv->key_combo), "keys");
    GPtrArray *names = g_object_get_data (G_OBJECT (cv->key_combo), "names");
+   GListModel *model = gtk_drop_down_get_model (GTK_DROP_DOWN (cv->key_combo));
+
+   if (!g_object_get_data (G_OBJECT (cv->key_combo), "extra")) return;
+   g_object_set_data (G_OBJECT (cv->key_combo), "extra", NULL);
+   if (!keys || !names || !keys->len || !GTK_IS_STRING_LIST (model)) return;
+   g_ptr_array_remove_index (keys, keys->len - 1);
+   g_ptr_array_remove_index (names, names->len - 1);
+   gtk_string_list_remove (GTK_STRING_LIST (model), g_list_model_get_n_items (model) - 1);
+}
+
+
+static gboolean
+combo_has_extra (GimvCommentView *cv)
+{
+   return g_object_get_data (G_OBJECT (cv->key_combo), "extra") != NULL;
+}
+
+
+/* select the item whose display name is "name"; not one of them: an item
+ * for it at the end (key: the key of the row) */
+static void
+combo_select_name (GimvCommentView *cv, const gchar *name, const gchar *key)
+{
+   GPtrArray *keys  = g_object_get_data (G_OBJECT (cv->key_combo), "keys");
+   GPtrArray *names = g_object_get_data (G_OBJECT (cv->key_combo), "names");
+   GListModel *model;
    guint i, idx = GTK_INVALID_LIST_POSITION;
 
+   combo_remove_extra (cv);
    for (i = 0; name && names && i < names->len; i++) {
       if (!strcmp (name, g_ptr_array_index (names, i))) {
          idx = i;
          break;
       }
+   }
+   model = gtk_drop_down_get_model (GTK_DROP_DOWN (cv->key_combo));
+   if (idx == GTK_INVALID_LIST_POSITION && name && *name && keys && names
+       && GTK_IS_STRING_LIST (model))
+   {
+      g_ptr_array_add (keys,  g_strdup (key ? key : name));
+      g_ptr_array_add (names, g_strdup (name));
+      gtk_string_list_append (GTK_STRING_LIST (model), name);
+      g_object_set_data (G_OBJECT (cv->key_combo), "extra", GINT_TO_POINTER (1));
+      idx = keys->len - 1;
    }
    gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo), idx);
 }
@@ -537,11 +584,9 @@ cb_tag_clicked (GtkButton *button, gpointer data)
 static void
 tags_clear (GimvCommentView *cv)
 {
-   GtkWidget *child;
 
    if (!cv->tags_flow) return;
-   while ((child = gtk_widget_get_first_child (cv->tags_flow)))
-      gtk_flow_box_remove (GTK_FLOW_BOX (cv->tags_flow), child);
+   gimv_wrap_box_clear (GIMV_WRAP_BOX (cv->tags_flow));
 }
 
 
@@ -568,7 +613,7 @@ cb_got_tags (GObject *source, GAsyncResult *res, gpointer data)
    if (!keys->len) {
       GtkWidget *none = gtk_label_new (_("none"));
       gtk_widget_add_css_class (none, "dim-label");
-      gtk_flow_box_append (GTK_FLOW_BOX (cv->tags_flow), none);
+      gimv_wrap_box_append (GIMV_WRAP_BOX (cv->tags_flow), none);
    }
    for (i = 0; i < keys->len; i++) {
       const gchar *key = g_ptr_array_index (keys, i);
@@ -601,7 +646,7 @@ cb_got_tags (GObject *source, GAsyncResult *res, gpointer data)
          : _("An automatic tag: click to show the images with it"));
       g_object_set_data_full (G_OBJECT (button), "gimv-tag-key", g_strdup (key), g_free);
       g_signal_connect (button, "clicked", G_CALLBACK (cb_tag_clicked), NULL);
-      gtk_flow_box_append (GTK_FLOW_BOX (cv->tags_flow), button);
+      gimv_wrap_box_append (GIMV_WRAP_BOX (cv->tags_flow), button);
       g_free (text);
    }
    g_ptr_array_unref (keys);
@@ -653,11 +698,8 @@ create_tags_row (GimvCommentView *cv, GtkWidget *vbox)
    gtk_widget_set_margin_top (label, 6);
    gtk_box_append (GTK_BOX (cv->tags_row), label);
 
-   cv->tags_flow = gtk_flow_box_new ();
-   gtk_flow_box_set_selection_mode (GTK_FLOW_BOX (cv->tags_flow), GTK_SELECTION_NONE);
-   gtk_flow_box_set_max_children_per_line (GTK_FLOW_BOX (cv->tags_flow), 30);
-   gtk_flow_box_set_row_spacing (GTK_FLOW_BOX (cv->tags_flow), 0);
-   gtk_flow_box_set_column_spacing (GTK_FLOW_BOX (cv->tags_flow), 0);
+   /* as words, wrapping when the line is full */
+   cv->tags_flow = gimv_wrap_box_new (2, 0);
    gtk_widget_set_hexpand (cv->tags_flow, TRUE);
    gtk_box_append (GTK_BOX (cv->tags_row), cv->tags_flow);
 
@@ -848,12 +890,19 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
    selected = gimv_list_view_get_selected (cv->comment_clist)
       != GTK_INVALID_LIST_POSITION;
 
-   /* a comment of the image file is only shown */
+   /* a comment of the image file is only shown; so is a key that is not
+      one of the keys to edit here (X-IMG-Tags: Edit Tags...) */
    {
       gboolean file = selected && selected_is_file (cv);
-      gtk_editable_set_editable (GTK_EDITABLE (cv->value_entry), !file);
-      gtk_widget_set_sensitive (cv->key_combo, !file);
+      gboolean other = selected && combo_has_extra (cv);
+      gtk_editable_set_editable (GTK_EDITABLE (cv->value_entry), !file && !other);
+      gtk_widget_set_sensitive (cv->key_combo, !file && !other);
+      gtk_widget_set_sensitive (cv->save_button, !file && !other);
       gtk_widget_set_sensitive (cv->delete_button, !file);
+      gtk_widget_set_tooltip_text (cv->value_entry,
+         other && !g_strcmp0 (g_object_get_data (G_OBJECT (cv->key_combo), "key"), "X-IMG-Tags")
+         ? _("The tags are edited with Edit Tags... (the right button menu or the Edit menu)")
+         : NULL);
    }
 }
 
@@ -883,6 +932,7 @@ gimv_comment_view_set_combo_list (GimvCommentView *cv)
                            (GDestroyNotify) g_ptr_array_unref);
    g_object_set_data_full (G_OBJECT (combo), "names", names,
                            (GDestroyNotify) g_ptr_array_unref);
+   g_object_set_data (G_OBJECT (combo), "extra", NULL);
 
    list = gimv_comment_get_data_entry_list ();
    while (list) {
@@ -934,6 +984,7 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
    g_return_if_fail (cv);
    if (!cv->selected_item) return;
    if (selected_is_file (cv)) return;
+   if (combo_has_extra (cv)) return;
 
    key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
    g_return_if_fail (key);
@@ -1085,6 +1136,7 @@ gimv_comment_view_clear (GimvCommentView *cv)
 
    gtk_drop_down_set_selected (GTK_DROP_DOWN (cv->key_combo),
                                GTK_INVALID_LIST_POSITION);
+   combo_remove_extra (cv);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
 
    {

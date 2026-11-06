@@ -114,6 +114,11 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  the tags in use to click, the names of people kept; also in
 	  [Edit | Edit Tags...] and the right button menus of the preview
 	  and the image window.
+	* The tags of the Data tab and of Edit Tags are laid out as words
+	  (no columns with wide gaps).  A row of the Data tab that is not one
+	  of the keys to edit there (X-IMG-Tags, a comment of the file) shows
+	  its own key and is only shown.  A line break in a value (a pasted
+	  text) no longer breaks the comment file.
 	* Scrollbars are always shown (a preference, on by default).
 	* GtkTreeView and the other API deprecated in GTK 4.10 are no longer
 	  used (GtkListView / GtkColumnView); GTK 4.12 and GLib 2.72 are
