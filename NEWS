@@ -110,6 +110,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  one can be given in ~/.gimv/keyaccelrc), an optional note, the
 	  "Bookmarks" tab (by the day added, with or without a note), the
 	  note in the tooltip; they follow the images moved or renamed.
+	* Edit Tags: an entry with the tags below it (× takes one away),
+	  the tags in use to click, the names of people kept; also in
+	  [Edit | Edit Tags...] and the right button menus of the preview
+	  and the image window.
 	* Scrollbars are always shown (a preference, on by default).
 	* GtkTreeView and the other API deprecated in GTK 4.10 are no longer
 	  used (GtkListView / GtkColumnView); GTK 4.12 and GLib 2.72 are

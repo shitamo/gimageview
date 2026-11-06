@@ -170,6 +170,9 @@ GType        gimv_thumb_view_get_type           (void);
 
 /* the selected images bookmarked (the popover for the note) */
 void           gimv_thumb_view_bookmark_selection (GimvThumbView    *tv);
+#ifdef ENABLE_INDEX
+void           gimv_thumb_view_edit_tags_selection (GimvThumbView   *tv);
+#endif
 gboolean       gimv_thumb_view_is_clearing        (GimvThumbView    *tv);
 GimvThumbView *gimv_thumb_view_new                (void);
 gboolean       gimv_thumb_view_set_widget         (GimvThumbView    *tv,

@@ -6355,3 +6355,7 @@ msgstr "名前は顔に付けます (顔の一覧ウィンドウか、画像の�
 #: src/gimv_index_tags.c
 msgid "Tags in Use"
 msgstr "使われているタグ (クリックで付けます)"
+
+#: src/gimv_image_win.c
+msgid "/_Edit/Edit _Tags..."
+msgstr "/編集(_E)/タグを編集(_T)..."

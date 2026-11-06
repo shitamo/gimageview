@@ -305,6 +305,8 @@ gboolean    gimv_image_view_point_to_face   (GimvImageView *iv,
  * the face: x, y, w, h in [0, 1] of the image as its EXIF orientation shows
  * it, with some room around it */
 gboolean    gimv_image_view_copy_to_clipboard      (GimvImageView *iv);
+/* the tags of the image shown (the dialog; with the index only) */
+void        gimv_image_view_edit_tags              (GimvImageView *iv);
 /* the image shown bookmarked (the popover for the note) */
 void        gimv_image_view_bookmark               (GimvImageView *iv);
 gboolean    gimv_image_view_copy_face_to_clipboard (GimvImageView *iv,

@@ -836,6 +836,15 @@ cb_print (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
 static void
 cb_edit_tags (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
 {
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   gimv_thumb_view_edit_tags_selection (tv);
+}
+
+
+/* the tags of the selected images (the dialog) */
+void
+gimv_thumb_view_edit_tags_selection (GimvThumbView *tv)
+{
    GList *thumblist, *node, *infos = NULL;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));

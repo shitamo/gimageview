@@ -38,6 +38,9 @@
 #include "gimv_comment.h"
 #include "gimv_image_view.h"
 #include "gimv_bookmark_edit.h"
+#ifdef ENABLE_INDEX
+#include "gimv_index_tags.h"
+#endif
 #include "gimv_image_win.h"
 #include "gimv_nav_win.h"
 #include "gtk2-compat.h"
@@ -228,6 +231,9 @@ static void cb_toggle_scrollbar            (GimvImageView   *iv,
 static void cb_open_folder                 (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem    *widget);
+static void cb_edit_tags           (GimvImageView     *iv,
+                                   guint              action,
+                                   GimvMenuItem      *widget);
 static void cb_bookmark            (GimvImageView     *iv,
                                    guint              action,
                                    GimvMenuItem      *widget);
@@ -354,6 +360,9 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/Open the _Folder"),      NULL,         cb_open_folder,      0, NULL},
    {N_("/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
    {N_("/Edit Faces (_People)"),  "P",          cb_edit_faces,       0, NULL},
+#ifdef ENABLE_INDEX
+   {N_("/Edit _Tags..."),         NULL,         cb_edit_tags,        0, NULL},
+#endif
    /* no key: one can be given in ~/.gimv/keyaccelrc */
    {N_("/_Bookmark..."),          NULL,         cb_bookmark,         0, NULL},
    {N_("/Memory _Buffer"),        "<control>B", cb_toggle_buffer,    0, "<ToggleItem>"},
@@ -1103,6 +1112,33 @@ static void
 cb_copy_to_clipboard (GimvImageView *iv, guint action, GimvMenuItem *widget)
 {
    gimv_image_view_copy_to_clipboard (iv);
+}
+
+
+static void
+cb_edit_tags (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   gimv_image_view_edit_tags (iv);
+}
+
+
+/* the tags of the image shown (the dialog of the thumbnail view) */
+void
+gimv_image_view_edit_tags (GimvImageView *iv)
+{
+#ifdef ENABLE_INDEX
+   GList infos = { NULL, NULL, NULL };
+   GtkRoot *root;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   /* files of an archive have no comment file of their own */
+   if (!iv->info || gimv_image_info_is_in_archive (iv->info)
+       || (iv->info->flags & GIMV_IMAGE_INFO_MRL_FLAG))
+      return;
+   infos.data = iv->info;
+   root = gtk_widget_get_root (GTK_WIDGET (iv));
+   gimv_index_edit_tags (GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL, &infos);
+#endif
 }
 
 
