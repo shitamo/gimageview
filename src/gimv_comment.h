@@ -125,6 +125,8 @@ gboolean      gimv_comment_save_file                (GimvComment *comment);
    GIMV_COMMENT_ROTATION_KEY, degrees clockwise).  0 - 3 as
    GimvImageViewOrientation (1 = 90 degrees counterclockwise) */
 #define GIMV_COMMENT_ROTATION_KEY "X-GImageView-Rotation"
+/* the tags (edited with Edit Tags; read by the index) */
+#define GIMV_COMMENT_TAGS_KEY     "X-IMG-Tags"
 gboolean      gimv_comment_get_rotation             (GimvImageInfo *info,
                                                      gint          *orientation);
 void          gimv_comment_set_rotation             (GimvImageInfo *info,
@@ -136,6 +138,8 @@ gboolean      gimv_comment_get_flip                 (GimvImageInfo *info);
 void          gimv_comment_set_flip                 (GimvImageInfo *info,
                                                      gboolean       flip);
 void          gimv_comment_delete_file              (GimvComment *comment);
+/* the data and the note removed, the tags and the hidden keys kept */
+void          gimv_comment_clear_keep_tags          (GimvComment *comment);
 /* set one key (value NULL or "": remove it) and save the comment file, or
    delete the file when nothing is left in it */
 void          gimv_comment_set_value                (GimvImageInfo *info,

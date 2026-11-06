@@ -6379,3 +6379,27 @@ msgstr "/編集(_E)/タグを編集(_G)..."
 #: src/gimv_comment_view.c
 msgid "The tags are edited with Edit Tags... (the right button menu or the Edit menu)"
 msgstr "タグは「タグを編集...」(右クリックか [編集] メニュー) で編集します"
+
+#: src/gimv_comment_view.c
+msgid "Delete the comment of this image?"
+msgstr "この画像のコメントを削除しますか？"
+
+#: src/gimv_comment_view.c
+msgid "The data and the note are deleted.  The tags are kept (they are edited with Edit Tags...)."
+msgstr "データとノートを削除します。タグは残ります (タグは「タグを編集...」で編集します)。"
+
+#: src/gimv_comment_view.c
+msgid "Remove It_em"
+msgstr "項目を削除(_E)"
+
+#: src/gimv_comment_view.c
+msgid "Remove the item selected (Delete in the list); Save keeps the change"
+msgstr "選んでいる項目を削除します (一覧の Delete キーと同じ)。保存で確定します"
+
+#: src/gimv_comment_view.c
+msgid "_Delete Comment..."
+msgstr "コメントを削除(_D)..."
+
+#: src/gimv_comment_view.c
+msgid "Delete the data and the note of the image (the tags are kept)"
+msgstr "画像のデータとノートを削除します (タグは残ります)"

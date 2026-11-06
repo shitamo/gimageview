@@ -2205,7 +2205,12 @@ process_tag_queue (Indexer *ix, gboolean in_transaction)
    g_ptr_array_set_size (ix->tag_queue, 0);
    g_free (croot);
 
-   if (changed) say ("tags-updated");
+   if (changed) {
+      say ("tags-updated");
+      /* the names of the faces back in a comment file that lost them (its
+         data deleted, the file removed): from the database, at once */
+      ix->names_pending = TRUE;
+   }
 }
 
 

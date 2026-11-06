@@ -85,6 +85,20 @@ selected_is_file (GimvCommentView *cv)
 }
 
 
+/* the row selected is the tags (X-IMG-Tags: edited with Edit Tags) */
+static gboolean
+selected_is_tags (GimvCommentView *cv)
+{
+   GimvRow *row;
+   GimvCommentDataEntry *entry;
+
+   if (!cv->comment_clist) return FALSE;
+   row = gimv_list_view_get_selected_row (cv->comment_clist);
+   entry = row ? gimv_row_peek_pointer (row, COLUMN_RAW_ENTRY) : NULL;
+   return entry && entry->key && !strcmp (entry->key, GIMV_COMMENT_TAGS_KEY);
+}
+
+
 /* a cell of the data list: the comments of the file in italics, with
  * their whole text as the tooltip */
 static GtkWidget *
@@ -151,6 +165,7 @@ gimv_comment_view_delete_selected_data (GimvCommentView *cv)
 
    g_return_if_fail (cv);
    if (selected_is_file (cv)) return;
+   if (selected_is_tags (cv)) return;
 
    {
       guint position = gimv_list_view_get_selected (cv->comment_clist);
@@ -214,15 +229,63 @@ cb_reset_button_pressed (GtkButton *button, GimvCommentView *cv)
 }
 
 
+/* the data and the note of the comment removed (the tags stay), after
+ * asking */
+static void
+cb_del_answer (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GimvCommentView *cv = data;   /* alive unless cancelled */
+   gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
+   GimvImageInfo *info;
+
+   if (button != 1) return;   /* cancelled too (cv may be gone) */
+   if (!cv->comment) return;
+   info = cv->comment->info ? gimv_image_info_ref (cv->comment->info) : NULL;
+   gimv_comment_clear_keep_tags (cv->comment);
+   cv->changed = FALSE;
+   /* as it is now (the tags, or nothing) */
+   if (info) {
+      gimv_comment_view_change_file (cv, info);
+      gimv_image_info_unref (info);
+   }
+}
+
+
 static void
 cb_del_button_pressed (GtkButton *button, GimvCommentView *cv)
 {
+   static const gchar *buttons[] = { N_("_Cancel"), N_("_Delete"), NULL };
+   const gchar *labels[3];
+   GtkAlertDialog *dialog;
+   GtkRoot *root;
+
    g_return_if_fail (cv->comment);
 
-   gimv_comment_delete_file (cv->comment);
-   gimv_comment_unref (cv->comment);
-   cv->comment = NULL;
-   gimv_comment_view_clear (cv);
+   labels[0] = _(buttons[0]);
+   labels[1] = _(buttons[1]);
+   labels[2] = NULL;
+   dialog = gtk_alert_dialog_new ("%s", _("Delete the comment of this image?"));
+   gtk_alert_dialog_set_detail (dialog,
+      _("The data and the note are deleted.  The tags are kept (they are "
+        "edited with Edit Tags...)."));
+   gtk_alert_dialog_set_buttons (dialog, labels);
+   gtk_alert_dialog_set_cancel_button (dialog, 0);
+   gtk_alert_dialog_set_default_button (dialog, 0);
+
+   if (cv->del_cancel) g_cancellable_cancel (cv->del_cancel);
+   g_clear_object (&cv->del_cancel);
+   cv->del_cancel = g_cancellable_new ();
+   root = gtk_widget_get_root (GTK_WIDGET (button));
+   gtk_alert_dialog_choose (dialog, GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL,
+                            cv->del_cancel, cb_del_answer, cv);
+   g_object_unref (dialog);
+}
+
+
+static void
+cb_item_del_button_pressed (GtkButton *button, GimvCommentView *cv)
+{
+   gimv_comment_view_delete_selected_data (cv);
 }
 
 
@@ -249,6 +312,11 @@ cb_destroyed (GtkWidget *widget, GimvCommentView *cv)
 
    /* GTK4: no accel group any more (mnemonics are used) */
    cv->accel_group = NULL;
+
+   if (cv->del_cancel) {
+      g_cancellable_cancel (cv->del_cancel);
+      g_clear_object (&cv->del_cancel);
+   }
 
 #ifdef ENABLE_INDEX
    if (cv->tags_watch) gimv_index_remove_watch (cv->tags_watch);
@@ -541,6 +609,8 @@ gimv_comment_view_new ()
    cv->save_button   = NULL;
    cv->reset_button  = NULL;
    cv->delete_button = NULL;
+   cv->item_del_button = NULL;
+   cv->del_cancel = NULL;
 
    cv->accel_group   = NULL;
    cv->iv            = NULL;
@@ -802,6 +872,16 @@ create_data_page (GimvCommentView *cv)
                        G_CALLBACK (cb_entry_enter), cv);
    gimv_event_connect (GTK_WIDGET (entry), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_entry_key_press), cv);
 
+   /* the item selected (as Delete in the list; kept by Save) */
+   cv->item_del_button = gtk_button_new_with_mnemonic (_("Remove It_em"));
+   gtk_widget_set_tooltip_text (cv->item_del_button,
+                                _("Remove the item selected (Delete in the list); Save keeps the change"));
+   gtk_widget_set_valign (cv->item_del_button, GTK_ALIGN_END);
+   gtk_widget_set_margin_start (cv->item_del_button, 4);
+   g_signal_connect (cv->item_del_button, "clicked",
+                     G_CALLBACK (cb_item_del_button_pressed), cv);
+   gimv_box_pack_start (GTK_BOX (hbox), cv->item_del_button, FALSE, FALSE, 0);
+
    gimv_widget_show_all (cv->data_page);
 
    return vbox;
@@ -866,6 +946,8 @@ gimv_comment_view_set_sensitive_all (GimvCommentView *cv, gboolean sensitive)
    gtk_widget_set_sensitive (cv->save_button, sensitive);
    gtk_widget_set_sensitive (cv->reset_button, sensitive);
    gtk_widget_set_sensitive (cv->delete_button, sensitive);
+   if (cv->item_del_button)
+      gtk_widget_set_sensitive (cv->item_del_button, sensitive);
 }
 
 
@@ -898,7 +980,9 @@ gimv_comment_view_set_sensitive (GimvCommentView *cv)
       gtk_editable_set_editable (GTK_EDITABLE (cv->value_entry), !file && !other);
       gtk_widget_set_sensitive (cv->key_combo, !file && !other);
       gtk_widget_set_sensitive (cv->save_button, !file && !other);
-      gtk_widget_set_sensitive (cv->delete_button, !file);
+      if (cv->item_del_button)
+         gtk_widget_set_sensitive (cv->item_del_button,
+                                   selected && !file && !selected_is_tags (cv));
       gtk_widget_set_tooltip_text (cv->value_entry,
          other && !g_strcmp0 (g_object_get_data (G_OBJECT (cv->key_combo), "key"), "X-IMG-Tags")
          ? _("The tags are edited with Edit Tags... (the right button menu or the Edit menu)")
@@ -1231,7 +1315,8 @@ gimv_comment_view_create (void)
                        G_CALLBACK (cb_reset_button_pressed), cv);
    gimv_box_pack_start (GTK_BOX (hbox1), button, FALSE, TRUE, 2);
 
-   button = gtk_button_new_with_mnemonic (_("_Delete"));
+   button = gtk_button_new_with_mnemonic (_("_Delete Comment..."));
+   gtk_widget_set_tooltip_text (button, _("Delete the data and the note of the image (the tags are kept)"));
    cv->delete_button = button;
    g_signal_connect (G_OBJECT (button),"clicked",
                        G_CALLBACK (cb_del_button_pressed), cv);

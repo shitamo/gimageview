@@ -38,6 +38,12 @@
 #include "fileutil.h"
 #include "gimv_image_info.h"
 #include "gimv_mime_types.h"
+#ifdef ENABLE_INDEX
+#include "gimv_index.h"
+#endif
+#ifdef ENABLE_INDEX
+#include "gimv_index.h"
+#endif
 #include "gtkutils.h"
 #include "prefs.h"
 #include "gimv_thumb_view.h"
@@ -709,6 +715,18 @@ gimv_comment_find_data_entry_by_key (GimvComment *comment, const gchar *key)
  *  value   :
  *  Return  :
  */
+/* the comment file of the image was written or removed: the index reads
+ * its tags again now (not at the next start) */
+static void
+tell_index (GimvComment *comment)
+{
+#ifdef ENABLE_INDEX
+   if (comment->info)
+      gimv_index_tags_changed (gimv_image_info_get_path (comment->info));
+#endif
+}
+
+
 GimvCommentDataEntry *
 gimv_comment_append_data (GimvComment *comment, const gchar *key, const gchar *value)
 {
@@ -930,6 +948,7 @@ gimv_comment_save_file (GimvComment *comment)
    g_signal_emit (G_OBJECT (comment), gimv_comment_signals[FILE_SAVED], 0);
    if (comment->info)
       gimv_thumb_view_update_info (comment->info);
+   tell_index (comment);
 
    return TRUE;
 
@@ -952,6 +971,34 @@ comment_has_data (GimvComment *comment)
       if (entry && entry->value && *entry->value) return TRUE;
    }
    return FALSE;
+}
+
+
+/* the data shown in the comment editor and the note removed; the tags
+ * (X-IMG-Tags, edited with Edit Tags) and the keys not shown (the rotation)
+ * are kept.  Saved, or the file removed when nothing is left. */
+void
+gimv_comment_clear_keep_tags (GimvComment *comment)
+{
+   GList *node;
+
+   g_return_if_fail (comment);
+
+   node = comment->data_list;
+   while (node) {
+      GimvCommentDataEntry *entry = node->data;
+      node = g_list_next (node);
+      if (!entry) continue;
+      if (entry->key && (!strcmp (entry->key, GIMV_COMMENT_TAGS_KEY) || !entry->display))
+         continue;
+      gimv_comment_data_entry_remove (comment, entry);
+   }
+   g_clear_pointer (&comment->note, g_free);
+
+   if (comment_has_data (comment))
+      gimv_comment_save_file (comment);
+   else if (comment->filename && file_exists (comment->filename))
+      gimv_comment_delete_file (comment);
 }
 
 
@@ -1092,6 +1139,7 @@ gimv_comment_delete_file (GimvComment *comment)
 
    if (comment->info)
       gimv_thumb_view_update_info (comment->info);
+   tell_index (comment);
 }
 
 

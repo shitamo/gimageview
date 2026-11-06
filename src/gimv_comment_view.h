@@ -49,7 +49,9 @@ struct GimvCommentView_Tag
 
    GtkWidget *save_button;
    GtkWidget *reset_button;
-   GtkWidget *delete_button;
+   GtkWidget *delete_button;      /* the whole comment (asks first) */
+   GtkWidget *item_del_button;    /* the item selected */
+   GCancellable *del_cancel;      /* the question of delete_button */
 
    gpointer   accel_group;  /* GTK4: always NULL (mnemonics are used) */
 
