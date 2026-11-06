@@ -5371,8 +5371,8 @@ msgstr "カメラ (EXIF)"
 msgid "The shape (portrait, landscape, square)"
 msgstr "形 (縦長・横長・正方形)"
 
-msgid "Turning the camera or the shape on reads every image again, which takes long with many images."
-msgstr "カメラや形をオンにすると全部の画像を読み直すので、画像が多いと時間がかかります。"
+msgid "Turning the camera, the shape or the keywords on reads every image again, which takes long with many images."
+msgstr "カメラ・形・キーワードをオンにすると全部の画像を読み直すので、画像が多いと時間がかかります。"
 
 #: src/gimv_image_view.c
 msgid "/Flip Horizontally"
@@ -5429,16 +5429,16 @@ msgid "Index: reading %d%%"
 msgstr "索引: 読込 %d%%"
 
 #, c-format
-msgid "Reading the images for their date, camera and shape: %'u of %'u images done (%d%%)."
-msgstr "画像の撮影日時・カメラ・形を読み込んでいます: %2$'u 枚中 %1$'u 枚が済み (%3$d%%)。"
+msgid "Reading the images for their date, camera, shape and keywords: %'u of %'u images done (%d%%)."
+msgstr "画像の撮影日時・カメラ・形・キーワードを読み込んでいます: %2$'u 枚中 %1$'u 枚が済み (%3$d%%)。"
 
 #, c-format
 msgid "Index: reading %'u/%'u"
 msgstr "索引: 読込 %'u/%'u"
 
 #, c-format
-msgid "Reading the new and changed images for their date, camera and shape: %'u of %'u."
-msgstr "新しい画像・変わった画像の撮影日時・カメラ・形を読み込んでいます: %'u / %'u。"
+msgid "Reading the new and changed images for their date, camera, shape and keywords: %'u of %'u."
+msgstr "新しい画像・変わった画像の撮影日時・カメラ・形・キーワードを読み込んでいます: %'u / %'u。"
 
 #, c-format
 msgid "\nThis time: %'u images since %s."
@@ -6403,3 +6403,15 @@ msgstr "コメントを削除(_D)..."
 #: src/gimv_comment_view.c
 msgid "Delete the data and the note of the image (the tags are kept)"
 msgstr "画像のデータとノートを削除します (タグは残ります)"
+
+#: src/gimv_index_view.c
+msgid "Keywords"
+msgstr "キーワード"
+
+#: src/gimv_index_view.c
+msgid "Keyword: %s"
+msgstr "キーワード: %s"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "The keywords of other programs (XMP, IPTC, sidecar files)"
+msgstr "他のプログラムが付けたキーワード (XMP・IPTC・サイドカーファイル)"

@@ -126,12 +126,12 @@ update_status (void)
             gint pct = ix.total ? (gint) ((guint64) done * 100 / ix.total) : 0;
             ix.status = left ? g_strdup_printf (_("Index: reading %d%% (%s)"), pct, left)
                              : g_strdup_printf (_("Index: reading %d%%"), pct);
-            g_string_append_printf (tip, _("Reading the images for their date, camera and shape: "
+            g_string_append_printf (tip, _("Reading the images for their date, camera, shape and keywords: "
                                            "%'u of %'u images done (%d%%)."), done, ix.total, pct);
          } else {
             ix.status = g_strdup_printf (_("Index: reading %'u/%'u"), ix.done, ix.todo);
             g_string_append_printf (tip, _("Reading the new and changed images for their date, "
-                                           "camera and shape: %'u of %'u."), ix.done, ix.todo);
+                                           "camera, shape and keywords: %'u of %'u."), ix.done, ix.todo);
          }
          g_string_append_printf (tip, _("\nThis time: %'u images since %s."),
                                  ix.done, ix.stage_clock ? ix.stage_clock : "");
@@ -715,10 +715,11 @@ start_indexer (void)
       g_ptr_array_add (argv, g_strdup ("--dotfiles"));
    g_ptr_array_add (argv, g_strdup_printf ("--log-keep=%d", conf.index_log_keep));
    /* the tags put by rules: the kinds wanted ("" for none) */
-   g_ptr_array_add (argv, g_strdup_printf ("--auto=%s%s%s",
+   g_ptr_array_add (argv, g_strdup_printf ("--auto=%s%s%s%s",
                                            conf.index_auto_folder ? "folder," : "",
                                            conf.index_auto_camera ? "camera," : "",
-                                           conf.index_auto_shape  ? "shape,"  : ""));
+                                           conf.index_auto_shape  ? "shape,"  : "",
+                                           conf.index_auto_keyword ? "keyword," : ""));
    if (conf.index_auto_folder_exclude && *conf.index_auto_folder_exclude)
       g_ptr_array_add (argv, g_strdup_printf ("--folder-exclude=%s",
                                               conf.index_auto_folder_exclude));

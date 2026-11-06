@@ -191,6 +191,8 @@ prefs_ui_index_auto (void)
          { N_("The folder name (\"2019_Kyoto\", ...)"),     G_STRUCT_OFFSET (Config, index_auto_folder) },
          { N_("The camera (EXIF)"),                             G_STRUCT_OFFSET (Config, index_auto_camera) },
          { N_("The shape (portrait, landscape, square)"),       G_STRUCT_OFFSET (Config, index_auto_shape) },
+         { N_("The keywords of other programs (XMP, IPTC, sidecar files)"),
+                                                                G_STRUCT_OFFSET (Config, index_auto_keyword) },
       };
       guint i;
 
@@ -208,8 +210,8 @@ prefs_ui_index_auto (void)
                                           G_STRUCT_MEMBER_P (config_changed, kinds[i].offset));
          gimv_box_pack_start (GTK_BOX (avbox), t, FALSE, FALSE, 0);
       }
-      l = gtk_label_new (_("Turning the camera or the shape on reads every image "
-                           "again, which takes long with many images."));
+      l = gtk_label_new (_("Turning the camera, the shape or the keywords on reads "
+                           "every image again, which takes long with many images."));
       gtk_label_set_xalign (GTK_LABEL (l), 0.0);
       gtk_label_set_wrap (GTK_LABEL (l), TRUE);
       gtk_widget_add_css_class (l, "dim-label");
@@ -388,6 +390,7 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
        || dest->index_auto_folder != src->index_auto_folder
        || dest->index_auto_camera != src->index_auto_camera
        || dest->index_auto_shape  != src->index_auto_shape
+       || dest->index_auto_keyword != src->index_auto_keyword
        || g_strcmp0 (dest->index_auto_folder_exclude ? dest->index_auto_folder_exclude : "",
                      src->index_auto_folder_exclude ? src->index_auto_folder_exclude : "")
        || g_strcmp0 (dest->index_dirs, src->index_dirs))

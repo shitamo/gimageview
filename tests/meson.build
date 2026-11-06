@@ -84,6 +84,14 @@ if sqlite_dep.found()
       dependencies : [glib_dep, sqlite_dep]),
     kwargs : test_kwargs)
 
+  # src/indexer/gimv_index_keywords.c (GLib only)
+  test('keywords',
+    executable('test-keywords', 'test_keywords.c',
+      objects : gimv_indexer_exe.extract_objects('indexer/gimv_index_keywords.c'),
+      include_directories : test_inc,
+      dependencies : [glib_dep]),
+    kwargs : test_kwargs)
+
   test('indexer',
     executable('test-indexer', 'test_indexer.c',
       include_directories : test_inc,

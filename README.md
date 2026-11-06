@@ -137,7 +137,7 @@ GImageView has following features:
 * Six display modes of the thumbnail view (Album, Album2, Album3, Detail, Detail + Icon, Detail + Thumbnail), and various sort types.
 
 * **Image index:**
-  The images of the directories you choose are indexed in the background (SQLite): they can be opened by the date taken and by tag, tagged by hand and automatically (folder, camera, shape), and searched by several tags, names and dates. New images are notified.
+  The images of the directories you choose are indexed in the background (SQLite): they can be opened by the date taken and by tag, tagged by hand and automatically (folder, camera, shape, the XMP and IPTC keywords of other programs), and searched by several tags, names and dates. New images are notified.
 
 * **Faces and people:**
   Faces are found and grouped (OpenCV); the people are named in the faces window, and their images opened from the "People" tab.

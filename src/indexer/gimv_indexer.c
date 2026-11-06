@@ -9,7 +9,7 @@
  * reaches EOF (gimv has quit or crashed) the indexer stops.
  *
  *   gimv-indexer --db FILE [--dotfiles] [--ext jpg,png,...]
- *                [--auto=folder,camera,shape] [--comment-charset=CS] DIR...
+ *                [--auto=folder,camera,shape,keyword] [--comment-charset=CS] DIR...
  *
  * Stage 1 records the files (date from mtime), stage 3 reads the tags from
  * the gimv comment files (~/.gimv/comment/<image path>.txt, the line
@@ -101,6 +101,7 @@
 #  include <libexif/exif-utils.h>
 #endif
 
+#include "gimv_index_keywords.h"
 #include "gimv_index_db.h"
 
 #define COMMIT_INTERVAL_USEC   (1 * G_USEC_PER_SEC)
@@ -412,6 +413,20 @@ time_to_date (gint64 t)
    }
    return s;
 }
+
+
+/* the kinds put (--auto=folder,camera,shape,keyword; the preferences) */
+enum {
+   AUTO_FOLDER = 1 << 0,
+   AUTO_CAMERA = 1 << 1,
+   AUTO_SHAPE  = 1 << 2,
+   AUTO_KEYWORD = 1 << 3,
+   AUTO_ALL    = AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE | AUTO_KEYWORD,
+   /* a database made before 'auto_kinds' was kept had these */
+   AUTO_OLD_ALL = AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE,
+};
+/* the kinds read from the image file in stage 2 */
+#define AUTO_FROM_FILE (AUTO_CAMERA | AUTO_SHAPE | AUTO_KEYWORD)
 
 
 static gboolean
@@ -791,6 +806,70 @@ file_update (Indexer *ix, gint64 dir_id, const gchar *dirpath,
 }
 
 
+/* the XMP sidecar files (keywords): a sidecar new, changed or gone puts
+ * its images back to stage 1, so stage 2 reads their keywords again.
+ * "x.jpg.xmp" goes with x.jpg, "x.xmp" with every x.* */
+static void
+sidecar_changed (Indexer *ix, gint64 dir_id, const gchar *name)
+{
+   gchar *img = g_strndup (name, strlen (name) - 4);
+   sqlite3_stmt *st = prep (ix, "UPDATE files SET stage = 1 WHERE dir_id = ?1 AND stage >= 2 "
+                                "AND (name = ?2 OR substr (name, 1, length (?2) + 1) = ?2 || '.')");
+   sqlite3_bind_int64 (st, 1, dir_id);
+   sqlite3_bind_text  (st, 2, img, -1, g_free);
+   sqlite3_step (st);
+   if (sqlite3_changes (ix->db)) ix->n_changed++;
+   sqlite3_finalize (st);
+}
+
+
+/* a sidecar seen (a directory listed, a file written): its images read
+ * again when it is new or changed since the last time (written: always;
+ * the mtime in nanoseconds, a file may be written twice in a second) */
+static void
+sidecar_seen (Indexer *ix, gint64 dir_id, const gchar *dirpath, const gchar *name,
+              gboolean written)
+{
+   gchar *path = g_build_filename (dirpath, name, NULL);
+   struct stat sb;
+   sqlite3_stmt *st;
+   gboolean same;
+   gint64 mtime;
+
+   if (!(ix->auto_kinds & AUTO_KEYWORD) || stat (path, &sb) < 0 || !S_ISREG (sb.st_mode)) {
+      g_free (path);
+      return;
+   }
+   g_free (path);
+   mtime = (gint64) sb.st_mtim.tv_sec * G_GINT64_CONSTANT (1000000000) + sb.st_mtim.tv_nsec;
+   st = prep (ix, "SELECT mtime FROM sidecars WHERE dir_id = ? AND name = ?");
+   sqlite3_bind_int64 (st, 1, dir_id);
+   sqlite3_bind_text  (st, 2, name, -1, SQLITE_STATIC);
+   same = sqlite3_step (st) == SQLITE_ROW && sqlite3_column_int64 (st, 0) == mtime;
+   sqlite3_finalize (st);
+   if (same && !written) return;
+   sidecar_changed (ix, dir_id, name);
+   st = prep (ix, "INSERT OR REPLACE INTO sidecars (dir_id, name, mtime) VALUES (?, ?, ?)");
+   sqlite3_bind_int64 (st, 1, dir_id);
+   sqlite3_bind_text  (st, 2, name, -1, SQLITE_STATIC);
+   sqlite3_bind_int64 (st, 3, mtime);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+}
+
+
+static void
+sidecar_gone (Indexer *ix, gint64 dir_id, const gchar *name)
+{
+   sqlite3_stmt *st = prep (ix, "DELETE FROM sidecars WHERE dir_id = ? AND name = ?");
+   sqlite3_bind_int64 (st, 1, dir_id);
+   sqlite3_bind_text  (st, 2, name, -1, SQLITE_STATIC);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+   if (ix->auto_kinds & AUTO_KEYWORD) sidecar_changed (ix, dir_id, name);
+}
+
+
 static void scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev);
 static void watch_add (Indexer *ix, const gchar *path);
 
@@ -800,7 +879,7 @@ scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
    struct stat sb;
    gint64 id, old_mtime = 0, scanned = 0;
    gboolean list_files;
-   GHashTable *seen_files, *seen_dirs;
+   GHashTable *seen_files, *seen_dirs, *seen_sidecars;
    GPtrArray *subdirs;
    DIR *dp;
    struct dirent *de;
@@ -825,6 +904,7 @@ scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
 
    seen_files = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
    seen_dirs  = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   seen_sidecars = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
    subdirs    = g_ptr_array_new_with_free_func (g_free);
 
    while ((de = readdir (dp))) {
@@ -855,9 +935,28 @@ scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
          file_update (ix, id, path, name);
          g_hash_table_add (seen_files, g_strdup (name));
          maybe_commit (ix, FALSE);
+      } else if (is_reg && list_files && gimv_index_is_sidecar_name (name)) {
+         sidecar_seen (ix, id, path, name, FALSE);
+         g_hash_table_add (seen_sidecars, g_strdup (name));
       }
    }
    closedir (dp);
+
+   if (list_files) {
+      /* sidecars that are no longer there */
+      sqlite3_stmt *st = prep (ix, "SELECT name FROM sidecars WHERE dir_id = ?");
+      GPtrArray *gone = g_ptr_array_new_with_free_func (g_free);
+      sqlite3_bind_int64 (st, 1, id);
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         const gchar *name = (const gchar *) sqlite3_column_text (st, 0);
+         if (!g_hash_table_contains (seen_sidecars, name))
+            g_ptr_array_add (gone, g_strdup (name));
+      }
+      sqlite3_finalize (st);
+      for (i = 0; i < gone->len; i++)
+         sidecar_gone (ix, id, g_ptr_array_index (gone, i));
+      g_ptr_array_unref (gone);
+   }
 
    if (list_files) {
       /* files that are no longer there */
@@ -922,6 +1021,7 @@ scan_dir (Indexer *ix, const gchar *path, gint64 parent, dev_t dev)
    g_ptr_array_unref (subdirs);
    g_hash_table_unref (seen_files);
    g_hash_table_unref (seen_dirs);
+   g_hash_table_unref (seen_sidecars);
 }
 
 
@@ -1217,6 +1317,8 @@ guard_check (Indexer *ix)
  *                  DCIM or 100CANON)
  *  camera/<name>   EXIF Make and Model
  *  shape/portrait, shape/landscape, shape/square
+ *  keyword/<name>  the keywords other programs wrote: XMP dc:subject, IPTC
+ *                  Keywords, an XMP sidecar file (gimv_index_keywords.c)
  *
  *  They are kept only in the database and made again when AUTO_RULE
  *  changes.  Stage 2 puts them with the date (one read of each image).
@@ -1224,13 +1326,6 @@ guard_check (Indexer *ix)
 
 #define AUTO_RULE "1"
 
-/* the kinds put (--auto=folder,camera,shape; the preferences) */
-enum {
-   AUTO_FOLDER = 1 << 0,
-   AUTO_CAMERA = 1 << 1,
-   AUTO_SHAPE  = 1 << 2,
-   AUTO_ALL    = AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE,
-};
 
 static guint
 auto_kinds_parse (const gchar *list)
@@ -1243,6 +1338,7 @@ auto_kinds_parse (const gchar *list)
       if (!strcmp (k, "folder"))      kinds |= AUTO_FOLDER;
       else if (!strcmp (k, "camera")) kinds |= AUTO_CAMERA;
       else if (!strcmp (k, "shape"))  kinds |= AUTO_SHAPE;
+      else if (!strcmp (k, "keyword")) kinds |= AUTO_KEYWORD;
    }
    g_strfreev (v);
    return kinds;
@@ -1636,7 +1732,7 @@ prepare_rules (Indexer *ix)
    sqlite3_finalize (st);
    st = prep (ix, "SELECT value FROM meta WHERE key = 'auto_kinds'");
    /* before this key there were all kinds */
-   had = sqlite3_step (st) == SQLITE_ROW ? (guint) sqlite3_column_int (st, 0) : AUTO_ALL;
+   had = sqlite3_step (st) == SQLITE_ROW ? (guint) sqlite3_column_int (st, 0) : AUTO_OLD_ALL;
    sqlite3_finalize (st);
 
    new_rule = g_strcmp0 (rule, AUTO_RULE) != 0;
@@ -1670,9 +1766,10 @@ prepare_rules (Indexer *ix)
       if ((had & AUTO_FOLDER) && !(ix->auto_kinds & AUTO_FOLDER)) p.total += tags;
       if ((had & AUTO_CAMERA) && !(ix->auto_kinds & AUTO_CAMERA)) p.total += tags;
       if ((had & AUTO_SHAPE)  && !(ix->auto_kinds & AUTO_SHAPE))  p.total += tags;
+      if ((had & AUTO_KEYWORD) && !(ix->auto_kinds & AUTO_KEYWORD)) p.total += tags;
    }
    if (added & AUTO_FOLDER) p.total += files;
-   if (added & (AUTO_CAMERA | AUTO_SHAPE)) p.total += files;
+   if (added & AUTO_FROM_FILE) p.total += files;
 
    why = (new_rule || had != ix->auto_kinds) ? "auto-tags" : "date-rule";
    say ("prepare start %" G_GINT64_FORMAT " %s", p.total, why);
@@ -1698,10 +1795,12 @@ prepare_rules (Indexer *ix)
              && !auto_kind_remove (ix, &p, "camera/")) return;
          if ((had & AUTO_SHAPE)  && !(ix->auto_kinds & AUTO_SHAPE)
              && !auto_kind_remove (ix, &p, "shape/")) return;
+         if ((had & AUTO_KEYWORD) && !(ix->auto_kinds & AUTO_KEYWORD)
+             && !auto_kind_remove (ix, &p, "keyword/")) return;
       }
       if ((added & AUTO_FOLDER) && !auto_folder_all (ix, &p))
          return;
-      if (added & (AUTO_CAMERA | AUTO_SHAPE)) {
+      if (added & AUTO_FROM_FILE) {
          if (!exec_in_chunks (ix, &p, "UPDATE files SET stage = 1 "
                                       "WHERE rowid > ?1 AND rowid <= ?2", "files", NULL))
             return;
@@ -1822,6 +1921,16 @@ run_stage2 (Indexer *ix)
             g_free (tag);
          }
          auto_tag_add (&at, id, shape_tag (w, h, ii.orient));
+         if (ix->auto_kinds & AUTO_KEYWORD) {
+            GPtrArray *kw = gimv_index_keywords_read (path);
+            guint k;
+            for (k = 0; kw && k < kw->len; k++) {
+               gchar *tag = g_strconcat ("keyword/", (gchar *) g_ptr_array_index (kw, k), NULL);
+               auto_tag_add (&at, id, tag);
+               g_free (tag);
+            }
+            if (kw) g_ptr_array_unref (kw);
+         }
          image_info_clear (&ii);
          if (!date) {
             date = filename_date (g_ptr_array_index (names, i));
@@ -3097,6 +3206,8 @@ watch_file_added (Indexer *ix, const gchar *path)
    if (is_image_name (ix, name) && (id = dir_lookup (ix, dir, &mtime, &scanned))) {
       file_update (ix, id, dir, name);
       ix->n_added++;
+   } else if (gimv_index_is_sidecar_name (name) && (id = dir_lookup (ix, dir, &mtime, &scanned))) {
+      sidecar_seen (ix, id, dir, name, TRUE);
    }
    g_free (dir);
    g_free (name);
@@ -3110,7 +3221,9 @@ watch_file_removed (Indexer *ix, const gchar *path)
    gint64 mtime, scanned, id = dir_lookup (ix, dir, &mtime, &scanned);
    sqlite3_stmt *st = ix->st_file_del;
 
-   if (id) {
+   if (id && gimv_index_is_sidecar_name (name)) {
+      sidecar_gone (ix, id, name);
+   } else if (id) {
       missing_file (ix, id, dir, name);
       sqlite3_reset (st);
       sqlite3_bind_int64 (st, 1, id);
@@ -3150,7 +3263,12 @@ watch_file_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar
 
    nid = dir_lookup (ix, ndir, &mtime, &scanned);
 
-   if (!is_image_name (ix, nname)) {
+   if (gimv_index_is_sidecar_name (oname) || gimv_index_is_sidecar_name (nname)) {
+      /* a sidecar written (a temporary file renamed to it), moved, renamed */
+      if (gimv_index_is_sidecar_name (oname)) watch_file_removed (ix, old);
+      if (gimv_index_is_sidecar_name (nname)) watch_file_added (ix, new);
+      else if (is_image_name (ix, nname)) watch_file_added (ix, new);
+   } else if (!is_image_name (ix, nname)) {
       /* renamed to something that is not an image */
       watch_file_removed (ix, old);
    } else if (!fid || !nid) {
@@ -3461,6 +3579,11 @@ open_db (Indexer *ix, const gchar *dbfile)
          sqlite3_finalize (st);
       }
    }
+   /* the XMP sidecar files seen, to read the keywords of their images
+    * again when they change */
+   exec (ix, "CREATE TABLE IF NOT EXISTS sidecars (dir_id INTEGER NOT NULL "
+             "REFERENCES dirs(id) ON DELETE CASCADE, name TEXT NOT NULL, "
+             "mtime INTEGER NOT NULL, PRIMARY KEY (dir_id, name))");
    /* the names of faces written to each comment file (run_name_sync) */
    exec (ix, "CREATE TABLE IF NOT EXISTS name_sync (file_id INTEGER PRIMARY KEY "
              "REFERENCES files(id) ON DELETE CASCADE, names TEXT NOT NULL)");
@@ -3529,7 +3652,7 @@ main (int argc, char *argv[])
       { "dotfiles", 0, 0, G_OPTION_ARG_NONE, &dotfiles, "include dot files", NULL },
       { "ext",      0, 0, G_OPTION_ARG_STRING, &exts, "image extensions", "LIST" },
       { "log-keep", 0, 0, G_OPTION_ARG_INT, &log_keep, "logs of missing files kept (0: none)", "N" },
-      { "auto",     0, 0, G_OPTION_ARG_STRING, &auto_list, "tags put by rules (default: all)", "folder,camera,shape" },
+      { "auto",     0, 0, G_OPTION_ARG_STRING, &auto_list, "tags put by rules (default: all)", "folder,camera,shape,keyword" },
       { "comment-charset", 0, 0, G_OPTION_ARG_STRING, &comment_charset,
         "the charset gimv writes the comment files in (default: UTF-8)", "CHARSET" },
       /* as bytes, like the folder names (no conversion from the locale) */

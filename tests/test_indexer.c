@@ -650,6 +650,117 @@ test_auto_tags (void)
 }
 
 
+/* the keywords of other programs: in the image (XMP), in a sidecar file;
+ * the sidecar changed while watching, removed; the kind turned off */
+static void
+write_xmp_jpeg (const gchar *path, const gchar *keyword)
+{
+   static const guint8 sof[] = { 0xff, 0xc0, 0, 11, 8, 0, 4, 0, 4, 1, 1, 0x11, 0 };
+   gchar *xmp = g_strdup_printf ("http://ns.adobe.com/xap/1.0/%c"
+      "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF "
+      "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><rdf:Description "
+      "xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:subject><rdf:Bag><rdf:li>%s"
+      "</rdf:li></rdf:Bag></dc:subject></rdf:Description></rdf:RDF></x:xmpmeta>", 0, keyword);
+   gsize n = 29 + strlen (xmp + 29);
+   GByteArray *b = g_byte_array_new ();
+   guint8 h[4] = { 0xff, 0xe1, (n + 2) >> 8, (n + 2) & 0xff };
+
+   g_byte_array_append (b, (const guint8 *) "\xff\xd8", 2);
+   g_byte_array_append (b, h, 4);
+   g_byte_array_append (b, (const guint8 *) xmp, n);
+   g_byte_array_append (b, sof, sizeof sof);
+   g_byte_array_append (b, (const guint8 *) "\xff\xd9", 2);
+   g_assert_true (g_file_set_contents (path, (const gchar *) b->data, b->len, NULL));
+   g_byte_array_unref (b);
+   g_free (xmp);
+}
+
+
+static gchar *
+sidecar_text (const gchar *keyword)
+{
+   return g_strdup_printf ("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\"><rdf:RDF "
+      "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"><rdf:Description "
+      "xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:subject><rdf:Bag><rdf:li>%s"
+      "</rdf:li></rdf:Bag></dc:subject></rdf:Description></rdf:RDF></x:xmpmeta>", keyword);
+}
+
+
+typedef struct { const gchar *path, *tags; } TagsAre;
+
+static gboolean
+cond_tags (Indexer *ix, gconstpointer data)
+{
+   const TagsAre *t = data;
+   gchar *now = file_tags (ix, t->path);
+   gboolean ok = !strcmp (now, t->tags);
+   g_free (now);
+   return ok;
+}
+
+
+static void
+test_keywords (void)
+{
+   gchar *root = new_root ();
+   gchar *kw = in (root, "kw.jpg"), *side = in (root, "side.png");
+   gchar *sx = g_strconcat (side, ".xmp", NULL), *tmpf = in (root, "side.png.xmp.tmp");
+   gchar *text = sidecar_text ("Sidecar");
+   const gchar *args[] = { "--auto=keyword", NULL };
+   Indexer *ix;
+
+   write_xmp_jpeg (kw, "京都");
+   write_png (side, 4, 4);
+   gimv_test_write_string (sx, text);
+   g_free (text);
+
+   ix = ix_start ("keywords.db", root, args);
+   ix_wait (ix, "idle");
+   assert_tags (ix, kw, "keyword/京都*");
+   assert_tags (ix, side, "keyword/Sidecar*");
+
+   /* the sidecar written again (a temporary file renamed) */
+   text = sidecar_text ("Changed");
+   gimv_test_write_string (tmpf, text);
+   g_free (text);
+   g_assert_cmpint (g_rename (tmpf, sx), ==, 0);
+   {
+      TagsAre t = { side, "keyword/Changed*" };
+      ix_wait_until (ix, cond_tags, &t);
+   }
+   /* removed */
+   g_assert_cmpint (g_remove (sx), ==, 0);
+   {
+      TagsAre t = { side, "" };
+      ix_wait_until (ix, cond_tags, &t);
+   }
+   ix_stop (ix);
+
+   /* turned off: the keywords go */
+   {
+      const gchar *args2[] = { "--auto=shape", NULL };
+      ix = ix_start ("keywords.db", root, args2);
+      ix_wait (ix, "idle");
+      assert_tags (ix, kw, "shape/square*");
+      ix_stop (ix);
+   }
+   /* on again, a sidecar written while not running, in a folder changed */
+   text = sidecar_text ("Offline");
+   gimv_test_write_string (sx, text);
+   g_free (text);
+   {
+      const gchar *args3[] = { "--auto=keyword", NULL };
+      ix = ix_start ("keywords.db", root, args3);
+      ix_wait (ix, "idle");
+      assert_tags (ix, kw, "keyword/京都*");
+      assert_tags (ix, side, "keyword/Offline*");
+      ix_stop (ix);
+   }
+
+   g_free (kw); g_free (side); g_free (sx); g_free (tmpf); g_free (root);
+}
+
+
 /* the tags of a person and of a rule may have the same name: both kept */
 static void
 test_manual_and_auto (void)
@@ -965,6 +1076,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/indexer/manual-tags", test_manual_tags);
    g_test_add_func ("/indexer/auto-tags", test_auto_tags);
    g_test_add_func ("/indexer/manual-and-auto", test_manual_and_auto);
+   g_test_add_func ("/indexer/keywords", test_keywords);
    g_test_add_func ("/indexer/watch", test_watch);
    g_test_add_func ("/indexer/offline-changes", test_offline_changes);
    g_test_add_func ("/indexer/watch-dir-move-utf8", test_watch_dir_move_utf8);

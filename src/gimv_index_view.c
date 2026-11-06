@@ -93,6 +93,7 @@ static const struct {
    { "folder/", N_("Folders"), N_("Folder: %s") },
    { "camera/", N_("Cameras"), N_("Camera: %s") },
    { "shape/",  N_("Shape"),   N_("Shape: %s") },
+   { "keyword/", N_("Keywords"), N_("Keyword: %s") },
    /* not put by a rule, but kept in the index only too: the tags of the
     * people named in the image (person_tags) */
    { "person/", N_("Tags of People"), N_("People: %s") },

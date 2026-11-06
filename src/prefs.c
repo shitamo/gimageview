@@ -102,6 +102,7 @@ static ConfParam param_common [] = {
    {"index_auto_folder",        D_BOOL,   "TRUE", &conf.index_auto_folder},
    {"index_auto_camera",        D_BOOL,   "TRUE", &conf.index_auto_camera},
    {"index_auto_shape",         D_BOOL,   "TRUE", &conf.index_auto_shape},
+   {"index_auto_keyword",       D_BOOL,   "TRUE", &conf.index_auto_keyword},
    {"index_face_dirs",          D_STRING, "",     &conf.index_face_dirs},
    {"index_auto_folder_exclude", D_STRING, "",    &conf.index_auto_folder_exclude},
 
