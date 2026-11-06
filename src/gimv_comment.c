@@ -599,6 +599,31 @@ gimv_comment_get_summary (GimvImageInfo *info, gchar **subject, gchar **note)
 }
 
 
+/* the text on one line: each line break, with the spaces around it, is
+ * one space (none at the ends) */
+gchar *
+gimv_comment_one_line (const gchar *text)
+{
+   GString *s;
+   const gchar *p;
+
+   if (!text) return NULL;
+   if (!strpbrk (text, "\r\n")) return g_strdup (text);
+   s = g_string_sized_new (strlen (text));
+   for (p = text; *p; p++) {
+      if (*p == '\r' || *p == '\n') {
+         while (s->len && (s->str[s->len - 1] == ' ' || s->str[s->len - 1] == '\t'))
+            g_string_truncate (s, s->len - 1);
+         while (p[1] == '\r' || p[1] == '\n' || p[1] == ' ' || p[1] == '\t') p++;
+         if (s->len && p[1]) g_string_append_c (s, ' ');
+         continue;
+      }
+      g_string_append_c (s, *p);
+   }
+   return g_string_free (s, FALSE);
+}
+
+
 gchar *
 gimv_comment_first_line (const gchar *text, gint max_chars)
 {
@@ -731,7 +756,7 @@ gimv_comment_append_data (GimvComment *comment, const gchar *key, const gchar *v
       entry->value = entry->def_val_fn (comment->info, NULL);
    } else if (value) {
       /* a line of the file each: no line breaks (a pasted text) */
-      entry->value = g_strdelimit (g_strdup (value), "\r\n", ' ');
+      entry->value = gimv_comment_one_line (value);
    } else {
       entry->value = NULL;
    }

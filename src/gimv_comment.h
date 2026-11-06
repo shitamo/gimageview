@@ -95,6 +95,8 @@ gchar       *gimv_comment_find_file                (const gchar *img_path);
 gboolean     gimv_comment_get_summary              (GimvImageInfo *info,
                                                     gchar        **subject,
                                                     gchar        **note);
+/* the text on one line: each line break (and the spaces around it) one space */
+gchar       *gimv_comment_one_line                 (const gchar   *text);
 /* the first non-empty line of text, at most max_chars characters
    ("..." appended when cut); newly allocated, NULL if none */
 gchar       *gimv_comment_first_line               (const gchar   *text,

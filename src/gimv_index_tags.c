@@ -59,8 +59,12 @@ split_tags (const gchar *text)
    gint i;
 
    if (!text) return tags;
-   /* a line break (a pasted text) parts tags as a comma does */
-   v = g_strsplit_set (text, ",\r\n", -1);
+   /* a line break (a text pasted) is a space: one tag goes on */
+   {
+      gchar *one = gimv_comment_one_line (text);
+      v = g_strsplit (one, ",", -1);
+      g_free (one);
+   }
    for (i = 0; v[i]; i++) {
       gchar *t = g_strstrip (v[i]);
       if (*t && !g_ptr_array_find_with_equal_func (tags, t, g_str_equal, NULL))
