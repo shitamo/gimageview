@@ -8,6 +8,10 @@
  * first and then asks the indexer to read them again, so the comment file
  * stays the record and the database follows it.
  *
+ * The names of the people ("person/NAME", written by the indexer from the
+ * names given to the faces) are not in the entry: they are shown apart and
+ * always kept, to be changed where the faces are named.
+ *
  * With several images the dialog shows the tags all of them have.  Tags
  * taken away there are taken away from every image, tags added are added
  * to every image, and the tags only some of them have stay as they are.
@@ -30,6 +34,16 @@
 
 /* a line of the comment file is read into a buffer of this size */
 #define LINE_MAX_BYTES 4096
+
+/* the names of people in the comment files */
+#define NAME_TAG "person/"
+
+
+static gboolean
+is_name (const gchar *tag)
+{
+   return g_str_has_prefix (tag, NAME_TAG);
+}
 
 
 /* "a, b ,, c" -> [a, b, c], without duplicates */
@@ -112,7 +126,7 @@ typedef struct {
    GtkWidget *entry;
    GtkWidget *error;
    GList     *infos;      /* GimvImageInfo, referenced */
-   GPtrArray *common;     /* tags every image has */
+   GPtrArray *common;     /* tags every image has (not the names) */
 } TagsDialog;
 
 
@@ -132,6 +146,18 @@ apply_tags (TagsDialog *td)
    GList *node;
    guint i;
 
+   /* the names are given to the faces, not typed here */
+   for (i = 0; i < wanted->len; i++) {
+      if (is_name (g_ptr_array_index (wanted, i))) {
+         gtk_label_set_text (GTK_LABEL (td->error),
+                             _("The names of people (person/...) are given to the faces, "
+                               "in the faces window or the faces panel (P) of the image."));
+         gtk_widget_set_visible (td->error, TRUE);
+         g_ptr_array_unref (wanted);
+         return FALSE;
+      }
+   }
+
    /* check the length of every line before writing anything */
    for (node = td->infos; node; node = g_list_next (node)) {
       GimvImageInfo *info = node->data;
@@ -142,8 +168,9 @@ apply_tags (TagsDialog *td)
 
       for (i = 0; i < tags->len; i++) {
          const gchar *t = g_ptr_array_index (tags, i);
-         /* taken away: every image had it and it is not wanted now */
-         if (has_tag (td->common, t) && !has_tag (wanted, t)) continue;
+         /* taken away: every image had it and it is not wanted now (the
+          * names stay: they are not in the entry) */
+         if (!is_name (t) && has_tag (td->common, t) && !has_tag (wanted, t)) continue;
          g_ptr_array_add (result, g_strdup (t));
       }
       for (i = 0; i < wanted->len; i++) {
@@ -211,9 +238,10 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
 {
    TagsDialog *td;
    GtkWidget *vbox, *label, *hbox, *button;
+   GPtrArray *names;
    GList *node;
    gchar *text;
-   guint n;
+   guint n, i;
 
    if (!infos) return;
 
@@ -221,6 +249,19 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
    for (node = infos; node; node = g_list_next (node))
       td->infos = g_list_append (td->infos, gimv_image_info_ref (node->data));
    n = g_list_length (td->infos);
+
+   /* the names in any of them (shown apart) */
+   names = g_ptr_array_new_with_free_func (g_free);
+   for (node = td->infos; node; node = g_list_next (node)) {
+      GPtrArray *tags = read_tags (gimv_image_info_get_path (node->data));
+      for (i = 0; i < tags->len; i++) {
+         const gchar *t = g_ptr_array_index (tags, i);
+         if (is_name (t) && t[strlen (NAME_TAG)]
+             && !has_tag (names, t + strlen (NAME_TAG)))
+            g_ptr_array_add (names, g_strdup (t + strlen (NAME_TAG)));
+      }
+      g_ptr_array_unref (tags);
+   }
 
    /* the tags every image has */
    td->common = read_tags (gimv_image_info_get_path (td->infos->data));
@@ -235,6 +276,11 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
       }
       g_ptr_array_unref (tags);
    }
+   for (i = 0; i < td->common->len; )
+      if (is_name (g_ptr_array_index (td->common, i)))
+         g_ptr_array_remove_index (td->common, i);
+      else
+         i++;
 
    td->window = gtk_window_new ();
    gtk_window_set_title (GTK_WINDOW (td->window), _("Edit Tags"));
@@ -271,6 +317,21 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
    gtk_entry_set_placeholder_text (GTK_ENTRY (td->entry), _("e.g. travel/Kyoto, cat"));
    gtk_entry_set_activates_default (GTK_ENTRY (td->entry), TRUE);
    gtk_box_append (GTK_BOX (vbox), td->entry);
+
+   /* the names: shown, not edited here */
+   if (names->len) {
+      gchar *list = join_tags (names);
+      text = g_strdup_printf (_("People: %s (named in the faces window or the faces panel; "
+                                "they are kept)"), list);
+      label = gtk_label_new (text);
+      g_free (text);
+      g_free (list);
+      gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
+      gtk_widget_add_css_class (label, "dim-label");
+      gtk_box_append (GTK_BOX (vbox), label);
+   }
+   g_ptr_array_unref (names);
 
    if (n > 1) {
       label = gtk_label_new (_("Only the tags all of them have are shown. "

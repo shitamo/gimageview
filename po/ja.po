@@ -6304,3 +6304,12 @@ msgstr "%s (ブックマーク)"
 #: src/gimv_index_view.c
 msgid "Not Found"
 msgstr "見つからない"
+
+#: src/gimv_index_tags.c
+msgid "The names of people (person/...) are given to the faces, in the faces window or the faces panel (P) of the image."
+msgstr "人物の名前 (person/...) は顔に付けます。顔の一覧ウィンドウか、画像の顔パネル (P) で付けてください。"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "People: %s (named in the faces window or the faces panel; they are kept)"
+msgstr "人物: %s (顔の一覧ウィンドウ・顔パネルで付けた名前。ここでは変わりません)"
