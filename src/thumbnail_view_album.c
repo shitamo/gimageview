@@ -23,6 +23,7 @@
 
 #include <string.h>
 
+#include "gimv_bookmark.h"
 #include "gimageview.h"
 #include "charset.h"
 
@@ -665,11 +666,22 @@ cb_album_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
 
    text = g_string_new (NULL);
 
+   /* the bookmark (the note) first */
+   {
+      gchar *bookmark = gimv_bookmark_tooltip (gimv_image_info_get_path (thumb->info));
+      if (bookmark) {
+         g_string_append (text, bookmark);
+         g_free (bookmark);
+      }
+   }
+
    /* a collection has files from many folders: the full path first */
    if (tv->mode == GIMV_THUMB_VIEW_MODE_COLLECTION) {
       const gchar *file = gimv_image_info_get_path (thumb->info);
       if (file) {
-         gchar *internal = charset_to_internal (file, conf.charset_filename,
+         gchar *internal;
+         if (text->len) g_string_append_c (text, '\n');
+         internal = charset_to_internal (file, conf.charset_filename,
                                                 conf.charset_auto_detect_fn,
                                                 conf.charset_filename_mode);
          g_string_append (text, internal);

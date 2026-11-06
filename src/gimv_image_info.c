@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "gimv_bookmark.h"
 #include "gimageview.h"
 
 #include "fileutil.h"
@@ -859,6 +860,9 @@ gimv_image_info_rename_image (GimvImageInfo *info, const gchar *filename)
       g_free (src_comment);
       g_free (dest_comment);      
    }
+
+   /* the bookmark goes with it */
+   gimv_bookmark_move (info->filename, filename);
 
    if (stat (filename, &st)) return FALSE;
    info->st = st;

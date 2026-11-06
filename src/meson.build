@@ -6,7 +6,7 @@ gimv_sources = files(
   'argparse.c', 'auto_completion.c', 'charset.c', 'cursors.c',
   'dirview2.c', 'dither.c', 'dnd.c', 'exif_view.c', 'fileload.c', 'fileutil.c',
   'fr-archive.c', 'fr-command.c', 'fr-process.c', 'gfileutil.c',
-  'gimv_anim.c', 'gimv_comment.c', 'gimv_comment_view.c', 'gimv_file_comment.c', 'gimv_dupl_finder.c',
+  'gimv_anim.c', 'gimv_bookmark.c', 'gimv_bookmark_edit.c', 'gimv_comment.c', 'gimv_comment_view.c', 'gimv_file_comment.c', 'gimv_dupl_finder.c',
   'gimv_dupl_win.c', 'gimv_icon_stock.c', 'gimv_color_scheme.c', 'gimv_image.c', 'gimv_image_info.c',
   'gimv_image_loader.c', 'gimv_image_saver.c', 'gimv_image_view.c',
   'gimv_image_win.c', 'gimv_io.c', 'gimv_io_file.c', 'gimv_io_mem.c',

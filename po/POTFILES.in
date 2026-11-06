@@ -32,6 +32,8 @@ src/gimv_index_missing.c
 src/gimv_index_faces.c
 src/gimv_index_faces_win.c
 src/gimv_face_panel.c
+src/gimv_bookmark.c
+src/gimv_bookmark_edit.c
 src/prefs_ui/prefs_ui_index.c
 src/gtk_prop.c
 src/gtkutils.c

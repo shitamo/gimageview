@@ -21,6 +21,7 @@
  * $Id: detailview2.c,v 1.13 2004/09/21 08:44:29 makeinu Exp $
  */
 
+#include "gimv_bookmark.h"
 #include "detailview.h"
 
 /*
@@ -1299,22 +1300,33 @@ cb_treeview_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
    GimvRow *row = NULL;
    GimvThumb *thumb;
    const gchar *file;
-   gchar *text;
+   gchar *text = NULL, *bookmark;
+   gboolean name_only;
 
-   if (keyboard || !GIMV_IS_THUMB_VIEW (tv)
-       || !g_object_get_data (G_OBJECT (tv), "gimv-name-only"))
-      return FALSE;
+   if (keyboard || !GIMV_IS_THUMB_VIEW (tv)) return FALSE;
    if (!gimv_list_view_get_row_at (widget, x, y, NULL, &row) || !row)
       return FALSE;
    thumb = gimv_row_peek_pointer (row, COLUMN_THUMB_DATA);
    if (!GIMV_IS_THUMB (thumb) || !thumb->info
        || !(file = gimv_image_info_get_path (thumb->info)))
       return FALSE;
-   text = charset_to_internal (file, conf.charset_filename,
-                               conf.charset_auto_detect_fn,
-                               conf.charset_filename_mode);
+   /* the full path where only the names are shown, the bookmark */
+   name_only = g_object_get_data (G_OBJECT (tv), "gimv-name-only") != NULL;
+   bookmark = gimv_bookmark_tooltip (file);
+   if (!name_only && !bookmark) return FALSE;
+   if (name_only)
+      text = charset_to_internal (file, conf.charset_filename,
+                                  conf.charset_auto_detect_fn,
+                                  conf.charset_filename_mode);
+   if (bookmark) {
+      /* the note first, as the album shows it */
+      gchar *t = text ? g_strconcat (bookmark, "\n", text, NULL) : g_strdup (bookmark);
+      g_free (text);
+      text = t;
+   }
    gtk_tooltip_set_text (tooltip, text);
    g_free (text);
+   g_free (bookmark);
    return TRUE;
 }
 

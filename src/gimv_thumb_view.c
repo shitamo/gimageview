@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "gimv_bookmark.h"
 #include "gimageview.h"
 
 #include "charset.h"
@@ -47,6 +48,7 @@
 #include "gimv_thumb.h"
 #include "gimv_thumb_async.h"
 #include "gimv_thumb_cache.h"
+#include "gimv_bookmark_edit.h"
 #include "gimv_thumb_view.h"
 #ifdef ENABLE_INDEX
 #include "gimv_index_tags.h"
@@ -213,6 +215,8 @@ static GCompareFunc
 
 
 /* reference popup menu for each thumbnail */
+static void cb_bookmark (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
+
 static GimvMenuEntry thumb_button_popup_items [] =
 {
    {N_("/_Open"),                     NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_AUTO,        NULL},
@@ -234,6 +238,7 @@ static GimvMenuEntry thumb_button_popup_items [] =
 #ifdef ENABLE_INDEX
    {N_("/Edit _Tags..."),             NULL,  cb_edit_tags,     0,           NULL},
 #endif
+   {N_("/_Bookmark..."),              NULL,  cb_bookmark,      0,           NULL},
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
    {N_("/Re_name..."),                NULL,  cb_rename_file,   0,           NULL},
    {N_("/_Copy Files To..."),         NULL,  cb_file_operate,  FILE_COPY,   NULL},
@@ -848,6 +853,40 @@ cb_edit_tags (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
    g_list_free (infos);
 }
 #endif
+
+
+/* the selected images bookmarked, with the popover for the note at the top
+ * of the view */
+void
+gimv_thumb_view_bookmark_selection (GimvThumbView *tv)
+{
+   GList *thumblist, *node, *infos = NULL, *paths;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   if (!tv->container) return;
+
+   thumblist = gimv_thumb_view_get_selection_list (tv);
+   for (node = thumblist; node; node = g_list_next (node)) {
+      GimvThumb *thumb = node->data;
+      if (thumb && thumb->info) infos = g_list_append (infos, thumb->info);
+   }
+   g_list_free (thumblist);
+
+   paths = gimv_bookmark_paths_of_infos (infos);
+   g_list_free (infos);
+   if (paths) {
+      GdkRectangle rect = { gtk_widget_get_width (tv->container) / 2, 0, 1, 1 };
+      gimv_bookmark_edit (tv->container, &rect, paths);
+   }
+   g_list_free_full (paths, g_free);
+}
+
+
+static void
+cb_bookmark (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   gimv_thumb_view_bookmark_selection (tv);
+}
 
 
 static void
@@ -3028,6 +3067,11 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
       g_free (dest_comment);      
    }
 
+   /* the bookmark goes with it */
+   if (!g_file_test (gimv_image_info_get_path (thumb->info), G_FILE_TEST_EXISTS)
+       && g_file_test (dest_path, G_FILE_TEST_EXISTS))
+      gimv_bookmark_move (gimv_image_info_get_path (thumb->info), dest_path);
+
    gimv_thumb_view_refresh_list (tv);
 
 ERROR1:
@@ -3433,6 +3477,10 @@ gimv_thumb_view_sort_data (GimvThumbView *tv)
    gboolean reverse = FALSE;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+
+   /* in the order given (the bookmarks: newest first), until a sort is
+    * chosen in the menu */
+   if (g_object_get_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER)) return;
 
    func = gimv_thumb_view_get_compare_func (tv, &reverse);
    g_return_if_fail (func);

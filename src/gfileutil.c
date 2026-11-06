@@ -22,6 +22,7 @@
  */
 
 #include <gtk/gtk.h>
+#include "gimv_bookmark.h"
 #include "gimv_gtk4_compat.h"
 #include "gimv_object.h"
 #include <stdlib.h>
@@ -1347,6 +1348,20 @@ get_dest_comment_dir (const gchar *src_file,
 }
 
 
+/* the bookmark of a file moved into dir goes with it */
+static void
+bookmark_follow (const gchar *src_file, const gchar *dir)
+{
+   gchar *name = g_path_get_basename (src_file);
+   gchar *dest = g_build_filename (dir, name, NULL);
+
+   if (g_file_test (dest, G_FILE_TEST_EXISTS))
+      gimv_bookmark_move (src_file, dest);
+   g_free (dest);
+   g_free (name);
+}
+
+
 static gboolean
 do_file_operate (const gchar *src_file,
                  const gchar *dest_dir,
@@ -1400,6 +1415,7 @@ do_file_operate (const gchar *src_file,
          move_file (src_cache, dest_cache_dir, &cache_over_write, FALSE, window);
       if (result && src_comment && dest_comment_dir)
          move_file (src_comment, dest_comment_dir, &cache_over_write, FALSE, window);
+      if (result) bookmark_follow (src_file, dest_dir);
 
       break;
 
@@ -1437,6 +1453,9 @@ do_file_operate (const gchar *src_file,
          if (delete_file_list)
             delete_files (delete_file_list, CONFIRM_YES, window);
          g_list_free (delete_file_list);
+         /* moved to another file system */
+         if (!g_file_test (src_file, G_FILE_TEST_EXISTS))
+            bookmark_follow (src_file, dest_dir);
       }
 
       break;

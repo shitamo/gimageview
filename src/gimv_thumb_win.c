@@ -223,6 +223,9 @@ static void cb_close                (GimvThumbWin  *tw,
 static void cb_select_all           (GimvThumbWin  *tw,
                                      guint          action,
                                      GimvMenuItem     *widget);
+static void cb_bookmark             (GimvThumbWin  *tw,
+                                     guint          action,
+                                     GimvMenuItem     *widget);
 static void cb_refresh_list         (GimvThumbWin  *tw,
                                      guint          action,
                                      GimvMenuItem     *widget);
@@ -444,6 +447,9 @@ GimvMenuEntry gimv_thumb_win_menu_items[] =
    {N_("/_Edit/_Move Files To..."),     "<shift>M",   cb_file_operate,  FILE_MOVE,   NULL},
    {N_("/_Edit/_Link Files To..."),     "<shift>L",   cb_file_operate,  FILE_LINK,   NULL},
    {N_("/_Edit/Remo_ve Files..."),       "<del>",      cb_file_operate,  FILE_REMOVE, NULL},
+   {N_("/_Edit/---"),                   NULL,         NULL,             0,            "<Separator>"},
+   /* no key: one can be given in ~/.gimv/keyaccelrc */
+   {N_("/_Edit/_Bookmark..."),          NULL,         cb_bookmark,      0,            NULL},
    {N_("/_Edit/---"),                   NULL,         NULL,             0,            "<Separator>"},
    {N_("/_Edit/_Options..."),           "<control>O", cb_open,          OPEN_PREFS,   NULL},
 
@@ -2991,6 +2997,14 @@ cb_close (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 
 
 static void
+cb_bookmark (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
+{
+   GimvThumbView *tv = gimv_thumb_win_find_thumbtable (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
+   if (tv) gimv_thumb_view_bookmark_selection (tv);
+}
+
+
+static void
 cb_select_all (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 {
    GimvThumbView *tv;
@@ -3166,6 +3180,7 @@ cb_sort_item (GimvThumbWin *tw, GimvSortItem sortitem, GimvMenuItem *widget)
    tv = gimv_thumb_win_find_thumbtable (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
    if (!tv) return;
 
+   g_object_set_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER, NULL);
    gimv_thumb_view_set_widget (tv, tv->tw, tv->container, tv->summary_mode);
 }
 
@@ -3184,6 +3199,7 @@ cb_sort_flag (GimvThumbWin *tw, GimvSortFlag sortflag, GimvMenuItem *widget)
    tv = gimv_thumb_win_find_thumbtable (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
    if (!tv) return;
 
+   g_object_set_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER, NULL);
    gimv_thumb_view_set_widget (tv, tv->tw, tv->container, tv->summary_mode);
 }
 
@@ -5157,6 +5173,7 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
    gimv_index_tab_close (tw, GIMV_INDEX_TAB_DATE);
    gimv_index_tab_close (tw, GIMV_INDEX_TAB_TAG);
    gimv_index_tab_close (tw, GIMV_INDEX_TAB_PERSON);
+   gimv_index_tab_close (tw, GIMV_INDEX_TAB_BOOKMARK);
 #endif
 
    /* get pages list in this window */

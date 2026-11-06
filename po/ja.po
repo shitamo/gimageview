@@ -6232,3 +6232,75 @@ msgstr "このGImageViewは顔の検出なしでビルドされています。"
 
 msgid "Do Not Make This Folder Name a Tag"
 msgstr "このフォルダ名をタグにしない"
+
+#: src/gimv_thumb_win.c src/gimv_image_win.c
+msgid "/_Edit/_Bookmark..."
+msgstr "/編集(_E)/ブックマーク(_B)..."
+
+#: src/gimv_thumb_view.c src/gimv_image_view.c
+msgid "/_Bookmark..."
+msgstr "/ブックマーク(_B)..."
+
+#: src/gimv_bookmark.c src/gimv_bookmark_edit.c
+msgid "Bookmarked"
+msgstr "ブックマークしました"
+
+#: src/gimv_bookmark_edit.c
+msgid "Bookmark"
+msgstr "ブックマーク"
+
+#: src/gimv_bookmark_edit.c
+#, c-format
+msgid "%'u image bookmarked"
+msgid_plural "%'u images bookmarked"
+msgstr[0] "%'u 枚をブックマークしました"
+
+#: src/gimv_bookmark_edit.c
+msgid "Note (may be left empty)"
+msgstr "メモ (空のままでも可)"
+
+#: src/gimv_bookmark_edit.c
+msgid "_Remove"
+msgstr "外す(_R)"
+
+#: src/gimv_bookmark_edit.c
+msgid "Remove the bookmark"
+msgstr "ブックマークを外す"
+
+#: src/gimv_index_view.c
+msgid "Bookmarks"
+msgstr "ブックマーク"
+
+#: src/gimv_index_view.c
+msgid "Today"
+msgstr "今日"
+
+#: src/gimv_index_view.c
+msgid "Yesterday"
+msgstr "昨日"
+
+#: src/gimv_index_view.c
+msgid "This Week"
+msgstr "1 週間以内"
+
+#. TRANSLATORS: a month of the bookmarks tab (g_date_time_format)
+#: src/gimv_index_view.c
+msgid "%B %Y"
+msgstr "%Y年%-m月"
+
+#: src/gimv_index_view.c
+msgid "With a Note"
+msgstr "メモあり"
+
+#: src/gimv_index_view.c
+msgid "Without a Note"
+msgstr "メモなし"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "%s (Bookmarks)"
+msgstr "%s (ブックマーク)"
+
+#: src/gimv_index_view.c
+msgid "Not Found"
+msgstr "見つからない"

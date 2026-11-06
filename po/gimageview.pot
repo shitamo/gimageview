@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GImageView\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-17 17:48+0900\n"
+"POT-Creation-Date: 2026-11-06 18:16+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "Read dotfiles when scanning directories (use with \"-d\")"
 msgstr ""
 
-#: src/argparse.c:42 src/prefs_ui/prefs_ui_common.c:836
+#: src/argparse.c:42 src/prefs_ui/prefs_ui_common.c:844
 msgid "Ignore file name extension"
 msgstr ""
 
@@ -43,7 +43,7 @@ msgid "Image scale in the image window [%]"
 msgstr ""
 
 #: src/argparse.c:46 src/prefs_ui/prefs_ui_imagewin.c:469
-#: src/prefs_ui/prefs_ui_thumbwin.c:978
+#: src/prefs_ui/prefs_ui_thumbwin.c:980
 msgid "Keep the original image in memory"
 msgstr ""
 
@@ -119,8 +119,8 @@ msgid "Unknown option: \"-%c\"\n"
 msgstr ""
 
 #: src/charset.c:103 src/prefs_ui/prefs_ui_imagewin.c:138
-#: src/prefs_ui/prefs_ui_thumbwin.c:136 src/prefs_ui/prefs_ui_thumbwin.c:150
-#: src/prefs_ui/prefs_ui_thumbwin.c:161 plugins/image_view/gimv_xine_post.c:135
+#: src/prefs_ui/prefs_ui_thumbwin.c:136 src/prefs_ui/prefs_ui_thumbwin.c:151
+#: src/prefs_ui/prefs_ui_thumbwin.c:162 plugins/image_view/gimv_xine_post.c:135
 msgid "None"
 msgstr ""
 
@@ -136,7 +136,7 @@ msgstr ""
 msgid "md5sum"
 msgstr ""
 
-#: src/compare_similar.c:305
+#: src/compare_similar.c:323
 msgid "Similarity"
 msgstr ""
 
@@ -144,15 +144,16 @@ msgstr ""
 msgid "/Open in New Tab"
 msgstr ""
 
-#: src/dnd.c:67 src/dnd.c:71 src/gimv_image_view.c:317
-#: src/gimv_image_view.c:319 src/gimv_image_view.c:322
-#: src/gimv_image_view.c:325 src/gimv_image_view.c:341
-#: src/gimv_image_view.c:375 src/gimv_image_view.c:377 src/gimv_image_win.c:324
-#: src/gimv_image_win.c:334 src/gimv_image_win.c:336 src/gimv_thumb_win.c:486
-#: src/gimv_thumb_win.c:500 src/gimv_thumb_win.c:515 src/gimv_thumb_win.c:535
-#: src/gimv_thumb_win.c:537 src/gimv_thumb_view.c:187 src/gimv_thumb_view.c:190
-#: src/gimv_thumb_view.c:197 src/dirview2.c:189 src/dirview2.c:192
-#: src/dirview2.c:194
+#: src/dnd.c:67 src/dnd.c:71 src/gimv_image_view.c:347
+#: src/gimv_image_view.c:349 src/gimv_image_view.c:352
+#: src/gimv_image_view.c:360 src/gimv_image_view.c:376
+#: src/gimv_image_view.c:397 src/gimv_image_view.c:412
+#: src/gimv_image_view.c:414 src/gimv_image_win.c:342 src/gimv_image_win.c:352
+#: src/gimv_image_win.c:354 src/gimv_thumb_win.c:518 src/gimv_thumb_win.c:532
+#: src/gimv_thumb_win.c:547 src/gimv_thumb_win.c:567 src/gimv_thumb_win.c:569
+#: src/gimv_thumb_view.c:228 src/gimv_thumb_view.c:231
+#: src/gimv_thumb_view.c:242 src/dirview2.c:188 src/dirview2.c:191
+#: src/dirview2.c:193
 msgid "/---"
 msgstr ""
 
@@ -177,37 +178,37 @@ msgstr ""
 msgid "%s EXIF data"
 msgstr ""
 
-#: src/exif_view.c:148
+#: src/exif_view.c:148 src/gimv_index_missing.c:640
 msgid "Close"
 msgstr ""
 
-#: src/exif_view.c:226
+#: src/exif_view.c:226 src/gimv_index_view.c:2106
 msgid "Tag"
 msgstr ""
 
-#: src/exif_view.c:226 src/gimv_comment_view.c:466
+#: src/exif_view.c:226 src/gimv_comment_view.c:678
 msgid "Value"
 msgstr ""
 
-#: src/exif_view.c:234 src/fileload.c:443 src/fileload.c:578 src/fileload.c:588
-#: src/fileload.c:709 src/gfileutil.c:477 src/gfileutil.c:491
-#: src/gfileutil.c:513 src/gfileutil.c:560 src/gfileutil.c:690
-#: src/gfileutil.c:712 src/gfileutil.c:743 src/gfileutil.c:754
-#: src/gfileutil.c:765 src/gfileutil.c:806 src/gfileutil.c:817
-#: src/gfileutil.c:1001 src/gfileutil.c:1017 src/gfileutil.c:1069
-#: src/gfileutil.c:1081 src/gfileutil.c:1096 src/gfileutil.c:1162
-#: src/gfileutil.c:1214 src/gfileutil.c:1228 src/gfileutil.c:1247
-#: src/gfileutil.c:1261 src/gfileutil.c:1497 src/gfileutil.c:1504
-#: src/gfileutil.c:1645 src/gfileutil.c:1734 src/gfileutil.c:1738
-#: src/gfileutil.c:1820 src/gfileutil.c:1840 src/gfileutil.c:1878
-#: src/gfileutil.c:1900 src/gfileutil.c:1909 src/gfileutil.c:1939
-#: src/gfileutil.c:1964 src/gtkutils.c:523 src/prefs_ui/prefs_ui_common.c:189
-#: src/prefs_ui/prefs_ui_etc.c:212 src/prefs_ui/prefs_ui_etc.c:218
-#: src/prefs_ui/prefs_ui_etc.c:419 src/gimv_thumb_view.c:1039
-#: src/gimv_thumb_view.c:1106 src/gimv_thumb_view.c:2453
+#: src/exif_view.c:234 src/fileload.c:437 src/fileload.c:572 src/fileload.c:582
+#: src/fileload.c:703 src/gfileutil.c:486 src/gfileutil.c:500
+#: src/gfileutil.c:522 src/gfileutil.c:569 src/gfileutil.c:699
+#: src/gfileutil.c:721 src/gfileutil.c:752 src/gfileutil.c:763
+#: src/gfileutil.c:774 src/gfileutil.c:815 src/gfileutil.c:826
+#: src/gfileutil.c:1010 src/gfileutil.c:1026 src/gfileutil.c:1078
+#: src/gfileutil.c:1090 src/gfileutil.c:1105 src/gfileutil.c:1171
+#: src/gfileutil.c:1223 src/gfileutil.c:1237 src/gfileutil.c:1256
+#: src/gfileutil.c:1270 src/gfileutil.c:1524 src/gfileutil.c:1531
+#: src/gfileutil.c:1672 src/gfileutil.c:1761 src/gfileutil.c:1765
+#: src/gfileutil.c:1847 src/gfileutil.c:1867 src/gfileutil.c:1905
+#: src/gfileutil.c:1927 src/gfileutil.c:1936 src/gfileutil.c:1966
+#: src/gfileutil.c:1991 src/gtkutils.c:570 src/prefs_ui/prefs_ui_common.c:189
+#: src/prefs_ui/prefs_ui_etc.c:213 src/prefs_ui/prefs_ui_etc.c:219
+#: src/prefs_ui/prefs_ui_etc.c:420 src/gimv_thumb_view.c:1216
+#: src/gimv_thumb_view.c:1283 src/gimv_thumb_view.c:3042
 #: plugins/image_view/image_view_xine.c:856
 #: plugins/image_view/image_view_xine.c:868
-#: plugins/image_view/image_view_xine.c:894 src/dirview2.c:883
+#: plugins/image_view/image_view_xine.c:894 src/dirview2.c:903
 msgid "Error!"
 msgstr ""
 
@@ -215,159 +216,151 @@ msgstr ""
 msgid "EXIF data not found."
 msgstr ""
 
-#: src/exif_view.c:315 src/gimv_dupl_win.c:211
+#: src/exif_view.c:305 src/gimv_dupl_win.c:190
 #: plugins/image_view/prefs_mplayer.c:295 plugins/image_view/prefs_xine.c:252
 #: plugins/image_view/image_view_gst.c:371
 msgid "Thumbnail"
 msgstr ""
 
-#: src/fileload.c:203
+#: src/fileload.c:197
 msgid "*Loading Image Files* - GImageView - "
 msgstr ""
 
-#: src/fileload.c:209
+#: src/fileload.c:203
 msgid "Opening image files..."
 msgstr ""
 
-#: src/fileload.c:222 src/gimv_thumb_win.c:2223 src/gtk_prop.c:223
-#: src/gtkutils.c:732
+#: src/fileload.c:216 src/gimv_thumb_win.c:2275 src/gtk_prop.c:223
+#: src/gtkutils.c:779
 msgid "Skip"
 msgstr ""
 
-#: src/fileload.c:229 src/gimv_image_view.c:2770 src/gimv_image_win.c:1055
-#: src/gimv_thumb_win.c:2234 src/gimv_dupl_win.c:235
+#: src/fileload.c:223 src/gimv_image_view.c:3255 src/gimv_image_win.c:1078
+#: src/gimv_thumb_win.c:2286 src/gimv_dupl_win.c:214
 msgid "Stop"
 msgstr ""
 
-#: src/fileload.c:310 src/gfileutil.c:188 src/gfileutil.c:190
+#: src/fileload.c:304 src/gfileutil.c:189 src/gfileutil.c:191
 #, c-format
 msgid "filename = %s\n"
 msgstr ""
 
-#: src/fileload.c:314
+#: src/fileload.c:308
 #, c-format
 msgid "The file is an archive: %s\n"
 msgstr ""
 
-#: src/fileload.c:441 src/gfileutil.c:1502 src/gfileutil.c:1819
-#: src/gfileutil.c:1877 src/gimv_thumb_view.c:1104 src/dirview2.c:880
+#: src/fileload.c:435 src/gfileutil.c:1529 src/gfileutil.c:1846
+#: src/gfileutil.c:1904 src/gimv_thumb_view.c:1281 src/dirview2.c:900
 #, c-format
 msgid "Permission denied: %s"
 msgstr ""
 
-#: src/fileload.c:495
+#: src/fileload.c:489
 #, c-format
 msgid "No image files in this directory: %s\n"
 msgstr ""
 
-#: src/fileload.c:579
+#: src/fileload.c:573
 msgid "Command not found!\n"
 msgstr ""
 
-#: src/fileload.c:582
+#: src/fileload.c:576
 msgid "Canceled"
 msgstr ""
 
-#: src/fileload.c:583
+#: src/fileload.c:577
 msgid ""
 "Processing the archive file was\n"
 "canceled by the user."
 msgstr ""
 
-#: src/fileload.c:587
+#: src/fileload.c:581
 msgid "An error occurred while processing the archive file.\n"
 msgstr ""
 
-#: src/fileload.c:589
+#: src/fileload.c:583
 msgid ""
 "An error occurred while processing\n"
 "the archive file."
 msgstr ""
 
-#: src/fileload.c:710
+#: src/fileload.c:704
 msgid "Cannot load this archive file.\n"
 msgstr ""
 
-#: src/fileload.c:963
+#: src/fileload.c:921
 msgid "No file name specified!\n"
 msgstr ""
 
-#: src/fileload.c:985
+#: src/fileload.c:943
 msgid "Not an image file (or an unsupported format)!\n"
 msgstr ""
 
-#: src/fileload.c:1058
+#: src/fileload.c:1002
 msgid "Load file(s)"
 msgstr ""
 
-#: src/fileload.c:1090
-msgid "Open selected files"
-msgstr ""
-
-#: src/fileload.c:1093
-msgid "Thumbnails of the selected files"
-msgstr ""
-
-#: src/gfileutil.c:155 src/gfileutil.c:157
+#: src/gfileutil.c:156 src/gfileutil.c:158
 #, c-format
 msgid "scandir = %s\n"
 msgstr ""
 
-#: src/gfileutil.c:203 src/gfileutil.c:205
+#: src/gfileutil.c:204 src/gfileutil.c:206
 #, c-format
 msgid "dirname = %s\n"
 msgstr ""
 
-#: src/gfileutil.c:475 src/gfileutil.c:752 src/gfileutil.c:999
-#: src/gfileutil.c:1212
+#: src/gfileutil.c:484 src/gfileutil.c:761 src/gfileutil.c:1008
+#: src/gfileutil.c:1221
 #, c-format
 msgid ""
 "Can't find the source file:\n"
 "%s"
 msgstr ""
 
-#: src/gfileutil.c:488 src/gfileutil.c:510
+#: src/gfileutil.c:497 src/gfileutil.c:519
 #, c-format
 msgid ""
 "Can't move file: %s\n"
 "Permission denied: %s\n"
 msgstr ""
 
-#: src/gfileutil.c:559 src/gfileutil.c:1015
+#: src/gfileutil.c:568 src/gfileutil.c:1024
 #, c-format
 msgid ""
 "Same file:\n"
 "%s"
 msgstr ""
 
-#: src/gfileutil.c:567 src/gfileutil.c:1245 src/gfileutil.c:1899
+#: src/gfileutil.c:576 src/gfileutil.c:1254 src/gfileutil.c:1926
 #, c-format
 msgid "File exists: %s"
 msgstr ""
 
-#: src/gfileutil.c:568
+#: src/gfileutil.c:577
 msgid "ERROR!"
 msgstr ""
 
-#: src/gfileutil.c:572 src/gfileutil.c:1023
+#: src/gfileutil.c:581 src/gfileutil.c:1032
 #, c-format
 msgid ""
 "The file exists: %s\n"
 "Overwrite?"
 msgstr ""
 
-#: src/gfileutil.c:575 src/gfileutil.c:1026 src/gimv_thumb_view.c:2431
+#: src/gfileutil.c:584 src/gfileutil.c:1035 src/gimv_thumb_view.c:3020
 msgid "File exists!"
 msgstr ""
 
-#: src/gfileutil.c:687
+#: src/gfileutil.c:696
 #, c-format
 msgid ""
 "Failed to remove file:\n"
 "%s"
 msgstr ""
 
-#: src/gfileutil.c:708
+#: src/gfileutil.c:717
 #, c-format
 msgid ""
 "Failed to move file:\n"
@@ -375,77 +368,77 @@ msgid ""
 "To: %s"
 msgstr ""
 
-#: src/gfileutil.c:741
+#: src/gfileutil.c:750
 #, c-format
 msgid "%s is a link!\n"
 msgstr ""
 
-#: src/gfileutil.c:763
+#: src/gfileutil.c:772
 #, c-format
 msgid "%s is not a directory!\n"
 msgstr ""
 
-#: src/gfileutil.c:802
+#: src/gfileutil.c:811
 #, c-format
 msgid ""
 "Can't copy directory: %s\n"
 "Permission denied: %s\n"
 msgstr ""
 
-#: src/gfileutil.c:815
+#: src/gfileutil.c:824
 #, c-format
 msgid "File exists: %s\n"
 msgstr ""
 
-#: src/gfileutil.c:886
+#: src/gfileutil.c:895
 msgid "Copy Directory"
 msgstr ""
 
-#: src/gfileutil.c:909 src/gfileutil.c:1403
+#: src/gfileutil.c:918 src/gfileutil.c:1427
 #, c-format
 msgid "Copying %s ..."
 msgstr ""
 
-#: src/gfileutil.c:915
+#: src/gfileutil.c:924
 msgid "Copying directory"
 msgstr ""
 
-#: src/gfileutil.c:1067
+#: src/gfileutil.c:1076
 #, c-format
 msgid ""
 "Can't open file for reading:\n"
 "%s"
 msgstr ""
 
-#: src/gfileutil.c:1079
+#: src/gfileutil.c:1088
 #, c-format
 msgid ""
 "Can't open file for writing:\n"
 "%s"
 msgstr ""
 
-#: src/gfileutil.c:1094
+#: src/gfileutil.c:1103
 #, c-format
 msgid ""
 "An error occurred while copying file:\n"
 "%s"
 msgstr ""
 
-#: src/gfileutil.c:1158
+#: src/gfileutil.c:1167
 #, c-format
 msgid ""
 "Can't copy file: %s\n"
 "Permission denied: %s\n"
 msgstr ""
 
-#: src/gfileutil.c:1225
+#: src/gfileutil.c:1234
 #, c-format
 msgid ""
 "Can't create link: %s\n"
 "Permission denied: %s\n"
 msgstr ""
 
-#: src/gfileutil.c:1257
+#: src/gfileutil.c:1266
 #, c-format
 msgid ""
 "Failed to create link:\n"
@@ -453,157 +446,157 @@ msgid ""
 "To: %s"
 msgstr ""
 
-#: src/gfileutil.c:1382
+#: src/gfileutil.c:1405
 #, c-format
 msgid "Moving %s ..."
 msgstr ""
 
-#: src/gfileutil.c:1383
+#: src/gfileutil.c:1406
 msgid "Moving files"
 msgstr ""
 
-#: src/gfileutil.c:1404
+#: src/gfileutil.c:1428
 msgid "Copying files"
 msgstr ""
 
-#: src/gfileutil.c:1438
+#: src/gfileutil.c:1465
 #, c-format
 msgid "Creating link %s ..."
 msgstr ""
 
-#: src/gfileutil.c:1439
+#: src/gfileutil.c:1466
 msgid "Creating Links"
 msgstr ""
 
-#: src/gfileutil.c:1495 src/gfileutil.c:1644 src/gfileutil.c:1938
+#: src/gfileutil.c:1522 src/gfileutil.c:1671 src/gfileutil.c:1965
 #, c-format
 msgid "Directory doesn't exist: %s"
 msgstr ""
 
-#: src/gfileutil.c:1573
+#: src/gfileutil.c:1600
 msgid "Move files to..."
 msgstr ""
 
-#: src/gfileutil.c:1574
+#: src/gfileutil.c:1601
 msgid "Move files to: "
 msgstr ""
 
-#: src/gfileutil.c:1577
+#: src/gfileutil.c:1604
 msgid "Copy files to..."
 msgstr ""
 
-#: src/gfileutil.c:1578
+#: src/gfileutil.c:1605
 msgid "Copy files to: "
 msgstr ""
 
-#: src/gfileutil.c:1581
+#: src/gfileutil.c:1608
 msgid "Link files to..."
 msgstr ""
 
-#: src/gfileutil.c:1582
+#: src/gfileutil.c:1609
 msgid "Link files to: "
 msgstr ""
 
-#: src/gfileutil.c:1652
+#: src/gfileutil.c:1679
 #, c-format
 msgid ""
 "%s is a symbolic link.\n"
 "Remove the link?"
 msgstr ""
 
-#: src/gfileutil.c:1654 src/gfileutil.c:1665 src/gfileutil.c:1676
+#: src/gfileutil.c:1681 src/gfileutil.c:1692 src/gfileutil.c:1703
 msgid "Confirm Deleting Directory"
 msgstr ""
 
-#: src/gfileutil.c:1664
+#: src/gfileutil.c:1691
 #, c-format
 msgid "Delete %s?"
 msgstr ""
 
-#: src/gfileutil.c:1673
+#: src/gfileutil.c:1700
 #, c-format
 msgid ""
 "%s is not empty.\n"
 "Delete all files under %s?"
 msgstr ""
 
-#: src/gfileutil.c:1705 src/gfileutil.c:1805
+#: src/gfileutil.c:1732 src/gfileutil.c:1832
 #, c-format
 msgid "Deleting %s ..."
 msgstr ""
 
-#: src/gfileutil.c:1732
+#: src/gfileutil.c:1759
 #, c-format
 msgid ""
 "Failed to remove directory:\n"
 "%s is not empty."
 msgstr ""
 
-#: src/gfileutil.c:1737
+#: src/gfileutil.c:1764
 #, c-format
 msgid "Failed to remove directory: %s"
 msgstr ""
 
-#: src/gfileutil.c:1770
+#: src/gfileutil.c:1797
 #, c-format
 msgid "Delete these %d files?"
 msgstr ""
 
-#: src/gfileutil.c:1772
+#: src/gfileutil.c:1799
 msgid "Confirm Deleting Files"
 msgstr ""
 
-#: src/gfileutil.c:1781
+#: src/gfileutil.c:1808
 msgid "Delete File"
 msgstr ""
 
-#: src/gfileutil.c:1782
+#: src/gfileutil.c:1809
 msgid "Deleting Files"
 msgstr ""
 
-#: src/gfileutil.c:1838
+#: src/gfileutil.c:1865
 #, c-format
 msgid ""
 "Unable to delete file:\n"
 "%s"
 msgstr ""
 
-#: src/gfileutil.c:1882
+#: src/gfileutil.c:1909
 msgid "Make Directory"
 msgstr ""
 
-#: src/gfileutil.c:1883 src/gfileutil.c:1949
+#: src/gfileutil.c:1910 src/gfileutil.c:1976
 msgid "New directory name: "
 msgstr ""
 
-#: src/gfileutil.c:1896
+#: src/gfileutil.c:1923
 #, c-format
 msgid "Directory exists: %s"
 msgstr ""
 
-#: src/gfileutil.c:1908
+#: src/gfileutil.c:1935
 #, c-format
 msgid "Failed to create directory: %s"
 msgstr ""
 
-#: src/gfileutil.c:1948
+#: src/gfileutil.c:1975
 msgid "Rename Directory"
 msgstr ""
 
-#: src/gfileutil.c:1963
+#: src/gfileutil.c:1990
 #, c-format
 msgid "Failed to rename directory: %s"
 msgstr ""
 
-#: src/gimageview.c:255
+#: src/gimageview.c:268
 msgid "No image file specified!"
 msgstr ""
 
-#: src/gimageview.c:257
+#: src/gimageview.c:270
 msgid "To scan a directory, use the \"-d\" option."
 msgstr ""
 
-#: src/gimageview.c:262
+#: src/gimageview.c:275
 msgid "No window is open! Quitting..."
 msgstr ""
 
@@ -611,7 +604,7 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
-#: src/gimv_comment.c:76
+#: src/gimv_comment.c:76 src/gimv_index_view.c:2109
 msgid "Date"
 msgstr ""
 
@@ -635,7 +628,7 @@ msgstr ""
 msgid "Path in Archive"
 msgstr ""
 
-#: src/gimv_comment.c:82 src/gimv_dupl_win.c:102
+#: src/gimv_comment.c:82 src/gimv_dupl_win.c:104
 msgid "Modification Time"
 msgstr ""
 
@@ -647,235 +640,298 @@ msgstr ""
 msgid "Image Size"
 msgstr ""
 
-#: src/gimv_comment.c:395
+#: src/gimv_comment.c:418
 msgid "Can't open comment file for read."
 msgstr ""
 
-#: src/gimv_comment.c:831 plugins/thumbnail/gimv_thumb.c:263
+#: src/gimv_comment.c:848 plugins/thumbnail/gimv_thumb.c:263
 msgid "Cannot create the directory\n"
 msgstr ""
 
-#: src/gimv_comment.c:837
+#: src/gimv_comment.c:854
 msgid "Can't open comment file for write."
 msgstr ""
 
-#: src/gimv_comment_view.c:466
+#: src/gimv_comment_view.c:569
+msgid "none"
+msgstr ""
+
+#: src/gimv_comment_view.c:598
+msgid "A tag put by a person: click to show the images with it"
+msgstr ""
+
+#: src/gimv_comment_view.c:599
+msgid "A person in the image: click to show the images of the person"
+msgstr ""
+
+#: src/gimv_comment_view.c:600
+msgid "A tag of a person in the image: click to show the images of these people"
+msgstr ""
+
+#: src/gimv_comment_view.c:601
+msgid "An automatic tag: click to show the images with it"
+msgstr ""
+
+#: src/gimv_comment_view.c:651
+msgid "Tags:"
+msgstr ""
+
+#: src/gimv_comment_view.c:678
 msgid "Key"
 msgstr ""
 
-#: src/gimv_comment_view.c:468
+#: src/gimv_comment_view.c:680
 msgid "Data"
 msgstr ""
 
-#: src/gimv_comment_view.c:532
+#: src/gimv_comment_view.c:739
 msgid "Key: "
 msgstr ""
 
-#: src/gimv_comment_view.c:548
+#: src/gimv_comment_view.c:752
 msgid "Value: "
 msgstr ""
 
-#: src/gimv_comment_view.c:581
+#: src/gimv_comment_view.c:785
 msgid "Note"
 msgstr ""
 
-#: src/gimv_comment_view.c:927
+#: src/gimv_comment_view.c:1038
+#, c-format
+msgid "In File: %s"
+msgstr ""
+
+#: src/gimv_comment_view.c:1170
 msgid "_Save"
 msgstr ""
 
-#: src/gimv_comment_view.c:933
+#: src/gimv_comment_view.c:1176
 msgid "_Reset"
 msgstr ""
 
-#: src/gimv_comment_view.c:939
+#: src/gimv_comment_view.c:1182 src/gimv_index_faces_win.c:998
 msgid "_Delete"
 msgstr ""
 
-#: src/gimv_comment_view.c:985
+#: src/gimv_comment_view.c:1228
 #, c-format
 msgid "Edit Comment (%s)"
 msgstr ""
 
-#: src/gimv_comment_view.c:1002 src/gimv_gtk4_compat.h:186
+#: src/gimv_comment_view.c:1245 src/gimv_gtk4_compat.h:188
 msgid "_Close"
 msgstr ""
 
-#: src/gimv_comment_view.c:1044
+#: src/gimv_comment_view.c:1287
 msgid "_Prev"
 msgstr ""
 
-#: src/gimv_comment_view.c:1051
+#: src/gimv_comment_view.c:1294
 msgid "_Next"
 msgstr ""
 
-#: src/gimv_image_view.c:312 src/gimv_image_view.c:334
-#: src/gimv_image_view.c:358 src/gimv_image_view.c:369 src/gimv_image_win.c:319
+#: src/gimv_file_comment.c:115 src/gimv_file_comment.c:227
+#: src/gimv_file_comment.c:274 plugins/thumbnail_view/detailview.c:138
+msgid "Comment"
+msgstr ""
+
+#: src/gimv_file_comment.c:128 src/gimv_file_comment.c:135
+#: src/gimv_file_comment.c:137 src/gimv_file_comment.c:306
+msgid "User Name"
+msgstr ""
+
+#: src/gimv_file_comment.c:129
+msgid "Machine"
+msgstr ""
+
+#: src/gimv_image_view.c:342 src/gimv_image_view.c:369
+#: src/gimv_image_view.c:393 src/gimv_image_view.c:406 src/gimv_image_win.c:336
 msgid "/tear"
 msgstr ""
 
-#: src/gimv_image_view.c:313 src/gimv_image_win.c:320
+#: src/gimv_image_view.c:343 src/gimv_image_win.c:337
 msgid "/_Zoom"
 msgstr ""
 
-#: src/gimv_image_view.c:314 src/gimv_image_win.c:321
+#: src/gimv_image_view.c:344 src/gimv_image_win.c:338
 msgid "/_Rotate"
 msgstr ""
 
-#: src/gimv_image_view.c:315 src/gimv_image_win.c:322
+#: src/gimv_image_view.c:345 src/gimv_image_win.c:339
 msgid "/Ignore _Alpha Channel"
 msgstr ""
 
-#: src/gimv_image_view.c:316 src/gimv_image_win.c:323
+#: src/gimv_image_view.c:346 src/gimv_image_win.c:340
 msgid "/_Checkerboard Behind Transparency"
 msgstr ""
 
-#: src/gimv_image_view.c:318 src/gimv_image_win.c:309
+#: src/gimv_image_view.c:348 src/gimv_image_win.c:326
 msgid "/M_ovie"
 msgstr ""
 
-#: src/gimv_image_view.c:320 src/gimv_image_win.c:335
+#: src/gimv_image_view.c:350 src/gimv_image_win.c:353
 msgid "/_View Modes"
 msgstr ""
 
-#: src/gimv_image_view.c:321
+#: src/gimv_image_view.c:351
 msgid "/Show _Scrollbar"
 msgstr ""
 
-#: src/gimv_image_view.c:323
+#: src/gimv_image_view.c:353
 msgid "/Create _Thumbnail"
 msgstr ""
 
-#: src/gimv_image_view.c:324
-msgid "/Memory _Buffer"
+#: src/gimv_image_view.c:354 src/gimv_thumb_view.c:225
+msgid "/Open the _Folder"
 msgstr ""
 
-#: src/gimv_image_view.c:326 src/gimv_thumb_view.c:191
-msgid "/_Print..."
+#: src/gimv_image_view.c:355
+msgid "/Copy the Image to the C_lipboard"
 msgstr ""
 
-#: src/gimv_image_view.c:335
-msgid "/Zoom _In"
+#: src/gimv_image_view.c:356 src/gimv_image_win.c:341
+msgid "/Edit Faces (_People)"
 msgstr ""
 
-#: src/gimv_image_view.c:336
-msgid "/Zoom _Out"
-msgstr ""
-
-#: src/gimv_image_view.c:337
-msgid "/_Fit to Window"
-msgstr ""
-
-#: src/gimv_image_view.c:338
-msgid "/_Fit _Width"
-msgstr ""
-
-#: src/gimv_image_view.c:339
-msgid "/_Fit _Height"
-msgstr ""
-
-#: src/gimv_image_view.c:340
-msgid "/Keep _Aspect Ratio"
-msgstr ""
-
-#: src/gimv_image_view.c:342
-msgid "/10%(_1)"
-msgstr ""
-
-#: src/gimv_image_view.c:343
-msgid "/25%(_2)"
-msgstr ""
-
-#: src/gimv_image_view.c:344
-msgid "/50%(_3)"
-msgstr ""
-
-#: src/gimv_image_view.c:345
-msgid "/75%(_4)"
-msgstr ""
-
-#: src/gimv_image_view.c:346
-msgid "/100%(_5)"
-msgstr ""
-
-#: src/gimv_image_view.c:347
-msgid "/125%(_6)"
-msgstr ""
-
-#: src/gimv_image_view.c:348
-msgid "/150%(_7)"
-msgstr ""
-
-#: src/gimv_image_view.c:349
-msgid "/175%(_8)"
-msgstr ""
-
-#: src/gimv_image_view.c:350
-msgid "/200%(_9)"
+#: src/gimv_image_view.c:358 src/gimv_thumb_view.c:241
+msgid "/_Bookmark..."
 msgstr ""
 
 #: src/gimv_image_view.c:359
-msgid "/Rotate 90 Degrees Clockwise"
+msgid "/Memory _Buffer"
 msgstr ""
 
-#: src/gimv_image_view.c:360
-msgid "/Rotate 90 Degrees Counterclockwise"
-msgstr ""
-
-#: src/gimv_image_view.c:361
-msgid "/Rotate 180 Degrees"
+#: src/gimv_image_view.c:361 src/gimv_thumb_view.c:232
+msgid "/_Print..."
 msgstr ""
 
 #: src/gimv_image_view.c:370
-msgid "/_Play"
+msgid "/Zoom _In"
 msgstr ""
 
 #: src/gimv_image_view.c:371
-msgid "/_Stop"
+msgid "/Zoom _Out"
 msgstr ""
 
 #: src/gimv_image_view.c:372
-msgid "/P_ause"
+msgid "/_Fit to Window"
 msgstr ""
 
 #: src/gimv_image_view.c:373
-msgid "/_Forward"
+msgid "/_Fit _Width"
 msgstr ""
 
 #: src/gimv_image_view.c:374
-msgid "/_Reverse"
+msgid "/_Fit _Height"
 msgstr ""
 
-#: src/gimv_image_view.c:376
-msgid "/_Continuous Play"
+#: src/gimv_image_view.c:375
+msgid "/Keep _Aspect Ratio"
+msgstr ""
+
+#: src/gimv_image_view.c:377
+msgid "/10%(_1)"
 msgstr ""
 
 #: src/gimv_image_view.c:378
+msgid "/25%(_2)"
+msgstr ""
+
+#: src/gimv_image_view.c:379
+msgid "/50%(_3)"
+msgstr ""
+
+#: src/gimv_image_view.c:380
+msgid "/75%(_4)"
+msgstr ""
+
+#: src/gimv_image_view.c:381
+msgid "/100%(_5)"
+msgstr ""
+
+#: src/gimv_image_view.c:382
+msgid "/125%(_6)"
+msgstr ""
+
+#: src/gimv_image_view.c:383
+msgid "/150%(_7)"
+msgstr ""
+
+#: src/gimv_image_view.c:384
+msgid "/175%(_8)"
+msgstr ""
+
+#: src/gimv_image_view.c:385
+msgid "/200%(_9)"
+msgstr ""
+
+#: src/gimv_image_view.c:394
+msgid "/Rotate 90 Degrees Clockwise"
+msgstr ""
+
+#: src/gimv_image_view.c:395
+msgid "/Rotate 90 Degrees Counterclockwise"
+msgstr ""
+
+#: src/gimv_image_view.c:396
+msgid "/Rotate 180 Degrees"
+msgstr ""
+
+#: src/gimv_image_view.c:398
+msgid "/Flip Horizontally"
+msgstr ""
+
+#: src/gimv_image_view.c:407
+msgid "/_Play"
+msgstr ""
+
+#: src/gimv_image_view.c:408
+msgid "/_Stop"
+msgstr ""
+
+#: src/gimv_image_view.c:409
+msgid "/P_ause"
+msgstr ""
+
+#: src/gimv_image_view.c:410
+msgid "/_Forward"
+msgstr ""
+
+#: src/gimv_image_view.c:411
+msgid "/_Reverse"
+msgstr ""
+
+#: src/gimv_image_view.c:413
+msgid "/_Continuous Play"
+msgstr ""
+
+#: src/gimv_image_view.c:415
 msgid "/_Eject"
 msgstr ""
 
-#: src/gimv_image_view.c:2400
+#: src/gimv_image_view.c:2884
 #, c-format
 msgid "File doesn't exist: %s\n"
 msgstr ""
 
-#: src/gimv_image_view.c:2402
+#: src/gimv_image_view.c:2886
 #, c-format
 msgid "Not an image file (or an unsupported format): %s\n"
 msgstr ""
 
-#: src/gimv_image_view.c:2755
+#: src/gimv_image_view.c:3240
 msgid "Reverse"
 msgstr ""
 
-#: src/gimv_image_view.c:2762 src/gimv_image_win.c:1045
+#: src/gimv_image_view.c:3247 src/gimv_image_win.c:1068
 msgid "Play"
 msgstr ""
 
-#: src/gimv_image_view.c:2777
+#: src/gimv_image_view.c:3262
 msgid "Forward"
 msgstr ""
 
-#: src/gimv_image_view.c:2784
+#: src/gimv_image_view.c:3269
 msgid "Eject"
 msgstr ""
 
@@ -883,311 +939,320 @@ msgstr ""
 msgid "Default Image Viewer"
 msgstr ""
 
-#: src/gimv_image_win.c:286 src/gimv_thumb_win.c:397
+#: src/gimv_image_win.c:300 src/gimv_thumb_win.c:422
 msgid "/_File"
 msgstr ""
 
-#: src/gimv_image_win.c:287 src/gimv_thumb_win.c:398
+#: src/gimv_image_win.c:301 src/gimv_thumb_win.c:423
 msgid "/_File/_Open..."
 msgstr ""
 
-#: src/gimv_image_win.c:288
+#: src/gimv_image_win.c:302
 msgid "/_File/Open _Image Window"
 msgstr ""
 
-#: src/gimv_image_win.c:289
+#: src/gimv_image_win.c:303
 msgid "/_File/Open _Thumbnail Window"
 msgstr ""
 
-#: src/gimv_image_win.c:290 src/gimv_image_win.c:292 src/gimv_image_win.c:294
-#: src/gimv_thumb_win.c:402 src/gimv_thumb_win.c:404
+#: src/gimv_image_win.c:304 src/gimv_image_win.c:306 src/gimv_image_win.c:308
+#: src/gimv_thumb_win.c:427 src/gimv_thumb_win.c:429
 msgid "/_File/---"
 msgstr ""
 
-#: src/gimv_image_win.c:291
+#: src/gimv_image_win.c:305
 msgid "/_File/Memory _Buffer"
 msgstr ""
 
-#: src/gimv_image_win.c:293 src/gimv_thumb_win.c:403
+#: src/gimv_image_win.c:307 src/gimv_thumb_win.c:428
 msgid "/_File/_Print..."
 msgstr ""
 
-#: src/gimv_image_win.c:295
+#: src/gimv_image_win.c:309
 msgid "/_File/_Close"
 msgstr ""
 
-#: src/gimv_image_win.c:296 src/gimv_thumb_win.c:407
+#: src/gimv_image_win.c:310 src/gimv_thumb_win.c:432
 msgid "/_File/_Quit"
 msgstr ""
 
-#: src/gimv_image_win.c:298 src/gimv_thumb_win.c:409
+#: src/gimv_image_win.c:312 src/gimv_thumb_win.c:434
 msgid "/_Edit"
 msgstr ""
 
-#: src/gimv_image_win.c:299
+#: src/gimv_image_win.c:313
 msgid "/_Edit/Edit _Comment..."
 msgstr ""
 
-#: src/gimv_image_win.c:300
+#: src/gimv_image_win.c:314
 msgid "/_Edit/Scan E_XIF Data..."
 msgstr ""
 
-#: src/gimv_image_win.c:301
+#: src/gimv_image_win.c:315
 msgid "/_Edit/Create _Thumbnail"
 msgstr ""
 
-#: src/gimv_image_win.c:302 src/gimv_thumb_win.c:412 src/gimv_thumb_win.c:416
-#: src/gimv_thumb_win.c:425
+#: src/gimv_image_win.c:316
+msgid "/_Edit/Copy the Image to the C_lipboard"
+msgstr ""
+
+#: src/gimv_image_win.c:318 src/gimv_thumb_win.c:452
+msgid "/_Edit/_Bookmark..."
+msgstr ""
+
+#: src/gimv_image_win.c:319 src/gimv_thumb_win.c:437 src/gimv_thumb_win.c:441
+#: src/gimv_thumb_win.c:450 src/gimv_thumb_win.c:453
 msgid "/_Edit/---"
 msgstr ""
 
-#: src/gimv_image_win.c:303 src/gimv_thumb_win.c:426
+#: src/gimv_image_win.c:320 src/gimv_thumb_win.c:454
 msgid "/_Edit/_Options..."
 msgstr ""
 
-#: src/gimv_image_win.c:305 src/gimv_thumb_win.c:428
+#: src/gimv_image_win.c:322 src/gimv_thumb_win.c:456
 msgid "/_View"
 msgstr ""
 
-#: src/gimv_image_win.c:307
+#: src/gimv_image_win.c:324
 msgid "/_Go"
 msgstr ""
 
-#: src/gimv_image_win.c:311 src/gimv_thumb_win.c:467
+#: src/gimv_image_win.c:328 src/gimv_thumb_win.c:499
 msgid "/_Help"
 msgstr ""
 
-#: src/gimv_image_win.c:325 src/gimv_thumb_win.c:504
+#: src/gimv_image_win.c:343 src/gimv_thumb_win.c:536
 msgid "/_Menubar"
 msgstr ""
 
-#: src/gimv_image_win.c:326
+#: src/gimv_image_win.c:344
 msgid "/_Toolbar"
 msgstr ""
 
-#: src/gimv_image_win.c:327
+#: src/gimv_image_win.c:345
 msgid "/Slideshow _Player"
 msgstr ""
 
-#: src/gimv_image_win.c:328 src/gimv_thumb_win.c:507
+#: src/gimv_image_win.c:346 src/gimv_thumb_win.c:539
 msgid "/St_atusbar"
 msgstr ""
 
-#: src/gimv_image_win.c:329
+#: src/gimv_image_win.c:347
 msgid "/_Scrollbar"
 msgstr ""
 
-#: src/gimv_image_win.c:330 src/gimv_thumb_win.c:510
+#: src/gimv_image_win.c:348 src/gimv_thumb_win.c:542
 msgid "/_Player"
 msgstr ""
 
-#: src/gimv_image_win.c:331 src/gimv_thumb_win.c:511
+#: src/gimv_image_win.c:349 src/gimv_thumb_win.c:543
 msgid "/_Player/_Show"
 msgstr ""
 
-#: src/gimv_image_win.c:332 src/gimv_thumb_win.c:512
+#: src/gimv_image_win.c:350 src/gimv_thumb_win.c:544
 msgid "/_Player/_Hide"
 msgstr ""
 
-#: src/gimv_image_win.c:333 src/gimv_thumb_win.c:513
+#: src/gimv_image_win.c:351 src/gimv_thumb_win.c:545
 msgid "/_Player/_Auto"
 msgstr ""
 
-#: src/gimv_image_win.c:337
+#: src/gimv_image_win.c:355
 msgid "/_Fit to Image"
 msgstr ""
 
-#: src/gimv_image_win.c:338 src/gimv_thumb_win.c:517
+#: src/gimv_image_win.c:356 src/gimv_thumb_win.c:549
 msgid "/Ma_ximize"
 msgstr ""
 
-#: src/gimv_image_win.c:339
+#: src/gimv_image_win.c:357
 msgid "/F_ullscreen"
 msgstr ""
 
-#: src/gimv_image_win.c:346
+#: src/gimv_image_win.c:364
 msgid "/_Next"
 msgstr ""
 
-#: src/gimv_image_win.c:347
+#: src/gimv_image_win.c:365
 msgid "/_Previous"
 msgstr ""
 
-#: src/gimv_image_win.c:348
+#: src/gimv_image_win.c:366
 msgid "/_First"
 msgstr ""
 
-#: src/gimv_image_win.c:349
+#: src/gimv_image_win.c:367
 msgid "/_Last"
 msgstr ""
 
-#: src/gimv_image_win.c:566 src/gimv_thumb_win.c:733
+#: src/gimv_image_win.c:589 src/gimv_thumb_win.c:764
 msgid "New Window"
 msgstr ""
 
-#: src/gimv_image_win.c:849 src/prefs_ui/prefs_ui_imagewin.c:60
+#: src/gimv_image_win.c:872 src/prefs_ui/prefs_ui_imagewin.c:60
 msgid "90 degrees counterclockwise"
 msgstr ""
 
-#: src/gimv_image_win.c:850 src/prefs_ui/prefs_ui_imagewin.c:59
+#: src/gimv_image_win.c:873 src/prefs_ui/prefs_ui_imagewin.c:59
 msgid "0 degrees"
 msgstr ""
 
-#: src/gimv_image_win.c:851 src/prefs_ui/prefs_ui_imagewin.c:62
+#: src/gimv_image_win.c:874 src/prefs_ui/prefs_ui_imagewin.c:62
 msgid "90 degrees clockwise"
 msgstr ""
 
-#: src/gimv_image_win.c:852 src/prefs_ui/prefs_ui_imagewin.c:61
+#: src/gimv_image_win.c:875 src/prefs_ui/prefs_ui_imagewin.c:61
 msgid "180 degrees"
 msgstr ""
 
-#: src/gimv_image_win.c:862 src/gimv_thumb_win.c:2169
+#: src/gimv_image_win.c:885 src/gimv_thumb_win.c:2221
+#: src/gimv_index_view.c:1414 src/gimv_index_newimg.c:240
 msgid "Open"
 msgstr ""
 
-#: src/gimv_image_win.c:863 src/gimv_thumb_win.c:2170
+#: src/gimv_image_win.c:886 src/gimv_thumb_win.c:2222
 msgid "Open File"
 msgstr ""
 
-#: src/gimv_image_win.c:871 src/gimv_thumb_win.c:2179
+#: src/gimv_image_win.c:894 src/gimv_thumb_win.c:2231
 msgid "Prefs"
 msgstr ""
 
-#: src/gimv_image_win.c:872 src/gimv_prefs_win.c:640 src/gimv_thumb_win.c:2180
-#: src/prefs_ui/prefs_ui_etc.c:603
+#: src/gimv_image_win.c:895 src/gimv_prefs_win.c:653 src/gimv_thumb_win.c:2232
+#: src/prefs_ui/prefs_ui_etc.c:605
 msgid "Preferences"
 msgstr ""
 
-#: src/gimv_image_win.c:882 src/gimv_image_win.c:1035 src/gimv_thumb_win.c:2191
+#: src/gimv_image_win.c:905 src/gimv_image_win.c:1058 src/gimv_thumb_win.c:2243
 msgid "Prev"
 msgstr ""
 
-#: src/gimv_image_win.c:883
+#: src/gimv_image_win.c:906
 msgid "Previous Image"
 msgstr ""
 
-#: src/gimv_image_win.c:893 src/gimv_image_win.c:1065 src/gimv_image_win.c:1066
-#: src/gimv_thumb_win.c:2201
+#: src/gimv_image_win.c:916 src/gimv_image_win.c:1088 src/gimv_image_win.c:1089
+#: src/gimv_thumb_win.c:2253
 msgid "Next"
 msgstr ""
 
-#: src/gimv_image_win.c:894
+#: src/gimv_image_win.c:917
 msgid "Next Image"
 msgstr ""
 
-#: src/gimv_image_win.c:906 src/gimv_image_win.c:907
+#: src/gimv_image_win.c:929 src/gimv_image_win.c:930
 msgid "No Zoom"
 msgstr ""
 
-#: src/gimv_image_win.c:915 src/gimv_image_win.c:916
-#: src/prefs_ui/prefs_ui_imagewin.c:142 src/prefs_ui/prefs_ui_thumbwin.c:167
+#: src/gimv_image_win.c:938 src/gimv_image_win.c:939
+#: src/prefs_ui/prefs_ui_imagewin.c:142 src/prefs_ui/prefs_ui_thumbwin.c:168
 msgid "Zoom in"
 msgstr ""
 
-#: src/gimv_image_win.c:924 src/gimv_image_win.c:925
-#: src/prefs_ui/prefs_ui_imagewin.c:143 src/prefs_ui/prefs_ui_thumbwin.c:168
+#: src/gimv_image_win.c:947 src/gimv_image_win.c:948
+#: src/prefs_ui/prefs_ui_imagewin.c:143 src/prefs_ui/prefs_ui_thumbwin.c:169
 msgid "Zoom out"
 msgstr ""
 
-#: src/gimv_image_win.c:933 src/gimv_image_win.c:934
+#: src/gimv_image_win.c:956 src/gimv_image_win.c:957
 msgid "Zoom to fit"
 msgstr ""
 
-#: src/gimv_image_win.c:951
+#: src/gimv_image_win.c:974
 msgid "X Scale"
 msgstr ""
 
-#: src/gimv_image_win.c:964
+#: src/gimv_image_win.c:987
 msgid "Y Scale"
 msgstr ""
 
-#: src/gimv_image_win.c:970 src/gimv_image_win.c:971
+#: src/gimv_image_win.c:993 src/gimv_image_win.c:994
 msgid "Zoom"
 msgstr ""
 
-#: src/gimv_image_win.c:982
+#: src/gimv_image_win.c:1005
 msgid "Rotate the image"
 msgstr ""
 
-#: src/gimv_image_win.c:990
+#: src/gimv_image_win.c:1013
 msgid "Resize"
 msgstr ""
 
-#: src/gimv_image_win.c:991
+#: src/gimv_image_win.c:1014
 msgid "Fit Window Size to Image"
 msgstr ""
 
-#: src/gimv_image_win.c:1000
+#: src/gimv_image_win.c:1023
 msgid "Full"
 msgstr ""
 
-#: src/gimv_image_win.c:1001
+#: src/gimv_image_win.c:1024
 msgid "Fullscreen"
 msgstr ""
 
-#: src/gimv_image_win.c:1025 src/gimv_image_win.c:1026
+#: src/gimv_image_win.c:1048 src/gimv_image_win.c:1049
 msgid "First"
 msgstr ""
 
-#: src/gimv_image_win.c:1036
+#: src/gimv_image_win.c:1059
 msgid "Previous"
 msgstr ""
 
-#: src/gimv_image_win.c:1046
+#: src/gimv_image_win.c:1069
 msgid "Play Slideshow"
 msgstr ""
 
-#: src/gimv_image_win.c:1056
+#: src/gimv_image_win.c:1079
 msgid "Stop Slideshow"
 msgstr ""
 
-#: src/gimv_image_win.c:1075 src/gimv_image_win.c:1076
+#: src/gimv_image_win.c:1098 src/gimv_image_win.c:1099
 msgid "Last"
 msgstr ""
 
-#: src/gimv_image_win.c:1182
+#: src/gimv_image_win.c:1205
 #, c-format
 msgid "%s (%s) - %s - "
 msgstr ""
 
-#: src/gimv_image_win.c:1185
+#: src/gimv_image_win.c:1208
 #, c-format
 msgid "* %s (%s) - %s - *"
 msgstr ""
 
-#: src/gimv_image_win.c:1190
+#: src/gimv_image_win.c:1213
 #, c-format
 msgid "- %s -"
 msgstr ""
 
-#: src/gimv_image_win.c:1192
+#: src/gimv_image_win.c:1215
 #, c-format
 msgid "* - %s - *"
 msgstr ""
 
-#: src/gimv_image_win.c:1206
+#: src/gimv_image_win.c:1229
 msgid "NONE"
 msgstr ""
 
-#: src/gimv_image_win.c:1207
+#: src/gimv_image_win.c:1230
 msgid "UNKNOWN"
 msgstr ""
 
-#: src/gimv_image_win.c:1233
+#: src/gimv_image_win.c:1256
 #, c-format
 msgid "%s (Buffer ON)"
 msgstr ""
 
-#: src/gimv_image_win.c:1235
+#: src/gimv_image_win.c:1258
 #, c-format
 msgid "%s (Buffer OFF)"
 msgstr ""
 
-#: src/gimv_image_win.c:1240
+#: src/gimv_image_win.c:1263
 msgid "(Buffer ON)"
 msgstr ""
 
-#: src/gimv_image_win.c:1242
+#: src/gimv_image_win.c:1265
 msgid "(Buffer OFF)"
 msgstr ""
 
@@ -1261,143 +1326,163 @@ msgstr ""
 msgid "Select Directory"
 msgstr ""
 
-#: src/gimv_prefs_ui_utils.c:422 src/prefs_ui/prefs_ui_thumbwin.c:725
+#: src/gimv_prefs_ui_utils.c:423 src/prefs_ui/prefs_ui_thumbwin.c:727
 msgid "Directory"
 msgstr ""
 
-#: src/gimv_prefs_ui_utils.c:456
+#: src/gimv_prefs_ui_utils.c:457
 msgid "Directory to add: "
 msgstr ""
 
-#: src/gimv_prefs_ui_utils.c:465
+#: src/gimv_prefs_ui_utils.c:467
 msgid "Select"
 msgstr ""
 
-#: src/gimv_prefs_win.c:62
+#: src/gimv_prefs_win.c:66
 msgid "/Information"
 msgstr ""
 
-#: src/gimv_prefs_win.c:63
+#: src/gimv_prefs_win.c:67
 msgid "/Common"
 msgstr ""
 
-#: src/gimv_prefs_win.c:64
+#: src/gimv_prefs_win.c:68
 msgid "/Common/Filtering"
 msgstr ""
 
-#: src/gimv_prefs_win.c:65
+#: src/gimv_prefs_win.c:69
 msgid "/Common/Character Set"
 msgstr ""
 
-#: src/gimv_prefs_win.c:67
+#: src/gimv_prefs_win.c:71
 msgid "/Image Window"
 msgstr ""
 
-#: src/gimv_prefs_win.c:68
+#: src/gimv_prefs_win.c:72
 msgid "/Image Window/Image"
 msgstr ""
 
-#: src/gimv_prefs_win.c:69
+#: src/gimv_prefs_win.c:73
 msgid "/Image Window/Mouse Buttons"
 msgstr ""
 
-#: src/gimv_prefs_win.c:71
+#: src/gimv_prefs_win.c:75
 msgid "/Thumbnail Window"
 msgstr ""
 
-#: src/gimv_prefs_win.c:75
+#: src/gimv_prefs_win.c:79
 msgid "/Thumbnail Window/Tab"
 msgstr ""
 
-#: src/gimv_prefs_win.c:76
+#: src/gimv_prefs_win.c:80
 msgid "/Thumbnail Window/Thumbnail View"
 msgstr ""
 
-#: src/gimv_prefs_win.c:77
+#: src/gimv_prefs_win.c:81
 msgid "/Thumbnail Window/Thumbnail View/Mouse Buttons"
 msgstr ""
 
-#: src/gimv_prefs_win.c:78
+#: src/gimv_prefs_win.c:82
 msgid "/Thumbnail Window/Thumbnail View/Album"
 msgstr ""
 
-#: src/gimv_prefs_win.c:80
+#: src/gimv_prefs_win.c:84
 msgid "/Thumbnail Window/Directory View"
 msgstr ""
 
-#: src/gimv_prefs_win.c:81
+#: src/gimv_prefs_win.c:85
 msgid "/Thumbnail Window/Directory View/Mouse Buttons"
 msgstr ""
 
-#: src/gimv_prefs_win.c:82
+#: src/gimv_prefs_win.c:86
 msgid "/Thumbnail Window/Preview"
 msgstr ""
 
-#: src/gimv_prefs_win.c:83
+#: src/gimv_prefs_win.c:87
 msgid "/Thumbnail Window/Preview/Mouse Buttons"
 msgstr ""
 
-#: src/gimv_prefs_win.c:85
+#: src/gimv_prefs_win.c:89
 msgid "/Movie and Audio"
 msgstr ""
 
-#: src/gimv_prefs_win.c:87
+#: src/gimv_prefs_win.c:91
 msgid "/Slideshow"
 msgstr ""
 
-#: src/gimv_prefs_win.c:88
+#: src/gimv_prefs_win.c:92
 msgid "/Thumbnail Cache"
 msgstr ""
 
-#: src/gimv_prefs_win.c:89
+#: src/gimv_prefs_win.c:93
 msgid "/Comment"
 msgstr ""
 
-#: src/gimv_prefs_win.c:90
-msgid "/Search"
-msgstr ""
-
-#: src/gimv_prefs_win.c:91
-msgid "/Drag and Drop"
-msgstr ""
-
-#: src/gimv_prefs_win.c:92
-msgid "/External Program"
-msgstr ""
-
-#: src/gimv_prefs_win.c:93
-msgid "/External Program/Scripts"
-msgstr ""
-
 #: src/gimv_prefs_win.c:95
-msgid "/Plugin"
+msgid "/Index"
 msgstr ""
 
 #: src/gimv_prefs_win.c:96
-msgid "/Plugin/Image Loader"
+msgid "/Index/New Images"
 msgstr ""
 
 #: src/gimv_prefs_win.c:97
-msgid "/Plugin/Image Saver"
+msgid "/Index/Automatic Tags"
 msgstr ""
 
 #: src/gimv_prefs_win.c:98
-msgid "/Plugin/IO Stream"
+msgid "/Index/Faces"
 msgstr ""
 
 #: src/gimv_prefs_win.c:99
-msgid "/Plugin/Archiver"
-msgstr ""
-
-#: src/gimv_prefs_win.c:100
-msgid "/Plugin/Thumbnail"
+msgid "/Index/Missing Images"
 msgstr ""
 
 #: src/gimv_prefs_win.c:101
-msgid "/Plugin/Image View"
+msgid "/Search"
 msgstr ""
 
 #: src/gimv_prefs_win.c:102
+msgid "/Drag and Drop"
+msgstr ""
+
+#: src/gimv_prefs_win.c:103
+msgid "/External Program"
+msgstr ""
+
+#: src/gimv_prefs_win.c:104
+msgid "/External Program/Scripts"
+msgstr ""
+
+#: src/gimv_prefs_win.c:106
+msgid "/Plugin"
+msgstr ""
+
+#: src/gimv_prefs_win.c:107
+msgid "/Plugin/Image Loader"
+msgstr ""
+
+#: src/gimv_prefs_win.c:108
+msgid "/Plugin/Image Saver"
+msgstr ""
+
+#: src/gimv_prefs_win.c:109
+msgid "/Plugin/IO Stream"
+msgstr ""
+
+#: src/gimv_prefs_win.c:110
+msgid "/Plugin/Archiver"
+msgstr ""
+
+#: src/gimv_prefs_win.c:111
+msgid "/Plugin/Thumbnail"
+msgstr ""
+
+#: src/gimv_prefs_win.c:112
+msgid "/Plugin/Image View"
+msgstr ""
+
+#: src/gimv_prefs_win.c:113
 msgid "/Plugin/Thumbnail View"
 msgstr ""
 
@@ -1406,7 +1491,7 @@ msgstr ""
 msgid "Cannot load %s"
 msgstr ""
 
-#: src/gimv_print.c:474 src/thumbnail_view_album.c:877
+#: src/gimv_print.c:474 src/thumbnail_view_album.c:918
 msgid "Size"
 msgstr ""
 
@@ -1430,7 +1515,7 @@ msgstr ""
 msgid "Print the file _name"
 msgstr ""
 
-#: src/gimv_print.c:548 src/gimv_print.c:574 src/gimv_thumb_win.c:2818
+#: src/gimv_print.c:548 src/gimv_print.c:574 src/gimv_thumb_win.c:2938
 msgid "Print"
 msgstr ""
 
@@ -1443,364 +1528,372 @@ msgid "There are no images to print."
 msgstr ""
 
 #: src/gimv_print.c:585 src/prefs_ui/prefs_ui_common.c:644
-#: src/prefs_ui/prefs_ui_etc.c:926 src/prefs_ui/prefs_ui_imagewin.c:402
-#: src/prefs_ui/prefs_ui_thumbwin.c:908
+#: src/prefs_ui/prefs_ui_etc.c:943 src/prefs_ui/prefs_ui_imagewin.c:402
+#: src/prefs_ui/prefs_ui_thumbwin.c:910
 msgid "Image"
 msgstr ""
 
-#: src/gimv_thumb_win.c:399
+#: src/gimv_thumb_win.c:424
 msgid "/_File/New _Image Window"
 msgstr ""
 
-#: src/gimv_thumb_win.c:400
+#: src/gimv_thumb_win.c:425
 msgid "/_File/New _Window"
 msgstr ""
 
-#: src/gimv_thumb_win.c:401
+#: src/gimv_thumb_win.c:426
 msgid "/_File/New _Tab"
 msgstr ""
 
-#: src/gimv_thumb_win.c:405
+#: src/gimv_thumb_win.c:430
 msgid "/_File/Close Ta_b"
 msgstr ""
 
-#: src/gimv_thumb_win.c:406
+#: src/gimv_thumb_win.c:431
 msgid "/_File/_Close Window"
 msgstr ""
 
-#: src/gimv_thumb_win.c:410
+#: src/gimv_thumb_win.c:435
 msgid "/_Edit/_Select All"
 msgstr ""
 
-#: src/gimv_thumb_win.c:411
+#: src/gimv_thumb_win.c:436
 msgid "/_Edit/U_nselect All"
 msgstr ""
 
-#: src/gimv_thumb_win.c:413
+#: src/gimv_thumb_win.c:438
 msgid "/_Edit/_Refresh List"
 msgstr ""
 
-#: src/gimv_thumb_win.c:414
+#: src/gimv_thumb_win.c:439
 msgid "/_Edit/Reload _Cache"
 msgstr ""
 
-#: src/gimv_thumb_win.c:415
+#: src/gimv_thumb_win.c:440
 msgid "/_Edit/_Update All Thumbnails"
 msgstr ""
 
-#: src/gimv_thumb_win.c:420
+#: src/gimv_thumb_win.c:445
 msgid "/_Edit/R_ename..."
 msgstr ""
 
-#: src/gimv_thumb_win.c:421
+#: src/gimv_thumb_win.c:446
 msgid "/_Edit/Co_py Files To..."
 msgstr ""
 
-#: src/gimv_thumb_win.c:422
+#: src/gimv_thumb_win.c:447
 msgid "/_Edit/_Move Files To..."
 msgstr ""
 
-#: src/gimv_thumb_win.c:423
+#: src/gimv_thumb_win.c:448
 msgid "/_Edit/_Link Files To..."
 msgstr ""
 
-#: src/gimv_thumb_win.c:424
+#: src/gimv_thumb_win.c:449
 msgid "/_Edit/Remo_ve Files..."
 msgstr ""
 
-#: src/gimv_thumb_win.c:430 src/gimv_thumb_win.c:508
+#: src/gimv_thumb_win.c:458 src/gimv_thumb_win.c:540
 msgid "/_Tab"
 msgstr ""
 
-#: src/gimv_thumb_win.c:431
+#: src/gimv_thumb_win.c:459
 msgid "/_Tab/_Tab Position"
 msgstr ""
 
-#: src/gimv_thumb_win.c:432
+#: src/gimv_thumb_win.c:460
 msgid "/_Tab/_Tab Position/_Top"
 msgstr ""
 
-#: src/gimv_thumb_win.c:433
+#: src/gimv_thumb_win.c:461
 msgid "/_Tab/_Tab Position/_Bottom"
 msgstr ""
 
-#: src/gimv_thumb_win.c:434
+#: src/gimv_thumb_win.c:462
 msgid "/_Tab/_Tab Position/_Left"
 msgstr ""
 
-#: src/gimv_thumb_win.c:435
+#: src/gimv_thumb_win.c:463
 msgid "/_Tab/_Tab Position/_Right"
 msgstr ""
 
-#: src/gimv_thumb_win.c:436 src/gimv_thumb_win.c:441
+#: src/gimv_thumb_win.c:464 src/gimv_thumb_win.c:469
 msgid "/_Tab/---"
 msgstr ""
 
-#: src/gimv_thumb_win.c:437
+#: src/gimv_thumb_win.c:465
 msgid "/_Tab/_First Page"
 msgstr ""
 
-#: src/gimv_thumb_win.c:438
+#: src/gimv_thumb_win.c:466
 msgid "/_Tab/_Last Page"
 msgstr ""
 
-#: src/gimv_thumb_win.c:439
+#: src/gimv_thumb_win.c:467
 msgid "/_Tab/_Next Page"
 msgstr ""
 
-#: src/gimv_thumb_win.c:440
+#: src/gimv_thumb_win.c:468
 msgid "/_Tab/_Previous Page"
 msgstr ""
 
-#: src/gimv_thumb_win.c:442
+#: src/gimv_thumb_win.c:470
 msgid "/_Tab/Move Tab For_ward"
 msgstr ""
 
-#: src/gimv_thumb_win.c:443
+#: src/gimv_thumb_win.c:471
 msgid "/_Tab/Move Tab _Backward"
 msgstr ""
 
-#: src/gimv_thumb_win.c:444
+#: src/gimv_thumb_win.c:472
 msgid "/_Tab/_Detach Tab"
 msgstr ""
 
-#: src/gimv_thumb_win.c:446
+#: src/gimv_thumb_win.c:474
 msgid "/_Action"
 msgstr ""
 
-#: src/gimv_thumb_win.c:447
+#: src/gimv_thumb_win.c:475
 msgid "/_Action/_Focus"
 msgstr ""
 
-#: src/gimv_thumb_win.c:448
+#: src/gimv_thumb_win.c:476
 msgid "/_Action/_Focus/_Directory View"
 msgstr ""
 
-#: src/gimv_thumb_win.c:449
+#: src/gimv_thumb_win.c:477
 msgid "/_Action/_Focus/_Thumbnail View"
 msgstr ""
 
-#: src/gimv_thumb_win.c:450
+#: src/gimv_thumb_win.c:478
 msgid "/_Action/_Focus/_Preview"
 msgstr ""
 
-#: src/gimv_thumb_win.c:451
+#: src/gimv_thumb_win.c:479
 msgid "/_Action/_Focus/_Location Entry"
 msgstr ""
 
-#: src/gimv_thumb_win.c:453
+#: src/gimv_thumb_win.c:481
 msgid "/_Action/_Directory View"
 msgstr ""
 
-#: src/gimv_thumb_win.c:454
+#: src/gimv_thumb_win.c:482
 msgid "/_Action/_Thumbnail View"
 msgstr ""
 
-#: src/gimv_thumb_win.c:455
+#: src/gimv_thumb_win.c:483
 msgid "/_Action/_Preview"
 msgstr ""
 
-#: src/gimv_thumb_win.c:456
+#: src/gimv_thumb_win.c:484
 msgid "/_Action/_Preview/_Next"
 msgstr ""
 
-#: src/gimv_thumb_win.c:457
+#: src/gimv_thumb_win.c:485
 msgid "/_Action/_Preview/_Previous"
 msgstr ""
 
-#: src/gimv_thumb_win.c:460
+#: src/gimv_thumb_win.c:488
 msgid "/Too_ls"
 msgstr ""
 
-#: src/gimv_thumb_win.c:461
+#: src/gimv_thumb_win.c:489
 msgid "/Too_ls/_Clear All Caches"
 msgstr ""
 
-#: src/gimv_thumb_win.c:462 src/gimv_thumb_win.c:464
-msgid "/Too_ls/---"
-msgstr ""
-
-#: src/gimv_thumb_win.c:463
-msgid "/Too_ls/_Find Duplicates"
-msgstr ""
-
-#: src/gimv_thumb_win.c:465
-msgid "/Too_ls/Set as _Wallpaper"
-msgstr ""
-
-#: src/gimv_thumb_win.c:475
-msgid "/_Sort File List"
-msgstr ""
-
-#: src/gimv_thumb_win.c:476
-msgid "/_Layout"
-msgstr ""
-
-#: src/gimv_thumb_win.c:477
-msgid "/_Layout/Layout_0"
-msgstr ""
-
-#: src/gimv_thumb_win.c:478
-msgid "/_Layout/Layout_1"
-msgstr ""
-
-#: src/gimv_thumb_win.c:479
-msgid "/_Layout/Layout_2"
-msgstr ""
-
-#: src/gimv_thumb_win.c:480
-msgid "/_Layout/Layout_3"
-msgstr ""
-
-#: src/gimv_thumb_win.c:481
-msgid "/_Layout/Layout_4"
-msgstr ""
-
-#: src/gimv_thumb_win.c:482
-msgid "/_Layout/_Custom"
-msgstr ""
-
-#: src/gimv_thumb_win.c:483
-msgid "/_Layout/---"
-msgstr ""
-
-#: src/gimv_thumb_win.c:484
-msgid "/_Layout/Window _Composition"
-msgstr ""
-
-#: src/gimv_thumb_win.c:488
-msgid "/S_lideshow"
-msgstr ""
-
-#: src/gimv_thumb_win.c:489
-msgid "/Slideshow Opt_ions"
-msgstr ""
-
-#: src/gimv_thumb_win.c:490
-msgid "/Slideshow Opt_ions/Start from the _First"
-msgstr ""
-
 #: src/gimv_thumb_win.c:491
-msgid "/Slideshow Opt_ions/Start from the Se_lected"
+msgid "/Too_ls/_Missing Images..."
 msgstr ""
 
 #: src/gimv_thumb_win.c:492
-msgid "/Slideshow Opt_ions/_Random Order"
+msgid "/Too_ls/_Search Images..."
 msgstr ""
 
-#: src/gimv_thumb_win.c:493 src/gimv_thumb_win.c:495
-msgid "/Slideshow Opt_ions/---"
+#: src/gimv_thumb_win.c:494 src/gimv_thumb_win.c:496
+msgid "/Too_ls/---"
 msgstr ""
 
-#: src/gimv_thumb_win.c:494
-msgid "/Slideshow Opt_ions/_Selected Only"
-msgstr ""
-
-#: src/gimv_thumb_win.c:496
-msgid "/Slideshow Opt_ions/Images _and Movies"
+#: src/gimv_thumb_win.c:495
+msgid "/Too_ls/_Find Duplicates"
 msgstr ""
 
 #: src/gimv_thumb_win.c:497
-msgid "/Slideshow Opt_ions/_Images Only"
+msgid "/Too_ls/Set as _Wallpaper"
 msgstr ""
 
-#: src/gimv_thumb_win.c:498
-msgid "/Slideshow Opt_ions/_Movies Only"
+#: src/gimv_thumb_win.c:507
+msgid "/_Sort File List"
 msgstr ""
 
-#: src/gimv_thumb_win.c:502
-msgid "/_Directory View"
-msgstr ""
-
-#: src/gimv_thumb_win.c:503
-msgid "/_Preview"
-msgstr ""
-
-#: src/gimv_thumb_win.c:505
-msgid "/T_oolbar"
-msgstr ""
-
-#: src/gimv_thumb_win.c:506
-msgid "/Dir_View Toolbar"
+#: src/gimv_thumb_win.c:508
+msgid "/_Layout"
 msgstr ""
 
 #: src/gimv_thumb_win.c:509
-msgid "/Ta_b (Preview)"
+msgid "/_Layout/Layout_0"
+msgstr ""
+
+#: src/gimv_thumb_win.c:510
+msgid "/_Layout/Layout_1"
+msgstr ""
+
+#: src/gimv_thumb_win.c:511
+msgid "/_Layout/Layout_2"
+msgstr ""
+
+#: src/gimv_thumb_win.c:512
+msgid "/_Layout/Layout_3"
+msgstr ""
+
+#: src/gimv_thumb_win.c:513
+msgid "/_Layout/Layout_4"
+msgstr ""
+
+#: src/gimv_thumb_win.c:514
+msgid "/_Layout/_Custom"
+msgstr ""
+
+#: src/gimv_thumb_win.c:515
+msgid "/_Layout/---"
+msgstr ""
+
+#: src/gimv_thumb_win.c:516
+msgid "/_Layout/Window _Composition"
+msgstr ""
+
+#: src/gimv_thumb_win.c:520
+msgid "/S_lideshow"
+msgstr ""
+
+#: src/gimv_thumb_win.c:521
+msgid "/Slideshow Opt_ions"
+msgstr ""
+
+#: src/gimv_thumb_win.c:522
+msgid "/Slideshow Opt_ions/Start from the _First"
+msgstr ""
+
+#: src/gimv_thumb_win.c:523
+msgid "/Slideshow Opt_ions/Start from the Se_lected"
+msgstr ""
+
+#: src/gimv_thumb_win.c:524
+msgid "/Slideshow Opt_ions/_Random Order"
+msgstr ""
+
+#: src/gimv_thumb_win.c:525 src/gimv_thumb_win.c:527
+msgid "/Slideshow Opt_ions/---"
 msgstr ""
 
 #: src/gimv_thumb_win.c:526
-msgid "/by _Name"
-msgstr ""
-
-#: src/gimv_thumb_win.c:527
-msgid "/by _Access Time"
+msgid "/Slideshow Opt_ions/_Selected Only"
 msgstr ""
 
 #: src/gimv_thumb_win.c:528
-msgid "/by _Modification Time"
+msgid "/Slideshow Opt_ions/Images _and Movies"
 msgstr ""
 
 #: src/gimv_thumb_win.c:529
-msgid "/by _Change Time"
+msgid "/Slideshow Opt_ions/_Images Only"
 msgstr ""
 
 #: src/gimv_thumb_win.c:530
-msgid "/by _Size"
-msgstr ""
-
-#: src/gimv_thumb_win.c:531
-msgid "/by _Type"
-msgstr ""
-
-#: src/gimv_thumb_win.c:532
-msgid "/by Image _Width"
-msgstr ""
-
-#: src/gimv_thumb_win.c:533
-msgid "/by Image _Height"
+msgid "/Slideshow Opt_ions/_Movies Only"
 msgstr ""
 
 #: src/gimv_thumb_win.c:534
-msgid "/by Image Ar_ea"
+msgid "/_Directory View"
 msgstr ""
 
-#: src/gimv_thumb_win.c:536
-msgid "/_Reverse Order"
+#: src/gimv_thumb_win.c:535
+msgid "/_Preview"
+msgstr ""
+
+#: src/gimv_thumb_win.c:537
+msgid "/T_oolbar"
 msgstr ""
 
 #: src/gimv_thumb_win.c:538
+msgid "/Dir_View Toolbar"
+msgstr ""
+
+#: src/gimv_thumb_win.c:541
+msgid "/Ta_b (Preview)"
+msgstr ""
+
+#: src/gimv_thumb_win.c:558
+msgid "/by _Name"
+msgstr ""
+
+#: src/gimv_thumb_win.c:559
+msgid "/by _Access Time"
+msgstr ""
+
+#: src/gimv_thumb_win.c:560
+msgid "/by _Modification Time"
+msgstr ""
+
+#: src/gimv_thumb_win.c:561
+msgid "/by _Change Time"
+msgstr ""
+
+#: src/gimv_thumb_win.c:562
+msgid "/by _Size"
+msgstr ""
+
+#: src/gimv_thumb_win.c:563
+msgid "/by _Type"
+msgstr ""
+
+#: src/gimv_thumb_win.c:564
+msgid "/by Image _Width"
+msgstr ""
+
+#: src/gimv_thumb_win.c:565
+msgid "/by Image _Height"
+msgstr ""
+
+#: src/gimv_thumb_win.c:566
+msgid "/by Image Ar_ea"
+msgstr ""
+
+#: src/gimv_thumb_win.c:568
+msgid "/_Reverse Order"
+msgstr ""
+
+#: src/gimv_thumb_win.c:570
 msgid "/Case _Insensitive"
 msgstr ""
 
-#: src/gimv_thumb_win.c:539
+#: src/gimv_thumb_win.c:571
 msgid "/_Mix Directories and Files"
 msgstr ""
 
-#: src/gimv_thumb_win.c:1037
+#: src/gimv_thumb_win.c:1087
 #, c-format
 msgid "Composition %d"
 msgstr ""
 
-#: src/gimv_thumb_win.c:1494
+#: src/gimv_thumb_win.c:1545
 msgid "Set as Wallpaper"
 msgstr ""
 
-#: src/gimv_thumb_win.c:1560
+#: src/gimv_thumb_win.c:1611
 msgid "Cannot extract the image from the archive."
 msgstr ""
 
-#: src/gimv_thumb_win.c:1574
+#: src/gimv_thumb_win.c:1625
 msgid "Cannot load the image."
 msgstr ""
 
-#: src/gimv_thumb_win.c:1605
+#: src/gimv_thumb_win.c:1656
 #, c-format
 msgid ""
 "Cannot write %s:\n"
 "%s"
 msgstr ""
 
-#: src/gimv_thumb_win.c:1681
+#: src/gimv_thumb_win.c:1732
 #, c-format
 msgid ""
 "Failed to set the wallpaper (%s):\n"
@@ -1809,7 +1902,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/gimv_thumb_win.c:1685
+#: src/gimv_thumb_win.c:1736
 #, c-format
 msgid ""
 "Failed to set the wallpaper (%s):\n"
@@ -1818,122 +1911,1137 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/gimv_thumb_win.c:1713
+#: src/gimv_thumb_win.c:1764
 msgid "Select an image first."
 msgstr ""
 
-#: src/gimv_thumb_win.c:1818
+#: src/gimv_thumb_win.c:1869
 #, c-format
 msgid ""
 "No wallpaper command for this desktop (%s).\n"
 "Choose one from the menu, or add one to \"wallpaper_menu\" in ~/.gimv/gimvrc."
 msgstr ""
 
-#: src/gimv_thumb_win.c:1841
+#: src/gimv_thumb_win.c:1892
 msgid "This Desktop"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2192
+#: src/gimv_thumb_win.c:2244
 msgid "Go to previous page"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2202
+#: src/gimv_thumb_win.c:2254
 msgid "Go to next page"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2213
+#: src/gimv_thumb_win.c:2265
 msgid "Reload"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2214
+#: src/gimv_thumb_win.c:2266
 msgid "Reload Cache"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2224
+#: src/gimv_thumb_win.c:2276
 msgid "Skip creating the current thumbnail table"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2235
+#: src/gimv_thumb_win.c:2287
 msgid "Stop creating thumbnails"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2251 src/prefs_ui/prefs_ui_thumbwin.c:761
+#: src/gimv_thumb_win.c:2303 src/prefs_ui/prefs_ui_thumbwin.c:763
 msgid "Thumbnail Size"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2261
+#: src/gimv_thumb_win.c:2313
 msgid "Quit"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2262
+#: src/gimv_thumb_win.c:2314
 msgid "Exit this program"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2674 src/prefs_ui/prefs_ui_thumbwin.c:450
+#: src/gimv_thumb_win.c:2567 src/gimv_thumb_win.c:2569 src/gimv_index_view.c:93
+msgid "Folders"
+msgstr ""
+
+#: src/gimv_thumb_win.c:2789 src/prefs_ui/prefs_ui_thumbwin.c:452
 msgid "Preview"
 msgstr ""
 
-#: src/gimv_thumb_win.c:2818
+#: src/gimv_thumb_win.c:2938
 msgid "Select images to print."
 msgstr ""
 
-#: src/gimv_thumb_win.c:4185
+#: src/gimv_thumb_win.c:4330
 msgid "Empty"
 msgstr ""
 
-#: src/gimv_thumb_win.c:4192 src/gimv_thumb_win.c:4295
-#, c-format
-msgid "%d/%d files"
+#: src/gimv_thumb_win.c:4337 src/gimv_thumb_win.c:4526
+msgid "%'d/%'d files"
 msgstr ""
 
-#: src/gimv_thumb_win.c:4226
+#: src/gimv_thumb_win.c:4371
 #, c-format
 msgid "Dir View: %s"
 msgstr ""
 
-#: src/gimv_thumb_win.c:4228
+#: src/gimv_thumb_win.c:4373
 #, c-format
 msgid "Archive View: %s"
 msgstr ""
 
-#: src/gimv_thumb_win.c:4243
+#: src/gimv_thumb_win.c:4388
 msgid "Collection View"
 msgstr ""
 
-#: src/gimv_thumb_win.c:4253
+#: src/gimv_thumb_win.c:4398
 msgid "Loading in another tab..."
 msgstr ""
 
-#: src/gimv_thumb_win.c:4261
+#: src/gimv_thumb_win.c:4452
 #, c-format
-msgid "%d/%d page  %d/%d files  %ld/%ld kB"
+msgid "%'u selected  %s"
 msgstr ""
 
-#: src/gimv_thumb_win.c:4534
+#: src/gimv_thumb_win.c:4459
+#, c-format
+msgid "%'u / %'u  %s"
+msgstr ""
+
+#: src/gimv_thumb_win.c:4771
 msgid "New Tab"
 msgstr ""
 
-#: src/gimv_thumb_win.c:4576
+#: src/gimv_thumb_win.c:4819
 #, c-format
 msgid "New Tab %d"
+msgstr ""
+
+#: src/gimv_index.c:97
+#, c-format
+msgid "%d h left"
+msgstr ""
+
+#: src/gimv_index.c:97
+#, c-format
+msgid "about %d hours"
+msgstr ""
+
+#: src/gimv_index.c:99
+#, c-format
+msgid "%d min left"
+msgstr ""
+
+#: src/gimv_index.c:99
+#, c-format
+msgid "about %d minutes"
+msgstr ""
+
+#: src/gimv_index.c:116
+msgid "Index: starting"
+msgstr ""
+
+#: src/gimv_index.c:117
+msgid "The indexer is starting."
+msgstr ""
+
+#: src/gimv_index.c:127
+#, c-format
+msgid "Index: reading %d%% (%s)"
+msgstr ""
+
+#: src/gimv_index.c:128
+#, c-format
+msgid "Index: reading %d%%"
+msgstr ""
+
+#: src/gimv_index.c:129
+#, c-format
+msgid "Reading the images for their date, camera and shape: %'u of %'u images done (%d%%)."
+msgstr ""
+
+#: src/gimv_index.c:132
+msgid "Index: reading %'u/%'u"
+msgstr ""
+
+#: src/gimv_index.c:133
+msgid "Reading the new and changed images for their date, camera and shape: %'u of %'u."
+msgstr ""
+
+#: src/gimv_index.c:136
+#, c-format
+msgid ""
+"\n"
+"This time: %'u images since %s."
+msgstr ""
+
+#: src/gimv_index.c:139
+#, c-format
+msgid ""
+"\n"
+"Time left: %s."
+msgstr ""
+
+#: src/gimv_index.c:141
+msgid ""
+"\n"
+"Why: every image is read again for the automatic tags (new rules, or a kind turned on in the preferences)."
+msgstr ""
+
+#: src/gimv_index.c:144
+msgid ""
+"\n"
+"Why: the images without a date are read again for new rules of the dates."
+msgstr ""
+
+#: src/gimv_index.c:150
+#, c-format
+msgid "Index: preparing %d%%"
+msgstr ""
+
+#: src/gimv_index.c:152
+#, c-format
+msgid "The rules of the dates changed: marking the images without a date to be read again (%d%%)."
+msgstr ""
+
+#: src/gimv_index.c:155
+#, c-format
+msgid "The automatic tags changed (new rules, or a kind turned on or off in the preferences): rewriting them in the index (%d%%). The images are read after this if needed."
+msgstr ""
+
+#: src/gimv_index.c:160
+msgid "Index: tags %'u"
+msgstr ""
+
+#: src/gimv_index.c:161
+msgid "Reading the tags from the comment files: %'u."
+msgstr ""
+
+#: src/gimv_index.c:165
+#, c-format
+msgid "Index: checking %d%%"
+msgstr ""
+
+#: src/gimv_index.c:166
+msgid "Looking for added, changed and removed images: %'u folders, %'u of about %'u images."
+msgstr ""
+
+#: src/gimv_index.c:171
+msgid "Index: finding %'u"
+msgstr ""
+
+#: src/gimv_index.c:172
+msgid "Finding the images (the first time: how many there are is not known yet): %'u folders, %'u images."
+msgstr ""
+
+#: src/gimv_index.c:177
+#, c-format
+msgid ""
+"\n"
+"Now in: %s"
+msgstr ""
+
+#: src/gimv_index.c:183
+msgid "Index: %'u images"
+msgstr ""
+
+#: src/gimv_index.c:184
+msgid "%'u images are in the index; changes are taken in while GImageView runs."
+msgstr ""
+
+#: src/gimv_index.c:188
+msgid "Index: in use"
+msgstr ""
+
+#: src/gimv_index.c:189
+msgid "Another GImageView is making the index."
+msgstr ""
+
+#: src/gimv_index.c:192
+msgid "Index: error"
+msgstr ""
+
+#: src/gimv_index.c:193
+msgid "The indexer has stopped. The notice icon may tell why."
+msgstr ""
+
+#: src/gimv_index.c:202
+#, c-format
+msgid "Renaming \"%s\" to \"%s\" in the comment files: %'u of %'u images."
+msgstr ""
+
+#: src/gimv_index.c:206
+msgid "Index: renaming a tag %'u/%'u"
+msgstr ""
+
+#: src/gimv_index.c:212
+msgid "Writing the names of the faces into the comment files: %'u of %'u images."
+msgstr ""
+
+#: src/gimv_index.c:215
+msgid "Index: names %'u/%'u"
+msgstr ""
+
+#: src/gimv_index.c:620 src/gimv_index_faces.c:282
+#, c-format
+msgid "signal %d"
+msgstr ""
+
+#: src/gimv_index.c:622 src/gimv_index_faces.c:284
+#, c-format
+msgid "exit status %d"
+msgstr ""
+
+#: src/gimv_index_view.c:93
+#, c-format
+msgid "Folder: %s"
+msgstr ""
+
+#: src/gimv_index_view.c:94
+msgid "Cameras"
+msgstr ""
+
+#: src/gimv_index_view.c:94
+#, c-format
+msgid "Camera: %s"
+msgstr ""
+
+#: src/gimv_index_view.c:95
+msgid "Shape"
+msgstr ""
+
+#: src/gimv_index_view.c:95
+#, c-format
+msgid "Shape: %s"
+msgstr ""
+
+#: src/gimv_index_view.c:98 src/gimv_index_search.c:609
+msgid "Tags of People"
+msgstr ""
+
+#: src/gimv_index_view.c:98
+#, c-format
+msgid "People: %s"
+msgstr ""
+
+#: src/gimv_index_view.c:113
+msgid "Portrait"
+msgstr ""
+
+#: src/gimv_index_view.c:114
+msgid "Landscape"
+msgstr ""
+
+#: src/gimv_index_view.c:115
+msgid "Square shape"
+msgstr ""
+
+#: src/gimv_index_view.c:167
+#, c-format
+msgid "%s (Name)"
+msgstr ""
+
+#: src/gimv_index_view.c:169 src/gimv_index_view.c:172
+#, c-format
+msgid "%s (Tag)"
+msgstr ""
+
+#: src/gimv_index_view.c:389
+msgid "Maybe (%'d)"
+msgstr ""
+
+#: src/gimv_index_view.c:390 src/gimv_index_faces_win.c:1054
+#: src/gimv_index_faces_win.c:1796 src/gimv_face_panel.c:86
+#, c-format
+msgid "%s?"
+msgstr ""
+
+#: src/gimv_index_view.c:453
+msgid "Unnamed groups (%'d)"
+msgstr ""
+
+#: src/gimv_index_view.c:457
+#, c-format
+msgid "Group %d (%'d)"
+msgstr ""
+
+#: src/gimv_index_view.c:458 src/gimv_index_faces_win.c:1797
+#, c-format
+msgid "Group %d"
+msgstr ""
+
+#: src/gimv_index_view.c:467
+msgid "Other faces (%'d)"
+msgstr ""
+
+#: src/gimv_index_view.c:468 src/gimv_index_faces_win.c:964
+msgid "Other faces"
+msgstr ""
+
+#: src/gimv_index_view.c:472
+msgid "Ignored (%'d)"
+msgstr ""
+
+#: src/gimv_index_view.c:473
+msgid "Ignored faces"
+msgstr ""
+
+#: src/gimv_index_view.c:688
+msgid "Names of People"
+msgstr ""
+
+#: src/gimv_index_view.c:842 src/gtk_prop.c:224
+msgid "All"
+msgstr ""
+
+#: src/gimv_index_view.c:845
+msgid "Today"
+msgstr ""
+
+#: src/gimv_index_view.c:845
+msgid "Yesterday"
+msgstr ""
+
+#: src/gimv_index_view.c:846
+msgid "This Week"
+msgstr ""
+
+#: src/gimv_index_view.c:861
+msgid "%B %Y"
+msgstr ""
+
+#: src/gimv_index_view.c:870
+msgid "With a Note"
+msgstr ""
+
+#: src/gimv_index_view.c:871
+msgid "Without a Note"
+msgstr ""
+
+#: src/gimv_index_view.c:1140
+#, c-format
+msgid "%s (People)"
+msgstr ""
+
+#: src/gimv_index_view.c:1142
+#, c-format
+msgid "%s (Bookmarks)"
+msgstr ""
+
+#: src/gimv_index_view.c:1146
+#, c-format
+msgid "%s (Date)"
+msgstr ""
+
+#: src/gimv_index_view.c:1415
+msgid "Open in New Tab"
+msgstr ""
+
+#: src/gimv_index_view.c:1417
+msgid "Show the Faces..."
+msgstr ""
+
+#: src/gimv_index_view.c:1419
+msgid "Rename... (F2)"
+msgstr ""
+
+#: src/gimv_index_view.c:1421
+msgid "Do Not Make This Folder Name a Tag"
+msgstr ""
+
+#: src/gimv_index_view.c:1643
+msgid "The tag could not be renamed."
+msgstr ""
+
+#: src/gimv_index_view.c:1669
+msgid "The tag cannot be renamed now."
+msgstr ""
+
+#: src/gimv_index_view.c:1670
+msgid "The indexer does not run (the index is off, or another GImageView makes it)."
+msgstr ""
+
+#: src/gimv_index_view.c:1724
+msgid "A tag cannot have a tab or a new line in it."
+msgstr ""
+
+#: src/gimv_index_view.c:1730 src/gimv_index_view.c:1765
+#, c-format
+msgid "The tag \"%s\" is there already."
+msgstr ""
+
+#: src/gimv_index_view.c:1732 src/gimv_index_view.c:1766
+#: src/gimv_index_tags.c:296 src/gimv_index_faces_win.c:839
+#: src/gimv_index_faces_win.c:998 src/gimv_index_faces_win.c:1237
+#: src/gimv_index_faces_win.c:1481 src/gimv_index_faces_win.c:1524
+#: src/gimv_gtk4_compat.h:186 src/gimv_index_search.c:943
+msgid "_Cancel"
+msgstr ""
+
+#: src/gimv_index_view.c:1732 src/gimv_index_view.c:1766
+msgid "_Merge Them"
+msgstr ""
+
+#: src/gimv_index_view.c:1733
+#, c-format
+msgid "The people with \"%s\" get \"%s\" instead, and \"%s\" goes."
+msgstr ""
+
+#: src/gimv_index_view.c:1759
+msgid "A tag cannot have a comma in it."
+msgstr ""
+
+#: src/gimv_index_view.c:1761
+msgid "Tags starting with \"person/\" are the names of faces."
+msgstr ""
+
+#: src/gimv_index_view.c:1762
+msgid "They are written by GImageView from the names given in the faces window."
+msgstr ""
+
+#: src/gimv_index_view.c:1767
+#, c-format
+msgid "The images with \"%s\" get \"%s\" instead, and \"%s\" goes."
+msgstr ""
+
+#: src/gimv_index_view.c:2107 src/gimv_index_search.c:608
+msgid "People"
+msgstr ""
+
+#: src/gimv_index_view.c:2108
+msgid "Bookmarks"
+msgstr ""
+
+#: src/gimv_index_tags.c:162
+msgid "Too many tags: a comment line holds up to 4096 bytes."
+msgstr ""
+
+#: src/gimv_index_tags.c:240
+msgid "Edit Tags"
+msgstr ""
+
+#: src/gimv_index_tags.c:256
+#, c-format
+msgid "Tags of %s (separated by commas):"
+msgstr ""
+
+#: src/gimv_index_tags.c:259
+#, c-format
+msgid "Tags of %u images (separated by commas):"
+msgstr ""
+
+#: src/gimv_index_tags.c:271
+msgid "e.g. travel/Kyoto, cat"
+msgstr ""
+
+#: src/gimv_index_tags.c:276
+msgid "Only the tags all of them have are shown. The tags only some of them have are kept."
+msgstr ""
+
+#: src/gimv_index_tags.c:300 src/gimv_index_faces_win.c:1238
+#: src/gimv_index_faces_win.c:1482 src/gtkutils.c:1243
+#: src/gimv_gtk4_compat.h:185
+msgid "_OK"
+msgstr ""
+
+#: src/gimv_index_notice.c:219
+msgid "and %'u more"
+msgstr ""
+
+#: src/gimv_index_notice.c:233
+msgid "Leave the Comments"
+msgstr ""
+
+#: src/gimv_index_notice.c:236
+msgid "Move the Comments Too"
+msgstr ""
+
+#: src/gimv_index_notice.c:248
+msgid "Open the List"
+msgstr ""
+
+#: src/gimv_index_notice.c:254 src/gtk_prop.c:206 src/gtkutils.c:869
+#: src/gtkutils.c:1172 src/help.c:677 src/prefs_ui/prefs_ui_etc.c:168
+msgid "OK"
+msgstr ""
+
+#: src/gimv_index_notice.c:329
+msgid "Notices"
+msgstr ""
+
+#: src/gimv_index_notice.c:407
+#, c-format
+msgid "The indexer stopped while reading this image, so it is left out (its date is from the file time and it has no camera or shape tags): %s"
+msgstr ""
+
+#: src/gimv_index_notice.c:417
+#, c-format
+msgid "The indexer stopped (%s) and was started again."
+msgstr ""
+
+#: src/gimv_index_notice.c:419
+#, c-format
+msgid "The indexer stopped (%s) again and again, so it is not started any more this time.  The messages in the terminal GImageView was started from may tell why."
+msgstr ""
+
+#: src/gimv_index_notice.c:487
+#, c-format
+msgid "Only %u folders can be watched for changes (the system limit fs.inotify.max_user_watches). Changes in the other folders are found the next time GImageView starts."
+msgstr ""
+
+#: src/gimv_index_newimg.c:130 src/gimv_index_newimg.c:225
+#: src/gimv_index_newimg.c:232
+msgid "%'u new images"
+msgstr ""
+
+#: src/gimv_index_newimg.c:219
+msgid "New image"
+msgstr ""
+
+#: src/gimv_index_newimg.c:226
+#, c-format
+msgid "%'u new images in %s"
+msgstr ""
+
+#: src/gimv_index_newimg.c:233
+#, c-format
+msgid "%'u new images in %s and other folders"
+msgstr ""
+
+#: src/gimv_index_missing.c:117
+msgid "No comment file (done)"
+msgstr ""
+
+#: src/gimv_index_missing.c:119
+msgid "The image is back"
+msgstr ""
+
+#: src/gimv_index_missing.c:120
+msgid "Comment file left"
+msgstr ""
+
+#: src/gimv_index_missing.c:225
+#, c-format
+msgid "%s already has a comment file.\n"
+msgstr ""
+
+#: src/gimv_index_missing.c:371
+msgid "1 line done."
+msgstr ""
+
+#: src/gimv_index_missing.c:403
+msgid "The Image to Put the Comment On"
+msgstr ""
+
+#: src/gimv_index_missing.c:485
+msgid "There is no log of missing images."
+msgstr ""
+
+#: src/gimv_index_missing.c:582 src/prefs_ui/prefs_ui_index.c:316
+msgid "Missing Images"
+msgstr ""
+
+#: src/gimv_index_missing.c:594
+msgid "Images with comments (tags) that went missing. Their comment files are kept: put them on the image where it went or on another image, or delete them."
+msgstr ""
+
+#: src/gimv_index_missing.c:602
+msgid "Log:"
+msgstr ""
+
+#: src/gimv_index_missing.c:611
+msgid "Path"
+msgstr ""
+
+#: src/gimv_index_missing.c:612
+msgid "Last Seen"
+msgstr ""
+
+#: src/gimv_index_missing.c:613 src/gimv_index_search.c:607
+msgid "Tags"
+msgstr ""
+
+#: src/gimv_index_missing.c:614
+msgid "Moved To"
+msgstr ""
+
+#: src/gimv_index_missing.c:615
+msgid "State"
+msgstr ""
+
+#: src/gimv_index_missing.c:632
+msgid "Put on Where It Went"
+msgstr ""
+
+#: src/gimv_index_missing.c:633
+msgid "Put on Another Image..."
+msgstr ""
+
+#: src/gimv_index_missing.c:634
+msgid "Delete the Comment"
+msgstr ""
+
+#: src/gimv_index_missing.c:635
+msgid "Remove from the Log"
+msgstr ""
+
+#: src/gimv_index_faces.c:153
+msgid "Index: faces"
+msgstr ""
+
+#: src/gimv_index_faces.c:154
+#, c-format
+msgid "Index: faces %d%%"
+msgstr ""
+
+#: src/gimv_index_faces.c:169
+msgid "Finding faces: %'u of %'u images."
+msgstr ""
+
+#: src/gimv_index_faces.c:170
+msgid "Finding faces: starting."
+msgstr ""
+
+#: src/gimv_index_faces.c:173
+#, c-format
+msgid "Faces: the model files are not found. Put them in %s (see the Index page of the preferences)."
+msgstr ""
+
+#: src/gimv_index_faces.c:178
+#, c-format
+msgid "Faces: stopped (%s)."
+msgstr ""
+
+#: src/gimv_index_faces.c:181
+msgid "Faces: %'u found, %'u groups of faces that look alike."
+msgstr ""
+
+#: src/gimv_index_faces.c:364 src/gimv_index_faces.c:922
+msgid "gimv-faces is not found"
+msgstr ""
+
+#: src/gimv_index_faces.c:891 src/gimv_index_faces.c:923
+msgid "The models for faces are not there."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:207
+msgid "writing..."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:209
+#, c-format
+msgid "%s — could not be written: %s"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:212
+#, c-format
+msgid "%s — by date (not of one person)"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:632
+#, c-format
+msgid ""
+"%s\n"
+"Likeness: %.2f (1 the same, about 0.4 and under another person)"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:838
+#, c-format
+msgid "\"%s\" is there already."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:839
+msgid "_Make Them One"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:840
+#, c-format
+msgid "The faces of \"%s\" become the faces of \"%s\", and \"%s\" goes."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1003
+#, c-format
+msgid "Delete \"%s\"?"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1188
+msgid "Name the Faces"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1202
+msgid "The name of the person (a new one, or one of these):"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1328
+msgid "Remove this tag"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1422
+#, c-format
+msgid "The Tags of \"%s\""
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1437
+msgid "Tags of the person (the group, ...): they go with every image the person is named in."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1448
+msgid "A new tag (Enter adds it)"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1452
+msgid "Tags other people have (a click adds it):"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1524 src/gimv_index_faces_win.c:2151
+msgid "_Remove the Name"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1530
+#, c-format
+msgid "This face is not \"%s\"?"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1531
+#, c-format
+msgid "These faces are not \"%s\"?"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1974
+msgid "Find a Name"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:1995
+msgid "The people named, each with the faces that may be the person (\"Name?\"), then the groups of faces without a name: a click shows the faces"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2069
+msgid "Change the name"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2082
+msgid "The tags of the person (the group, ...)"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2090
+msgid "Delete the person: the name goes from all its faces..."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2101
+msgid "Oldest First"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2101
+msgid "Newest First"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2102
+msgid "Least Like the Person First"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2110
+msgid "The order of the faces. \"Least like the person first\": the faces most unlike the others of the person (or the group) come first, to find the ones named wrong."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2141
+msgid "Select _All"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2141
+msgid "Select all the faces (Ctrl+A)"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2144
+msgid "_Name..."
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2144
+msgid "Give a name to the faces selected"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2146
+msgid "_Right"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2146
+msgid "These faces are of this person"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2148
+msgid "Not This _Person"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2149
+msgid "These faces are not of this person, and are not guessed so again"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2151
+msgid "The faces selected have no name again"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2153
+msgid "_Ignore"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2154
+msgid "Not to be named (not a face, a stranger): left out of the groups"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2156
+msgid "Do Not _Ignore"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2158
+msgid "_Open the Image"
+msgstr ""
+
+#: src/gimv_index_faces_win.c:2158
+msgid "Open the image of the face (double click)"
+msgstr ""
+
+#: src/gimv_face_panel.c:82
+msgid "(ignored)"
+msgstr ""
+
+#: src/gimv_face_panel.c:87
+msgid "(no name)"
+msgstr ""
+
+#: src/gimv_face_panel.c:355
+msgid "Change the Name..."
+msgstr ""
+
+#: src/gimv_face_panel.c:355
+msgid "Name..."
+msgstr ""
+
+#: src/gimv_face_panel.c:357
+msgid "Tags of the Person..."
+msgstr ""
+
+#: src/gimv_face_panel.c:359
+msgid "This Is Right"
+msgstr ""
+
+#: src/gimv_face_panel.c:361
+msgid "Not This Person..."
+msgstr ""
+
+#: src/gimv_face_panel.c:362
+msgid "Do Not Ignore"
+msgstr ""
+
+#: src/gimv_face_panel.c:362
+msgid "Ignore"
+msgstr ""
+
+#: src/gimv_face_panel.c:364
+msgid "All the Faces of This Person..."
+msgstr ""
+
+#: src/gimv_face_panel.c:368
+msgid "Copy This Face to the Clipboard"
+msgstr ""
+
+#: src/gimv_face_panel.c:457
+msgid "Not looked at for faces (not in the folders for faces, or not yet)."
+msgstr ""
+
+#: src/gimv_face_panel.c:459
+msgid "No folders are given for faces (the Index page of the preferences)."
+msgstr ""
+
+#: src/gimv_face_panel.c:463
+msgid "No faces found. A face can be added with the + button."
+msgstr ""
+
+#: src/gimv_face_panel.c:549
+msgid "A face is there already."
+msgstr ""
+
+#: src/gimv_face_panel.c:551
+msgid "Added as marked (not found as a face there: it may be guessed less well)."
+msgstr ""
+
+#: src/gimv_face_panel.c:628
+msgid "adding..."
+msgstr ""
+
+#: src/gimv_face_panel.c:631
+msgid "Adding the face..."
+msgstr ""
+
+#: src/gimv_face_panel.c:692
+msgid "Drag over the face on the image (Esc: stop)."
+msgstr ""
+
+#: src/gimv_face_panel.c:778 src/prefs_ui/prefs_ui_index.c:260
+msgid "Faces"
+msgstr ""
+
+#: src/gimv_face_panel.c:782
+msgid "_Done"
+msgstr ""
+
+#: src/gimv_face_panel.c:789
+msgid "Add a face not found: drag over it on the image"
+msgstr ""
+
+#: src/gimv_bookmark.c:426 src/gimv_bookmark_edit.c:123
+msgid "Bookmarked"
+msgstr ""
+
+#: src/gimv_bookmark_edit.c:123
+msgid "Bookmark"
+msgstr ""
+
+#: src/gimv_bookmark_edit.c:146
+msgid "Note (may be left empty)"
+msgstr ""
+
+#: src/gimv_bookmark_edit.c:153
+msgid "_Remove"
+msgstr ""
+
+#: src/gimv_bookmark_edit.c:154
+msgid "Remove the bookmark"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:78
+msgid "Directories to index"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:79
+msgid "Select a directory to index"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:83
+msgid "Index images by date"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:89
+msgid "The images below these directories are looked at while GImageView runs, and can then be seen by date in the \"Date\" tab."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:102
+msgid "New images, automatic tags, faces and missing images are set in the pages below this one."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:125
+msgid "Gather new images for (seconds)"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:126
+msgid "At most one notification every (seconds)"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:127
+msgid "Show a notification for (seconds, 0: the default)"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:131
+msgid "New Images"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:132
+msgid "Notify new images on the desktop"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:157
+msgid "Where the notifications appear is set in the desktop's notification settings."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:165
+msgid "Folders not to notify"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:166
+msgid "Select a folder not to notify"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:191
+msgid "The folder name (\"2019_Kyoto\", ...)"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:192
+msgid "The camera (EXIF)"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:193
+msgid "The shape (portrait, landscape, square)"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:197 src/gimv_index_search.c:610
+msgid "Automatic Tags"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:198
+msgid "Tags put by the index itself, shown in groups in the \"Tag\" tab.  They are kept only in the index, not in the comment files."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:211
+msgid "Turning the camera or the shape on reads every image again, which takes long with many images."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:224
+msgid "Folder Names Not Made Tags"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:226
+msgid "Folders with these names give no folder tag (\"*\" matches any letters, \"?\" one; capitals and small letters are the same).  Names of numbers only and \"DCIM\" are never made tags.  A name can also be added from the menu of the folder in the \"Tag\" tab."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:233
+msgid "Name to add: "
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:254
+msgid "GImageView was built without finding faces."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:261
+msgid "Faces are looked for in the images of these folders (photos, for example), and faces that look alike are put in groups. The folders must be in the index. It runs after the rest of the index, slowly, while GImageView runs."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:269
+msgid "Folders to find faces in"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:270
+msgid "Select a folder to find faces in"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:278
+#, c-format
+msgid "The model files: %s"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:282
+#, c-format
+msgid ""
+"The model files (OpenCV YuNet and SFace, about 40 MB) are not found. Download these two into %s:\n"
+"https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx\n"
+"https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:317
+#, c-format
+msgid "Images with comments (tags) that are gone are listed in a log in %s, one log for each start."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_index.c:327
+msgid "Logs kept (0: none)"
 msgstr ""
 
 #: src/gtk_prop.c:193
 msgid "Properties"
 msgstr ""
 
-#: src/gtk_prop.c:206 src/gtkutils.c:822 src/gtkutils.c:1125 src/help.c:677
-#: src/prefs_ui/prefs_ui_etc.c:167
-msgid "OK"
-msgstr ""
-
-#: src/gtk_prop.c:207 src/gtkutils.c:432 src/gtkutils.c:747 src/gtkutils.c:924
-#: src/gtkutils.c:1132
+#: src/gtk_prop.c:207 src/gtkutils.c:479 src/gtkutils.c:794 src/gtkutils.c:971
+#: src/gtkutils.c:1179
 msgid "Cancel"
-msgstr ""
-
-#: src/gtk_prop.c:224
-msgid "All"
 msgstr ""
 
 #: src/gtk_prop.c:239
@@ -2017,52 +3125,44 @@ msgstr ""
 msgid "unknown"
 msgstr ""
 
-#: src/gtkutils.c:404 src/gtkutils.c:715
+#: src/gtkutils.c:451 src/gtkutils.c:762
 msgid "Yes"
 msgstr ""
 
-#: src/gtkutils.c:414 src/gtkutils.c:724
+#: src/gtkutils.c:461 src/gtkutils.c:771
 msgid "Yes to All"
 msgstr ""
 
-#: src/gtkutils.c:423
+#: src/gtkutils.c:470
 msgid "No"
 msgstr ""
 
-#: src/gtkutils.c:521
+#: src/gtkutils.c:568
 #, c-format
 msgid "The file exists: %s"
 msgstr ""
 
-#: src/gtkutils.c:614
+#: src/gtkutils.c:661
 msgid "Show destination"
 msgstr ""
 
-#: src/gtkutils.c:621
+#: src/gtkutils.c:668
 msgid "Show both images"
 msgstr ""
 
-#: src/gtkutils.c:629
+#: src/gtkutils.c:676
 msgid "Show source"
 msgstr ""
 
-#: src/gtkutils.c:702
+#: src/gtkutils.c:749
 msgid "Rename"
 msgstr ""
 
-#: src/gtkutils.c:739
+#: src/gtkutils.c:786
 msgid "Skip all"
 msgstr ""
 
-#: src/gtkutils.c:1178 src/gimv_gtk4_compat.h:184
-msgid "_Cancel"
-msgstr ""
-
-#: src/gtkutils.c:1179 src/gimv_gtk4_compat.h:183
-msgid "_OK"
-msgstr ""
-
-#: src/gtkutils.c:1253 src/prefs_ui/prefs_ui_etc.c:1004
+#: src/gtkutils.c:1356 src/prefs_ui/prefs_ui_etc.c:1021
 #: src/prefs_ui/prefs_ui_imagewin.c:349 src/prefs_ui/prefs_ui_imagewin.c:371
 msgid "Choose Color"
 msgstr ""
@@ -2231,24 +3331,24 @@ msgstr ""
 msgid "About %s"
 msgstr ""
 
-#: src/prefs.c:527
+#: src/prefs.c:542
 #, c-format
 msgid ""
 "Can't open rc file: %s\n"
 "Using the default settings..."
 msgstr ""
 
-#: src/prefs.c:609
+#: src/prefs.c:624
 #, c-format
 msgid "Directory \"%s\" not found. Creating it..."
 msgstr ""
 
-#: src/prefs.c:612
+#: src/prefs.c:627
 #, c-format
 msgid "\"%s\" found, but it's not a directory. Not creating it."
 msgstr ""
 
-#: src/prefs.c:621
+#: src/prefs.c:636
 msgid "Can't open rc file for writing."
 msgstr ""
 
@@ -2305,8 +3405,8 @@ msgid "Any"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_common.c:146 src/prefs_ui/prefs_ui_common.c:154
-#: src/prefs_ui/prefs_ui_common.c:161 src/prefs_ui/prefs_ui_etc.c:189
-#: src/prefs_ui/prefs_ui_etc.c:197 src/prefs_ui/prefs_ui_etc.c:204
+#: src/prefs_ui/prefs_ui_common.c:161 src/prefs_ui/prefs_ui_etc.c:190
+#: src/prefs_ui/prefs_ui_etc.c:198 src/prefs_ui/prefs_ui_etc.c:205
 #: plugins/image_view/image_view_gst.c:721
 msgid "Error"
 msgstr ""
@@ -2317,36 +3417,36 @@ msgid ""
 "Only ASCII is allowed."
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:155 src/prefs_ui/prefs_ui_etc.c:198
+#: src/prefs_ui/prefs_ui_common.c:155 src/prefs_ui/prefs_ui_etc.c:199
 msgid "Sorry, cannot include \",\" character!"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:162 src/prefs_ui/prefs_ui_etc.c:205
+#: src/prefs_ui/prefs_ui_common.c:162 src/prefs_ui/prefs_ui_etc.c:206
 msgid "Sorry, cannot include \";\" character!"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:188 src/prefs_ui/prefs_ui_etc.c:418
+#: src/prefs_ui/prefs_ui_common.c:188 src/prefs_ui/prefs_ui_etc.c:419
 #, c-format
 msgid "\"%s\" is already defined."
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_common.c:250 src/prefs_ui/prefs_ui_common.c:288
-#: src/prefs_ui/prefs_ui_common.c:802 src/prefs_ui/prefs_ui_etc.c:703
+#: src/prefs_ui/prefs_ui_common.c:810 src/prefs_ui/prefs_ui_etc.c:720
 msgid "Enable"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_common.c:250 src/prefs_ui/prefs_ui_common.c:291
-#: src/prefs_ui/prefs_ui_common.c:801 src/prefs_ui/prefs_ui_common.c:802
+#: src/prefs_ui/prefs_ui_common.c:809 src/prefs_ui/prefs_ui_common.c:810
 msgid "Disable"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_common.c:251 src/prefs_ui/prefs_ui_common.c:434
-#: src/prefs_ui/prefs_ui_etc.c:279 src/prefs_ui/prefs_ui_etc.c:448
+#: src/prefs_ui/prefs_ui_etc.c:280 src/prefs_ui/prefs_ui_etc.c:449
 msgid "System defined"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_common.c:295 src/prefs_ui/prefs_ui_common.c:437
-#: src/prefs_ui/prefs_ui_etc.c:277 src/prefs_ui/prefs_ui_etc.c:451
+#: src/prefs_ui/prefs_ui_etc.c:278 src/prefs_ui/prefs_ui_etc.c:452
 msgid "User defined"
 msgstr ""
 
@@ -2399,280 +3499,304 @@ msgid "Color scheme"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_common.c:672
+msgid "Always show the scrollbars"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_common.c:676
+msgid "Off: the scrollbars of GTK 4 show only while the pointer is near them, over the contents"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_common.c:680
 msgid "Use icons of the desktop icon theme for buttons"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:678
+#: src/prefs_ui/prefs_ui_common.c:686
 msgid "Windows opened after the change use it."
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:687
+#: src/prefs_ui/prefs_ui_common.c:695
 msgid "Startup"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:690
+#: src/prefs_ui/prefs_ui_common.c:698
 msgid "Open thumbnail window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:697
+#: src/prefs_ui/prefs_ui_common.c:705
 msgid "Ignore directories given on the command line"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:704
+#: src/prefs_ui/prefs_ui_common.c:712
 msgid "No warning"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:712
+#: src/prefs_ui/prefs_ui_common.c:720
 msgid "Show splash window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:737
+#: src/prefs_ui/prefs_ui_common.c:745
 msgid "Extension"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:737
+#: src/prefs_ui/prefs_ui_common.c:745
 msgid "File Type"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:737 src/prefs_ui/prefs_ui_etc.c:634
+#: src/prefs_ui/prefs_ui_common.c:745 src/prefs_ui/prefs_ui_etc.c:651
 msgid "Status"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:746
+#: src/prefs_ui/prefs_ui_common.c:754
 msgid "File Types"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:767
+#: src/prefs_ui/prefs_ui_common.c:775
 msgid "Extension: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:785
+#: src/prefs_ui/prefs_ui_common.c:793
 msgid "File Type: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:828
+#: src/prefs_ui/prefs_ui_common.c:836
 msgid "Read dotfiles"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:865
+#: src/prefs_ui/prefs_ui_common.c:873
 msgid "Common"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:875
+#: src/prefs_ui/prefs_ui_common.c:883
 msgid "Locale character set: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:888
+#: src/prefs_ui/prefs_ui_common.c:896
 msgid "Internal character set: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:901
+#: src/prefs_ui/prefs_ui_common.c:909
 msgid "Language for auto detecting"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:912
+#: src/prefs_ui/prefs_ui_common.c:920
 msgid "File name"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_common.c:917
+#: src/prefs_ui/prefs_ui_common.c:925
 msgid "Character set of file name"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:158
+#: src/prefs_ui/prefs_ui_etc.c:159
 msgid "Preferences - Cache Writing -"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:190
+#: src/prefs_ui/prefs_ui_etc.c:191
 msgid ""
 "The key string contains an invalid character!\n"
 "Only ASCII (except space) is allowed."
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:211
+#: src/prefs_ui/prefs_ui_etc.c:212
 msgid "\"Key name\" must be defined."
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:217
+#: src/prefs_ui/prefs_ui_etc.c:218
 msgid "\"Display name\" must be defined."
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:557
+#: src/prefs_ui/prefs_ui_etc.c:558
 msgid "Cache reading"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:558
+#: src/prefs_ui/prefs_ui_etc.c:559
 msgid "Available cache type"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:559
+#: src/prefs_ui/prefs_ui_etc.c:560
 msgid "Cache type to use"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:571
+#: src/prefs_ui/prefs_ui_etc.c:572
 msgid "Cache writing"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:580
+#: src/prefs_ui/prefs_ui_etc.c:581
 msgid "Cache type for saving"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:632
+#: src/prefs_ui/prefs_ui_etc.c:593
+msgid "None (do not save)"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_etc.c:617
+msgid "Making thumbnails"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_etc.c:620
+msgid "Use the thumbnail embedded in a JPEG (EXIF) when it is big enough"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_etc.c:625
+msgid "Much faster (only the start of the file is read). Off: an image edited by a program that left its old thumbnail shows it."
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_etc.c:649
 msgid "Key Name"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:633
+#: src/prefs_ui/prefs_ui_etc.c:650
 msgid "Displayed Name"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:635 src/prefs_ui/prefs_ui_etc.c:711
-#: src/prefs_ui/prefs_ui_imagewin.c:313 src/prefs_ui/prefs_ui_thumbwin.c:516
+#: src/prefs_ui/prefs_ui_etc.c:652 src/prefs_ui/prefs_ui_etc.c:728
+#: src/prefs_ui/prefs_ui_imagewin.c:313 src/prefs_ui/prefs_ui_thumbwin.c:518
 msgid "Auto"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:636 src/prefs_ui/prefs_ui_etc.c:719
+#: src/prefs_ui/prefs_ui_etc.c:653 src/prefs_ui/prefs_ui_etc.c:736
 msgid "Display"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:647
+#: src/prefs_ui/prefs_ui_etc.c:664
 msgid "Key Name Definition"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:671
+#: src/prefs_ui/prefs_ui_etc.c:688
 msgid "Key Name: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:688
+#: src/prefs_ui/prefs_ui_etc.c:705
 msgid "Displayed Name: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:704 src/prefs_ui/prefs_ui_etc.c:712
-#: src/prefs_ui/prefs_ui_etc.c:720 src/prefs_ui/prefs_ui_progs.c:66
+#: src/prefs_ui/prefs_ui_etc.c:721 src/prefs_ui/prefs_ui_etc.c:729
+#: src/prefs_ui/prefs_ui_etc.c:737 src/prefs_ui/prefs_ui_progs.c:66
 #: src/prefs_ui/prefs_ui_progs.c:104 src/prefs_ui/prefs_ui_progs.c:259
 msgid "TRUE"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:704 src/prefs_ui/prefs_ui_etc.c:712
-#: src/prefs_ui/prefs_ui_etc.c:720 src/prefs_ui/prefs_ui_progs.c:68
+#: src/prefs_ui/prefs_ui_etc.c:721 src/prefs_ui/prefs_ui_etc.c:729
+#: src/prefs_ui/prefs_ui_etc.c:737 src/prefs_ui/prefs_ui_progs.c:68
 #: src/prefs_ui/prefs_ui_progs.c:259
 msgid "FALSE"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:747
+#: src/prefs_ui/prefs_ui_etc.c:764
 msgid "Character set"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:753
+#: src/prefs_ui/prefs_ui_etc.c:770
 msgid "Character set: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:787
+#: src/prefs_ui/prefs_ui_etc.c:804
 msgid "Find Duplicates"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:794 src/gimv_dupl_win.c:100
+#: src/prefs_ui/prefs_ui_etc.c:811 src/gimv_dupl_win.c:102
 msgid "Accuracy"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:809
+#: src/prefs_ui/prefs_ui_etc.c:826
 msgid "Behavior when selecting a thumbnail in the result window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:816
+#: src/prefs_ui/prefs_ui_etc.c:833
 msgid "Select the thumbnail in the thumbnail view"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:822
+#: src/prefs_ui/prefs_ui_etc.c:839
 msgid "Show the image in preview"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:828
+#: src/prefs_ui/prefs_ui_etc.c:845
 msgid "Show the image in new window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:834
+#: src/prefs_ui/prefs_ui_etc.c:851
 msgid "Show the image in shared window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:870
+#: src/prefs_ui/prefs_ui_etc.c:887
 msgid "Image change interval"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:882 plugins/image_view/prefs_xine.c:307
+#: src/prefs_ui/prefs_ui_etc.c:899 plugins/image_view/prefs_xine.c:307
 msgid "[sec]"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:886
+#: src/prefs_ui/prefs_ui_etc.c:903
 msgid "Repeat slideshow"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:896 src/prefs_ui/prefs_ui_imagewin.c:240
-#: src/prefs_ui/prefs_ui_thumbwin.c:427 src/prefs_ui/prefs_ui_thumbwin.c:719
-#: src/prefs_ui/prefs_ui_thumbwin.c:827
+#: src/prefs_ui/prefs_ui_etc.c:913 src/prefs_ui/prefs_ui_imagewin.c:240
+#: src/prefs_ui/prefs_ui_thumbwin.c:429 src/prefs_ui/prefs_ui_thumbwin.c:721
+#: src/prefs_ui/prefs_ui_thumbwin.c:829
 msgid "Show/Hide"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:899
+#: src/prefs_ui/prefs_ui_etc.c:916
 msgid "Show menubar"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:905 src/prefs_ui/prefs_ui_thumbwin.c:830
+#: src/prefs_ui/prefs_ui_etc.c:922 src/prefs_ui/prefs_ui_thumbwin.c:832
 msgid "Show toolbar"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:911
+#: src/prefs_ui/prefs_ui_etc.c:928
 msgid "Show player toolbar"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:917
+#: src/prefs_ui/prefs_ui_etc.c:934
 msgid "Show statusbar"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:935 src/prefs_ui/prefs_ui_imagewin.c:411
-#: src/prefs_ui/prefs_ui_thumbwin.c:917
+#: src/prefs_ui/prefs_ui_etc.c:952 src/prefs_ui/prefs_ui_imagewin.c:411
+#: src/prefs_ui/prefs_ui_thumbwin.c:919
 msgid "Zoom:"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:948 src/prefs_ui/prefs_ui_imagewin.c:424
-#: src/prefs_ui/prefs_ui_thumbwin.c:930
+#: src/prefs_ui/prefs_ui_etc.c:965 src/prefs_ui/prefs_ui_imagewin.c:424
+#: src/prefs_ui/prefs_ui_thumbwin.c:932
 msgid "Rotation:"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:961 src/prefs_ui/prefs_ui_imagewin.c:444
-#: src/prefs_ui/prefs_ui_thumbwin.c:946
+#: src/prefs_ui/prefs_ui_etc.c:978 src/prefs_ui/prefs_ui_imagewin.c:444
+#: src/prefs_ui/prefs_ui_thumbwin.c:948
 msgid "Keep aspect ratio"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:971 src/prefs_ui/prefs_ui_imagewin.c:454
-#: src/prefs_ui/prefs_ui_thumbwin.c:956
+#: src/prefs_ui/prefs_ui_etc.c:988 src/prefs_ui/prefs_ui_imagewin.c:454
+#: src/prefs_ui/prefs_ui_thumbwin.c:958
 msgid "Default Image Scale"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:982 src/prefs_ui/prefs_ui_imagewin.c:465
-#: src/prefs_ui/prefs_ui_thumbwin.c:966
+#: src/prefs_ui/prefs_ui_etc.c:999 src/prefs_ui/prefs_ui_imagewin.c:465
+#: src/prefs_ui/prefs_ui_thumbwin.c:968
 msgid "%"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:992 src/prefs_ui/prefs_ui_imagewin.c:336
+#: src/prefs_ui/prefs_ui_etc.c:1009 src/prefs_ui/prefs_ui_imagewin.c:336
 msgid "Background"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:998
+#: src/prefs_ui/prefs_ui_etc.c:1015
 msgid "Use specified color"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:1034
+#: src/prefs_ui/prefs_ui_etc.c:1051
 msgid "File operation"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:1037
+#: src/prefs_ui/prefs_ui_etc.c:1054
 msgid "Enable DnD to external programs (experimental)"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:1044
+#: src/prefs_ui/prefs_ui_etc.c:1061
 msgid "Enable DnD from external programs (experimental)"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_etc.c:1051
+#: src/prefs_ui/prefs_ui_etc.c:1068
 msgid "Always refresh the list after DnD"
 msgstr ""
 
@@ -2704,56 +3828,56 @@ msgstr ""
 msgid "Fit image to height"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:139 src/prefs_ui/prefs_ui_thumbwin.c:162
+#: src/prefs_ui/prefs_ui_imagewin.c:139 src/prefs_ui/prefs_ui_thumbwin.c:163
 msgid "Next image"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:140 src/prefs_ui/prefs_ui_thumbwin.c:163
+#: src/prefs_ui/prefs_ui_imagewin.c:140 src/prefs_ui/prefs_ui_thumbwin.c:164
 msgid "Previous image"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_imagewin.c:141 src/prefs_ui/prefs_ui_thumbwin.c:137
-#: src/prefs_ui/prefs_ui_thumbwin.c:153 src/prefs_ui/prefs_ui_thumbwin.c:166
+#: src/prefs_ui/prefs_ui_thumbwin.c:154 src/prefs_ui/prefs_ui_thumbwin.c:167
 msgid "Popup menu"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:144 src/prefs_ui/prefs_ui_thumbwin.c:169
+#: src/prefs_ui/prefs_ui_imagewin.c:144 src/prefs_ui/prefs_ui_thumbwin.c:170
 msgid "Fit image size to frame"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:145 src/prefs_ui/prefs_ui_thumbwin.c:170
+#: src/prefs_ui/prefs_ui_imagewin.c:145 src/prefs_ui/prefs_ui_thumbwin.c:171
 msgid "Rotate CCW"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:146 src/prefs_ui/prefs_ui_thumbwin.c:171
+#: src/prefs_ui/prefs_ui_imagewin.c:146 src/prefs_ui/prefs_ui_thumbwin.c:172
 msgid "Rotate CW"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:147 src/prefs_ui/prefs_ui_thumbwin.c:172
+#: src/prefs_ui/prefs_ui_imagewin.c:147 src/prefs_ui/prefs_ui_thumbwin.c:173
 msgid "Open the navigation window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:148 src/prefs_ui/prefs_ui_thumbwin.c:173
+#: src/prefs_ui/prefs_ui_imagewin.c:148 src/prefs_ui/prefs_ui_thumbwin.c:174
 msgid "Scroll up"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:149 src/prefs_ui/prefs_ui_thumbwin.c:174
+#: src/prefs_ui/prefs_ui_imagewin.c:149 src/prefs_ui/prefs_ui_thumbwin.c:175
 msgid "Scroll down"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:150 src/prefs_ui/prefs_ui_thumbwin.c:175
+#: src/prefs_ui/prefs_ui_imagewin.c:150 src/prefs_ui/prefs_ui_thumbwin.c:176
 msgid "Scroll left"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:151 src/prefs_ui/prefs_ui_thumbwin.c:176
+#: src/prefs_ui/prefs_ui_imagewin.c:151 src/prefs_ui/prefs_ui_thumbwin.c:177
 msgid "Scroll right"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:175 src/prefs_ui/prefs_ui_thumbwin.c:381
+#: src/prefs_ui/prefs_ui_imagewin.c:175 src/prefs_ui/prefs_ui_thumbwin.c:383
 msgid "Window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:178 src/prefs_ui/prefs_ui_thumbwin.c:384
+#: src/prefs_ui/prefs_ui_imagewin.c:178 src/prefs_ui/prefs_ui_thumbwin.c:386
 msgid "Save window state on exit"
 msgstr ""
 
@@ -2761,11 +3885,11 @@ msgstr ""
 msgid "Initial window size: "
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:192 src/prefs_ui/prefs_ui_thumbwin.c:394
+#: src/prefs_ui/prefs_ui_imagewin.c:192 src/prefs_ui/prefs_ui_thumbwin.c:396
 msgid "width"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:204 src/prefs_ui/prefs_ui_thumbwin.c:405
+#: src/prefs_ui/prefs_ui_imagewin.c:204 src/prefs_ui/prefs_ui_thumbwin.c:407
 msgid "height"
 msgstr ""
 
@@ -2781,11 +3905,11 @@ msgstr ""
 msgid "Raise the window when opening an image in the shared window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:255 src/prefs_ui/prefs_ui_thumbwin.c:466
+#: src/prefs_ui/prefs_ui_imagewin.c:255 src/prefs_ui/prefs_ui_thumbwin.c:468
 msgid "Menubar"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:263 src/prefs_ui/prefs_ui_thumbwin.c:474
+#: src/prefs_ui/prefs_ui_imagewin.c:263 src/prefs_ui/prefs_ui_thumbwin.c:476
 msgid "Toolbar"
 msgstr ""
 
@@ -2793,7 +3917,7 @@ msgstr ""
 msgid "Slideshow player"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:279 src/prefs_ui/prefs_ui_thumbwin.c:482
+#: src/prefs_ui/prefs_ui_imagewin.c:279 src/prefs_ui/prefs_ui_thumbwin.c:484
 msgid "Statusbar"
 msgstr ""
 
@@ -2801,15 +3925,15 @@ msgstr ""
 msgid "Scrollbar"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:295 src/prefs_ui/prefs_ui_thumbwin.c:498
+#: src/prefs_ui/prefs_ui_imagewin.c:295 src/prefs_ui/prefs_ui_thumbwin.c:500
 msgid "Player toolbar:"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:299 src/prefs_ui/prefs_ui_thumbwin.c:502
+#: src/prefs_ui/prefs_ui_imagewin.c:299 src/prefs_ui/prefs_ui_thumbwin.c:504
 msgid "Show"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_imagewin.c:306 src/prefs_ui/prefs_ui_thumbwin.c:509
+#: src/prefs_ui/prefs_ui_imagewin.c:306 src/prefs_ui/prefs_ui_thumbwin.c:511
 msgid "Hide"
 msgstr ""
 
@@ -2826,7 +3950,7 @@ msgid "Specify the background color in fullscreen"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_imagewin.c:437
-msgid "Remember the rotation of each image (saved with its comment)"
+msgid "Remember the rotation and flip of each image (saved with its comment)"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_movie.c:92
@@ -2845,55 +3969,55 @@ msgstr ""
 msgid "Ignore mouse actions for next/previous image, zoom, rotation and scrolling while a movie or audio file is playing"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:70
+#: src/prefs_ui/prefs_ui_plugin.c:71
 msgid "Directories list to search plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:71
+#: src/prefs_ui/prefs_ui_plugin.c:72
 msgid "Select plugin directory"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:75
+#: src/prefs_ui/prefs_ui_plugin.c:76
 msgid "Use default directories list to search plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:104
+#: src/prefs_ui/prefs_ui_plugin.c:105
 msgid "Plugin Name"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:104
+#: src/prefs_ui/prefs_ui_plugin.c:105
 msgid "Version"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:104
+#: src/prefs_ui/prefs_ui_plugin.c:105
 msgid "Module Name"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:195
+#: src/prefs_ui/prefs_ui_plugin.c:187
 msgid "Image Loader Plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:201
+#: src/prefs_ui/prefs_ui_plugin.c:193
 msgid "Image Saver Plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:207
+#: src/prefs_ui/prefs_ui_plugin.c:199
 msgid "IO Stream Plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:213
+#: src/prefs_ui/prefs_ui_plugin.c:205
 msgid "Archiver Plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:219
+#: src/prefs_ui/prefs_ui_plugin.c:211
 msgid "Thumbnail Cache Plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:225
+#: src/prefs_ui/prefs_ui_plugin.c:217
 msgid "Image View Embedder Plugins"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_plugin.c:231
+#: src/prefs_ui/prefs_ui_plugin.c:223
 msgid "Thumbnail View Embedder Plugins"
 msgstr ""
 
@@ -2950,7 +4074,7 @@ msgstr ""
 msgid "Show a dialog before executing a script"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbalbum.c:47 src/thumbnail_view_album.c:71
+#: src/prefs_ui/prefs_ui_thumbalbum.c:47 src/thumbnail_view_album.c:74
 msgid "Album"
 msgstr ""
 
@@ -2986,7 +4110,7 @@ msgstr ""
 msgid "Custom"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:117 src/gimv_dupl_win.c:217
+#: src/prefs_ui/prefs_ui_thumbwin.c:117 src/gimv_dupl_win.c:196
 msgid "Icon"
 msgstr ""
 
@@ -3022,11 +4146,11 @@ msgstr ""
 msgid "Open in preview (Force)"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:142 src/prefs_ui/prefs_ui_thumbwin.c:165
+#: src/prefs_ui/prefs_ui_thumbwin.c:142 src/prefs_ui/prefs_ui_thumbwin.c:166
 msgid "Open in new window"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:143 src/prefs_ui/prefs_ui_thumbwin.c:164
+#: src/prefs_ui/prefs_ui_thumbwin.c:143 src/prefs_ui/prefs_ui_thumbwin.c:165
 msgid "Open in shared window"
 msgstr ""
 
@@ -3034,132 +4158,136 @@ msgstr ""
 msgid "Open in shared window (Force)"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:151
-msgid "Load thumbnails"
+#: src/prefs_ui/prefs_ui_thumbwin.c:145 src/prefs_ui/prefs_ui_thumbwin.c:178
+msgid "Open the folder (collections)"
 msgstr ""
 
 #: src/prefs_ui/prefs_ui_thumbwin.c:152
+msgid "Load thumbnails"
+msgstr ""
+
+#: src/prefs_ui/prefs_ui_thumbwin.c:153
 msgid "Load thumbnails recursively"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:154
+#: src/prefs_ui/prefs_ui_thumbwin.c:155
 msgid "Change top directory"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:155
+#: src/prefs_ui/prefs_ui_thumbwin.c:156
 msgid "Load recursively in a tab"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:417
+#: src/prefs_ui/prefs_ui_thumbwin.c:419
 msgid "Default Layout"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:442
+#: src/prefs_ui/prefs_ui_thumbwin.c:444
 msgid "Directory view"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:458
+#: src/prefs_ui/prefs_ui_thumbwin.c:460
 msgid "Preview Tab"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:490 src/prefs_ui/prefs_ui_thumbwin.c:640
+#: src/prefs_ui/prefs_ui_thumbwin.c:492 src/prefs_ui/prefs_ui_thumbwin.c:642
 msgid "Tab"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:537
+#: src/prefs_ui/prefs_ui_thumbwin.c:539
 msgid "Raise window when opening thumbnails"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:550
+#: src/prefs_ui/prefs_ui_thumbwin.c:552
 msgid "Toolbar Style"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:560
+#: src/prefs_ui/prefs_ui_thumbwin.c:562
 msgid "Loading"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:567
+#: src/prefs_ui/prefs_ui_thumbwin.c:569
 msgid "GUI redraw interval while loading: Every"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:578
+#: src/prefs_ui/prefs_ui_thumbwin.c:580
 msgid "files"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:582
+#: src/prefs_ui/prefs_ui_thumbwin.c:584
 msgid "Show detail of loading progress"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:607
+#: src/prefs_ui/prefs_ui_thumbwin.c:609
 msgid "Not implemented yet."
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:645
+#: src/prefs_ui/prefs_ui_thumbwin.c:647
 msgid "Tab Position"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:658
+#: src/prefs_ui/prefs_ui_thumbwin.c:660
 msgid "Move to new tab automatically"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:665
+#: src/prefs_ui/prefs_ui_thumbwin.c:667
 msgid "Show close button"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:675
+#: src/prefs_ui/prefs_ui_thumbwin.c:677
 msgid "Show full path"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:685
+#: src/prefs_ui/prefs_ui_thumbwin.c:687
 msgid "Open a new tab even if the directory has no images"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:732
+#: src/prefs_ui/prefs_ui_thumbwin.c:734
 msgid "Archive"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:745
+#: src/prefs_ui/prefs_ui_thumbwin.c:747
 msgid "Default display mode"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:837
+#: src/prefs_ui/prefs_ui_thumbwin.c:839
 msgid "Show dotfiles"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:844
+#: src/prefs_ui/prefs_ui_thumbwin.c:846
 msgid "Show the \".\" directory even when dotfiles are hidden"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:851
+#: src/prefs_ui/prefs_ui_thumbwin.c:853
 msgid "Show the \"..\" directory even when dotfiles are hidden"
 msgstr ""
 
-#: src/prefs_ui/prefs_ui_thumbwin.c:970
+#: src/prefs_ui/prefs_ui_thumbwin.c:972
 msgid "Show scrollbar"
 msgstr ""
 
-#: src/gimv_dupl_win.c:99 src/thumbnail_view_album.c:876
+#: src/gimv_dupl_win.c:101 src/thumbnail_view_album.c:917
 #: plugins/thumbnail_view/detailview.c:125
 msgid "Name"
 msgstr ""
 
-#: src/gimv_dupl_win.c:101 plugins/thumbnail_view/detailview.c:126
+#: src/gimv_dupl_win.c:103 plugins/thumbnail_view/detailview.c:126
 msgid "Size (byte)"
 msgstr ""
 
-#: src/gimv_dupl_win.c:135
+#: src/gimv_dupl_win.c:138
 msgid "Find Duplicates - Results"
 msgstr ""
 
-#: src/gimv_dupl_win.c:226
+#: src/gimv_dupl_win.c:205
 msgid "Select All"
 msgstr ""
 
-#: src/gimv_dupl_win.c:343
+#: src/gimv_dupl_win.c:323
 msgid "Finding similar images..."
 msgstr ""
 
-#: src/gimv_dupl_win.c:360
+#: src/gimv_dupl_win.c:340
 msgid "Completed"
 msgstr ""
 
@@ -3172,91 +4300,95 @@ msgstr ""
 msgid "File Name: "
 msgstr ""
 
-#: src/gimv_thumb_view.c:182
+#: src/gimv_thumb_view.c:222
 msgid "/_Open"
 msgstr ""
 
-#: src/gimv_thumb_view.c:183
+#: src/gimv_thumb_view.c:223
 msgid "/Open in New _Window"
 msgstr ""
 
-#: src/gimv_thumb_view.c:184
+#: src/gimv_thumb_view.c:224
 msgid "/Open in S_hared Window"
 msgstr ""
 
-#: src/gimv_thumb_view.c:185
+#: src/gimv_thumb_view.c:226
 msgid "/Open in E_xternal Program"
 msgstr ""
 
-#: src/gimv_thumb_view.c:186
+#: src/gimv_thumb_view.c:227
 msgid "/_Scripts"
 msgstr ""
 
-#: src/gimv_thumb_view.c:188
+#: src/gimv_thumb_view.c:229
 msgid "/_Update Thumbnail"
 msgstr ""
 
-#: src/gimv_thumb_view.c:189
+#: src/gimv_thumb_view.c:230
 msgid "/Remo_ve from List"
 msgstr ""
 
-#: src/gimv_thumb_view.c:192 src/dirview2.c:193
+#: src/gimv_thumb_view.c:233 src/dirview2.c:192
 msgid "/_Properties..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:194
+#: src/gimv_thumb_view.c:235
 msgid "/Scan E_XIF Data..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:196
+#: src/gimv_thumb_view.c:237
 msgid "/_Edit Comment..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:198
+#: src/gimv_thumb_view.c:239
+msgid "/Edit _Tags..."
+msgstr ""
+
+#: src/gimv_thumb_view.c:243
 msgid "/Re_name..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:199
+#: src/gimv_thumb_view.c:244
 msgid "/_Copy Files To..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:200
+#: src/gimv_thumb_view.c:245
 msgid "/_Move Files To..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:201
+#: src/gimv_thumb_view.c:246
 msgid "/_Link Files To..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:202
+#: src/gimv_thumb_view.c:247
 msgid "/_Remove Files..."
 msgstr ""
 
-#: src/gimv_thumb_view.c:481
+#: src/gimv_thumb_view.c:598
 msgid "Execute command"
 msgstr ""
 
-#: src/gimv_thumb_view.c:482 src/gimv_thumb_view.c:551
+#: src/gimv_thumb_view.c:599 src/gimv_thumb_view.c:668
 msgid "Please enter options:"
 msgstr ""
 
-#: src/gimv_thumb_view.c:550
+#: src/gimv_thumb_view.c:667
 msgid "Execute script"
 msgstr ""
 
-#: src/gimv_thumb_view.c:1039
+#: src/gimv_thumb_view.c:1216
 msgid "No files specified!"
 msgstr ""
 
-#: src/gimv_thumb_view.c:2395
+#: src/gimv_thumb_view.c:2984
 msgid "Rename a File"
 msgstr ""
 
-#: src/gimv_thumb_view.c:2396
+#: src/gimv_thumb_view.c:2985
 msgid "New file name: "
 msgstr ""
 
-#: src/gimv_thumb_view.c:2424
+#: src/gimv_thumb_view.c:3013
 #, c-format
 msgid ""
 "File exists: %s\n"
@@ -3264,70 +4396,70 @@ msgid ""
 "Overwrite?"
 msgstr ""
 
-#: src/gimv_thumb_view.c:2447
+#: src/gimv_thumb_view.c:3036
 #, c-format
 msgid ""
 "Failed to rename file:\n"
 "%s"
 msgstr ""
 
-#: src/gimv_thumb_view.c:2466 src/gimv_image_info.c:810
+#: src/gimv_thumb_view.c:3055 src/gimv_image_info.c:849
 #, c-format
 msgid "Failed to rename cache file: %s\n"
 msgstr ""
 
-#: src/gimv_thumb_view.c:2476 src/gimv_image_info.c:820
+#: src/gimv_thumb_view.c:3065 src/gimv_image_info.c:859
 #, c-format
 msgid "Failed to rename comment file: %s\n"
 msgstr ""
 
-#: src/gimv_thumb_view.c:3692 src/gimv_thumb_view.c:3768
+#: src/gimv_thumb_view.c:4390 src/gimv_thumb_view.c:4466
 #, c-format
 msgid "Collection %d"
 msgstr ""
 
-#: src/gimv_thumb_view.c:3762
+#: src/gimv_thumb_view.c:4460
 #, c-format
 msgid "%s (Collection)"
 msgstr ""
 
-#: src/thumbnail_view_album.c:87
+#: src/thumbnail_view_album.c:90
 msgid "Album 2"
 msgstr ""
 
-#: src/thumbnail_view_album.c:103
+#: src/thumbnail_view_album.c:106
 msgid "Album 3"
 msgstr ""
 
-#: src/thumbnail_view_album.c:802
+#: src/thumbnail_view_album.c:843
 #, c-format
 msgid "Name: %s"
 msgstr ""
 
-#: src/thumbnail_view_album.c:821
+#: src/thumbnail_view_album.c:862
 #, c-format
 msgid "Size: %s bytes"
 msgstr ""
 
-#: src/thumbnail_view_album.c:823
+#: src/thumbnail_view_album.c:864
 #, c-format
 msgid "%s bytes"
 msgstr ""
 
-#: src/thumbnail_view_album.c:839
+#: src/thumbnail_view_album.c:880
 msgid "Time: "
 msgstr ""
 
-#: src/thumbnail_view_album.c:858
+#: src/thumbnail_view_album.c:899
 #, c-format
 msgid "Type: %s"
 msgstr ""
 
-#: src/thumbnail_view_album.c:878
+#: src/thumbnail_view_album.c:919
 msgid "Time"
 msgstr ""
 
-#: src/thumbnail_view_album.c:879 plugins/thumbnail_view/detailview.c:127
+#: src/thumbnail_view_album.c:920 plugins/thumbnail_view/detailview.c:127
 msgid "Type"
 msgstr ""
 
@@ -3337,7 +4469,8 @@ msgstr ""
 
 #: plugins/archiver/libarchive-ext.c:123 plugins/image_loader/pnm.c:95
 #: plugins/image_loader/xpm.c:75 plugins/image_loader/zim.c:91
-#: plugins/image_loader/wbmp.c:73 plugins/image_loader/ras.c:94
+#: plugins/image_loader/ak5.c:115 plugins/image_loader/wbmp.c:73
+#: plugins/image_loader/ras.c:94 plugins/thumbnail/freedesktop.c:82
 #: plugins/image_view/image_view_gst.c:262
 msgid "shitamo"
 msgstr ""
@@ -3496,6 +4629,22 @@ msgstr ""
 
 #: plugins/image_loader/zim.c:92
 msgid "ZIM images of Z's STAFF KID98 (PC-9801)"
+msgstr ""
+
+#: plugins/image_loader/ak5.c:93
+msgid "The AK5 image format (MASL)"
+msgstr ""
+
+#: plugins/image_loader/ak5.c:100
+msgid "The MSL animation format (MASL)"
+msgstr ""
+
+#: plugins/image_loader/ak5.c:113
+msgid "AK5 Image Loader"
+msgstr ""
+
+#: plugins/image_loader/ak5.c:116
+msgid "AK5 and MSL pictures of MASL (PC-9801)"
 msgstr ""
 
 #: plugins/image_loader/wbmp.c:71
@@ -3672,6 +4821,10 @@ msgstr ""
 msgid "save cache: %s\n"
 msgstr ""
 
+#: plugins/thumbnail/freedesktop.c:80
+msgid "freedesktop.org thumbnail support (~/.cache/thumbnails)"
+msgstr ""
+
 #: plugins/thumbnail/gimv_thumb.c:99
 msgid "GImageView thumbnail support"
 msgstr ""
@@ -3804,11 +4957,7 @@ msgstr ""
 msgid "Image size"
 msgstr ""
 
-#: plugins/thumbnail_view/detailview.c:138
-msgid "Comment"
-msgstr ""
-
-#: plugins/thumbnail_view/detailview.c:528
+#: plugins/thumbnail_view/detailview.c:530
 msgid "Unknown"
 msgstr ""
 
@@ -3832,28 +4981,28 @@ msgstr ""
 msgid "Show Column Title"
 msgstr ""
 
-#: src/gimv_elist.c:831 src/dirview2.c:1243 src/dirview2.c:1244
-#: src/gimv_dlist.c:598
+#: src/gimv_elist.c:702 src/dirview2.c:1266 src/dirview2.c:1267
+#: src/gimv_dlist.c:480
 msgid "Up"
 msgstr ""
 
-#: src/gimv_elist.c:843 src/gimv_dlist.c:610
+#: src/gimv_elist.c:714 src/gimv_dlist.c:492
 msgid "Down"
 msgstr ""
 
-#: src/gimv_elist.c:870
+#: src/gimv_elist.c:741
 msgid "New"
 msgstr ""
 
-#: src/gimv_elist.c:874 src/gimv_dlist.c:568
+#: src/gimv_elist.c:745 src/gimv_dlist.c:450
 msgid "Add"
 msgstr ""
 
-#: src/gimv_elist.c:878
+#: src/gimv_elist.c:749
 msgid "Change"
 msgstr ""
 
-#: src/gimv_elist.c:882 src/gimv_dlist.c:580
+#: src/gimv_elist.c:753 src/gimv_dlist.c:462
 msgid "Delete"
 msgstr ""
 
@@ -3874,51 +5023,51 @@ msgstr ""
 msgid "Post video plugin"
 msgstr ""
 
-#: src/dirview2.c:186
+#: src/dirview2.c:185
 msgid "/_Load Thumbnails"
 msgstr ""
 
-#: src/dirview2.c:187
+#: src/dirview2.c:186
 msgid "/Load Thumbnails Re_cursively"
 msgstr ""
 
-#: src/dirview2.c:188
+#: src/dirview2.c:187
 msgid "/Load Thumbnails Recursively in _One Tab"
 msgstr ""
 
-#: src/dirview2.c:190
+#: src/dirview2.c:189
 msgid "/_Go Here"
 msgstr ""
 
-#: src/dirview2.c:191
+#: src/dirview2.c:190
 msgid "/_Refresh Tree"
 msgstr ""
 
-#: src/dirview2.c:195
+#: src/dirview2.c:194
 msgid "/_Make Directory..."
 msgstr ""
 
-#: src/dirview2.c:196
+#: src/dirview2.c:195
 msgid "/Re_name Directory..."
 msgstr ""
 
-#: src/dirview2.c:197
+#: src/dirview2.c:196
 msgid "/_Delete Directory..."
 msgstr ""
 
-#: src/dirview2.c:1234 src/dirview2.c:1235
+#: src/dirview2.c:1257 src/dirview2.c:1258
 msgid "Home"
 msgstr ""
 
-#: src/dirview2.c:1252 src/dirview2.c:1253
+#: src/dirview2.c:1275 src/dirview2.c:1276
 msgid "Refresh"
 msgstr ""
 
-#: src/dirview2.c:1261
+#: src/dirview2.c:1284
 msgid "Dotfiles"
 msgstr ""
 
-#: src/dirview2.c:1262
+#: src/dirview2.c:1285
 msgid "Show/Hide dotfiles"
 msgstr ""
 
@@ -3926,15 +5075,15 @@ msgstr ""
 msgid "Can't open the plugin preference file for writing."
 msgstr ""
 
-#: src/gimv_gtk4_compat.h:185
+#: src/gimv_gtk4_compat.h:187
 msgid "_Apply"
 msgstr ""
 
-#: src/gimv_gtk4_compat.h:187
+#: src/gimv_gtk4_compat.h:189
 msgid "_Yes"
 msgstr ""
 
-#: src/gimv_gtk4_compat.h:188
+#: src/gimv_gtk4_compat.h:190
 msgid "_No"
 msgstr ""
 
@@ -3968,4 +5117,110 @@ msgstr ""
 
 #: plugins/image_view/image_view_gst.c:1127
 msgid "Cannot extract the file from the archive."
+msgstr ""
+
+#: src/gimv_index_search.c:145
+#, c-format
+msgid "Person: %s"
+msgstr ""
+
+#: src/gimv_index_search.c:149
+#, c-format
+msgid "not %s"
+msgstr ""
+
+#: src/gimv_index_search.c:364
+msgid "Period"
+msgstr ""
+
+#: src/gimv_index_search.c:365
+msgid "Search: "
+msgstr ""
+
+#: src/gimv_index_search.c:584
+msgid "Excluded: click to look for it again"
+msgstr ""
+
+#: src/gimv_index_search.c:585
+msgid "Click to exclude the images with it"
+msgstr ""
+
+#: src/gimv_index_search.c:588
+msgid "Remove the condition"
+msgstr ""
+
+#: src/gimv_index_search.c:705
+msgid "Exclude"
+msgstr ""
+
+#: src/gimv_index_search.c:708
+msgid "Look for the images without it"
+msgstr ""
+
+#: src/gimv_index_search.c:715
+msgid "Click: only the images with it"
+msgstr ""
+
+#: src/gimv_index_search.c:922
+msgid "Keep the Search"
+msgstr ""
+
+#: src/gimv_index_search.c:931
+msgid "Name of the search (the same name: replaced):"
+msgstr ""
+
+#: src/gimv_index_search.c:946
+msgid "_Keep"
+msgstr ""
+
+#: src/gimv_index_search.c:1034
+msgid "Search Images"
+msgstr ""
+
+#: src/gimv_index_search.c:1048
+msgid "(searches kept)"
+msgstr ""
+
+#: src/gimv_index_search.c:1051
+msgid "A search kept: its conditions again"
+msgstr ""
+
+#: src/gimv_index_search.c:1054
+msgid "_Keep..."
+msgstr ""
+
+#: src/gimv_index_search.c:1055
+msgid "Keep these conditions under a name"
+msgstr ""
+
+#: src/gimv_index_search.c:1059
+msgid "Forget the search kept"
+msgstr ""
+
+#: src/gimv_index_search.c:1065
+msgid "Images with all of these:"
+msgstr ""
+
+#: src/gimv_index_search.c:1069
+msgid "(none yet: click a tag below)"
+msgstr ""
+
+#: src/gimv_index_search.c:1088
+msgid "Taken from"
+msgstr ""
+
+#: src/gimv_index_search.c:1089
+msgid "to"
+msgstr ""
+
+#: src/gimv_index_search.c:1090
+msgid "The date taken: a year (2019), a month (2019-05) or a day (2019-05-03); empty: any"
+msgstr ""
+
+#: src/gimv_index_search.c:1102
+msgid "Tags of these images (click to narrow down):"
+msgstr ""
+
+#: src/gimv_index_search.c:1108
+msgid "A part of a tag or a name"
 msgstr ""

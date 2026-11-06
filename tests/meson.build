@@ -35,6 +35,14 @@ test('fileutil',
     dependencies : [glib_dep]),
   kwargs : test_kwargs)
 
+# src/gimv_bookmark.c (GLib only)
+test('bookmark',
+  executable('test-bookmark', 'test_bookmark.c',
+    objects : gimv_exe.extract_objects('gimv_bookmark.c'),
+    include_directories : test_inc,
+    dependencies : [glib_dep]),
+  kwargs : test_kwargs)
+
 # src/gimv_orient.c (gdk-pixbuf only)
 test('orient',
   executable('test-orient', 'test_orient.c',

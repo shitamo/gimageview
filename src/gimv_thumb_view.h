@@ -164,6 +164,12 @@ GList         *gimv_thumb_view_get_summary_mode_list
                                                   (void);
 
 GType        gimv_thumb_view_get_type           (void);
+/* object data: when set, the thumbnails stay in the order they were given
+ * in (not sorted) */
+#define GIMV_THUMB_VIEW_KEEP_ORDER "gimv-keep-order"
+
+/* the selected images bookmarked (the popover for the note) */
+void           gimv_thumb_view_bookmark_selection (GimvThumbView    *tv);
 gboolean       gimv_thumb_view_is_clearing        (GimvThumbView    *tv);
 GimvThumbView *gimv_thumb_view_new                (void);
 gboolean       gimv_thumb_view_set_widget         (GimvThumbView    *tv,

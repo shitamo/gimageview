@@ -13,6 +13,7 @@
  * (at your option) any later version.
  */
 
+#include "gimv_bookmark.h"
 #include "gimageview.h"
 
 #include <string.h>
@@ -477,6 +478,16 @@ handle_line (const gchar *line)
       gchar **t = g_strsplit (line, "\t", 3);
       if (g_strv_length (t) == 3)
          gimv_index_notice_missing (t[1], strtoul (t[2], NULL, 10));
+      g_strfreev (t);
+      return;
+   }
+
+   /* "renamed\t<old>\t<new>", "renamed-dir\t<old>\t<new>": any image or
+    * folder; the bookmarks go with them (the comments are asked: "moved") */
+   if (g_str_has_prefix (line, "renamed\t") || g_str_has_prefix (line, "renamed-dir\t")) {
+      gchar **t = g_strsplit (line, "\t", 3);
+      if (g_strv_length (t) == 3)
+         gimv_bookmark_move (t[1], t[2]);
       g_strfreev (t);
       return;
    }

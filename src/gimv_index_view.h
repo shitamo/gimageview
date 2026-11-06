@@ -18,6 +18,7 @@ typedef enum {
    GIMV_INDEX_TAB_DATE,
    GIMV_INDEX_TAB_TAG,
    GIMV_INDEX_TAB_PERSON,
+   GIMV_INDEX_TAB_BOOKMARK,   /* not of the index: any image (gimv_bookmark.c) */
 } GimvIndexTabType;
 
 /* open / close a tab (nothing happens when it is already so) */

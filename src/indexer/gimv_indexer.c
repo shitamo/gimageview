@@ -38,6 +38,9 @@
  *                           renamed by another program (the comment file
  *                           stays at the old place until gimv moves it)
  *   moved-dir\t<old>\t<new> the same for a directory with comment files
+ *   renamed\t<old>\t<new>   any image moved or renamed while watching (the
+ *                           bookmarks of gimv follow it)
+ *   renamed-dir\t<old>\t<new> the same for a directory
  *   missing-log\t<file>\t<n> images with comment files are missing: the
  *                           log of this run holds <n> of them now
  *   log-pruned <n>          <n> old logs were deleted (index_log_keep)
@@ -3158,6 +3161,7 @@ watch_file_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar
       sqlite3_step (st);
       sqlite3_finalize (st);
       ix->n_changed++;
+      report_move ("renamed", old, new);
 
       /* the comment file is still at the old place (gimv moves it itself
        * when gimv moved the image) */
@@ -3206,6 +3210,7 @@ watch_dir_moved (Indexer *ix, const gchar *croot, const gchar *old, const gchar 
 
    watch_rename_tree (ix, old, new);
    ix->n_changed++;
+   report_move ("renamed-dir", old, new);
 
    if (has_comment (croot, old, TRUE))
       report_move ("moved-dir", old, new);

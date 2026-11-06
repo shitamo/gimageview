@@ -37,6 +37,7 @@
 #include "gimv_thumb_view.h"
 #include "gimv_comment.h"
 #include "gimv_image_view.h"
+#include "gimv_bookmark_edit.h"
 #include "gimv_image_win.h"
 #include "gimv_nav_win.h"
 #include "gtk2-compat.h"
@@ -227,6 +228,9 @@ static void cb_toggle_scrollbar            (GimvImageView   *iv,
 static void cb_open_folder                 (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem    *widget);
+static void cb_bookmark            (GimvImageView     *iv,
+                                   guint              action,
+                                   GimvMenuItem      *widget);
 static void cb_copy_to_clipboard   (GimvImageView     *iv,
                                     guint              action,
                                     GimvMenuItem      *widget);
@@ -350,6 +354,8 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/Open the _Folder"),      NULL,         cb_open_folder,      0, NULL},
    {N_("/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
    {N_("/Edit Faces (_People)"),  "P",          cb_edit_faces,       0, NULL},
+   /* no key: one can be given in ~/.gimv/keyaccelrc */
+   {N_("/_Bookmark..."),          NULL,         cb_bookmark,         0, NULL},
    {N_("/Memory _Buffer"),        "<control>B", cb_toggle_buffer,    0, "<ToggleItem>"},
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
    {N_("/_Print..."),             NULL,         cb_print,            0, NULL},
@@ -1097,6 +1103,32 @@ static void
 cb_copy_to_clipboard (GimvImageView *iv, guint action, GimvMenuItem *widget)
 {
    gimv_image_view_copy_to_clipboard (iv);
+}
+
+
+static void
+cb_bookmark (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   gimv_image_view_bookmark (iv);
+}
+
+
+/* the image shown bookmarked, with the popover for the note at the top of
+ * the view */
+void
+gimv_image_view_bookmark (GimvImageView *iv)
+{
+   GList infos = { NULL, NULL, NULL }, *paths;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   if (!iv->info) return;
+   infos.data = iv->info;
+   paths = gimv_bookmark_paths_of_infos (&infos);
+   if (paths) {
+      GdkRectangle rect = { gtk_widget_get_width (GTK_WIDGET (iv)) / 2, 0, 1, 1 };
+      gimv_bookmark_edit (GTK_WIDGET (iv), &rect, paths);
+   }
+   g_list_free_full (paths, g_free);
 }
 
 

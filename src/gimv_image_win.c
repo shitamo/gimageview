@@ -156,6 +156,9 @@ static void     cb_ignore_alpha         (GimvImageWin *iv,
 static void     cb_toggle_menubar       (GimvImageWin *iw,
                                          guint         action,
                                          GimvMenuItem    *widget);
+static void     cb_bookmark           (GimvImageWin   *iw,
+                                       guint           action,
+                                       GimvMenuItem   *widget);
 static void     cb_copy_to_clipboard  (GimvImageWin   *iw,
                                        guint           action,
                                        GimvMenuItem   *widget);
@@ -311,6 +314,8 @@ GimvMenuEntry gimv_image_win_menu_items[] =
    {N_("/_Edit/Scan E_XIF Data..."),       NULL,       cb_exif,           0,  NULL},
    {N_("/_Edit/Create _Thumbnail"),      "<shift>T",   cb_create_thumb,   0,  NULL},
    {N_("/_Edit/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
+   /* no key: one can be given in ~/.gimv/keyaccelrc */
+   {N_("/_Edit/_Bookmark..."),           NULL,         cb_bookmark,       0,  NULL},
    {N_("/_Edit/---"),                    NULL,         NULL,              0,  "<Separator>"},
    {N_("/_Edit/_Options..."),            "<control>O", cb_options,        0,  NULL},
 
@@ -1362,6 +1367,13 @@ static void
 cb_copy_to_clipboard (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    if (iw->iv) gimv_image_view_copy_to_clipboard (iw->iv);
+}
+
+
+static void
+cb_bookmark (GimvImageWin *iw, guint action, GimvMenuItem *widget)
+{
+   if (iw->iv) gimv_image_view_bookmark (iw->iv);
 }
 
 

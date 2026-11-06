@@ -36,6 +36,7 @@
 #include "menu.h"
 #include "prefs.h"
 #include "gimv_index_view.h"
+#include "gimv_bookmark.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
 
@@ -51,6 +52,7 @@ typedef enum {
    KIND_GROUP,     /* the tags of a rule: "Folders", "Cameras", "Shape" */
    KIND_FACES,     /* people: a person, the guesses, a group of faces, ... */
    KIND_HEADER,    /* people: "Unnamed groups" */
+   KIND_BOOKMARK,  /* bookmarks: "Today", "2026-10", "With a note", ... */
 } RowKind;
 
 enum {
@@ -60,7 +62,7 @@ enum {
                     * a tag put by a rule starts with "," (a tag never
                     * has a comma), a group of them is ",folder/" */
    COL_COLOR,      /* the tags put by rules have a color of their own */
-   COL_TITLE,      /* people: the title of the result tab */
+   COL_TITLE,      /* people, bookmarks: the title of the result tab */
    N_COLS
 };
 
@@ -202,6 +204,7 @@ typedef struct {
    gboolean       click_open;  /* open_key () from a click on the tree */
    GtkWidget     *search_bar;  /* Ctrl+F: a row by its name */
    GtkWidget     *search_entry;
+   guint          bookmark_watch;
 } IndexView;
 
 
@@ -749,6 +752,179 @@ expand_row (IndexView *iv, GimvRow *row, gboolean expand)
 }
 
 
+/******************************************************************************
+ *  bookmarks: not of the index, from gimv_bookmark.c (read at once)
+ ******************************************************************************/
+
+/* the period a bookmark was added in: "today", "yesterday", "week" (2 to 6
+ * days ago), else "month/YYYY-MM" */
+static gchar *
+bookmark_period (const GimvBookmark *bm, GDateTime *today)
+{
+   GDateTime *t = g_date_time_new_from_unix_local (bm->added);
+   gint64 diff;
+   gchar *key;
+
+   if (!t) return g_strdup ("month/0000-00");
+   diff = g_date_time_difference (today, t);   /* today 00:00 - added */
+   if (diff <= 0)
+      key = g_strdup ("today");
+   else if (diff <= G_TIME_SPAN_DAY)
+      key = g_strdup ("yesterday");
+   else if (diff <= 6 * G_TIME_SPAN_DAY)
+      key = g_strdup ("week");
+   else
+      key = g_date_time_format (t, "month/%Y-%m");
+   g_date_time_unref (t);
+   return key;
+}
+
+
+static GDateTime *
+today_start (void)
+{
+   GDateTime *now = g_date_time_new_now_local (), *today;
+
+   today = g_date_time_new_local (g_date_time_get_year (now), g_date_time_get_month (now),
+                                  g_date_time_get_day_of_month (now), 0, 0, 0);
+   g_date_time_unref (now);
+   return today;
+}
+
+
+/* does the bookmark go into the row of key? */
+static gboolean
+bookmark_in (const GimvBookmark *bm, const gchar *key, GDateTime *today)
+{
+   gboolean in;
+   gchar *period;
+
+   if (!strcmp (key, "all"))    return TRUE;
+   if (!strcmp (key, "note"))   return bm->note != NULL;
+   if (!strcmp (key, "nonote")) return bm->note == NULL;
+   period = bookmark_period (bm, today);
+   in = !strcmp (period, key);
+   g_free (period);
+   return in;
+}
+
+
+static void
+bookmark_row (GimvRow *root, const gchar *label, const gchar *key, gint count)
+{
+   gchar *text = g_strdup_printf ("%s (%'d)", label, count);
+   row_new (root, text, KIND_BOOKMARK, key, NULL, label);
+   g_free (text);
+}
+
+
+static void
+build_bookmark_list (IndexView *iv, GimvRow *root)
+{
+   GPtrArray *bms = gimv_bookmark_list ();
+   GDateTime *today = today_start ();
+   GHashTable *counts = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   GPtrArray *months = g_ptr_array_new ();   /* the keys, newest first */
+   gint note = 0, missing = 0, all = 0;
+   guint i;
+
+   for (i = 0; i < bms->len; i++) {
+      GimvBookmark *bm = g_ptr_array_index (bms, i);
+      gchar *period;
+      gint n;
+
+      /* not there (moved by hand, a disk not mounted): counted apart, the
+       * rows count what they open */
+      if (!g_file_test (bm->path, G_FILE_TEST_IS_REGULAR)) {
+         missing++;
+         continue;
+      }
+      all++;
+      period = bookmark_period (bm, today);
+      n = GPOINTER_TO_INT (g_hash_table_lookup (counts, period));
+
+      if (!n && g_str_has_prefix (period, "month/"))
+         g_ptr_array_add (months, period);   /* the table keeps it */
+      g_hash_table_insert (counts, period, GINT_TO_POINTER (n + 1));
+      if (bm->note) note++;
+   }
+
+   bookmark_row (root, _("All"), "all", all);
+   {
+      static const struct { const gchar *key, *label; } periods[] = {
+         { "today", N_("Today") }, { "yesterday", N_("Yesterday") },
+         { "week",  N_("This Week") },
+      };
+      for (i = 0; i < G_N_ELEMENTS (periods); i++) {
+         gint n = GPOINTER_TO_INT (g_hash_table_lookup (counts, periods[i].key));
+         if (n) bookmark_row (root, _(periods[i].label), periods[i].key, n);
+      }
+   }
+   for (i = 0; i < months->len; i++) {
+      const gchar *key = g_ptr_array_index (months, i);
+      gint y = 0, m = 0;
+      gchar *label;
+
+      if (sscanf (key, "month/%d-%d", &y, &m) == 2 && m >= 1 && m <= 12) {
+         GDateTime *t = g_date_time_new_local (y, m, 1, 0, 0, 0);
+         /* TRANSLATORS: a month of the bookmarks tab (g_date_time_format) */
+         label = t ? g_date_time_format (t, _("%B %Y")) : g_strdup (key + 6);
+         if (t) g_date_time_unref (t);
+      } else {
+         label = g_strdup (key + 6);
+      }
+      bookmark_row (root, label, key, GPOINTER_TO_INT (g_hash_table_lookup (counts, key)));
+      g_free (label);
+   }
+   if (all) {
+      bookmark_row (root, _("With a Note"), "note", note);
+      bookmark_row (root, _("Without a Note"), "nonote", all - note);
+   }
+   if (missing) {
+      /* shown, not opened (there is nothing to show) */
+      gchar *text = g_strdup_printf ("%s (%'d)", _("Not Found"), missing);
+      row_new (root, text, KIND_HEADER, "missing", NULL, NULL);
+      g_free (text);
+   }
+
+   g_ptr_array_unref (months);
+   g_hash_table_unref (counts);
+   g_date_time_unref (today);
+   g_ptr_array_unref (bms);
+}
+
+
+/* the images of a row, newest first (those not there any more left out) */
+static FileList *
+bookmark_files (const gchar *key)
+{
+   GPtrArray *bms = gimv_bookmark_list ();
+   GDateTime *today = today_start ();
+   FileList *fl = g_new0 (FileList, 1);
+   GList *list = NULL;
+   guint i;
+
+   for (i = 0; i < bms->len; i++) {
+      GimvBookmark *bm = g_ptr_array_index (bms, i);
+      if (bookmark_in (bm, key, today) && g_file_test (bm->path, G_FILE_TEST_IS_REGULAR))
+         list = g_list_prepend (list, g_strdup (bm->path));
+   }
+   fl->paths = g_list_reverse (list);
+   g_date_time_unref (today);
+   g_ptr_array_unref (bms);
+   return fl;
+}
+
+
+static void start_count (IndexView *iv);
+
+static void
+cb_bookmarks_changed (gpointer data)
+{
+   start_count (data);
+}
+
+
 /* rebuild the tree from new counts and open again what was open;
  * result: a GArray of DayCount or a GPtrArray of TagCount */
 static void
@@ -784,6 +960,8 @@ refill (IndexView *iv, gpointer result)
 
       if (iv->type == GIMV_INDEX_TAB_TAG)
          build_tag_list (iv, tmp, result);
+      else if (iv->type == GIMV_INDEX_TAB_BOOKMARK)
+         build_bookmark_list (iv, tmp);
       else if (iv->type == GIMV_INDEX_TAB_PERSON)
          build_people_list (iv, tmp, result);
       else
@@ -861,6 +1039,11 @@ start_count (IndexView *iv)
    /* not while a tag is renamed in the tree: the row would go */
    if (iv->counting || iv->editing_key) {
       iv->count_again = TRUE;
+      return;
+   }
+   /* a few hundred lines of a file of their own: at once */
+   if (iv->type == GIMV_INDEX_TAB_BOOKMARK) {
+      refill (iv, NULL);
       return;
    }
    iv->counting = TRUE;
@@ -956,6 +1139,9 @@ open_files (IndexView *iv, OpenRequest *req, FileList *fl)
          set_result_tab (iv, tv);
    }
    g_object_set_data (G_OBJECT (tv), NAME_ONLY_KEY, GINT_TO_POINTER (TRUE));
+   /* bookmarks: newest first (the others: the sort of the window) */
+   g_object_set_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER,
+                      GINT_TO_POINTER (req->type == GIMV_INDEX_TAB_BOOKMARK));
    /* tens of thousands of images: keep only the thumbnails near the
     * visible part */
    gimv_thumb_view_set_windowed (tv, TRUE);
@@ -968,6 +1154,8 @@ open_files (IndexView *iv, OpenRequest *req, FileList *fl)
 
    if (req->type == GIMV_INDEX_TAB_PERSON)
       title = g_strdup_printf (_("%s (People)"), req->title ? req->title : req->key);
+   else if (req->type == GIMV_INDEX_TAB_BOOKMARK)
+      title = g_strdup_printf (_("%s (Bookmarks)"), req->title ? req->title : req->key);
    else if (req->type == GIMV_INDEX_TAB_TAG)
       title = tag_title (req->key);
    else
@@ -1003,7 +1191,7 @@ row_title (IndexView *iv, const gchar *key)
 {
    GimvRow *row;
 
-   if (iv->type != GIMV_INDEX_TAB_PERSON) return NULL;
+   if (iv->type != GIMV_INDEX_TAB_PERSON && iv->type != GIMV_INDEX_TAB_BOOKMARK) return NULL;
    row = find_key (iv->root, key);
    return row ? g_strdup (gimv_row_peek_string (row, COL_TITLE)) : NULL;
 }
@@ -1039,6 +1227,12 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
    req->new_tab = new_tab;
    req->keep_focus = iv->click_open;
 
+   if (iv->type == GIMV_INDEX_TAB_BOOKMARK) {
+      open_files (iv, req, bookmark_files (key));
+      open_request_free (req);
+      return;
+   }
+
    iv->listing = TRUE;
    task = g_task_new (NULL, iv->cancel, cb_listed, iv);
    g_task_set_task_data (task, req, (GDestroyNotify) open_request_free);
@@ -1058,7 +1252,7 @@ row_key (GimvRow *row)
    kind = gimv_row_peek_int (row, COL_KIND);
    key = gimv_row_peek_string (row, COL_KEY);
    if (key && (kind == KIND_YEAR || kind == KIND_MONTH || kind == KIND_DAY
-               || kind == KIND_TAG || kind == KIND_FACES))
+               || kind == KIND_TAG || kind == KIND_FACES || kind == KIND_BOOKMARK))
       return g_strdup (key);
    return NULL;
 }
@@ -1904,6 +2098,7 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
    g_cancellable_cancel (iv->cancel);
    g_clear_object (&iv->cancel);
    if (iv->watch_id) gimv_index_remove_watch (iv->watch_id);
+   if (iv->bookmark_watch) gimv_bookmark_remove_watch (iv->bookmark_watch);
    if (iv->open_id) g_source_remove (iv->open_id);
    if (iv->rename_id) g_source_remove (iv->rename_id);
    if (iv->popover) gtk_widget_unparent (iv->popover);
@@ -1926,6 +2121,7 @@ tab_title (GimvIndexTabType type)
    switch (type) {
    case GIMV_INDEX_TAB_TAG:    return _("Tag");
    case GIMV_INDEX_TAB_PERSON: return _("People");
+   case GIMV_INDEX_TAB_BOOKMARK: return _("Bookmarks");
    default:                    return _("Date");
    }
 }
@@ -1938,6 +2134,7 @@ tab_icon (GimvIndexTabType type)
    switch (type) {
    case GIMV_INDEX_TAB_TAG:    return "tag-symbolic";
    case GIMV_INDEX_TAB_PERSON: return "avatar-default-symbolic";
+   case GIMV_INDEX_TAB_BOOKMARK: return "starred-symbolic";
    default:                    return "x-office-calendar-symbolic";
    }
 }
@@ -2051,7 +2248,13 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    g_object_unref (group);
 
    g_signal_connect (iv->scroll, "destroy", G_CALLBACK (cb_destroy), iv);
-   iv->watch_id = gimv_index_add_watch (cb_index_changed, iv);
+   if (type == GIMV_INDEX_TAB_BOOKMARK) {
+      iv->bookmark_watch = gimv_bookmark_add_watch (cb_bookmarks_changed, iv);
+      /* "Today" is another day when the tab is shown again */
+      g_signal_connect_swapped (iv->scroll, "map", G_CALLBACK (start_count), iv);
+   } else {
+      iv->watch_id = gimv_index_add_watch (cb_index_changed, iv);
+   }
    start_count (iv);
 
    /* Ctrl+F: a search entry above the tree (GTK's own typing search is
@@ -2091,7 +2294,7 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
  ******************************************************************************/
 
 static const gchar *tab_keys[] = { "gimv-index-date-tab", "gimv-index-tag-tab",
-                                   "gimv-index-person-tab" };
+                                   "gimv-index-person-tab", "gimv-index-bookmark-tab" };
 
 
 GtkWidget *
@@ -2183,6 +2386,8 @@ gimv_index_tabs_sync (GimvThumbWin *tw)
       gimv_index_tab_open (tw, GIMV_INDEX_TAB_PERSON);
    else
       gimv_index_tab_close (tw, GIMV_INDEX_TAB_PERSON);
+   /* any image can have one: with the index or not */
+   gimv_index_tab_open (tw, GIMV_INDEX_TAB_BOOKMARK);
 }
 
 
