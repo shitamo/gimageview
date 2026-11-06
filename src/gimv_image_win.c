@@ -316,12 +316,12 @@ GimvMenuEntry gimv_image_win_menu_items[] =
    {N_("/_Edit/Edit _Comment..."),       NULL,         cb_edit_comment,   0,  NULL},
    {N_("/_Edit/Scan E_XIF Data..."),       NULL,       cb_exif,           0,  NULL},
 #ifdef ENABLE_INDEX
-   {N_("/_Edit/Edit _Tags..."),          NULL,         cb_edit_tags,      0,  NULL},
+   {N_("/_Edit/Edit Ta_gs..."),          NULL,         cb_edit_tags,      0,  NULL},
 #endif
    {N_("/_Edit/Create _Thumbnail"),      "<shift>T",   cb_create_thumb,   0,  NULL},
    {N_("/_Edit/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
    /* no key: one can be given in ~/.gimv/keyaccelrc */
-   {N_("/_Edit/_Bookmark..."),           NULL,         cb_bookmark,       0,  NULL},
+   {N_("/_Edit/Boo_kmark..."),           NULL,         cb_bookmark,       0,  NULL},
    {N_("/_Edit/---"),                    NULL,         NULL,              0,  "<Separator>"},
    {N_("/_Edit/_Options..."),            "<control>O", cb_options,        0,  NULL},
 
@@ -342,24 +342,24 @@ GimvMenuEntry gimv_image_win_view_items [] =
    {N_("/tear"),          NULL,        NULL,                 0,  "<Tearoff>"},
    {N_("/_Zoom"),         NULL,        NULL,                 0,  "<Branch>"},
    {N_("/_Rotate"),       NULL,        NULL,                 0,  "<Branch>"},
-   {N_("/Ignore _Alpha Channel"), NULL,cb_ignore_alpha,      0,  "<ToggleItem>"},
+   {N_("/Ignore Alp_ha Channel"), NULL,cb_ignore_alpha,      0,  "<ToggleItem>"},
    {N_("/_Checkerboard Behind Transparency"), NULL, cb_alpha_checker, 0, "<ToggleItem>"},
    {N_("/Edit Faces (_People)"), "P",  cb_edit_faces,        0,  NULL},
    /* also in the right button menu of the image (this menu) */
 #ifdef ENABLE_INDEX
-   {N_("/Edit _Tags..."),  NULL,       cb_edit_tags,         0,  NULL},
+   {N_("/Edit Ta_gs..."),  NULL,       cb_edit_tags,         0,  NULL},
 #endif
-   {N_("/_Bookmark..."),   NULL,       cb_bookmark,          0,  NULL},
+   {N_("/Boo_kmark..."),   NULL,       cb_bookmark,          0,  NULL},
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},
    {N_("/_Menubar"),     "M",         cb_toggle_menubar,    0,  "<ToggleItem>"},
    {N_("/_Toolbar"),     "N",         cb_toggle_toolbar,    0,  "<ToggleItem>"},
-   {N_("/Slideshow _Player"), "<shift>N", cb_toggle_player,     0,  "<ToggleItem>"},
+   {N_("/S_lideshow Player"), "<shift>N", cb_toggle_player,     0,  "<ToggleItem>"},
    {N_("/St_atusbar"),   "V",         cb_toggle_statusbar,  0,  "<ToggleItem>"},
    {N_("/_Scrollbar"),   "<shift>S",  cb_toggle_scrollbar,  0,  "<ToggleItem>"},
-   {N_("/_Player"),       NULL,        NULL,                 0,              "<Branch>"},  
-   {N_("/_Player/_Show"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleShow, "<RadioItem>"},  
-   {N_("/_Player/_Hide"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleHide, "/Player/Show"},  
-   {N_("/_Player/_Auto"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleAuto, "/Player/Hide"},  
+   {N_("/Pla_yer"),       NULL,        NULL,                 0,              "<Branch>"},  
+   {N_("/Pla_yer/_Show"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleShow, "<RadioItem>"},  
+   {N_("/Pla_yer/_Hide"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleHide, "/Player/Show"},  
+   {N_("/Pla_yer/_Auto"), NULL,        cb_switch_player,     GimvImageViewPlayerVisibleAuto, "/Player/Hide"},  
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},
    {N_("/_View Modes"),   NULL,        NULL,                 0, "<Branch>"},
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},

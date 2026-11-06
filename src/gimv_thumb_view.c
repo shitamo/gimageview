@@ -223,22 +223,22 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/Open in New _Window"),       NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_NEW_WIN,     NULL},
    {N_("/Open in S_hared Window"),    NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_SHARED_WIN,  NULL},
    {N_("/Open the _Folder"),          NULL,  cb_open_folder,   0,           NULL},
-   {N_("/Open in E_xternal Program"), NULL,  NULL,             0,           "<Branch>"},
+   {N_("/Open in Ex_ternal Program"), NULL,  NULL,             0,           "<Branch>"},
    {N_("/_Scripts"),                  NULL,  NULL,             0,           "<Branch>"},
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
    {N_("/_Update Thumbnail"),         NULL,  cb_recreate_thumbnail,  0,     NULL},
    {N_("/Remo_ve from List"),         NULL,  cb_remove_thumbnail,    0,     NULL},
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
-   {N_("/_Print..."),                 NULL,  cb_print,         0,           NULL},
+   {N_("/Pr_int..."),                 NULL,  cb_print,         0,           NULL},
    {N_("/_Properties..."),              NULL,  cb_file_property, 0,           NULL},
 #ifdef ENABLE_EXIF
    {N_("/Scan E_XIF Data..."),        NULL,  cb_exif,          0,           NULL},
 #endif
    {N_("/_Edit Comment..."),          NULL,  cb_edit_comment,  0,           NULL},
 #ifdef ENABLE_INDEX
-   {N_("/Edit _Tags..."),             NULL,  cb_edit_tags,     0,           NULL},
+   {N_("/Edit Ta_gs..."),             NULL,  cb_edit_tags,     0,           NULL},
 #endif
-   {N_("/_Bookmark..."),              NULL,  cb_bookmark,      0,           NULL},
+   {N_("/Boo_kmark..."),              NULL,  cb_bookmark,      0,           NULL},
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
    {N_("/Re_name..."),                NULL,  cb_rename_file,   0,           NULL},
    {N_("/_Copy Files To..."),         NULL,  cb_file_operate,  FILE_COPY,   NULL},

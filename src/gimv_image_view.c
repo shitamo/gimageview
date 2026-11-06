@@ -348,7 +348,7 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/tear"),                  NULL,         NULL,                0, "<Tearoff>"},
    {N_("/_Zoom"),                 NULL,         NULL,                0, "<Branch>"},
    {N_("/_Rotate"),               NULL,         NULL,                0, "<Branch>"},
-   {N_("/Ignore _Alpha Channel"), NULL,         cb_ignore_alpha,     0, "<ToggleItem>"},
+   {N_("/Ignore Alp_ha Channel"), NULL,         cb_ignore_alpha,     0, "<ToggleItem>"},
    {N_("/_Checkerboard Behind Transparency"), NULL, cb_alpha_checker, 0, "<ToggleItem>"},
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
    {N_("/M_ovie"),                NULL,         NULL,                0, "<Branch>"},
@@ -361,13 +361,13 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
    {N_("/Edit Faces (_People)"),  "P",          cb_edit_faces,       0, NULL},
 #ifdef ENABLE_INDEX
-   {N_("/Edit _Tags..."),         NULL,         cb_edit_tags,        0, NULL},
+   {N_("/Edit Ta_gs..."),         NULL,         cb_edit_tags,        0, NULL},
 #endif
    /* no key: one can be given in ~/.gimv/keyaccelrc */
-   {N_("/_Bookmark..."),          NULL,         cb_bookmark,         0, NULL},
+   {N_("/Boo_kmark..."),          NULL,         cb_bookmark,         0, NULL},
    {N_("/Memory _Buffer"),        "<control>B", cb_toggle_buffer,    0, "<ToggleItem>"},
    {N_("/---"),                   NULL,         NULL,                0, "<Separator>"},
-   {N_("/_Print..."),             NULL,         cb_print,            0, NULL},
+   {N_("/Pr_int..."),             NULL,         cb_print,            0, NULL},
    {NULL, NULL, NULL, 0, NULL},
 };
 

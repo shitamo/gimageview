@@ -455,9 +455,9 @@ GimvMenuEntry gimv_thumb_win_menu_items[] =
    {N_("/_Edit/---"),                   NULL,         NULL,             0,            "<Separator>"},
    /* no key: one can be given in ~/.gimv/keyaccelrc */
 #ifdef ENABLE_INDEX
-   {N_("/_Edit/Edit _Tags..."),         NULL,         cb_edit_tags,     0,            NULL},
+   {N_("/_Edit/Edit Ta_gs..."),         NULL,         cb_edit_tags,     0,            NULL},
 #endif
-   {N_("/_Edit/_Bookmark..."),          NULL,         cb_bookmark,      0,            NULL},
+   {N_("/_Edit/Boo_kmark..."),          NULL,         cb_bookmark,      0,            NULL},
    {N_("/_Edit/---"),                   NULL,         NULL,             0,            "<Separator>"},
    {N_("/_Edit/_Options..."),           "<control>O", cb_open,          OPEN_PREFS,   NULL},
 
