@@ -6313,3 +6313,45 @@ msgstr "人物の名前 (person/...) は顔に付けます。顔の一覧ウィ�
 #, c-format
 msgid "People: %s (named in the faces window or the faces panel; they are kept)"
 msgstr "人物: %s (顔の一覧ウィンドウ・顔パネルで付けた名前。ここでは変わりません)"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Tags of %s"
+msgstr "%s のタグ"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Tags of %u images"
+msgstr "%u 枚の画像のタグ"
+
+#: src/gimv_index_tags.c
+msgid "No tags"
+msgstr "タグはありません"
+
+#: src/gimv_index_tags.c
+msgid "A tag to add, Enter (several: separated by commas)"
+msgstr "付けるタグを入力して Enter (複数はカンマ区切り)"
+
+#: src/gimv_index_tags.c
+msgid "Tags in use: click to add"
+msgstr "使われているタグ: クリックで付けます"
+
+#: src/gimv_index_tags.c
+msgid "Only some of the images have it: click to put it on all of them"
+msgstr "一部の画像だけに付いています: クリックで全部に付けます"
+
+#: src/gimv_index_tags.c
+msgid "Take the tag away"
+msgstr "タグを外す"
+
+#: src/gimv_index_tags.c
+msgid "Take the tag away from all of them"
+msgstr "全部の画像からタグを外す"
+
+#: src/gimv_index_tags.c
+msgid "Names are given to the faces (the faces window, or the faces panel (P) of the image); they are kept here."
+msgstr "名前は顔に付けます (顔の一覧ウィンドウか、画像の顔パネル (P))。ここでは変わりません。"
+
+#: src/gimv_index_tags.c
+msgid "Tags in Use"
+msgstr "使われているタグ (クリックで付けます)"

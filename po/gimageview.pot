@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GImageView\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 18:16+0900\n"
+"POT-Creation-Date: 2026-11-06 19:22+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -182,7 +182,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/exif_view.c:226 src/gimv_index_view.c:2106
+#: src/exif_view.c:226 src/gimv_index_view.c:2122
 msgid "Tag"
 msgstr ""
 
@@ -604,7 +604,7 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
-#: src/gimv_comment.c:76 src/gimv_index_view.c:2109
+#: src/gimv_comment.c:76 src/gimv_index_view.c:2125
 msgid "Date"
 msgstr ""
 
@@ -640,15 +640,15 @@ msgstr ""
 msgid "Image Size"
 msgstr ""
 
-#: src/gimv_comment.c:418
+#: src/gimv_comment.c:424
 msgid "Can't open comment file for read."
 msgstr ""
 
-#: src/gimv_comment.c:848 plugins/thumbnail/gimv_thumb.c:263
+#: src/gimv_comment.c:854 plugins/thumbnail/gimv_thumb.c:263
 msgid "Cannot create the directory\n"
 msgstr ""
 
-#: src/gimv_comment.c:854
+#: src/gimv_comment.c:860
 msgid "Can't open comment file for write."
 msgstr ""
 
@@ -1106,7 +1106,7 @@ msgid "180 degrees"
 msgstr ""
 
 #: src/gimv_image_win.c:885 src/gimv_thumb_win.c:2221
-#: src/gimv_index_view.c:1414 src/gimv_index_newimg.c:240
+#: src/gimv_index_view.c:1430 src/gimv_index_newimg.c:240
 msgid "Open"
 msgstr ""
 
@@ -2292,155 +2292,193 @@ msgstr ""
 msgid "Names of People"
 msgstr ""
 
-#: src/gimv_index_view.c:842 src/gtk_prop.c:224
+#: src/gimv_index_view.c:852 src/gtk_prop.c:224
 msgid "All"
 msgstr ""
 
-#: src/gimv_index_view.c:845
+#: src/gimv_index_view.c:855
 msgid "Today"
 msgstr ""
 
-#: src/gimv_index_view.c:845
+#: src/gimv_index_view.c:855
 msgid "Yesterday"
 msgstr ""
 
-#: src/gimv_index_view.c:846
+#: src/gimv_index_view.c:856
 msgid "This Week"
 msgstr ""
 
-#: src/gimv_index_view.c:861
+#: src/gimv_index_view.c:871
 msgid "%B %Y"
 msgstr ""
 
-#: src/gimv_index_view.c:870
+#: src/gimv_index_view.c:880
 msgid "With a Note"
 msgstr ""
 
-#: src/gimv_index_view.c:871
+#: src/gimv_index_view.c:881
 msgid "Without a Note"
 msgstr ""
 
-#: src/gimv_index_view.c:1140
+#: src/gimv_index_view.c:885
+msgid "Not Found"
+msgstr ""
+
+#: src/gimv_index_view.c:1156
 #, c-format
 msgid "%s (People)"
 msgstr ""
 
-#: src/gimv_index_view.c:1142
+#: src/gimv_index_view.c:1158
 #, c-format
 msgid "%s (Bookmarks)"
 msgstr ""
 
-#: src/gimv_index_view.c:1146
+#: src/gimv_index_view.c:1162
 #, c-format
 msgid "%s (Date)"
 msgstr ""
 
-#: src/gimv_index_view.c:1415
+#: src/gimv_index_view.c:1431
 msgid "Open in New Tab"
 msgstr ""
 
-#: src/gimv_index_view.c:1417
+#: src/gimv_index_view.c:1433
 msgid "Show the Faces..."
 msgstr ""
 
-#: src/gimv_index_view.c:1419
+#: src/gimv_index_view.c:1435
 msgid "Rename... (F2)"
 msgstr ""
 
-#: src/gimv_index_view.c:1421
+#: src/gimv_index_view.c:1437
 msgid "Do Not Make This Folder Name a Tag"
 msgstr ""
 
-#: src/gimv_index_view.c:1643
+#: src/gimv_index_view.c:1659
 msgid "The tag could not be renamed."
 msgstr ""
 
-#: src/gimv_index_view.c:1669
+#: src/gimv_index_view.c:1685
 msgid "The tag cannot be renamed now."
 msgstr ""
 
-#: src/gimv_index_view.c:1670
+#: src/gimv_index_view.c:1686
 msgid "The indexer does not run (the index is off, or another GImageView makes it)."
 msgstr ""
 
-#: src/gimv_index_view.c:1724
+#: src/gimv_index_view.c:1740
 msgid "A tag cannot have a tab or a new line in it."
 msgstr ""
 
-#: src/gimv_index_view.c:1730 src/gimv_index_view.c:1765
+#: src/gimv_index_view.c:1746 src/gimv_index_view.c:1781
 #, c-format
 msgid "The tag \"%s\" is there already."
 msgstr ""
 
-#: src/gimv_index_view.c:1732 src/gimv_index_view.c:1766
-#: src/gimv_index_tags.c:296 src/gimv_index_faces_win.c:839
+#: src/gimv_index_view.c:1748 src/gimv_index_view.c:1782
+#: src/gimv_index_tags.c:668 src/gimv_index_faces_win.c:839
 #: src/gimv_index_faces_win.c:998 src/gimv_index_faces_win.c:1237
 #: src/gimv_index_faces_win.c:1481 src/gimv_index_faces_win.c:1524
 #: src/gimv_gtk4_compat.h:186 src/gimv_index_search.c:943
 msgid "_Cancel"
 msgstr ""
 
-#: src/gimv_index_view.c:1732 src/gimv_index_view.c:1766
+#: src/gimv_index_view.c:1748 src/gimv_index_view.c:1782
 msgid "_Merge Them"
 msgstr ""
 
-#: src/gimv_index_view.c:1733
+#: src/gimv_index_view.c:1749
 #, c-format
 msgid "The people with \"%s\" get \"%s\" instead, and \"%s\" goes."
 msgstr ""
 
-#: src/gimv_index_view.c:1759
+#: src/gimv_index_view.c:1775
 msgid "A tag cannot have a comma in it."
 msgstr ""
 
-#: src/gimv_index_view.c:1761
+#: src/gimv_index_view.c:1777
 msgid "Tags starting with \"person/\" are the names of faces."
 msgstr ""
 
-#: src/gimv_index_view.c:1762
+#: src/gimv_index_view.c:1778
 msgid "They are written by GImageView from the names given in the faces window."
 msgstr ""
 
-#: src/gimv_index_view.c:1767
+#: src/gimv_index_view.c:1783
 #, c-format
 msgid "The images with \"%s\" get \"%s\" instead, and \"%s\" goes."
 msgstr ""
 
-#: src/gimv_index_view.c:2107 src/gimv_index_search.c:608
+#: src/gimv_index_view.c:2123 src/gimv_index_tags.c:620
+#: src/gimv_index_search.c:608
 msgid "People"
 msgstr ""
 
-#: src/gimv_index_view.c:2108
+#: src/gimv_index_view.c:2124
 msgid "Bookmarks"
 msgstr ""
 
-#: src/gimv_index_tags.c:162
+#: src/gimv_index_tags.c:202
+msgid "The names of people (person/...) are given to the faces, in the faces window or the faces panel (P) of the image."
+msgstr ""
+
+#: src/gimv_index_tags.c:262
 msgid "Too many tags: a comment line holds up to 4096 bytes."
 msgstr ""
 
-#: src/gimv_index_tags.c:240
+#: src/gimv_index_tags.c:347
+msgid "Only some of the images have it: click to put it on all of them"
+msgstr ""
+
+#: src/gimv_index_tags.c:350
+msgid "Take the tag away"
+msgstr ""
+
+#: src/gimv_index_tags.c:351
+msgid "Take the tag away from all of them"
+msgstr ""
+
+#: src/gimv_index_tags.c:564
 msgid "Edit Tags"
 msgstr ""
 
-#: src/gimv_index_tags.c:256
+#: src/gimv_index_tags.c:585
 #, c-format
-msgid "Tags of %s (separated by commas):"
+msgid "Tags of %s"
 msgstr ""
 
-#: src/gimv_index_tags.c:259
+#: src/gimv_index_tags.c:588
 #, c-format
-msgid "Tags of %u images (separated by commas):"
+msgid "Tags of %u images"
 msgstr ""
 
-#: src/gimv_index_tags.c:271
-msgid "e.g. travel/Kyoto, cat"
+#: src/gimv_index_tags.c:599
+msgid "A tag to add, Enter (several: separated by commas)"
 msgstr ""
 
-#: src/gimv_index_tags.c:276
-msgid "Only the tags all of them have are shown. The tags only some of them have are kept."
+#: src/gimv_index_tags.c:605 src/gimv_index_missing.c:613
+#: src/gimv_index_search.c:607
+msgid "Tags"
 msgstr ""
 
-#: src/gimv_index_tags.c:300 src/gimv_index_faces_win.c:1238
+#: src/gimv_index_tags.c:611
+msgid "No tags"
+msgstr ""
+
+#: src/gimv_index_tags.c:630
+msgid "Names are given to the faces (the faces window, or the faces panel (P) of the image); they are kept here."
+msgstr ""
+
+#: src/gimv_index_tags.c:644
+msgid "Tags in use: click to add"
+msgstr ""
+
+#: src/gimv_index_tags.c:652
+msgid "Tags in Use"
+msgstr ""
+
+#: src/gimv_index_tags.c:672 src/gimv_index_faces_win.c:1238
 #: src/gimv_index_faces_win.c:1482 src/gtkutils.c:1243
 #: src/gimv_gtk4_compat.h:185
 msgid "_OK"
@@ -2557,10 +2595,6 @@ msgstr ""
 
 #: src/gimv_index_missing.c:612
 msgid "Last Seen"
-msgstr ""
-
-#: src/gimv_index_missing.c:613 src/gimv_index_search.c:607
-msgid "Tags"
 msgstr ""
 
 #: src/gimv_index_missing.c:614

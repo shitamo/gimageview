@@ -256,6 +256,12 @@ gimv_comment_text_to_internal (const gchar *src)
 {
    if (!strchr (src, '\033') && g_utf8_validate (src, -1, NULL))
       return g_strdup (src);
+   /* ISO-2022-JP is known by its escapes, whatever the charset set now
+    * (written in a Japanese locale, read in another) */
+   if (strstr (src, "\033$B") || strstr (src, "\033$@") || strstr (src, "\033(J")) {
+      gchar *text = g_convert (src, -1, "UTF-8", "ISO-2022-JP", NULL, NULL, NULL);
+      if (text) return text;
+   }
    return charset_to_internal (src, get_file_charset (),
                                conf.charset_auto_detect_fn,
                                conf.comment_charset_read_mode);
