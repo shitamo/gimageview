@@ -97,6 +97,34 @@ label_new (const char *text, GtkJustification j_type)
 }
 
 
+/* a value: may be selected (copied); a long one is cut at width_chars,
+ * the whole of it in the tooltip, so the dialog stays on the screen */
+static GtkWidget *
+value_new (const char *text, gint width_chars, PangoEllipsizeMode mode)
+{
+   GtkWidget *label = label_new (text, GTK_JUSTIFY_LEFT);
+
+   gtk_label_set_selectable (GTK_LABEL (label), TRUE);
+   if (text && g_utf8_strlen (text, -1) > width_chars) {
+      gtk_label_set_ellipsize (GTK_LABEL (label), mode);
+      gtk_label_set_max_width_chars (GTK_LABEL (label), width_chars);
+      gtk_label_set_width_chars (GTK_LABEL (label), width_chars);
+      gtk_widget_set_tooltip_text (label, text);
+   }
+   gtk_widget_set_hexpand (label, TRUE);
+   return label;
+}
+
+
+static void
+cb_copy_path (GtkButton *button, gpointer data)
+{
+   const gchar *path = data;
+   gdk_clipboard_set_text (gtk_widget_get_clipboard (GTK_WIDGET (button)), path);
+   gtk_button_set_label (button, _("Copied"));
+}
+
+
 /*
  */
 static void
@@ -180,11 +208,7 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
    char buf[PATH_MAX + 1];
    GList *g_user = NULL;
    GList *g_group = NULL, *g_tmp;
-   int n, len;
-#ifndef LINE_MAX
-#define LINE_MAX	1024
-#endif
-   char line[LINE_MAX + 1];
+   int n;
 
 
    dl.result = 0;
@@ -249,53 +273,40 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
                                            conf.charset_filename,
                                            conf.charset_auto_detect_fn,
                                            conf.charset_filename_mode);
-      info[n + 1] = label_new (path_internal, GTK_JUSTIFY_LEFT);
-      g_free (path_internal);
+      GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+      GtkWidget *copy;
+
+      /* the full path: cut in the middle when long, a button to copy it */
+      info[n + 1] = value_new (path_internal, 60, PANGO_ELLIPSIZE_MIDDLE);
+      gtk_box_append (GTK_BOX (hbox), info[n + 1]);
+      copy = gtk_button_new_with_label (_("Copy"));
+      gtk_widget_set_tooltip_text (copy, _("Copy the full path to the clipboard"));
+      gtk_widget_set_valign (copy, GTK_ALIGN_CENTER);
+      g_object_set_data_full (G_OBJECT (copy), "path", path_internal, g_free);
+      g_signal_connect (copy, "clicked", G_CALLBACK (cb_copy_path), path_internal);
+      gtk_box_append (GTK_BOX (hbox), copy);
+      gimv_table_attach (GTK_WIDGET (table), hbox, 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    }
-   gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
 
    if (!(flags & GTK_PROP_NOT_DETECT_TYPE)) {
-      pid_t pid;
-      int out_fd[2];
+      /* file(1): one line, often long (the EXIF of a JPEG) */
+      const gchar *argv[] = { "file", "-b", path, NULL };
+      gchar *out = NULL;
 
-      if (pipe (out_fd) == 0) {
-         pid = fork ();
-         if (pid > 0) {
-            char *p;
-
-            close (out_fd[1]);
-            len = read (out_fd[0], line, LINE_MAX);
-            if (n > 0) {
-               line[len] = '\0';
-               len = strlen(line);
-               if (line[len - 1] == '\n')
-                  line[len - 1] = '\0';
-            }
-            waitpid (pid, NULL, WUNTRACED);
-            close (out_fd[0]);
-
-            if ((p = strstr (line, ": ")) != NULL) {
-               p += 2;
-               info[n + 1] = label_new (p, GTK_JUSTIFY_LEFT);
-               info[n] = label_new (_("Type:"), GTK_JUSTIFY_RIGHT);
-               gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
-               gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
-               n += 2;
-            }
-         } else if (pid == 0) {
-            gchar **argv = g_new0 (gchar *, 3);
-
-            argv[0] = g_strdup ("file");
-            argv[1] = g_strdup (path);
-            argv[2] = NULL;
-
-            close (out_fd[0]);
-            dup2 (out_fd[1], STDOUT_FILENO);
-
-            execvp (argv[0], argv);
+      if (g_spawn_sync (NULL, (gchar **) argv, NULL, G_SPAWN_SEARCH_PATH | G_SPAWN_STDERR_TO_DEV_NULL,
+                        NULL, NULL, &out, NULL, NULL, NULL) && out) {
+         gchar *text = g_strstrip (g_utf8_make_valid (out, -1));
+         if (*text) {
+            info[n + 1] = value_new (text, 60, PANGO_ELLIPSIZE_END);
+            info[n] = label_new (_("Type:"), GTK_JUSTIFY_RIGHT);
+            gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
+            gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
+            n += 2;
          }
+         g_free (text);
       }
+      g_free (out);
    }
 
    sprintf (buf, _("%ld Bytes"), (unsigned long) prop->size);
@@ -309,18 +320,18 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
    sprintf (buf, "%04d/%02d/%02d  %02d:%02d",
             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
             t->tm_hour, t->tm_min);
-   info[n + 1] = gtk_label_new (buf);
-   info[n] = gtk_label_new (_("Access Time:"));
+   info[n + 1] = label_new (buf, GTK_JUSTIFY_LEFT);
+   info[n] = label_new (_("Access Time:"), GTK_JUSTIFY_RIGHT);
    gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
    gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
 
    t = localtime (&prop->mtime);
-   sprintf (buf, "%02d/%02d/%02d  %02d:%02d",
+   sprintf (buf, "%04d/%02d/%02d  %02d:%02d",
             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
             t->tm_hour, t->tm_min);
-   info[n + 1] = gtk_label_new (buf);
-   info[n] = gtk_label_new (_("Modification Time:"));
+   info[n + 1] = label_new (buf, GTK_JUSTIFY_LEFT);
+   info[n] = label_new (_("Modification Time:"), GTK_JUSTIFY_RIGHT);
    gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
    gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;
@@ -329,8 +340,8 @@ dlg_prop (const gchar *path, fprop * prop, gint flags)
    sprintf (buf, "%04d/%02d/%02d  %02d:%02d",
             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
             t->tm_hour, t->tm_min);
-   info[n + 1] = gtk_label_new (buf);
-   info[n] = gtk_label_new (_("Change Time:"));
+   info[n + 1] = label_new (buf, GTK_JUSTIFY_LEFT);
+   info[n] = label_new (_("Change Time:"), GTK_JUSTIFY_RIGHT);
    gimv_table_attach (GTK_WIDGET (table), info[n], 0, 1, n, n + 1, TBL_XOPT, 0, X_PAD, Y_PAD);
    gimv_table_attach (GTK_WIDGET (table), info[n + 1], 1, 2, n, n + 1, TBL_XOPT, 0, 0, 0);
    n += 2;

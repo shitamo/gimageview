@@ -216,6 +216,7 @@ static GCompareFunc
 
 /* reference popup menu for each thumbnail */
 static void cb_bookmark (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
+static void cb_copy_path (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
 
 static GimvMenuEntry thumb_button_popup_items [] =
 {
@@ -231,6 +232,7 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
    {N_("/Pr_int..."),                 NULL,  cb_print,         0,           NULL},
    {N_("/_Properties..."),              NULL,  cb_file_property, 0,           NULL},
+   {N_("/Copy P_ath"),                NULL,  cb_copy_path,     0,           NULL},
 #ifdef ENABLE_EXIF
    {N_("/Scan E_XIF Data..."),        NULL,  cb_exif,          0,           NULL},
 #endif
@@ -758,6 +760,34 @@ cb_remove_thumbnail (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
                                            GIMV_THUMB_WIN_CURRENT_PAGE);
 
    g_list_free (thumblist);
+}
+
+
+/* the full paths of the images selected to the clipboard, one a line */
+static void
+cb_copy_path (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   GList *thumblist, *node;
+   GString *s = g_string_new (NULL);
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+
+   thumblist = gimv_thumb_view_get_selection_list (tv);
+   for (node = thumblist; node; node = g_list_next (node)) {
+      GimvThumb *thumb = node->data;
+      gchar *path;
+      if (!thumb || !thumb->info) continue;
+      path = charset_to_internal (gimv_image_info_get_path (thumb->info),
+                                  conf.charset_filename,
+                                  conf.charset_auto_detect_fn,
+                                  conf.charset_filename_mode);
+      if (s->len) g_string_append_c (s, '\n');
+      g_string_append (s, path);
+      g_free (path);
+   }
+   if (s->len)
+      gdk_clipboard_set_text (gdk_display_get_clipboard (gdk_display_get_default ()), s->str);
+   g_string_free (s, TRUE);
 }
 
 

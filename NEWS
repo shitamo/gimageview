@@ -119,6 +119,13 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  of the keys to edit there (X-IMG-Tags, a comment of the file) shows
 	  its own key and is only shown.  A line break in a tag or a value
 	  (a pasted text) becomes a space.
+	* Properties: the name and the type (file(1)) cut when long, so the
+	  dialog stays on the screen, and selectable; "Copy" puts the full
+	  path on the clipboard.  "Copy Path" in the right button menu of
+	  the thumbnails.
+	* Keywords that were UTF-8 read as Shift_JIS (Windows Photo Gallery)
+	  are put right, or left out when they cannot be; IPTC keywords of
+	  a record are read in one charset.
 	* The keywords other programs put (XMP dc:subject, IPTC Keywords, the
 	  sidecar files "x.jpg.xmp" and "x.xmp", followed while watching):
 	  kept apart in the index (an automatic kind that can be turned off),

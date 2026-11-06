@@ -48,6 +48,10 @@ void       gimv_index_keywords_from_xmp  (const gchar *xmp,
                                           gssize       len,
                                           GPtrArray   *out);
 
+/* a keyword that was UTF-8 read as Shift_JIS put right ("繧ｪ繝ｪ" ->
+ * "オリ"); NULL when it is so mangled it cannot be (for the tests) */
+gchar     *gimv_index_keyword_unmangle   (const gchar *keyword);
+
 /* a file name that may be a sidecar ("x.jpg.xmp", "x.xmp", case ignored) */
 gboolean   gimv_index_is_sidecar_name    (const gchar *name);
 

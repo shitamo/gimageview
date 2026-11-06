@@ -6411,3 +6411,19 @@ msgstr "他のプログラムが付けたキーワード (XMP・IPTC・サイド
 #: src/gimv_comment_view.c
 msgid "A tag (put by a person, or a keyword of another program): click to show the images with it"
 msgstr "タグ (手で付けたもの、または他のプログラムのキーワード): クリックでこのタグの画像を表示"
+
+#: src/gimv_thumb_view.c
+msgid "/Copy P_ath"
+msgstr "/パスをコピー(_A)"
+
+#: src/gtk_prop.c
+msgid "Copy"
+msgstr "コピー"
+
+#: src/gtk_prop.c
+msgid "Copied"
+msgstr "コピーしました"
+
+#: src/gtk_prop.c
+msgid "Copy the full path to the clipboard"
+msgstr "フルパスをクリップボードにコピーします"

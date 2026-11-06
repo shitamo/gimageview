@@ -3736,6 +3736,23 @@ open_db (Indexer *ix, const gchar *dbfile)
    /* the dates and the tags put by rules, when their rules changed */
    prepare_rules (ix);
    if (ix->quit) return TRUE;
+   if (ix->auto_kinds & AUTO_KEYWORD) {
+      /* the reading of the keywords changed (2: mangled ones put right or
+       * left out, IPTC in one charset): the images with keywords again */
+      sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'keyword_reader'");
+      gboolean done = sqlite3_step (st) == SQLITE_ROW
+                      && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "2");
+      sqlite3_finalize (st);
+      if (!done) {
+         exec (ix, "BEGIN");
+         exec (ix, "UPDATE files SET stage = 1 WHERE stage >= 2 AND id IN "
+                   "(SELECT ft.file_id FROM file_tags ft JOIN tags t ON t.id = ft.tag_id "
+                   "WHERE ft.auto = 1 AND t.name >= 'keyword/' AND t.name < 'keyword0')");
+         exec (ix, "INSERT OR IGNORE INTO meta VALUES ('reread', 'auto-tags')");
+         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('keyword_reader', '2')");
+         exec (ix, "COMMIT");
+      }
+   }
 #ifdef ENABLE_GEXIV2
    {
       /* Exiv2 reads the EXIF of more than JPEG: once, the images without an

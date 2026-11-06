@@ -46,7 +46,51 @@ typedef struct {
 } Found;
 
 
-/* one keyword: on one line, trimmed, UTF-8, not too long, once */
+/* UTF-8 read as Shift_JIS and written again as UTF-8 (Windows Photo
+ * Gallery wrote XMP so): "オリジナル" became "繧ｪ繝ｪ繧ｸ繝翫Ν".  The
+ * mark is the half-width katakana the UTF-8 continuation bytes become.
+ * Returns the text put right, the text as it is, or NULL when it is
+ * such a text that cannot be put right (bytes lost on the way). */
+gchar *
+gimv_index_keyword_unmangle (const gchar *k)
+{
+   gboolean half = FALSE, other = FALSE;
+   const gchar *p;
+   gchar *bytes;
+
+   for (p = k; *p; p = g_utf8_next_char (p)) {
+      gunichar c = g_utf8_get_char (p);
+      if (c >= 0xff61 && c <= 0xff9f) half = TRUE;
+      else if (c >= 0x80) other = TRUE;
+   }
+   if (!half) return g_strdup (k);   /* "ｶﾒﾗ" alone is half-width text */
+
+   bytes = g_convert (k, -1, "CP932", "UTF-8", NULL, NULL, NULL);
+   if (!bytes) return g_strdup (k);
+   if (g_utf8_validate (bytes, -1, NULL) && strcmp (bytes, k)) {
+      /* Japanese again (not "ﾃｽﾄ" read as "Ã½Ä"): kept */
+      gboolean japanese = TRUE;
+      for (p = bytes; *p && japanese; p = g_utf8_next_char (p)) {
+         gunichar c = g_utf8_get_char (p);
+         japanese = c < 0x80 || (c >= 0x3000 && c <= 0x9fff)
+                    || (c >= 0xf900 && c <= 0xfaff) || (c >= 0xff00 && c <= 0xffef);
+      }
+      if (japanese) return bytes;
+   } else if (other) {
+      /* not to be put right, but it starts as Japanese in UTF-8 does
+         (E3-E9 and two continuation bytes): mangled, left out */
+      const guchar *b = (const guchar *) bytes;
+      if (b[0] >= 0xe3 && b[0] <= 0xe9 && (b[1] & 0xc0) == 0x80 && (b[2] & 0xc0) == 0x80) {
+         g_free (bytes);
+         return NULL;
+      }
+   }
+   g_free (bytes);
+   return g_strdup (k);
+}
+
+
+/* one keyword: on one line, trimmed, UTF-8, not mangled, not too long, once */
 static void
 add_keyword (GPtrArray *a, const gchar *text, gssize len)
 {
@@ -58,6 +102,10 @@ add_keyword (GPtrArray *a, const gchar *text, gssize len)
       g_free (k);
       return;
    }
+   p = gimv_index_keyword_unmangle (k);
+   g_free (k);
+   if (!p) return;
+   k = p;
    for (p = k; *p; p++)
       if (*p == '\n' || *p == '\r' || *p == '\t') *p = ' ';
    g_strstrip (k);
@@ -238,9 +286,36 @@ add_iptc_keyword (GPtrArray *a, const gchar *d, gsize len, gboolean utf8)
 }
 
 
+/* the keywords of an IPTC record, in one charset: UTF-8 when the record
+ * says so or one of them is UTF-8 not ASCII (then one that is not UTF-8
+ * is broken: left out), else each as add_iptc_keyword () reads it */
+static void
+iptc_keywords (GPtrArray *a, GPtrArray *raw, gboolean utf8)
+{
+   guint i;
+
+   for (i = 0; !utf8 && i < raw->len; i++) {
+      GBytes *b = g_ptr_array_index (raw, i);
+      gsize len;
+      const gchar *d = g_bytes_get_data (b, &len);
+      gsize j;
+      for (j = 0; j < len && !(d[j] & 0x80); j++) ;
+      if (j < len && g_utf8_validate (d, len, NULL)) utf8 = TRUE;
+   }
+   for (i = 0; i < raw->len; i++) {
+      GBytes *b = g_ptr_array_index (raw, i);
+      gsize len;
+      const gchar *d = g_bytes_get_data (b, &len);
+      if (utf8 && !g_utf8_validate (d, len, NULL)) continue;
+      add_iptc_keyword (a, d, len, utf8);
+   }
+}
+
+
 static void
 iptc_parse (const guchar *d, gsize n, Found *found)
 {
+   GPtrArray *raw = g_ptr_array_new_with_free_func ((GDestroyNotify) g_bytes_unref);
    gboolean utf8 = FALSE;
    gsize i = 0;
 
@@ -254,9 +329,11 @@ iptc_parse (const guchar *d, gsize n, Found *found)
       if (rec == 1 && ds == 90 && len >= 3 && !memcmp (d + i, "\x1b%G", 3))
          utf8 = TRUE;
       if (rec == 2 && ds == 25 && len)
-         add_iptc_keyword (found->flat, (const gchar *) d + i, len, utf8);
+         g_ptr_array_add (raw, g_bytes_new (d + i, len));
       i += len;
    }
+   iptc_keywords (found->flat, raw, utf8);
+   g_ptr_array_unref (raw);
 }
 
 
@@ -493,8 +570,13 @@ gimv_index_keywords_read_with (const gchar *path, const GimvIndexEmbedded *em)
       /* read by Exiv2 already */
       for (i = 0; em->flat && em->flat[i]; i++)
          add_keyword (found.flat, em->flat[i], -1);
-      for (i = 0; em->iptc && em->iptc[i]; i++)
-         add_iptc_keyword (found.flat, em->iptc[i], strlen (em->iptc[i]), em->iptc_utf8);
+      if (em->iptc) {
+         GPtrArray *raw = g_ptr_array_new_with_free_func ((GDestroyNotify) g_bytes_unref);
+         for (i = 0; em->iptc[i]; i++)
+            g_ptr_array_add (raw, g_bytes_new (em->iptc[i], strlen (em->iptc[i])));
+         iptc_keywords (found.flat, raw, em->iptc_utf8);
+         g_ptr_array_unref (raw);
+      }
       for (i = 0; em->hier_bar && em->hier_bar[i]; i++)
          add_last_part (found.hier, em->hier_bar[i], '|');
       for (i = 0; em->hier_slash && em->hier_slash[i]; i++)

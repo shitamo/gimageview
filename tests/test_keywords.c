@@ -349,6 +349,64 @@ test_sidecar (void)
 }
 
 
+/* UTF-8 read as Shift_JIS (Windows Photo Gallery): put right, or left
+ * out when bytes were lost; real half-width text kept */
+static void
+test_unmangle (void)
+{
+   static const struct { const gchar *in, *out; } cases[] = {
+      { "繧ｪ繝ｪ繧ｸ繝翫Ν", "オリジナル" },
+      { "蝠・･ｭ",          NULL },
+      { "ｶﾒﾗ",            "ｶﾒﾗ" },
+      { "ﾃｽﾄ画像",        "ﾃｽﾄ画像" },
+      { "ｱ画像",          "ｱ画像" },
+      { "京都",           "京都" },
+      { "Temple",         "Temple" },
+   };
+   guint i;
+
+   for (i = 0; i < G_N_ELEMENTS (cases); i++) {
+      gchar *r = gimv_index_keyword_unmangle (cases[i].in);
+      g_assert_cmpstr (r, ==, cases[i].out);
+      g_free (r);
+   }
+}
+
+
+/* as a JPEG of 2010 had it: IPTC in UTF-8 with a broken keyword, the XMP
+ * dc:subject mangled, the right ones in MicrosoftPhoto */
+static void
+test_photo_gallery (void)
+{
+   gchar *p = file_in ("gallery.jpg");
+   GByteArray *b = jpeg_start (), *ps = g_byte_array_new (), *iim = g_byte_array_new ();
+   static const gchar xmp[] =
+      XMP_HEAD
+      "  <rdf:Description rdf:about=\"\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+      "     xmlns:MicrosoftPhoto=\"http://ns.microsoft.com/photo/1.0/\">\n"
+      "   <dc:subject><rdf:Bag><rdf:li>繧ｪ繝ｪ繧ｸ繝翫Ν</rdf:li><rdf:li>蝠・･ｭ</rdf:li></rdf:Bag></dc:subject>\n"
+      "   <MicrosoftPhoto:LastKeywordXMP><rdf:Bag><rdf:li>オリジナル</rdf:li>"
+      "<rdf:li>商業</rdf:li></rdf:Bag></MicrosoftPhoto:LastKeywordXMP>\n"
+      "  </rdf:Description>\n"
+      XMP_TAIL;
+
+   put (iim, "\x1c\x02\x19", 3); put16be (iim, 15); put (iim, "オリジナル", 15);
+   put (iim, "\x1c\x02\x19", 3); put16be (iim, 6); put (iim, "\xe5\x95\x81\x45\xa5\xad", 6);
+   put (ps, "Photoshop 3.0", 14);
+   put (ps, "8BIM", 4); put16be (ps, 0x0404); put (ps, "\0\0", 2);
+   put32be (ps, iim->len); put (ps, iim->data, iim->len);
+   if (iim->len & 1) put (ps, "", 1);
+   jpeg_segment (b, 0xed, ps->data, ps->len);
+   jpeg_xmp (b, xmp);
+   jpeg_end (b);
+   write_bytes (p, b);
+   assert_keywords (p, "オリジナル, 商業");
+   g_byte_array_unref (ps);
+   g_byte_array_unref (iim);
+   g_free (p);
+}
+
+
 /* nothing, and broken files: no crash, nothing read */
 static void
 test_broken (void)
@@ -395,6 +453,8 @@ main (int argc, char *argv[])
    g_test_add_func ("/keywords/webp", test_webp);
    g_test_add_func ("/keywords/tiff", test_tiff);
    g_test_add_func ("/keywords/sidecar", test_sidecar);
+   g_test_add_func ("/keywords/unmangle", test_unmangle);
+   g_test_add_func ("/keywords/photo-gallery", test_photo_gallery);
    g_test_add_func ("/keywords/broken", test_broken);
 
    ret = g_test_run ();
