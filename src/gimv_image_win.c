@@ -314,7 +314,7 @@ GimvMenuEntry gimv_image_win_menu_items[] =
 
    {N_("/_Edit"),                        NULL,         NULL,              0,  "<Branch>"},
    {N_("/_Edit/Edit _Comment..."),       NULL,         cb_edit_comment,   0,  NULL},
-   {N_("/_Edit/Scan E_XIF Data..."),       NULL,       cb_exif,           0,  NULL},
+   {N_("/_Edit/Show E_XIF Data..."),       NULL,       cb_exif,           0,  NULL},
 #ifdef ENABLE_INDEX
    {N_("/_Edit/Edit Ta_gs..."),          NULL,         cb_edit_tags,      0,  NULL},
 #endif

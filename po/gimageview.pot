@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GImageView\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:22+0900\n"
+"POT-Creation-Date: 2026-11-07 16:15+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1026,7 +1026,7 @@ msgid "/_Edit/Edit _Comment..."
 msgstr ""
 
 #: src/gimv_image_win.c:317
-msgid "/_Edit/Scan E_XIF Data..."
+msgid "/_Edit/Show E_XIF Data..."
 msgstr ""
 
 #: src/gimv_image_win.c:319 src/gimv_thumb_win.c:458
@@ -4444,7 +4444,7 @@ msgid "/Copy P_ath"
 msgstr ""
 
 #: src/gimv_thumb_view.c:241
-msgid "/Scan E_XIF Data..."
+msgid "/Show E_XIF Data..."
 msgstr ""
 
 #: src/gimv_thumb_view.c:243

@@ -1058,7 +1058,7 @@ msgid "/_Edit/Edit _Comment..."
 msgstr "/編集(_E)/コメントを編集(_C)..."
 
 #: src/gimv_image_win.c:285
-msgid "/_Edit/Scan E_XIF Data..."
+msgid "/_Edit/Show E_XIF Data..."
 msgstr "/編集(_E)/EXIFデータを表示(_X)..."
 
 #: src/gimv_image_win.c:286
@@ -3425,7 +3425,7 @@ msgid "/Remo_ve from List"
 msgstr "/リストから削除(_V)"
 
 #: src/gimv_thumb_view.c:191
-msgid "/Scan E_XIF Data..."
+msgid "/Show E_XIF Data..."
 msgstr "/EXIFデータを表示(_X)..."
 
 #: src/gimv_thumb_view.c:193

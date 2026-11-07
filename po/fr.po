@@ -1083,7 +1083,7 @@ msgstr "/_Edition/Editer les _commentaires..."
 
 #: src/gimv_image_win.c:285
 #, fuzzy
-msgid "/_Edit/Scan E_XIF Data..."
+msgid "/_Edit/Show E_XIF Data..."
 msgstr "/Examiner les données _EXIF..."
 
 #: src/gimv_image_win.c:286
@@ -3515,7 +3515,7 @@ msgstr "/Supprimer de la liste"
 
 #: src/gimv_thumb_view.c:191
 #, fuzzy
-msgid "/Scan E_XIF Data..."
+msgid "/Show E_XIF Data..."
 msgstr "/Examiner les données _EXIF..."
 
 #: src/gimv_thumb_view.c:193

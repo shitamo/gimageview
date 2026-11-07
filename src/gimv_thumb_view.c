@@ -238,7 +238,7 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/_Properties..."),              NULL,  cb_file_property, 0,           NULL},
    {N_("/Copy P_ath"),                NULL,  cb_copy_path,     0,           NULL},
 #ifdef ENABLE_EXIF
-   {N_("/Scan E_XIF Data..."),        NULL,  cb_exif,          0,           NULL},
+   {N_("/Show E_XIF Data..."),        NULL,  cb_exif,          0,           NULL},
 #endif
    {N_("/_Edit Comment..."),          NULL,  cb_edit_comment,  0,           NULL},
 #ifdef ENABLE_INDEX
@@ -2950,7 +2950,7 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
    {
       const gchar *img_name = gimv_image_info_get_path (thumb->info);
       const gchar *format = gimv_image_detect_type_by_ext (img_name);
-      menuitem = gimv_menu_get_item (ifactory, "/Scan EXIF Data...");
+      menuitem = gimv_menu_get_item (ifactory, "/Show EXIF Data...");
 #ifndef ENABLE_GEXIV2
       /* libexif reads the EXIF data of a JPEG only; with Exiv2 any format
        * (gimv_exif_data_new_from_file ()) */
