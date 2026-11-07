@@ -1100,7 +1100,13 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
       a combo set to the item it had says nothing) */
    key = combo_current_key (cv);
    if (!key) return;
-   if (!cv->selected_item) combo_select_key (cv, key);
+   if (!cv->selected_item) {
+      /* not combo_select_key (): it selects the row of the key, which
+         puts the value of the row in the entry over the one typed */
+      g_object_set_data_full (G_OBJECT (cv->key_combo), "key",
+                              g_strdup (key), (GDestroyNotify) g_free);
+      cv->selected_item = cv->key_combo;
+   }
 
    dname = combo_get_selected_name (cv);
    value = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
