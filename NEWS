@@ -119,6 +119,7 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  of the keys to edit there (X-IMG-Tags, a comment of the file) shows
 	  its own key and is only shown.  A line break in a tag or a value
 	  (a pasted text) becomes a space.
+	* Data tab: a value typed and saved with "Save" (not Enter) is kept.
 	* Properties: the name and the type (file(1)) cut when long, so the
 	  dialog stays on the screen, and selectable; "Copy" puts the full
 	  path on the clipboard.  "Copy Path" in the right button menu of

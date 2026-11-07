@@ -198,6 +198,20 @@ cb_save_button_pressed (GtkButton *button, GimvCommentView *cv)
    g_return_if_fail (cv);
    g_return_if_fail (cv->comment);
 
+   /* a value typed and not entered with Enter is kept too */
+   if (cv->selected_item && gtk_editable_get_editable (GTK_EDITABLE (cv->value_entry))) {
+      const gchar *key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
+      const gchar *text = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
+      GimvCommentDataEntry *entry = key
+         ? gimv_comment_find_data_entry_by_key (cv->comment, key) : NULL;
+      const gchar *now = entry && entry->value ? entry->value : "";
+      gchar *t = g_strstrip (g_strdup (text));
+
+      if (key && strcmp (t, now) && (*t || entry))
+         gimv_comment_view_data_enter (cv);
+      g_free (t);
+   }
+
    {
       GtkTextBuffer *buffer;
       GtkTextIter start, end;
