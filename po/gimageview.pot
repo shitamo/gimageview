@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GImageView\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 16:46+0900\n"
+"POT-Creation-Date: 2026-11-07 17:14+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -643,7 +643,7 @@ msgstr ""
 #: src/gimv_index_view.c:1814 src/gimv_index_tags.c:684
 #: src/gimv_index_faces_win.c:839 src/gimv_index_faces_win.c:998
 #: src/gimv_index_faces_win.c:1237 src/gimv_index_faces_win.c:1481
-#: src/gimv_index_faces_win.c:1524 src/gimv_dupl_win.c:1257
+#: src/gimv_index_faces_win.c:1524 src/gimv_dupl_win.c:1311
 #: src/gimv_gtk4_compat.h:186 src/gimv_index_search.c:947
 msgid "_Cancel"
 msgstr ""
@@ -4360,166 +4360,184 @@ msgstr ""
 msgid "Show scrollbar"
 msgstr ""
 
-#: src/gimv_dupl_win.c:150
+#: src/gimv_dupl_win.c:155
 msgid "Identical"
 msgstr ""
 
-#: src/gimv_dupl_win.c:151
+#: src/gimv_dupl_win.c:156
 msgid "Other Sizes"
 msgstr ""
 
-#: src/gimv_dupl_win.c:152
+#: src/gimv_dupl_win.c:157
 msgid "Similar"
 msgstr ""
 
-#: src/gimv_dupl_win.c:162
+#: src/gimv_dupl_win.c:167
 msgid "The same files (the same bytes)."
 msgstr ""
 
-#: src/gimv_dupl_win.c:164
+#: src/gimv_dupl_win.c:169
 msgid "The same picture in other sizes (and its copies)."
 msgstr ""
 
-#: src/gimv_dupl_win.c:166
+#: src/gimv_dupl_win.c:171
 msgid "Similar pictures: edited, saved again, or other shots.  None is chosen to keep."
 msgstr ""
 
-#: src/gimv_dupl_win.c:427
+#: src/gimv_dupl_win.c:429
 #, c-format
 msgid "To delete: %u images (%s)"
 msgstr ""
 
-#: src/gimv_dupl_win.c:504 src/gimv_dupl_win.c:818
+#: src/gimv_dupl_win.c:437 src/gimv_dupl_win.c:1300
+msgid "Every image of this group is marked to delete."
+msgstr ""
+
+#: src/gimv_dupl_win.c:516 src/gimv_dupl_win.c:832
 #, c-format
 msgid "<b>%s</b>  %u images"
 msgstr ""
 
-#: src/gimv_dupl_win.c:515
+#: src/gimv_dupl_win.c:527
 msgid "All to delete!"
 msgstr ""
 
-#: src/gimv_dupl_win.c:518
+#: src/gimv_dupl_win.c:530
 #, c-format
 msgid "Delete %u (%s)"
 msgstr ""
 
-#: src/gimv_dupl_win.c:521
+#: src/gimv_dupl_win.c:533
 msgid "Keep all"
 msgstr ""
 
-#: src/gimv_dupl_win.c:714
+#: src/gimv_dupl_win.c:726
 msgid "Click to show it in the thumbnail window"
 msgstr ""
 
-#: src/gimv_dupl_win.c:747
+#: src/gimv_dupl_win.c:759
 msgid "Suggested to keep"
 msgstr ""
 
-#: src/gimv_dupl_win.c:749
+#: src/gimv_dupl_win.c:761
 msgid "The same file as the first"
 msgstr ""
 
-#: src/gimv_dupl_win.c:751
+#: src/gimv_dupl_win.c:763
 #, c-format
 msgid "%.1f%% alike the first"
 msgstr ""
 
-#: src/gimv_dupl_win.c:769
+#: src/gimv_dupl_win.c:781
 msgid "Has a comment"
 msgstr ""
 
-#: src/gimv_dupl_win.c:778
+#: src/gimv_dupl_win.c:790
 msgid "Keep"
 msgstr ""
 
-#: src/gimv_dupl_win.c:779 src/gimv_elist.c:753 src/gimv_dlist.c:462
+#: src/gimv_dupl_win.c:791 src/gimv_elist.c:753 src/gimv_dlist.c:462
 msgid "Delete"
 msgstr ""
 
-#: src/gimv_dupl_win.c:885
+#: src/gimv_dupl_win.c:851
+#, c-format
+msgid "and %u more, not shown: to delete"
+msgstr ""
+
+#: src/gimv_dupl_win.c:852
+#, c-format
+msgid "and %u more, not shown: to keep"
+msgstr ""
+
+#: src/gimv_dupl_win.c:912
 msgid "No groups are left."
 msgstr ""
 
-#: src/gimv_dupl_win.c:885 src/gimv_dupl_win.c:1389
+#: src/gimv_dupl_win.c:912 src/gimv_dupl_win.c:1467
 msgid "No duplicates were found."
 msgstr ""
 
-#: src/gimv_dupl_win.c:928
+#: src/gimv_dupl_win.c:955
 #, c-format
 msgid "Comparing the files of the same size (%u/%u)"
 msgstr ""
 
-#: src/gimv_dupl_win.c:932
+#: src/gimv_dupl_win.c:959
 #, c-format
 msgid "Reading the images (%u/%u)"
 msgstr ""
 
-#: src/gimv_dupl_win.c:935
+#: src/gimv_dupl_win.c:962
 #, c-format
 msgid "Comparing the images (%u/%u)"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1018
+#: src/gimv_dupl_win.c:1045
 #, c-format
 msgid "Done: %u groups"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1019
+#: src/gimv_dupl_win.c:1046
 #, c-format
 msgid "Stopped: %u groups"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1021
+#: src/gimv_dupl_win.c:1048
 #, c-format
 msgid "%s (%d in archives not compared)"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1147
+#: src/gimv_dupl_win.c:1176
 #, c-format
 msgid "Moved to the trash: %u images"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1157
+#: src/gimv_dupl_win.c:1199
 msgid "Some could not be moved to the trash"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1219
+#: src/gimv_dupl_win.c:1259
 msgid "Moving to the trash..."
 msgstr ""
 
-#: src/gimv_dupl_win.c:1241
+#: src/gimv_dupl_win.c:1282
 #, c-format
-msgid "Move %u images (%s) to the trash?"
+msgid "Move %u images (%s) of this group to the trash?"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1245
+#: src/gimv_dupl_win.c:1294
 #, c-format
-msgid "In %u groups every image is marked to delete."
+msgid "and %u more"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1251
+#: src/gimv_dupl_win.c:1305
 #, c-format
 msgid "%u of them have comments; the comments stay."
 msgstr ""
 
-#: src/gimv_dupl_win.c:1255
+#: src/gimv_dupl_win.c:1309
 msgid "They can be put back from the trash."
 msgstr ""
 
-#: src/gimv_dupl_win.c:1258
+#: src/gimv_dupl_win.c:1312
 msgid "_Move to Trash"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1346
+#: src/gimv_dupl_win.c:1400
 msgid "Find Duplicates - Results"
 msgstr ""
 
-#: src/gimv_dupl_win.c:1423
-msgid "_Stop"
+#: src/gimv_dupl_win.c:1454
+msgid "Move to _Trash..."
 msgstr ""
 
-#: src/gimv_dupl_win.c:1433
-msgid "Move to _Trash..."
+#: src/gimv_dupl_win.c:1456
+msgid "Moves the images of this group marked Delete to the trash"
+msgstr ""
+
+#: src/gimv_dupl_win.c:1510
+msgid "_Stop"
 msgstr ""
 
 #: src/text_viewer.c:74

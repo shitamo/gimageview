@@ -159,7 +159,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  has the groups on the left and their images side by side on the
 	  right (size, file size, format, date taken, how alike, folder,
 	  comment), each to keep or to delete (suggested for the identical and
-	  resized ones), and moves the ones to delete to the trash.  The search
+	  resized ones), and moves the ones to delete of a group to the trash
+	  (a group at a time, after asking).  The search
 	  runs in a thread and reads the pictures itself (not the thumbnails
 	  loaded); the comparison methods of the submenu are gone.
 	* Data tab: "Remove Item" removes the item selected; "Delete

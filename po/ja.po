@@ -6563,16 +6563,6 @@ msgstr "ゴミ箱へ移動中..."
 
 #: src/gimv_dupl_win.c
 #, c-format
-msgid "Move %u images (%s) to the trash?"
-msgstr "%u 枚 (%s) をゴミ箱へ移動しますか？"
-
-#: src/gimv_dupl_win.c
-#, c-format
-msgid "In %u groups every image is marked to delete."
-msgstr "%u 個のグループで、すべての画像が削除になっています。"
-
-#: src/gimv_dupl_win.c
-#, c-format
 msgid "%u of them have comments; the comments stay."
 msgstr "そのうち %u 枚にはコメントがあります (コメントは残ります)。"
 
@@ -6601,3 +6591,21 @@ msgstr "ほかに %u 枚 (表示していません、削除になります)"
 #, c-format
 msgid "and %u more, not shown: to keep"
 msgstr "ほかに %u 枚 (表示していません、残します)"
+
+#: src/gimv_dupl_win.c
+msgid "Every image of this group is marked to delete."
+msgstr "このグループのすべての画像が削除になっています。"
+
+#: src/gimv_dupl_win.c
+msgid "Moves the images of this group marked Delete to the trash"
+msgstr "このグループで「削除」にした画像をゴミ箱へ移動します"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Move %u images (%s) of this group to the trash?"
+msgstr "このグループの %u 枚 (%s) をゴミ箱へ移動しますか？"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "and %u more"
+msgstr "ほか %u 枚"

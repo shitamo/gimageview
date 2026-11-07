@@ -104,8 +104,9 @@ struct GimvDuplWinPriv_Tag
    GtkWidget     *more_label;  /* the members not shown */
    GtkWidget     *progress;
    GtkWidget     *stop_button;
-   GtkWidget     *summary_label;
-   GtkWidget     *trash_button;
+   GtkWidget     *summary_label;  /* of the group shown */
+   GtkWidget     *trash_button;   /* ... its images to delete */
+   gboolean       trashing;
 
    gint           current;     /* the group shown, -1 */
 };
@@ -413,32 +414,31 @@ static void
 update_summary (GimvDuplWin *sw)
 {
    GimvDuplWinPriv *priv = sw->priv;
-   guint i, n = 0;
+   guint n = 0, n_keep = 0;
    goffset bytes = 0;
    gchar *size, *text;
+   gboolean shown = priv->groups && priv->current >= 0
+                    && priv->current < (gint) priv->groups->len;
 
-   if (priv->groups) {
-      /* a path in two groups (the first groups and all) is counted once */
-      GHashTable *seen = g_hash_table_new (g_str_hash, g_str_equal);
-      for (i = 0; i < priv->groups->len; i++) {
-         GimvDuplGroup *group = g_ptr_array_index (priv->groups, i);
-         guint k;
-         if (n_left (sw, group) < 2) continue;
-         for (k = 0; k < group->members->len; k++) {
-            GimvDuplItem *item = g_ptr_array_index (group->members, k);
-            if (is_removed (sw, item) || !marked_delete (sw, group, k)) continue;
-            if (!g_hash_table_add (seen, item->path)) continue;
-            n++;
-            bytes += item->size;
-         }
-      }
-      g_hash_table_destroy (seen);
-   }
+   /* the group shown only: it is moved to the trash a group at a time */
+   if (shown)
+      group_counts (sw, g_ptr_array_index (priv->groups, priv->current),
+                    &n, &bytes, &n_keep);
 
    size = g_format_size (bytes);
    text = g_strdup_printf (_("To delete: %u images (%s)"), n, size);
    gtk_label_set_text (GTK_LABEL (priv->summary_label), text);
-   gtk_widget_set_sensitive (priv->trash_button, n > 0 && !priv->running);
+   gtk_widget_set_visible (priv->summary_label, shown);
+   gtk_widget_set_visible (priv->trash_button, shown);
+   gtk_widget_set_sensitive (priv->trash_button, n > 0 && !priv->trashing);
+   if (n > 0 && n_keep == 0) {
+      gtk_widget_add_css_class (priv->summary_label, "error");
+      gtk_widget_set_tooltip_text (priv->summary_label,
+                                   _("Every image of this group is marked to delete."));
+   } else {
+      gtk_widget_remove_css_class (priv->summary_label, "error");
+      gtk_widget_set_tooltip_text (priv->summary_label, NULL);
+   }
    g_free (text);
    g_free (size);
 }
@@ -823,6 +823,7 @@ show_group (GimvDuplWin *sw, gint index)
    if (!priv->groups || index < 0 || index >= (gint) priv->groups->len) {
       gtk_label_set_text (GTK_LABEL (priv->head_label), "");
       gtk_label_set_text (GTK_LABEL (priv->kind_label), "");
+      update_summary (sw);
       return;
    }
 
@@ -854,6 +855,7 @@ show_group (GimvDuplWin *sw, gint index)
       }
       gtk_widget_set_visible (priv->more_label, left > shown);
    }
+   update_summary (sw);
 }
 
 
@@ -1115,6 +1117,7 @@ typedef struct {
    GPtrArray *paths;      /* gchar * */
    GPtrArray *done;       /* the paths moved */
    GString   *errors;
+   guint      position;   /* of the group in the list */
 } TrashJob;
 
 
@@ -1164,6 +1167,7 @@ trash_done (GObject *source, GAsyncResult *res, gpointer data)
    guint i;
 
    if (!sw) return;
+   sw->priv->trashing = FALSE;
    for (i = 0; i < job->done->len; i++)
       g_hash_table_add (sw->priv->removed, g_strdup (g_ptr_array_index (job->done, i)));
 
@@ -1174,6 +1178,19 @@ trash_done (GObject *source, GAsyncResult *res, gpointer data)
       g_free (text);
    }
    fill_groups (sw);
+   /* the group done is gone (one left): on to the next, which is now where
+    * it was */
+   {
+      GtkSingleSelection *sel = GTK_SINGLE_SELECTION
+         (gtk_list_view_get_model (GTK_LIST_VIEW (sw->priv->group_view)));
+      guint n = g_list_model_get_n_items (G_LIST_MODEL (sw->priv->group_store));
+      if (n > 0 && gtk_single_selection_get_selected (sel) != MIN (job->position, n - 1)
+          && job->done->len > 0) {
+         gtk_single_selection_set_selected (sel, MIN (job->position, n - 1));
+         gtk_list_view_scroll_to (GTK_LIST_VIEW (sw->priv->group_view),
+                                  MIN (job->position, n - 1), GTK_LIST_SCROLL_FOCUS, NULL);
+      }
+   }
 
    if (sw->tv && job->done->len > 0)
       gimv_thumb_view_refresh_list (sw->tv);
@@ -1187,35 +1204,29 @@ trash_done (GObject *source, GAsyncResult *res, gpointer data)
 }
 
 
-/* the paths to delete, each once */
+/* the paths to delete of the group shown */
 static GPtrArray *
-paths_to_delete (GimvDuplWin *sw, guint *all_groups, guint *with_comment, goffset *bytes)
+paths_to_delete (GimvDuplWin *sw, gboolean *all, guint *with_comment, goffset *bytes)
 {
    GimvDuplWinPriv *priv = sw->priv;
    GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
-   GHashTable *seen = g_hash_table_new (g_str_hash, g_str_equal);
-   guint i;
+   GimvDuplGroup *group;
+   guint k, n_del, n_keep;
 
-   *all_groups = *with_comment = 0;
+   *all = FALSE;
+   *with_comment = 0;
    *bytes = 0;
-   for (i = 0; priv->groups && i < priv->groups->len; i++) {
-      GimvDuplGroup *group = g_ptr_array_index (priv->groups, i);
-      guint k, n_del, n_keep;
-      goffset b;
-
-      if (n_left (sw, group) < 2) continue;
-      group_counts (sw, group, &n_del, &b, &n_keep);
-      if (n_del > 0 && n_keep == 0) (*all_groups)++;
-      for (k = 0; k < group->members->len; k++) {
-         GimvDuplItem *item = g_ptr_array_index (group->members, k);
-         if (is_removed (sw, item) || !marked_delete (sw, group, k)) continue;
-         if (!g_hash_table_add (seen, item->path)) continue;
-         g_ptr_array_add (paths, g_strdup (item->path));
-         *bytes += item->size;
-         if (has_comment (item->path)) (*with_comment)++;
-      }
+   if (!priv->groups || priv->current < 0 || priv->current >= (gint) priv->groups->len)
+      return paths;
+   group = g_ptr_array_index (priv->groups, priv->current);
+   group_counts (sw, group, &n_del, bytes, &n_keep);
+   *all = n_del > 0 && n_keep == 0;
+   for (k = 0; k < group->members->len; k++) {
+      GimvDuplItem *item = g_ptr_array_index (group->members, k);
+      if (is_removed (sw, item) || !marked_delete (sw, group, k)) continue;
+      g_ptr_array_add (paths, g_strdup (item->path));
+      if (has_comment (item->path)) (*with_comment)++;
    }
-   g_hash_table_destroy (seen);
    return paths;
 }
 
@@ -1226,7 +1237,8 @@ cb_trash_answer (GObject *source, GAsyncResult *res, gpointer data)
    Shared *shared = data;
    gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
    GimvDuplWin *sw = shared->sw;
-   guint all_groups, with_comment;
+   gboolean all;
+   guint with_comment;
    goffset bytes;
    TrashJob *job;
    GTask *task;
@@ -1235,7 +1247,10 @@ cb_trash_answer (GObject *source, GAsyncResult *res, gpointer data)
 
    job = g_new0 (TrashJob, 1);
    job->shared = shared;   /* the reference passes on */
-   job->paths = paths_to_delete (sw, &all_groups, &with_comment, &bytes);
+   job->paths = paths_to_delete (sw, &all, &with_comment, &bytes);
+   job->position = gtk_single_selection_get_selected
+      (GTK_SINGLE_SELECTION (gtk_list_view_get_model (GTK_LIST_VIEW (sw->priv->group_view))));
+   sw->priv->trashing = TRUE;
    job->done = g_ptr_array_new_with_free_func (g_free);
    job->errors = g_string_new (NULL);
 
@@ -1252,9 +1267,10 @@ cb_trash_answer (GObject *source, GAsyncResult *res, gpointer data)
 static void
 cb_trash (GtkButton *button, GimvDuplWin *sw)
 {
-   guint all_groups, with_comment;
+   gboolean all;
+   guint with_comment;
    goffset bytes;
-   GPtrArray *paths = paths_to_delete (sw, &all_groups, &with_comment, &bytes);
+   GPtrArray *paths = paths_to_delete (sw, &all, &with_comment, &bytes);
    GtkAlertDialog *dialog;
    GString *detail = g_string_new (NULL);
    gchar *size;
@@ -1263,12 +1279,25 @@ cb_trash (GtkButton *button, GimvDuplWin *sw)
    if (paths->len == 0) { g_ptr_array_unref (paths); g_string_free (detail, TRUE); return; }
 
    size = g_format_size (bytes);
-   dialog = gtk_alert_dialog_new (_("Move %u images (%s) to the trash?"), paths->len, size);
+   dialog = gtk_alert_dialog_new (_("Move %u images (%s) of this group to the trash?"),
+                                  paths->len, size);
    g_free (size);
-   if (all_groups > 0) {
-      g_string_append_printf (detail,
-                              _("In %u groups every image is marked to delete."),
-                              all_groups);
+   /* the names, the ones not shown too (a group of many) */
+   {
+      guint k;
+      for (k = 0; k < paths->len && k < 10; k++) {
+         gchar *name = g_filename_display_basename (g_ptr_array_index (paths, k));
+         g_string_append_printf (detail, "%s\n", name);
+         g_free (name);
+      }
+      if (paths->len > 10) {
+         g_string_append_printf (detail, _("and %u more"), paths->len - 10);
+         g_string_append (detail, "\n");
+      }
+      g_string_append (detail, "\n");
+   }
+   if (all) {
+      g_string_append (detail, _("Every image of this group is marked to delete."));
       g_string_append (detail, "\n");
    }
    if (with_comment > 0) {
@@ -1284,7 +1313,7 @@ cb_trash (GtkButton *button, GimvDuplWin *sw)
    buttons[2] = NULL;
    gtk_alert_dialog_set_buttons (dialog, buttons);
    gtk_alert_dialog_set_cancel_button (dialog, 0);
-   gtk_alert_dialog_set_default_button (dialog, all_groups > 0 ? 0 : 1);
+   gtk_alert_dialog_set_default_button (dialog, all ? 0 : 1);
    gtk_alert_dialog_choose (dialog, GTK_WINDOW (sw), NULL, cb_trash_answer,
                             shared_ref (sw->priv->shared));
    g_object_unref (dialog);
@@ -1411,9 +1440,25 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    gtk_widget_set_margin_start (right, 8);
    gtk_widget_set_margin_end (right, 8);
    gtk_widget_set_margin_top (right, 6);
-   priv->head_label = gtk_label_new (NULL);
-   gtk_label_set_xalign (GTK_LABEL (priv->head_label), 0.0);
-   gtk_box_append (GTK_BOX (right), priv->head_label);
+   /* the group: its kind and number, what is to delete, to the trash */
+   {
+      GtkWidget *head = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
+      priv->head_label = gtk_label_new (NULL);
+      gtk_label_set_xalign (GTK_LABEL (priv->head_label), 0.0);
+      gtk_widget_set_hexpand (priv->head_label, TRUE);
+      gtk_box_append (GTK_BOX (head), priv->head_label);
+
+      priv->summary_label = gtk_label_new (NULL);
+      gtk_box_append (GTK_BOX (head), priv->summary_label);
+
+      priv->trash_button = gtk_button_new_with_mnemonic (_("Move to _Trash..."));
+      gtk_widget_set_tooltip_text (priv->trash_button,
+                                   _("Moves the images of this group marked Delete to the trash"));
+      gtk_widget_add_css_class (priv->trash_button, "destructive-action");
+      g_signal_connect (priv->trash_button, "clicked", G_CALLBACK (cb_trash), sw);
+      gtk_box_append (GTK_BOX (head), priv->trash_button);
+      gtk_box_append (GTK_BOX (right), head);
+   }
    priv->kind_label = gtk_label_new (NULL);
    gtk_label_set_xalign (GTK_LABEL (priv->kind_label), 0.0);
    gtk_label_set_wrap (GTK_LABEL (priv->kind_label), TRUE);
@@ -1459,23 +1504,13 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (priv->progress), TRUE);
    gtk_progress_bar_set_ellipsize (GTK_PROGRESS_BAR (priv->progress), PANGO_ELLIPSIZE_END);
    gtk_widget_set_valign (priv->progress, GTK_ALIGN_CENTER);
-   gtk_widget_set_size_request (priv->progress, 260, -1);
+   gtk_widget_set_hexpand (priv->progress, TRUE);
    gtk_box_append (GTK_BOX (hbox), priv->progress);
 
    priv->stop_button = gtk_button_new_with_mnemonic (_("_Stop"));
    gtk_widget_set_sensitive (priv->stop_button, FALSE);
    g_signal_connect (priv->stop_button, "clicked", G_CALLBACK (cb_stop), sw);
    gtk_box_append (GTK_BOX (hbox), priv->stop_button);
-
-   priv->summary_label = gtk_label_new (NULL);
-   gtk_label_set_xalign (GTK_LABEL (priv->summary_label), 1.0);
-   gtk_widget_set_hexpand (priv->summary_label, TRUE);
-   gtk_box_append (GTK_BOX (hbox), priv->summary_label);
-
-   priv->trash_button = gtk_button_new_with_mnemonic (_("Move to _Trash..."));
-   gtk_widget_add_css_class (priv->trash_button, "destructive-action");
-   g_signal_connect (priv->trash_button, "clicked", G_CALLBACK (cb_trash), sw);
-   gtk_box_append (GTK_BOX (hbox), priv->trash_button);
 
    update_summary (sw);
 }
