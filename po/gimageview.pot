@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GImageView\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 17:14+0900\n"
+"POT-Creation-Date: 2026-11-07 22:25+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -132,12 +132,12 @@ msgstr ""
 msgid "/Open in New Tab"
 msgstr ""
 
-#: src/dnd.c:67 src/dnd.c:71 src/gimv_image_view.c:356
-#: src/gimv_image_view.c:358 src/gimv_image_view.c:361
-#: src/gimv_image_view.c:372 src/gimv_image_view.c:388
-#: src/gimv_image_view.c:409 src/gimv_image_view.c:424
-#: src/gimv_image_view.c:426 src/gimv_image_win.c:353 src/gimv_image_win.c:363
-#: src/gimv_image_win.c:365 src/gimv_thumb_win.c:525 src/gimv_thumb_win.c:539
+#: src/dnd.c:67 src/dnd.c:71 src/gimv_image_view.c:358
+#: src/gimv_image_view.c:360 src/gimv_image_view.c:363
+#: src/gimv_image_view.c:375 src/gimv_image_view.c:391
+#: src/gimv_image_view.c:412 src/gimv_image_view.c:427
+#: src/gimv_image_view.c:429 src/gimv_image_win.c:358 src/gimv_image_win.c:368
+#: src/gimv_image_win.c:370 src/gimv_thumb_win.c:525 src/gimv_thumb_win.c:539
 #: src/gimv_thumb_win.c:554 src/gimv_thumb_win.c:575 src/gimv_thumb_win.c:577
 #: src/gimv_thumb_view.c:232 src/gimv_thumb_view.c:235
 #: src/gimv_thumb_view.c:247 src/dirview2.c:188 src/dirview2.c:191
@@ -222,7 +222,7 @@ msgstr ""
 msgid "Skip"
 msgstr ""
 
-#: src/fileload.c:223 src/gimv_image_view.c:3285 src/gimv_image_win.c:1089
+#: src/fileload.c:223 src/gimv_image_view.c:3300 src/gimv_image_win.c:1094
 #: src/gimv_thumb_win.c:2272
 msgid "Stop"
 msgstr ""
@@ -639,7 +639,8 @@ msgstr ""
 msgid "Can't open comment file for write."
 msgstr ""
 
-#: src/gimv_comment_view.c:283 src/gimv_index_view.c:1780
+#: src/gimv_comment_view.c:283 src/gimv_save_dialog.c:450
+#: src/gimv_save_dialog.c:635 src/gimv_index_view.c:1780
 #: src/gimv_index_view.c:1814 src/gimv_index_tags.c:684
 #: src/gimv_index_faces_win.c:839 src/gimv_index_faces_win.c:998
 #: src/gimv_index_faces_win.c:1237 src/gimv_index_faces_win.c:1481
@@ -721,7 +722,7 @@ msgstr ""
 msgid "In File: %s"
 msgstr ""
 
-#: src/gimv_comment_view.c:1347
+#: src/gimv_comment_view.c:1347 src/gimv_save_dialog.c:638
 msgid "_Save"
 msgstr ""
 
@@ -742,7 +743,8 @@ msgstr ""
 msgid "Edit Comment (%s)"
 msgstr ""
 
-#: src/gimv_comment_view.c:1423 src/gimv_gtk4_compat.h:188
+#: src/gimv_comment_view.c:1423 src/gimv_save_dialog.c:370
+#: src/gimv_gtk4_compat.h:188
 msgid "_Close"
 msgstr ""
 
@@ -768,198 +770,202 @@ msgstr ""
 msgid "Machine"
 msgstr ""
 
-#: src/gimv_image_view.c:351 src/gimv_image_view.c:381
-#: src/gimv_image_view.c:405 src/gimv_image_view.c:418 src/gimv_image_win.c:342
+#: src/gimv_image_view.c:353 src/gimv_image_view.c:384
+#: src/gimv_image_view.c:408 src/gimv_image_view.c:421 src/gimv_image_win.c:347
 msgid "/tear"
 msgstr ""
 
-#: src/gimv_image_view.c:352 src/gimv_image_win.c:343
+#: src/gimv_image_view.c:354 src/gimv_image_win.c:348
 msgid "/_Zoom"
 msgstr ""
 
-#: src/gimv_image_view.c:353 src/gimv_image_win.c:344
+#: src/gimv_image_view.c:355 src/gimv_image_win.c:349
 msgid "/_Rotate"
 msgstr ""
 
-#: src/gimv_image_view.c:354 src/gimv_image_win.c:345
+#: src/gimv_image_view.c:356 src/gimv_image_win.c:350
 msgid "/Ignore Alp_ha Channel"
 msgstr ""
 
-#: src/gimv_image_view.c:355 src/gimv_image_win.c:346
+#: src/gimv_image_view.c:357 src/gimv_image_win.c:351
 msgid "/_Checkerboard Behind Transparency"
 msgstr ""
 
-#: src/gimv_image_view.c:357 src/gimv_image_win.c:332
+#: src/gimv_image_view.c:359 src/gimv_image_win.c:337
 msgid "/M_ovie"
 msgstr ""
 
-#: src/gimv_image_view.c:359 src/gimv_image_win.c:364
+#: src/gimv_image_view.c:361 src/gimv_image_win.c:369
 msgid "/_View Modes"
 msgstr ""
 
-#: src/gimv_image_view.c:360
+#: src/gimv_image_view.c:362
 msgid "/Show _Scrollbar"
 msgstr ""
 
-#: src/gimv_image_view.c:362
+#: src/gimv_image_view.c:364
 msgid "/Create _Thumbnail"
 msgstr ""
 
-#: src/gimv_image_view.c:363 src/gimv_thumb_view.c:229
+#: src/gimv_image_view.c:365 src/gimv_thumb_view.c:229
 msgid "/Open the _Folder"
 msgstr ""
 
-#: src/gimv_image_view.c:364
+#: src/gimv_image_view.c:366
 msgid "/Copy the Image to the C_lipboard"
 msgstr ""
 
-#: src/gimv_image_view.c:365 src/gimv_image_win.c:347
+#: src/gimv_image_view.c:367
+msgid "/Save Image _As..."
+msgstr ""
+
+#: src/gimv_image_view.c:368 src/gimv_image_win.c:352
 msgid "/Edit Faces (_People)"
 msgstr ""
 
-#: src/gimv_image_view.c:367 src/gimv_image_win.c:350 src/gimv_thumb_view.c:244
+#: src/gimv_image_view.c:370 src/gimv_image_win.c:355 src/gimv_thumb_view.c:244
 msgid "/Edit Ta_gs..."
 msgstr ""
 
-#: src/gimv_image_view.c:370 src/gimv_image_win.c:352 src/gimv_thumb_view.c:246
+#: src/gimv_image_view.c:373 src/gimv_image_win.c:357 src/gimv_thumb_view.c:246
 msgid "/Boo_kmark..."
 msgstr ""
 
-#: src/gimv_image_view.c:371
+#: src/gimv_image_view.c:374
 msgid "/Memory _Buffer"
 msgstr ""
 
-#: src/gimv_image_view.c:373 src/gimv_thumb_view.c:236
+#: src/gimv_image_view.c:376 src/gimv_thumb_view.c:236
 msgid "/Pr_int..."
 msgstr ""
 
-#: src/gimv_image_view.c:382
+#: src/gimv_image_view.c:385
 msgid "/Zoom _In"
 msgstr ""
 
-#: src/gimv_image_view.c:383
+#: src/gimv_image_view.c:386
 msgid "/Zoom _Out"
 msgstr ""
 
-#: src/gimv_image_view.c:384
+#: src/gimv_image_view.c:387
 msgid "/_Fit to Window"
 msgstr ""
 
-#: src/gimv_image_view.c:385
+#: src/gimv_image_view.c:388
 msgid "/_Fit _Width"
 msgstr ""
 
-#: src/gimv_image_view.c:386
+#: src/gimv_image_view.c:389
 msgid "/_Fit _Height"
 msgstr ""
 
-#: src/gimv_image_view.c:387
+#: src/gimv_image_view.c:390
 msgid "/Keep _Aspect Ratio"
 msgstr ""
 
-#: src/gimv_image_view.c:389
+#: src/gimv_image_view.c:392
 msgid "/10%(_1)"
 msgstr ""
 
-#: src/gimv_image_view.c:390
+#: src/gimv_image_view.c:393
 msgid "/25%(_2)"
 msgstr ""
 
-#: src/gimv_image_view.c:391
+#: src/gimv_image_view.c:394
 msgid "/50%(_3)"
 msgstr ""
 
-#: src/gimv_image_view.c:392
+#: src/gimv_image_view.c:395
 msgid "/75%(_4)"
 msgstr ""
 
-#: src/gimv_image_view.c:393
+#: src/gimv_image_view.c:396
 msgid "/100%(_5)"
 msgstr ""
 
-#: src/gimv_image_view.c:394
+#: src/gimv_image_view.c:397
 msgid "/125%(_6)"
 msgstr ""
 
-#: src/gimv_image_view.c:395
+#: src/gimv_image_view.c:398
 msgid "/150%(_7)"
 msgstr ""
 
-#: src/gimv_image_view.c:396
+#: src/gimv_image_view.c:399
 msgid "/175%(_8)"
 msgstr ""
 
-#: src/gimv_image_view.c:397
+#: src/gimv_image_view.c:400
 msgid "/200%(_9)"
 msgstr ""
 
-#: src/gimv_image_view.c:406
+#: src/gimv_image_view.c:409
 msgid "/Rotate 90 Degrees Clockwise"
 msgstr ""
 
-#: src/gimv_image_view.c:407
+#: src/gimv_image_view.c:410
 msgid "/Rotate 90 Degrees Counterclockwise"
 msgstr ""
 
-#: src/gimv_image_view.c:408
+#: src/gimv_image_view.c:411
 msgid "/Rotate 180 Degrees"
 msgstr ""
 
-#: src/gimv_image_view.c:410
+#: src/gimv_image_view.c:413
 msgid "/Flip Horizontally"
 msgstr ""
 
-#: src/gimv_image_view.c:419
+#: src/gimv_image_view.c:422
 msgid "/_Play"
 msgstr ""
 
-#: src/gimv_image_view.c:420
+#: src/gimv_image_view.c:423
 msgid "/_Stop"
 msgstr ""
 
-#: src/gimv_image_view.c:421
+#: src/gimv_image_view.c:424
 msgid "/P_ause"
 msgstr ""
 
-#: src/gimv_image_view.c:422
+#: src/gimv_image_view.c:425
 msgid "/_Forward"
 msgstr ""
 
-#: src/gimv_image_view.c:423
+#: src/gimv_image_view.c:426
 msgid "/_Reverse"
 msgstr ""
 
-#: src/gimv_image_view.c:425
+#: src/gimv_image_view.c:428
 msgid "/_Continuous Play"
 msgstr ""
 
-#: src/gimv_image_view.c:427
+#: src/gimv_image_view.c:430
 msgid "/_Eject"
 msgstr ""
 
-#: src/gimv_image_view.c:2914
+#: src/gimv_image_view.c:2929
 #, c-format
 msgid "File doesn't exist: %s\n"
 msgstr ""
 
-#: src/gimv_image_view.c:2916
+#: src/gimv_image_view.c:2931
 #, c-format
 msgid "Not an image file (or an unsupported format): %s\n"
 msgstr ""
 
-#: src/gimv_image_view.c:3270
+#: src/gimv_image_view.c:3285
 msgid "Reverse"
 msgstr ""
 
-#: src/gimv_image_view.c:3277 src/gimv_image_win.c:1079
+#: src/gimv_image_view.c:3292 src/gimv_image_win.c:1084
 msgid "Play"
 msgstr ""
 
-#: src/gimv_image_view.c:3292
+#: src/gimv_image_view.c:3307
 msgid "Forward"
 msgstr ""
 
-#: src/gimv_image_view.c:3299
+#: src/gimv_image_view.c:3314
 msgid "Eject"
 msgstr ""
 
@@ -967,324 +973,328 @@ msgstr ""
 msgid "Default Image Viewer"
 msgstr ""
 
-#: src/gimv_image_win.c:303 src/gimv_thumb_win.c:426
+#: src/gimv_image_win.c:307 src/gimv_thumb_win.c:426
 msgid "/_File"
 msgstr ""
 
-#: src/gimv_image_win.c:304 src/gimv_thumb_win.c:427
+#: src/gimv_image_win.c:308 src/gimv_thumb_win.c:427
 msgid "/_File/_Open..."
 msgstr ""
 
-#: src/gimv_image_win.c:305
+#: src/gimv_image_win.c:309
 msgid "/_File/Open _Image Window"
 msgstr ""
 
-#: src/gimv_image_win.c:306
+#: src/gimv_image_win.c:310
 msgid "/_File/Open _Thumbnail Window"
 msgstr ""
 
-#: src/gimv_image_win.c:307 src/gimv_image_win.c:309 src/gimv_image_win.c:311
+#: src/gimv_image_win.c:311 src/gimv_image_win.c:313 src/gimv_image_win.c:316
 #: src/gimv_thumb_win.c:431 src/gimv_thumb_win.c:433
 msgid "/_File/---"
 msgstr ""
 
-#: src/gimv_image_win.c:308
+#: src/gimv_image_win.c:312
 msgid "/_File/Memory _Buffer"
 msgstr ""
 
-#: src/gimv_image_win.c:310 src/gimv_thumb_win.c:432
+#: src/gimv_image_win.c:314
+msgid "/_File/_Save Image..."
+msgstr ""
+
+#: src/gimv_image_win.c:315 src/gimv_thumb_win.c:432
 msgid "/_File/_Print..."
 msgstr ""
 
-#: src/gimv_image_win.c:312
+#: src/gimv_image_win.c:317
 msgid "/_File/_Close"
 msgstr ""
 
-#: src/gimv_image_win.c:313 src/gimv_thumb_win.c:436
+#: src/gimv_image_win.c:318 src/gimv_thumb_win.c:436
 msgid "/_File/_Quit"
 msgstr ""
 
-#: src/gimv_image_win.c:315 src/gimv_thumb_win.c:438
+#: src/gimv_image_win.c:320 src/gimv_thumb_win.c:438
 msgid "/_Edit"
 msgstr ""
 
-#: src/gimv_image_win.c:316
+#: src/gimv_image_win.c:321
 msgid "/_Edit/Edit _Comment..."
 msgstr ""
 
-#: src/gimv_image_win.c:317
+#: src/gimv_image_win.c:322
 msgid "/_Edit/Show E_XIF Data..."
 msgstr ""
 
-#: src/gimv_image_win.c:319 src/gimv_thumb_win.c:457
+#: src/gimv_image_win.c:324 src/gimv_thumb_win.c:457
 msgid "/_Edit/Edit Ta_gs..."
 msgstr ""
 
-#: src/gimv_image_win.c:321
+#: src/gimv_image_win.c:326
 msgid "/_Edit/Create _Thumbnail"
 msgstr ""
 
-#: src/gimv_image_win.c:322
+#: src/gimv_image_win.c:327
 msgid "/_Edit/Copy the Image to the C_lipboard"
 msgstr ""
 
-#: src/gimv_image_win.c:324 src/gimv_thumb_win.c:459
+#: src/gimv_image_win.c:329 src/gimv_thumb_win.c:459
 msgid "/_Edit/Boo_kmark..."
 msgstr ""
 
-#: src/gimv_image_win.c:325 src/gimv_thumb_win.c:441 src/gimv_thumb_win.c:445
+#: src/gimv_image_win.c:330 src/gimv_thumb_win.c:441 src/gimv_thumb_win.c:445
 #: src/gimv_thumb_win.c:454 src/gimv_thumb_win.c:460
 msgid "/_Edit/---"
 msgstr ""
 
-#: src/gimv_image_win.c:326 src/gimv_thumb_win.c:461
+#: src/gimv_image_win.c:331 src/gimv_thumb_win.c:461
 msgid "/_Edit/_Options..."
 msgstr ""
 
-#: src/gimv_image_win.c:328 src/gimv_thumb_win.c:463
+#: src/gimv_image_win.c:333 src/gimv_thumb_win.c:463
 msgid "/_View"
 msgstr ""
 
-#: src/gimv_image_win.c:330
+#: src/gimv_image_win.c:335
 msgid "/_Go"
 msgstr ""
 
-#: src/gimv_image_win.c:334 src/gimv_thumb_win.c:506
+#: src/gimv_image_win.c:339 src/gimv_thumb_win.c:506
 msgid "/_Help"
 msgstr ""
 
-#: src/gimv_image_win.c:354 src/gimv_thumb_win.c:543
+#: src/gimv_image_win.c:359 src/gimv_thumb_win.c:543
 msgid "/_Menubar"
 msgstr ""
 
-#: src/gimv_image_win.c:355
+#: src/gimv_image_win.c:360
 msgid "/_Toolbar"
 msgstr ""
 
-#: src/gimv_image_win.c:356
+#: src/gimv_image_win.c:361
 msgid "/S_lideshow Player"
 msgstr ""
 
-#: src/gimv_image_win.c:357 src/gimv_thumb_win.c:546
+#: src/gimv_image_win.c:362 src/gimv_thumb_win.c:546
 msgid "/St_atusbar"
 msgstr ""
 
-#: src/gimv_image_win.c:358
+#: src/gimv_image_win.c:363
 msgid "/_Scrollbar"
 msgstr ""
 
-#: src/gimv_image_win.c:359
+#: src/gimv_image_win.c:364
 msgid "/Pla_yer"
 msgstr ""
 
-#: src/gimv_image_win.c:360
+#: src/gimv_image_win.c:365
 msgid "/Pla_yer/_Show"
 msgstr ""
 
-#: src/gimv_image_win.c:361
+#: src/gimv_image_win.c:366
 msgid "/Pla_yer/_Hide"
 msgstr ""
 
-#: src/gimv_image_win.c:362
+#: src/gimv_image_win.c:367
 msgid "/Pla_yer/_Auto"
 msgstr ""
 
-#: src/gimv_image_win.c:366
+#: src/gimv_image_win.c:371
 msgid "/_Fit to Image"
 msgstr ""
 
-#: src/gimv_image_win.c:367 src/gimv_thumb_win.c:556
+#: src/gimv_image_win.c:372 src/gimv_thumb_win.c:556
 msgid "/Ma_ximize"
 msgstr ""
 
-#: src/gimv_image_win.c:368
+#: src/gimv_image_win.c:373
 msgid "/F_ullscreen"
 msgstr ""
 
-#: src/gimv_image_win.c:375
+#: src/gimv_image_win.c:380
 msgid "/_Next"
 msgstr ""
 
-#: src/gimv_image_win.c:376
+#: src/gimv_image_win.c:381
 msgid "/_Previous"
 msgstr ""
 
-#: src/gimv_image_win.c:377
+#: src/gimv_image_win.c:382
 msgid "/_First"
 msgstr ""
 
-#: src/gimv_image_win.c:378
+#: src/gimv_image_win.c:383
 msgid "/_Last"
 msgstr ""
 
-#: src/gimv_image_win.c:600 src/gimv_thumb_win.c:772
+#: src/gimv_image_win.c:605 src/gimv_thumb_win.c:772
 msgid "New Window"
 msgstr ""
 
-#: src/gimv_image_win.c:883 src/prefs_ui/prefs_ui_imagewin.c:60
+#: src/gimv_image_win.c:888 src/prefs_ui/prefs_ui_imagewin.c:60
 msgid "90 degrees counterclockwise"
 msgstr ""
 
-#: src/gimv_image_win.c:884 src/prefs_ui/prefs_ui_imagewin.c:59
+#: src/gimv_image_win.c:889 src/prefs_ui/prefs_ui_imagewin.c:59
 msgid "0 degrees"
 msgstr ""
 
-#: src/gimv_image_win.c:885 src/prefs_ui/prefs_ui_imagewin.c:62
+#: src/gimv_image_win.c:890 src/prefs_ui/prefs_ui_imagewin.c:62
 msgid "90 degrees clockwise"
 msgstr ""
 
-#: src/gimv_image_win.c:886 src/prefs_ui/prefs_ui_imagewin.c:61
+#: src/gimv_image_win.c:891 src/prefs_ui/prefs_ui_imagewin.c:61
 msgid "180 degrees"
 msgstr ""
 
-#: src/gimv_image_win.c:896 src/gimv_thumb_win.c:2207
+#: src/gimv_image_win.c:901 src/gimv_thumb_win.c:2207
 #: src/gimv_index_view.c:1459 src/gimv_index_newimg.c:240
 msgid "Open"
 msgstr ""
 
-#: src/gimv_image_win.c:897 src/gimv_thumb_win.c:2208
+#: src/gimv_image_win.c:902 src/gimv_thumb_win.c:2208
 msgid "Open File"
 msgstr ""
 
-#: src/gimv_image_win.c:905 src/gimv_thumb_win.c:2217
+#: src/gimv_image_win.c:910 src/gimv_thumb_win.c:2217
 msgid "Prefs"
 msgstr ""
 
-#: src/gimv_image_win.c:906 src/gimv_prefs_win.c:653 src/gimv_thumb_win.c:2218
+#: src/gimv_image_win.c:911 src/gimv_prefs_win.c:653 src/gimv_thumb_win.c:2218
 #: src/prefs_ui/prefs_ui_etc.c:605
 msgid "Preferences"
 msgstr ""
 
-#: src/gimv_image_win.c:916 src/gimv_image_win.c:1069 src/gimv_thumb_win.c:2229
+#: src/gimv_image_win.c:921 src/gimv_image_win.c:1074 src/gimv_thumb_win.c:2229
 msgid "Prev"
 msgstr ""
 
-#: src/gimv_image_win.c:917
+#: src/gimv_image_win.c:922
 msgid "Previous Image"
 msgstr ""
 
-#: src/gimv_image_win.c:927 src/gimv_image_win.c:1099 src/gimv_image_win.c:1100
+#: src/gimv_image_win.c:932 src/gimv_image_win.c:1104 src/gimv_image_win.c:1105
 #: src/gimv_thumb_win.c:2239
 msgid "Next"
 msgstr ""
 
-#: src/gimv_image_win.c:928
+#: src/gimv_image_win.c:933
 msgid "Next Image"
 msgstr ""
 
-#: src/gimv_image_win.c:940 src/gimv_image_win.c:941
+#: src/gimv_image_win.c:945 src/gimv_image_win.c:946
 msgid "No Zoom"
 msgstr ""
 
-#: src/gimv_image_win.c:949 src/gimv_image_win.c:950
+#: src/gimv_image_win.c:954 src/gimv_image_win.c:955
 #: src/prefs_ui/prefs_ui_imagewin.c:142 src/prefs_ui/prefs_ui_thumbwin.c:168
 msgid "Zoom in"
 msgstr ""
 
-#: src/gimv_image_win.c:958 src/gimv_image_win.c:959
+#: src/gimv_image_win.c:963 src/gimv_image_win.c:964
 #: src/prefs_ui/prefs_ui_imagewin.c:143 src/prefs_ui/prefs_ui_thumbwin.c:169
 msgid "Zoom out"
 msgstr ""
 
-#: src/gimv_image_win.c:967 src/gimv_image_win.c:968
+#: src/gimv_image_win.c:972 src/gimv_image_win.c:973
 msgid "Zoom to fit"
 msgstr ""
 
-#: src/gimv_image_win.c:985
+#: src/gimv_image_win.c:990
 msgid "X Scale"
 msgstr ""
 
-#: src/gimv_image_win.c:998
+#: src/gimv_image_win.c:1003
 msgid "Y Scale"
 msgstr ""
 
-#: src/gimv_image_win.c:1004 src/gimv_image_win.c:1005
+#: src/gimv_image_win.c:1009 src/gimv_image_win.c:1010
 msgid "Zoom"
 msgstr ""
 
-#: src/gimv_image_win.c:1016
+#: src/gimv_image_win.c:1021
 msgid "Rotate the image"
 msgstr ""
 
-#: src/gimv_image_win.c:1024
+#: src/gimv_image_win.c:1029
 msgid "Resize"
 msgstr ""
 
-#: src/gimv_image_win.c:1025
+#: src/gimv_image_win.c:1030
 msgid "Fit Window Size to Image"
 msgstr ""
 
-#: src/gimv_image_win.c:1034
+#: src/gimv_image_win.c:1039
 msgid "Full"
 msgstr ""
 
-#: src/gimv_image_win.c:1035
+#: src/gimv_image_win.c:1040
 msgid "Fullscreen"
 msgstr ""
 
-#: src/gimv_image_win.c:1059 src/gimv_image_win.c:1060
+#: src/gimv_image_win.c:1064 src/gimv_image_win.c:1065
 msgid "First"
 msgstr ""
 
-#: src/gimv_image_win.c:1070
+#: src/gimv_image_win.c:1075
 msgid "Previous"
 msgstr ""
 
-#: src/gimv_image_win.c:1080
+#: src/gimv_image_win.c:1085
 msgid "Play Slideshow"
 msgstr ""
 
-#: src/gimv_image_win.c:1090
+#: src/gimv_image_win.c:1095
 msgid "Stop Slideshow"
 msgstr ""
 
-#: src/gimv_image_win.c:1109 src/gimv_image_win.c:1110
+#: src/gimv_image_win.c:1114 src/gimv_image_win.c:1115
 msgid "Last"
 msgstr ""
 
-#: src/gimv_image_win.c:1216
+#: src/gimv_image_win.c:1221
 #, c-format
 msgid "%s (%s) - %s - "
 msgstr ""
 
-#: src/gimv_image_win.c:1219
+#: src/gimv_image_win.c:1224
 #, c-format
 msgid "* %s (%s) - %s - *"
 msgstr ""
 
-#: src/gimv_image_win.c:1224
+#: src/gimv_image_win.c:1229
 #, c-format
 msgid "- %s -"
 msgstr ""
 
-#: src/gimv_image_win.c:1226
+#: src/gimv_image_win.c:1231
 #, c-format
 msgid "* - %s - *"
 msgstr ""
 
-#: src/gimv_image_win.c:1240
+#: src/gimv_image_win.c:1245
 msgid "NONE"
 msgstr ""
 
-#: src/gimv_image_win.c:1241
+#: src/gimv_image_win.c:1246
 msgid "UNKNOWN"
 msgstr ""
 
-#: src/gimv_image_win.c:1267
+#: src/gimv_image_win.c:1272
 #, c-format
 msgid "%s (Buffer ON)"
 msgstr ""
 
-#: src/gimv_image_win.c:1269
+#: src/gimv_image_win.c:1274
 #, c-format
 msgid "%s (Buffer OFF)"
 msgstr ""
 
-#: src/gimv_image_win.c:1274
+#: src/gimv_image_win.c:1279
 msgid "(Buffer ON)"
 msgstr ""
 
-#: src/gimv_image_win.c:1276
+#: src/gimv_image_win.c:1281
 msgid "(Buffer OFF)"
 msgstr ""
 
@@ -1563,6 +1573,92 @@ msgstr ""
 #: src/prefs_ui/prefs_ui_etc.c:943 src/prefs_ui/prefs_ui_imagewin.c:402
 #: src/prefs_ui/prefs_ui_thumbwin.c:910
 msgid "Image"
+msgstr ""
+
+#: src/gimv_save_dialog.c:205
+msgid "Save Image As"
+msgstr ""
+
+#: src/gimv_save_dialog.c:309
+msgid "The image could not be written."
+msgstr ""
+
+#: src/gimv_save_dialog.c:359
+#, c-format
+msgid "Could not save: %s"
+msgstr ""
+
+#: src/gimv_save_dialog.c:365
+#, c-format
+msgid "Saved, but the information of the file (EXIF, ...) could not be copied: %s"
+msgstr ""
+
+#: src/gimv_save_dialog.c:404
+msgid "Saving..."
+msgstr ""
+
+#: src/gimv_save_dialog.c:432
+msgid "Give the file to save to (its full path)."
+msgstr ""
+
+#: src/gimv_save_dialog.c:440
+msgid "The folder is not there."
+msgstr ""
+
+#: src/gimv_save_dialog.c:448
+msgid "Overwrite the image shown?"
+msgstr ""
+
+#: src/gimv_save_dialog.c:449
+msgid "The file is there already.  Overwrite it?"
+msgstr ""
+
+#: src/gimv_save_dialog.c:450
+msgid "_Overwrite"
+msgstr ""
+
+#: src/gimv_save_dialog.c:512
+msgid "There is no image to save."
+msgstr ""
+
+#: src/gimv_save_dialog.c:535
+msgid "Save Image"
+msgstr ""
+
+#: src/gimv_save_dialog.c:561
+msgid "Image:"
+msgstr ""
+
+#: src/gimv_save_dialog.c:564
+msgid "(not a file)"
+msgstr ""
+
+#: src/gimv_save_dialog.c:576
+msgid "Save _to:"
+msgstr ""
+
+#: src/gimv_save_dialog.c:584
+msgid "_Browse..."
+msgstr ""
+
+#: src/gimv_save_dialog.c:590
+msgid "_Format:"
+msgstr ""
+
+#: src/gimv_save_dialog.c:598
+msgid "_Quality:"
+msgstr ""
+
+#: src/gimv_save_dialog.c:611
+msgid "_Keep the information of the file (EXIF, XMP, IPTC: the date, the camera, ...)"
+msgstr ""
+
+#: src/gimv_save_dialog.c:618
+msgid "The image is saved in its full size, turned as it is shown."
+msgstr ""
+
+#: src/gimv_save_dialog.c:655
+msgid "No image saver plugin is there."
 msgstr ""
 
 #: src/gimv_thumb_win.c:428
@@ -4723,8 +4819,8 @@ msgstr ""
 #: plugins/archiver/libarchive-ext.c:123 plugins/image_loader/pnm.c:95
 #: plugins/image_loader/xpm.c:75 plugins/image_loader/zim.c:91
 #: plugins/image_loader/ak5.c:115 plugins/image_loader/wbmp.c:73
-#: plugins/image_loader/ras.c:94 plugins/thumbnail/freedesktop.c:82
-#: plugins/image_view/image_view_gst.c:262
+#: plugins/image_loader/ras.c:94 plugins/image_saver/pixbuf_saver.c:51
+#: plugins/thumbnail/freedesktop.c:82 plugins/image_view/image_view_gst.c:262
 msgid "shitamo"
 msgstr ""
 
@@ -4938,6 +5034,14 @@ msgstr ""
 
 #: plugins/image_loader/xvpics.c:48
 msgid "XV Thumbnail Image Loader"
+msgstr ""
+
+#: plugins/image_saver/pixbuf_saver.c:49
+msgid "GdkPixbuf Image Saver"
+msgstr ""
+
+#: plugins/image_saver/pixbuf_saver.c:52
+msgid "Saves images as JPEG, WebP, AVIF, TIFF, BMP and ICO with the writers of gdk-pixbuf."
 msgstr ""
 
 #: plugins/image_saver/png_saver.c:47

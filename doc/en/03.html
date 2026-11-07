@@ -35,7 +35,7 @@ This section describes the items of the menu bar.  Both the thumbnail window and
 <a name="03-01"></a>3.1. File</h3></div></div>
 <div class="figure"><img src="images/menu_file.png" width="226" height="314" alt="The File menu of the thumbnail window">
 <p class="caption">The File menu of the thumbnail window</p></div>
-<div class="figure"><img src="images/menu_i_file.png" width="288" height="297" alt="The File menu of the image window">
+<div class="figure"><img src="images/menu_i_file.png" width="283" height="322" alt="The File menu of the image window">
 <p class="caption">The File menu of the image window</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="load_file"></a>Open... [Ctrl + F]</span></dt>
@@ -78,6 +78,23 @@ Creates a new, empty image window.
 <dd>
 <p class="para">
 <span class="emphasis"><i>Image window only</i></span>.  Keeps the image shown in the memory buffer.  For details see "<a href="gimv_tips.html#gimv_tips_05" title="">Making the image view draw faster</a>" in the Tips.
+</p>
+</dd>
+<dt><span class="term"><a name="save_image"></a>Save Image... [Ctrl + S]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Saves the image shown to another file in the format chosen (a HEIC as a JPEG, ...).  "Save Image As..." of the mouse menu of the preview in the thumbnail window does the same.
+</p>
+<div class="figure"><img src="images/save_dialog.png" width="596" height="282" alt="The Save Image dialog">
+<p class="caption">The Save Image dialog</p></div>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Save to: at first the folder and the name of the image, with the extension of the format ("_2" is added to the name when it would be the image itself).  "Browse..." chooses it in a file dialog.  When the file is there already, it asks before overwriting it.</p></li>
+<li><p class="para">Format: those of JPEG, PNG, WebP, AVIF, TIFF, BMP and PNM that can be saved (WebP, AVIF, ... when gdk-pixbuf can write them).</p></li>
+<li><p class="para">Quality: of JPEG, WebP and AVIF (1 to 100, 90 by default).</p></li>
+<li><p class="para">Keep the information of the file (EXIF, XMP, IPTC): when built with gexiv2 (Exiv2).  The information of the file is copied to the new file (JPEG, PNG, WebP, TIFF).  The image is saved turned as it is shown, so the orientation of the information is put to normal, and the thumbnail of the EXIF is left out.</p></li>
+</ul></div>
+<p class="para">
+The image is saved in its full size, turned (rotated, mirrored) as it is shown.  It is written in another thread.  A thumbnail window showing the folder saved to is refreshed.  The format and the quality chosen are remembered until gimv quits.
 </p>
 </dd>
 <dt><span class="term"><a name="print"></a>Print... [Ctrl + P]</span></dt>

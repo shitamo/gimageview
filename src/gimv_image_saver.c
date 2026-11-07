@@ -45,6 +45,7 @@ typedef enum
 struct GimvImageSaverPriv_Tag
 {
    GimvImageSaverFlags flags;
+   GHashTable         *options;   /* key -> value: "quality" -> "90", ... */
 };
 
 
@@ -199,6 +200,7 @@ gimv_image_saver_destroy (GimvObject *object)
    }
 
    if (saver->priv) {
+      g_clear_pointer (&saver->priv->options, g_hash_table_destroy);
       g_free (saver->priv);
       saver->priv = NULL;
    }
@@ -378,6 +380,43 @@ gimv_image_saver_set_comment (GimvImageSaver *saver,
 
    saver->comments[pos].key  = g_strdup(key);
    saver->comments[pos].text = g_strdup(value);
+}
+
+
+void
+gimv_image_saver_set_option (GimvImageSaver *saver,
+                             const gchar    *key,
+                             const gchar    *value)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_SAVER (saver) && saver->priv);
+   g_return_if_fail (key && *key);
+
+   if (!saver->priv->options)
+      saver->priv->options = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                    g_free, g_free);
+   if (value)
+      g_hash_table_insert (saver->priv->options, g_strdup (key), g_strdup (value));
+   else
+      g_hash_table_remove (saver->priv->options, key);
+}
+
+
+const gchar *
+gimv_image_saver_get_option (GimvImageSaver *saver, const gchar *key)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_SAVER (saver) && saver->priv, NULL);
+   g_return_val_if_fail (key, NULL);
+
+   if (!saver->priv->options) return NULL;
+   return g_hash_table_lookup (saver->priv->options, key);
+}
+
+
+gboolean
+gimv_image_saver_has_format (const gchar *format)
+{
+   g_return_val_if_fail (format, FALSE);
+   return image_savers && g_hash_table_lookup (image_savers, format) != NULL;
 }
 
 

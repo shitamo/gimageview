@@ -43,6 +43,7 @@
 #include "help.h"
 #include "menu.h"
 #include "gimv_print.h"
+#include "gimv_save_dialog.h"
 #include "prefs.h"
 #include "gimv_thumb_cache.h"
 
@@ -203,6 +204,9 @@ static void     cb_exif                 (GimvImageWin *iw,
 static void     cb_print           (GimvImageWin   *iw,
                                     guint           action,
                                     GimvMenuItem   *menuitem);
+static void     cb_save_image      (GimvImageWin   *iw,
+                                     guint           action,
+                                     GimvMenuItem   *menuitem);
 static void     cb_create_thumb         (GimvImageWin *iw,
                                          guint         action,
                                          GimvMenuItem    *widget);
@@ -307,6 +311,7 @@ GimvMenuEntry gimv_image_win_menu_items[] =
    {N_("/_File/---"),                    NULL,         NULL,              0,  "<Separator>"},
    {N_("/_File/Memory _Buffer"),         "<control>B", cb_toggle_buffer,  0,  "<ToggleItem>"},
    {N_("/_File/---"),                    NULL,         NULL,              0,  "<Separator>"},
+   {N_("/_File/_Save Image..."),         "<control>S", cb_save_image,     0,  NULL},
    {N_("/_File/_Print..."),              "<control>P", cb_print,          0,  NULL},
    {N_("/_File/---"),                    NULL,         NULL,              0,  "<Separator>"},
    {N_("/_File/_Close"),                 "Q",          cb_window_close,   0,  NULL},
@@ -1594,6 +1599,16 @@ cb_print (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
    g_return_if_fail (iw->iv);
 
    gimv_print_image_view (iw->iv, GTK_WINDOW (iw));
+}
+
+
+static void
+cb_save_image (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
+   g_return_if_fail (iw->iv);
+
+   gimv_save_dialog_open (iw->iv, GTK_WINDOW (iw));
 }
 
 

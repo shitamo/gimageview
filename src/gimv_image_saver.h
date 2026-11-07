@@ -128,6 +128,16 @@ void            gimv_image_saver_set_comment         (GimvImageSaver *saver,
                                                       const gchar    *key,
                                                       const gchar    *value);
 
+/* options for the saver of the format ("quality" for JPEG, WebP, AVIF:
+ * "1" .. "100"); NULL value removes one */
+void            gimv_image_saver_set_option          (GimvImageSaver *saver,
+                                                      const gchar    *key,
+                                                      const gchar    *value);
+const gchar    *gimv_image_saver_get_option          (GimvImageSaver *saver,
+                                                      const gchar    *key);
+/* a saver of the format is there */
+gboolean        gimv_image_saver_has_format          (const gchar    *format);
+
 gboolean        gimv_image_saver_save                (GimvImageSaver *saver);
 void            gimv_image_saver_save_start          (GimvImageSaver *saver);
 void            gimv_image_saver_save_stop           (GimvImageSaver *saver);

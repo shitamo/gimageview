@@ -6609,3 +6609,105 @@ msgstr "このグループの %u 枚 (%s) をゴミ箱へ移動しますか？"
 #, c-format
 msgid "and %u more"
 msgstr "ほか %u 枚"
+
+#: src/gimv_image_win.c
+msgid "/_File/_Save Image..."
+msgstr "/ファイル(_F)/画像を保存(_S)..."
+
+#: src/gimv_image_view.c
+msgid "/Save Image _As..."
+msgstr "/画像を保存(_A)..."
+
+#: src/gimv_save_dialog.c
+msgid "Save Image"
+msgstr "画像を保存"
+
+#: src/gimv_save_dialog.c
+msgid "Image:"
+msgstr "画像:"
+
+#: src/gimv_save_dialog.c
+msgid "Save _to:"
+msgstr "保存先(_T):"
+
+#: src/gimv_save_dialog.c
+msgid "_Browse..."
+msgstr "参照(_B)..."
+
+#: src/gimv_save_dialog.c
+msgid "_Format:"
+msgstr "形式(_F):"
+
+#: src/gimv_save_dialog.c
+msgid "_Quality:"
+msgstr "画質(_Q):"
+
+#: src/gimv_save_dialog.c
+msgid "_Keep the information of the file (EXIF, XMP, IPTC: the date, the camera, ...)"
+msgstr "撮影日時・カメラなどの情報 (EXIF・XMP・IPTC) を残す(_K)"
+
+#: src/gimv_save_dialog.c
+msgid "The image is saved in its full size, turned as it is shown."
+msgstr "画像は元の大きさで、表示している向きのまま保存します。"
+
+#: src/gimv_save_dialog.c
+msgid "(not a file)"
+msgstr "(ファイルではありません)"
+
+#: src/gimv_save_dialog.c
+msgid "Save Image As"
+msgstr "名前を付けて画像を保存"
+
+#: src/gimv_save_dialog.c
+msgid "The image could not be written."
+msgstr "画像を書き込めませんでした。"
+
+#: src/gimv_save_dialog.c
+#, c-format
+msgid "Could not save: %s"
+msgstr "保存できませんでした: %s"
+
+#: src/gimv_save_dialog.c
+#, c-format
+msgid "Saved, but the information of the file (EXIF, ...) could not be copied: %s"
+msgstr "保存しましたが、ファイルの情報 (EXIF など) をコピーできませんでした: %s"
+
+#: src/gimv_save_dialog.c
+msgid "Saving..."
+msgstr "保存中..."
+
+#: src/gimv_save_dialog.c
+msgid "Give the file to save to (its full path)."
+msgstr "保存先のファイルを (フルパスで) 指定してください。"
+
+#: src/gimv_save_dialog.c
+msgid "The folder is not there."
+msgstr "保存先のフォルダがありません。"
+
+#: src/gimv_save_dialog.c
+msgid "Overwrite the image shown?"
+msgstr "表示している画像を上書きしますか？"
+
+#: src/gimv_save_dialog.c
+msgid "The file is there already.  Overwrite it?"
+msgstr "同じ名前のファイルがあります。上書きしますか？"
+
+#: src/gimv_save_dialog.c
+msgid "_Overwrite"
+msgstr "上書き(_O)"
+
+#: src/gimv_save_dialog.c
+msgid "There is no image to save."
+msgstr "保存する画像がありません。"
+
+#: src/gimv_save_dialog.c
+msgid "No image saver plugin is there."
+msgstr "画像保存プラグインがありません。"
+
+#: plugins/image_saver/pixbuf_saver.c
+msgid "GdkPixbuf Image Saver"
+msgstr "GdkPixbuf 画像保存"
+
+#: plugins/image_saver/pixbuf_saver.c
+msgid "Saves images as JPEG, WebP, AVIF, TIFF, BMP and ICO with the writers of gdk-pixbuf."
+msgstr "gdk-pixbuf の書き出し機能で JPEG・WebP・AVIF・TIFF・BMP・ICO に保存します。"

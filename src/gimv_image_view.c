@@ -47,6 +47,7 @@
 #include "gtkutils.h"
 #include "menu.h"
 #include "gimv_print.h"
+#include "gimv_save_dialog.h"
 #include "prefs.h"
 #include "gimv_thumb_cache.h"
 #ifdef ENABLE_INDEX
@@ -243,6 +244,7 @@ static void cb_bookmark            (GimvImageView     *iv,
 static void cb_copy_to_clipboard   (GimvImageView     *iv,
                                     guint              action,
                                     GimvMenuItem      *widget);
+static void cb_save_image (GimvImageView *iv, guint action, GimvMenuItem *widget);
 static void cb_edit_faces          (GimvImageView     *iv,
                                     guint              action,
                                     GimvMenuItem      *widget);
@@ -362,6 +364,7 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/Create _Thumbnail"),     "<shift>T",   cb_create_thumbnail, 0, NULL},
    {N_("/Open the _Folder"),      NULL,         cb_open_folder,      0, NULL},
    {N_("/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
+   {N_("/Save Image _As..."),     NULL,         cb_save_image,       0, NULL},
    {N_("/Edit Faces (_People)"),  "P",          cb_edit_faces,       0, NULL},
 #ifdef ENABLE_INDEX
    {N_("/Edit Ta_gs..."),         NULL,         cb_edit_tags,        0, NULL},
@@ -1115,6 +1118,18 @@ static void
 cb_copy_to_clipboard (GimvImageView *iv, guint action, GimvMenuItem *widget)
 {
    gimv_image_view_copy_to_clipboard (iv);
+}
+
+
+static void
+cb_save_image (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   GtkRoot *root;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   root = gtk_widget_get_root (GTK_WIDGET (iv));
+   gimv_save_dialog_open (iv, GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL);
 }
 
 
@@ -5542,4 +5557,48 @@ gimv_image_view_playable_set_position (GimvImageView *iv, gfloat pos)
       gtk_adjustment_set_value (adj, pos);
    }
 
+}
+
+
+/*
+ * The image shown, in its full size and as it is turned: to save it.  The
+ * image of the view may be smaller (a JPEG is read only as large as it is
+ * shown): then the file is read again.  NULL: none (a movie, ...).
+ */
+GimvImage *
+gimv_image_view_get_full_image (GimvImageView *iv)
+{
+   GimvImage *image = NULL;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), NULL);
+
+   if (iv->image && !GIMV_IS_ANIM (iv->image) && !gimv_image_view_need_load (iv))
+      return gimv_image_ref (iv->image);
+
+   if (iv->info && !gimv_image_info_is_movie (iv->info)
+       && !gimv_image_info_is_audio (iv->info)
+       && !gimv_image_info_is_in_archive (iv->info)
+       && gimv_image_info_get_path (iv->info))
+   {
+      image = gimv_image_load_file (gimv_image_info_get_path (iv->info), FALSE);
+      if (image && iv->priv->flip)
+         image = gimv_image_flip_horizontal (image);
+      if (image) {
+         switch (iv->priv->rotate) {
+         case GIMV_IMAGE_VIEW_ROTATE_90:
+            image = gimv_image_rotate_90 (image, TRUE);  break;
+         case GIMV_IMAGE_VIEW_ROTATE_180:
+            image = gimv_image_rotate_180 (image);       break;
+         case GIMV_IMAGE_VIEW_ROTATE_270:
+            image = gimv_image_rotate_90 (image, FALSE); break;
+         default:
+            break;
+         }
+      }
+   }
+
+   /* as large as it is there */
+   if (!image && iv->image && !GIMV_IS_ANIM (iv->image))
+      image = gimv_image_ref (iv->image);
+   return image;
 }

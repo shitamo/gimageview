@@ -478,4 +478,8 @@ gboolean gimv_image_view_plugin_regist (const gchar *plugin_name,
                                         gpointer     impl,
                                         gint         size);
 
+/* the image shown in its full size, turned as shown (a new reference),
+ * to save it; NULL: none */
+GimvImage *gimv_image_view_get_full_image (GimvImageView *iv);
+
 #endif /* __GIMV_IMAGE_VIEW_H__ */

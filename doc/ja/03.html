@@ -35,7 +35,7 @@
 <a name="03-01"></a>3.1. ファイル</h3></div></div>
 <div class="figure"><img src="images/menu_file.png" width="253" height="317" alt="サムネイルウィンドウの [ファイル] メニュー">
 <p class="caption">サムネイルウィンドウの [ファイル] メニュー</p></div>
-<div class="figure"><img src="images/menu_i_file.png" width="299" height="300" alt="イメージウィンドウの [ファイル] メニュー">
+<div class="figure"><img src="images/menu_i_file.png" width="294" height="325" alt="イメージウィンドウの [ファイル] メニュー">
 <p class="caption">イメージウィンドウの [ファイル] メニュー</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="load_file"></a>開く [Ctrl + F]</span></dt>
@@ -78,6 +78,23 @@
 <dd>
 <p class="para">
 <span class="emphasis"><i>イメージウィンドウのみ</i></span>。展開している画像をメモリバッファに保持します。メモリバッファについての詳しい説明は、Tips の「<a href="gimv_tips.html#gimv_tips_05" title="">イメージビューの描画を速くする</a>」を参照してください。
+</p>
+</dd>
+<dt><span class="term"><a name="save_image"></a>画像を保存 [Ctrl + S]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。表示している画像を、形式を指定して別のファイルに保存します (HEIC を JPEG にする、など)。サムネイルウィンドウのプレビューのマウスメニューの「画像を保存」も同じです。
+</p>
+<div class="figure"><img src="images/save_dialog.png" width="560" height="291" alt="画像を保存のダイアログ">
+<p class="caption">画像を保存のダイアログ</p></div>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">保存先: 初めは元の画像と同じフォルダ・同じ名前で、形式の拡張子にしたものです (元の画像と同じになる場合は名前に「_2」を付けます)。「参照...」でファイル選択のダイアログから選べます。同じ名前のファイルがあれば、上書きするか確認します。</p></li>
+<li><p class="para">形式: JPEG・PNG・WebP・AVIF・TIFF・BMP・PNM のうち、保存できるものが出ます (WebP・AVIF などは gdk-pixbuf の書き出し機能があるとき)。</p></li>
+<li><p class="para">画質: JPEG・WebP・AVIF の画質 (1〜100、初期値 90) です。</p></li>
+<li><p class="para">撮影日時・カメラなどの情報 (EXIF・XMP・IPTC) を残す: gexiv2 (Exiv2) を使って作成した場合の項目です。元のファイルの情報を新しいファイルにコピーします (JPEG・PNG・WebP・TIFF)。画像は表示している向きで保存するので、情報の「向き」は標準にし、EXIF の縮小画像は除きます。</p></li>
+</ul></div>
+<p class="para">
+画像は元の大きさで、表示している向き (回転・左右反転) のまま保存します。保存は別スレッドで行います。保存したフォルダをサムネイルウィンドウで開いていれば、一覧を更新します。選んだ形式と画質は、gimv を終了するまで覚えています。
 </p>
 </dd>
 <dt><span class="term"><a name="print"></a>印刷 [Ctrl + P]</span></dt>

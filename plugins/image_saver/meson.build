@@ -7,3 +7,7 @@ foreach n : ['pnm', 'xvpics']
   gimv_plugins += shared_module('gimv_' + n + '_saver', n + '_saver.c',
     dependencies : common_deps, install_dir : dir, kwargs : plugin_kwargs)
 endforeach
+
+# JPEG, WebP, AVIF, TIFF, BMP, ICO: the writers of gdk-pixbuf
+gimv_plugins += shared_module('gimv_pixbuf_saver', 'pixbuf_saver.c',
+  dependencies : common_deps, install_dir : dir, kwargs : plugin_kwargs)

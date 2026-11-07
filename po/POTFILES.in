@@ -19,6 +19,7 @@ src/gimv_image_win.c
 src/gimv_prefs_ui_utils.c
 src/gimv_prefs_win.c
 src/gimv_print.c
+src/gimv_save_dialog.c
 src/gimv_thumb_win.c
 src/gimv_index.c
 src/gimv_index_view.c
@@ -73,6 +74,7 @@ plugins/image_loader/wmf.c
 plugins/image_loader/xbm.c
 plugins/image_loader/xcf.c
 plugins/image_loader/xvpics.c
+plugins/image_saver/pixbuf_saver.c
 plugins/image_saver/png_saver.c
 plugins/image_saver/pnm_saver.c
 plugins/image_saver/xvpics_saver.c
