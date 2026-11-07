@@ -158,31 +158,31 @@ At present, the layout can be changed freely with &quot;Window Composition&quot;
 For now the &quot;layouts&quot; are fixed to 5 kinds (excluding &quot;Custom&quot;), but eventually it is said that you will be able to register as many of your own preferred arrangements as you like as &quot;layouts&quot;. The interface under consideration is (adding an item &quot;Save Layout&quot; to the layout menu, so that a name can be given when saving a layout).
 </p>
 </dd>
-<dt><span class="term"><a name="gimv_tips_10"></a>Similar image search</span></dt>
+<dt><span class="term"><a name="gimv_tips_10"></a>How duplicates are found</span></dt>
 <dd>
 <p class="para">
-The similar image search algorithm of GImageView is as follows.
+[Tools | Find Duplicates...] goes through the images of the active tab in the steps below and sorts what it finds into three kinds of groups: Identical, Other Sizes and Similar.  It searches in another thread: the window can be used meanwhile.
 </p>
 <div class="orderedlist"><ol type="1">
-<li><p class="para">Regardless of the size/aspect ratio of the image, every image is squeezed into a 32x32 dot frame (after its EXIF orientation is put right)</p></li>
-<li><p class="para">The R/G/B differences of each pixel are accumulated and averaged (0 to 1.0)</p></li>
-<li><p class="para">If the difference is below the threshold, the images are judged to &quot;match&quot;</p></li>
+<li><p class="para">The same files: the md5 is computed only for the files of the same size (in bytes); the same md5 means the same bytes.  A file whose size no other has is not read.</p></li>
+<li><p class="para">The pictures read small: one of each set of the same files is read small (about 128 dots), turned as its EXIF orientation says, squeezed into a 32x32 frame whatever its shape, and the R/G/B means of each part are taken (some programs call it a &quot;fingerprint&quot;).  The thumbnails are not used: the images the thumbnail view has not loaded yet are compared too.</p></li>
+<li><p class="para">The pictures compared: the R/G/B differences of two fingerprints are averaged (0 to 1.0); 1.0 minus that is how alike they are.  At or above the value of the preferences they match.  Images whose total brightness is too far apart cannot match and are not compared.</p></li>
+<li><p class="para">The kinds: a group of the same files only is Identical.  When the images that match all have the same shape and no two of them have the same size, it is Other Sizes (copies included); else Similar.  Images of the same size but other bytes (saved again, edited) are Similar.</p></li>
 </ol></div>
 <p class="para">
-This threshold can be set in &quot;Search&quot; in the preferences, but it is actually set as a similarity (1.0 - difference). If the value is at or above this, the images are judged to match (a percentage might have been better).
+How alike they must be is &quot;Accuracy&quot; in [Preferences | Search] (0.97 by default: 97% or more alike match).  A lower value puts more images in Similar.
 </p>
 <p class="para">
-The 32x32 image data (some programs seem to call it a &quot;fingerprint&quot; or similar) is made from the image read small (it used to be made from the thumbnails, and did not work when they had not been created).  The files of the same bytes are found first, by the md5 of the files of the same size, and only one of them is read.  Images whose total brightness is too far apart cannot match and are not compared.
+In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest, the shortest path) is marked Keep and the others Delete.  The Similar groups may be other shots: all are marked Keep.  Which to keep is for a person to check and decide, and they go to the trash a group at a time.
 </p>
 <p class="para">
-The images that match are &quot;Other Sizes&quot; when they have the same shape and only their sizes differ, else &quot;Similar&quot;.
-</p>
-<p class="para">
-Because of this implementation, images that look very similar to a human at first glance may actually be judged as &quot;not matching&quot;. This happens in the following cases.
+Because of how it works, it may not do what one expects in these cases.
 </p>
 <div class="orderedlist"><ol type="1">
-<li><p class="para">When the color balance is shifted as a whole (every pixel is uniformly judged to &quot;have a difference&quot;)</p></li>
-<li><p class="para">When the images are almost the same, but part of the image (top/bottom/right/left) has been cut off (pixels that do not correspond are compared)</p></li>
+<li><p class="para">Images whose color balance or brightness has changed as a whole match less (every part differs evenly).</p></li>
+<li><p class="para">Images with a part (top/bottom/right/left) cut off match less (parts that do not correspond are compared).  Rotated or mirrored images do not match.</p></li>
+<li><p class="para">A copy only blown up has more pixels and is marked Keep.</p></li>
+<li><p class="para">Images gimv shows but gdk-pixbuf cannot read are looked at for Identical only.  The images in archives are not compared.</p></li>
 </ol></div>
 </dd>
 </dl></div>
