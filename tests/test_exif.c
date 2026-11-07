@@ -33,6 +33,22 @@ in_root (const gchar *name)
 }
 
 
+/* gexiv2_metadata_try_set_tag_string (): in 0.14 and 0.16 alike
+ * (gexiv2_metadata_set_tag_string () took a GError in 0.16) */
+static gboolean
+set_tag (GExiv2Metadata *m, const gchar *tag, const gchar *value)
+{
+   GError *error = NULL;
+   gboolean ok;
+
+   G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+   ok = gexiv2_metadata_try_set_tag_string (m, tag, value, &error);
+   G_GNUC_END_IGNORE_DEPRECATIONS
+   g_assert_no_error (error);
+   return ok;
+}
+
+
 /* a 6 x 4 image of the type ("png", "tiff") at path, with the orientation
  * and the camera maker in its EXIF data (written by Exiv2) when o > 0 */
 static void
@@ -51,10 +67,8 @@ write_image (const gchar *path, const gchar *type, gint o)
 
       g_snprintf (v, sizeof v, "%d", o);
       g_assert_true (gexiv2_metadata_open_path (m, path, &error));
-      G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-      gexiv2_metadata_set_tag_string (m, "Exif.Image.Orientation", v);
-      gexiv2_metadata_set_tag_string (m, "Exif.Image.Make", "FUJIFILM");
-      G_GNUC_END_IGNORE_DEPRECATIONS
+      g_assert_true (set_tag (m, "Exif.Image.Orientation", v));
+      g_assert_true (set_tag (m, "Exif.Image.Make", "FUJIFILM"));
       g_assert_true (gexiv2_metadata_save_file (m, path, &error));
       g_assert_no_error (error);
       g_object_unref (m);
