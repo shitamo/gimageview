@@ -858,6 +858,75 @@ test_exiv2 (void)
 #endif
 
 
+/* the date a person wrote in the comment (X-IMG-Date) before EXIF and the
+ * name; written while watching, removed */
+typedef struct { const gchar *path, *date; } DateIs;
+
+static gboolean
+cond_date (Indexer *ix, gconstpointer data)
+{
+   const DateIs *d = data;
+   gchar *now = file_date (ix, d->path);
+   gboolean ok = now && (d->date[0] == ' ' ? g_str_has_suffix (now, d->date)
+                                          : !strcmp (now, d->date));
+   g_free (now);
+   return ok;
+}
+
+
+static void
+test_comment_date (void)
+{
+   gchar *root = new_root ();
+   gchar *sns = in (root, "sns.png"), *named = in (root, "IMG_20190102_030405.png");
+   const gchar *args[] = { NULL };
+   Indexer *ix;
+   gchar *cmd;
+
+   write_png (sns, 4, 4);
+   write_png (named, 4, 4);
+   write_comment (sns, "X-IMG-Date: 2025/4/1\n");
+   write_comment (named, "X-IMG-Date:  2018-07-08 09:10\n");
+
+   ix = ix_start ("comment-date.db", root, args);
+   ix_wait (ix, "idle");
+   assert_date (ix, sns, "2025-04-01 00:00:00 5");
+   /* before the date in the name */
+   assert_date (ix, named, "2018-07-08 09:10:00 5");
+
+   /* written by gimv: "tags <path>" */
+   write_comment (sns, "X-IMG-Date: 2024年12月24日 18時30分\nX-IMG-Tags: party\n");
+   cmd = g_strconcat ("tags ", sns, NULL);
+   ix_send (ix, cmd);
+   g_free (cmd);
+   {
+      DateIs d = { sns, "2024-12-24 18:30:00 5" };
+      ix_wait_until (ix, cond_date, &d);
+   }
+   assert_tags (ix, sns, "party, shape/square*");
+
+   /* the date removed (not a date): back to the name, the mtime */
+   write_comment (named, "X-IMG-Date: someday\n");
+   cmd = g_strconcat ("tags ", named, NULL);
+   ix_send (ix, cmd);
+   g_free (cmd);
+   {
+      DateIs d = { named, "2019-01-02 03:04:05 1" };
+      ix_wait_until (ix, cond_date, &d);
+   }
+   write_comment (sns, "X-IMG-Tags: party\n");
+   cmd = g_strconcat ("tags ", sns, NULL);
+   ix_send (ix, cmd);
+   g_free (cmd);
+   {
+      DateIs d = { sns, " 0" };
+      ix_wait_until (ix, cond_date, &d);
+   }
+   ix_stop (ix);
+   g_free (sns); g_free (named); g_free (root);
+}
+
+
 /* the tags of a person and of a rule may have the same name: both kept */
 static void
 test_manual_and_auto (void)
@@ -1174,6 +1243,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/indexer/auto-tags", test_auto_tags);
    g_test_add_func ("/indexer/manual-and-auto", test_manual_and_auto);
    g_test_add_func ("/indexer/keywords", test_keywords);
+   g_test_add_func ("/indexer/comment-date", test_comment_date);
 #if defined (HAVE_GEXIV2) && defined (HAVE_EXIF)
    g_test_add_func ("/indexer/exiv2", test_exiv2);
 #endif

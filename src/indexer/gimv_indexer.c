@@ -1943,12 +1943,15 @@ prepare_rules (Indexer *ix)
 }
 
 
+static gchar *read_comment_date (const gchar *file);
+
 static void
 run_stage2 (Indexer *ix)
 {
    sqlite3_stmt *sel, *upd;
    gboolean more = TRUE;
    AutoTags at;
+   gchar *croot;
 
    ix->stage = 2;
    ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
@@ -1986,6 +1989,7 @@ run_stage2 (Indexer *ix)
                     "ORDER BY f.dir_id, f.name LIMIT " G_STRINGIFY (STAGE2_BATCH));
    upd  = prep (ix, "UPDATE files SET date = ?, date_src = ?, stage = 2 WHERE id = ?");
    auto_tags_init (ix, &at);
+   croot = comment_root ();
 
    exec (ix, "BEGIN");
    ix->last_commit = ix->last_progress = g_get_monotonic_time ();
@@ -2037,8 +2041,18 @@ run_stage2 (Indexer *ix)
          if (!embedded) exif_read (path, &ii);
 #endif
          (void) embedded;
-         date = g_steal_pointer (&ii.date);
-         if (date) src = GIMV_INDEX_DATE_EXIF;
+         {
+            /* a date a person wrote in the comment first */
+            gchar *cfile = g_strconcat (croot, path, ".txt", NULL);
+            date = read_comment_date (cfile);
+            g_free (cfile);
+         }
+         if (date) {
+            src = GIMV_INDEX_DATE_COMMENT;
+         } else {
+            date = g_steal_pointer (&ii.date);
+            if (date) src = GIMV_INDEX_DATE_EXIF;
+         }
          /* the size from the header only */
          if (ix->auto_kinds & AUTO_SHAPE)
             image_size (path, &w, &h);
@@ -2109,6 +2123,7 @@ run_stage2 (Indexer *ix)
    sqlite3_finalize (sel);
    sqlite3_finalize (upd);
    auto_tags_finish (&at);
+   g_free (croot);
 
    if (!ix->quit)
       say ("stage 2 done %u %u %u %u %u", ix->n_dirs, ix->n_files,
@@ -2202,6 +2217,56 @@ comment_root (void)
 }
 
 
+/* a date as a person writes it: "2025-04-01", "2025/4/1 10:15",
+ * "2025年4月1日 10時15分", "2025:04:01 10:15:00", ... (the first one in
+ * the text): "YYYY-MM-DD HH:MM:SS", NULL when there is none */
+static gchar *
+text_date (const gchar *text)
+{
+   static GRegex *re = NULL;
+   GMatchInfo *m = NULL;
+   gchar *ret = NULL;
+
+   if (!text) return NULL;
+   if (!re)
+      re = g_regex_new ("(\\d{4})\\s*[-/.:年]\\s*(\\d{1,2})\\s*[-/.:月]\\s*(\\d{1,2})(?!\\d)(?:\\s*日)?"
+                        "(?:\\s*T?\\s*(\\d{1,2})\\s*[:時]\\s*(\\d{1,2})(?:\\s*[:分]\\s*(\\d{1,2}))?)?",
+                        G_REGEX_OPTIMIZE, 0, NULL);
+   if (re && g_regex_match (re, text, 0, &m)) {
+      gint v[6] = { 0 }, i;
+      for (i = 0; i < 6; i++) {
+         gchar *s = g_match_info_fetch (m, i + 1);
+         v[i] = s && *s ? atoi (s) : 0;
+         g_free (s);
+      }
+      if (valid_date (v[0], v[1], v[2], v[3], v[4], v[5])) {
+         ret = g_strdup_printf ("%04d-%02d-%02d %02d:%02d:%02d", v[0], v[1], v[2], v[3], v[4], v[5]);
+         if (!date_in_range (ret)) g_clear_pointer (&ret, g_free);
+      }
+   }
+   g_match_info_free (m);
+   return ret;
+}
+
+
+/* the date of the comment file (X-IMG-Date), NULL when none */
+static gchar *
+read_comment_date (const gchar *file)
+{
+   gchar *text = NULL, **lines, *date = NULL;
+   gint i;
+
+   if (!comment_read (file, &text)) return NULL;
+   lines = g_strsplit (text, "\n", -1);
+   for (i = 0; lines[i] && *lines[i] && !date; i++)
+      if (g_str_has_prefix (lines[i], GIMV_INDEX_DATE_KEY ":"))
+         date = text_date (lines[i] + strlen (GIMV_INDEX_DATE_KEY ":"));
+   g_strfreev (lines);
+   g_free (text);
+   return date;
+}
+
+
 /* the tags of the comment file, NULL when there is no file */
 static GPtrArray *
 read_comment_tags (const gchar *file)
@@ -2284,6 +2349,23 @@ set_manual_tags (Indexer *ix, gint64 file_id, GPtrArray *tags)
 }
 
 
+/* the comment of a file read again: when it has a date, or its date came
+ * from the comment before, stage 2 finds the date again */
+static void
+comment_date_changed (Indexer *ix, gint64 file_id, const gchar *cfile)
+{
+   gchar *date = cfile ? read_comment_date (cfile) : NULL;
+   sqlite3_stmt *st = prep (ix, "UPDATE files SET stage = 1 WHERE id = ?1 AND stage >= 2 "
+                                "AND (?2 OR date_src = ?3) AND (date IS NOT ?4 OR date_src != ?3)");
+   sqlite3_bind_int64 (st, 1, file_id);
+   sqlite3_bind_int   (st, 2, date != NULL);
+   sqlite3_bind_int   (st, 3, GIMV_INDEX_DATE_COMMENT);
+   if (date) sqlite3_bind_text (st, 4, date, -1, g_free); else sqlite3_bind_null (st, 4);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+}
+
+
 /* read the comment file of one image if it changed; returns TRUE when the
  * tags in the database changed */
 static gboolean
@@ -2303,6 +2385,7 @@ import_comment (Indexer *ix, gint64 file_id, const gchar *cfile, gboolean force)
       /* no comment file (any more) */
       if (old < 0) return FALSE;
       set_manual_tags (ix, file_id, NULL);
+      comment_date_changed (ix, file_id, NULL);
       st = prep (ix, "DELETE FROM comments WHERE file_id = ?");
       sqlite3_bind_int64 (st, 1, file_id);
       sqlite3_step (st);
@@ -2317,6 +2400,7 @@ import_comment (Indexer *ix, gint64 file_id, const gchar *cfile, gboolean force)
    tags = read_comment_tags (cfile);
    set_manual_tags (ix, file_id, tags);
    if (tags) g_ptr_array_unref (tags);
+   comment_date_changed (ix, file_id, cfile);
 
    st = prep (ix, "INSERT OR REPLACE INTO comments (file_id, mtime) VALUES (?, ?)");
    sqlite3_bind_int64 (st, 1, file_id);
@@ -3736,6 +3820,41 @@ open_db (Indexer *ix, const gchar *dbfile)
    /* the dates and the tags put by rules, when their rules changed */
    prepare_rules (ix);
    if (ix->quit) return TRUE;
+   {
+      /* the dates written in comments (X-IMG-Date) are used: once, the
+       * images whose comment has one are dated again */
+      sqlite3_stmt *st = prep (ix, "SELECT 1 FROM meta WHERE key = 'comment_date'");
+      gboolean done = sqlite3_step (st) == SQLITE_ROW;
+      sqlite3_finalize (st);
+      if (!done) {
+         gchar *croot = comment_root ();
+         GArray *ids = g_array_new (FALSE, FALSE, sizeof (gint64));
+         guint i;
+         st = prep (ix, "SELECT c.file_id, d.path, f.name FROM comments c "
+                        "JOIN files f ON f.id = c.file_id JOIN dirs d ON d.id = f.dir_id");
+         while (sqlite3_step (st) == SQLITE_ROW && !ix->quit) {
+            gchar *cfile = g_strconcat (croot, (const gchar *) sqlite3_column_text (st, 1), "/",
+                                        (const gchar *) sqlite3_column_text (st, 2), ".txt", NULL);
+            gchar *date = read_comment_date (cfile);
+            gint64 id = sqlite3_column_int64 (st, 0);
+            if (date) g_array_append_val (ids, id);
+            g_free (date);
+            g_free (cfile);
+         }
+         sqlite3_finalize (st);
+         exec (ix, "BEGIN");
+         for (i = 0; i < ids->len; i++) {
+            st = prep (ix, "UPDATE files SET stage = 1 WHERE id = ? AND stage >= 2");
+            sqlite3_bind_int64 (st, 1, g_array_index (ids, gint64, i));
+            sqlite3_step (st);
+            sqlite3_finalize (st);
+         }
+         if (!ix->quit) exec (ix, "INSERT OR REPLACE INTO meta VALUES ('comment_date', '1')");
+         exec (ix, "COMMIT");
+         g_array_unref (ids);
+         g_free (croot);
+      }
+   }
    if (ix->auto_kinds & AUTO_KEYWORD) {
       /* the reading of the keywords changed (2: mangled ones put right or
        * left out, IPTC in one charset): the images with keywords again */
@@ -3964,6 +4083,11 @@ main (int argc, char *argv[])
             check_stdin (&ix, 0);
          if (ix.quit) break;
          process_tag_queue (&ix, FALSE);
+         /* a date written in a comment */
+         if (!ix.quit && rows_to_date (&ix) > 0) {
+            run_stage2 (&ix);
+            say_idle (&ix);
+         }
          run_tag_renames (&ix, FALSE);
          run_name_sync (&ix, FALSE);
          if (np == 2 && (pfd[1].revents & POLLIN)) {

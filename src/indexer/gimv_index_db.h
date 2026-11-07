@@ -21,6 +21,8 @@
 
 /* the key of the tags in the gimv comment files */
 #define GIMV_INDEX_TAGS_KEY        "X-IMG-Tags"
+/* the date a person wrote (the key "Date" of the comment editor) */
+#define GIMV_INDEX_DATE_KEY        "X-IMG-Date"
 
 /* files.date_src */
 typedef enum {
@@ -31,6 +33,9 @@ typedef enum {
     * at the next start (it may have died for another reason), then left */
    GIMV_INDEX_DATE_SKIPPED      = 3,
    GIMV_INDEX_DATE_SKIPPED_TWICE = 4,
+   /* the date a person wrote in the comment (X-IMG-Date): before EXIF
+    * (images of SNS have none, their names are not dates) */
+   GIMV_INDEX_DATE_COMMENT  = 5,
 } GimvIndexDateSource;
 
 typedef enum {

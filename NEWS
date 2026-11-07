@@ -119,6 +119,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  of the keys to edit there (X-IMG-Tags, a comment of the file) shows
 	  its own key and is only shown.  A line break in a tag or a value
 	  (a pasted text) becomes a space.
+	* The index dates an image by the "Date" of its comment first (images
+	  of SNS have no EXIF and names that are not dates): "2025-04-01",
+	  "2025/4/1 10:15", "2025年4月1日 10時15分", ...
 	* Data tab: a value typed and saved with "Save" (not Enter) is kept.
 	* Properties: the name and the type (file(1)) cut when long, so the
 	  dialog stays on the screen, and selectable; "Copy" puts the full
