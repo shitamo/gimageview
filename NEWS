@@ -122,6 +122,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* The index dates an image by the "Date" of its comment first (images
 	  of SNS have no EXIF and names that are not dates): "2025-04-01",
 	  "2025/4/1 10:15", "2025年4月1日 10時15分", ...
+	* "Date taken" column of the detail view and View > Sort File List > by
+	  Date Taken: the date of the index (comment, EXIF, file name,
+	  modification time); the modification time outside the index.
 	* Data tab: a value typed and saved with "Save" (not Enter) is kept,
 	  under the key the combo shows (it may show one it never said it
 	  had chosen), and the entry shows its value from the start.  The

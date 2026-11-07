@@ -332,6 +332,59 @@ gimv_index_remove_watch (guint id)
  *  database
  ******************************************************************************/
 
+static GHashTable *date_dirs = NULL;   /* folder -> (name -> date) */
+static guint       date_watch = 0;
+
+static void
+cb_dates_changed (GimvIndexChange what, gpointer data)
+{
+   if ((what & GIMV_INDEX_CHANGED_DATES) && date_dirs)
+      g_hash_table_remove_all (date_dirs);
+}
+
+
+const gchar *
+gimv_index_date_of (const gchar *path)
+{
+   GHashTable *names;
+   gchar *dir;
+   const gchar *name;
+
+   if (!path || !gimv_index_is_configured ()) return NULL;
+   if (!date_dirs) {
+      date_dirs = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
+                                         (GDestroyNotify) g_hash_table_unref);
+      date_watch = gimv_index_add_watch (cb_dates_changed, NULL);
+   }
+   name = strrchr (path, '/');
+   if (!name) return NULL;
+   dir = name == path ? g_strdup ("/") : g_strndup (path, name - path);
+   name++;
+   names = g_hash_table_lookup (date_dirs, dir);
+   if (!names) {
+      sqlite3 *db = gimv_index_get_db ();
+      sqlite3_stmt *st;
+
+      names = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+      if (db && sqlite3_prepare_v2 (db, "SELECT f.name, f.date FROM files f "
+                                        "JOIN dirs d ON d.id = f.dir_id WHERE d.path = ?",
+                                    -1, &st, NULL) == SQLITE_OK)
+      {
+         sqlite3_bind_text (st, 1, dir, -1, SQLITE_STATIC);
+         while (sqlite3_step (st) == SQLITE_ROW) {
+            const gchar *n = (const gchar *) sqlite3_column_text (st, 0);
+            const gchar *d = (const gchar *) sqlite3_column_text (st, 1);
+            if (n && d) g_hash_table_replace (names, g_strdup (n), g_strdup (d));
+         }
+         sqlite3_finalize (st);
+      }
+      g_hash_table_replace (date_dirs, g_strdup (dir), names);
+   }
+   g_free (dir);
+   return g_hash_table_lookup (names, name);
+}
+
+
 sqlite3 *
 gimv_index_get_db (void)
 {

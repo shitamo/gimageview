@@ -1942,7 +1942,7 @@ msgid "/Case _Insensitive"
 msgstr "/Insens_ible à la case"
 
 #: src/gimv_thumb_win.c:522
-msgid "/_Mix Directories and Files"
+msgid "/Mix _Directories and Files"
 msgstr "/Insensible aux répertoires"
 
 #: src/gimv_thumb_win.c:654

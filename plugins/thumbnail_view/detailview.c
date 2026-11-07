@@ -117,6 +117,7 @@ static gchar *column_data_mode       (GimvThumb *thumb);
 static gchar *column_data_cache      (GimvThumb *thumb);
 static gchar *column_data_subject    (GimvThumb *thumb);
 static gchar *column_data_comment    (GimvThumb *thumb);
+static gchar *column_data_date_taken (GimvThumb *thumb);
 
 
 DetailViewColumn detailview_columns [] =
@@ -136,6 +137,8 @@ DetailViewColumn detailview_columns [] =
    /* GTK4 port: comments (TODO "display comments on thumbnail view") */
    {N_("Subject"),           150, TRUE,  column_data_subject,   GTK_JUSTIFY_LEFT,   TRUE},
    {N_("Comment"),           200, TRUE,  column_data_comment,   GTK_JUSTIFY_LEFT,   TRUE},
+   /* as the index dates it (the comment, EXIF, the name), else mtime */
+   {N_("Date taken"),        150, TRUE,  column_data_date_taken,GTK_JUSTIFY_LEFT,   FALSE},
 };
 gint detailview_columns_num = sizeof (detailview_columns) / sizeof (DetailViewColumn);
 
@@ -565,6 +568,20 @@ column_data_mtime (GimvThumb *thumb)
    if (!thumb) return NULL;
 
    return fileutil_time2str (thumb->info->st.st_mtime);
+}
+
+
+static gchar *
+column_data_date_taken (GimvThumb *thumb)
+{
+   gchar buf[32];
+   const gchar *d;
+
+   if (!thumb || !thumb->info) return NULL;
+   d = gimv_image_info_get_date_taken (thumb->info, buf);
+   if (!d || strlen (d) < 16) return g_strdup ("");
+   /* "YYYY-MM-DD HH:MM:SS" -> "YYYY/MM/DD HH:MM" */
+   return g_strdup_printf ("%.4s/%.2s/%.2s %.5s", d, d + 5, d + 8, d + 11);
 }
 
 

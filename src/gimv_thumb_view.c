@@ -188,6 +188,8 @@ static int comp_func_width (gconstpointer data1,
                             gconstpointer data2);
 static int comp_func_height(gconstpointer data1,
                             gconstpointer data2);
+static int comp_func_date  (gconstpointer data1,
+                             gconstpointer data2);
 static int comp_func_area  (gconstpointer data1,
                             gconstpointer data2);
 
@@ -1470,6 +1472,23 @@ comp_func_atime (gconstpointer data1, gconstpointer data2)
 
 
 /* sort by time of last modification */
+/* the date taken (gimv_image_info_get_date_taken ()), then the name */
+static int
+comp_func_date (gconstpointer data1, gconstpointer data2)
+{
+   GimvThumb *thumb1 = (GimvThumb *) data1, *thumb2 = (GimvThumb *) data2;
+   gchar b1[32], b2[32];
+   const gchar *d1, *d2;
+   gint r;
+
+   g_return_val_if_fail (thumb1 && thumb2, 0);
+   d1 = gimv_image_info_get_date_taken (thumb1->info, b1);
+   d2 = gimv_image_info_get_date_taken (thumb2->info, b2);
+   r = strcmp (d1 ? d1 : "", d2 ? d2 : "");
+   return r ? r : comp_func_spel (data1, data2);
+}
+
+
 static int
 comp_func_mtime (gconstpointer data1, gconstpointer data2)
 {
@@ -3330,6 +3349,8 @@ gimv_thumb_view_get_compare_func (GimvThumbView *tv, gboolean *reverse)
       func = comp_func_height;
    else if (item == GIMV_SORT_AREA)
       func = comp_func_area;
+   else if (item == GIMV_SORT_DATE)
+      func = comp_func_date;
 
    if (reverse) {
       if ((flags & GIMV_SORT_REVERSE))

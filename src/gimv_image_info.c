@@ -33,6 +33,9 @@
 #include "fr-archive.h"
 #include "gfileutil.h"
 #include "gimv_comment.h"
+#ifdef ENABLE_INDEX
+#  include "gimv_index.h"
+#endif
 #include "gimv_anim.h"
 #include "gimv_image.h"
 #include "gimv_image_info.h"
@@ -870,4 +873,24 @@ gimv_image_info_rename_image (GimvImageInfo *info, const gchar *filename)
    info->filename = (gchar *) g_strdup (filename);
 
    return success;
+}
+
+
+const gchar *
+gimv_image_info_get_date_taken (GimvImageInfo *info, gchar buf[32])
+{
+   struct tm tm;
+   time_t t;
+
+   g_return_val_if_fail (info, NULL);
+#ifdef ENABLE_INDEX
+   if (!(info->flags & (GIMV_IMAGE_INFO_ARCHIVE_MEMBER_FLAG | GIMV_IMAGE_INFO_MRL_FLAG))) {
+      const gchar *d = gimv_index_date_of (gimv_image_info_get_path (info));
+      if (d) return d;
+   }
+#endif
+   t = info->st.st_mtime;
+   if (!t || !localtime_r (&t, &tm)) return NULL;
+   strftime (buf, 32, "%Y-%m-%d %H:%M:%S", &tm);
+   return buf;
 }

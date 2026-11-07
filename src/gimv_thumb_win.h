@@ -69,6 +69,7 @@ typedef enum {
    GIMV_SORT_WIDTH,
    GIMV_SORT_HEIGHT,
    GIMV_SORT_AREA,
+   GIMV_SORT_DATE,       /* the date taken (the index: comment, EXIF, name, mtime) */
    GIMV_SORT_NONE
 } GimvSortItem;
 
@@ -180,7 +181,7 @@ struct GimvThumbWin_Tag
       GimvMenuItem *sort_change;
       GimvMenuItem *sort_size;
       GimvMenuItem *sort_type;
-      GimvMenuItem *sort_width, *sort_height, *sort_area;
+      GimvMenuItem *sort_width, *sort_height, *sort_area, *sort_date;
       GimvMenuItem *sort_rev, *sort_case, *sort_dir;
    } menuitem;
 

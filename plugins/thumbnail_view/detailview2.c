@@ -688,6 +688,9 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
    case 7:
       sort_item = GIMV_SORT_CTIME;
       break;
+   case 14:   /* Date taken */
+      sort_item = GIMV_SORT_DATE;
+      break;
    default:
       return;
    }

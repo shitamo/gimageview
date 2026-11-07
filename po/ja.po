@@ -1893,7 +1893,7 @@ msgid "/Case _Insensitive"
 msgstr "/大文字小文字を区別しない(_I)"
 
 #: src/gimv_thumb_win.c:522
-msgid "/_Mix Directories and Files"
+msgid "/Mix _Directories and Files"
 msgstr "/ディレクトリを区別しない(_D)"
 
 #: src/gimv_thumb_win.c:654
@@ -6427,3 +6427,11 @@ msgstr "コピーしました"
 #: src/gtk_prop.c
 msgid "Copy the full path to the clipboard"
 msgstr "フルパスをクリップボードにコピーします"
+
+#: src/gimv_thumb_win.c
+msgid "/by Date Ta_ken"
+msgstr "/撮影日(_K)"
+
+#: plugins/thumbnail_view/detailview.c
+msgid "Date taken"
+msgstr "撮影日"

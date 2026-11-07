@@ -154,4 +154,10 @@ GimvImageInfo  *gimv_image_info_get_with_archive     (const gchar   *filename,
                                                       struct stat   *st);
 void            gimv_image_info_unref_with_archive   (GimvImageInfo *info);
 
+/* the date taken, "YYYY-MM-DD HH:MM:SS": as the index has it (the date in
+ * the comment, EXIF, the name), else the modification time; in buf (32
+ * bytes) or a string of the index; NULL for none */
+const gchar *gimv_image_info_get_date_taken (GimvImageInfo *info,
+                                             gchar          buf[32]);
+
 #endif /* __GIMV_IMAGE_INFO_H__ */

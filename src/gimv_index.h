@@ -57,6 +57,10 @@ typedef enum {
 } GimvIndexChange;
 
 typedef void (*GimvIndexChangedFunc) (GimvIndexChange what, gpointer data);
+/* the date of an image in the index ("YYYY-MM-DD HH:MM:SS"), NULL when it
+ * is not in it (or no index); read a folder at a time, kept until the
+ * dates change */
+const gchar    *gimv_index_date_of          (const gchar          *path);
 guint           gimv_index_add_watch        (GimvIndexChangedFunc func,
                                              gpointer             data);
 void            gimv_index_remove_watch     (guint                id);

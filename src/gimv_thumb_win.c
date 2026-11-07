@@ -566,7 +566,8 @@ GimvMenuEntry gimv_thumb_win_sort_items [] =
    {N_("/by _Name"),               NULL, cb_sort_item,      GIMV_SORT_NAME,   "<RadioItem>"},
    {N_("/by _Access Time"),        NULL, cb_sort_item,      GIMV_SORT_ATIME,  "/by Name"},
    {N_("/by _Modification Time"),  NULL, cb_sort_item,      GIMV_SORT_MTIME,  "/by Access Time"},
-   {N_("/by _Change Time"),        NULL, cb_sort_item,      GIMV_SORT_CTIME,  "/by Modification Time"},
+   {N_("/by Date Ta_ken"),         NULL, cb_sort_item,      GIMV_SORT_DATE,   "/by Modification Time"},
+   {N_("/by _Change Time"),        NULL, cb_sort_item,      GIMV_SORT_CTIME,  "/by Date Taken"},
    {N_("/by _Size"),               NULL, cb_sort_item,      GIMV_SORT_SIZE,   "/by Change Time"},
    {N_("/by _Type"),               NULL, cb_sort_item,      GIMV_SORT_TYPE,   "/by Size"},
    {N_("/by Image _Width"),        NULL, cb_sort_item,      GIMV_SORT_WIDTH,  "/by Type"},
@@ -576,7 +577,7 @@ GimvMenuEntry gimv_thumb_win_sort_items [] =
    {N_("/_Reverse Order"),         NULL, cb_sort_flag,      GIMV_SORT_REVERSE,"<CheckItem>"},
    {N_("/---"),                    NULL, NULL,              0,                "<Separator>"},
    {N_("/Case _Insensitive"),      NULL, cb_sort_flag,      GIMV_SORT_CASE_INSENSITIVE, "<CheckItem>"},
-   {N_("/_Mix Directories and Files"), NULL, cb_sort_flag,      GIMV_SORT_DIR_INSENSITIVE,  "<CheckItem>"},
+   {N_("/Mix _Directories and Files"), NULL, cb_sort_flag,      GIMV_SORT_DIR_INSENSITIVE,  "<CheckItem>"},
    {NULL, NULL, NULL, 0, NULL},
 };
 
@@ -2045,6 +2046,7 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
    tw->menuitem.sort_width  = gimv_menu_get_item (ifactory, "/by Image Width");
    tw->menuitem.sort_height = gimv_menu_get_item (ifactory, "/by Image Height");
    tw->menuitem.sort_area   = gimv_menu_get_item (ifactory, "/by Image Area");
+   tw->menuitem.sort_date   = gimv_menu_get_item (ifactory, "/by Date Taken");
    tw->menuitem.sort_rev    = gimv_menu_get_item (ifactory, "/Reverse Order");
    tw->menuitem.sort_case   = gimv_menu_get_item (ifactory, "/Case Insensitive");
    tw->menuitem.sort_dir    = gimv_menu_get_item (ifactory, "/Mix Directories and Files");
@@ -2126,6 +2128,9 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
       break;
    case GIMV_SORT_AREA:
       item = tw->menuitem.sort_area;
+      break;
+   case GIMV_SORT_DATE:
+      item = tw->menuitem.sort_date;
       break;
    default:
       item = tw->menuitem.sort_name;
@@ -4636,6 +4641,9 @@ gimv_thumb_win_set_sensitive (GimvThumbWin *tw, GimvThumbwinStatus status)
       else if (items[i])
          gimv_menu_item_set_sensitive (items[i], gimv_thumb_win_status[status][i]);
    }
+   /* as the other sort items */
+   if (tw->menuitem.sort_date)
+      gimv_menu_item_set_sensitive (tw->menuitem.sort_date, gimv_thumb_win_status[status][12]);
 
    /*
     *  GTK2 made the File/Edit/View menus insensitive, which also disabled
@@ -5124,6 +5132,9 @@ gimv_thumb_win_sort_thumbnail (GimvThumbWin *tw,
       break;
    case GIMV_SORT_AREA:
       sort_item = tw->menuitem.sort_area;
+      break;
+   case GIMV_SORT_DATE:
+      sort_item = tw->menuitem.sort_date;
       break;
    case GIMV_SORT_TYPE:
       sort_item = tw->menuitem.sort_type;
