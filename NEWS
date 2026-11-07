@@ -153,6 +153,15 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  HEIF/AVIF and JPEG XL, which their decoders turn, nor for TIFF,
 	  which libtiff turns over in part: the rest gdk-pixbuf gives).
 	* "Scan EXIF Data..." is "Show EXIF Data..." (it shows them).
+	* Find Duplicates rewritten for comparing and deleting: one search
+	  sorts the duplicates into Identical (md5 of the files of the same
+	  size), Other Sizes (the same shape) and Similar; the result window
+	  has the groups on the left and their images side by side on the
+	  right (size, file size, format, date taken, how alike, folder,
+	  comment), each to keep or to delete (suggested for the identical and
+	  resized ones), and moves the ones to delete to the trash.  The search
+	  runs in a thread and reads the pictures itself (not the thumbnails
+	  loaded); the comparison methods of the submenu are gone.
 	* Data tab: "Remove Item" removes the item selected; "Delete
 	  Comment..." (was "Delete", which removed the whole comment file at
 	  once) asks first and keeps the tags.  The index reads the tags of a

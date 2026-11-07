@@ -1741,8 +1741,8 @@ msgid "/Too_ls/---"
 msgstr "/ツール(_L)/---"
 
 #: src/gimv_thumb_win.c:444
-msgid "/Too_ls/_Find Duplicates"
-msgstr "/ツール(_L)/重複画像検索(_F)"
+msgid "/Too_ls/_Find Duplicates..."
+msgstr "/ツール(_L)/重複画像を探す(_F)..."
 
 #: src/gimv_thumb_win.c:446
 msgid "/Too_ls/Set as _Wallpaper"
@@ -6435,3 +6435,169 @@ msgstr "/撮影日(_K)"
 #: plugins/thumbnail_view/detailview.c
 msgid "Date taken"
 msgstr "撮影日"
+
+#: src/gimv_dupl_win.c
+msgid "Identical"
+msgstr "完全に同じ"
+
+#: src/gimv_dupl_win.c
+msgid "Other Sizes"
+msgstr "大きさ違い"
+
+#: src/gimv_dupl_win.c
+msgid "Similar"
+msgstr "似ている"
+
+#: src/gimv_dupl_win.c
+msgid "The same files (the same bytes)."
+msgstr "中身がまったく同じファイルです。"
+
+#: src/gimv_dupl_win.c
+msgid "The same picture in other sizes (and its copies)."
+msgstr "同じ写真で大きさだけが違います (同じファイルも含みます)。"
+
+#: src/gimv_dupl_win.c
+msgid ""
+"Similar pictures: edited, saved again, or other shots.  None is chosen to "
+"keep."
+msgstr "似ている画像です。編集したもの・保存し直したもの・別に撮ったものかもしれません。残す画像は選んでいません。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "To delete: %u images (%s)"
+msgstr "削除にした画像: %u 枚 (%s)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "<b>%s</b>  %u images"
+msgstr "<b>%s</b>  %u 枚"
+
+#: src/gimv_dupl_win.c
+msgid "All to delete!"
+msgstr "すべて削除になっています"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Delete %u (%s)"
+msgstr "削除 %u 枚 (%s)"
+
+#: src/gimv_dupl_win.c
+msgid "Keep all"
+msgstr "すべて残す"
+
+#: src/gimv_dupl_win.c
+msgid "Click to show it in the thumbnail window"
+msgstr "クリックするとサムネイルウィンドウで表示します"
+
+#: src/gimv_dupl_win.c
+msgid "Suggested to keep"
+msgstr "残すおすすめ"
+
+#: src/gimv_dupl_win.c
+msgid "The same file as the first"
+msgstr "先頭と同じファイル"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "%.1f%% alike the first"
+msgstr "先頭との一致度 %.1f%%"
+
+#: src/gimv_dupl_win.c
+msgid "Has a comment"
+msgstr "コメントあり"
+
+#: src/gimv_dupl_win.c
+msgid "Keep"
+msgstr "残す"
+
+#: src/gimv_dupl_win.c
+msgid "No groups are left."
+msgstr "残っているグループはありません。"
+
+#: src/gimv_dupl_win.c
+msgid "No duplicates were found."
+msgstr "重複は見つかりませんでした。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Comparing the files of the same size (%u/%u)"
+msgstr "同じ大きさのファイルを比較中 (%u/%u)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Reading the images (%u/%u)"
+msgstr "画像を読み込み中 (%u/%u)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Comparing the images (%u/%u)"
+msgstr "画像を比較中 (%u/%u)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Done: %u groups"
+msgstr "完了: %u グループ"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Stopped: %u groups"
+msgstr "中止: %u グループ"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "%s (%d in archives not compared)"
+msgstr "%s (アーカイブの中の %d 枚は比較していません)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Moved to the trash: %u images"
+msgstr "ゴミ箱へ移動: %u 枚"
+
+#: src/gimv_dupl_win.c
+msgid "Some could not be moved to the trash"
+msgstr "ゴミ箱へ移動できなかったものがあります"
+
+#: src/gimv_dupl_win.c
+msgid "Moving to the trash..."
+msgstr "ゴミ箱へ移動中..."
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Move %u images (%s) to the trash?"
+msgstr "%u 枚 (%s) をゴミ箱へ移動しますか？"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "In %u groups every image is marked to delete."
+msgstr "%u 個のグループで、すべての画像が削除になっています。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "%u of them have comments; the comments stay."
+msgstr "そのうち %u 枚にはコメントがあります (コメントは残ります)。"
+
+#: src/gimv_dupl_win.c
+msgid "They can be put back from the trash."
+msgstr "ゴミ箱から元に戻せます。"
+
+#: src/gimv_dupl_win.c
+msgid "_Move to Trash"
+msgstr "ゴミ箱へ移動(_M)"
+
+#: src/gimv_dupl_win.c
+msgid "_Stop"
+msgstr "中止(_S)"
+
+#: src/gimv_dupl_win.c
+msgid "Move to _Trash..."
+msgstr "ゴミ箱へ移動(_T)..."
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "and %u more, not shown: to delete"
+msgstr "ほかに %u 枚 (表示していません、削除になります)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "and %u more, not shown: to keep"
+msgstr "ほかに %u 枚 (表示していません、残します)"

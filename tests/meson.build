@@ -51,6 +51,14 @@ test('orient',
     dependencies : [glib_dep, pixbuf_dep]),
   kwargs : test_kwargs)
 
+# src/gimv_dupl_scan.c: the duplicate images (GLib, gdk-pixbuf)
+test('dupl',
+  executable('test-dupl', 'test_dupl.c',
+    objects : gimv_exe.extract_objects('gimv_dupl_scan.c'),
+    include_directories : test_inc,
+    dependencies : [glib_dep, gio_dep, pixbuf_dep]),
+  kwargs : test_kwargs)
+
 # src/gimv_exif.c (libexif, gexiv2): the EXIF data of every format
 if exif_dep.found() and gexiv2_dep.found()
   test('exif',

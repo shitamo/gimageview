@@ -11,16 +11,20 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- * $Id: gimv_dupl_win.h,v 1.5 2004/04/10 05:20:14 makeinu Exp $
  */
 
+/*
+ * The window of the duplicate images: the groups found on the left (the
+ * same files, the same picture in other sizes, similar), the images of the
+ * group selected side by side on the right to compare, each to keep or to
+ * delete, and the ones to delete moved to the trash.
+ */
 
 #ifndef __GIMV_DUPL_WIN_H__
 #define __GIMV_DUPL_WIN_H__
@@ -29,14 +33,11 @@
 
 #include <gtk/gtk.h>
 
-#include "gimv_dupl_finder.h"
 #include "gimv_thumb_view.h"
 
 #define GIMV_TYPE_DUPL_WIN            (gimv_dupl_win_get_type ())
 #define GIMV_DUPL_WIN(obj)            (G_TYPE_CHECK_INSTANCE_CAST (obj, gimv_dupl_win_get_type (), GimvDuplWin))
-#define GIMV_DUPL_WIN_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST (klass, gimv_dupl_win_get_type (), GimvDuplWinClass))
 #define GIMV_IS_DUPL_WIN(obj)         (G_TYPE_CHECK_INSTANCE_TYPE (obj, gimv_dupl_win_get_type ()))
-#define GIMV_IS_DUPL_WIN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GIMV_TYPE_DUPL_WIN))
 
 typedef struct GimvDuplWin_Tag      GimvDuplWin;
 typedef struct GimvDuplWinClass_Tag GimvDuplWinClass;
@@ -47,17 +48,9 @@ struct GimvDuplWin_Tag
 {
    GtkWindow         parent;
 
-   GtkWidget        *ctree;
-   GtkWidget        *radio_thumb;
-   GtkWidget        *radio_icon;
-   GtkWidget        *select_button;
-   GtkWidget        *stop_button;
-   GtkWidget        *progressbar;
+   GimvThumbView    *tv;     /* the images came from (NULL when it is gone) */
 
-   GimvDuplFinder   *finder;
-   GimvThumbView    *tv;
-
-   GimvDuplWinPriv   *priv;
+   GimvDuplWinPriv  *priv;
 };
 
 
@@ -67,15 +60,13 @@ struct GimvDuplWinClass_Tag
 };
 
 
-/* result window */
-GType              gimv_dupl_win_get_type       (void);
-GimvDuplWin         *gimv_dupl_win_new            (gint thumbnail_size);
-void                 gimv_dupl_win_set_relation   (GimvDuplWin         *sw,
-                                                   GimvThumbView       *tv);
-void                 gimv_dupl_win_unset_relation (GimvDuplWin         *sw);
-void                 gimv_dupl_win_set_thumb      (GimvDuplWin         *sw,
-                                                   GimvThumb           *thumb1,
-                                                   GimvThumb           *thumb2,
-                                                   gfloat               similar);
+GType         gimv_dupl_win_get_type       (void);
+GimvDuplWin  *gimv_dupl_win_new            (void);
+void          gimv_dupl_win_set_relation   (GimvDuplWin   *sw,
+                                            GimvThumbView *tv);
+void          gimv_dupl_win_unset_relation (GimvDuplWin   *sw);
+/* look for the duplicates among the images of tv (in a thread) */
+void          gimv_dupl_win_start          (GimvDuplWin   *sw,
+                                            GimvThumbView *tv);
 
 #endif /* __GIMV_DUPL_WIN_H__ */

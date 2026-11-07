@@ -515,7 +515,7 @@ Moves the keyboard focus to the Directory View [Shift + Alt + D], the Thumbnail 
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
 <a name="03-06"></a>3.6. Tools</h3></div></div>
-<div class="figure"><img src="images/menu_tools.png" width="400" height="222" alt="The Tools menu of the thumbnail window">
+<div class="figure"><img src="images/menu_tools.png" width="393" height="219" alt="The Tools menu of the thumbnail window">
 <p class="caption">The Tools menu of the thumbnail window</p></div>
 <p class="para">
 This menu exists only in the thumbnail window.
@@ -539,13 +539,26 @@ Opens the list of the images with comments (tags) that went missing, whose comme
 Opens the window to find images of the index by tags, people and a period (<a href="02.html#02-04">2.4</a>). Only with the image index.
 </p>
 </dd>
-<dt><span class="term"><a name="find_duplicates"></a>Find Duplicates</span></dt>
+<dt><span class="term"><a name="find_duplicates"></a>Find Duplicates...</span></dt>
 <dd>
 <p class="para">
-Searches the active tab for duplicate images.  The submenu chooses how images are compared: "Similarity", "File Size" or "md5sum".
+Looks for the duplicate images among all the images of the active tab (the selection does not matter) and opens the result window.  One search sorts them into three kinds:
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Identical: the same files (the same bytes).</p></li>
+<li><p class="para">Other Sizes: the same picture in other sizes (pixels): the same shape, none of the same size.  Copies are included.</p></li>
+<li><p class="para">Similar: other similar pictures (edited, saved again, other shots).  How similar is set by "Accuracy" in [Preferences | Search].</p></li>
+</ul></div>
+<div class="figure"><img src="images/dupl_win.png" width="960" height="600" alt="The result window of the duplicates">
+<p class="caption">The result window of the duplicates</p></div>
+<p class="para">
+On the left are the groups: the kind, the number of images, and how many are to delete (and their size).  The images of the group selected are side by side on the right to compare: the size, the file size, the format, the date taken, how alike the first, the folder, and whether it has a comment.  A click on a picture shows it in the thumbnail window (what it does is set in [Preferences | Search]).
 </p>
 <p class="para">
-The selection does not matter; all images of the tab are searched.  The accuracy of "Similarity" is set in [Preferences | Search].
+Each image is marked "Keep" or "Delete".  In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest) is kept and the others are to delete; in the Similar groups all are kept.  "Move to Trash..." moves the images to delete to the trash after asking (they can be put back from the trash); it says so when all of a group are to delete or some have comments.  The comment files stay.
+</p>
+<p class="para">
+The window reads the pictures itself: the images the thumbnail view has not loaded are shown too.  It can be used while it searches: the Identical groups come first, all of them at the end.  The images in archives are not compared.
 </p>
 </dd>
 <dt><span class="term"><a name="set_wallpaper"></a>Set as Wallpaper</span></dt>

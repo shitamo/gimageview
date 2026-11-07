@@ -40,7 +40,6 @@
 #include "gtk_prop.h"
 #include "gtkutils.h"
 #include "gimv_comment_view.h"
-#include "gimv_dupl_finder.h"
 #include "gimv_dupl_win.h"
 #include "gimv_image.h"
 #include "gimv_image_win.h"
@@ -4235,21 +4234,17 @@ gimv_thumb_view_grab_focus (GimvThumbView *tv)
 
 
 void
-gimv_thumb_view_find_duplicates (GimvThumbView *tv, GimvThumb *thumb,
-                                 const gchar *type)
+gimv_thumb_view_find_duplicates (GimvThumbView *tv)
 {
-   GimvDuplFinder *finder;
-   GimvDuplWin *sw = NULL;   
+   GimvDuplWin *sw;
    GimvThumbWin *tw;
-   GList *node;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
 
    tw = tv->tw;
    g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
 
-   /* create window */
-   sw = gimv_dupl_win_new (tv->thumb_size);
+   sw = gimv_dupl_win_new ();
    /* GTK4 warns about dialogs without a transient parent */
    gtk_window_set_transient_for (GTK_WINDOW (sw), GTK_WINDOW (tw));
    gtk_window_present (GTK_WINDOW (sw));
@@ -4260,15 +4255,7 @@ gimv_thumb_view_find_duplicates (GimvThumbView *tv, GimvThumb *thumb,
    tv->priv->related_dupl_win
       = g_list_append (tv->priv->related_dupl_win, sw);
 
-   /* set finder */
-   finder = sw->finder;
-   gimv_dupl_finder_set_algol_type (finder, type);
-
-   for (node = tv->thumblist; node; node = g_list_next (node)) {
-      gimv_dupl_finder_append_dest (finder, node->data);
-   }
-
-   gimv_dupl_finder_start (finder);
+   gimv_dupl_win_start (sw, tv);
 }
 
 

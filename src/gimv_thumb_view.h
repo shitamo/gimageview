@@ -237,9 +237,7 @@ void           gimv_thumb_view_reload_thumbnail   (GimvImageInfo    *info);
 void           gimv_thumb_view_open_folder_of     (GimvThumbWin     *tw,
                                                    const gchar      *path);
 void           gimv_thumb_view_grab_focus         (GimvThumbView    *tv);
-void           gimv_thumb_view_find_duplicates    (GimvThumbView    *tv,
-                                                   GimvThumb        *thumb,
-                                                   const gchar      *type);
+void           gimv_thumb_view_find_duplicates    (GimvThumbView    *tv);
 void           gimv_thumb_view_reset_tab_label    (GimvThumbView    *tv,
                                                    const gchar      *title);
 

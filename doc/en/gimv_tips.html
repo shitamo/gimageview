@@ -164,7 +164,7 @@ For now the &quot;layouts&quot; are fixed to 5 kinds (excluding &quot;Custom&quo
 The similar image search algorithm of GImageView is as follows.
 </p>
 <div class="orderedlist"><ol type="1">
-<li><p class="para">Regardless of the size/aspect ratio of the image, every image is squeezed into a 32x32 dot frame</p></li>
+<li><p class="para">Regardless of the size/aspect ratio of the image, every image is squeezed into a 32x32 dot frame (after its EXIF orientation is put right)</p></li>
 <li><p class="para">The R/G/B differences of each pixel are accumulated and averaged (0 to 1.0)</p></li>
 <li><p class="para">If the difference is below the threshold, the images are judged to &quot;match&quot;</p></li>
 </ol></div>
@@ -172,7 +172,10 @@ The similar image search algorithm of GImageView is as follows.
 This threshold can be set in &quot;Search&quot; in the preferences, but it is actually set as a similarity (1.0 - difference). If the value is at or above this, the images are judged to match (a percentage might have been better).
 </p>
 <p class="para">
-Also, for the 32x32 image data (some programs seem to call it a &quot;fingerprint&quot; or similar), the thumbnails are actually used for speed. For this reason it does not work correctly if thumbnails have not been created.
+The 32x32 image data (some programs seem to call it a &quot;fingerprint&quot; or similar) is made from the image read small (it used to be made from the thumbnails, and did not work when they had not been created).  The files of the same bytes are found first, by the md5 of the files of the same size, and only one of them is read.  Images whose total brightness is too far apart cannot match and are not compared.
+</p>
+<p class="para">
+The images that match are &quot;Other Sizes&quot; when they have the same shape and only their sizes differ, else &quot;Similar&quot;.
 </p>
 <p class="para">
 Because of this implementation, images that look very similar to a human at first glance may actually be judged as &quot;not matching&quot;. This happens in the following cases.

@@ -1,12 +1,9 @@
 etc/gimageview.desktop.in
 src/argparse.c
 src/charset.c
-src/compare_filesize.c
-src/compare_md5.c
-src/compare_similar.c
 src/dirview.c
 src/dnd.c
-src/gimv_dupl_finder.c
+src/gimv_dupl_scan.c
 src/exif_view.c
 src/fileload.c
 src/fileutil.c

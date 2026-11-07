@@ -1781,7 +1781,7 @@ msgstr "/_Fichier/---"
 
 #: src/gimv_thumb_win.c:444
 #, fuzzy
-msgid "/Too_ls/_Find Duplicates"
+msgid "/Too_ls/_Find Duplicates..."
 msgstr "/_Edition/Trouver des doublons"
 
 #: src/gimv_thumb_win.c:446

@@ -36,7 +36,6 @@
 #include "fileutil.h"
 #include "gfileutil.h"
 #include "gimv_comment_view.h"
-#include "gimv_dupl_finder.h"
 #include "gimv_hpaned.h"
 #include "gimv_vpaned.h"
 #include "gimv_icon_stock.h"
@@ -500,7 +499,7 @@ GimvMenuEntry gimv_thumb_win_menu_items[] =
    {N_("/Too_ls/_Search Images..."),     NULL,         cb_search_images,  0,               NULL},
 #endif
    {N_("/Too_ls/---"),                  NULL,         NULL,              0,              "<Separator>"},
-   {N_("/Too_ls/_Find Duplicates"),     NULL,         NULL,              0,              "<Branch>"},
+   {N_("/Too_ls/_Find Duplicates..."),  NULL,         cb_find_similar,   0,              NULL},
    {N_("/Too_ls/---"),                  NULL,         NULL,              0,              "<Separator>"},
    {N_("/Too_ls/Set as _Wallpaper"),   NULL,         NULL,              0,               "<Branch>"},
 
@@ -1933,14 +1932,10 @@ create_wallpaper_submenu (GimvThumbWin *tw)
 static void
 create_gimv_thumb_win_menus (GimvThumbWin *tw)
 {
-   static GimvMenuEntry *entries = NULL;
    GimvMenuItem *item;
-   GtkWidget *dupmenu;
    GtkWidget *ifactory;
    guint n_menu_items, layout;
    GtkWidget *submenu, *help;
-   const gchar **labels;
-   gint i = 0;
 
    /* main menu */
    n_menu_items = sizeof (gimv_thumb_win_menu_items)
@@ -1962,28 +1957,6 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
                                      n_menu_items, "<ThumbWinSortSubMenu>", tw);
    tw->comp_menu = create_wincomp_sub_menu (tw);
    help = gimvhelp_create_menu (GTK_WIDGET (tw));
-
-   /* duplicates finder sub menu */
-   labels = gimv_dupl_finder_get_algol_types ();
-   for (i = 0; labels && labels[i]; i++) ;
-   if (!entries && i > 0) {
-      entries = g_new0 (GimvMenuEntry, i);
-      for (i = 0; labels[i]; i++) {
-         gchar tempstr[BUF_SIZE];
-
-         g_snprintf (tempstr, BUF_SIZE, "/%s", _(labels[i]));
-         entries[i].path            = g_strdup (tempstr);
-         entries[i].accelerator     = NULL;
-         entries[i].callback        = cb_find_similar;
-         entries[i].callback_action = i;
-         entries[i].item_type       = NULL;
-      }
-   }
-   if (entries) {
-      dupmenu = menu_create_items (GTK_WIDGET (tw), entries,
-                                   i, "<ThumbWinDuplicatesFinderSubMenu>", tw);
-      menu_set_submenu (tw->menubar, "/Tools/Find Duplicates", dupmenu);
-   }
 
    /* attach sub menus to parent menu */
    menu_set_submenu (tw->menubar,   "/View", tw->view_menu);
@@ -2012,7 +1985,7 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
    tw->menuitem.link       = gimv_menu_get_item (ifactory, "/Edit/Link Files To...");
    tw->menuitem.delete     = gimv_menu_get_item (ifactory, "/Edit/Remove Files...");
 
-   tw->menuitem.find_sim   = gimv_menu_get_item (ifactory, "/Tools/Find Duplicates");
+   tw->menuitem.find_sim   = gimv_menu_get_item (ifactory, "/Tools/Find Duplicates...");
 
    item =  gimv_menu_get_item (ifactory, "/Tab");
 
@@ -3138,15 +3111,13 @@ static void
 cb_find_similar (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 {
    GimvThumbView *tv;
-   const gchar **types;
 
    g_return_if_fail (tw);
 
    tv = gimv_thumb_win_find_thumbtable (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
    if (!tv) return;
 
-   types = gimv_dupl_finder_get_algol_types();
-   gimv_thumb_view_find_duplicates (tv, NULL, types[action]);
+   gimv_thumb_view_find_duplicates (tv);
 }
 
 
