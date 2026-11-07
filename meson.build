@@ -60,9 +60,10 @@ if sqlite_dep.found() and not get_option('faces').disabled()
   endif
 endif
 exif_dep  = dependency('libexif', version : '>= 0.6.16', required : get_option('exif'))
-# the indexer: EXIF beyond JPEG, XMP and IPTC (0.14: gexiv2; 0.16: versioned)
+# EXIF beyond JPEG (the EXIF viewer, the orientation), and for the indexer
+# XMP and IPTC too (0.14: gexiv2; 0.16: versioned)
 gexiv2_dep = dependency('', required : false)
-if sqlite_dep.found()
+if sqlite_dep.found() or exif_dep.found()
   gexiv2_dep = dependency('gexiv2', 'gexiv2-0.16', version : '>= 0.12.2',
                           required : get_option('gexiv2'))
 endif

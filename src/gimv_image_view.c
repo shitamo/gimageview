@@ -57,6 +57,7 @@
 
 #include <libexif/exif-data.h>
 #include <libexif/exif-utils.h>
+#include "gimv_exif.h"
 
 #endif
 
@@ -145,6 +146,8 @@ struct GimvImageViewPrivate_Tag
 
    gint             default_zoom;      /* should be defined as enum */
    gint             default_rotation;  /* should be defined as enum */
+   gboolean         exif_rotation;     /* rotate and flip are those of the
+                                          EXIF orientation */
    GimvImageViewZoomType fit_to_frame;
    gboolean         keep_aspect;
    gboolean         ignore_alpha;
@@ -2244,45 +2247,42 @@ gimv_image_view_adjust_pos_in_frame (GimvImageView *iv, gboolean center)
 /* flip: set when the image is to be turned over left and right first
    (EXIF Orientation 2, 4, 5, 7) */
 static int
-get_exif_rotation (GimvImageInfo *info, gboolean *flip)
+orientation_rotation (gint orientation, gboolean *flip)
 {
-   ExifData *edata;
-   ExifEntry *entry;
    int rotate = 0;
 
-   g_return_val_if_fail (info->filename && *(info->filename), 0);
-
-   /* system libexif: exif_data_new_from_file () replaces the bundled
-      jpeg_data_* helpers */
-   edata = exif_data_new_from_file (info->filename);
-   if (!edata) return 0;
-
-   entry = exif_content_get_entry (edata->ifd[EXIF_IFD_0], EXIF_TAG_ORIENTATION);
-   if (entry && entry->format == EXIF_FORMAT_SHORT && entry->size >= 2) {
-      switch (exif_get_short (entry->data, exif_data_get_byte_order (edata))) {
-      case 3:            /* rotate 180 degrees */
-         rotate = 2;
-         break;
-      case 6:            /* rotate 90 degrees clockwise */
-         rotate = 3;
-         break;
-      case 8:            /* rotate 90 degrees counterclockwise */
-         rotate = 1;
-         break;
-      /* mirrored: turned over left and right, then rotated */
-      case 2:  *flip = TRUE; rotate = 0; break;
-      case 4:  *flip = TRUE; rotate = 2; break;   /* upside down */
-      case 5:  *flip = TRUE; rotate = 1; break;   /* + 90 degrees counterclockwise */
-      case 7:  *flip = TRUE; rotate = 3; break;   /* + 90 degrees clockwise */
-      default:           /* 1: as is */
-         rotate = 0;
-         break;
-      }
+   *flip = FALSE;
+   switch (orientation) {
+   case 3:            /* rotate 180 degrees */
+      rotate = 2;
+      break;
+   case 6:            /* rotate 90 degrees clockwise */
+      rotate = 3;
+      break;
+   case 8:            /* rotate 90 degrees counterclockwise */
+      rotate = 1;
+      break;
+   /* mirrored: turned over left and right, then rotated */
+   case 2:  *flip = TRUE; rotate = 0; break;
+   case 4:  *flip = TRUE; rotate = 2; break;   /* upside down */
+   case 5:  *flip = TRUE; rotate = 1; break;   /* + 90 degrees counterclockwise */
+   case 7:  *flip = TRUE; rotate = 3; break;   /* + 90 degrees clockwise */
+   default:           /* 1: as is */
+      rotate = 0;
+      break;
    }
 
-   exif_data_unref (edata);
-
    return rotate;
+}
+
+
+static int
+get_exif_rotation (GimvImageInfo *info, gboolean *flip)
+{
+   g_return_val_if_fail (info->filename && *(info->filename), 0);
+
+   /* libexif for a JPEG, Exiv2 (gexiv2) for the other formats */
+   return orientation_rotation (gimv_exif_orientation (info->filename), flip);
 }
 
 #endif
@@ -2384,13 +2384,15 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
 
    /* ditto for rotation */
    iv->priv->flip = FALSE;
+   iv->priv->exif_rotation = FALSE;
 
    switch (iv->priv->default_rotation) {
    case 4:
       break;
    case 5:
 #ifdef ENABLE_EXIF
-      iv->priv->rotate = get_exif_rotation (info, &iv->priv->flip);
+      iv->priv->rotate = info ? get_exif_rotation (info, &iv->priv->flip) : 0;
+      iv->priv->exif_rotation = TRUE;
 #else
       iv->priv->rotate = 0;
 #endif
@@ -2407,9 +2409,11 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
    {
       gint orientation;
       if (gimv_comment_get_rotation (info, &orientation)) {
+         iv->priv->exif_rotation = FALSE;
          iv->priv->rotate = orientation;
          iv->priv->flip = gimv_comment_get_flip (info);
       } else if (gimv_comment_get_flip (info)) {
+         iv->priv->exif_rotation = FALSE;
          iv->priv->rotate = 0;
          iv->priv->flip = TRUE;
       }
@@ -2490,18 +2494,8 @@ face_orientation (GimvImageView *iv)
    iv->priv->face_orient_info = iv->info;
    iv->priv->face_orient = 1;
 #ifdef ENABLE_EXIF
-   if (iv->info && iv->info->filename) {
-      ExifData *edata = exif_data_new_from_file (iv->info->filename);
-      if (edata) {
-         ExifEntry *entry = exif_content_get_entry (edata->ifd[EXIF_IFD_0],
-                                                    EXIF_TAG_ORIENTATION);
-         if (entry && entry->format == EXIF_FORMAT_SHORT && entry->size >= 2) {
-            gint o = exif_get_short (entry->data, exif_data_get_byte_order (edata));
-            if (o >= 1 && o <= 8) iv->priv->face_orient = o;
-         }
-         exif_data_unref (edata);
-      }
-   }
+   if (iv->info && iv->info->filename)
+      iv->priv->face_orient = gimv_exif_orientation (iv->info->filename);
 #endif
    return iv->priv->face_orient;
 }
@@ -4025,6 +4019,16 @@ cb_loader_load_end (GimvImageLoader *loader, GimvImageView *iv)
    if (!image) goto ERROR;
    gimv_image_ref (image);
    gimv_image_loader_unref_image (loader);
+
+#ifdef ENABLE_EXIF
+   /* the orientation the loader of gdk-pixbuf gives (TIFF: what is left
+    * after libtiff turned the image over itself) over that of the file */
+   if (iv->priv->exif_rotation && GDK_IS_PIXBUF (image->image)) {
+      const gchar *opt = gdk_pixbuf_get_option (image->image, "orientation");
+      if (opt && atoi (opt) >= 1 && atoi (opt) <= 8)
+         iv->priv->rotate = orientation_rotation (atoi (opt), &iv->priv->flip);
+   }
+#endif
 
    /* keep the alpha channel and paint a checkerboard behind it
       (gimv_image_view_paint), or blend it with the background colour */

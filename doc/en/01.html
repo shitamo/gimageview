@@ -130,6 +130,7 @@ In addition, the following libraries and programs, if present, extend the functi
 <li><p class="para">libarchive : Archives (zip, rar, 7z, lha, tar, etc.) can be opened.</p></li>
 <li><p class="para">libjpeg : JPEG images are loaded faster.</p></li>
 <li><p class="para">libexif : EXIF information can be displayed, and images (and thumbnails) can be rotated automatically according to the EXIF orientation information. Thumbnails of JPEG files are made faster from their embedded (EXIF) thumbnails.</p></li>
+<li><p class="para">gexiv2 (Exiv2) : with libexif, the EXIF information of the formats other than JPEG (TIFF, raw files, PNG, WebP, HEIF/AVIF, JPEG XL, ...) is displayed and used for the automatic rotation too.  The index reads the date, the camera and the keywords (EXIF, XMP, IPTC) of these formats too.</p></li>
 <li><p class="para">SQLite 3.22 or later : the image index (dates, tags, search) can be used.</p></li>
 <li><p class="para">OpenCV 4.8 or later (and a C++ compiler) : faces can be found in the index. The model files (OpenCV YuNet and SFace) are needed too.</p></li>
 <li><p class="para">librsvg (2.52 or later) : SVG images can be displayed.</p></li>

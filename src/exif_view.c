@@ -26,6 +26,7 @@
 #ifdef ENABLE_EXIF
 
 #include <libexif/exif-data.h>
+#include "gimv_exif.h"
 
 #include "exif_view.h"
 #include "gimv_image.h"
@@ -228,8 +229,8 @@ exif_view_create (const gchar *filename, GtkWindow *parent)
 
    g_return_val_if_fail (filename && *filename, NULL);
 
-   /* system libexif: finds the EXIF data in JPEG (and a few other) files */
-   edata = exif_data_new_from_file (filename);
+   /* libexif for a JPEG, Exiv2 (gexiv2) for the other formats */
+   edata = gimv_exif_data_new_from_file (filename);
    if (!edata) {
       gtkutil_message_dialog (_("Error!"), _("EXIF data not found."),
                               GTK_WINDOW (parent));

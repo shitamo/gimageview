@@ -41,6 +41,7 @@
 #endif
 #ifdef ENABLE_EXIF
 #  include <libexif/exif-data.h>
+#  include "gimv_exif.h"
 #endif
 
 #include "gimv_image.h"
@@ -189,7 +190,7 @@ jpeg_read (FILE *file, const guchar *data, gsize len, gint want, gboolean header
 static GdkPixbuf *
 exif_thumbnail (const gchar *path, gint want, gint orig_w, gint orig_h)
 {
-   ExifData *ed = exif_data_new_from_file (path);
+   ExifData *ed = gimv_exif_data_new_from_file (path);
    GdkPixbuf *pixbuf = NULL;
    gint w = 0, h = 0;
 

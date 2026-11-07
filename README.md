@@ -169,7 +169,7 @@ Following libraries and programs are optional. They extend the functionality whe
 
 * **SQLite 3.22 or later:** the image index, tags, the search window (and the faces).
 
-* **gexiv2 (Exiv2):** the index reads the date, the camera and the keywords (EXIF, XMP, IPTC) of every format Exiv2 knows (HEIF, PNG, WebP, TIFF, raw files, ...); without it, the EXIF of JPEG only (libexif) and the XMP and IPTC keywords of JPEG, PNG, WebP and TIFF.
+* **gexiv2 (Exiv2):** the EXIF viewer and the EXIF rotation (images and thumbnails) work for every format Exiv2 knows, not for JPEG only; the index reads the date, the camera and the keywords (EXIF, XMP, IPTC) of every format Exiv2 knows (HEIF, PNG, WebP, TIFF, raw files, ...); without it, the EXIF of JPEG only (libexif) and the XMP and IPTC keywords of JPEG, PNG, WebP and TIFF.
 
 * **OpenCV 4.8 or later** (with the dnn and objdetect modules)**:** faces are found and grouped. The model files (OpenCV YuNet and SFace, about 40 MB) go in ~/.local/share/gimageview/models; where to get them is shown in Preferences > Index > Faces.
 

@@ -147,6 +147,11 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* The index reads EXIF, XMP and IPTC with gexiv2 (Exiv2) when built
 	  with it: the date, the camera and the keywords of HEIF, PNG, WebP,
 	  TIFF and raw files too, not of JPEG only.
+	* EXIF of the formats other than JPEG (TIFF, raw, PNG, WebP, HEIF,
+	  JPEG XL, ...) with gexiv2: Scan EXIF Data... shows it, the images
+	  and the thumbnails are turned by its orientation (not again for
+	  HEIF/AVIF and JPEG XL, which their decoders turn, nor for TIFF,
+	  which libtiff turns over in part: the rest gdk-pixbuf gives).
 	* Data tab: "Remove Item" removes the item selected; "Delete
 	  Comment..." (was "Delete", which removed the whole comment file at
 	  once) asks first and keeps the tags.  The index reads the tags of a

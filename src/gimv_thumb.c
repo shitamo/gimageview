@@ -40,7 +40,7 @@
 #include "gimv_thumb_cache.h"
 #include "gimv_thumb_view.h"
 #ifdef ENABLE_EXIF
-#  include <libexif/exif-data.h>
+#  include "gimv_exif.h"
 #endif
 
 
@@ -384,21 +384,11 @@ load_thumbnail_cache (GimvThumb *thumb, gint thumbsize)
 gint
 gimv_thumb_file_orientation (const gchar *filename)
 {
-   gint o = 1;
 #ifdef ENABLE_EXIF
-   ExifData *edata;
-   ExifEntry *entry;
-
-   if (!filename || !*filename) return 1;
-   edata = exif_data_new_from_file (filename);
-   if (!edata) return 1;
-   entry = exif_content_get_entry (edata->ifd[EXIF_IFD_0], EXIF_TAG_ORIENTATION);
-   if (entry && entry->format == EXIF_FORMAT_SHORT && entry->size >= 2)
-      o = exif_get_short (entry->data, exif_data_get_byte_order (edata));
-   exif_data_unref (edata);
-   if (o < 1 || o > 8) o = 1;
+   return gimv_exif_orientation (filename);
+#else
+   return 1;
 #endif
-   return o;
 }
 
 

@@ -51,19 +51,29 @@ test('orient',
     dependencies : [glib_dep, pixbuf_dep]),
   kwargs : test_kwargs)
 
+# src/gimv_exif.c (libexif, gexiv2): the EXIF data of every format
+if exif_dep.found() and gexiv2_dep.found()
+  test('exif',
+    executable('test-exif', 'test_exif.c',
+      objects : gimv_exe.extract_objects('gimv_exif.c'),
+      include_directories : test_inc,
+      dependencies : [glib_dep, pixbuf_dep, exif_dep, gexiv2_dep]),
+    kwargs : test_kwargs)
+endif
+
 # gimv without its main (): for the plugins, which take their symbols
 # from the program that loads them
 gimv_test_core = static_library('gimv-test-core', gimv_main_source,
   objects : gimv_exe.extract_objects(gimv_sources),
   c_args : ['-Dmain=gimv_test_unused_main'],
   include_directories : [top_inc, src_inc, index_inc],
-  dependencies : common_deps + [exif_dep, sqlite_dep, jpeg_dep])
+  dependencies : common_deps + [exif_dep, gexiv2_dep, sqlite_dep, jpeg_dep])
 
 core_test_kwargs = {
   'link_whole' : gimv_test_core,
   'export_dynamic' : true,
   'include_directories' : test_inc,
-  'dependencies' : common_deps + [exif_dep, sqlite_dep, jpeg_dep],
+  'dependencies' : common_deps + [exif_dep, gexiv2_dep, sqlite_dep, jpeg_dep],
 }
 
 test('image-loaders',

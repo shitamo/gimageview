@@ -2951,10 +2951,15 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
       const gchar *img_name = gimv_image_info_get_path (thumb->info);
       const gchar *format = gimv_image_detect_type_by_ext (img_name);
       menuitem = gimv_menu_get_item (ifactory, "/Scan EXIF Data...");
-#warning FIXME!!
+#ifndef ENABLE_GEXIV2
+      /* libexif reads the EXIF data of a JPEG only; with Exiv2 any format
+       * (gimv_exif_data_new_from_file ()) */
       if (!format || !*format || g_ascii_strcasecmp(format, "image/jpeg")) {
          gimv_menu_item_set_visible (menuitem, FALSE);
       }
+#else
+      (void) format;
+#endif
       if (g_list_length (thumblist) > 1
           || tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE)
       {
