@@ -104,6 +104,8 @@ struct GimvThumbViewPriv_Tag
    gboolean             windowed;
    guint                focus_idle;     /* gimv_thumb_view_focus_changed () */
    ThumbLoadType        load_type;
+   gboolean             window_started; /* load_type is set: the list is
+                                            being (or was) loaded */
    GHashTable          *loaded;        /* GimvThumb (loaded) */
    guint                window_timeout;
    guint                window_idle;
@@ -1471,7 +1473,10 @@ comp_func_atime (gconstpointer data1, gconstpointer data2)
 }
 
 
-/* sort by time of last modification */
+/* thumb -> its date taken, while gimv_thumb_view_sort_data () sorts: looked
+ * up once for each image, not twice for each comparison */
+static GHashTable *sort_date_keys = NULL;
+
 /* the date taken (gimv_image_info_get_date_taken ()), then the name */
 static int
 comp_func_date (gconstpointer data1, gconstpointer data2)
@@ -1482,13 +1487,19 @@ comp_func_date (gconstpointer data1, gconstpointer data2)
    gint r;
 
    g_return_val_if_fail (thumb1 && thumb2, 0);
-   d1 = gimv_image_info_get_date_taken (thumb1->info, b1);
-   d2 = gimv_image_info_get_date_taken (thumb2->info, b2);
+   if (sort_date_keys) {
+      d1 = g_hash_table_lookup (sort_date_keys, thumb1);
+      d2 = g_hash_table_lookup (sort_date_keys, thumb2);
+   } else {
+      d1 = gimv_image_info_get_date_taken (thumb1->info, b1);
+      d2 = gimv_image_info_get_date_taken (thumb2->info, b2);
+   }
    r = strcmp (d1 ? d1 : "", d2 ? d2 : "");
    return r ? r : comp_func_spel (data1, data2);
 }
 
 
+/* sort by time of last modification */
 static int
 comp_func_mtime (gconstpointer data1, gconstpointer data2)
 {
@@ -1832,6 +1843,7 @@ window_stop (GimvThumbView *tv)
    }
    if (tv->priv->loaded)
       g_hash_table_remove_all (tv->priv->loaded);
+   tv->priv->window_started = FALSE;
 }
 
 
@@ -3545,7 +3557,20 @@ gimv_thumb_view_sort_data (GimvThumbView *tv)
    func = gimv_thumb_view_get_compare_func (tv, &reverse);
    g_return_if_fail (func);
 
+   if (func == comp_func_date) {
+      GList *node;
+      sort_date_keys = g_hash_table_new_full (g_direct_hash, g_direct_equal,
+                                              NULL, g_free);
+      for (node = tv->thumblist; node; node = g_list_next (node)) {
+         GimvThumb *thumb = node->data;
+         gchar buf[32];
+         const gchar *d = thumb && thumb->info
+            ? gimv_image_info_get_date_taken (thumb->info, buf) : NULL;
+         g_hash_table_insert (sort_date_keys, thumb, g_strdup (d ? d : ""));
+      }
+   }
    tv->thumblist = g_list_sort (tv->thumblist, func);
+   g_clear_pointer (&sort_date_keys, g_hash_table_unref);
    if (reverse)
       tv->thumblist = g_list_reverse (tv->thumblist);
    thumblist_changed (tv);
@@ -3581,6 +3606,7 @@ gimv_thumb_view_load_thumbnails (GimvThumbView *tv, GList *loadlist,
       /* nothing is loaded here: the window loads what is near the
        * visible part while gimv stays free */
       tv->priv->load_type = files->thumb_load_type;
+      tv->priv->window_started = TRUE;
       window_request (tv, 0);
       return TRUE;
    }
@@ -4415,7 +4441,13 @@ gimv_thumb_view_redraw (GimvThumbView *tv,
 
    gimv_thumb_view_set_scrollbar_callback (tv);
 
-   gimv_thumb_view_reset_load_priority (tv);
+   /* sorted again (or another display mode): the thumbnails to load are
+    * the ones now at the top, not the ones that were there.  The view is
+    * at the top again without a "value-changed" to say so. */
+   if (tv->priv->windowed && tv->priv->window_started)
+      window_request (tv, 0);
+   else
+      gimv_thumb_view_reset_load_priority (tv);
 
    if (gimv_bin_get_child (GTK_WIDGET (tv->container)))
       gtk_widget_grab_focus (gimv_bin_get_child (GTK_WIDGET (tv->container)));

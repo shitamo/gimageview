@@ -125,6 +125,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* "Date taken" column of the detail view and View > Sort File List > by
 	  Date Taken: the date of the index (comment, EXIF, file name,
 	  modification time); the modification time outside the index.
+	* After a sort (or a change of the display mode) the thumbnails
+	  loaded first are the ones now at the top, not the ones that were.
 	* Data tab: a value typed and saved with "Save" (not Enter) is kept,
 	  under the key the combo shows (it may show one it never said it
 	  had chosen), and the entry shows its value from the start.  The
