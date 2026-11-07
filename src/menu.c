@@ -1252,7 +1252,15 @@ popover_new_for_menu (GimvMenu *menu)
 
    popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu->root->model));
    gtk_popover_set_has_arrow (GTK_POPOVER (popover), FALSE);
+   /* a context menu to the right of the pointer, its top there: one that
+      does not fit below slides up as far as it must.  (GTK slides a
+      popover along the side it is on and only shrinks it across: below
+      the pointer, a long menu got scroll bars when it fitted neither below
+      nor above.)  Set here once: changing the position of a popover menu
+      already made crashed GTK 4.14. */
+   gtk_popover_set_position (GTK_POPOVER (popover), GTK_POS_RIGHT);
    gtk_widget_set_halign (popover, GTK_ALIGN_START);
+   gtk_widget_set_valign (popover, GTK_ALIGN_START);
    g_object_ref_sink (popover);
    menu->widget = popover;
    g_object_set_data_full (G_OBJECT (popover), GIMV_MENU_KEY, menu, gimv_menu_free);
@@ -1861,7 +1869,6 @@ gimv_menu_popup (GtkWidget *popover, GtkWidget *relative_to, gdouble x, gdouble 
    rect.y = y;
    rect.width = rect.height = 1;
    gtk_popover_set_pointing_to (GTK_POPOVER (popover), &rect);
-   gtk_popover_set_position (GTK_POPOVER (popover), GTK_POS_BOTTOM);
 
    /* GTK adds the separators between the sections of a new popover menu
       from an idle callback, and a popover already shown keeps the size it
