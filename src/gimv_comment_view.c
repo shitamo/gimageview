@@ -85,6 +85,18 @@ selected_is_file (GimvCommentView *cv)
 }
 
 
+/* the key of the item the combo shows, NULL when none */
+static const gchar *
+combo_current_key (GimvCommentView *cv)
+{
+   GPtrArray *keys = g_object_get_data (G_OBJECT (cv->key_combo), "keys");
+   guint idx = gtk_drop_down_get_selected (GTK_DROP_DOWN (cv->key_combo));
+
+   if (!keys || idx == GTK_INVALID_LIST_POSITION || idx >= keys->len) return NULL;
+   return g_ptr_array_index (keys, idx);
+}
+
+
 /* the row selected is the tags (X-IMG-Tags: edited with Edit Tags) */
 static gboolean
 selected_is_tags (GimvCommentView *cv)
@@ -199,8 +211,8 @@ cb_save_button_pressed (GtkButton *button, GimvCommentView *cv)
    g_return_if_fail (cv->comment);
 
    /* a value typed and not entered with Enter is kept too */
-   if (cv->selected_item && gtk_editable_get_editable (GTK_EDITABLE (cv->value_entry))) {
-      const gchar *key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
+   if (gtk_editable_get_editable (GTK_EDITABLE (cv->value_entry))) {
+      const gchar *key = combo_current_key (cv);
       const gchar *text = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
       GimvCommentDataEntry *entry = key
          ? gimv_comment_find_data_entry_by_key (cv->comment, key) : NULL;
@@ -1081,12 +1093,14 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
    gchar *text[16];
 
    g_return_if_fail (cv);
-   if (!cv->selected_item) return;
    if (selected_is_file (cv)) return;
    if (combo_has_extra (cv)) return;
 
-   key = g_object_get_data (G_OBJECT (cv->selected_item), "key");
-   g_return_if_fail (key);
+   /* the key the combo shows (whether or not its change was signalled:
+      a combo set to the item it had says nothing) */
+   key = combo_current_key (cv);
+   if (!key) return;
+   if (!cv->selected_item) combo_select_key (cv, key);
 
    dname = combo_get_selected_name (cv);
    value = gtk_editable_get_text (GTK_EDITABLE (cv->value_entry));
