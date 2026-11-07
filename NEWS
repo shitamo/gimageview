@@ -124,7 +124,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  "2025/4/1 10:15", "2025年4月1日 10時15分", ...
 	* Data tab: a value typed and saved with "Save" (not Enter) is kept,
 	  under the key the combo shows (it may show one it never said it
-	  had chosen).
+	  had chosen), and the entry shows its value from the start.  The
+	  keys to fill in (Subject, Date, ...) are shown for an image with a
+	  comment file too, empty keys are not written.
 	* Properties: the name and the type (file(1)) cut when long, so the
 	  dialog stays on the screen, and selectable; "Copy" puts the full
 	  path on the clipboard.  "Copy Path" in the right button menu of

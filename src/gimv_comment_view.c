@@ -1288,6 +1288,12 @@ gimv_comment_view_change_file (GimvCommentView *cv, GimvImageInfo *info)
 
    gimv_comment_view_reset_data (cv);
    gimv_comment_view_set_combo_list (cv);
+   /* the row of the key the combo shows, with its value in the entry (the
+      combo may not have said it chose its first key) */
+   {
+      const gchar *key = combo_current_key (cv);
+      if (key) combo_select_key (cv, key);
+   }
 #ifdef ENABLE_INDEX
    tags_refresh (cv);
 #endif

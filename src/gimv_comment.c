@@ -504,6 +504,37 @@ parse_comment_file (GimvComment *comment)
 }
 
 
+/* the keys to fill in (Subject, Date, Location, ...) a comment file read
+ * does not have, empty (not written while empty): the same rows as for an
+ * image without a comment file */
+static void
+add_empty_keys (GimvComment *comment)
+{
+   GList *list, *first = NULL;
+
+   /* in the order of the keys, then the others as the file has them */
+   for (list = gimv_comment_get_data_entry_list (); list; list = g_list_next (list)) {
+      GimvCommentDataEntry *template = list->data, *entry;
+
+      if (!template || !template->key || !template->display || template->auto_val
+          || template->def_val_fn)
+         continue;
+      entry = gimv_comment_find_data_entry_by_key (comment, template->key);
+      if (entry) {
+         comment->data_list = g_list_remove (comment->data_list, entry);
+      } else {
+         entry = g_new0 (GimvCommentDataEntry, 1);
+         *entry = *template;
+         entry->key = g_strdup (template->key);
+         entry->display_name = g_strdup (template->display_name);
+         entry->value = NULL;
+      }
+      first = g_list_append (first, entry);
+   }
+   comment->data_list = g_list_concat (first, comment->data_list);
+}
+
+
 static void
 gimv_comment_set_default_value (GimvComment *comment)
 {
@@ -912,6 +943,8 @@ gimv_comment_save_file (GimvComment *comment)
       node = g_list_next (node);
 
       if (!entry || !entry->key) continue;
+      /* an empty key is not written (it is shown again empty) */
+      if (!entry->value || !*entry->value) continue;
 
       {   /********** convert charset **********/
          gchar *tmpstr, buf[BUF_SIZE];
@@ -1167,6 +1200,7 @@ gimv_comment_get_from_image_info (GimvImageInfo *info)
    /* get comment */
    if (file_exists (comment->filename)) {
       parse_comment_file (comment);
+      add_empty_keys (comment);
    } else {
       gimv_comment_set_default_value (comment);
    }
