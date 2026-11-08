@@ -73,8 +73,10 @@ typedef struct {
 
 typedef struct {
    gchar   *name;
-   gint     count;
+   gint     count;      /* the images (of the tags below it too) */
    gboolean auto_tag;   /* put by a rule (file_tags.auto) */
+   gboolean parent;     /* only the parent of tags ("Travel" of
+                         * "Travel/Kyoto"), not put on any image itself */
 } TagCount;
 
 #define AUTO_KEY_MARK  ','
@@ -315,6 +317,59 @@ thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *ca
       }
       sqlite3_finalize (st);
    }
+   /* the tags are a tree by "/": a parent counts the images of the tags
+    * below it too ("Travel" those of "Travel/Kyoto"), and is there even
+    * when it is not put on an image itself */
+   if (db) {
+      GHashTable *manual = g_hash_table_new (g_str_hash, g_str_equal);
+      GHashTable *parents = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+      GHashTableIter it;
+      gpointer key;
+      guint i, n = tags->len;
+
+      for (i = 0; i < n; i++) {
+         TagCount *tc = g_ptr_array_index (tags, i);
+         if (!tc->auto_tag && !g_str_has_prefix (tc->name, NAME_TAG))
+            g_hash_table_insert (manual, tc->name, tc);
+      }
+      g_hash_table_iter_init (&it, manual);
+      while (g_hash_table_iter_next (&it, &key, NULL)) {
+         const gchar *name = key, *s;
+         for (s = strchr (name, '/'); s; s = strchr (s + 1, '/'))
+            if (s > name) g_hash_table_add (parents, g_strndup (name, s - name));
+      }
+      if (g_hash_table_size (parents) > 0 && sqlite3_prepare_v2 (db,
+             "SELECT count(DISTINCT id) FROM ("
+             " SELECT ft.file_id AS id FROM file_tags ft JOIN tags t ON t.id = ft.tag_id"
+             "  WHERE ft.auto = 0 AND (t.name = ?1 OR (t.name > ?1 || '/' AND t.name < ?1 || '0'))"
+             " UNION ALL SELECT ft.file_id FROM file_tags ft JOIN tags t ON t.id = ft.tag_id"
+             "  WHERE ft.auto = 1 AND (t.name = 'keyword/' || ?1 OR"
+             "  (t.name > 'keyword/' || ?1 || '/' AND t.name < 'keyword/' || ?1 || '0')))",
+             -1, &st, NULL) == SQLITE_OK)
+      {
+         g_hash_table_iter_init (&it, parents);
+         while (g_hash_table_iter_next (&it, &key, NULL)) {
+            TagCount *tc = g_hash_table_lookup (manual, key);
+            gint count = 0;
+
+            if (g_cancellable_is_cancelled (cancel)) break;
+            sqlite3_reset (st);
+            sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
+            if (sqlite3_step (st) == SQLITE_ROW) count = sqlite3_column_int (st, 0);
+            if (!tc) {
+               tc = g_new0 (TagCount, 1);
+               tc->name   = g_strdup (key);
+               tc->parent = TRUE;
+               g_ptr_array_add (tags, tc);
+            }
+            tc->count = count;
+         }
+         sqlite3_finalize (st);
+      }
+      g_hash_table_destroy (parents);
+      g_hash_table_destroy (manual);
+   }
+
    /* the tags of the people: the images any of them is named in */
    if (db && sqlite3_prepare_v2 (db,
           "SELECT pt.tag, count(DISTINCT fa.file_id) FROM person_tags pt "
@@ -547,10 +602,14 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
             "WHERE 'person/' || pt.tag = ?1 AND ?2 = 1) ORDER BY f.date, f.name";
    } else if (req->type == GIMV_INDEX_TAB_TAG && gimv_index_plain_key (key)[0] != AUTO_KEY_MARK)
       /* put by a person, or a keyword of the same name */
+      /* ... and the tags below it ("Travel/Kyoto" below "Travel"): names
+       * "?1/..." sort between "?1/" and "?1" + "0" ('0' follows '/') */
       sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM files f "
             "JOIN dirs d ON d.id = f.dir_id WHERE f.id IN (SELECT ft.file_id FROM file_tags ft "
-            "JOIN tags t ON t.id = ft.tag_id WHERE (t.name = ?1 AND ft.auto = ?2) "
-            "OR (t.name = 'keyword/' || ?1 AND ft.auto = 1)) ORDER BY f.date, f.name";
+            "JOIN tags t ON t.id = ft.tag_id WHERE ((t.name = ?1 OR (t.name > ?1 || '/' "
+            "AND t.name < ?1 || '0')) AND ft.auto = ?2) "
+            "OR ((t.name = 'keyword/' || ?1 OR (t.name > 'keyword/' || ?1 || '/' "
+            "AND t.name < 'keyword/' || ?1 || '0')) AND ft.auto = 1)) ORDER BY f.date, f.name";
    else if (req->type == GIMV_INDEX_TAB_TAG)
       sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM file_tags ft "
             "JOIN tags t ON t.id = ft.tag_id JOIN files f ON f.id = ft.file_id "
@@ -687,23 +746,61 @@ find_key (GimvRow *parent, const gchar *key)
 }
 
 
+/* by the names as they are cut by "/" ("Travel" < "Travel/Kyoto" <
+ * "Travel 2"): a parent before the tags below it */
+static gint
+cmp_tag_count (gconstpointer pa, gconstpointer pb)
+{
+   const TagCount *a = *(TagCount * const *) pa, *b = *(TagCount * const *) pb;
+   const guchar *x = (const guchar *) a->name, *y = (const guchar *) b->name;
+
+   for (; *x && *x == *y; x++, y++) ;
+   if (*x == *y) return 0;
+   if (*x == '/') return *y ? -1 : 1;
+   if (*y == '/') return *x ? 1 : -1;
+   return *x < *y ? -1 : 1;
+}
+
+
 /* the tags put by a person at the top, then a group for each rule */
 static void
 build_tag_list (IndexView *iv, GimvRow *root, GPtrArray *tags)
 {
    GimvRow *groups[G_N_ELEMENTS (auto_kinds)] = { NULL };
    GimvRow *names = NULL;
+   GPtrArray *manual = g_ptr_array_new ();
+   GHashTable *rows = g_hash_table_new (g_str_hash, g_str_equal);
    guint i, k;
 
+   /* the tags put by a person: a tree by "/" ("Travel/Kyoto" below
+    * "Travel"), the parents before the tags below them */
    for (i = 0; i < tags->len; i++) {
       TagCount *tc = g_ptr_array_index (tags, i);
+      if (tc->auto_tag || g_str_has_prefix (tc->name, NAME_TAG)) continue;
+      g_ptr_array_add (manual, tc);
+   }
+   g_ptr_array_sort (manual, cmp_tag_count);
+   for (i = 0; i < manual->len; i++) {
+      TagCount *tc = g_ptr_array_index (manual, i);
+      const gchar *slash = strrchr (tc->name, '/');
+      GimvRow *parent = root, *row;
       gchar *label;
 
-      if (tc->auto_tag || g_str_has_prefix (tc->name, NAME_TAG)) continue;
-      label = g_strdup_printf ("%s (%'d)", tc->name, tc->count);
-      row_new (root, label, KIND_TAG, tc->name, NULL, NULL);
+      if (slash && slash > tc->name && slash[1]) {
+         gchar *up = g_strndup (tc->name, slash - tc->name);
+         parent = g_hash_table_lookup (rows, up);
+         if (!parent) parent = root;
+         g_free (up);
+      } else {
+         slash = NULL;
+      }
+      label = g_strdup_printf ("%s (%'d)", slash ? slash + 1 : tc->name, tc->count);
+      row = row_new (parent, label, KIND_TAG, tc->name, NULL, NULL);
+      g_hash_table_insert (rows, tc->name, row);
       g_free (label);
    }
+   g_hash_table_destroy (rows);
+   g_ptr_array_unref (manual);
 
    /* the names of faces in the comment files */
    for (i = 0; i < tags->len; i++) {
@@ -1491,6 +1588,8 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
  ******************************************************************************/
 
 static gboolean manual_tag_exists (const gchar *name);
+static gboolean manual_tags_below (const gchar *name, GPtrArray *out);
+static void     do_rename_tree    (IndexView *iv, const gchar *old, const gchar *new);
 
 /* a tag a person put (those of rules are made by the rules; a keyword of
  * another program alone is renamed there) */
@@ -1505,7 +1604,8 @@ key_is_manual_tag (IndexView *iv, const gchar *key)
    if (g_str_has_prefix (key, NAME_TAG))
       return FALSE;
    row = find_key (iv->root, key);
-   return row && gimv_row_peek_int (row, COL_KIND) == KIND_TAG && manual_tag_exists (key);
+   return row && gimv_row_peek_int (row, COL_KIND) == KIND_TAG
+          && (manual_tag_exists (key) || manual_tags_below (key, NULL));
 }
 
 
@@ -1729,7 +1829,7 @@ cb_merge_answer (GObject *source, GAsyncResult *res, gpointer data)
       if (ask->person)
          do_rename_person_tag (ask->iv, ask->old, ask->new);
       else
-         do_rename (ask->iv, ask->old, ask->new);
+         do_rename_tree (ask->iv, ask->old, ask->new);
    }
    g_object_unref (ask->cancel);
    g_free (ask->old);
@@ -1754,6 +1854,73 @@ manual_tag_exists (const gchar *name)
    found = sqlite3_step (st) == SQLITE_ROW;
    sqlite3_finalize (st);
    return found;
+}
+
+
+/* there are tags a person put below name ("Travel/Kyoto" below "Travel");
+ * their names into out when it is not NULL */
+static gboolean
+manual_tags_below (const gchar *name, GPtrArray *out)
+{
+   sqlite3 *db = gimv_index_get_db ();
+   sqlite3_stmt *st;
+   gboolean found = FALSE;
+
+   if (!db || sqlite3_prepare_v2 (db, "SELECT DISTINCT t.name FROM tags t JOIN file_tags ft "
+                                      "ON ft.tag_id = t.id WHERE t.name > ?1 || '/' "
+                                      "AND t.name < ?1 || '0' AND ft.auto = 0",
+                                  -1, &st, NULL) != SQLITE_OK)
+      return FALSE;
+   sqlite3_bind_text (st, 1, name, -1, SQLITE_TRANSIENT);
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      found = TRUE;
+      if (!out) break;
+      g_ptr_array_add (out, g_strdup ((const gchar *) sqlite3_column_text (st, 0)));
+   }
+   sqlite3_finalize (st);
+   return found;
+}
+
+
+/* old gets the name new, and the tags below it theirs ("Travel/Kyoto"
+ * becomes "Trips/Kyoto" when "Travel" becomes "Trips") */
+static void
+do_rename_tree (IndexView *iv, const gchar *old, const gchar *new)
+{
+   GPtrArray *below = g_ptr_array_new_with_free_func (g_free);
+   gsize len = strlen (old);
+   guint i;
+
+   manual_tags_below (old, below);
+   if (manual_tag_exists (old) || below->len == 0)
+      do_rename (iv, old, new);
+   for (i = 0; i < below->len; i++) {
+      const gchar *name = g_ptr_array_index (below, i);
+      gchar *to = g_strconcat (new, name + len, NULL);
+      gimv_index_rename_tag (name, to);
+      g_free (to);
+   }
+   g_ptr_array_unref (below);
+}
+
+
+/* new, or a tag below it as old's would be named, is there already */
+static gboolean
+rename_merges (const gchar *old, const gchar *new)
+{
+   GPtrArray *below = g_ptr_array_new_with_free_func (g_free);
+   gsize len = strlen (old);
+   gboolean merges = manual_tag_exists (old) && manual_tag_exists (new);
+   guint i;
+
+   manual_tags_below (old, below);
+   for (i = 0; i < below->len && !merges; i++) {
+      gchar *to = g_strconcat (new, (const gchar *) g_ptr_array_index (below, i) + len, NULL);
+      merges = manual_tag_exists (to);
+      g_free (to);
+   }
+   g_ptr_array_unref (below);
+   return merges;
 }
 
 
@@ -1808,7 +1975,7 @@ rename_done (IndexView *iv, const gchar *text)
    } else if (g_str_has_prefix (new, NAME_TAG)) {
       alert (iv, _("Tags starting with \"person/\" are the names of faces."),
              _("They are written by GImageView from the names given in the faces window."));
-   } else if (manual_tag_exists (new)) {
+   } else if (rename_merges (old, new)) {
       /* the same thing tagged with two names: one tag, after asking */
       GtkAlertDialog *dialog = gtk_alert_dialog_new (_("The tag \"%s\" is there already."), new);
       const gchar *buttons[] = { _("_Cancel"), _("_Merge Them"), NULL };
@@ -1830,7 +1997,7 @@ rename_done (IndexView *iv, const gchar *text)
       g_object_unref (dialog);
       g_free (detail);
    } else {
-      do_rename (iv, old, new);
+      do_rename_tree (iv, old, new);
    }
    g_free (old);
    g_free (new);

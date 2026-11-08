@@ -180,7 +180,10 @@ cond_sql (const Cond *c, GPtrArray *args)
       g_ptr_array_add (args, g_strdup (k + 1));
       return g_strdup_printf ("f.id %s (SELECT file_id FROM file_tags WHERE auto = 1 AND "
                               "tag_id = (SELECT id FROM tags WHERE name = ?))", in);
-   default:  /* put by a person, or a keyword of another program */
+   default:  /* put by a person, or a keyword of another program (and the
+              * tags below it) */
+      g_ptr_array_add (args, g_strdup (k));
+      g_ptr_array_add (args, g_strdup (k));
       g_ptr_array_add (args, g_strdup (k));
       g_ptr_array_add (args, g_strdup (k));
       return g_strdup_printf ("f.id %s (" GIMV_INDEX_TAG_FILES_SQL ")", in);

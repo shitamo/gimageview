@@ -51,12 +51,15 @@ gint       gimv_index_tag_kind        (const gchar         *key);
  * The keywords of other programs (the rule tags "keyword/<name>") are kept
  * apart in the index, but shown and looked for as the tags put by a
  * person: a key "Kyoto" is the tag Kyoto and the keyword Kyoto.
- * GIMV_INDEX_TAG_FILES_SQL: the file ids of such a key (the name bound to
- * both '?').  A key ",keyword/Kyoto" (made before) is "Kyoto".
+ * GIMV_INDEX_TAG_FILES_SQL: the file ids of such a key and of the tags
+ * below it ("Travel" has "Travel/Kyoto": the tags are a tree by "/"; the
+ * name bound to all four '?').  A key ",keyword/Kyoto" (made before) is
+ * "Kyoto".
  */
 #define GIMV_INDEX_TAG_FILES_SQL \
    "SELECT ft.file_id FROM file_tags ft JOIN tags t ON t.id = ft.tag_id " \
-   "WHERE (t.name = ? AND ft.auto = 0) OR (t.name = 'keyword/' || ? AND ft.auto = 1)"
+   "WHERE (ft.auto = 0 AND substr (t.name || '/', 1, length (?) + 1) = ? || '/') " \
+   "OR (ft.auto = 1 AND substr (t.name || '/', 1, length (?) + 9) = 'keyword/' || ? || '/')"
 /* the tags of file_tags ft, t as one name n: the keywords as plain names */
 #define GIMV_INDEX_TAG_NAME_SQL \
    "CASE WHEN ft.auto = 1 AND t.name >= 'keyword/' AND t.name < 'keyword0' " \

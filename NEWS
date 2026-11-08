@@ -170,6 +170,12 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  the EXIF, XMP and IPTC of the file are copied (the orientation put
 	  to normal).  A new image saver plugin (gdk-pixbuf) writes JPEG,
 	  WebP, AVIF, TIFF, BMP and ICO; savers take options ("quality").
+	* Tags are a tree by "/" ("Travel/Kyoto" below "Travel") in the tag
+	  tab: a parent counts and opens the images of the tags below it
+	  (the search window too), is there even when not put on an image,
+	  and renaming it renames the tags below it.
+	* Context menus open to the right of the pointer: a long one slides
+	  up instead of getting scroll bars.
 	* Data tab: "Remove Item" removes the item selected; "Delete
 	  Comment..." (was "Delete", which removed the whole comment file at
 	  once) asks first and keeps the tags.  The index reads the tags of a
