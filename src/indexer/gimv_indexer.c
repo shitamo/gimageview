@@ -3857,10 +3857,11 @@ open_db (Indexer *ix, const gchar *dbfile)
    }
    if (ix->auto_kinds & AUTO_KEYWORD) {
       /* the reading of the keywords changed (2: mangled ones put right or
-       * left out, IPTC in one charset): the images with keywords again */
+       * left out, IPTC in one charset; 3: Shift_JIS read as Mac Roman put
+       * right): the images with keywords again */
       sqlite3_stmt *st = prep (ix, "SELECT value FROM meta WHERE key = 'keyword_reader'");
       gboolean done = sqlite3_step (st) == SQLITE_ROW
-                      && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "2");
+                      && !g_strcmp0 ((const gchar *) sqlite3_column_text (st, 0), "3");
       sqlite3_finalize (st);
       if (!done) {
          exec (ix, "BEGIN");
@@ -3868,7 +3869,7 @@ open_db (Indexer *ix, const gchar *dbfile)
                    "(SELECT ft.file_id FROM file_tags ft JOIN tags t ON t.id = ft.tag_id "
                    "WHERE ft.auto = 1 AND t.name >= 'keyword/' AND t.name < 'keyword0')");
          exec (ix, "INSERT OR IGNORE INTO meta VALUES ('reread', 'auto-tags')");
-         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('keyword_reader', '2')");
+         exec (ix, "INSERT OR REPLACE INTO meta VALUES ('keyword_reader', '3')");
          exec (ix, "COMMIT");
       }
    }

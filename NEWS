@@ -176,6 +176,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  and renaming it renames the tags below it.
 	* Context menus open to the right of the pointer: a long one slides
 	  up instead of getting scroll bars.
+	* Keywords that Photoshop on a Mac wrote as Shift_JIS read as Mac
+	  Roman ("éëóøÅié ê^" for "資料（写真") are put right; the images
+	  with keywords are read again once.
 	* Data tab: "Remove Item" removes the item selected; "Delete
 	  Comment..." (was "Delete", which removed the whole comment file at
 	  once) asks first and keeps the tags.  The index reads the tags of a

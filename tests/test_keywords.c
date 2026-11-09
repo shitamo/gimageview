@@ -350,7 +350,8 @@ test_sidecar (void)
 
 
 /* UTF-8 read as Shift_JIS (Windows Photo Gallery): put right, or left
- * out when bytes were lost; real half-width text kept */
+ * out when bytes were lost; real half-width text kept.  Shift_JIS read as
+ * Mac Roman (Photoshop on a Mac): put right; European words kept */
 static void
 test_unmangle (void)
 {
@@ -362,6 +363,16 @@ test_unmangle (void)
       { "ｱ画像",          "ｱ画像" },
       { "京都",           "京都" },
       { "Temple",         "Temple" },
+      /* as a JPEG of Photoshop CS5 Macintosh had it in dc:subject */
+      { "\u00e9\u00eb\u00f3\u00f8\u00c5i\u00e9\u00a0\u00ea^/\u00e7\u00cf\u00efi",
+        "資料（写真/作品" },
+      { "Zürich",         "Zürich" },
+      { "Müller",         "Müller" },
+      { "crème brûlée",   "crème brûlée" },
+      { "Ångström",       "Ångström" },
+      { "café",           "café" },
+      { "Ærøskøbing",     "Ærøskøbing" },
+      { "Dvořák Škoda",   "Dvořák Škoda" },
    };
    guint i;
 

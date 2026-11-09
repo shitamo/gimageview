@@ -46,6 +46,63 @@ typedef struct {
 } Found;
 
 
+/* Japanese text as Shift_JIS read as Mac Roman would be: only ASCII and
+ * Japanese (kanji, kana, full-width; no half-width katakana, which the
+ * accented letters of Latin-1 become), two or more of it next to each
+ * other, and not fewer of it than ASCII letters ("crème brûlée" would be
+ * "cr塾e br柩仔") */
+static gboolean
+is_japanese (const gchar *s)
+{
+   const gchar *p;
+   gint n = 0, letters = 0, run = 0, best = 0;
+
+   for (p = s; *p; p = g_utf8_next_char (p)) {
+      gunichar c = g_utf8_get_char (p);
+      if (c < 0x80) {
+         if (c < 0x20) return FALSE;
+         if (g_ascii_isalpha (c)) letters++;
+         run = 0;
+      } else if ((c >= 0x3000 && c <= 0x9fff) || (c >= 0xf900 && c <= 0xfaff)
+                 || (c >= 0xff00 && c <= 0xff60) || (c >= 0xffe0 && c <= 0xffef)) {
+         n++;
+         best = MAX (best, ++run);
+      } else {
+         return FALSE;
+      }
+   }
+   return best >= 2 && n >= letters;
+}
+
+
+/* Shift_JIS read as Mac Roman and written again as UTF-8 (Photoshop on a
+ * Mac wrote XMP so): "資料（写真/作品" became "éëóøÅié ê^/çÏïi".  Put
+ * right when the text has three letters or more of Mac Roman beyond
+ * ASCII, and its bytes in Mac Roman are Shift_JIS of Japanese text
+ * (is_japanese ()): "Zürich" or "crème brûlée" are left as they are (a
+ * mangled "LIVE写真" too).  NULL: not such a text. */
+static gchar *
+mac_roman_unmangle (const gchar *k)
+{
+   const gchar *p;
+   gchar *bytes, *conv;
+   gsize len;
+   gint n = 0;
+
+   for (p = k; *p; p = g_utf8_next_char (p))
+      if ((guchar) *p >= 0x80) n++;
+   if (n < 3) return NULL;
+
+   bytes = g_convert (k, -1, "MACINTOSH", "UTF-8", NULL, &len, NULL);
+   if (!bytes) return NULL;
+   conv = g_convert (bytes, len, "UTF-8", "CP932", NULL, NULL, NULL);
+   g_free (bytes);
+   if (conv && strcmp (conv, k) && is_japanese (conv)) return conv;
+   g_free (conv);
+   return NULL;
+}
+
+
 /* UTF-8 read as Shift_JIS and written again as UTF-8 (Windows Photo
  * Gallery wrote XMP so): "オリジナル" became "繧ｪ繝ｪ繧ｸ繝翫Ν".  The
  * mark is the half-width katakana the UTF-8 continuation bytes become.
@@ -63,7 +120,11 @@ gimv_index_keyword_unmangle (const gchar *k)
       if (c >= 0xff61 && c <= 0xff9f) half = TRUE;
       else if (c >= 0x80) other = TRUE;
    }
-   if (!half) return g_strdup (k);   /* "ｶﾒﾗ" alone is half-width text */
+   if (!half) {
+      /* "ｶﾒﾗ" alone is half-width text; Mac Roman may be Shift_JIS */
+      gchar *mac = mac_roman_unmangle (k);
+      return mac ? mac : g_strdup (k);
+   }
 
    bytes = g_convert (k, -1, "CP932", "UTF-8", NULL, NULL, NULL);
    if (!bytes) return g_strdup (k);
