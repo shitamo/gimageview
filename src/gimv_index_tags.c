@@ -309,6 +309,53 @@ cb_chip_all (GtkButton *button, TagsDialog *td)
 }
 
 
+/* "Travel/Kyoto/Temple": the parents dim, the last part as it is
+ * (markup) */
+static gchar *
+tag_markup (const gchar *name)
+{
+   const gchar *slash = strrchr (name, '/');
+   gchar *up, *ret;
+
+   if (!slash || slash == name || !slash[1]) return g_markup_escape_text (name, -1);
+   up = g_strndup (name, slash + 1 - name);
+   ret = g_markup_printf_escaped ("<span alpha=\"55%%\">%s</span>%s", up, slash + 1);
+   g_free (up);
+   return ret;
+}
+
+
+/* a parent of a tag in use: what is typed goes up to it ("Travel/"),
+ * the tags below it shown to pick from */
+static void
+cb_suggest_parent (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
+                   TagsDialog *td)
+{
+   GtkWidget *part = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+   const gchar *upto = g_object_get_data (G_OBJECT (part), "upto");
+   const gchar *typed = gtk_editable_get_text (GTK_EDITABLE (td->entry));
+   const gchar *comma = typed ? strrchr (typed, ',') : NULL;
+   gchar *text;
+
+   /* the row is not activated (the tag not added) */
+   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+   if (!upto) return;
+   /* the tags typed before the last comma stay */
+   if (comma) {
+      gchar *before = g_strndup (typed, comma + 1 - typed);
+      text = g_strdup_printf ("%s %s/", before, upto);
+      g_free (before);
+   } else {
+      text = g_strdup_printf ("%s/", upto);
+   }
+   gtk_editable_set_text (GTK_EDITABLE (td->entry), text);
+   /* to go on typing the child's name after it */
+   gtk_entry_grab_focus_without_selecting (GTK_ENTRY (td->entry));
+   gtk_editable_set_position (GTK_EDITABLE (td->entry), -1);
+   g_free (text);
+}
+
+
 static void
 cb_suggest_activated (GtkListBox *list, GtkListBoxRow *row, TagsDialog *td)
 {
@@ -336,9 +383,15 @@ rebuild_chips (TagsDialog *td)
       GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
       GtkWidget *label_button = gtk_button_new ();
       GtkWidget *x = gtk_button_new_from_icon_name ("window-close-symbolic");
-      gchar *text = all ? g_strdup (it->name)
-                        : g_strdup_printf ("%s %u/%u", it->name, it->n, td->n_images);
-      GtkWidget *label = gtk_label_new (text);
+      GtkWidget *label = gtk_label_new (NULL);
+      gchar *text = tag_markup (it->name);
+
+      if (!all) {
+         gchar *t = g_strdup_printf ("%s %u/%u", text, it->n, td->n_images);
+         g_free (text);
+         text = t;
+      }
+      gtk_label_set_markup (GTK_LABEL (label), text);
 
       gtk_widget_add_css_class (box, "linked");
       gtk_button_set_child (GTK_BUTTON (label_button), label);
@@ -392,20 +445,63 @@ rebuild_suggest (TagsDialog *td)
       if (it && it->n == td->n_images) continue;
       if (fold) {
          gchar *kf = g_utf8_casefold (k->name, -1);
-         gboolean match = strstr (kf, fold) != NULL;
+         /* "Travel/": the tags below it; otherwise anywhere in the name
+          * ("Kyoto" finds "Travel/Kyoto") */
+         gboolean match = strchr (fold, '/') ? g_str_has_prefix (kf, fold)
+                                             : strstr (kf, fold) != NULL;
          g_free (kf);
          if (!match) continue;
       }
-      text = g_strdup_printf ("%s (%'u)", k->name, k->n);
-      label = gtk_label_new (text);
-      g_free (text);
-      gtk_label_set_xalign (GTK_LABEL (label), 0.0);
-      gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
-      gtk_widget_set_margin_start (label, 8);
-      gtk_widget_set_margin_top (label, 3);
-      gtk_widget_set_margin_bottom (label, 3);
-      gtk_list_box_append (GTK_LIST_BOX (td->suggest), label);
-      row = gtk_widget_get_parent (label);
+      {
+         /* "Travel / Kyoto / Temple (3)": the parents are buttons that
+          * type up to them, the rest of the row adds the tag */
+         GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+         gchar **parts = g_strsplit (k->name, "/", -1);
+         guint np = g_strv_length (parts), j;
+         GString *upto = g_string_new (NULL);
+
+         gtk_widget_set_margin_start (box, 8);
+         for (j = 0; j + 1 < np; j++) {
+            GtkWidget *b, *sep;
+            GtkGesture *click;
+            if (j > 0) g_string_append_c (upto, '/');
+            g_string_append (upto, parts[j]);
+            if (!*parts[j]) continue;
+            b = gtk_label_new (parts[j]);
+            gtk_widget_add_css_class (b, "dim-label");
+            gtk_widget_set_cursor_from_name (b, "pointer");
+            {
+               gchar *tip = g_strdup_printf (_("Click to pick from the tags below %s"),
+                                             upto->str);
+               gtk_widget_set_tooltip_text (b, tip);
+               g_free (tip);
+            }
+            g_object_set_data_full (G_OBJECT (b), "upto", g_strdup (upto->str), g_free);
+            click = gtk_gesture_click_new ();
+            gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (click), GDK_BUTTON_PRIMARY);
+            g_signal_connect (click, "pressed", G_CALLBACK (cb_suggest_parent), td);
+            gtk_widget_add_controller (b, GTK_EVENT_CONTROLLER (click));
+            gtk_box_append (GTK_BOX (box), b);
+            sep = gtk_label_new ("/");
+            gtk_widget_add_css_class (sep, "dim-label");
+            gtk_widget_set_margin_start (sep, 2);
+            gtk_widget_set_margin_end (sep, 2);
+            gtk_box_append (GTK_BOX (box), sep);
+         }
+         text = g_strdup_printf ("%s (%'u)", np ? parts[np - 1] : k->name, k->n);
+         label = gtk_label_new (text);
+         g_free (text);
+         gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+         gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+         gtk_widget_set_hexpand (label, TRUE);
+         gtk_widget_set_margin_top (label, 3);
+         gtk_widget_set_margin_bottom (label, 3);
+         gtk_box_append (GTK_BOX (box), label);
+         g_string_free (upto, TRUE);
+         g_strfreev (parts);
+         gtk_list_box_append (GTK_LIST_BOX (td->suggest), box);
+         row = gtk_widget_get_parent (box);
+      }
       g_object_set_data_full (G_OBJECT (row), "tag", g_strdup (k->name), g_free);
       shown++;
    }

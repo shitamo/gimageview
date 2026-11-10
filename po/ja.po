@@ -6711,3 +6711,18 @@ msgstr "GdkPixbuf 画像保存"
 #: plugins/image_saver/pixbuf_saver.c
 msgid "Saves images as JPEG, WebP, AVIF, TIFF, BMP and ICO with the writers of gdk-pixbuf."
 msgstr "gdk-pixbuf の書き出し機能で JPEG・WebP・AVIF・TIFF・BMP・ICO に保存します。"
+
+#: src/gimv_comment_view.c
+#, c-format
+msgid "%s: click to show the images with it and the tags below it"
+msgstr "%s: クリックでこのタグとその下のタグの付いた画像を表示"
+
+#: src/gimv_comment_view.c
+#, c-format
+msgid "%s: click to show the images with it"
+msgstr "%s: クリックでこのタグの付いた画像を表示"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Click to pick from the tags below %s"
+msgstr "クリックで %s の下のタグから選びます"

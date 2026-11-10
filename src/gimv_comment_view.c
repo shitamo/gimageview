@@ -677,6 +677,67 @@ cb_tag_clicked (GtkButton *button, gpointer data)
 }
 
 
+/* "Travel / Kyoto / Temple": a flat button for each part, opening the tag
+ * up to it */
+static GtkWidget *
+tag_crumbs (const gchar *name)
+{
+   static gboolean css = FALSE;
+   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+   gchar **parts = g_strsplit (name, "/", -1);
+   GString *upto = g_string_new (NULL);
+   guint i, n = g_strv_length (parts);
+
+   /* the parts close together, to read as one tag beside the others */
+   if (!css) {
+      GtkCssProvider *provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_string (provider,
+         "box.gimv-tag-crumbs > button { padding-left: 2px; padding-right: 2px;"
+         " min-width: 0; }\n");
+      gtk_style_context_add_provider_for_display (gdk_display_get_default (),
+                                                  GTK_STYLE_PROVIDER (provider),
+                                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+      g_object_unref (provider);
+      css = TRUE;
+   }
+   gtk_widget_add_css_class (box, "gimv-tag-crumbs");
+
+   for (i = 0; i < n; i++) {
+      GtkWidget *button, *label;
+      gchar *tip;
+
+      if (i > 0) {
+         GtkWidget *sep = gtk_label_new ("/");
+         gtk_widget_add_css_class (sep, "dim-label");
+         gtk_box_append (GTK_BOX (box), sep);
+         g_string_append_c (upto, '/');
+      }
+      g_string_append (upto, parts[i]);
+      if (!*parts[i]) continue;   /* "a//b" */
+
+      label = gtk_label_new (parts[i]);
+      if (i + 1 < n) gtk_widget_add_css_class (label, "dim-label");
+      gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+      gtk_label_set_max_width_chars (GTK_LABEL (label), 20);
+      button = gtk_button_new ();
+      gtk_button_set_child (GTK_BUTTON (button), label);
+      gtk_widget_add_css_class (button, "flat");
+      tip = i + 1 < n
+         ? g_strdup_printf (_("%s: click to show the images with it and the tags below it"),
+                            upto->str)
+         : g_strdup_printf (_("%s: click to show the images with it"), upto->str);
+      gtk_widget_set_tooltip_text (button, tip);
+      g_free (tip);
+      g_object_set_data_full (G_OBJECT (button), "gimv-tag-key", g_strdup (upto->str), g_free);
+      g_signal_connect (button, "clicked", G_CALLBACK (cb_tag_clicked), NULL);
+      gtk_box_append (GTK_BOX (box), button);
+   }
+   g_string_free (upto, TRUE);
+   g_strfreev (parts);
+   return box;
+}
+
+
 static void
 tags_clear (GimvCommentView *cv)
 {
@@ -715,7 +776,17 @@ cb_got_tags (GObject *source, GAsyncResult *res, gpointer data)
       const gchar *key = g_ptr_array_index (keys, i);
       gint kind = gimv_index_tag_kind (key);
       gchar *text = gimv_index_tag_label (key);
-      GtkWidget *button = gtk_button_new ();
+      GtkWidget *button;
+
+      if (kind == 0 && strchr (gimv_index_plain_key (key), '/')) {
+         /* a tag of the tree ("Travel/Kyoto/Temple"): each part opens its
+          * tag, the parents with the tags below them */
+         gimv_wrap_box_append (GIMV_WRAP_BOX (cv->tags_flow),
+                               tag_crumbs (gimv_index_plain_key (key)));
+         g_free (text);
+         continue;
+      }
+      button = gtk_button_new ();
       GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 3);
       GtkWidget *label = gtk_label_new (NULL);
 
