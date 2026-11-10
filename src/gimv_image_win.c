@@ -43,6 +43,7 @@
 #include "help.h"
 #include "menu.h"
 #include "gimv_print.h"
+#include "gimv_shortcuts_win.h"
 #include "gimv_save_dialog.h"
 #include "prefs.h"
 #include "gimv_thumb_cache.h"
@@ -211,6 +212,7 @@ static void     cb_create_thumb         (GimvImageWin *iw,
                                          guint         action,
                                          GimvMenuItem    *widget);
 static void     cb_options              (GimvImageWin *iw);
+static void     cb_shortcuts            (GimvImageWin *iw);
 static void     cb_move_menu            (GimvImageWin *iw,
                                          guint         action,
                                          GimvMenuItem    *widget);
@@ -329,6 +331,7 @@ GimvMenuEntry gimv_image_win_menu_items[] =
    {N_("/_Edit/Boo_kmark..."),           NULL,         cb_bookmark,       0,  NULL},
    {N_("/_Edit/---"),                    NULL,         NULL,              0,  "<Separator>"},
    {N_("/_Edit/_Options..."),            "<control>O", cb_options,        0,  NULL},
+   {N_("/_Edit/Keyboard S_hortcuts..."), NULL,         cb_shortcuts,      0,  NULL},
 
    {N_("/_View"),                        NULL,         NULL,              0,  "<Branch>"},
 
@@ -1609,6 +1612,13 @@ cb_save_image (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
    g_return_if_fail (iw->iv);
 
    gimv_save_dialog_open (iw->iv, GTK_WINDOW (iw));
+}
+
+
+static void
+cb_shortcuts (GimvImageWin *iw)
+{
+   gimv_shortcuts_win_open (GTK_WINDOW (iw));
 }
 
 

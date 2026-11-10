@@ -183,6 +183,14 @@ void          gimv_menu_destroy              (GtkWidget    *menu);
 /* key bindings of the menus (GTK2: gtk_accel_map_load () / _save ()) */
 void          gimv_accel_map_load            (const gchar  *filename);
 void          gimv_accel_map_save            (const gchar  *filename);
+/* for the keyboard shortcuts window */
+const gchar  *gimv_accel_map_get             (const gchar  *accel_path,
+                                              const gchar  *default_accel);
+const gchar  *gimv_accel_map_get_default     (const gchar  *accel_path);
+void          gimv_accel_map_change          (const gchar  *accel_path,
+                                              const gchar  *accel);
+gchar        *gimv_menu_entry_path           (const gchar  *entry_path);
+gchar        *gimv_menu_entry_label          (const gchar  *entry_path);
 
 
 /* option menu helpers */

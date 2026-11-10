@@ -456,6 +456,22 @@ static PrefsFile conf_files [] = {
 };
 
 
+/* the default of a key of ~/.gimv/keyconf (field: &akey.xxx); NULL for
+ * none */
+const gchar *
+prefs_key_default (gchar **field)
+{
+   gint i, j;
+
+   for (i = 0; keyconf_sections[i].section_name; i++) {
+      ConfParam *param = keyconf_sections[i].param;
+      for (j = 0; param[j].keyname; j++)
+         if (param[j].data == (gpointer) field) return param[j].default_val;
+   }
+   return NULL;
+}
+
+
 /*
  *  store_config:
  *     @ Convert config data string to eache data type and store to memory.

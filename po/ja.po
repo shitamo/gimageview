@@ -1591,7 +1591,7 @@ msgstr "/編集(_E)/全て選択(_S)"
 
 #: src/gimv_thumb_win.c:392
 msgid "/_Edit/U_nselect All"
-msgstr "/編集(_E)/全て選択解除(N)"
+msgstr "/編集(_E)/全て選択解除(_N)"
 
 #: src/gimv_thumb_win.c:394
 msgid "/_Edit/_Refresh List"
@@ -1794,7 +1794,7 @@ msgstr "/スライドショー(_L)"
 
 #: src/gimv_thumb_win.c:470
 msgid "/Slideshow Opt_ions"
-msgstr "/スライドショーオプション(I)"
+msgstr "/スライドショーオプション(_I)"
 
 #: src/gimv_thumb_win.c:471
 msgid "/Slideshow Opt_ions/Start from the _First"
@@ -6754,3 +6754,147 @@ msgstr "下のタグを表示"
 #, c-format
 msgid "Click: only the images with %s or a tag below it"
 msgstr "クリック: %s かその下のタグの付いた画像だけ"
+
+#: src/gimv_shortcuts_win.c
+msgid "/_Edit/Keyboard S_hortcuts..."
+msgstr "/編集(_E)/キーボードショートカット(_H)..."
+
+#: src/gimv_shortcuts_win.c
+#, c-format
+msgid "%s is already the key of \"%s\"."
+msgstr "%s は「%s」のキーです。"
+
+#: src/gimv_shortcuts_win.c
+msgid "A key changed takes effect from the next start."
+msgstr "変えたキーは次回の起動から有効になります。"
+
+#: src/gimv_shortcuts_win.c
+msgid "A part of a menu item or a key"
+msgstr "メニュー項目やキーの一部"
+
+#: src/gimv_shortcuts_win.c
+#, c-format
+msgid "Back to the default (%s)"
+msgstr "標準に戻す (%s)"
+
+#: src/gimv_shortcuts_win.c
+msgid "Complete a Path in an Entry (1)"
+msgstr "入力欄でパスを補完 (1)"
+
+#: src/gimv_shortcuts_win.c
+msgid "Complete a Path in an Entry (2)"
+msgstr "入力欄でパスを補完 (2)"
+
+#: src/gimv_shortcuts_win.c
+msgid "Help Menu (Both Windows)"
+msgstr "ヘルプメニュー (両方のウィンドウ)"
+
+#: src/gimv_shortcuts_win.c
+msgid "Image Window"
+msgstr "画像ウィンドウ"
+
+#: src/gimv_shortcuts_win.c
+msgid "Keyboard Shortcuts"
+msgstr "キーボードショートカット"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 10%"
+msgstr "ナビゲーター: 10%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 25%"
+msgstr "ナビゲーター: 25%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 50%"
+msgstr "ナビゲーター: 50%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 75%"
+msgstr "ナビゲーター: 75%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 100%"
+msgstr "ナビゲーター: 100%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 125%"
+msgstr "ナビゲーター: 125%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 150%"
+msgstr "ナビゲーター: 150%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 175%"
+msgstr "ナビゲーター: 175%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: 200%"
+msgstr "ナビゲーター: 200%"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: Fit to Window"
+msgstr "ナビゲーター: ウィンドウに合わせる"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: Zoom In"
+msgstr "ナビゲーター: 拡大"
+
+#: src/gimv_shortcuts_win.c
+msgid "Navigator: Zoom Out"
+msgstr "ナビゲーター: 縮小"
+
+#: src/gimv_shortcuts_win.c
+msgid "Open the Right Button Menu"
+msgstr "右ボタンメニューを開く"
+
+#: src/gimv_shortcuts_win.c
+msgid "Other Keys"
+msgstr "その他のキー"
+
+#: src/gimv_shortcuts_win.c
+msgid "Press a key..."
+msgstr "キーを押してください..."
+
+#: src/gimv_shortcuts_win.c
+msgid "Reset _All to Defaults..."
+msgstr "すべて標準に戻す(_A)..."
+
+#: src/gimv_shortcuts_win.c
+msgid "Reset all the keys to the defaults?"
+msgstr "すべてのキーを標準に戻しますか?"
+
+#: src/gimv_shortcuts_win.c
+msgid "The keys changed here or in the files are lost."
+msgstr "ここやファイルで変えたキーはなくなります。"
+
+#: src/gimv_shortcuts_win.c
+msgid "Thumbnail Window"
+msgstr "サムネイルウィンドウ"
+
+#: src/gimv_shortcuts_win.c
+#, c-format
+msgid "Thumbnail Window: Display Mode \"%s\""
+msgstr "サムネイルウィンドウ: 表示形式「%s」"
+
+#: src/gimv_shortcuts_win.c
+#, c-format
+msgid "Using it for \"%s\" leaves \"%s\" without a key."
+msgstr "「%s」に使うと、「%s」はキーなしになります。"
+
+#: src/gimv_shortcuts_win.c
+msgid "_Reset All"
+msgstr "すべて戻す(_R)"
+
+#: src/gimv_shortcuts_win.c
+msgid "_Use It Here"
+msgstr "こちらに使う(_U)"
+
+#: src/gimv_shortcuts_win.c
+msgid "Click, then press the new key (Escape: as it was, Backspace: no key)"
+msgstr "クリックして新しいキーを押します (Esc: そのまま、BackSpace: キーなし)"
+
+#: src/gimv_shortcuts_win.c
+msgid "Click a key and press the new one (Escape: leave it as it was, Backspace: no key). A key changed works at once and is kept."
+msgstr "キーをクリックして新しいキーを押してください (Esc: そのまま、BackSpace: キーなし)。変えたキーはすぐに使え、保存されます。"

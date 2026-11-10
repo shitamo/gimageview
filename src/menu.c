@@ -87,6 +87,8 @@ struct _GimvMenuItem {
    GMenu            *model;         /* branches */
    GtkWidget        *submenu;       /* external submenu */
    GIcon            *icon;          /* see gimv_menu_item_set_icon () */
+   GtkShortcut      *shortcut;      /* its key in the window */
+   GtkShortcutController *shortcut_ctrl;
 };
 
 struct _GimvMenuItemClass {
@@ -99,11 +101,14 @@ static guint menu_seq = 0;
 
 /* GimvMenus whose widget displays their model */
 static GList   *attached_menus  = NULL;
+/* all the GimvMenus (for a key changed in the shortcuts window) */
+static GList   *all_menus       = NULL;
 
 static void gimv_menu_item_finalize (GObject *object);
 static void rebuild_branch          (GimvMenuItem *branch);
 static void rebuild_branch_real     (GimvMenuItem *branch);
 static void item_invoke             (GimvMenuItem *item);
+static void shortcut_bind           (GimvMenuItem *item);
 
 
 G_DEFINE_TYPE (GimvMenuItem, gimv_menu_item, G_TYPE_OBJECT)
@@ -141,6 +146,10 @@ gimv_menu_item_finalize (GObject *object)
    GimvMenuItem *item = GIMV_MENU_ITEM (object);
 
    g_clear_object (&item->icon);
+   if (item->shortcut_ctrl && item->shortcut)
+      gtk_shortcut_controller_remove_shortcut (item->shortcut_ctrl, item->shortcut);
+   g_clear_object (&item->shortcut);
+   g_clear_object (&item->shortcut_ctrl);
    g_free (item->path);
    g_free (item->label);
    g_free (item->accel);
@@ -183,6 +192,7 @@ gimv_menu_free (gpointer data)
    GList *node;
 
    attached_menus = g_list_remove (attached_menus, menu);
+   all_menus = g_list_remove (all_menus, menu);
 
    if (menu->window) {
       g_object_remove_weak_pointer (G_OBJECT (menu->window),
@@ -421,6 +431,7 @@ gimv_menu_new_real (GtkWidget *window, gboolean menubar, gpointer data)
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *) &menu->window);
    menu->data    = data;
    menu->is_menubar = menubar;
+   all_menus = g_list_prepend (all_menus, menu);
 
    root = g_object_new (GIMV_TYPE_MENU_ITEM, NULL);
    root->menu  = menu;
@@ -890,16 +901,140 @@ gimv_accel_map_save (const gchar *filename)
 }
 
 
+/* the key of accel_path (registering default_accel as its default when it
+ * is not known yet); "" for none */
+const gchar *
+gimv_accel_map_get (const gchar *accel_path, const gchar *default_accel)
+{
+   return accel_map_lookup (accel_path, default_accel);
+}
+
+
+/* the key given by the program; NULL when not known */
+const gchar *
+gimv_accel_map_get_default (const gchar *accel_path)
+{
+   AccelEntry *entry = g_hash_table_lookup (accel_map_get (), accel_path);
+   return entry ? entry->default_accel : NULL;
+}
+
+
+/* a new key for accel_path ("" or NULL: none), at once in the menus
+ * (and the windows) made */
+void
+gimv_accel_map_change (const gchar *accel_path, const gchar *accel)
+{
+   GHashTable *map = accel_map_get ();
+   AccelEntry *entry = g_hash_table_lookup (map, accel_path);
+   GList *node;
+
+   g_return_if_fail (accel_path);
+   if (!entry) {
+      entry = g_new0 (AccelEntry, 1);
+      g_hash_table_insert (map, g_strdup (accel_path), entry);
+   }
+   g_free (entry->accel);
+   entry->accel = accel_canonicalize (accel);
+
+   for (node = all_menus; node; node = g_list_next (node)) {
+      GimvMenu *menu = node->data;
+      GimvMenuItem *item;
+      gsize len;
+
+      if (!menu->accel_prefix) continue;
+      len = strlen (menu->accel_prefix);
+      if (strncmp (accel_path, menu->accel_prefix, len)) continue;
+      item = g_hash_table_lookup (menu->items, accel_path + len);
+      if (!item || !item->action_name) continue;
+      g_free (item->accel);
+      item->accel = *entry->accel ? g_strdup (entry->accel) : NULL;
+      shortcut_bind (item);
+      /* the key shown in the menu */
+      if (item->parent_item) rebuild_branch (item->parent_item);
+   }
+}
+
+
+/* "/_File/_Open..." of a GimvMenuEntry as the item is known by
+ * ("/File/Open...") */
+gchar *
+gimv_menu_entry_path (const gchar *entry_path)
+{
+   return normalize_path (entry_path);
+}
+
+
+/* "/_File/_Open..." as it is shown, translated: "File/Open..." */
+gchar *
+gimv_menu_entry_label (const gchar *entry_path)
+{
+   gchar *t = translate_path (entry_path);
+   gchar *p, *n, *ret;
+
+   /* "Open(_O)..." of translations: the mnemonic in brackets left out */
+   for (p = t; (p = strstr (p, "(_")); ) {
+      gchar *end = g_utf8_next_char (p + 2);
+      if (p[2] && *end == ')')
+         memmove (p, end + 1, strlen (end + 1) + 1);
+      else
+         p += 2;
+   }
+   n = normalize_path (t);
+   ret = g_strdup (*n == '/' ? n + 1 : n);
+   g_free (n);
+   g_free (t);
+   return ret;
+}
+
+
+/* the key of item (item->accel) in the window of its menu */
 static void
-shortcut_add (GimvMenuItem *item, const gchar *accel)
+shortcut_bind (GimvMenuItem *item)
 {
    GimvMenu *menu = item->menu;
    GtkEventController *controller;
-   GtkShortcut *shortcut;
    GtkShortcutAction *action;
    guint keyval;
    GdkModifierType mods;
    gchar *action_name;
+
+   if (item->shortcut_ctrl && item->shortcut)
+      gtk_shortcut_controller_remove_shortcut (item->shortcut_ctrl, item->shortcut);
+   g_clear_object (&item->shortcut);
+   g_clear_object (&item->shortcut_ctrl);
+
+   if (!item->accel || !*item->accel) return;
+   if (!menu || !menu->window || !item->action_name) return;
+   if (!gimv_accelerator_parse (item->accel, &keyval, &mods)) return;
+
+   controller = g_object_get_data (G_OBJECT (menu->window), "gimv-menu-shortcuts");
+   if (!controller) {
+      controller = gtk_shortcut_controller_new ();
+      gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_BUBBLE);
+      gtk_widget_add_controller (menu->window, controller);
+      g_object_set_data (G_OBJECT (menu->window), "gimv-menu-shortcuts", controller);
+   }
+
+   action_name = g_strconcat (menu->prefix, ".", item->action_name, NULL);
+   action = gtk_named_action_new (action_name);
+   g_free (action_name);
+
+   item->shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (keyval, mods), action);
+   if (item->type == GIMV_MENU_ITEM_RADIO && item->target)
+      gtk_shortcut_set_arguments (item->shortcut, g_variant_new_string (item->target));
+   g_object_ref (item->shortcut);   /* the controller takes one */
+   gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller),
+                                         item->shortcut);
+   item->shortcut_ctrl = g_object_ref (GTK_SHORTCUT_CONTROLLER (controller));
+}
+
+
+static void
+shortcut_add (GimvMenuItem *item, const gchar *accel)
+{
+   GimvMenu *menu = item->menu;
+   guint keyval;
+   GdkModifierType mods;
 
    /* user's binding from the accelerator map (GTK2: GtkAccelMap) */
    if (menu && menu->accel_prefix && item->path && *item->path
@@ -915,26 +1050,7 @@ shortcut_add (GimvMenuItem *item, const gchar *accel)
 
    g_free (item->accel);
    item->accel = gtk_accelerator_name (keyval, mods);
-
-   if (!menu->window || !item->action_name) return;
-
-   controller = g_object_get_data (G_OBJECT (menu->window), "gimv-menu-shortcuts");
-   if (!controller) {
-      controller = gtk_shortcut_controller_new ();
-      gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_BUBBLE);
-      gtk_widget_add_controller (menu->window, controller);
-      g_object_set_data (G_OBJECT (menu->window), "gimv-menu-shortcuts", controller);
-   }
-
-   action_name = g_strconcat (menu->prefix, ".", item->action_name, NULL);
-   action = gtk_named_action_new (action_name);
-   g_free (action_name);
-
-   shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (keyval, mods), action);
-   if (item->type == GIMV_MENU_ITEM_RADIO && item->target)
-      gtk_shortcut_set_arguments (shortcut, g_variant_new_string (item->target));
-   gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller),
-                                         shortcut);
+   shortcut_bind (item);
 }
 
 

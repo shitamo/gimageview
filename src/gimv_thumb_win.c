@@ -50,6 +50,7 @@
 #endif
 #include "gtk2-compat.h"
 #include "help.h"
+#include "gimv_shortcuts_win.h"
 #include "menu.h"
 #include "gimv_print.h"
 #include "prefs.h"
@@ -211,6 +212,9 @@ static void       location_entry_set_text            (GimvThumbWin   *tw,
 
 /* Callback Functions for main menu */
 static void cb_print                (GimvThumbWin  *tw,
+                                     guint          action,
+                                     GimvMenuItem  *widget);
+static void cb_shortcuts            (GimvThumbWin  *tw,
                                      guint          action,
                                      GimvMenuItem  *widget);
 static void cb_open                 (GimvThumbWin  *tw,
@@ -459,6 +463,7 @@ GimvMenuEntry gimv_thumb_win_menu_items[] =
    {N_("/_Edit/Boo_kmark..."),          NULL,         cb_bookmark,      0,            NULL},
    {N_("/_Edit/---"),                   NULL,         NULL,             0,            "<Separator>"},
    {N_("/_Edit/_Options..."),           "<control>O", cb_open,          OPEN_PREFS,   NULL},
+   {N_("/_Edit/Keyboard S_hortcuts..."), NULL,        cb_shortcuts,     0,            NULL},
 
    {N_("/_View"), NULL, NULL, 0, "<Branch>"},
 
@@ -2928,6 +2933,13 @@ cb_print (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 
    gimv_print_images (infos, GTK_WINDOW (tw));
    g_list_free (infos);
+}
+
+
+static void
+cb_shortcuts (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
+{
+   gimv_shortcuts_win_open (GTK_WINDOW (tw));
 }
 
 

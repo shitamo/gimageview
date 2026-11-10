@@ -62,7 +62,10 @@ When registering it in a launcher, specifying just gimv is OK.
 <dt><span class="term"><a name="gimv_faq_02-01"></a>I want to change the defined key bindings</span></dt>
 <dd>
 <p class="para">
-Edit ~/.gimv/keyconf. It takes effect from the next start. However, the key bindings shown in the menus do not change.
+Use [Edit | Keyboard Shortcuts...]. Click the key of a row and press the new key: it works at once and is kept (<a href="03.html#shortcuts">3</a>).
+</p>
+<p class="para">
+The files can also be edited. ~/.gimv/keyconf has the keys of the right button menu, completion, the navigator and the display modes; it takes effect from the next start.
 </p>
 <p class="para">
 Menu shortcut keys can be changed in ~/.gimv/keyaccelrc. A line for every menu item is written out on exit, so remove the &quot;;&quot; at the beginning of the line you want to change and rewrite the key. For example, to make [File | Open] (Ctrl + F by default) of the thumbnail window F3, do the following. It takes effect from the next start.
@@ -70,9 +73,6 @@ Menu shortcut keys can be changed in ~/.gimv/keyaccelrc. A line for every menu i
 <pre class="screen">
 (gtk_accel_path "&lt;ThumbWinMainMenu&gt;/File/Open..." "F3")
 </pre>
-<p class="para">
-Changing a shortcut by pressing a key while the mouse is over a menu item, which was possible in the GTK+ 2 version, is not possible in the GTK 4 version.
-</p>
 <p class="para">
 If you change the key bindings, only you know how it will behave. Please do this <span class="emphasis"><i>at your own risk</i></span>.
 </p>

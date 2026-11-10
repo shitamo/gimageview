@@ -387,6 +387,7 @@ extern KeyConf akey;
 
 void prefs_load_config              (void);
 void prefs_save_config              (void);
+const gchar *prefs_key_default        (gchar **field);
 gint prefs_mouse_get_num            (gint            button_id,
                                      gint            mod_id,
                                      const gchar    *string);
