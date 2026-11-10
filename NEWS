@@ -182,6 +182,11 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  merged into it (asked in a popover; a merge is confirmed), or moved
 	  to the top when dropped on the "Tag" row.  A click opens a tag when
 	  the button is released, not when it is pressed.
+	* The tags of the search window make a tree as in the tag tab: a
+	  parent (shown even when not put on an image) counts the tags below
+	  it, opens with its arrow, and as a condition brings the tags below
+	  it to the top.  Typing finds the last part of a name, its parents
+	  opened.
 	* Context menus open to the right of the pointer: a long one slides
 	  up instead of getting scroll bars.
 	* Keywords that Photoshop on a Mac wrote as Shift_JIS read as Mac

@@ -6741,3 +6741,16 @@ msgstr "「%s」に統合"
 #, c-format
 msgid "Move to the Top (%s)"
 msgstr "一番上へ移動 (%s)"
+
+#: src/gimv_index_search.c
+msgid "Hide the tags below it"
+msgstr "下のタグを隠す"
+
+#: src/gimv_index_search.c
+msgid "Show the tags below it"
+msgstr "下のタグを表示"
+
+#: src/gimv_index_search.c
+#, c-format
+msgid "Click: only the images with %s or a tag below it"
+msgstr "クリック: %s かその下のタグの付いた画像だけ"

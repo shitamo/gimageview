@@ -88,6 +88,7 @@ static struct {
    GtkWidget     *delete_button;
    GPtrArray     *conds;       /* Cond */
    GPtrArray     *facets;      /* of the last search */
+   GHashTable    *expanded;    /* the parents opened in the tags */
    GCancellable  *cancel;
    guint          timeout;
    guint          watch;
@@ -223,6 +224,76 @@ add_facets (sqlite3 *db, const gchar *sql, gint kind_auto, GPtrArray *out)
 }
 
 
+/* the tags with "/" ("Travel/Kyoto"): their parents ("Travel") as tags
+ * too, a parent counting the images of the tags below it (as in the tag
+ * tab) */
+static void
+add_parent_facets (sqlite3 *db, GPtrArray *facets)
+{
+   GHashTable *have = g_hash_table_new (g_str_hash, g_str_equal);
+   GHashTable *parents = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   GHashTableIter it;
+   gpointer key;
+   sqlite3_stmt *st;
+   guint i;
+
+   for (i = 0; i < facets->len; i++) {
+      Facet *f = g_ptr_array_index (facets, i);
+      const gchar *slash;
+      if (f->kind != 0) continue;
+      g_hash_table_insert (have, f->key, f);
+      for (slash = strchr (f->key, '/'); slash; slash = strchr (slash + 1, '/'))
+         if (slash > f->key)
+            g_hash_table_add (parents, g_strndup (f->key, slash - f->key));
+   }
+   if (!g_hash_table_size (parents)) goto out;
+
+   /* the tags of the images found (as the facets), and the parents */
+   if (sqlite3_exec (db,
+                     "CREATE TEMP TABLE tn AS SELECT DISTINCT n, id FROM ("
+                     " SELECT " GIMV_INDEX_TAG_NAME_SQL " AS n, ft.file_id AS id,"
+                     "  " GIMV_INDEX_TAG_AUTO_SQL " AS a FROM r"
+                     "  JOIN file_tags ft ON ft.file_id = r.id JOIN tags t ON t.id = ft.tag_id)"
+                     " WHERE a = 0;"
+                     "CREATE INDEX tn_n ON tn (n);"
+                     "CREATE TEMP TABLE tp (p TEXT PRIMARY KEY);",
+                     NULL, NULL, NULL) != SQLITE_OK)
+      goto out;
+   if (sqlite3_prepare_v2 (db, "INSERT OR IGNORE INTO tp VALUES (?)", -1, &st, NULL) == SQLITE_OK) {
+      g_hash_table_iter_init (&it, parents);
+      while (g_hash_table_iter_next (&it, &key, NULL)) {
+         sqlite3_bind_text (st, 1, key, -1, SQLITE_STATIC);
+         sqlite3_step (st);
+         sqlite3_reset (st);
+      }
+      sqlite3_finalize (st);
+   }
+   if (sqlite3_prepare_v2 (db, "SELECT tp.p, count(DISTINCT tn.id) FROM tp JOIN tn"
+                               " ON tn.n = tp.p OR (tn.n > tp.p || '/' AND tn.n < tp.p || '0')"
+                               " GROUP BY tp.p", -1, &st, NULL) == SQLITE_OK)
+   {
+      while (sqlite3_step (st) == SQLITE_ROW) {
+         const gchar *name = (const gchar *) sqlite3_column_text (st, 0);
+         Facet *f;
+         if (!name) continue;
+         f = g_hash_table_lookup (have, name);
+         if (!f) {
+            f = g_new0 (Facet, 1);
+            f->key = g_strdup (name);
+            f->kind = 0;
+            g_ptr_array_add (facets, f);
+         }
+         f->count = sqlite3_column_int (st, 1);
+      }
+      sqlite3_finalize (st);
+   }
+   sqlite3_exec (db, "DROP TABLE IF EXISTS tn; DROP TABLE IF EXISTS tp;", NULL, NULL, NULL);
+out:
+   g_hash_table_unref (have);
+   g_hash_table_unref (parents);
+}
+
+
 static gint
 cmp_facets (gconstpointer a, gconstpointer b)
 {
@@ -295,6 +366,7 @@ thread_search (GTask *task, gpointer source, gpointer data, GCancellable *cancel
                       "  " GIMV_INDEX_TAG_AUTO_SQL " AS a FROM r"
                       "  JOIN file_tags ft ON ft.file_id = r.id JOIN tags t ON t.id = ft.tag_id)"
                       " GROUP BY n, a", -1, r->facets);
+      add_parent_facets (db, r->facets);
       add_facets (db, "SELECT n, count(DISTINCT id) FROM ("
                       " SELECT p.name AS n, fa.file_id AS id FROM r JOIN faces fa ON fa.file_id = r.id"
                       "  JOIN persons p ON p.id = fa.person_id"
@@ -634,13 +706,208 @@ cb_row_activated (GtkListBox *list, GtkListBoxRow *row, gpointer data)
 }
 
 
+/* the tags with "/" as a tree: what is built for one rebuild_tags () */
+typedef struct {
+   GHashTable  *children;   /* parent key -> GPtrArray of Facet (by count) */
+   GHashTable  *memo;       /* key -> matches the text typed (or one below) */
+   const gchar *fold;       /* the text typed, casefolded (NULL: none) */
+   gint         all_shown;
+} TagTree;
+
+
+static gchar *
+facet_parent (const Facet *f)
+{
+   const gchar *slash = f->kind == 0 ? strrchr (f->key, '/') : NULL;
+   return slash && slash > f->key ? g_strndup (f->key, slash - f->key) : NULL;
+}
+
+
+static GPtrArray *
+tree_children (TagTree *t, const Facet *f)
+{
+   return f->kind == 0 ? g_hash_table_lookup (t->children, f->key) : NULL;
+}
+
+
+/* the text typed in the name (the last part only, for a tag of a tree;
+ * the whole name when "/" is typed), or in a tag below it */
+static gboolean
+tree_matches (TagTree *t, Facet *f)
+{
+   GPtrArray *kids;
+   gpointer v;
+   gboolean m;
+   gchar *l, *lf;
+   const gchar *slash;
+   guint i;
+
+   if (!t->fold) return TRUE;
+   if (g_hash_table_lookup_extended (t->memo, f->key, NULL, &v))
+      return GPOINTER_TO_INT (v);
+   l = gimv_index_tag_label (f->key);
+   slash = f->kind == 0 && !strchr (t->fold, '/') ? strrchr (l, '/') : NULL;
+   lf = g_utf8_casefold (slash ? slash + 1 : l, -1);
+   m = strstr (lf, t->fold) != NULL;
+   g_free (lf);
+   g_free (l);
+   kids = tree_children (t, f);
+   for (i = 0; !m && kids && i < kids->len; i++)
+      m = tree_matches (t, g_ptr_array_index (kids, i));
+   g_hash_table_insert (t->memo, f->key, GINT_TO_POINTER (m));
+   return m;
+}
+
+
+/* a tag below it is shown (with the text typed) */
+static gboolean
+tree_kids_shown (TagTree *t, Facet *f)
+{
+   GPtrArray *kids = tree_children (t, f);
+   guint i;
+
+   for (i = 0; kids && i < kids->len; i++)
+      if (tree_matches (t, g_ptr_array_index (kids, i))) return TRUE;
+   return FALSE;
+}
+
+
+/* a tag that is a condition already is not listed: the tags below it
+ * are, in its place */
+static gboolean
+tree_shows (TagTree *t, Facet *f)
+{
+   if (cond_index (f->key) >= 0) return tree_kids_shown (t, f);
+   return tree_matches (t, f);
+}
+
+
+static void
+cb_expander (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y, gpointer data)
+{
+   GtkWidget *w = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+   const gchar *key = g_object_get_data (G_OBJECT (w), "key");
+
+   /* the row is not activated (the tag not taken) */
+   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+   if (!key) return;
+   if (!g_hash_table_remove (sw.expanded, key))
+      g_hash_table_add (sw.expanded, g_strdup (key));
+   rebuild_tags ();
+}
+
+
+static void
+append_tag_row (Facet *f, gint depth, gboolean has_kids, gboolean expanded)
+{
+   GtkWidget *row, *box, *label, *minus;
+   gchar *l = gimv_index_tag_label (f->key), *text;
+   const gchar *name = l;
+
+   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   gtk_widget_set_margin_start (box, 12 + depth * 16);
+   if (f->kind == 0) {
+      /* ▸ / ▾ of a parent; the same room left for the others */
+      GtkWidget *ex = gtk_image_new_from_icon_name (expanded ? "pan-down-symbolic"
+                                                             : "pan-end-symbolic");
+      const gchar *slash = depth > 0 ? strrchr (l, '/') : NULL;
+      if (slash) name = slash + 1;
+      const gchar *typed = gtk_editable_get_text (GTK_EDITABLE (sw.entry));
+      /* with a text typed all that matches is open */
+      if (has_kids && typed && *typed) {
+         /* the arrow only */
+      } else if (has_kids) {
+         GtkGesture *click = gtk_gesture_click_new ();
+         g_object_set_data_full (G_OBJECT (ex), "key", g_strdup (f->key), g_free);
+         gtk_widget_set_cursor_from_name (ex, "pointer");
+         gtk_widget_set_tooltip_text (ex, expanded ? _("Hide the tags below it")
+                                                   : _("Show the tags below it"));
+         g_signal_connect (click, "pressed", G_CALLBACK (cb_expander), NULL);
+         gtk_widget_add_controller (ex, GTK_EVENT_CONTROLLER (click));
+      } else {
+         gtk_widget_set_opacity (ex, 0.0);
+      }
+      gtk_box_append (GTK_BOX (box), ex);
+   }
+   text = g_strdup_printf ("%s (%'d)", name, f->count);
+   label = gtk_label_new (text);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+   gtk_widget_set_hexpand (label, TRUE);
+   if (f->kind == 1)
+      gtk_box_append (GTK_BOX (box), gtk_image_new_from_icon_name ("avatar-default-symbolic"));
+   gtk_box_append (GTK_BOX (box), label);
+   minus = gtk_button_new_with_label (_("Exclude"));
+   gtk_button_set_has_frame (GTK_BUTTON (minus), FALSE);
+   gtk_widget_add_css_class (minus, "caption");
+   gtk_widget_set_tooltip_text (minus, _("Look for the images without it"));
+   g_object_set_data_full (G_OBJECT (minus), "key", g_strdup (f->key), g_free);
+   g_signal_connect (minus, "clicked", G_CALLBACK (cb_tag_add), GINT_TO_POINTER (TRUE));
+   gtk_box_append (GTK_BOX (box), minus);
+   gtk_list_box_append (GTK_LIST_BOX (sw.tags_list), box);
+   row = gtk_widget_get_parent (box);
+   g_object_set_data_full (G_OBJECT (row), "key", g_strdup (f->key), g_free);
+   if (has_kids) {
+      gchar *tip = g_strdup_printf (_("Click: only the images with %s or a tag below it"), l);
+      gtk_widget_set_tooltip_text (row, tip);
+      g_free (tip);
+   } else {
+      gtk_widget_set_tooltip_text (row, _("Click: only the images with it"));
+   }
+   g_free (text);
+   g_free (l);
+}
+
+
+/* a tag and, opened, the tags below it */
+static void
+append_tree (TagTree *t, Facet *f, gint depth)
+{
+   GPtrArray *kids = tree_children (t, f);
+   gboolean cond = cond_index (f->key) >= 0, has_kids, expanded;
+   guint i;
+
+   if (!tree_shows (t, f) || t->all_shown >= TAGS_SHOWN_MAX) return;
+   if (cond) {
+      for (i = 0; kids && i < kids->len; i++)
+         append_tree (t, g_ptr_array_index (kids, i), depth);
+      return;
+   }
+   has_kids = t->fold ? tree_kids_shown (t, f) : kids && kids->len > 0;
+   /* opened by a click, or to show what matches the text typed */
+   expanded = has_kids && (g_hash_table_contains (sw.expanded, f->key) || t->fold);
+   append_tag_row (f, depth, has_kids, expanded);
+   t->all_shown++;
+   if (!expanded) return;
+   for (i = 0; i < kids->len; i++)
+      append_tree (t, g_ptr_array_index (kids, i), depth + 1);
+}
+
+
+static void
+append_more (gint hidden)
+{
+   gchar *m = g_strdup_printf (ngettext ("%'d more: type a part of the name",
+                                         "%'d more: type a part of the name", hidden), hidden);
+   GtkWidget *more = gtk_label_new (m);
+
+   gtk_widget_add_css_class (more, "dim-label");
+   gtk_label_set_xalign (GTK_LABEL (more), 0.0);
+   gtk_widget_set_margin_start (more, 12);
+   gtk_list_box_append (GTK_LIST_BOX (sw.tags_list), more);
+   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (gtk_widget_get_parent (more)), FALSE);
+   g_free (m);
+}
+
+
 static void
 rebuild_tags (void)
 {
    GtkWidget *child;
    const gchar *typed = gtk_editable_get_text (GTK_EDITABLE (sw.entry));
    gchar *fold = typed && *typed ? g_utf8_casefold (typed, -1) : NULL;
-   gint kind = -1, shown = 0, hidden = 0, all_shown = 0;
+   gint kind = -1, shown = 0, hidden = 0;
+   TagTree t = { NULL };
    guint i;
 
    while ((child = gtk_widget_get_first_child (sw.tags_list)))
@@ -649,37 +916,55 @@ rebuild_tags (void)
       g_free (fold);
       return;
    }
+   if (!sw.expanded)
+      sw.expanded = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+   /* the tree of the tags with "/" (the facets come by count, and so the
+    * tags below a parent) */
+   t.children = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
+                                       (GDestroyNotify) g_ptr_array_unref);
+   t.memo = g_hash_table_new (g_str_hash, g_str_equal);
+   t.fold = fold;
+   {
+      GHashTable *have = g_hash_table_new (g_str_hash, g_str_equal);
+      for (i = 0; i < sw.facets->len; i++) {
+         Facet *f = g_ptr_array_index (sw.facets, i);
+         if (f->kind == 0) g_hash_table_add (have, f->key);
+      }
+      for (i = 0; i < sw.facets->len; i++) {
+         Facet *f = g_ptr_array_index (sw.facets, i);
+         gchar *parent = facet_parent (f);
+         GPtrArray *kids;
+         if (!parent || !g_hash_table_contains (have, parent)) {
+            g_free (parent);
+            continue;
+         }
+         kids = g_hash_table_lookup (t.children, parent);
+         if (!kids) {
+            kids = g_ptr_array_new ();
+            g_hash_table_insert (t.children, parent, kids);
+         } else {
+            g_free (parent);
+         }
+         g_ptr_array_add (kids, f);
+      }
+      g_hash_table_unref (have);
+   }
 
    for (i = 0; i < sw.facets->len; i++) {
       Facet *f = g_ptr_array_index (sw.facets, i);
-      GtkWidget *row, *box, *label, *minus;
-      gchar *l, *text;
+      gchar *parent;
 
-      if (cond_index (f->key) >= 0) continue;   /* a condition already */
-      l = gimv_index_tag_label (f->key);
-      if (fold) {
-         gchar *lf = g_utf8_casefold (l, -1);
-         gboolean match = strstr (lf, fold) != NULL;
-         g_free (lf);
-         if (!match) {
-            g_free (l);
-            continue;
-         }
+      /* a tag below another comes with its parent */
+      if (f->kind == 0 && (parent = facet_parent (f))) {
+         gboolean below = g_hash_table_contains (t.children, parent);
+         g_free (parent);
+         if (below) continue;
       }
+      if (!tree_shows (&t, f)) continue;
       if (f->kind != kind) {
-         if (hidden) {
-            gchar *m = g_strdup_printf (ngettext ("%'d more: type a part of the name",
-                                                  "%'d more: type a part of the name", hidden),
-                                        hidden);
-            GtkWidget *more = gtk_label_new (m);
-            gtk_widget_add_css_class (more, "dim-label");
-            gtk_label_set_xalign (GTK_LABEL (more), 0.0);
-            gtk_widget_set_margin_start (more, 12);
-            gtk_list_box_append (GTK_LIST_BOX (sw.tags_list), more);
-            gtk_list_box_row_set_activatable (
-               GTK_LIST_BOX_ROW (gtk_widget_get_parent (more)), FALSE);
-            g_free (m);
-         }
+         GtkWidget *label, *row;
+         if (hidden) append_more (hidden);
          kind = f->kind;
          shown = hidden = 0;
          label = gtk_label_new (kind_title (kind));
@@ -691,49 +976,16 @@ rebuild_tags (void)
          gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
          gtk_list_box_row_set_selectable (GTK_LIST_BOX_ROW (row), FALSE);
       }
-      if (shown >= (fold ? TAGS_SHOWN_MAX : TAGS_SHOWN) || all_shown >= TAGS_SHOWN_MAX) {
+      if (shown >= (fold ? TAGS_SHOWN_MAX : TAGS_SHOWN) || t.all_shown >= TAGS_SHOWN_MAX) {
          hidden++;
-         g_free (l);
          continue;
       }
       shown++;
-      all_shown++;
-
-      box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-      text = g_strdup_printf ("%s (%'d)", l, f->count);
-      label = gtk_label_new (text);
-      gtk_label_set_xalign (GTK_LABEL (label), 0.0);
-      gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
-      gtk_widget_set_hexpand (label, TRUE);
-      gtk_widget_set_margin_start (label, 12);
-      if (f->kind == 1)
-         gtk_box_append (GTK_BOX (box), gtk_image_new_from_icon_name ("avatar-default-symbolic"));
-      gtk_box_append (GTK_BOX (box), label);
-      minus = gtk_button_new_with_label (_("Exclude"));
-      gtk_button_set_has_frame (GTK_BUTTON (minus), FALSE);
-      gtk_widget_add_css_class (minus, "caption");
-      gtk_widget_set_tooltip_text (minus, _("Look for the images without it"));
-      g_object_set_data_full (G_OBJECT (minus), "key", g_strdup (f->key), g_free);
-      g_signal_connect (minus, "clicked", G_CALLBACK (cb_tag_add), GINT_TO_POINTER (TRUE));
-      gtk_box_append (GTK_BOX (box), minus);
-      gtk_list_box_append (GTK_LIST_BOX (sw.tags_list), box);
-      row = gtk_widget_get_parent (box);
-      g_object_set_data_full (G_OBJECT (row), "key", g_strdup (f->key), g_free);
-      gtk_widget_set_tooltip_text (row, _("Click: only the images with it"));
-      g_free (text);
-      g_free (l);
+      append_tree (&t, f, 0);
    }
-   if (hidden) {
-      gchar *m = g_strdup_printf (ngettext ("%'d more: type a part of the name",
-                                            "%'d more: type a part of the name", hidden), hidden);
-      GtkWidget *more = gtk_label_new (m);
-      gtk_widget_add_css_class (more, "dim-label");
-      gtk_label_set_xalign (GTK_LABEL (more), 0.0);
-      gtk_widget_set_margin_start (more, 12);
-      gtk_list_box_append (GTK_LIST_BOX (sw.tags_list), more);
-      gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (gtk_widget_get_parent (more)), FALSE);
-      g_free (m);
-   }
+   if (hidden) append_more (hidden);
+   g_hash_table_unref (t.children);
+   g_hash_table_unref (t.memo);
    g_free (fold);
 }
 
