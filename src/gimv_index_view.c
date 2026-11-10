@@ -218,6 +218,12 @@ typedef struct {
    GtkWidget     *search_bar;  /* Ctrl+F: a row by its name */
    GtkWidget     *search_entry;
    guint          bookmark_watch;
+   gchar         *drag_key;    /* the tag dragged in the tree */
+   gdouble        press_x, press_y;
+   GtkWidget     *drop_mark;   /* the row it would go into */
+   GtkWidget     *drop_popover; /* move or merge, after a drop */
+   GtkWidget     *drop_box;
+   gchar         *drop_old;
 } IndexView;
 
 
@@ -1417,6 +1423,25 @@ idle_open_key (gpointer data)
  * it in a new tab.  Neither changes the selection. */
 /* on_text: set to whether the point is on the row text, not on the
  * expander arrow or the indentation before it */
+static gchar *key_at (IndexView *iv, gdouble x, gdouble y, gboolean *on_text);
+
+static void
+cb_tree_released (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
+                  IndexView *iv)
+{
+   if (gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture))
+       != GDK_BUTTON_PRIMARY)
+      return;
+   /* moved away (a drag of a tag that cannot be moved): no click */
+   if (ABS (x - iv->press_x) > 8 || ABS (y - iv->press_y) > 8) {
+      g_clear_pointer (&iv->click_key, g_free);
+      return;
+   }
+   if (iv->click_key && !iv->open_id)
+      iv->open_id = g_idle_add (idle_open_key, iv);
+}
+
+
 static gchar *
 key_at (IndexView *iv, gdouble x, gdouble y, gboolean *on_text)
 {
@@ -1527,10 +1552,11 @@ cb_tree_pressed (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
          g_free (key);
          return;
       }
+      /* opened when the button is up: not when the tag is dragged */
       g_free (iv->click_key);
       iv->click_key = key;
-      if (!iv->open_id)
-         iv->open_id = g_idle_add (idle_open_key, iv);
+      iv->press_x = x;
+      iv->press_y = y;
       return;
    }
    if (button != GDK_BUTTON_MIDDLE && button != GDK_BUTTON_SECONDARY) return;
@@ -1631,6 +1657,7 @@ key_is_renamable (IndexView *iv, const gchar *key)
 
 
 static void rename_done (IndexView *iv, const gchar *text);
+static void rename_tag  (IndexView *iv, const gchar *old, const gchar *new);
 
 static void
 cb_rename_activate (GtkEntry *entry, IndexView *iv)
@@ -1967,7 +1994,21 @@ rename_done (IndexView *iv, const gchar *text)
             do_rename_person_tag (iv, ptag, new);
          }
       }
-   } else if (!old || !*new || !strcmp (old, new)) {
+   } else {
+      rename_tag (iv, old, new);
+   }
+   g_free (old);
+   g_free (new);
+   if (iv->count_again) start_count (iv);
+}
+
+
+/* a tag a person put (and those below it) gets the name new, after asking
+ * when it would merge with another */
+static void
+rename_tag (IndexView *iv, const gchar *old, const gchar *new)
+{
+   if (!old || !*new || !strcmp (old, new)) {
       /* nothing */
    } else if (strchr (new, ',') || strpbrk (new, "\t\n")) {
       /* the comment files keep the tags separated by commas */
@@ -1999,9 +2040,238 @@ rename_done (IndexView *iv, const gchar *text)
    } else {
       do_rename_tree (iv, old, new);
    }
-   g_free (old);
-   g_free (new);
+}
+
+
+/******************************************************************************
+ *  a tag dragged onto another: moved below it or merged into it
+ ******************************************************************************/
+
+/* the last part of a tag ("Kyoto" of "Travel/Kyoto") */
+static const gchar *
+tag_leaf (const gchar *tag)
+{
+   const gchar *slash = strrchr (tag, '/');
+   return slash ? slash + 1 : tag;
+}
+
+
+/* where the tag dragged would go at x, y: *into the tag it goes below or
+ * into (NULL: the top); FALSE when it cannot go there */
+static gboolean
+drop_target_at (IndexView *iv, gdouble x, gdouble y, gchar **into)
+{
+   const gchar *from = iv->drag_key;
+   GimvRow *row = NULL;
+   gchar *key;
+
+   *into = NULL;
+   if (!from) return FALSE;
+   if (!gimv_list_view_get_row_at (iv->tree, x, y, NULL, &row) || !row
+       || gimv_row_peek_int (row, COL_KIND) == KIND_ROOT)
+   {
+      /* below the rows, or on "Tag": to the top */
+      return strchr (from, '/') != NULL;
+   }
+   key = row_key (row);
+   if (!key || !key_is_manual_tag (iv, key) || !strcmp (key, from)) {
+      g_free (key);
+      return FALSE;
+   }
+   /* not into a tag below itself */
+   if (g_str_has_prefix (key, from) && key[strlen (from)] == '/') {
+      g_free (key);
+      return FALSE;
+   }
+   *into = key;
+   return TRUE;
+}
+
+
+static void
+drop_unmark (IndexView *iv)
+{
+   if (iv->drop_mark) {
+      gtk_widget_remove_css_class (iv->drop_mark, "gimv-drop-into");
+      g_clear_object (&iv->drop_mark);
+   }
+}
+
+
+/* the row at x, y shown as the one it goes into */
+static void
+drop_mark_at (IndexView *iv, gdouble x, gdouble y)
+{
+   GtkWidget *w = gtk_widget_pick (iv->tree, x, y, GTK_PICK_DEFAULT);
+
+   for (; w && w != iv->tree; w = gtk_widget_get_parent (w))
+      if (GTK_IS_TREE_EXPANDER (w)) break;
+   if (w == iv->tree) w = NULL;
+   if (w == iv->drop_mark) return;
+   drop_unmark (iv);
+   if (w) {
+      iv->drop_mark = g_object_ref (w);
+      gtk_widget_add_css_class (w, "gimv-drop-into");
+   }
+}
+
+
+static GdkContentProvider *
+cb_drag_prepare (GtkDragSource *source, gdouble x, gdouble y, IndexView *iv)
+{
+   GtkWidget *label = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (source));
+   const gchar *key = g_object_get_data (G_OBJECT (label), "gimv-key");
+
+   /* the tags of rules, keywords alone and people stay where they are */
+   if (!key || !key_is_manual_tag (iv, key) || iv->editing_key) return NULL;
+   g_free (iv->drag_key);
+   iv->drag_key = g_strdup (key);
+   return gdk_content_provider_new_typed (G_TYPE_STRING, key);
+}
+
+
+static void
+cb_drag_begin (GtkDragSource *source, GdkDrag *drag, IndexView *iv)
+{
+   GtkWidget *icon = gtk_label_new (iv->drag_key);
+
+   /* a drag, not a click: the tag is not opened */
+   g_clear_pointer (&iv->click_key, g_free);
+   gtk_widget_add_css_class (icon, "heading");
+   gtk_drag_icon_set_child (GTK_DRAG_ICON (gtk_drag_icon_get_for_drag (drag)), icon);
+}
+
+
+static void
+cb_drag_end (GtkDragSource *source, GdkDrag *drag, gboolean delete_data, IndexView *iv)
+{
+   g_clear_pointer (&iv->drag_key, g_free);
+   drop_unmark (iv);
+}
+
+
+static gboolean
+cb_drop_accept (GtkDropTarget *target, GdkDrop *drop, IndexView *iv)
+{
+   /* a tag of this tab only (not text from another program) */
+   return iv->drag_key != NULL;
+}
+
+
+static GdkDragAction
+cb_drop_motion (GtkDropTarget *target, gdouble x, gdouble y, IndexView *iv)
+{
+   gchar *into = NULL;
+   gboolean ok = drop_target_at (iv, x, y, &into);
+
+   if (ok && into) drop_mark_at (iv, x, y);
+   else drop_unmark (iv);
+   g_free (into);
+   return ok ? GDK_ACTION_MOVE : 0;
+}
+
+
+static void
+cb_drop_leave (GtkDropTarget *target, IndexView *iv)
+{
+   drop_unmark (iv);
+}
+
+
+static void
+cb_drop_choice (GtkButton *button, IndexView *iv)
+{
+   const gchar *new = g_object_get_data (G_OBJECT (button), "gimv-new");
+   gchar *old = g_steal_pointer (&iv->drop_old);
+   gchar *to = g_strdup (new);
+
+   gtk_popover_popdown (GTK_POPOVER (iv->drop_popover));
+   if (old && to) rename_tag (iv, old, to);
    if (iv->count_again) start_count (iv);
+   g_free (old);
+   g_free (to);
+}
+
+
+static void
+drop_add_choice (IndexView *iv, const gchar *text, const gchar *new)
+{
+   GtkWidget *button = gtk_button_new_with_label (text);
+   GtkWidget *label = gtk_button_get_child (GTK_BUTTON (button));
+
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_widget_add_css_class (button, "flat");
+   g_object_set_data_full (G_OBJECT (button), "gimv-new", g_strdup (new), g_free);
+   g_signal_connect (button, "clicked", G_CALLBACK (cb_drop_choice), iv);
+   gtk_box_append (GTK_BOX (iv->drop_box), button);
+}
+
+
+static gboolean
+cb_drop (GtkDropTarget *target, const GValue *value, gdouble x, gdouble y, IndexView *iv)
+{
+   const gchar *from = G_VALUE_HOLDS_STRING (value) ? g_value_get_string (value) : NULL;
+   gchar *into = NULL, *text, *new, *parent;
+   GtkWidget *child;
+   GdkRectangle rect = { (gint) x, (gint) y, 1, 1 };
+   graphene_point_t pt = GRAPHENE_POINT_INIT (x, y), out;
+
+   drop_unmark (iv);
+   if (!from || !iv->drag_key || strcmp (from, iv->drag_key)) return FALSE;
+   if (!drop_target_at (iv, x, y, &into)) return FALSE;
+
+   if (!iv->drop_popover) {
+      iv->drop_popover = gtk_popover_new ();
+      iv->drop_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      gtk_popover_set_child (GTK_POPOVER (iv->drop_popover), iv->drop_box);
+      gtk_popover_set_has_arrow (GTK_POPOVER (iv->drop_popover), FALSE);
+      gtk_popover_set_position (GTK_POPOVER (iv->drop_popover), GTK_POS_RIGHT);
+      gtk_widget_set_valign (iv->drop_popover, GTK_ALIGN_START);
+      gtk_widget_set_parent (iv->drop_popover, iv->scroll);
+   }
+   while ((child = gtk_widget_get_first_child (iv->drop_box)))
+      gtk_box_remove (GTK_BOX (iv->drop_box), child);
+
+   parent = strrchr (from, '/') ? g_strndup (from, strrchr (from, '/') - from) : NULL;
+   if (into) {
+      /* below it ("Kyoto" on "Travel": "Travel/Kyoto"), unless there already */
+      new = g_strconcat (into, "/", tag_leaf (from), NULL);
+      if (g_strcmp0 (parent, into)) {
+         text = g_strdup_printf (_("Move Below \"%s\" (%s)"), into, new);
+         drop_add_choice (iv, text, new);
+         g_free (text);
+      }
+      g_free (new);
+      /* one tag ("Kyoto" and "Kyoto city" the same) */
+      text = g_strdup_printf (_("Merge Into \"%s\""), into);
+      drop_add_choice (iv, text, into);
+      g_free (text);
+   } else {
+      text = g_strdup_printf (_("Move to the Top (%s)"), tag_leaf (from));
+      drop_add_choice (iv, text, tag_leaf (from));
+      g_free (text);
+   }
+   {
+      GtkWidget *cancel = gtk_button_new_with_mnemonic (_("_Cancel"));
+      gtk_widget_add_css_class (cancel, "flat");
+      gtk_widget_set_halign (gtk_button_get_child (GTK_BUTTON (cancel)), GTK_ALIGN_START);
+      g_signal_connect_swapped (cancel, "clicked", G_CALLBACK (gtk_popover_popdown),
+                                iv->drop_popover);
+      gtk_box_append (GTK_BOX (iv->drop_box), gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
+      gtk_box_append (GTK_BOX (iv->drop_box), cancel);
+   }
+   g_free (iv->drop_old);
+   iv->drop_old = g_strdup (from);
+
+   if (gtk_widget_compute_point (iv->tree, iv->scroll, &pt, &out)) {
+      rect.x = (gint) out.x;
+      rect.y = (gint) out.y;
+   }
+   gtk_popover_set_pointing_to (GTK_POPOVER (iv->drop_popover), &rect);
+   gtk_popover_popup (GTK_POPOVER (iv->drop_popover));
+   g_free (parent);
+   g_free (into);
+   return TRUE;
 }
 
 
@@ -2303,6 +2573,10 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
    if (iv->popover) gtk_widget_unparent (iv->popover);
    if (iv->rename_focus_id) g_source_remove (iv->rename_focus_id);
    if (iv->rename_popover) gtk_widget_unparent (iv->rename_popover);
+   if (iv->drop_popover) gtk_widget_unparent (iv->drop_popover);
+   g_clear_object (&iv->drop_mark);
+   g_free (iv->drag_key);
+   g_free (iv->drop_old);
    set_result_tab (iv, NULL);
    g_clear_object (&iv->model);
    g_clear_object (&iv->store);
@@ -2348,7 +2622,9 @@ tree_cell_setup (gpointer data)
       GtkCssProvider *provider = gtk_css_provider_new ();
       gtk_css_provider_load_from_string (provider,
          "label.gimv-auto-tag { color: " AUTO_TAG_COLOR "; }\n"
-         "row:selected label.gimv-auto-tag { color: inherit; }\n");
+         "row:selected label.gimv-auto-tag { color: inherit; }\n"
+         "treeexpander.gimv-drop-into { background-color: alpha(#3584e4, 0.3);"
+         " border-radius: 4px; }\n");
       gtk_style_context_add_provider_for_display (gdk_display_get_default (),
                                                   GTK_STYLE_PROVIDER (provider),
                                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
@@ -2357,7 +2633,18 @@ tree_cell_setup (gpointer data)
    }
 
    GtkWidget *label = gtk_label_new (NULL);
+   IndexView *iv = data;
+
    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   if (iv && iv->type == GIMV_INDEX_TAB_TAG) {
+      /* the tags put by a person can be dragged onto others */
+      GtkDragSource *source = gtk_drag_source_new ();
+      gtk_drag_source_set_actions (source, GDK_ACTION_MOVE);
+      g_signal_connect (source, "prepare", G_CALLBACK (cb_drag_prepare), iv);
+      g_signal_connect (source, "drag-begin", G_CALLBACK (cb_drag_begin), iv);
+      g_signal_connect (source, "drag-end", G_CALLBACK (cb_drag_end), iv);
+      gtk_widget_add_controller (label, GTK_EVENT_CONTROLLER (source));
+   }
    return label;
 }
 
@@ -2370,6 +2657,7 @@ tree_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
    GListStore *children = gimv_row_get_children (row, FALSE);
 
    gtk_label_set_text (GTK_LABEL (label), gimv_row_peek_string (row, COL_LABEL));
+   g_object_set_data_full (G_OBJECT (label), "gimv-key", row_key (row), g_free);
    /* the tags put by rules have a color of their own (not when selected) */
    if (gimv_row_peek_string (row, COL_COLOR))
       gtk_widget_add_css_class (label, "gimv-auto-tag");
@@ -2414,7 +2702,7 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
 
    iv->tree = gimv_list_view_new (G_LIST_MODEL (g_object_ref (iv->model)), GTK_SELECTION_SINGLE,
                                   gimv_cell_factory_new (tree_cell_setup, tree_cell_bind,
-                                                         NULL, NULL, TRUE));
+                                                         iv, NULL, TRUE));
    gtk_widget_set_name (iv->tree, "IndexTree");
    {
       GtkEventController *keys = gtk_event_controller_key_new ();
@@ -2430,7 +2718,17 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
    gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (click),
                                                GTK_PHASE_CAPTURE);
    g_signal_connect (click, "pressed", G_CALLBACK (cb_tree_pressed), iv);
+   g_signal_connect (click, "released", G_CALLBACK (cb_tree_released), iv);
    gtk_widget_add_controller (iv->tree, GTK_EVENT_CONTROLLER (click));
+   if (type == GIMV_INDEX_TAB_TAG) {
+      /* a tag dropped on another goes below it or into it */
+      GtkDropTarget *drop = gtk_drop_target_new (G_TYPE_STRING, GDK_ACTION_MOVE);
+      g_signal_connect (drop, "accept", G_CALLBACK (cb_drop_accept), iv);
+      g_signal_connect (drop, "motion", G_CALLBACK (cb_drop_motion), iv);
+      g_signal_connect (drop, "leave", G_CALLBACK (cb_drop_leave), iv);
+      g_signal_connect (drop, "drop", G_CALLBACK (cb_drop), iv);
+      gtk_widget_add_controller (iv->tree, GTK_EVENT_CONTROLLER (drop));
+   }
 
 
    iv->scroll = gtk_scrolled_window_new ();

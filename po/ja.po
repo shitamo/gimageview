@@ -6726,3 +6726,18 @@ msgstr "%s: クリックでこのタグの付いた画像を表示"
 #, c-format
 msgid "Click to pick from the tags below %s"
 msgstr "クリックで %s の下のタグから選びます"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Move Below \"%s\" (%s)"
+msgstr "「%s」の下へ移動 (%s)"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Merge Into \"%s\""
+msgstr "「%s」に統合"
+
+#: src/gimv_index_view.c
+#, c-format
+msgid "Move to the Top (%s)"
+msgstr "一番上へ移動 (%s)"
