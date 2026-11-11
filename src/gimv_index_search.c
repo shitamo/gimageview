@@ -174,9 +174,13 @@ cond_sql (const Cond *c, GPtrArray *args)
                               "SELECT file_id FROM file_tags WHERE auto = 0 AND tag_id = "
                               "(SELECT id FROM tags WHERE name = ?))", in);
    case 2:   /* a tag of the people in it */
+      /* (and the tags below it) */
+      g_ptr_array_add (args, g_strdup (k + 1 + NAME_TAG_LEN));
+      g_ptr_array_add (args, g_strdup (k + 1 + NAME_TAG_LEN));
       g_ptr_array_add (args, g_strdup (k + 1 + NAME_TAG_LEN));
       return g_strdup_printf ("f.id %s (SELECT fa.file_id FROM faces fa JOIN person_tags pt "
-                              "ON pt.person_id = fa.person_id WHERE pt.tag = ?)", in);
+                              "ON pt.person_id = fa.person_id WHERE "
+                              GIMV_INDEX_PERSON_TAG_SQL ("pt.tag", "?") ")", in);
    case 3:   /* a tag of a rule */
       g_ptr_array_add (args, g_strdup (k + 1));
       return g_strdup_printf ("f.id %s (SELECT file_id FROM file_tags WHERE auto = 1 AND "
@@ -294,6 +298,56 @@ out:
 }
 
 
+/* the same for the tags of people ("Family" of "Family/Parents") */
+static void
+add_person_parent_facets (sqlite3 *db, GPtrArray *facets)
+{
+   const gsize off = 1 + NAME_TAG_LEN;   /* ",person/" */
+   GHashTable *have = g_hash_table_new (g_str_hash, g_str_equal);
+   GHashTable *parents = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   GHashTableIter it;
+   gpointer key;
+   sqlite3_stmt *st;
+   guint i;
+
+   for (i = 0; i < facets->len; i++) {
+      Facet *f = g_ptr_array_index (facets, i);
+      const gchar *name, *slash;
+      if (f->kind != 2) continue;
+      name = f->key + off;
+      g_hash_table_insert (have, (gpointer) name, f);
+      for (slash = strchr (name, '/'); slash; slash = strchr (slash + 1, '/'))
+         if (slash > name) g_hash_table_add (parents, g_strndup (name, slash - name));
+   }
+   if (g_hash_table_size (parents)
+       && sqlite3_prepare_v2 (db, "SELECT count(DISTINCT fa.file_id) FROM r JOIN faces fa"
+                                  " ON fa.file_id = r.id JOIN person_tags pt"
+                                  " ON pt.person_id = fa.person_id WHERE "
+                                  GIMV_INDEX_PERSON_TAG_SQL ("pt.tag", "?1"),
+                              -1, &st, NULL) == SQLITE_OK)
+   {
+      g_hash_table_iter_init (&it, parents);
+      while (g_hash_table_iter_next (&it, &key, NULL)) {
+         Facet *f = g_hash_table_lookup (have, key);
+
+         sqlite3_reset (st);
+         sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
+         if (sqlite3_step (st) != SQLITE_ROW) continue;
+         if (!f) {
+            f = g_new0 (Facet, 1);
+            f->key = g_strconcat (",", NAME_TAG, (const gchar *) key, NULL);
+            f->kind = 2;
+            g_ptr_array_add (facets, f);
+         }
+         f->count = sqlite3_column_int (st, 0);
+      }
+      sqlite3_finalize (st);
+   }
+   g_hash_table_unref (have);
+   g_hash_table_unref (parents);
+}
+
+
 static gint
 cmp_facets (gconstpointer a, gconstpointer b)
 {
@@ -376,6 +430,7 @@ thread_search (GTask *task, gpointer source, gpointer data, GCancellable *cancel
       add_facets (db, "SELECT pt.tag, count(DISTINCT fa.file_id) FROM r JOIN faces fa"
                       " ON fa.file_id = r.id JOIN person_tags pt ON pt.person_id = fa.person_id"
                       " GROUP BY pt.tag", 2, r->facets);
+      add_person_parent_facets (db, r->facets);
       g_ptr_array_sort (r->facets, cmp_facets);
    }
 
@@ -715,18 +770,23 @@ typedef struct {
 } TagTree;
 
 
+/* the tags put by a person and the tags of people are trees by "/" */
+#define IS_TREE(f)   ((f)->kind == 0 || (f)->kind == 2)
+/* where the name starts in the key (",person/Family/Parents") */
+#define TREE_NAME(f) ((f)->key + ((f)->kind == 2 ? 1 + NAME_TAG_LEN : 0))
+
 static gchar *
 facet_parent (const Facet *f)
 {
-   const gchar *slash = f->kind == 0 ? strrchr (f->key, '/') : NULL;
-   return slash && slash > f->key ? g_strndup (f->key, slash - f->key) : NULL;
+   const gchar *slash = IS_TREE (f) ? strrchr (TREE_NAME (f), '/') : NULL;
+   return slash && slash > TREE_NAME (f) ? g_strndup (f->key, slash - f->key) : NULL;
 }
 
 
 static GPtrArray *
 tree_children (TagTree *t, const Facet *f)
 {
-   return f->kind == 0 ? g_hash_table_lookup (t->children, f->key) : NULL;
+   return IS_TREE (f) ? g_hash_table_lookup (t->children, f->key) : NULL;
 }
 
 
@@ -746,7 +806,7 @@ tree_matches (TagTree *t, Facet *f)
    if (g_hash_table_lookup_extended (t->memo, f->key, NULL, &v))
       return GPOINTER_TO_INT (v);
    l = gimv_index_tag_label (f->key);
-   slash = f->kind == 0 && !strchr (t->fold, '/') ? strrchr (l, '/') : NULL;
+   slash = IS_TREE (f) && !strchr (t->fold, '/') ? strrchr (l, '/') : NULL;
    lf = g_utf8_casefold (slash ? slash + 1 : l, -1);
    m = strstr (lf, t->fold) != NULL;
    g_free (lf);
@@ -806,7 +866,7 @@ append_tag_row (Facet *f, gint depth, gboolean has_kids, gboolean expanded)
 
    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
    gtk_widget_set_margin_start (box, 12 + depth * 16);
-   if (f->kind == 0) {
+   if (IS_TREE (f)) {
       /* ▸ / ▾ of a parent; the same room left for the others */
       GtkWidget *ex = gtk_image_new_from_icon_name (expanded ? "pan-down-symbolic"
                                                              : "pan-end-symbolic");
@@ -929,7 +989,7 @@ rebuild_tags (void)
       GHashTable *have = g_hash_table_new (g_str_hash, g_str_equal);
       for (i = 0; i < sw.facets->len; i++) {
          Facet *f = g_ptr_array_index (sw.facets, i);
-         if (f->kind == 0) g_hash_table_add (have, f->key);
+         if (IS_TREE (f)) g_hash_table_add (have, f->key);
       }
       for (i = 0; i < sw.facets->len; i++) {
          Facet *f = g_ptr_array_index (sw.facets, i);
@@ -956,7 +1016,7 @@ rebuild_tags (void)
       gchar *parent;
 
       /* a tag below another comes with its parent */
-      if (f->kind == 0 && (parent = facet_parent (f))) {
+      if (IS_TREE (f) && (parent = facet_parent (f))) {
          gboolean below = g_hash_table_contains (t.children, parent);
          g_free (parent);
          if (below) continue;

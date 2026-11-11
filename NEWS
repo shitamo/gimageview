@@ -187,6 +187,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  it, opens with its arrow, and as a condition brings the tags below
 	  it to the top.  Typing finds the last part of a name, its parents
 	  opened.
+	* The tags of people are a tree by "/" too ("Family/Parents"): in the
+	  tag tab (parents count and open the tags below them, renaming and
+	  dragging move the tags below along), the people tab, the search
+	  window, the data tab and the dialog of the tags of a person.
 	* [Edit | Keyboard Shortcuts...]: the keys of the menus of both
 	  windows and the other keys of keyconf, changed by pressing the new
 	  key, at once and kept; a key of another item of the same window is

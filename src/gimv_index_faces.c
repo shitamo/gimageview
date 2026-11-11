@@ -21,6 +21,7 @@
 
 #include "gimv_index.h"
 #include "gimv_index_faces.h"
+#include "gimv_index_view.h"
 #include "gimv_index_db.h"
 #include "prefs.h"
 
@@ -682,7 +683,9 @@ set_person_tags (sqlite3 *db, EditData *e)
 }
 
 
-/* "old\nnew": every person with the old tag gets the new one instead */
+/* "old\nnew": every person with the old tag gets the new one instead; and
+ * with a tag below it ("Family/Parents" when "Family" is renamed) that tag
+ * below the new one */
 static gboolean
 rename_person_tag (sqlite3 *db, EditData *e)
 {
@@ -691,9 +694,14 @@ rename_person_tag (sqlite3 *db, EditData *e)
    gboolean ok = v[0] && v[1] && *v[0] && *v[1];
 
    if (ok && strcmp (v[0], v[1])) {
-      ok = sqlite3_prepare_v2 (db, "INSERT OR IGNORE INTO person_tags (person_id, tag) "
-                                   "SELECT person_id, ?2 FROM person_tags WHERE tag = ?1",
-                               -1, &st, NULL) == SQLITE_OK;
+      /* into a temporary table first: the new name can be below the old
+       * one or above it */
+      ok = sqlite3_exec (db, "CREATE TEMP TABLE IF NOT EXISTS pt_new (person_id INTEGER, tag TEXT);"
+                             "DELETE FROM pt_new;", NULL, NULL, NULL) == SQLITE_OK
+           && sqlite3_prepare_v2 (db, "INSERT INTO pt_new SELECT person_id, "
+                                      "?2 || substr (tag, length (?1) + 1) FROM person_tags "
+                                      "WHERE " GIMV_INDEX_PERSON_TAG_SQL ("tag", "?1"),
+                                  -1, &st, NULL) == SQLITE_OK;
       if (ok) {
          sqlite3_bind_text (st, 1, v[0], -1, SQLITE_TRANSIENT);
          sqlite3_bind_text (st, 2, v[1], -1, SQLITE_TRANSIENT);
@@ -701,13 +709,18 @@ rename_person_tag (sqlite3 *db, EditData *e)
          sqlite3_finalize (st);
       }
       if (ok)
-         ok = sqlite3_prepare_v2 (db, "DELETE FROM person_tags WHERE tag = ?1",
+         ok = sqlite3_prepare_v2 (db, "DELETE FROM person_tags WHERE "
+                                      GIMV_INDEX_PERSON_TAG_SQL ("tag", "?1"),
                                   -1, &st, NULL) == SQLITE_OK;
       if (ok) {
          sqlite3_bind_text (st, 1, v[0], -1, SQLITE_TRANSIENT);
          ok = sqlite3_step (st) == SQLITE_DONE;
          sqlite3_finalize (st);
       }
+      if (ok)
+         ok = sqlite3_exec (db, "INSERT OR IGNORE INTO person_tags (person_id, tag) "
+                                "SELECT person_id, tag FROM pt_new; DELETE FROM pt_new;",
+                            NULL, NULL, NULL) == SQLITE_OK;
    }
    g_strfreev (v);
    return ok;
@@ -1089,10 +1102,11 @@ gimv_index_faces_key_where (const gchar *key)
                        "AND fa.ignored = 0");
    if (!strcmp (key, "i"))
       return g_strdup ("fa.ignored = 1");
-   /* "t:<tag>": the people with the tag */
+   /* "t:<tag>": the people with the tag or one below it */
    if (g_str_has_prefix (key, "t:") && key[2]) {
       gchar *q = sqlite3_mprintf ("fa.person_id IN (SELECT person_id FROM person_tags "
-                                  "WHERE tag = %Q)", key + 2);
+                                  "WHERE " GIMV_INDEX_PERSON_TAG_SQL ("tag", "%Q") ")",
+                                  key + 2, key + 2, key + 2);
       gchar *w = g_strdup (q);
       sqlite3_free (q);
       return w;

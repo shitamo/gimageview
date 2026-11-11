@@ -678,9 +678,10 @@ cb_tag_clicked (GtkButton *button, gpointer data)
 
 
 /* "Travel / Kyoto / Temple": a flat button for each part, opening the tag
- * up to it */
+ * up to it.  key_prefix: ",person/" for a tag of people (shown as such:
+ * "People: Family / Parents"), NULL for a tag put by a person */
 static GtkWidget *
-tag_crumbs (const gchar *name)
+tag_crumbs (const gchar *name, const gchar *key_prefix)
 {
    static gboolean css = FALSE;
    GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
@@ -716,19 +717,37 @@ tag_crumbs (const gchar *name)
       if (!*parts[i]) continue;   /* "a//b" */
 
       label = gtk_label_new (parts[i]);
+      if (key_prefix) {
+         gchar *key = g_strconcat (key_prefix, upto->str, NULL);
+         gchar *first = i == 0 ? gimv_index_tag_label (key) : NULL;
+         gchar *markup = g_markup_printf_escaped ("<span foreground=\"" TAG_RULE_COLOR "\">%s</span>",
+                                                  first ? first : parts[i]);
+         gtk_label_set_markup (GTK_LABEL (label), markup);
+         g_free (markup);
+         g_free (first);
+         g_free (key);
+      }
       if (i + 1 < n) gtk_widget_add_css_class (label, "dim-label");
       gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
       gtk_label_set_max_width_chars (GTK_LABEL (label), 20);
       button = gtk_button_new ();
       gtk_button_set_child (GTK_BUTTON (button), label);
       gtk_widget_add_css_class (button, "flat");
-      tip = i + 1 < n
-         ? g_strdup_printf (_("%s: click to show the images with it and the tags below it"),
-                            upto->str)
-         : g_strdup_printf (_("%s: click to show the images with it"), upto->str);
+      tip = key_prefix
+         ? (i + 1 < n
+            ? g_strdup_printf (_("%s: click to show the images of the people with it "
+                                 "and the tags below it"), upto->str)
+            : g_strdup_printf (_("%s: click to show the images of the people with it"),
+                               upto->str))
+         : (i + 1 < n
+            ? g_strdup_printf (_("%s: click to show the images with it and the tags below it"),
+                               upto->str)
+            : g_strdup_printf (_("%s: click to show the images with it"), upto->str));
       gtk_widget_set_tooltip_text (button, tip);
       g_free (tip);
-      g_object_set_data_full (G_OBJECT (button), "gimv-tag-key", g_strdup (upto->str), g_free);
+      g_object_set_data_full (G_OBJECT (button), "gimv-tag-key",
+                              g_strconcat (key_prefix ? key_prefix : "", upto->str, NULL),
+                              g_free);
       g_signal_connect (button, "clicked", G_CALLBACK (cb_tag_clicked), NULL);
       gtk_box_append (GTK_BOX (box), button);
    }
@@ -782,7 +801,14 @@ cb_got_tags (GObject *source, GAsyncResult *res, gpointer data)
          /* a tag of the tree ("Travel/Kyoto/Temple"): each part opens its
           * tag, the parents with the tags below them */
          gimv_wrap_box_append (GIMV_WRAP_BOX (cv->tags_flow),
-                               tag_crumbs (gimv_index_plain_key (key)));
+                               tag_crumbs (gimv_index_plain_key (key), NULL));
+         g_free (text);
+         continue;
+      }
+      if (kind == 2 && strlen (key) > 8 && strchr (key + 8, '/')) {
+         /* a tag of people of a tree ("Family/Parents") */
+         gimv_wrap_box_append (GIMV_WRAP_BOX (cv->tags_flow),
+                               tag_crumbs (key + 8, ",person/"));
          g_free (text);
          continue;
       }

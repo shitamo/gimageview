@@ -1290,9 +1290,65 @@ static void
 tags_update_known (TagsDialog *td)
 {
    GtkWidget *row;
-   /* the ones given already are not offered */
-   for (row = gtk_widget_get_first_child (td->known); row; row = gtk_widget_get_next_sibling (row))
-      gtk_widget_set_visible (row, !tags_has (td, g_object_get_data (G_OBJECT (row), "tag")));
+   const gchar *typed = gtk_editable_get_text (GTK_EDITABLE (td->entry));
+   gchar *fold = typed && *typed ? g_utf8_casefold (typed, -1) : NULL;
+
+   /* the ones given already are not offered; with a text typed, those
+    * with it in the name ("Family/": the tags below "Family") */
+   for (row = gtk_widget_get_first_child (td->known); row; row = gtk_widget_get_next_sibling (row)) {
+      const gchar *tag = g_object_get_data (G_OBJECT (row), "tag");
+      gboolean show = !tags_has (td, tag);
+      if (show && fold) {
+         gchar *tf = g_utf8_casefold (tag, -1);
+         show = strchr (fold, '/') ? g_str_has_prefix (tf, fold) : strstr (tf, fold) != NULL;
+         g_free (tf);
+      }
+      gtk_widget_set_visible (row, show);
+   }
+   g_free (fold);
+}
+
+
+/* "Family/Parents": the parents dim (markup) */
+static gchar *
+person_tag_markup (const gchar *tag)
+{
+   const gchar *slash = strrchr (tag, '/');
+   gchar *up, *ret;
+
+   if (!slash || slash == tag || !slash[1]) return g_markup_escape_text (tag, -1);
+   up = g_strndup (tag, slash + 1 - tag);
+   ret = g_markup_printf_escaped ("<span alpha=\"55%%\">%s</span>%s", up, slash + 1);
+   g_free (up);
+   return ret;
+}
+
+
+static void
+cb_tag_entry_changed (GtkEditable *entry, TagsDialog *td)
+{
+   tags_update_known (td);
+}
+
+
+/* a parent of a tag other people have: "Family/" typed, to pick from the
+ * tags below it or to type a new one */
+static void
+cb_tag_known_parent (GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
+                     TagsDialog *td)
+{
+   GtkWidget *part = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+   const gchar *upto = g_object_get_data (G_OBJECT (part), "upto");
+   gchar *text;
+
+   /* the row is not activated (the tag not added) */
+   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+   if (!upto) return;
+   text = g_strconcat (upto, "/", NULL);
+   gtk_editable_set_text (GTK_EDITABLE (td->entry), text);
+   gtk_entry_grab_focus_without_selecting (GTK_ENTRY (td->entry));
+   gtk_editable_set_position (GTK_EDITABLE (td->entry), -1);
+   g_free (text);
 }
 
 
@@ -1319,7 +1375,12 @@ tags_add (TagsDialog *td, const gchar *text)
    }
    row = gtk_list_box_row_new ();
    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
-   label = gtk_label_new (tag);
+   label = gtk_label_new (NULL);
+   {
+      gchar *markup = person_tag_markup (tag);
+      gtk_label_set_markup (GTK_LABEL (label), markup);
+      g_free (markup);
+   }
    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
    gtk_widget_set_hexpand (label, TRUE);
    gtk_widget_set_margin_start (label, 6);
@@ -1446,7 +1507,11 @@ gimv_index_faces_ask_person_tags (GtkWindow *parent, const gchar *person, gint64
 
    td->entry = gtk_entry_new ();
    gtk_entry_set_placeholder_text (GTK_ENTRY (td->entry), _("A new tag (Enter adds it)"));
+   gtk_widget_set_tooltip_text (td->entry,
+                                _("\"/\" puts a tag below another: \"Family/Parents\" "
+                                  "is below \"Family\""));
    g_signal_connect (td->entry, "activate", G_CALLBACK (cb_tag_entry), td);
+   g_signal_connect (td->entry, "changed", G_CALLBACK (cb_tag_entry_changed), td);
    gtk_box_append (GTK_BOX (vbox), td->entry);
 
    label = gtk_label_new (_("Tags other people have (a click adds it):"));
@@ -1456,12 +1521,50 @@ gimv_index_faces_ask_person_tags (GtkWindow *parent, const gchar *person, gint64
    td->known = gtk_list_box_new ();
    gtk_list_box_set_activate_on_single_click (GTK_LIST_BOX (td->known), TRUE);
    for (i = 0; i < all->len; i++) {
-      GtkWidget *row = gtk_list_box_row_new (), *l = gtk_label_new (g_ptr_array_index (all, i));
+      /* "Family / Parents": the parents type "Family/", the rest of the
+       * row adds the tag */
+      const gchar *tag = g_ptr_array_index (all, i);
+      GtkWidget *row = gtk_list_box_row_new (), *l;
+      GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+      gchar **parts = g_strsplit (tag, "/", -1);
+      guint np = g_strv_length (parts), j;
+      GString *upto = g_string_new (NULL);
+
+      gtk_widget_set_margin_start (box, 6);
+      for (j = 0; j + 1 < np; j++) {
+         GtkWidget *b, *sep;
+         GtkGesture *click;
+         gchar *tip;
+         if (j > 0) g_string_append_c (upto, '/');
+         g_string_append (upto, parts[j]);
+         if (!*parts[j]) continue;
+         b = gtk_label_new (parts[j]);
+         gtk_widget_add_css_class (b, "dim-label");
+         gtk_widget_set_cursor_from_name (b, "pointer");
+         tip = g_strdup_printf (_("Click to pick from the tags below %s"), upto->str);
+         gtk_widget_set_tooltip_text (b, tip);
+         g_free (tip);
+         g_object_set_data_full (G_OBJECT (b), "upto", g_strdup (upto->str), g_free);
+         click = gtk_gesture_click_new ();
+         gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (click), GDK_BUTTON_PRIMARY);
+         g_signal_connect (click, "pressed", G_CALLBACK (cb_tag_known_parent), td);
+         gtk_widget_add_controller (b, GTK_EVENT_CONTROLLER (click));
+         gtk_box_append (GTK_BOX (box), b);
+         sep = gtk_label_new ("/");
+         gtk_widget_add_css_class (sep, "dim-label");
+         gtk_widget_set_margin_start (sep, 2);
+         gtk_widget_set_margin_end (sep, 2);
+         gtk_box_append (GTK_BOX (box), sep);
+      }
+      l = gtk_label_new (np ? parts[np - 1] : tag);
+      g_string_free (upto, TRUE);
+      g_strfreev (parts);
       gtk_label_set_xalign (GTK_LABEL (l), 0.0);
-      gtk_widget_set_margin_start (l, 6);
+      gtk_widget_set_hexpand (l, TRUE);
       gtk_widget_set_margin_top (l, 3);
       gtk_widget_set_margin_bottom (l, 3);
-      gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), l);
+      gtk_box_append (GTK_BOX (box), l);
+      gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
       g_object_set_data_full (G_OBJECT (row), "tag", g_strdup (g_ptr_array_index (all, i)),
                               g_free);
       gtk_list_box_append (GTK_LIST_BOX (td->known), row);

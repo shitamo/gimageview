@@ -66,6 +66,10 @@ gint       gimv_index_tag_kind        (const gchar         *key);
    "THEN substr (t.name, 9) ELSE t.name END"
 #define GIMV_INDEX_TAG_AUTO_SQL \
    "(ft.auto = 1 AND NOT (t.name >= 'keyword/' AND t.name < 'keyword0'))"
+/* a tag of people col is the tag val or one below it ("Family/Parents"
+ * below "Family": '0' follows '/') */
+#define GIMV_INDEX_PERSON_TAG_SQL(col, val) \
+   "(" col " = " val " OR (" col " > " val " || '/' AND " col " < " val " || '0'))"
 const gchar *gimv_index_plain_key     (const gchar         *key);
 
 /* the images of the tag in the result tab, as a click on its row in the

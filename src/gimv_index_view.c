@@ -158,6 +158,54 @@ add_people_row (GPtrArray *rows, gint depth, RowKind kind, gchar *key,
 }
 
 
+/* a tag of people in the "People" tab */
+typedef struct {
+   gchar      *tag;
+   GPtrArray  *members;   /* Person: those with the tag itself */
+   GHashTable *all;       /* ... and with the tags below it */
+   gint        depth;
+} PeopleTag;
+
+
+static void
+people_tag_free (PeopleTag *node)
+{
+   g_free (node->tag);
+   g_ptr_array_unref (node->members);
+   g_hash_table_unref (node->all);
+   g_free (node);
+}
+
+
+static PeopleTag *
+people_tag_get (GHashTable *nodes, GPtrArray *list, const gchar *tag)
+{
+   PeopleTag *node = g_hash_table_lookup (nodes, tag);
+
+   if (!node) {
+      node = g_new0 (PeopleTag, 1);
+      node->tag = g_strdup (tag);
+      node->members = g_ptr_array_new ();
+      node->all = g_hash_table_new (NULL, NULL);
+      g_hash_table_insert (nodes, node->tag, node);
+      g_ptr_array_add (list, node);
+   }
+   return node;
+}
+
+
+static gint cmp_people_tag (gconstpointer pa, gconstpointer pb);
+
+
+/* "Family" of "Family/Parents"; NULL at the top */
+static gchar *
+tag_parent (const gchar *tag)
+{
+   const gchar *slash = strrchr (tag, '/');
+   return slash && slash > tag && slash[1] ? g_strndup (tag, slash - tag) : NULL;
+}
+
+
 /* the title of a result tab of the tag (or the key of a tag row) */
 const gchar *
 gimv_index_plain_key (const gchar *key)
@@ -391,6 +439,53 @@ thread_count_tags (GTask *task, gpointer source, gpointer data, GCancellable *ca
       }
       sqlite3_finalize (st);
    }
+   /* a tree by "/" too ("Family/Parents" below "Family"): a parent counts
+    * the images of the people of the tags below it, and is there even when
+    * no person has it itself */
+   if (db) {
+      GHashTable *have = g_hash_table_new (g_str_hash, g_str_equal);
+      GHashTable *parents = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+      GHashTableIter it;
+      gpointer key;
+      guint i, n = tags->len;
+
+      for (i = 0; i < n; i++) {
+         TagCount *tc = g_ptr_array_index (tags, i);
+         const gchar *name, *s;
+         if (!tc->auto_tag || !g_str_has_prefix (tc->name, NAME_TAG)) continue;
+         name = tc->name + NAME_TAG_LEN;
+         g_hash_table_insert (have, (gpointer) name, tc);
+         for (s = strchr (name, '/'); s; s = strchr (s + 1, '/'))
+            if (s > name) g_hash_table_add (parents, g_strndup (name, s - name));
+      }
+      if (g_hash_table_size (parents) > 0 && sqlite3_prepare_v2 (db,
+             "SELECT count(DISTINCT fa.file_id) FROM person_tags pt "
+             "JOIN faces fa ON fa.person_id = pt.person_id "
+             "WHERE " GIMV_INDEX_PERSON_TAG_SQL ("pt.tag", "?1"),
+             -1, &st, NULL) == SQLITE_OK)
+      {
+         g_hash_table_iter_init (&it, parents);
+         while (g_hash_table_iter_next (&it, &key, NULL)) {
+            TagCount *tc = g_hash_table_lookup (have, key);
+
+            if (g_cancellable_is_cancelled (cancel)) break;
+            sqlite3_reset (st);
+            sqlite3_bind_text (st, 1, key, -1, SQLITE_TRANSIENT);
+            if (sqlite3_step (st) != SQLITE_ROW) continue;
+            if (!tc) {
+               tc = g_new0 (TagCount, 1);
+               tc->name     = g_strdup_printf ("person/%s", (const gchar *) key);
+               tc->auto_tag = TRUE;
+               tc->parent   = TRUE;
+               g_ptr_array_add (tags, tc);
+            }
+            tc->count = sqlite3_column_int (st, 0);
+         }
+         sqlite3_finalize (st);
+      }
+      g_hash_table_destroy (parents);
+      g_hash_table_destroy (have);
+   }
    if (db) sqlite3_close (db);
    g_task_return_pointer (task, tags, (GDestroyNotify) g_ptr_array_unref);
 }
@@ -470,42 +565,59 @@ thread_count_people (GTask *task, gpointer source, gpointer data, GCancellable *
                             g_strdup_printf (_("%s?"), (pr)->name)); \
       } G_STMT_END
 
-      if (sqlite3_prepare_v2 (db,
-             "SELECT pt.tag, pt.person_id FROM person_tags pt "
-             "JOIN persons p ON p.id = pt.person_id ORDER BY pt.tag, p.name",
-             -1, &st, NULL) == SQLITE_OK)
+      /* the tags of people, a tree by "/": a tag, the people with it, then
+       * the tags below it ("Family/Parents" below "Family"); a parent is
+       * there even when no person has it itself */
       {
-         gchar *cur = NULL;
-         GPtrArray *members = g_ptr_array_new ();
+         GHashTable *nodes = g_hash_table_new (g_str_hash, g_str_equal);
+         GPtrArray *sorted = g_ptr_array_new_with_free_func ((GDestroyNotify) people_tag_free);
+         guint j;
 
-         for (;;) {
-            gboolean more = sqlite3_step (st) == SQLITE_ROW;
-            const gchar *tag = more ? (const gchar *) sqlite3_column_text (st, 0) : NULL;
-            gint64 pid = more ? sqlite3_column_int64 (st, 1) : 0;
-            Person *pr = more ? g_hash_table_lookup (by_id, &pid) : NULL;
+         if (sqlite3_prepare_v2 (db,
+                "SELECT pt.tag, pt.person_id FROM person_tags pt "
+                "JOIN persons p ON p.id = pt.person_id ORDER BY pt.tag, p.name",
+                -1, &st, NULL) == SQLITE_OK)
+         {
+            while (sqlite3_step (st) == SQLITE_ROW) {
+               const gchar *tag = (const gchar *) sqlite3_column_text (st, 0);
+               gint64 pid = sqlite3_column_int64 (st, 1);
+               Person *pr = g_hash_table_lookup (by_id, &pid);
+               PeopleTag *node;
+               gchar *up;
 
-            if (cur && (!more || g_strcmp0 (tag, cur))) {
-               /* the tag before: its row and its people */
-               if (members->len) {
-                  guint j;
-                  add_people_row (rows, 0, KIND_FACES, g_strdup_printf ("t:%s", cur),
-                                  g_strdup_printf (ngettext ("%s (%'d person)", "%s (%'d people)", members->len), cur, members->len),
-                                  g_strdup (cur));
-                  for (j = 0; j < members->len; j++)
-                     ADD_PERSON ((Person *) g_ptr_array_index (members, j), 1);
-               }
-               g_ptr_array_set_size (members, 0);
-               g_clear_pointer (&cur, g_free);
-            }
-            if (!more) break;
-            if (!cur) cur = g_strdup (tag);
-            if (pr) {
-               g_ptr_array_add (members, pr);
+               if (!tag || !*tag || !pr) continue;
+               node = people_tag_get (nodes, sorted, tag);
+               g_ptr_array_add (node->members, pr);
                pr->tagged = TRUE;
+               /* counted in the tag and in those above it */
+               for (up = g_strdup (tag); up; ) {
+                  gchar *next = tag_parent (up);
+                  g_hash_table_add (people_tag_get (nodes, sorted, up)->all, pr);
+                  g_free (up);
+                  up = next;
+               }
             }
+            sqlite3_finalize (st);
          }
-         sqlite3_finalize (st);
-         g_ptr_array_unref (members);
+         g_ptr_array_sort (sorted, cmp_people_tag);
+         for (i = 0; i < sorted->len; i++) {
+            PeopleTag *node = g_ptr_array_index (sorted, i);
+            gchar *up = tag_parent (node->tag);
+            PeopleTag *parent = up ? g_hash_table_lookup (nodes, up) : NULL;
+            guint n = g_hash_table_size (node->all);
+            const gchar *leaf = parent ? node->tag + strlen (up) + 1 : node->tag;
+
+            node->depth = parent ? parent->depth + 1 : 0;
+            g_free (up);
+            add_people_row (rows, node->depth, KIND_FACES, g_strdup_printf ("t:%s", node->tag),
+                            g_strdup_printf (ngettext ("%s (%'d person)", "%s (%'d people)", n),
+                                             leaf, n),
+                            g_strdup (node->tag));
+            for (j = 0; j < node->members->len; j++)
+               ADD_PERSON ((Person *) g_ptr_array_index (node->members, j), node->depth + 1);
+         }
+         g_ptr_array_unref (sorted);
+         g_hash_table_unref (nodes);
       }
       for (i = 0; i < people->len; i++) {
          Person *pr = &g_array_index (people, Person, i);
@@ -605,7 +717,8 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
       sql = "SELECT d.path, f.name, f.size, f.mtime, f.date FROM files f "
             "JOIN dirs d ON d.id = f.dir_id WHERE f.id IN (SELECT fa.file_id FROM faces fa "
             "JOIN person_tags pt ON pt.person_id = fa.person_id "
-            "WHERE 'person/' || pt.tag = ?1 AND ?2 = 1) ORDER BY f.date, f.name";
+            "WHERE " GIMV_INDEX_PERSON_TAG_SQL ("pt.tag", "substr (?1, 8)")
+            " AND ?2 = 1) ORDER BY f.date, f.name";
    } else if (req->type == GIMV_INDEX_TAB_TAG && gimv_index_plain_key (key)[0] != AUTO_KEY_MARK)
       /* put by a person, or a keyword of the same name */
       /* ... and the tags below it ("Travel/Kyoto" below "Travel"): names
@@ -768,6 +881,17 @@ cmp_tag_count (gconstpointer pa, gconstpointer pb)
 }
 
 
+static gint
+cmp_people_tag (gconstpointer pa, gconstpointer pb)
+{
+   const PeopleTag *a = *(PeopleTag * const *) pa, *b = *(PeopleTag * const *) pb;
+   TagCount x = { (gchar *) a->tag }, y = { (gchar *) b->tag };
+   const TagCount *px = &x, *py = &y;
+
+   return cmp_tag_count (&px, &py);
+}
+
+
 /* the tags put by a person at the top, then a group for each rule */
 static void
 build_tag_list (IndexView *iv, GimvRow *root, GPtrArray *tags)
@@ -822,15 +946,27 @@ build_tag_list (IndexView *iv, GimvRow *root, GPtrArray *tags)
    }
 
    for (k = 0; k < G_N_ELEMENTS (auto_kinds); k++) {
+      /* the tags of people are a tree by "/" as the tags put by a person */
+      gboolean tree = !strcmp (auto_kinds[k].prefix, NAME_TAG);
+      GHashTable *below = tree ? g_hash_table_new (g_str_hash, g_str_equal) : NULL;
+      GPtrArray *sorted = g_ptr_array_new ();
+
       for (i = 0; i < tags->len; i++) {
          TagCount *tc = g_ptr_array_index (tags, i);
+         gint kind;
+         if (!tc->auto_tag) continue;
+         auto_tag_value (tc->name, &kind);
+         if (kind == (gint) k) g_ptr_array_add (sorted, tc);
+      }
+      if (tree) g_ptr_array_sort (sorted, cmp_tag_count);
+      for (i = 0; i < sorted->len; i++) {
+         TagCount *tc = g_ptr_array_index (sorted, i);
          gchar *label, *key;
          gint kind;
-         const gchar *v;
+         const gchar *v, *slash;
+         GimvRow *parent, *row;
 
-         if (!tc->auto_tag) continue;
          v = auto_tag_value (tc->name, &kind);
-         if (kind != (gint) k) continue;
 
          if (!groups[k]) {
             gchar *gkey = g_strdup_printf ("%c%s", AUTO_KEY_MARK, auto_kinds[k].prefix);
@@ -838,12 +974,26 @@ build_tag_list (IndexView *iv, GimvRow *root, GPtrArray *tags)
                                  AUTO_TAG_COLOR, NULL);
             g_free (gkey);
          }
-         label = g_strdup_printf ("%s (%'d)", v, tc->count);
+         parent = groups[k];
+         slash = tree ? strrchr (v, '/') : NULL;
+         if (slash && slash > v && slash[1]) {
+            gchar *up = g_strndup (v, slash - v);
+            GimvRow *p = g_hash_table_lookup (below, up);
+            g_free (up);
+            if (p) parent = p;
+            else slash = NULL;
+         } else {
+            slash = NULL;
+         }
+         label = g_strdup_printf ("%s (%'d)", slash ? slash + 1 : v, tc->count);
          key = g_strdup_printf ("%c%s", AUTO_KEY_MARK, tc->name);
-         row_new (groups[k], label, KIND_TAG, key, AUTO_TAG_COLOR, NULL);
+         row = row_new (parent, label, KIND_TAG, key, AUTO_TAG_COLOR, NULL);
+         if (tree) g_hash_table_insert (below, (gpointer) v, row);
          g_free (key);
          g_free (label);
       }
+      if (below) g_hash_table_destroy (below);
+      g_ptr_array_unref (sorted);
    }
 }
 
@@ -852,7 +1002,7 @@ static void
 build_people_list (IndexView *iv, GimvRow *root, GPtrArray *rows)
 {
    /* the last row at each depth: the parent of the rows below it */
-   GimvRow *at[4];
+   GimvRow *at[16];
    gint have = -1;
    guint i;
 
@@ -1658,6 +1808,7 @@ key_is_renamable (IndexView *iv, const gchar *key)
 
 static void rename_done (IndexView *iv, const gchar *text);
 static void rename_tag  (IndexView *iv, const gchar *old, const gchar *new);
+static void rename_person_tag (IndexView *iv, const gchar *ptag, const gchar *new);
 
 static void
 cb_rename_activate (GtkEntry *entry, IndexView *iv)
@@ -1951,6 +2102,63 @@ rename_merges (const gchar *old, const gchar *new)
 }
 
 
+/* a tag of people (and those below it) gets the name new: kept in the
+ * index only, renamed there, after asking when it would merge with
+ * another */
+static void
+rename_person_tag (IndexView *iv, const gchar *ptag, const gchar *new)
+{
+   if (!*new || !strcmp (ptag, new)) {
+      /* nothing */
+   } else if (strpbrk (new, "\t\n")) {
+      alert (iv, _("A tag cannot have a tab or a new line in it."), NULL);
+   } else {
+      /* new, or a tag below it as those below old would be named, is
+       * there already */
+      GPtrArray *all = gimv_index_faces_get_all_person_tags ();
+      gsize len = strlen (ptag);
+      gboolean there = FALSE;
+      guint i;
+
+      for (i = 0; i < all->len && !there; i++) {
+         const gchar *t = g_ptr_array_index (all, i);
+         gchar *to;
+         if (strncmp (t, ptag, len) || (t[len] && t[len] != '/')) continue;
+         to = g_strconcat (new, t + len, NULL);
+         there = strcmp (to, t)
+                 && g_ptr_array_find_with_equal_func (all, to, g_str_equal, NULL);
+         g_free (to);
+      }
+      g_ptr_array_unref (all);
+      if (there) {
+         GtkAlertDialog *dialog = gtk_alert_dialog_new (_("The tag \"%s\" is there already."),
+                                                        new);
+         const gchar *buttons[] = { _("_Cancel"), _("_Merge Them"), NULL };
+         gchar *detail = g_strdup_printf (_("The people with \"%s\" get \"%s\" instead, "
+                                            "and \"%s\" goes."), ptag, new, ptag);
+         RenameAsk *ask = g_new0 (RenameAsk, 1);
+         GtkRoot *root = gtk_widget_get_root (iv->tree);
+
+         ask->iv = iv;
+         ask->cancel = g_object_ref (iv->cancel);
+         ask->old = g_strdup (ptag);
+         ask->new = g_strdup (new);
+         ask->person = TRUE;
+         gtk_alert_dialog_set_detail (dialog, detail);
+         gtk_alert_dialog_set_buttons (dialog, buttons);
+         gtk_alert_dialog_set_cancel_button (dialog, 0);
+         gtk_alert_dialog_set_default_button (dialog, 1);
+         gtk_alert_dialog_choose (dialog, GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL,
+                                  NULL, cb_merge_answer, ask);
+         g_object_unref (dialog);
+         g_free (detail);
+      } else {
+         do_rename_person_tag (iv, ptag, new);
+      }
+   }
+}
+
+
 static void
 rename_done (IndexView *iv, const gchar *text)
 {
@@ -1959,41 +2167,7 @@ rename_done (IndexView *iv, const gchar *text)
    const gchar *ptag = key_person_tag (iv, old);
 
    if (ptag) {
-      /* a tag of people: kept in the index only, renamed there */
-      if (!*new || !strcmp (ptag, new)) {
-         /* nothing */
-      } else if (strpbrk (new, "\t\n")) {
-         alert (iv, _("A tag cannot have a tab or a new line in it."), NULL);
-      } else {
-         GPtrArray *all = gimv_index_faces_get_all_person_tags ();
-         gboolean there = g_ptr_array_find_with_equal_func (all, new, g_str_equal, NULL);
-         g_ptr_array_unref (all);
-         if (there) {
-            GtkAlertDialog *dialog = gtk_alert_dialog_new (_("The tag \"%s\" is there already."),
-                                                           new);
-            const gchar *buttons[] = { _("_Cancel"), _("_Merge Them"), NULL };
-            gchar *detail = g_strdup_printf (_("The people with \"%s\" get \"%s\" instead, "
-                                               "and \"%s\" goes."), ptag, new, ptag);
-            RenameAsk *ask = g_new0 (RenameAsk, 1);
-            GtkRoot *root = gtk_widget_get_root (iv->tree);
-
-            ask->iv = iv;
-            ask->cancel = g_object_ref (iv->cancel);
-            ask->old = g_strdup (ptag);
-            ask->new = g_strdup (new);
-            ask->person = TRUE;
-            gtk_alert_dialog_set_detail (dialog, detail);
-            gtk_alert_dialog_set_buttons (dialog, buttons);
-            gtk_alert_dialog_set_cancel_button (dialog, 0);
-            gtk_alert_dialog_set_default_button (dialog, 1);
-            gtk_alert_dialog_choose (dialog, GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL,
-                                     NULL, cb_merge_answer, ask);
-            g_object_unref (dialog);
-            g_free (detail);
-         } else {
-            do_rename_person_tag (iv, ptag, new);
-         }
-      }
+      rename_person_tag (iv, ptag, new);
    } else {
       rename_tag (iv, old, new);
    }
@@ -2062,11 +2236,33 @@ static gboolean
 drop_target_at (IndexView *iv, gdouble x, gdouble y, gchar **into)
 {
    const gchar *from = iv->drag_key;
+   gboolean person = from && key_person_tag (iv, from) != NULL;
    GimvRow *row = NULL;
    gchar *key;
 
    *into = NULL;
    if (!from) return FALSE;
+   if (person) {
+      /* a tag of people: onto another, or onto "Tags of People" (the top) */
+      static const gchar top[] = { AUTO_KEY_MARK, 'p', 'e', 'r', 's', 'o', 'n', '/', '\0' };
+      const gchar *to;
+
+      if (!gimv_list_view_get_row_at (iv->tree, x, y, NULL, &row) || !row) return FALSE;
+      key = row_key (row);
+      if (key && !strcmp (key, top)) {
+         g_free (key);
+         return strchr (key_person_tag (iv, from), '/') != NULL;
+      }
+      to = key ? key_person_tag (iv, key) : NULL;
+      if (!to || !strcmp (key, from)
+          || (g_str_has_prefix (key, from) && key[strlen (from)] == '/'))
+      {
+         g_free (key);
+         return FALSE;
+      }
+      *into = key;
+      return TRUE;
+   }
    if (!gimv_list_view_get_row_at (iv->tree, x, y, NULL, &row) || !row
        || gimv_row_peek_int (row, COL_KIND) == KIND_ROOT)
    {
@@ -2123,7 +2319,9 @@ cb_drag_prepare (GtkDragSource *source, gdouble x, gdouble y, IndexView *iv)
    const gchar *key = g_object_get_data (G_OBJECT (label), "gimv-key");
 
    /* the tags of rules, keywords alone and people stay where they are */
-   if (!key || !key_is_manual_tag (iv, key) || iv->editing_key) return NULL;
+   if (!key || (!key_is_manual_tag (iv, key) && !key_person_tag (iv, key))
+       || iv->editing_key)
+      return NULL;
    g_free (iv->drag_key);
    iv->drag_key = g_strdup (key);
    return gdk_content_provider_new_typed (G_TYPE_STRING, key);
@@ -2186,7 +2384,10 @@ cb_drop_choice (GtkButton *button, IndexView *iv)
    gchar *to = g_strdup (new);
 
    gtk_popover_popdown (GTK_POPOVER (iv->drop_popover));
-   if (old && to) rename_tag (iv, old, to);
+   if (old && to && key_person_tag (iv, old))
+      rename_person_tag (iv, key_person_tag (iv, old), to);
+   else if (old && to)
+      rename_tag (iv, old, to);
    if (iv->count_again) start_count (iv);
    g_free (old);
    g_free (to);
@@ -2210,15 +2411,21 @@ drop_add_choice (IndexView *iv, const gchar *text, const gchar *new)
 static gboolean
 cb_drop (GtkDropTarget *target, const GValue *value, gdouble x, gdouble y, IndexView *iv)
 {
-   const gchar *from = G_VALUE_HOLDS_STRING (value) ? g_value_get_string (value) : NULL;
-   gchar *into = NULL, *text, *new, *parent;
+   const gchar *key = G_VALUE_HOLDS_STRING (value) ? g_value_get_string (value) : NULL;
+   const gchar *from = key, *into;   /* the names (of a tag of people: without ",person/") */
+   gchar *into_key = NULL, *text, *new, *parent;
    GtkWidget *child;
    GdkRectangle rect = { (gint) x, (gint) y, 1, 1 };
    graphene_point_t pt = GRAPHENE_POINT_INIT (x, y), out;
 
    drop_unmark (iv);
-   if (!from || !iv->drag_key || strcmp (from, iv->drag_key)) return FALSE;
-   if (!drop_target_at (iv, x, y, &into)) return FALSE;
+   if (!key || !iv->drag_key || strcmp (key, iv->drag_key)) return FALSE;
+   if (!drop_target_at (iv, x, y, &into_key)) return FALSE;
+   into = into_key;
+   if (key_person_tag (iv, key)) {
+      from = key_person_tag (iv, key);
+      if (into_key) into = key_person_tag (iv, into_key);
+   }
 
    if (!iv->drop_popover) {
       iv->drop_popover = gtk_popover_new ();
@@ -2261,7 +2468,7 @@ cb_drop (GtkDropTarget *target, const GValue *value, gdouble x, gdouble y, Index
       gtk_box_append (GTK_BOX (iv->drop_box), cancel);
    }
    g_free (iv->drop_old);
-   iv->drop_old = g_strdup (from);
+   iv->drop_old = g_strdup (key);
 
    if (gtk_widget_compute_point (iv->tree, iv->scroll, &pt, &out)) {
       rect.x = (gint) out.x;
@@ -2270,7 +2477,7 @@ cb_drop (GtkDropTarget *target, const GValue *value, gdouble x, gdouble y, Index
    gtk_popover_set_pointing_to (GTK_POPOVER (iv->drop_popover), &rect);
    gtk_popover_popup (GTK_POPOVER (iv->drop_popover));
    g_free (parent);
-   g_free (into);
+   g_free (into_key);
    return TRUE;
 }
 

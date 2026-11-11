@@ -6898,3 +6898,17 @@ msgstr "クリックして新しいキーを押します (Esc: そのまま、Ba
 #: src/gimv_shortcuts_win.c
 msgid "Click a key and press the new one (Escape: leave it as it was, Backspace: no key). A key changed works at once and is kept."
 msgstr "キーをクリックして新しいキーを押してください (Esc: そのまま、BackSpace: キーなし)。変えたキーはすぐに使え、保存されます。"
+
+#: src/gimv_comment_view.c
+#, c-format
+msgid "%s: click to show the images of the people with it and the tags below it"
+msgstr "%s: クリックでこのタグとその下のタグの付いた人の画像を表示"
+
+#: src/gimv_comment_view.c
+#, c-format
+msgid "%s: click to show the images of the people with it"
+msgstr "%s: クリックでこのタグの付いた人の画像を表示"
+
+#: src/gimv_index_faces_win.c
+msgid "\"/\" puts a tag below another: \"Family/Parents\" is below \"Family\""
+msgstr "「/」でタグを別のタグの下に置けます: 「家族/親」は「家族」の下"
