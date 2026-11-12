@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<title>9. 目的別の操作</title>
+<link rel="stylesheet" href="./gimageview.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.45">
+<link rel="home" href="index.html" title="GImageView User's Manual">
+<link rel="up" href="index.html" title="GImageView User's Manual">
+<link rel="previous" href="gimv_faq.html" title="8. GImageView FAQ">
+<link rel="next" href="gimv_tips.html" title="10. Tips">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">9. 目的別の操作</th></tr>
+<tr>
+<td width="20%" align="left">
+<a accesskey="p" href="gimv_faq.html">前のページ</a>&#160;</td>
+<th width="60%" align="center">&#160;</th>
+<td width="20%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">次のページ</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="sect1">
+<div class="titlepage"><div><h2 class="title" style="clear: both">
+<a name="howto"></a>9. 目的別の操作</h2></div></div>
+<p class="para">
+やりたいことから操作を探すための章です。それぞれ手順の要点だけを書いています。詳しくはリンク先を見て下さい。索引・顔の機能は、それを使ってビルドした場合だけです。
+</p>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="howto_01"></a>9.1. 索引を使う準備</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="howto_index"></a>日付・タグで画像を探せるようにしたい</span></dt>
+<dd>
+<p class="para">
+[設定 | 索引] の「索引を作るディレクトリ」に、写真を置いているフォルダを加えます。GImageView を起動している間に索引ができていき、ディレクトリビューの欄に「日付」「タグ」のタブが増えます。進み具合はステータスバーの右端に出ます。SQLite を使ってビルドした場合だけの機能です。
+</p>
+<p class="para">詳しくは <a href="02.html#02-02">2.2. 画像の索引</a>、<a href="06.html#Index_dirs">[設定 | 索引]</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_faces"></a>写っている人で画像を探せるようにしたい</span></dt>
+<dd>
+<p class="para">
+[設定 | 索引 | 顔] の「顔を認識するフォルダ」を指定し、モデルファイルを置きます。索引のあとで顔を探し、似た顔をまとめた「人物」タブができます。OpenCV を使ってビルドした場合だけの機能です。
+</p>
+<p class="para">詳しくは <a href="02.html#02-03">2.3. 顔と人物</a>、<a href="06.html#Index_faces">[設定 | 索引 | 顔]</a> を見て下さい。</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="howto_02"></a>9.2. タグを付ける・整理する</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="howto_select"></a>何枚かの画像にまとめてタグを付けたい</span></dt>
+<dd>
+<p class="para">
+サムネイルビューで画像を選びます。Ctrl+クリックで 1 枚ずつ加え (もう一度で外す)、Shift+クリックでその間を全部、画像のない所からドラッグで囲んだ画像を選びます。Ctrl+A で全て選択です。選んだら右クリックの「タグを編集...」か [編集 | タグを編集...] で、タグを入力して Enter、何も入力していないときの Enter で決定です。選んだ枚数はステータスバーに「n 枚選択」と出ます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_tags">タグを付ける</a>、<a href="03.html#select_all">全て選択</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_folder"></a>フォルダの中の画像すべてにタグを付けたい (下のフォルダも含めて)</span></dt>
+<dd>
+<p class="para">
+ディレクトリビューでフォルダを右クリックし、「下のフォルダも含めてタグを編集...」を選びます。フォルダを開いたり画像を選んだりする必要はありません。枚数が多いときは進み具合が出て、「中止」で止められます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_tags">タグを付ける</a>、<a href="05.html#mouse_directory_edit_tags">ディレクトリビューのマウスメニュー</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_untag"></a>何枚かの画像からタグを外したい</span></dt>
+<dd>
+<p class="para">
+画像を選んで「タグを編集...」を開くと、一部の画像にだけ付いているタグは「京都 2/5」のように出ます。× を押すと選んだ画像の全部から外れ、クリックすると全部に付きます。触らなければ各画像のままです。
+</p>
+<p class="para">詳しくは <a href="02.html#index_tags">タグを付ける</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_rename"></a>タグの名前を変えたい・2 つのタグを 1 つにまとめたい</span></dt>
+<dd>
+<p class="para">
+タグタブでタグを選び、F2 か右クリックの「名前を変更...」で名前を変えます。すでにある名前にすると、1 つにまとめるか聞かれます。タグタブの中でタグをドラッグして別のタグの上で離しても、まとめられます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_rename">タグの名前の変更・統合</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_tree"></a>タグを階層に分けて整理したい (「旅行/京都」)</span></dt>
+<dd>
+<p class="para">
+タグの名前に「/」を入れると階層になります。今あるタグは、タグタブでドラッグして親にしたいタグの上で離し、「「旅行」の下へ移動」を選びます。親をクリックすると、下のタグの画像もまとめて開きます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_tag_tab">タグタブ</a> を見て下さい。</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="howto_03"></a>9.3. 画像を探す</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="howto_bytag"></a>あるタグの付いた画像を見たい</span></dt>
+<dd>
+<p class="para">
+タグタブで行の文字をクリックすると、結果のタブに表示します。中ボタンのクリックで新しいタブに開きます。コメントウィンドウやプレビューの「データ」タブのタグをクリックしても開けます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_open">開き方</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_bydate"></a>撮影した日から画像を探したい</span></dt>
+<dd>
+<p class="para">
+日付タブで年・月・日を開いてクリックします。撮影日の分からない画像 (SNS の画像など) は、「データ」タブの「日付」に日付を書くと、その日として扱われます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_date_tab">日付タブ</a>、<a href="02.html#02-07">2.7. その他</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_search"></a>いくつかの条件を組み合わせて探したい (「京都」で「猫」のない画像など)</span></dt>
+<dd>
+<p class="para">
+[ツール | 画像を検索...] で、タグ・人物・撮影日の期間を組み合わせます。タグをクリックすると条件になり、条件の札をクリックすると「除く」に変わります。よく使う条件は「保存...」で名前を付けて残せます。
+</p>
+<p class="para">詳しくは <a href="02.html#02-04">2.4. 画像の検索</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_folderopen"></a>見つけた画像のあるフォルダを開きたい</span></dt>
+<dd>
+<p class="para">
+サムネイルビューかイメージビューの右クリックの「元のフォルダを開く」です。結果のタブはファイル名だけを表示しますが、フルパスはツールチップとステータスバーに出ます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_open">開き方</a> を見て下さい。</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="howto_04"></a>9.4. 人物</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="howto_person"></a>同じ人が写っている画像を集めたい</span></dt>
+<dd>
+<p class="para">
+人物タブでその人 (名前のないグループも) をクリックします。顔を確かめたいときは右クリックの「顔を表示...」で顔の一覧ウィンドウを開きます。
+</p>
+<p class="para">詳しくは <a href="02.html#people_tab">人物タブ</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_name"></a>顔に名前を付けたい・間違った顔を外したい</span></dt>
+<dd>
+<p class="para">
+顔の一覧ウィンドウで顔を選び (Ctrl+A で全て)、「名前を付ける」「この人ではない」などを選びます。並び順を「その人らしくない順」にすると、間違って入った顔が上に来ます。1 枚の画像なら、イメージビューの右クリックの「顔の編集」(P) でも名前を付けられます。
+</p>
+<p class="para">詳しくは <a href="02.html#faces_window">顔の一覧ウィンドウ</a>、<a href="02.html#face_panel">顔パネル</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_addface"></a>見つからなかった顔を加えたい</span></dt>
+<dd>
+<p class="para">
+イメージビューの右クリックの「顔の編集」(P) で顔パネルを出し、「＋」を押して画像の上の顔をドラッグで囲みます。
+</p>
+<p class="para">詳しくは <a href="02.html#face_panel">顔パネル</a> を見て下さい。</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="howto_05"></a>9.5. 画像の整理</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="howto_dup"></a>重複している画像を探して片付けたい</span></dt>
+<dd>
+<p class="para">
+探したい画像をタブに開いて [ツール | 重複画像を探す...] を選びます。「完全に同じ」「大きさ違い」「似ている」に分けて表示し、グループごとに「残す」「削除」を確かめてゴミ箱へ移せます (ゴミ箱から戻せます)。
+</p>
+<p class="para">詳しくは <a href="03.html#find_duplicates">重複画像を探す</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_missing"></a>移動した画像のタグやコメントを付け直したい</span></dt>
+<dd>
+<p class="para">
+GImageView で移動した画像は、タグやコメントも一緒に移ります。他のプログラムで移動して見つからなくなった画像は [ツール | 行方不明の画像...] に出るので、「移動先に付け直す」などを選びます。
+</p>
+<p class="para">詳しくは <a href="02.html#index_missing">行方不明の画像</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_bookmark"></a>気になる画像に印を付けて、後で見返したい</span></dt>
+<dd>
+<p class="para">
+画像を選んで右クリックの「ブックマーク...」を選びます。メモも書けます。付けた画像はディレクトリビューの並びの「ブックマーク」タブ (星) から、付けた日ごとに開けます。
+</p>
+<p class="para">詳しくは <a href="02.html#02-08">2.8. ブックマーク</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_convert"></a>画像を別の形式で保存したい (HEIC を JPEG に、など)</span></dt>
+<dd>
+<p class="para">
+イメージウィンドウの [ファイル | 画像を保存...] (Ctrl+S) か、プレビューの右クリックの「画像を保存」で、形式と画質を選んで保存します。
+</p>
+<p class="para">詳しくは <a href="03.html#save_image">画像を保存</a> を見て下さい。</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="howto_06"></a>9.6. 使い勝手</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="howto_keys"></a>ショートカットキーを変えたい</span></dt>
+<dd>
+<p class="para">
+[編集 | キーボードショートカット...] で、行のキーをクリックして新しいキーを押します。上の欄で名前やキーで絞り込めます。
+</p>
+<p class="para">詳しくは <a href="03.html#shortcuts">キーボードショートカット</a> を見て下さい。</p>
+</dd>
+<dt><span class="term"><a name="howto_listsearch"></a>長い一覧から行を探したい</span></dt>
+<dd>
+<p class="para">
+ディレクトリビューやタグタブ、詳細表示などで Ctrl+F を押し、名前を入力します。
+</p>
+<p class="para">詳しくは <a href="02.html#list_search">一覧の検索</a> を見て下さい。</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left">
+<a accesskey="p" href="gimv_faq.html">前のページ</a>&#160;</td>
+<td width="20%" align="center"><a accesskey="h" href="index.html">ホーム</a></td>
+<td width="40%" align="right">&#160;<a accesskey="n" href="gimv_tips.html">次のページ</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left">8. GImageView FAQ&#160;</td>
+<td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
+<td width="40%" align="right">&#160;10. Tips</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

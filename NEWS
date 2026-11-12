@@ -65,6 +65,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* The HTML manual (Japanese) has screenshots, and its descriptions of
 	  the menus, toolbars, mouse menus, preferences and key bindings were
 	  changed to match this version.
+	* The HTML manual has a chapter "What Do You Want to Do?" that finds
+	  the way from what one wants to do (tagging several images at once,
+	  finding the images of a person, ...).
 	* Mouse button preferences: the side buttons "back" (button 8) and
 	  "forward" (button 9) can be assigned (nothing by default).
 	* English manual (HTML) and English plain text documents in the Help
