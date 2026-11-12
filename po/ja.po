@@ -6912,3 +6912,46 @@ msgstr "%s: クリックでこのタグの付いた人の画像を表示"
 #: src/gimv_index_faces_win.c
 msgid "\"/\" puts a tag below another: \"Family/Parents\" is below \"Family\""
 msgstr "「/」でタグを別のタグの下に置けます: 「家族/親」は「家族」の下"
+
+#: src/dirview2.c
+msgid "/Edit _Tags with the Folders in It..."
+msgstr "/下のフォルダも含めてタグを編集(_T)..."
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Writing: %'u / %'u"
+msgstr "書き込み中: %'u / %'u"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Checking: %'u / %'u"
+msgstr "確認中: %'u / %'u"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Too many tags for %s: a comment line holds up to 4096 bytes."
+msgstr "%s のタグが多すぎます: コメントの 1 行は 4096 バイトまでです。"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Stopped: %'u of %'u images done, the others are as they were."
+msgstr "中止しました: %'u / %'u 枚に書き込み、残りは元のままです。"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Looking for the images in %s and the folders in it: %'d"
+msgstr "%s と下のフォルダの画像を探しています: %'d 枚"
+
+#: src/gimv_index_tags.c
+msgid "No images in the folder."
+msgstr "フォルダに画像がありません。"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "%s and the folders in it have no images."
+msgstr "%s と下のフォルダには画像がありません。"
+
+#: src/gimv_index_tags.c
+#, c-format
+msgid "Tags of the %'u images in \"%s\" and the folders in it"
+msgstr "「%2$s」と下のフォルダの %1$'u 枚のタグ"

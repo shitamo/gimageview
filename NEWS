@@ -191,6 +191,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  tag tab (parents count and open the tags below them, renaming and
 	  dragging move the tags below along), the people tab, the search
 	  window, the data tab and the dialog of the tags of a person.
+	* "Edit Tags with the Folders in It..." of the directory view: the
+	  tags of all the images of a folder and the folders below it (looked
+	  for in a thread).  Writing many tags shows its progress and can be
+	  stopped.
 	* The tabs showing a tag (or a tag below it) take its new name when
 	  the tag is renamed, moved or merged.
 	* [Edit | Keyboard Shortcuts...]: the keys of the menus of both

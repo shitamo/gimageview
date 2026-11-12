@@ -35,6 +35,9 @@
 #include "gimv_icon_stock.h"
 #include "gimv_list_view.h"
 #include "gimv_thumb_win.h"
+#ifdef ENABLE_INDEX
+#include "gimv_index_tags.h"
+#endif
 #include "menu.h"
 #include "prefs.h"
 
@@ -80,6 +83,11 @@ static void       dirview_load_subdirs           (DirView        *dv,
 static void       cb_open_thumbnail              (DirView        *dv,
                                                   ScanSubDirType  scan_subdir,
                                                   GimvMenuItem      *menuitem);
+#ifdef ENABLE_INDEX
+static void       cb_edit_tags                   (DirView        *dv,
+                                                  guint           action,
+                                                  GimvMenuItem   *menuitem);
+#endif
 static void       cb_go_to_here                  (DirView        *dv,
                                                   guint           action,
                                                   GimvMenuItem      *menuitem);
@@ -185,6 +193,10 @@ static GimvMenuEntry dirview_popup_items [] =
    {N_("/_Load Thumbnails"),                        NULL, cb_open_thumbnail, SCAN_SUB_DIR_NONE,     NULL},
    {N_("/Load Thumbnails Re_cursively"),            NULL, cb_open_thumbnail, SCAN_SUB_DIR,          NULL},
    {N_("/Load Thumbnails Recursively in _One Tab"), NULL, cb_open_thumbnail, SCAN_SUB_DIR_ONE_TAB,  NULL},
+#ifdef ENABLE_INDEX
+   {N_("/---"),                         NULL, NULL,                0,     "<Separator>"},
+   {N_("/Edit _Tags with the Folders in It..."), NULL, cb_edit_tags,   0,     NULL},
+#endif
    {N_("/---"),                         NULL, NULL,                0,     "<Separator>"},
    {N_("/_Go Here"),                 NULL, cb_go_to_here,       0,     NULL},
    {N_("/_Refresh Tree"),               NULL, cb_refresh_dir_tree, 0,     NULL},
@@ -610,6 +622,20 @@ cb_open_thumbnail (DirView *dv, ScanSubDirType scan_subdir, GimvMenuItem *menuit
 
    g_free (path);
 }
+
+
+#ifdef ENABLE_INDEX
+/* the tags of the images of the folder and of the folders in it */
+static void
+cb_edit_tags (DirView *dv, guint action, GimvMenuItem *menuitem)
+{
+   gchar *path = dirview_get_selected_path (dv);
+
+   if (!path) return;
+   gimv_index_edit_tags_dir (dv->tw ? GTK_WINDOW (dv->tw) : NULL, path);
+   g_free (path);
+}
+#endif
 
 
 static void

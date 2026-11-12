@@ -17,4 +17,8 @@
 /* the dialog to edit the tags of the images (a list of GimvImageInfo) */
 void gimv_index_edit_tags (GtkWindow *parent, GList *infos);
 
+/* the same for the images in dir and the folders in it (looked for in a
+ * worker thread first) */
+void gimv_index_edit_tags_dir (GtkWindow *parent, const gchar *dir);
+
 #endif /* __GIMV_INDEX_TAGS_H__ */

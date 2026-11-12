@@ -28,13 +28,16 @@
 #include "gimageview.h"
 
 #include <string.h>
+#include <sys/stat.h>
 
 #include "gimv_wrap_box.h"
 #include "gimv_comment.h"
+#include "gimv_image.h"
 #include "gimv_image_info.h"
 #include "gimv_index.h"
 #include "gimv_index_db.h"
 #include "gimv_index_tags.h"
+#include "prefs.h"
 
 /* a line of the comment file is read into a buffer of this size */
 #define LINE_MAX_BYTES 4096
@@ -146,8 +149,18 @@ typedef struct {
    GtkWidget *suggest;    /* GtkListBox */
    GtkWidget *suggest_heading;
    GtkWidget *error;
-   GList     *infos;      /* GimvImageInfo, referenced */
+   GtkWidget *content;    /* what is edited: insensitive while writing */
+   GtkWidget *progress;   /* GtkProgressBar, while writing */
+   GtkWidget *cancel;     /* Cancel; Stop while writing; Close after a stop */
+   GtkWidget *ok;
+   GPtrArray *paths;      /* the images */
    guint      n_images;
+   /* writing: in steps on the main loop, not to stop the screen */
+   guint      apply_id;
+   guint      apply_pos;
+   gboolean   writing;    /* FALSE: still checking (nothing written yet) */
+   gboolean   stop;
+   GPtrArray *values;     /* the new line of each image; NULL: as it is */
    GPtrArray *items;      /* Item: the tags now (not the names) */
    GPtrArray *known;      /* the tags in use (the index), most used first */
 } TagsDialog;
@@ -177,7 +190,9 @@ find_item (TagsDialog *td, const gchar *name)
 static void
 tags_dialog_free (TagsDialog *td)
 {
-   g_list_free_full (td->infos, (GDestroyNotify) gimv_image_info_unref);
+   if (td->apply_id) g_source_remove (td->apply_id);
+   g_ptr_array_unref (td->paths);
+   if (td->values) g_ptr_array_unref (td->values);
    g_ptr_array_unref (td->items);
    g_ptr_array_unref (td->known);
    g_free (td);
@@ -227,62 +242,153 @@ add_typed (TagsDialog *td, const gchar *text)
 }
 
 
-static gboolean
-apply_tags (TagsDialog *td)
+/* the new tags line of the image at path ("" for none); NULL when it is
+ * as it was */
+static gchar *
+new_value (TagsDialog *td, const gchar *path)
 {
-   GList *node;
+   GPtrArray *tags = read_tags (path);
+   GPtrArray *result = g_ptr_array_new_with_free_func (g_free);
+   gchar *old = join_tags (tags), *value;
    guint i;
 
+   for (i = 0; i < tags->len; i++) {
+      const gchar *t = g_ptr_array_index (tags, i);
+      /* the names stay; a tag stays while it is in the dialog */
+      if (is_name (t) || find_item (td, t))
+         g_ptr_array_add (result, g_strdup (t));
+   }
+   for (i = 0; i < td->items->len; i++) {
+      Item *it = g_ptr_array_index (td->items, i);
+      if (it->n == td->n_images && !has_tag (result, it->name))
+         g_ptr_array_add (result, g_strdup (it->name));
+   }
+   value = join_tags (result);
+   g_ptr_array_unref (tags);
+   g_ptr_array_unref (result);
+   if (!strcmp (old, value)) {
+      g_free (value);
+      value = NULL;
+   }
+   g_free (old);
+   return value;
+}
+
+
+static void
+set_busy (TagsDialog *td, gboolean busy)
+{
+   gtk_widget_set_sensitive (td->content, !busy);
+   gtk_widget_set_sensitive (td->ok, !busy);
+   gtk_widget_set_visible (td->progress, busy);
+   gtk_button_set_label (GTK_BUTTON (td->cancel), busy ? _("_Stop") : _("_Cancel"));
+}
+
+
+static void
+apply_progress (TagsDialog *td)
+{
+   gchar *text = g_strdup_printf (td->writing ? _("Writing: %'u / %'u")
+                                              : _("Checking: %'u / %'u"),
+                                  td->apply_pos, td->n_images);
+   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (td->progress), text);
+   gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (td->progress),
+                                  td->n_images ? (gdouble) td->apply_pos / td->n_images : 1.0);
+   g_free (text);
+}
+
+
+/* first every new line is made and checked (nothing written when one is
+ * too long), then the comment files are written, and the index told; a
+ * few at a time */
+static gboolean
+idle_apply (gpointer data)
+{
+   TagsDialog *td = data;
+   gint64 until = g_get_monotonic_time () + 30 * 1000;
+
+   while (td->apply_pos < td->n_images && g_get_monotonic_time () < until) {
+      const gchar *path = g_ptr_array_index (td->paths, td->apply_pos);
+
+      if (td->stop) break;
+      if (!td->writing) {
+         gchar *value = new_value (td, path);
+         if (value && strlen (GIMV_INDEX_TAGS_KEY) + 2 + strlen (value) + 1 >= LINE_MAX_BYTES) {
+            gchar *name = g_path_get_basename (path), *msg;
+            msg = g_strdup_printf (_("Too many tags for %s: a comment line holds up to 4096 bytes."),
+                                   name);
+            show_error (td, msg);
+            g_free (msg);
+            g_free (name);
+            g_free (value);
+            td->apply_id = 0;
+            set_busy (td, FALSE);
+            return G_SOURCE_REMOVE;
+         }
+         g_ptr_array_add (td->values, value);
+      } else {
+         const gchar *value = g_ptr_array_index (td->values, td->apply_pos);
+         if (value) {
+            GimvImageInfo *info = gimv_image_info_get (path);
+            if (info) {
+               gimv_comment_set_value (info, GIMV_INDEX_TAGS_KEY, value);
+               gimv_index_tags_changed (path);
+               gimv_image_info_unref (info);
+            }
+         }
+      }
+      td->apply_pos++;
+   }
+
+   if (td->stop) {
+      td->apply_id = 0;
+      if (!td->writing) {
+         /* nothing written yet: back to editing */
+         set_busy (td, FALSE);
+      } else {
+         gchar *msg = g_strdup_printf (_("Stopped: %'u of %'u images done, the others "
+                                         "are as they were."),
+                                       td->apply_pos, td->n_images);
+         show_error (td, msg);
+         g_free (msg);
+         gtk_widget_set_visible (td->progress, FALSE);
+         gtk_button_set_label (GTK_BUTTON (td->cancel), _("_Close"));
+      }
+      return G_SOURCE_REMOVE;
+   }
+   if (td->apply_pos < td->n_images) {
+      apply_progress (td);
+      return G_SOURCE_CONTINUE;
+   }
+   if (!td->writing) {
+      td->writing = TRUE;
+      td->apply_pos = 0;
+      apply_progress (td);
+      return G_SOURCE_CONTINUE;
+   }
+   td->apply_id = 0;
+   gtk_window_destroy (GTK_WINDOW (td->window));
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+apply_tags (TagsDialog *td)
+{
    /* typed and not added yet */
-   {
-      const gchar *text = gtk_editable_get_text (GTK_EDITABLE (td->entry));
-      if (text && *text && !add_typed (td, text)) return FALSE;
-   }
+   const gchar *text = gtk_editable_get_text (GTK_EDITABLE (td->entry));
 
-   /* check the length of every line before writing anything */
-   for (node = td->infos; node; node = g_list_next (node)) {
-      GimvImageInfo *info = node->data;
-      GPtrArray *tags = read_tags (gimv_image_info_get_path (info));
-      GPtrArray *result = g_ptr_array_new_with_free_func (g_free);
-      gchar *value;
-      gsize len;
-
-      for (i = 0; i < tags->len; i++) {
-         const gchar *t = g_ptr_array_index (tags, i);
-         /* the names stay; a tag stays while it is in the dialog */
-         if (is_name (t) || find_item (td, t))
-            g_ptr_array_add (result, g_strdup (t));
-      }
-      for (i = 0; i < td->items->len; i++) {
-         Item *it = g_ptr_array_index (td->items, i);
-         if (it->n == td->n_images && !has_tag (result, it->name))
-            g_ptr_array_add (result, g_strdup (it->name));
-      }
-
-      value = join_tags (result);
-      len = strlen (GIMV_INDEX_TAGS_KEY) + 2 + strlen (value) + 1;
-      g_ptr_array_unref (tags);
-      g_ptr_array_unref (result);
-
-      if (len >= LINE_MAX_BYTES) {
-         show_error (td, _("Too many tags: a comment line holds up to 4096 bytes."));
-         g_free (value);
-         return FALSE;
-      }
-      g_object_set_data_full (G_OBJECT (td->window),
-                              gimv_image_info_get_path (info), value, g_free);
-   }
-
-   /* the comment files first, then the index */
-   for (node = td->infos; node; node = g_list_next (node)) {
-      GimvImageInfo *info = node->data;
-      const gchar *path = gimv_image_info_get_path (info);
-      const gchar *value = g_object_get_data (G_OBJECT (td->window), path);
-
-      gimv_comment_set_value (info, GIMV_INDEX_TAGS_KEY, value);
-      gimv_index_tags_changed (path);
-   }
-   return TRUE;
+   if (td->apply_id) return;
+   if (text && *text && !add_typed (td, text)) return;
+   show_error (td, NULL);
+   if (td->values) g_ptr_array_unref (td->values);
+   td->values = g_ptr_array_new_with_free_func (g_free);
+   td->apply_pos = 0;
+   td->writing = FALSE;
+   td->stop = FALSE;
+   set_busy (td, TRUE);
+   apply_progress (td);
+   td->apply_id = g_idle_add (idle_apply, td);
 }
 
 
@@ -552,22 +658,25 @@ cb_entry_activate (GtkEntry *entry, TagsDialog *td)
       }
       return;
    }
-   if (apply_tags (td))
-      gtk_window_destroy (GTK_WINDOW (td->window));
+   apply_tags (td);
 }
 
 
 static void
 cb_ok (GtkWidget *button, TagsDialog *td)
 {
-   if (apply_tags (td))
-      gtk_window_destroy (GTK_WINDOW (td->window));
+   apply_tags (td);
 }
 
 
 static void
 cb_cancel (GtkWidget *button, TagsDialog *td)
 {
+   /* while writing: stop after the image being written */
+   if (td->apply_id) {
+      td->stop = TRUE;
+      return;
+   }
    gtk_window_destroy (GTK_WINDOW (td->window));
 }
 
@@ -584,7 +693,7 @@ cb_key (GtkEventControllerKey *ctrl, guint keyval, guint code, GdkModifierType s
         TagsDialog *td)
 {
    if (keyval == GDK_KEY_Escape) {
-      gtk_window_destroy (GTK_WINDOW (td->window));
+      cb_cancel (NULL, td);
       return TRUE;
    }
    return FALSE;
@@ -636,46 +745,353 @@ heading (const gchar *text)
 }
 
 
+/* the tags of the images (and the names apart), with how many have each;
+ * in a worker thread for a folder */
+typedef struct {
+   GPtrArray *paths;      /* gchar* */
+   GPtrArray *items;      /* Item */
+   GPtrArray *names;      /* gchar* */
+} Scan;
+
+
+static void
+scan_free (Scan *sc)
+{
+   if (sc->paths) g_ptr_array_unref (sc->paths);
+   if (sc->items) g_ptr_array_unref (sc->items);
+   if (sc->names) g_ptr_array_unref (sc->names);
+   g_free (sc);
+}
+
+
+static Scan *
+scan_new (void)
+{
+   Scan *sc = g_new0 (Scan, 1);
+   sc->paths = g_ptr_array_new_with_free_func (g_free);
+   sc->items = g_ptr_array_new_with_free_func ((GDestroyNotify) item_free);
+   sc->names = g_ptr_array_new_with_free_func (g_free);
+   return sc;
+}
+
+
+static void
+scan_add (Scan *sc, GHashTable *items, const gchar *path)
+{
+   GPtrArray *tags = read_tags (path);
+   guint i;
+
+   g_ptr_array_add (sc->paths, g_strdup (path));
+   for (i = 0; i < tags->len; i++) {
+      const gchar *t = g_ptr_array_index (tags, i);
+      if (is_name (t)) {
+         if (t[strlen (NAME_TAG)] && !has_tag (sc->names, t + strlen (NAME_TAG)))
+            g_ptr_array_add (sc->names, g_strdup (t + strlen (NAME_TAG)));
+      } else {
+         Item *it = g_hash_table_lookup (items, t);
+         if (!it) {
+            it = g_new0 (Item, 1);
+            it->name = g_strdup (t);
+            g_ptr_array_add (sc->items, it);
+            g_hash_table_insert (items, it->name, it);
+         }
+         it->n++;
+      }
+   }
+   g_ptr_array_unref (tags);
+}
+
+
+static void dialog_open (GtkWindow *parent, Scan *sc, const gchar *title);
+
+
+/* the selected images */
 void
 gimv_index_edit_tags (GtkWindow *parent, GList *infos)
 {
-   TagsDialog *td;
-   GtkWidget *vbox, *label, *hbox, *button, *scroll;
-   GPtrArray *names;
+   Scan *sc;
+   GHashTable *items;
    GList *node;
+   gchar *title;
+
+   if (!infos) return;
+   sc = scan_new ();
+   items = g_hash_table_new (g_str_hash, g_str_equal);
+   for (node = infos; node; node = g_list_next (node))
+      scan_add (sc, items, gimv_image_info_get_path (node->data));
+   g_hash_table_unref (items);
+
+   if (sc->paths->len == 1) {
+      gchar *name = g_path_get_basename (g_ptr_array_index (sc->paths, 0));
+      title = g_strdup_printf (_("Tags of %s"), name);
+      g_free (name);
+   } else {
+      title = g_strdup_printf (_("Tags of %u images"), sc->paths->len);
+   }
+   dialog_open (parent, sc, title);
+   g_free (title);
+}
+
+
+/******************************************************************************
+ *  a folder and the folders in it
+ ******************************************************************************/
+
+typedef struct {
+   GtkWindow    *parent;
+   gchar        *dir;
+   GCancellable *cancel;
+   gint          found;      /* atomic: images found so far */
+   gboolean      read_dot, follow_link;
+   GtkWidget    *window;     /* "Looking for the images..." */
+   GtkWidget    *label;
+   guint         show_id, tick_id;
+} DirScan;
+
+
+static void
+dir_scan_free (DirScan *ds)
+{
+   if (ds->show_id) g_source_remove (ds->show_id);
+   if (ds->tick_id) g_source_remove (ds->tick_id);
+   if (ds->window) gtk_window_destroy (GTK_WINDOW (ds->window));
+   if (ds->parent) g_object_unref (ds->parent);
+   g_object_unref (ds->cancel);
+   g_free (ds->dir);
+   g_free (ds);
+}
+
+
+static gint
+cmp_path (gconstpointer a, gconstpointer b)
+{
+   return g_utf8_collate (*(const gchar * const *) a, *(const gchar * const *) b);
+}
+
+
+static void
+walk (DirScan *ds, const gchar *dir, GPtrArray *files, GHashTable *seen)
+{
+   GDir *d = g_dir_open (dir, 0, NULL);
+   const gchar *name;
+   GPtrArray *dirs;
+   struct stat st;
+   guint i;
+
+   if (!d) return;
+   /* a folder once (links going round) */
+   if (stat (dir, &st) == 0) {
+      gchar *id = g_strdup_printf ("%lu:%lu", (gulong) st.st_dev, (gulong) st.st_ino);
+      if (g_hash_table_contains (seen, id)) {
+         g_free (id);
+         g_dir_close (d);
+         return;
+      }
+      g_hash_table_add (seen, id);
+   }
+   dirs = g_ptr_array_new_with_free_func (g_free);
+   while ((name = g_dir_read_name (d))) {
+      gchar *path;
+      if (g_cancellable_is_cancelled (ds->cancel)) break;
+      if (name[0] == '.' && !ds->read_dot) continue;
+      path = g_build_filename (dir, name, NULL);
+      if (lstat (path, &st) != 0) {
+         g_free (path);
+         continue;
+      }
+      if (S_ISLNK (st.st_mode) && stat (path, &st) != 0) {
+         g_free (path);
+         continue;
+      }
+      if (S_ISDIR (st.st_mode)) {
+         gboolean link = FALSE;
+         struct stat lst;
+         if (lstat (path, &lst) == 0) link = S_ISLNK (lst.st_mode);
+         if (!link || ds->follow_link) g_ptr_array_add (dirs, path);
+         else g_free (path);
+      } else if (S_ISREG (st.st_mode) && gimv_image_detect_type_by_ext (path)) {
+         g_ptr_array_add (files, path);
+         g_atomic_int_inc (&ds->found);
+      } else {
+         g_free (path);
+      }
+   }
+   g_dir_close (d);
+   g_ptr_array_sort (dirs, cmp_path);
+   for (i = 0; i < dirs->len && !g_cancellable_is_cancelled (ds->cancel); i++)
+      walk (ds, g_ptr_array_index (dirs, i), files, seen);
+   g_ptr_array_unref (dirs);
+}
+
+
+static void
+dir_scan_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   DirScan *ds = data;
+   GPtrArray *files = g_ptr_array_new_with_free_func (g_free);
+   GHashTable *seen = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   GHashTable *items = g_hash_table_new (g_str_hash, g_str_equal);
+   Scan *sc = scan_new ();
+   guint i;
+
+   walk (ds, ds->dir, files, seen);
+   g_ptr_array_sort (files, cmp_path);
+   for (i = 0; i < files->len && !g_cancellable_is_cancelled (cancel); i++)
+      scan_add (sc, items, g_ptr_array_index (files, i));
+   g_hash_table_unref (items);
+   g_hash_table_unref (seen);
+   g_ptr_array_unref (files);
+   if (g_cancellable_is_cancelled (cancel)) {
+      scan_free (sc);
+      g_task_return_pointer (task, NULL, NULL);
+      return;
+   }
+   g_task_return_pointer (task, sc, (GDestroyNotify) scan_free);
+}
+
+
+static gboolean
+dir_scan_tick (gpointer data)
+{
+   DirScan *ds = data;
+   gchar *text = g_strdup_printf (_("Looking for the images in %s and the folders in it: %'d"),
+                                  ds->dir, g_atomic_int_get (&ds->found));
+   gtk_label_set_text (GTK_LABEL (ds->label), text);
+   g_free (text);
+   return G_SOURCE_CONTINUE;
+}
+
+
+static void
+cb_dir_scan_cancel (GtkWidget *widget, DirScan *ds)
+{
+   g_cancellable_cancel (ds->cancel);
+}
+
+
+static gboolean
+cb_dir_scan_close (GtkWindow *window, DirScan *ds)
+{
+   g_cancellable_cancel (ds->cancel);
+   return TRUE;   /* closed when the thread is over */
+}
+
+
+/* shown only when the looking takes a while */
+static gboolean
+dir_scan_show (gpointer data)
+{
+   DirScan *ds = data;
+   GtkWidget *vbox, *button, *spinner;
+
+   ds->show_id = 0;
+   ds->window = gtk_window_new ();
+   gtk_window_set_title (GTK_WINDOW (ds->window), _("Edit Tags"));
+   gtk_window_set_modal (GTK_WINDOW (ds->window), TRUE);
+   gtk_window_set_default_size (GTK_WINDOW (ds->window), 380, -1);
+   if (ds->parent) gtk_window_set_transient_for (GTK_WINDOW (ds->window), ds->parent);
+   g_signal_connect (ds->window, "close-request", G_CALLBACK (cb_dir_scan_close), ds);
+   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
+   gtk_widget_set_margin_start (vbox, 12);
+   gtk_widget_set_margin_end (vbox, 12);
+   gtk_widget_set_margin_top (vbox, 12);
+   gtk_widget_set_margin_bottom (vbox, 12);
+   gtk_window_set_child (GTK_WINDOW (ds->window), vbox);
+   spinner = gtk_spinner_new ();
+   gtk_spinner_start (GTK_SPINNER (spinner));
+   gtk_box_append (GTK_BOX (vbox), spinner);
+   ds->label = gtk_label_new (NULL);
+   gtk_label_set_wrap (GTK_LABEL (ds->label), TRUE);
+   gtk_label_set_wrap_mode (GTK_LABEL (ds->label), PANGO_WRAP_WORD_CHAR);
+   gtk_box_append (GTK_BOX (vbox), ds->label);
+   button = gtk_button_new_with_mnemonic (_("_Cancel"));
+   gtk_widget_set_halign (button, GTK_ALIGN_END);
+   g_signal_connect (button, "clicked", G_CALLBACK (cb_dir_scan_cancel), ds);
+   gtk_box_append (GTK_BOX (vbox), button);
+   dir_scan_tick (ds);
+   ds->tick_id = g_timeout_add (200, dir_scan_tick, ds);
+   gtk_window_present (GTK_WINDOW (ds->window));
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_dir_scanned (GObject *source, GAsyncResult *res, gpointer data)
+{
+   DirScan *ds = data;
+   Scan *sc = g_task_propagate_pointer (G_TASK (res), NULL);
+
+   if (sc && sc->paths->len == 0) {
+      GtkAlertDialog *dialog = gtk_alert_dialog_new ("%s", _("No images in the folder."));
+      gchar *detail = g_strdup_printf (_("%s and the folders in it have no images."), ds->dir);
+      gtk_alert_dialog_set_detail (dialog, detail);
+      gtk_alert_dialog_show (dialog, ds->parent);
+      g_object_unref (dialog);
+      g_free (detail);
+      scan_free (sc);
+   } else if (sc) {
+      gchar *base = g_path_get_basename (ds->dir);
+      gchar *title = g_strdup_printf (_("Tags of the %'u images in \"%s\" and the folders in it"),
+                                      sc->paths->len, base);
+      dialog_open (ds->parent, sc, title);
+      g_free (title);
+      g_free (base);
+   }
+   dir_scan_free (ds);
+}
+
+
+/* the images in dir and the folders in it */
+void
+gimv_index_edit_tags_dir (GtkWindow *parent, const gchar *dir)
+{
+   DirScan *ds;
+   GTask *task;
+
+   g_return_if_fail (dir && *dir);
+   ds = g_new0 (DirScan, 1);
+   ds->parent = parent ? g_object_ref (parent) : NULL;
+   ds->dir = g_strdup (dir);
+   ds->cancel = g_cancellable_new ();
+   ds->read_dot = conf.read_dotfile;
+   ds->follow_link = conf.recursive_follow_link;
+   ds->show_id = g_timeout_add (300, dir_scan_show, ds);
+
+   task = g_task_new (NULL, ds->cancel, cb_dir_scanned, ds);
+   g_task_set_task_data (task, ds, NULL);
+   g_task_run_in_thread (task, dir_scan_thread);
+   g_object_unref (task);
+}
+
+
+static gboolean
+cb_close_request (GtkWindow *window, TagsDialog *td)
+{
+   /* while writing: stopped, not closed half way */
+   if (td->apply_id) {
+      td->stop = TRUE;
+      return TRUE;
+   }
+   return FALSE;
+}
+
+
+static void
+dialog_open (GtkWindow *parent, Scan *sc, const gchar *title)
+{
+   TagsDialog *td;
+   GtkWidget *vbox, *label, *hbox, *button, *scroll, *outer;
+   GPtrArray *names;
    gchar *text;
    guint i;
 
-   if (!infos) return;
-
    td = g_new0 (TagsDialog, 1);
-   for (node = infos; node; node = g_list_next (node))
-      td->infos = g_list_append (td->infos, gimv_image_info_ref (node->data));
-   td->n_images = g_list_length (td->infos);
-   td->items = g_ptr_array_new_with_free_func ((GDestroyNotify) item_free);
+   td->paths = g_steal_pointer (&sc->paths);
+   td->n_images = td->paths->len;
+   td->items = g_steal_pointer (&sc->items);
+   names = g_steal_pointer (&sc->names);
+   scan_free (sc);
    td->known = known_tags ();
-
-   /* the tags of the images, with how many have each; the names apart */
-   names = g_ptr_array_new_with_free_func (g_free);
-   for (node = td->infos; node; node = g_list_next (node)) {
-      GPtrArray *tags = read_tags (gimv_image_info_get_path (node->data));
-      for (i = 0; i < tags->len; i++) {
-         const gchar *t = g_ptr_array_index (tags, i);
-         if (is_name (t)) {
-            if (t[strlen (NAME_TAG)] && !has_tag (names, t + strlen (NAME_TAG)))
-               g_ptr_array_add (names, g_strdup (t + strlen (NAME_TAG)));
-         } else {
-            Item *it = find_item (td, t);
-            if (!it) {
-               it = g_new0 (Item, 1);
-               it->name = g_strdup (t);
-               g_ptr_array_add (td->items, it);
-            }
-            it->n++;
-         }
-      }
-      g_ptr_array_unref (tags);
-   }
 
    td->window = gtk_window_new ();
    gtk_window_set_title (GTK_WINDOW (td->window), _("Edit Tags"));
@@ -684,28 +1100,24 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
       gtk_window_set_transient_for (GTK_WINDOW (td->window), parent);
    gtk_window_set_default_size (GTK_WINDOW (td->window), 440, -1);
    g_signal_connect (td->window, "destroy", G_CALLBACK (cb_destroy), td);
+   g_signal_connect (td->window, "close-request", G_CALLBACK (cb_close_request), td);
    {
       GtkEventController *keys = gtk_event_controller_key_new ();
       g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_key), td);
       gtk_widget_add_controller (td->window, keys);
    }
 
-   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-   gtk_widget_set_margin_start (vbox, 12);
-   gtk_widget_set_margin_end (vbox, 12);
-   gtk_widget_set_margin_top (vbox, 12);
-   gtk_widget_set_margin_bottom (vbox, 12);
-   gtk_window_set_child (GTK_WINDOW (td->window), vbox);
+   outer = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+   gtk_widget_set_margin_start (outer, 12);
+   gtk_widget_set_margin_end (outer, 12);
+   gtk_widget_set_margin_top (outer, 12);
+   gtk_widget_set_margin_bottom (outer, 12);
+   gtk_window_set_child (GTK_WINDOW (td->window), outer);
+   /* what is edited (insensitive while writing) */
+   vbox = td->content = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+   gtk_box_append (GTK_BOX (outer), vbox);
 
-   if (td->n_images == 1) {
-      gchar *name = g_path_get_basename (gimv_image_info_get_path (td->infos->data));
-      text = g_strdup_printf (_("Tags of %s"), name);
-      g_free (name);
-   } else {
-      text = g_strdup_printf (_("Tags of %u images"), td->n_images);
-   }
-   label = gtk_label_new (text);
-   g_free (text);
+   label = gtk_label_new (title);
    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
    gtk_label_set_wrap (GTK_LABEL (label), TRUE);
    gtk_box_append (GTK_BOX (vbox), label);
@@ -770,18 +1182,23 @@ gimv_index_edit_tags (GtkWindow *parent, GList *infos)
    gtk_label_set_wrap (GTK_LABEL (td->error), TRUE);
    gtk_widget_add_css_class (td->error, "error");
    gtk_widget_set_visible (td->error, FALSE);
-   gtk_box_append (GTK_BOX (vbox), td->error);
+   gtk_box_append (GTK_BOX (outer), td->error);
+
+   td->progress = gtk_progress_bar_new ();
+   gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (td->progress), TRUE);
+   gtk_widget_set_visible (td->progress, FALSE);
+   gtk_box_append (GTK_BOX (outer), td->progress);
 
    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
    gtk_widget_set_halign (hbox, GTK_ALIGN_END);
    gtk_widget_set_margin_top (hbox, 6);
-   gtk_box_append (GTK_BOX (vbox), hbox);
+   gtk_box_append (GTK_BOX (outer), hbox);
 
-   button = gtk_button_new_with_mnemonic (_("_Cancel"));
+   button = td->cancel = gtk_button_new_with_mnemonic (_("_Cancel"));
    g_signal_connect (button, "clicked", G_CALLBACK (cb_cancel), td);
    gtk_box_append (GTK_BOX (hbox), button);
 
-   button = gtk_button_new_with_mnemonic (_("_OK"));
+   button = td->ok = gtk_button_new_with_mnemonic (_("_OK"));
    gtk_widget_add_css_class (button, "suggested-action");
    g_signal_connect (button, "clicked", G_CALLBACK (cb_ok), td);
    gtk_box_append (GTK_BOX (hbox), button);
