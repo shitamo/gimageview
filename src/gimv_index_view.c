@@ -1379,6 +1379,53 @@ show_page (GimvThumbWin *tw, GtkWidget *container)
 }
 
 
+/* the index views of all the windows */
+static GList *all_views = NULL;
+
+#define TAB_KEY  "gimv-index-tab-key"
+#define TAB_TYPE "gimv-index-tab-type"
+
+/* the tabs showing a tag renamed (old, or a tag below it, of the tab
+ * type type) get the new name in their title; the index views showing it
+ * keep the new key */
+static void
+retitle_tabs (GimvIndexTabType type, const gchar *old, const gchar *new)
+{
+   gsize len = strlen (old);
+   GList *node;
+
+   for (node = gimv_thumb_view_get_list (); node; node = g_list_next (node)) {
+      GimvThumbView *tv = node->data;
+      const gchar *key = g_object_get_data (G_OBJECT (tv), TAB_KEY);
+      gint t = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tv), TAB_TYPE)) - 1;
+      gchar *to, *title;
+
+      if (!key || t != (gint) type) continue;
+      if (strncmp (key, old, len) || (key[len] && key[len] != '/')) continue;
+      to = g_strconcat (new, key + len, NULL);
+      if (type == GIMV_INDEX_TAB_PERSON)
+         /* "t:<tag>" of the people tab */
+         title = g_strdup_printf (_("%s (People)"), to + 2);
+      else
+         title = tag_title (to);
+      gimv_thumb_view_reset_tab_label (tv, title);
+      g_free (title);
+      g_object_set_data_full (G_OBJECT (tv), TAB_KEY, to, g_free);
+   }
+   for (node = all_views; node; node = g_list_next (node)) {
+      IndexView *iv = node->data;
+      if (iv->type != type || !iv->shown_key) continue;
+      if (strncmp (iv->shown_key, old, len) || (iv->shown_key[len] && iv->shown_key[len] != '/'))
+         continue;
+      {
+         gchar *to = g_strconcat (new, iv->shown_key + len, NULL);
+         g_free (iv->shown_key);
+         iv->shown_key = to;
+      }
+   }
+}
+
+
 static void
 open_request_free (OpenRequest *req)
 {
@@ -1442,6 +1489,9 @@ open_files (IndexView *iv, OpenRequest *req, FileList *fl)
       title = g_strdup_printf (_("%s (Date)"), req->key);
    gimv_thumb_view_reset_tab_label (tv, title);
    g_free (title);
+   /* what it shows, for a new title when the tag is renamed */
+   g_object_set_data_full (G_OBJECT (tv), TAB_KEY, g_strdup (req->key), g_free);
+   g_object_set_data (G_OBJECT (tv), TAB_TYPE, GINT_TO_POINTER (req->type + 1));
 
    open_image_files_in_thumbnail_view (files, iv->tw, tv);
    files_loader_delete (files);
@@ -1963,9 +2013,26 @@ static void
 cb_person_tag_renamed (GObject *source, GAsyncResult *res, gpointer data)
 {
    GtkWidget *tree = data;   /* held until now */
+   const gchar *both = g_object_get_data (G_OBJECT (tree), "gimv-renamed");
    GError *error = NULL;
 
-   if (!gimv_index_faces_edit_finish (res, NULL, &error)) {
+   if (gimv_index_faces_edit_finish (res, NULL, &error)) {
+      gchar **v = both ? g_strsplit (both, "\n", 2) : NULL;
+      if (v && v[0] && v[1]) {
+         /* the tag tab (",person/<tag>") and the people tab ("t:<tag>") */
+         gchar *o = g_strdup_printf ("%cperson/%s", AUTO_KEY_MARK, v[0]);
+         gchar *n = g_strdup_printf ("%cperson/%s", AUTO_KEY_MARK, v[1]);
+         retitle_tabs (GIMV_INDEX_TAB_TAG, o, n);
+         g_free (o);
+         g_free (n);
+         o = g_strconcat ("t:", v[0], NULL);
+         n = g_strconcat ("t:", v[1], NULL);
+         retitle_tabs (GIMV_INDEX_TAB_PERSON, o, n);
+         g_free (o);
+         g_free (n);
+      }
+      g_strfreev (v);
+   } else {
       GtkAlertDialog *dialog = gtk_alert_dialog_new ("%s", _("The tag could not be renamed."));
       GtkRoot *root = gtk_widget_get_root (tree);
       gtk_alert_dialog_set_detail (dialog, error ? error->message : NULL);
@@ -1982,6 +2049,7 @@ static void
 do_rename_person_tag (IndexView *iv, const gchar *old, const gchar *new)
 {
    gchar *both = g_strconcat (old, "\n", new, NULL);
+   g_object_set_data_full (G_OBJECT (iv->tree), "gimv-renamed", g_strdup (both), g_free);
    gimv_index_faces_edit_async (GIMV_INDEX_FACES_RENAME_PERSON_TAG, NULL, both, 0,
                                 cb_person_tag_renamed, g_object_ref (iv->tree));
    g_free (both);
@@ -2079,6 +2147,7 @@ do_rename_tree (IndexView *iv, const gchar *old, const gchar *new)
       g_free (to);
    }
    g_ptr_array_unref (below);
+   retitle_tabs (GIMV_INDEX_TAB_TAG, old, new);
 }
 
 
@@ -2791,6 +2860,7 @@ cb_destroy (GtkWidget *widget, IndexView *iv)
    g_free (iv->click_key);
    g_free (iv->shown_key);
    g_free (iv->editing_key);
+   all_views = g_list_remove (all_views, iv);
    g_free (iv);
 }
 
@@ -2893,6 +2963,8 @@ index_view_new (GimvThumbWin *tw, GimvIndexTabType type)
       { "no-folder-tag", cb_action_no_folder_tag, NULL, NULL, NULL },
    };
    IndexView *iv = g_new0 (IndexView, 1);
+
+   all_views = g_list_prepend (all_views, iv);
    GtkGesture *click;
    GSimpleActionGroup *group;
 

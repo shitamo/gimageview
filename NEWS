@@ -191,6 +191,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  tag tab (parents count and open the tags below them, renaming and
 	  dragging move the tags below along), the people tab, the search
 	  window, the data tab and the dialog of the tags of a person.
+	* The tabs showing a tag (or a tag below it) take its new name when
+	  the tag is renamed, moved or merged.
 	* [Edit | Keyboard Shortcuts...]: the keys of the menus of both
 	  windows and the other keys of keyconf, changed by pressing the new
 	  key, at once and kept; a key of another item of the same window is
