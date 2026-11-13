@@ -105,6 +105,8 @@ struct GimvDuplWinPriv_Tag
    /* the pictures: "size:path" -> GdkTexture (or a GdkPaintable) */
    GHashTable    *textures;
    GHashTable    *waiting;     /* "size:path" -> GSList of GWeakRef * */
+   GHashTable    *pending;     /* "size:path" -> PicJob * queued or being read */
+   guint          pic_serial;  /* the order of the requests */
    GThreadPool   *pool;
 
    /* widgets */
@@ -251,8 +253,24 @@ typedef struct {
    gchar     *key;
    gchar     *path;
    gint       size;
+   guint      serial;   /* the last asked first */
+   gint       cancelled;/* atomic: no picture wants it any more */
+   gboolean   skipped;  /* not read, being cancelled */
    GdkPixbuf *pixbuf;   /* the result */
 } PicJob;
+
+
+/* Only the pictures on the screen are read (asked when mapped, cancelled
+ * when unmapped: the list binds far more rows than it shows), the cards
+ * before the rows, in the order asked. */
+static gint
+pic_job_cmp (gconstpointer a, gconstpointer b, gpointer data)
+{
+   const PicJob *ja = a, *jb = b;
+
+   if (ja->size != jb->size) return ja->size > jb->size ? -1 : 1;
+   return ja->serial < jb->serial ? -1 : ja->serial > jb->serial ? 1 : 0;
+}
 
 static void
 pic_job_free (PicJob *job)
@@ -282,6 +300,24 @@ idle_pic_done (gpointer data)
    GSList *list, *node;
 
    if (!sw) goto out;
+
+   if (g_hash_table_lookup (sw->priv->pending, job->key) == job)
+      g_hash_table_remove (sw->priv->pending, job->key);
+   if (job->skipped) {
+      /* cancelled, but wanted again meanwhile: asked again */
+      GSList *again = g_hash_table_lookup (sw->priv->waiting, job->key);
+      if (again && !g_hash_table_contains (sw->priv->pending, job->key)) {
+         PicJob *j = g_new0 (PicJob, 1);
+         j->shared = shared_ref (sw->priv->shared);
+         j->key    = g_strdup (job->key);
+         j->path   = g_strdup (job->path);
+         j->size   = job->size;
+         j->serial = ++sw->priv->pic_serial;
+         g_hash_table_insert (sw->priv->pending, g_strdup (j->key), j);
+         g_thread_pool_push (sw->priv->pool, j, NULL);
+      }
+      goto out;
+   }
 
    if (job->pixbuf)
       paintable = GDK_PAINTABLE (gdk_texture_new_for_pixbuf (job->pixbuf));
@@ -314,7 +350,9 @@ pic_thread (gpointer data, gpointer user_data)
 {
    PicJob *job = data;
 
-   if (job->shared->sw) {
+   if (g_atomic_int_get (&job->cancelled)) {
+      job->skipped = TRUE;
+   } else if (job->shared->sw) {
       gint w = 0, h = 0;
       GdkPixbuf *px;
 
@@ -334,19 +372,149 @@ pic_thread (gpointer data, gpointer user_data)
 }
 
 
+/* picture (NULL: the dead ones only) wants key no more; nobody left: its
+ * job is cancelled */
+static void
+drop_waiter (GimvDuplWin *sw, const gchar *key, GtkWidget *picture)
+{
+   GSList *list, *node, *keep = NULL;
+   gpointer old_key;
+   PicJob *job;
+
+   /* out of the table (its list is freed here) */
+   if (!g_hash_table_steal_extended (sw->priv->waiting, key, &old_key, (gpointer *) &list))
+      return;
+   for (node = list; node; node = g_slist_next (node)) {
+      GtkWidget *w = g_weak_ref_get (node->data);
+      if (w && w != picture)
+         keep = g_slist_prepend (keep, node->data);
+      else
+         weak_ref_free (node->data);
+      if (w) g_object_unref (w);
+   }
+   g_slist_free (list);
+   if (keep) {
+      g_hash_table_insert (sw->priv->waiting, old_key, keep);
+      return;
+   }
+   job = g_hash_table_lookup (sw->priv->pending, old_key);
+   if (job) g_atomic_int_set (&job->cancelled, 1);
+   g_free (old_key);
+}
+
+
+/* the cards of a group shown before are gone: their pictures not read */
+static void
+drop_dead_waiters (GimvDuplWin *sw)
+{
+   GPtrArray *keys = g_ptr_array_new_with_free_func (g_free);
+   GHashTableIter it;
+   gpointer key;
+   guint i;
+
+   g_hash_table_iter_init (&it, sw->priv->waiting);
+   while (g_hash_table_iter_next (&it, &key, NULL))
+      g_ptr_array_add (keys, g_strdup (key));
+   for (i = 0; i < keys->len; i++)
+      drop_waiter (sw, g_ptr_array_index (keys, i), NULL);
+   g_ptr_array_unref (keys);
+}
+
+
+/* the picture wanted by picture read (in the queue) */
+static void
+request_picture (GimvDuplWin *sw, GtkWidget *picture)
+{
+   const gchar *want = g_object_get_data (G_OBJECT (picture), "gimv-dupl-want");
+   const gchar *path = g_object_get_data (G_OBJECT (picture), "gimv-dupl-path");
+   gint size = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (picture), "gimv-dupl-size"));
+   gchar *key;
+   GSList *list, *node;
+   GWeakRef *ref;
+   PicJob *job;
+
+   if (!want || !path || g_hash_table_contains (sw->priv->textures, want)) return;
+   key = g_strdup (want);
+
+   /* asked by this picture already */
+   list = g_hash_table_lookup (sw->priv->waiting, key);
+   for (node = list; node; node = g_slist_next (node)) {
+      GtkWidget *w = g_weak_ref_get (node->data);
+      if (w) g_object_unref (w);
+      if (w == picture) { g_free (key); return; }
+   }
+
+   ref = g_new0 (GWeakRef, 1);
+   g_weak_ref_init (ref, picture);
+   if (g_hash_table_lookup_extended (sw->priv->waiting, key, NULL, (gpointer *) &list)) {
+      list = g_slist_prepend (list, ref);
+      g_hash_table_steal (sw->priv->waiting, key);
+      g_hash_table_insert (sw->priv->waiting, key, list);
+      return;   /* asked already */
+   }
+   g_hash_table_insert (sw->priv->waiting, g_strdup (key), g_slist_prepend (NULL, ref));
+
+   job = g_hash_table_lookup (sw->priv->pending, key);
+   if (job && !g_atomic_int_get (&job->cancelled)) {
+      g_free (key);
+      return;   /* being read */
+   }
+   if (job) {
+      /* cancelled but maybe not taken yet: wanted again (else read again
+       * when it comes back skipped, see idle_pic_done) */
+      g_atomic_int_set (&job->cancelled, 0);
+      g_free (key);
+      return;
+   }
+   job = g_new0 (PicJob, 1);
+   job->shared = shared_ref (sw->priv->shared);
+   job->key    = key;
+   job->path   = g_strdup (path);
+   job->size   = size;
+   job->serial = ++sw->priv->pic_serial;
+   g_hash_table_insert (sw->priv->pending, g_strdup (key), job);
+   g_thread_pool_push (sw->priv->pool, job, NULL);
+}
+
+
+static void
+cb_picture_map (GtkWidget *picture, GimvDuplWin *sw)
+{
+   if (sw->priv) request_picture (sw, picture);
+}
+
+
+static void
+cb_picture_unmap (GtkWidget *picture, GimvDuplWin *sw)
+{
+   const gchar *want = g_object_get_data (G_OBJECT (picture), "gimv-dupl-want");
+
+   /* scrolled away (or the window closing): not read if not begun */
+   if (sw->priv && want) drop_waiter (sw, want, picture);
+}
+
+
 /* the picture of path in the size (a box), when it is read */
 static void
 set_picture (GimvDuplWin *sw, GtkWidget *picture, const gchar *path, gint size)
 {
    gchar *key = g_strdup_printf ("%d:%s", size, path);
    GdkPaintable *paintable = g_hash_table_lookup (sw->priv->textures, key);
-   GSList *list;
-   GWeakRef *ref;
+   const gchar *old = g_object_get_data (G_OBJECT (picture), "gimv-dupl-want");
 
-   g_object_set_data_full (G_OBJECT (picture), "gimv-dupl-want", g_strdup (key), g_free);
+   /* a row of the list used again for another group */
+   if (old && strcmp (old, key))
+      drop_waiter (sw, old, picture);
+   g_object_set_data_full (G_OBJECT (picture), "gimv-dupl-want", key, g_free);
+   g_object_set_data_full (G_OBJECT (picture), "gimv-dupl-path", g_strdup (path), g_free);
+   g_object_set_data (G_OBJECT (picture), "gimv-dupl-size", GINT_TO_POINTER (size));
+   if (!g_object_get_data (G_OBJECT (picture), "gimv-dupl-hooked")) {
+      g_object_set_data (G_OBJECT (picture), "gimv-dupl-hooked", GINT_TO_POINTER (1));
+      g_signal_connect (picture, "map", G_CALLBACK (cb_picture_map), sw);
+      g_signal_connect (picture, "unmap", G_CALLBACK (cb_picture_unmap), sw);
+   }
    if (paintable) {
       gtk_picture_set_paintable (GTK_PICTURE (picture), paintable);
-      g_free (key);
       return;
    }
 
@@ -359,24 +527,8 @@ set_picture (GimvDuplWin *sw, GtkWidget *picture, const gchar *path, gint size)
       gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (icon));
       g_object_unref (icon);
    }
-
-   ref = g_new0 (GWeakRef, 1);
-   g_weak_ref_init (ref, picture);
-   if (g_hash_table_lookup_extended (sw->priv->waiting, key, NULL, (gpointer *) &list)) {
-      list = g_slist_prepend (list, ref);
-      g_hash_table_steal (sw->priv->waiting, key);
-      g_hash_table_insert (sw->priv->waiting, key, list);
-      return;   /* asked already */
-   }
-   g_hash_table_insert (sw->priv->waiting, g_strdup (key), g_slist_prepend (NULL, ref));
-   {
-      PicJob *job = g_new0 (PicJob, 1);
-      job->shared = shared_ref (sw->priv->shared);
-      job->key    = key;
-      job->path   = g_strdup (path);
-      job->size   = size;
-      g_thread_pool_push (sw->priv->pool, job, NULL);
-   }
+   if (gtk_widget_get_mapped (picture))
+      request_picture (sw, picture);
 }
 
 
@@ -868,6 +1020,7 @@ show_group (GimvDuplWin *sw, gint index)
 
    while ((child = gtk_widget_get_first_child (priv->cards)))
       gtk_flow_box_remove (GTK_FLOW_BOX (priv->cards), child);
+   drop_dead_waiters (sw);
 
    priv->current = index;
    gtk_widget_set_visible (priv->more_label, FALSE);
@@ -1910,8 +2063,20 @@ gimv_dupl_win_dispose (GObject *object)
       g_clear_pointer (&priv->removed, g_hash_table_destroy);
       g_clear_pointer (&priv->textures, g_hash_table_destroy);
       g_clear_pointer (&priv->waiting, g_hash_table_destroy);
-      if (priv->pool) g_thread_pool_free (priv->pool, TRUE, FALSE);
+      /* The jobs left are not read, but run (and freed by idle_pic_done,
+       * the window gone): g_thread_pool_free (immediate) would give its
+       * item free function the pool's own wake-up markers too (a crash
+       * closing the window while the pictures were being read). */
+      if (priv->pending) {
+         GHashTableIter it;
+         gpointer job;
+         g_hash_table_iter_init (&it, priv->pending);
+         while (g_hash_table_iter_next (&it, NULL, &job))
+            g_atomic_int_set (&((PicJob *) job)->cancelled, 1);
+      }
+      if (priv->pool) g_thread_pool_free (priv->pool, FALSE, FALSE);
       priv->pool = NULL;
+      g_clear_pointer (&priv->pending, g_hash_table_destroy);
       g_clear_object (&priv->group_store);
       g_free (priv);
       sw->priv = NULL;
@@ -1954,9 +2119,9 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    priv->removed  = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
    priv->textures = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
    priv->waiting  = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, waiting_free);
-   priv->pool     = g_thread_pool_new_full (pic_thread, NULL,
-                                            (GDestroyNotify) pic_job_free,
-                                            2, FALSE, NULL);
+   priv->pending  = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   priv->pool     = g_thread_pool_new (pic_thread, NULL, 2, FALSE, NULL);
+   g_thread_pool_set_sort_function (priv->pool, pic_job_cmp, NULL);
 
    gtk_window_set_title (GTK_WINDOW (sw), _("Find Duplicates - Results"));
    {
