@@ -98,6 +98,19 @@ prefs_ui_index (void)
    gtk_widget_set_size_request (frame, -1, 240);
    gimv_box_pack_start (GTK_BOX (main_vbox), frame, FALSE, FALSE, 0);
 
+   toggle = gtkutil_create_check_button (_("Look for the same files (for Find Duplicates)"),
+                                         conf.index_duplicates,
+                                         gtkutil_get_data_from_toggle_cb,
+                                         &config_changed->index_duplicates);
+   gtk_widget_set_margin_top (toggle, 8);
+   gimv_box_pack_start (GTK_BOX (main_vbox), toggle, FALSE, FALSE, 0);
+   gimv_box_pack_start (GTK_BOX (main_vbox),
+                        note_label (_("The images of the same size as another one are read "
+                                      "after the rest, so that the same files in different "
+                                      "folders are found at once. The first time it may "
+                                      "take hours (it goes on at the next start)."), TRUE),
+                        FALSE, FALSE, 0);
+
    gimv_box_pack_start (GTK_BOX (main_vbox),
                         note_label (_("New images, automatic tags, faces and missing images "
                                       "are set in the pages below this one."), TRUE),
@@ -391,6 +404,7 @@ prefs_ui_index_apply (GimvPrefsWinAction action)
        || dest->index_auto_camera != src->index_auto_camera
        || dest->index_auto_shape  != src->index_auto_shape
        || dest->index_auto_keyword != src->index_auto_keyword
+       || dest->index_duplicates != src->index_duplicates
        || g_strcmp0 (dest->index_auto_folder_exclude ? dest->index_auto_folder_exclude : "",
                      src->index_auto_folder_exclude ? src->index_auto_folder_exclude : "")
        || g_strcmp0 (dest->index_dirs, src->index_dirs))

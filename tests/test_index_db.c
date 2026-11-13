@@ -191,6 +191,7 @@ test_upgrade (void)
    g_assert_true (has_table (db, "tags"));
    g_assert_true (has_table (db, "faces"));
    g_assert_true (has_table (db, "person_tags"));
+   g_assert_true (has_table (db, "hashes"));
    g_assert_cmpint (query_int (db, "SELECT count(*) FROM faces WHERE ignored = 0"), ==, 0);
    /* the rows kept */
    date = query_text (db, "SELECT date FROM files WHERE name = 'a.jpg'");

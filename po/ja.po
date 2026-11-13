@@ -6955,3 +6955,134 @@ msgstr "%s と下のフォルダには画像がありません。"
 #, c-format
 msgid "Tags of the %'u images in \"%s\" and the folders in it"
 msgstr "「%2$s」と下のフォルダの %1$'u 枚のタグ"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Index: same files %d%% (%s)"
+msgstr "索引: 同じファイル %d%% (%s)"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Index: same files %d%%"
+msgstr "索引: 同じファイル %d%%"
+
+#: src/gimv_index.c
+#, c-format
+msgid "Looking for the same files (Find Duplicates): %'u of the %'u images of the same size as another one read."
+msgstr "同じファイルを探しています (重複画像検索): ほかの画像と同じ大きさの %2$'u 枚のうち %1$'u 枚を読みました。"
+
+#: src/gimv_index.c
+#, c-format
+msgid ""
+"\n"
+"This time: since %s."
+msgstr ""
+"\n"
+"今回: %s から。"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "Look for the same files (for Find Duplicates)"
+msgstr "同じファイルを探しておく (重複画像検索のため)"
+
+#: src/prefs_ui/prefs_ui_index.c
+msgid "The images of the same size as another one are read after the rest, so that the same files in different folders are found at once. The first time it may take hours (it goes on at the next start)."
+msgstr "ほかの画像と同じ大きさの画像を、ほかの処理のあとで読みます。別のフォルダにある同じファイルをすぐに見つけられるようになります。初回は何時間もかかることがあります (次の起動で続きから進みます)。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Moves the images marked Delete of all the %u groups to the trash: %u images (%s)"
+msgstr "全部の %u グループで「削除」にした画像をゴミ箱へ移動します: %u 枚 (%s)"
+
+#: src/gimv_dupl_win.c
+msgid "The index cannot be read (it is not made yet?)."
+msgstr "索引を読めません (まだ作られていない?)。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "%s: the index is still looking for the same files (%d%%); open this again later for the rest"
+msgstr "%s: 索引はまだ同じファイルを探しています (%d%%)。残りはあとで開き直してください"
+
+#: src/gimv_dupl_win.c
+msgid "The index has not looked for the same files yet."
+msgstr "索引はまだ同じファイルを探していません。"
+
+#: src/gimv_dupl_win.c
+msgid "The index does not look for the same files: turn on \"Look for the same files\" in [Preferences | Index]."
+msgstr "索引は同じファイルを探していません: [設定 | 索引] の「同じファイルを探しておく」を入れてください。"
+
+#: src/gimv_dupl_win.c
+msgid "Reading the index..."
+msgstr "索引を読んでいます..."
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Find Duplicates - \"%s\" and the folders in it"
+msgstr "重複画像検索 - 「%s」と下のフォルダ"
+
+#: src/gimv_dupl_win.c
+msgid "Find Duplicates - the same files as the images selected"
+msgstr "重複画像検索 - 選んだ画像と同じファイル"
+
+#: src/gimv_dupl_win.c
+msgid "Find Duplicates - all the indexed images"
+msgstr "重複画像検索 - 索引の全部の画像"
+
+#: src/gimv_dupl_win.c
+msgid "Click to open it"
+msgstr "クリックで開きます"
+
+#: src/gimv_dupl_win.c
+msgid "not the same as the image kept any more (changed or gone): left as it is"
+msgstr "残す画像と同じではなくなっていました (変更か削除): そのままにしました"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Moved to the trash: %u images (the comments and bookmarks of %u to the images kept)"
+msgstr "ゴミ箱へ移動: %u 枚 (%u 枚のコメントとブックマークは残す画像へ)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Move %u images (%s) of %u groups to the trash?"
+msgstr "%3$u グループの %1$u 枚 (%2$s) をゴミ箱へ移動しますか？"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "%u groups with every image marked to delete are left out: move those one group at a time."
+msgstr "すべての画像が削除になっている %u グループは含めていません: 1 グループずつ移動してください。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "%u of them have comments (tags) or bookmarks. They can go to the image kept of the group: a comment moves when that one has none, else its tags are added to those of that one; a bookmark moves when that one has none."
+msgstr "そのうち %u 枚にコメント (タグ) かブックマークがあります。グループの残す画像に移せます: 残す画像にコメントがなければコメントごと移し、あればタグだけを加えます。ブックマークは残す画像になければ移します。"
+
+#: src/gimv_dupl_win.c
+msgid "Each one is compared with the image kept again first. They can be put back from the trash."
+msgstr "移動の前に、もう一度残す画像と比べます。ゴミ箱から元に戻せます。"
+
+#: src/gimv_dupl_win.c
+msgid "Move to Trash _Only"
+msgstr "移さずにゴミ箱へ移動(_O)"
+
+#: src/gimv_dupl_win.c
+msgid "_Move Them to the Kept Ones and Trash"
+msgstr "残す画像に移してゴミ箱へ移動(_M)"
+
+#: src/gimv_dupl_win.c
+msgid "Looking at the images to delete..."
+msgstr "削除する画像を調べています..."
+
+#: src/gimv_dupl_win.c
+msgid "Move _All Marked to Trash..."
+msgstr "全部のグループの削除をゴミ箱へ(_A)..."
+
+#: src/gimv_thumb_win.c
+msgid "/Too_ls/Find Duplicates in the _Index..."
+msgstr "/ツール(_L)/索引から重複画像を探す(_I)..."
+
+#: src/gimv_thumb_view.c
+msgid "/Fin_d the Same Files"
+msgstr "/同じファイルを探す(_D)"
+
+#: src/dirview2.c
+msgid "/Find _Duplicates with the Folders in It..."
+msgstr "/下のフォルダも含めて重複画像を探す(_D)..."

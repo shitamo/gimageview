@@ -30,6 +30,8 @@ typedef struct {
    goffset   size;
    gint64    mtime;
    gpointer  user;            /* the caller's (a GimvThumb) */
+   gchar    *key;             /* the hash of the bytes, known already (from
+                                 the index): the file is not read */
 
    /* filled by the scan */
    gint      width, height;   /* as shown (EXIF orientation); 0: unknown */
@@ -63,6 +65,9 @@ typedef void (*GimvDuplProgressFunc) (GimvDuplPhase phase,
                                       gpointer      data);
 
 GimvDuplScan *gimv_dupl_scan_new        (gfloat accuracy);
+/* the same files only: the pictures are not read nor compared */
+void          gimv_dupl_scan_set_same_only (GimvDuplScan *scan,
+                                         gboolean      same_only);
 void          gimv_dupl_scan_free       (GimvDuplScan *scan);
 /* path, size and mtime given; the item is the scan's */
 GimvDuplItem *gimv_dupl_scan_add        (GimvDuplScan *scan,
@@ -80,6 +85,7 @@ gboolean      gimv_dupl_scan_run        (GimvDuplScan         *scan,
  * the kind, then the path of the first; after gimv_dupl_scan_run (), or
  * after its first phase from the progress function */
 GPtrArray    *gimv_dupl_scan_get_groups (GimvDuplScan *scan);
+guint         gimv_dupl_scan_n_items    (GimvDuplScan *scan);
 /* the groups of the same files only (made after the first phase): a new
  * array for the caller, of groups the caller frees */
 GPtrArray    *gimv_dupl_scan_same_groups (GimvDuplScan *scan);

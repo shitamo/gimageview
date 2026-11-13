@@ -156,6 +156,21 @@ update_status (void)
                                            "turned on or off in the preferences): rewriting "
                                            "them in the index (%d%%). The images are read "
                                            "after this if needed."), pct);
+      } else if (ix.stage == 4) {
+         gchar *left = time_left (TRUE), *left_long = time_left (FALSE);
+         gint pct = ix.todo ? (gint) ((guint64) MIN (ix.done, ix.todo) * 100 / ix.todo) : 0;
+
+         ix.status = left ? g_strdup_printf (_("Index: same files %d%% (%s)"), pct, left)
+                          : g_strdup_printf (_("Index: same files %d%%"), pct);
+         g_string_append_printf (tip, _("Looking for the same files (Find Duplicates): "
+                                        "%'u of the %'u images of the same size as "
+                                        "another one read."), MIN (ix.done, ix.todo), ix.todo);
+         g_string_append_printf (tip, _("\nThis time: since %s."),
+                                 ix.stage_clock ? ix.stage_clock : "");
+         if (left_long)
+            g_string_append_printf (tip, _("\nTime left: %s."), left_long);
+         g_free (left);
+         g_free (left_long);
       } else if (ix.stage == 3) {
          ix.status = g_strdup_printf (_("Index: tags %'u"), ix.done);
          g_string_append_printf (tip, _("Reading the tags from the comment files: %'u."), ix.done);
@@ -288,8 +303,20 @@ stage_changes (gint stage)
    case 1:  return GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS;
    case 2:  return GIMV_INDEX_CHANGED_DATES | GIMV_INDEX_CHANGED_TAGS;  /* rules */
    case 3:  return GIMV_INDEX_CHANGED_TAGS;
+   case 4:  return GIMV_INDEX_CHANGED_HASHES;
    default: return GIMV_INDEX_CHANGED_DATES;
    }
+}
+
+
+gboolean
+gimv_index_hash_progress (guint *done, guint *todo)
+{
+   gboolean running = ix.state == GIMV_INDEX_STATE_SCANNING && ix.stage == 4;
+
+   if (done) *done = running ? MIN (ix.done, ix.todo) : 0;
+   if (todo) *todo = running ? ix.todo : 0;
+   return running;
 }
 
 
@@ -766,6 +793,8 @@ start_indexer (void)
    g_ptr_array_add (argv, g_strdup (ix.dbfile));
    if (conf.read_dotfile)
       g_ptr_array_add (argv, g_strdup ("--dotfiles"));
+   if (conf.index_duplicates)
+      g_ptr_array_add (argv, g_strdup ("--hash"));
    g_ptr_array_add (argv, g_strdup_printf ("--log-keep=%d", conf.index_log_keep));
    /* the tags put by rules: the kinds wanted ("" for none) */
    g_ptr_array_add (argv, g_strdup_printf ("--auto=%s%s%s%s",

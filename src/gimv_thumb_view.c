@@ -152,6 +152,9 @@ static void   cb_edit_comment          (GimvThumbView  *tv,
 static void   cb_edit_tags             (GimvThumbView  *tv,
                                         guint           action,
                                         GimvMenuItem   *menuitem);
+static void   cb_find_same             (GimvThumbView  *tv,
+                                        guint           action,
+                                        GimvMenuItem   *menuitem);
 #endif
 static void   cb_print                 (GimvThumbView  *tv,
                                         guint           action,
@@ -227,6 +230,9 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/Open in New _Window"),       NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_NEW_WIN,     NULL},
    {N_("/Open in S_hared Window"),    NULL,  cb_open_image,    GIMV_THUMB_VIEW_OPEN_IMAGE_SHARED_WIN,  NULL},
    {N_("/Open the _Folder"),          NULL,  cb_open_folder,   0,           NULL},
+#ifdef ENABLE_INDEX
+   {N_("/Fin_d the Same Files"),      NULL,  cb_find_same,     0,           NULL},
+#endif
    {N_("/Open in Ex_ternal Program"), NULL,  NULL,             0,           "<Branch>"},
    {N_("/_Scripts"),                  NULL,  NULL,             0,           "<Branch>"},
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
@@ -871,6 +877,28 @@ cb_edit_tags (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
 {
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
    gimv_thumb_view_edit_tags_selection (tv);
+}
+
+
+/* the same files as the selected images, anywhere in the index */
+static void
+cb_find_same (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   GList *thumblist, *node, *paths = NULL;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   thumblist = gimv_thumb_view_get_selection_list (tv);
+   for (node = thumblist; node; node = g_list_next (node)) {
+      GimvThumb *thumb = node->data;
+      const gchar *path;
+      if (!thumb || !thumb->info || gimv_image_info_need_temp_file (thumb->info)) continue;
+      path = gimv_image_info_get_path (thumb->info);
+      if (path && *path) paths = g_list_append (paths, g_strdup (path));
+   }
+   g_list_free (thumblist);
+   if (!paths) return;
+   gimv_dupl_win_open_index (tv->tw ? GTK_WINDOW (tv->tw) : NULL, NULL, paths);
+   g_list_free_full (paths, g_free);
 }
 
 

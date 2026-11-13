@@ -25,6 +25,7 @@
 struct GimvDuplScan_Tag
 {
    gfloat      accuracy;
+   gboolean    same_only;
    GPtrArray  *items;         /* GimvDuplItem * */
    gint       *parent;        /* union-find over the items */
    gint       *same_parent;   /* the same, after the same files only */
@@ -127,10 +128,27 @@ gimv_dupl_scan_new (gfloat accuracy)
 }
 
 
+void
+gimv_dupl_scan_set_same_only (GimvDuplScan *scan, gboolean same_only)
+{
+   g_return_if_fail (scan);
+   scan->same_only = same_only;
+}
+
+
+guint
+gimv_dupl_scan_n_items (GimvDuplScan *scan)
+{
+   g_return_val_if_fail (scan, 0);
+   return scan->items->len;
+}
+
+
 static void
 item_free (GimvDuplItem *item)
 {
    g_free (item->path);
+   g_free (item->key);
    g_free (item->sig);
    g_free (item);
 }
@@ -290,12 +308,15 @@ phase_same (GimvDuplScan *scan, GCancellable *cancel, Progress *p)
          gint idx = g_array_index (a, gint, k);
          GimvDuplItem *item = ITEM (scan, idx);
          gpointer first;
+         const gchar *key = item->key;
 
-         if (file_md5 (item->path, item->md5, cancel)) {
-            if (g_hash_table_lookup_extended (by_md5, item->md5, NULL, &first))
+         if (!key && file_md5 (item->path, item->md5, cancel))
+            key = item->md5;
+         if (key) {
+            if (g_hash_table_lookup_extended (by_md5, key, NULL, &first))
                uf_union (scan->parent, GPOINTER_TO_INT (first), idx);
             else
-               g_hash_table_insert (by_md5, item->md5, GINT_TO_POINTER (idx));
+               g_hash_table_insert (by_md5, (gpointer) key, GINT_TO_POINTER (idx));
          }
          progress (p, GIMV_DUPL_PHASE_SAME, ++done, total, FALSE);
          if (g_cancellable_is_cancelled (cancel)) break;
@@ -598,9 +619,11 @@ gimv_dupl_scan_run (GimvDuplScan *scan, GCancellable *cancel,
    scan->same_parent = g_memdup2 (scan->parent, sizeof (gint) * MAX (n, 1));
    for (i = 0; i < n; i++) uf_find (scan->same_parent, i);
 
-   reps = phase_read (scan, cancel, &p);
-   phase_compare (scan, reps, cancel, &p);
-   g_array_unref (reps);
+   if (!scan->same_only) {
+      reps = phase_read (scan, cancel, &p);
+      phase_compare (scan, reps, cancel, &p);
+      g_array_unref (reps);
+   }
 
    g_ptr_array_unref (scan->groups);
    scan->groups = build_groups (scan, scan->parent);

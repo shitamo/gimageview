@@ -578,10 +578,25 @@ Looks for the duplicate images among all the images of the active tab (the selec
 On the left are the groups: the kind, the number of images, and how many are to delete (and their size).  The images of the group selected are side by side on the right to compare: the size, the file size, the format, the date taken, how alike the first, the folder, and whether it has a comment.  A click on a picture shows it in the thumbnail window (what it does is set in [Preferences | Search]).
 </p>
 <p class="para">
-Each image is marked "Keep" or "Delete".  In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest) is kept and the others are to delete; in the Similar groups all are kept.  "Move to Trash..." at the top right moves the images to delete of the group shown, and only those, to the trash after asking (they can be put back from the trash): a group at a time, to be careful.  The question names the files and says so when all of the group are to delete (then "Cancel" is the default) or some have comments.  Then the next group is shown.  The comment files stay.
+Each image is marked "Keep" or "Delete".  In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest) is kept and the others are to delete; in the Similar groups all are kept.  "Move to Trash..." at the top right moves the images to delete of the group shown, and only those, to the trash after asking (they can be put back from the trash): a group at a time, to be careful.  The question names the files and says so when all of the group are to delete (then "Cancel" is the default) or some have comments.  Then the next group is shown.  With more than one group, "Move All Marked to Trash..." at the bottom moves those of all the groups at once (the groups with every image to delete are left out).
+</p>
+<p class="para">
+Before they are moved, the images to delete are compared with the image kept again (Identical groups): a file changed since is not moved.  When some of them have comments (tags) or bookmarks, "Move Them to the Kept Ones and Trash" can be chosen: a comment moves to the image kept when it has none, else its tags are added to those of it (a comment of tags only is then deleted); a bookmark moves when the image kept has none.  With "Move to Trash Only" the comment files stay.
 </p>
 <p class="para">
 The window reads the pictures itself: the images the thumbnail view has not loaded are shown too.  It can be used while it searches: the Identical groups come first, all of them at the end.  The images in archives are not compared.  How they are found and sorted: see "<a href="gimv_tips.html#gimv_tips_10" title="">How duplicates are found</a>".
+</p>
+</dd>
+<dt><span class="term"><a name="find_duplicates_index"></a>Find Duplicates in the Index...</span></dt>
+<dd>
+<p class="para">
+Looks for the same files (Identical) among all the indexed images and opens the same result window: the same files in different folders are found too.  The index has looked for them before, so nothing is read and they are shown at once.  This needs "Look for the same files" in [Preferences | Index].
+</p>
+<p class="para">
+The index reads only the images of the same size (bytes) as another one, after the rest: the first 64 KB are compared, and the whole files only when those are the same.  The images of the same name and size (saved again in another folder) come first, so those are found at once.  With many images the first time may take hours; meanwhile the status bar says "Index: same files n%", and the window shows what is found so far.  Hard links to one file count as one.  Other sizes and similar pictures are not looked for here (Find Duplicates on the images of a tab does that).
+</p>
+<p class="para">
+Below a folder only: "<a href="05.html#mouse_directory_find_duplicates">Find Duplicates with the Folders in It...</a>" of the directory view; the same files as an image: "<a href="05.html#find_same_mouse_menu">Find the Same Files</a>" of the thumbnail view.
 </p>
 </dd>
 <dt><span class="term"><a name="set_wallpaper"></a>Set as Wallpaper</span></dt>

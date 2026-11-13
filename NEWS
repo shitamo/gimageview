@@ -65,6 +65,17 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* The HTML manual (Japanese) has screenshots, and its descriptions of
 	  the menus, toolbars, mouse menus, preferences and key bindings were
 	  changed to match this version.
+	* The same files in different folders: the indexer hashes the images
+	  of the same size as another one after the rest (stage 4, "Look for
+	  the same files" in [Preferences | Index]; hours the first time, in
+	  directory order, the same names first), and [Tools | Find
+	  Duplicates in the Index...], "Find Duplicates with the Folders in
+	  It..." (directory view) and "Find the Same Files" (thumbnail view)
+	  show them at once.  The index database is version 6.
+	* Find Duplicates: "Move All Marked to Trash..." for every group; each
+	  file is compared with the one kept again before it is moved; the
+	  comments (tags) and bookmarks of the deleted ones can go to the
+	  image kept.
 	* The HTML manual has a chapter "What Do You Want to Do?" that finds
 	  the way from what one wants to do (tagging several images at once,
 	  finding the images of a person, ...).

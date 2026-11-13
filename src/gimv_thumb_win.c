@@ -61,6 +61,7 @@
 #include "gimv_index_notice.h"
 #include "gimv_index_missing.h"
 #include "gimv_index_search.h"
+#include "gimv_dupl_win.h"
 #endif
 
 
@@ -244,6 +245,9 @@ static void cb_clear_cache          (GimvThumbWin  *tw,
                                      CacheClearType type,
                                      GimvMenuItem     *widget);
 #ifdef ENABLE_INDEX
+static void cb_find_dupl_index      (GimvThumbWin  *tw,
+                                     guint          action,
+                                     GimvMenuItem  *widget);
 static void cb_search_images        (GimvThumbWin  *tw,
                                      guint          action,
                                      GimvMenuItem  *widget);
@@ -505,6 +509,9 @@ GimvMenuEntry gimv_thumb_win_menu_items[] =
 #endif
    {N_("/Too_ls/---"),                  NULL,         NULL,              0,              "<Separator>"},
    {N_("/Too_ls/_Find Duplicates..."),  NULL,         cb_find_similar,   0,              NULL},
+#ifdef ENABLE_INDEX
+   {N_("/Too_ls/Find Duplicates in the _Index..."), NULL, cb_find_dupl_index, 0,       NULL},
+#endif
    {N_("/Too_ls/---"),                  NULL,         NULL,              0,              "<Separator>"},
    {N_("/Too_ls/Set as _Wallpaper"),   NULL,         NULL,              0,               "<Branch>"},
 
@@ -3056,6 +3063,14 @@ static void
 cb_missing_images (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
 {
    gimv_index_missing_open (GTK_WINDOW (tw), NULL);
+}
+
+
+/* the same files of all the indexed images */
+static void
+cb_find_dupl_index (GimvThumbWin *tw, guint action, GimvMenuItem *widget)
+{
+   gimv_dupl_win_open_index (GTK_WINDOW (tw), NULL, NULL);
 }
 #endif
 

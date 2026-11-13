@@ -319,6 +319,37 @@ test_empty (void)
 }
 
 
+/* the keys known (from the index): grouped by them, no file read, no
+ * picture compared */
+static void
+test_known_keys (void)
+{
+   GimvDuplScan *scan = gimv_dupl_scan_new (0.95);
+   GimvDuplItem *item;
+   GPtrArray *groups;
+
+   gimv_dupl_scan_set_same_only (scan, TRUE);
+   item = gimv_dupl_scan_add (scan, "/nonexistent/a.jpg", 100, 2, NULL);
+   item->key = g_strdup ("K1");
+   item = gimv_dupl_scan_add (scan, "/nonexistent/dir/b.jpg", 100, 1, NULL);
+   item->key = g_strdup ("K1");
+   item = gimv_dupl_scan_add (scan, "/nonexistent/c.jpg", 100, 1, NULL);
+   item->key = g_strdup ("K2");
+   g_assert_true (gimv_dupl_scan_run (scan, NULL, NULL, NULL));
+   groups = gimv_dupl_scan_get_groups (scan);
+   g_assert_cmpuint (groups->len, ==, 1);
+   {
+      GimvDuplGroup *g = g_ptr_array_index (groups, 0);
+      g_assert_cmpint (g->kind, ==, GIMV_DUPL_SAME);
+      g_assert_cmpuint (g->members->len, ==, 2);
+      /* the oldest is kept */
+      g_assert_cmpstr (((GimvDuplItem *) g_ptr_array_index (g->members, 0))->path,
+                       ==, "/nonexistent/dir/b.jpg");
+   }
+   gimv_dupl_scan_free (scan);
+}
+
+
 /* the signature: the same picture 1.0, black and white 0.0 */
 static void
 test_sig (void)
@@ -352,6 +383,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/dupl/other-shape", test_other_shape);
    g_test_add_func ("/dupl/cancel", test_cancel);
    g_test_add_func ("/dupl/empty", test_empty);
+   g_test_add_func ("/dupl/known-keys", test_known_keys);
    g_test_add_func ("/dupl/sig", test_sig);
    r = g_test_run ();
    g_rmdir (dir);

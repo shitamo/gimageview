@@ -8,7 +8,7 @@
  * stdout, one line per message.  gimv talks to it through stdin; when stdin
  * reaches EOF (gimv has quit or crashed) the indexer stops.
  *
- *   gimv-indexer --db FILE [--dotfiles] [--ext jpg,png,...]
+ *   gimv-indexer --db FILE [--dotfiles] [--hash] [--ext jpg,png,...]
  *                [--auto=folder,camera,shape,keyword] [--comment-charset=CS] DIR...
  *
  * Stage 1 records the files (date from mtime), stage 3 reads the tags from
@@ -17,6 +17,9 @@
  * DateTimeOriginal, or else a date in the file name, and puts the tags of
  * the rules (folder name, camera, portrait or landscape; see AUTO_RULE).
  * Stage 3 runs before stage 2, which may take hours the first time.
+ * Stage 4 (--hash), after the rest, hashes the files of the same size as
+ * another one to find the same files (see run_stage4); it may take hours
+ * the first time too, and runs again for the new images.
  *
  * Messages on stdout:
  *   hello <version>
@@ -26,6 +29,7 @@
  *                           images), "auto-tags" or "date-rule" (every image
  *                           read again for new rules)
  *   stage 3 start
+ *   stage 4 start <to hash> <to hash>
  *   progress <n> <dirs> <files>[\t<directory stage 1 is in>]
  *   stage <n> done <dirs> <files> <added> <changed> <removed>
  *   tags-updated            tags changed after a "tags" command
@@ -153,6 +157,10 @@ typedef struct Indexer_Tag
    gboolean     full;          /* stat every file, not only changed dirs */
    guint        auto_kinds;    /* AUTO_FOLDER | AUTO_CAMERA | AUTO_SHAPE */
    const gchar *cur_dir;       /* the directory stage 1 is in */
+   gboolean     hash;          /* stage 4: the same files */
+   gint64       hash_max_id;   /* the last file looked at by stage 4 (0: none
+                                * yet in this run: every file) */
+   guint        n_whole;       /* stage 4: whole files hashed */
    gint         guard_fd;      /* the image stage 2 is reading (INDEX.db.reading) */
    gchar       *guard_path;
    GString     *cmdbuf;
@@ -3334,6 +3342,299 @@ run_name_sync (Indexer *ix, gboolean in_transaction)
 }
 
 
+
+/******************************************************************************
+ *  stage 4: the same files
+ ******************************************************************************/
+
+/*
+ * Only the files of the same size as another one can be the same.  Their
+ * first HASH_HEAD bytes are hashed; the whole file only when another one
+ * has the same size and head.  The files are read in directory order (the
+ * disk in one sweep), those with the same name and size as another one
+ * first: a file saved twice in two folders is found in the first minutes.
+ * The table hashes keeps the size and mtime of the file hashed: a file
+ * changed is hashed again.
+ */
+
+#define HASH_HEAD   (64 * 1024)
+#define HASH_BATCH  500
+#define HASH_LEN    20         /* SHA-1 */
+
+/* the first HASH_HEAD bytes (whole: all of them); FALSE: not read */
+static gboolean
+hash_file (const gchar *path, gboolean whole, guint8 out[HASH_LEN])
+{
+   GChecksum *sum;
+   guchar buf[65536];
+   gint64 total = 0;
+   gboolean ok = TRUE;
+   gint fd;
+
+#ifdef O_NOATIME
+   fd = open (path, O_RDONLY | O_CLOEXEC | O_NOATIME);
+   if (fd < 0 && errno == EPERM)
+#endif
+      fd = open (path, O_RDONLY | O_CLOEXEC);
+   if (fd < 0) return FALSE;
+
+   sum = g_checksum_new (G_CHECKSUM_SHA1);
+   for (;;) {
+      gsize want = sizeof buf;
+      gssize n;
+
+      if (!whole) {
+         if (total >= HASH_HEAD) break;
+         want = MIN (want, (gsize) (HASH_HEAD - total));
+      }
+      n = read (fd, buf, want);
+      if (n < 0 && errno == EINTR) continue;
+      if (n < 0) { ok = FALSE; break; }
+      if (n == 0) break;
+      g_checksum_update (sum, buf, n);
+      total += n;
+   }
+#ifdef POSIX_FADV_DONTNEED
+   /* hundreds of gigabytes are read once: not kept in the page cache */
+   posix_fadvise (fd, 0, 0, POSIX_FADV_DONTNEED);
+#endif
+   close (fd);
+   if (ok) {
+      gsize len = HASH_LEN;
+      g_checksum_get_digest (sum, out, &len);
+   }
+   g_checksum_free (sum);
+   return ok;
+}
+
+
+typedef struct {
+   gint64  n, id, size, mtime;
+   gchar  *path;
+   gboolean first;
+} HashRow;
+
+static void
+hash_row_clear (gpointer p)
+{
+   g_free (((HashRow *) p)->path);
+}
+
+
+/* the files to hash, in the order to hash them; min_id: only the files
+ * after it and the files of their sizes (0: all) */
+static guint
+hash_work_build (Indexer *ix, gint64 min_id)
+{
+   sqlite3_stmt *st;
+   guint n = 0;
+
+   exec (ix, "DROP TABLE IF EXISTS temp.hash_work");
+   exec (ix, "CREATE TEMP TABLE hash_work (n INTEGER PRIMARY KEY, "
+             "file_id INTEGER NOT NULL, first INTEGER NOT NULL)");
+#define HASH_WORK_SQL(new_only) \
+      "INSERT INTO temp.hash_work (file_id, first) " \
+      "SELECT f.id, EXISTS (SELECT 1 FROM files g WHERE g.size = f.size " \
+      "                     AND g.name = f.name AND g.id != f.id) AS first " \
+      "FROM files f WHERE f.size > 0 " \
+      "AND EXISTS (SELECT 1 FROM files g WHERE g.size = f.size AND g.id != f.id) " \
+      new_only \
+      "AND NOT EXISTS (SELECT 1 FROM hashes h WHERE h.file_id = f.id " \
+      "                AND h.size = f.size AND h.mtime = f.mtime) " \
+      "ORDER BY first DESC, f.dir_id, f.name"
+   /* two statements: "?1 = 0 OR ..." would make the first one 5 times slower */
+   if (min_id > 0) {
+      st = prep (ix, HASH_WORK_SQL ("AND f.size IN (SELECT size FROM files WHERE id > ?1) "));
+      sqlite3_bind_int64 (st, 1, min_id);
+   } else {
+      st = prep (ix, HASH_WORK_SQL (""));
+   }
+#undef HASH_WORK_SQL
+   sqlite3_step (st);
+   sqlite3_finalize (st);
+   st = prep (ix, "SELECT count(*) FROM temp.hash_work");
+   if (sqlite3_step (st) == SQLITE_ROW) n = sqlite3_column_int (st, 0);
+   sqlite3_finalize (st);
+   return n;
+}
+
+
+/* the whole files, for the heads that are the same; FALSE: stopped.
+ * recent: only the heads of this run (temp.hash_work), else all (a few
+ * seconds for millions of files: once a start) */
+static gboolean
+hash_wholes (Indexer *ix, gboolean recent)
+{
+   sqlite3_stmt *sel, *upd;
+   gboolean more = TRUE;
+
+#define HASH_WHOLES_SQL(recent_only) \
+      "SELECT h.file_id, d.path, f.name, h.size, h.mtime FROM hashes h " \
+      "JOIN files f ON f.id = h.file_id JOIN dirs d ON d.id = f.dir_id " \
+      "WHERE h.whole IS NULL AND h.size = f.size AND h.mtime = f.mtime " \
+      "AND length (h.head) = " G_STRINGIFY (HASH_LEN) " " \
+      recent_only \
+      "AND EXISTS (SELECT 1 FROM hashes h2 WHERE h2.head = h.head " \
+      "            AND h2.size = h.size AND h2.file_id != h.file_id) " \
+      "ORDER BY f.dir_id, f.name LIMIT " G_STRINGIFY (HASH_BATCH)
+   sel = prep (ix, recent
+               ? HASH_WHOLES_SQL ("AND h.head IN (SELECT h3.head FROM hashes h3 "
+                                  "JOIN temp.hash_work w ON w.file_id = h3.file_id) ")
+               : HASH_WHOLES_SQL (""));
+#undef HASH_WHOLES_SQL
+   upd = prep (ix, "UPDATE hashes SET whole = ?1 WHERE file_id = ?2 "
+                   "AND size = ?3 AND mtime = ?4");
+
+   while (more && !ix->quit && !ix->rescan) {
+      GArray *rows = g_array_new (FALSE, TRUE, sizeof (HashRow));
+      guint i;
+
+      g_array_set_clear_func (rows, hash_row_clear);
+      sqlite3_reset (sel);
+      while (sqlite3_step (sel) == SQLITE_ROW) {
+         HashRow r = { 0 };
+         r.id    = sqlite3_column_int64 (sel, 0);
+         r.path  = g_build_filename ((const gchar *) sqlite3_column_text (sel, 1),
+                                     (const gchar *) sqlite3_column_text (sel, 2), NULL);
+         r.size  = sqlite3_column_int64 (sel, 3);
+         r.mtime = sqlite3_column_int64 (sel, 4);
+         g_array_append_val (rows, r);
+      }
+      sqlite3_reset (sel);
+      more = rows->len > 0;
+
+      for (i = 0; i < rows->len && !ix->quit && !ix->rescan; i++) {
+         HashRow *r = &g_array_index (rows, HashRow, i);
+         guint8 h[HASH_LEN];
+         gboolean ok = hash_file (r->path, TRUE, h);
+
+         sqlite3_reset (upd);
+         /* not read: X'', not looked at again until the file changes */
+         sqlite3_bind_blob (upd, 1, h, ok ? HASH_LEN : 0, SQLITE_TRANSIENT);
+         sqlite3_bind_int64 (upd, 2, r->id);
+         sqlite3_bind_int64 (upd, 3, r->size);
+         sqlite3_bind_int64 (upd, 4, r->mtime);
+         sqlite3_step (upd);
+         sqlite3_reset (upd);
+         ix->n_whole++;
+         ix->n_dirs = ix->n_whole;
+         maybe_commit (ix, FALSE);
+      }
+      g_array_unref (rows);
+   }
+   sqlite3_finalize (sel);
+   sqlite3_finalize (upd);
+   return !ix->quit && !ix->rescan;
+}
+
+
+/* all: every file (the first time in this run: files changed while gimv
+ * was not running too), else the files added since the last time; TRUE:
+ * something was done */
+static gboolean
+run_stage4 (Indexer *ix, gboolean all)
+{
+   sqlite3_stmt *sel, *ins, *st;
+   gint64 max_id = 0, last = 0;
+   gboolean said = FALSE, more = TRUE, firsts = TRUE;
+   guint todo;
+
+   if (!ix->hash || ix->quit) return FALSE;
+   if (!all && ix->hash_max_id == 0) all = TRUE;
+
+   st = prep (ix, "SELECT max(id) FROM files");
+   if (sqlite3_step (st) == SQLITE_ROW) max_id = sqlite3_column_int64 (st, 0);
+   sqlite3_finalize (st);
+   if (!all && max_id <= ix->hash_max_id) return FALSE;
+
+   ix->stage = 4;
+   ix->n_dirs = ix->n_files = ix->n_added = ix->n_changed = ix->n_removed = 0;
+   ix->n_whole = 0;
+
+   exec (ix, "BEGIN");
+   ix->last_commit = ix->last_progress = g_get_monotonic_time ();
+   todo = hash_work_build (ix, all ? 0 : ix->hash_max_id);
+   if (todo > 0) {
+      say ("stage 4 start %u %u", todo, todo);
+      said = TRUE;
+   }
+
+   sel = prep (ix, "SELECT w.n, f.id, d.path, f.name, f.size, f.mtime, w.first "
+                   "FROM temp.hash_work w JOIN files f ON f.id = w.file_id "
+                   "JOIN dirs d ON d.id = f.dir_id WHERE w.n > ?1 "
+                   "ORDER BY w.n LIMIT " G_STRINGIFY (HASH_BATCH));
+   ins = prep (ix, "INSERT OR REPLACE INTO hashes (file_id, size, mtime, head, whole) "
+                   "VALUES (?1, ?2, ?3, ?4, ?5)");
+
+   while (todo > 0 && more && !ix->quit && !ix->rescan) {
+      GArray *rows = g_array_new (FALSE, TRUE, sizeof (HashRow));
+      guint i;
+
+      g_array_set_clear_func (rows, hash_row_clear);
+      sqlite3_reset (sel);
+      sqlite3_bind_int64 (sel, 1, last);
+      while (sqlite3_step (sel) == SQLITE_ROW) {
+         HashRow r = { 0 };
+         r.n     = sqlite3_column_int64 (sel, 0);
+         r.id    = sqlite3_column_int64 (sel, 1);
+         r.path  = g_build_filename ((const gchar *) sqlite3_column_text (sel, 2),
+                                     (const gchar *) sqlite3_column_text (sel, 3), NULL);
+         r.size  = sqlite3_column_int64 (sel, 4);
+         r.mtime = sqlite3_column_int64 (sel, 5);
+         r.first = sqlite3_column_int (sel, 6);
+         g_array_append_val (rows, r);
+      }
+      sqlite3_reset (sel);
+      more = rows->len == HASH_BATCH;
+
+      for (i = 0; i < rows->len && !ix->quit && !ix->rescan; i++) {
+         HashRow *r = &g_array_index (rows, HashRow, i);
+         guint8 h[HASH_LEN];
+         gboolean ok;
+
+         /* the files of the same name done: their whole files now, so
+          * that they can be seen before the hours of the rest */
+         if (firsts && !r->first) {
+            firsts = FALSE;
+            if (!hash_wholes (ix, TRUE)) break;
+         }
+         ok = hash_file (r->path, FALSE, h);
+         sqlite3_reset (ins);
+         sqlite3_bind_int64 (ins, 1, r->id);
+         sqlite3_bind_int64 (ins, 2, r->size);
+         sqlite3_bind_int64 (ins, 3, r->mtime);
+         sqlite3_bind_blob  (ins, 4, h, ok ? HASH_LEN : 0, SQLITE_TRANSIENT);
+         if (!ok)
+            sqlite3_bind_blob (ins, 5, h, 0, SQLITE_TRANSIENT);
+         else if (r->size <= HASH_HEAD)
+            sqlite3_bind_blob (ins, 5, h, HASH_LEN, SQLITE_TRANSIENT);
+         else
+            sqlite3_bind_null (ins, 5);
+         sqlite3_step (ins);
+         sqlite3_reset (ins);
+         last = r->n;
+         ix->n_files++;
+         maybe_commit (ix, FALSE);
+      }
+      g_array_unref (rows);
+   }
+   sqlite3_finalize (sel);
+   sqlite3_finalize (ins);
+
+   /* the rest of the whole files (also those left by a run stopped) */
+   if (!ix->quit && !ix->rescan)
+      hash_wholes (ix, !all);
+   exec (ix, "DROP TABLE IF EXISTS temp.hash_work");
+   exec (ix, "COMMIT");
+
+   if (!ix->quit && !ix->rescan)
+      ix->hash_max_id = max_id;
+   if (said && !ix->quit)
+      say ("stage 4 done %u %u 0 0 0", ix->n_whole, ix->n_files);
+   return said;
+}
+
+
 /******************************************************************************
  *  watching (inotify): changes while gimv runs
  ******************************************************************************/
@@ -3938,13 +4239,14 @@ main (int argc, char *argv[])
 {
    Indexer ix;
    gchar *dbfile = NULL, *exts = NULL;
-   gboolean dotfiles = FALSE;
+   gboolean dotfiles = FALSE, hash = FALSE;
    gint log_keep = 10;
    gchar *auto_list = NULL;
    gchar **dirs = NULL;
    GOptionEntry entries[] = {
       { "db",       0, 0, G_OPTION_ARG_FILENAME, &dbfile, "database file", "FILE" },
       { "dotfiles", 0, 0, G_OPTION_ARG_NONE, &dotfiles, "include dot files", NULL },
+      { "hash",     0, 0, G_OPTION_ARG_NONE, &hash, "hash the files of the same size (stage 4)", NULL },
       { "ext",      0, 0, G_OPTION_ARG_STRING, &exts, "image extensions", "LIST" },
       { "log-keep", 0, 0, G_OPTION_ARG_INT, &log_keep, "logs of missing files kept (0: none)", "N" },
       { "auto",     0, 0, G_OPTION_ARG_STRING, &auto_list, "tags put by rules (default: all)", "folder,camera,shape,keyword" },
@@ -3985,6 +4287,7 @@ main (int argc, char *argv[])
    memset (&ix, 0, sizeof (ix));
    ix.guard_fd = -1;
    ix.dotfiles = dotfiles;
+   ix.hash = hash;
    ix.cmdbuf = g_string_new (NULL);
    ix.tag_queue = g_ptr_array_new_with_free_func (g_free);
    watch_init (&ix);
@@ -4071,6 +4374,17 @@ main (int argc, char *argv[])
       ix.names_pending = TRUE;
       run_name_sync (&ix, FALSE);
       say_idle (&ix);
+      /* the same files: after "idle" (the faces need not wait for it) */
+      if (run_stage4 (&ix, TRUE)) {
+         /* images that came in the meantime (taken in by maybe_commit) */
+         if (!ix.quit && ix.need_stage3) {
+            ix.need_stage3 = FALSE;
+            run_stage3 (&ix);
+         }
+         if (!ix.quit && rows_to_date (&ix) > 0)
+            run_stage2 (&ix);
+         say_idle (&ix);
+      }
       /* nothing more to do for now: wait for a command or for gimv to quit */
       while (!ix.quit && !ix.rescan) {
          struct pollfd pfd[2] = {
@@ -4095,6 +4409,9 @@ main (int argc, char *argv[])
             /* let a burst (a folder copied) gather first */
             g_usleep (200 * 1000);
             watch_process (&ix);
+            /* the new images among the same files */
+            if (!ix.quit && run_stage4 (&ix, FALSE))
+               say_idle (&ix);
          }
       }
    } while (!ix.quit);

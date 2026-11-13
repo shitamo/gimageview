@@ -36,6 +36,7 @@
 #include "gimv_list_view.h"
 #include "gimv_thumb_win.h"
 #ifdef ENABLE_INDEX
+#include "gimv_dupl_win.h"
 #include "gimv_index_tags.h"
 #endif
 #include "menu.h"
@@ -85,6 +86,9 @@ static void       cb_open_thumbnail              (DirView        *dv,
                                                   GimvMenuItem      *menuitem);
 #ifdef ENABLE_INDEX
 static void       cb_edit_tags                   (DirView        *dv,
+                                                  guint           action,
+                                                  GimvMenuItem   *menuitem);
+static void       cb_find_dupl                   (DirView        *dv,
                                                   guint           action,
                                                   GimvMenuItem   *menuitem);
 #endif
@@ -196,6 +200,7 @@ static GimvMenuEntry dirview_popup_items [] =
 #ifdef ENABLE_INDEX
    {N_("/---"),                         NULL, NULL,                0,     "<Separator>"},
    {N_("/Edit _Tags with the Folders in It..."), NULL, cb_edit_tags,   0,     NULL},
+   {N_("/Find _Duplicates with the Folders in It..."), NULL, cb_find_dupl, 0,   NULL},
 #endif
    {N_("/---"),                         NULL, NULL,                0,     "<Separator>"},
    {N_("/_Go Here"),                 NULL, cb_go_to_here,       0,     NULL},
@@ -633,6 +638,18 @@ cb_edit_tags (DirView *dv, guint action, GimvMenuItem *menuitem)
 
    if (!path) return;
    gimv_index_edit_tags_dir (dv->tw ? GTK_WINDOW (dv->tw) : NULL, path);
+   g_free (path);
+}
+
+
+/* the same files the index found, with an image below the folder */
+static void
+cb_find_dupl (DirView *dv, guint action, GimvMenuItem *menuitem)
+{
+   gchar *path = dirview_get_selected_path (dv);
+
+   if (!path) return;
+   gimv_dupl_win_open_index (dv->tw ? GTK_WINDOW (dv->tw) : NULL, path, NULL);
    g_free (path);
 }
 #endif

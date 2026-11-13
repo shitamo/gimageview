@@ -129,6 +129,43 @@ read_tags (const gchar *img_path)
 }
 
 
+/* the tags of the image from added to those of the image to (a copy of it
+ * deleted); TRUE: to has new tags */
+gboolean
+gimv_index_tags_merge (const gchar *from, const gchar *to)
+{
+   GPtrArray *a, *b;
+   gboolean changed = FALSE;
+   guint i;
+
+   g_return_val_if_fail (from && to, FALSE);
+   a = read_tags (to);
+   b = read_tags (from);
+   for (i = 0; i < b->len; i++) {
+      const gchar *t = g_ptr_array_index (b, i);
+      if (!has_tag (a, t)) {
+         g_ptr_array_add (a, g_strdup (t));
+         changed = TRUE;
+      }
+   }
+   if (changed) {
+      GimvImageInfo *info = gimv_image_info_get (to);
+      if (info) {
+         gchar *value = join_tags (a);
+         gimv_comment_set_value (info, GIMV_INDEX_TAGS_KEY, value);
+         gimv_index_tags_changed (to);
+         g_free (value);
+         gimv_image_info_unref (info);
+      } else {
+         changed = FALSE;
+      }
+   }
+   g_ptr_array_unref (a);
+   g_ptr_array_unref (b);
+   return changed;
+}
+
+
 /******************************************************************************
  *  dialog
  ******************************************************************************/
@@ -1082,7 +1119,6 @@ dialog_open (GtkWindow *parent, Scan *sc, const gchar *title)
    TagsDialog *td;
    GtkWidget *vbox, *label, *hbox, *button, *scroll, *outer;
    GPtrArray *names;
-   gchar *text;
    guint i;
 
    td = g_new0 (TagsDialog, 1);

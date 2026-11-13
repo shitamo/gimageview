@@ -1194,6 +1194,70 @@ test_dir_remove_case (void)
 }
 
 
+/* stage 4 (--hash): the files of the same size hashed, the same files
+ * found, the others told apart by the whole file */
+static void
+write_bytes (const gchar *path, const gchar *data, gsize len)
+{
+   gchar *dir = g_path_get_dirname (path);
+   GError *error = NULL;
+
+   g_assert_cmpint (g_mkdir_with_parents (dir, 0700), ==, 0);
+   g_free (dir);
+   g_file_set_contents (path, data, len, &error);
+   g_assert_no_error (error);
+}
+
+
+static void
+test_hash (void)
+{
+   gchar *root = new_root ();
+   gchar *a = in (root, "a/x.jpg"), *b = in (root, "b/x.jpg"), *c = in (root, "c/other.jpg");
+   gchar *p = in (root, "a/p.jpg"), *q = in (root, "b/q.jpg"), *u = in (root, "a/u.jpg");
+   const gchar *args[] = { "--auto=", "--hash", NULL };
+   gsize big = 100 * 1024, i;
+   gchar *data = g_malloc (big);
+   Indexer *ix;
+
+   for (i = 0; i < big; i++) data[i] = (gchar) (i * 7 + i / 300);
+   write_bytes (a, data, 5000);
+   write_bytes (b, data, 5000);
+   write_bytes (c, data, 5000);          /* three the same, small */
+   write_bytes (p, data, big);
+   data[big - 1] ^= 1;
+   write_bytes (q, data, big);           /* the same head, not the same */
+   write_bytes (u, data, 1234);          /* no other of its size */
+
+   ix = ix_start ("hash.db", root, args);
+   ix_wait (ix, "stage 4 done");
+   ix_wait (ix, "idle");
+   g_assert_cmpint (count (ix, "SELECT count(*) FROM hashes"), ==, 5);
+   g_assert_cmpint (count (ix, "SELECT count(DISTINCT whole) FROM hashes h JOIN files f "
+                               "ON f.id = h.file_id WHERE f.size = 5000"), ==, 1);
+   g_assert_cmpint (count (ix, "SELECT count(DISTINCT whole) FROM hashes h JOIN files f "
+                               "ON f.id = h.file_id WHERE f.size = 102400"), ==, 2);
+   g_assert_cmpint (count (ix, "SELECT count(DISTINCT head) FROM hashes h JOIN files f "
+                               "ON f.id = h.file_id WHERE f.size = 102400"), ==, 1);
+
+   /* a new copy while watching: hashed with the others of its size */
+   write_bytes (u, data, 1234);
+   {
+      gchar *v = in (root, "c/v.jpg");
+      write_bytes (v, data, 1234);
+      ix_wait (ix, "stage 4 done");
+      ix_wait (ix, "idle");
+      g_assert_cmpint (count (ix, "SELECT count(*) FROM hashes h JOIN files f "
+                                  "ON f.id = h.file_id WHERE f.size = 1234"), ==, 2);
+      g_free (v);
+   }
+   ix_stop (ix);
+   g_free (data);
+   g_free (a); g_free (b); g_free (c); g_free (p); g_free (q); g_free (u);
+   g_free (root);
+}
+
+
 /* the database is taken by one indexer at a time */
 static void
 test_busy (void)
@@ -1251,6 +1315,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/indexer/offline-changes", test_offline_changes);
    g_test_add_func ("/indexer/watch-dir-move-utf8", test_watch_dir_move_utf8);
    g_test_add_func ("/indexer/dir-remove-case", test_dir_remove_case);
+   g_test_add_func ("/indexer/hash", test_hash);
    g_test_add_func ("/indexer/busy", test_busy);
 
    ret = g_test_run ();

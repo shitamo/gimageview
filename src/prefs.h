@@ -90,6 +90,7 @@ typedef struct _Config {
    gboolean   index_auto_camera;     /* the camera (EXIF) */
    gboolean   index_auto_shape;      /* and portrait / landscape / square */
    gboolean   index_auto_keyword;    /* the keywords other programs wrote (XMP, IPTC) */
+   gboolean   index_duplicates;      /* the same files looked for (stage 4) */
    gchar     *index_auto_folder_exclude; /* ';' separated folder names ('*') not made tags */
    gchar     *index_face_dirs;       /* ';' separated: faces looked for */
    gboolean   detect_filetype_by_ext;

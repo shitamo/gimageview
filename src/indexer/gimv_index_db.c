@@ -105,6 +105,25 @@
    "  PRIMARY KEY (person_id, tag));" \
    "CREATE INDEX person_tags_tag ON person_tags(tag);"
 
+/*
+ * version 6: the files of the same size as another one, hashed (SHA-1) to
+ * find the same files.  size, mtime: of the file then (hashed again when
+ * they change); head: of the first 64 KB (X'': could not be read); whole:
+ * of the whole file, only when another one has the same size and head
+ * (NULL: not needed or not yet; X'': could not be read).  A file no
+ * larger than the head has whole = head.
+ */
+#define SCHEMA_V6 \
+   "CREATE INDEX files_size ON files(size, name);" \
+   "CREATE TABLE hashes (" \
+   "  file_id INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE," \
+   "  size    INTEGER NOT NULL," \
+   "  mtime   INTEGER NOT NULL," \
+   "  head    BLOB NOT NULL," \
+   "  whole   BLOB);" \
+   "CREATE INDEX hashes_head ON hashes(head);" \
+   "CREATE INDEX hashes_whole ON hashes(whole);"
+
 static const gchar *schema =
    "CREATE TABLE dirs ("
    "  id      INTEGER PRIMARY KEY,"
@@ -129,6 +148,7 @@ static const gchar *schema =
    SCHEMA_V3
    SCHEMA_V4
    SCHEMA_V5
+   SCHEMA_V6
    "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR ";";
 
 
@@ -239,7 +259,7 @@ open_rw (const gchar *path, sqlite3 **dbp, gchar **errmsg, gboolean retry)
    } else if (v >= 1 && v < GIMV_INDEX_DB_VERSION) {
       /* older versions: only new tables and columns */
       gchar *sql = g_strconcat ("BEGIN;", v < 2 ? SCHEMA_V2 : "", v < 3 ? SCHEMA_V3 : "",
-                                v < 4 ? SCHEMA_V4 : "", SCHEMA_V5,
+                                v < 4 ? SCHEMA_V4 : "", v < 5 ? SCHEMA_V5 : "", SCHEMA_V6,
                                 "PRAGMA user_version = " GIMV_INDEX_DB_VERSION_STR
                                 "; COMMIT;", NULL);
       gint r = sqlite3_exec (db, sql, NULL, NULL, NULL);

@@ -54,6 +54,7 @@ typedef enum {
    GIMV_INDEX_CHANGED_DATES = 1 << 0,
    GIMV_INDEX_CHANGED_TAGS  = 1 << 1,
    GIMV_INDEX_CHANGED_FACES = 1 << 2,
+   GIMV_INDEX_CHANGED_HASHES = 1 << 3,   /* the same files (stage 4) */
 } GimvIndexChange;
 
 typedef void (*GimvIndexChangedFunc) (GimvIndexChange what, gpointer data);
@@ -69,6 +70,9 @@ void            gimv_index_remove_watch     (guint                id);
  * database changed */
 void            gimv_index_status_changed   (void);
 void            gimv_index_faces_changed    (void);
+/* the same files are being looked for (stage 4): how far; FALSE when not */
+gboolean        gimv_index_hash_progress    (guint *done,
+                                             guint *todo);
 /* the names of the faces to the comment files (as tags "person/<name>"),
  * and the names in them back to the faces: done by the indexer between
  * its other work */

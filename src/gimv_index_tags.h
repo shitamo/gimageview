@@ -19,6 +19,8 @@ void gimv_index_edit_tags (GtkWindow *parent, GList *infos);
 
 /* the same for the images in dir and the folders in it (looked for in a
  * worker thread first) */
+/* the tags of from added to to (from is a copy deleted); TRUE: to changed */
+gboolean gimv_index_tags_merge (const gchar *from, const gchar *to);
 void gimv_index_edit_tags_dir (GtkWindow *parent, const gchar *dir);
 
 #endif /* __GIMV_INDEX_TAGS_H__ */

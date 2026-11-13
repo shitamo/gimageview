@@ -68,5 +68,15 @@ void          gimv_dupl_win_unset_relation (GimvDuplWin   *sw);
 /* look for the duplicates among the images of tv (in a thread) */
 void          gimv_dupl_win_start          (GimvDuplWin   *sw,
                                             GimvThumbView *tv);
+#ifdef ENABLE_INDEX
+/* the same files the index found: all (dir NULL), below dir, or the
+ * groups of paths (GList of gchar *) */
+void          gimv_dupl_win_start_index    (GimvDuplWin   *sw,
+                                            const gchar   *dir,
+                                            GList         *paths);
+GimvDuplWin  *gimv_dupl_win_open_index     (GtkWindow     *parent,
+                                            const gchar   *dir,
+                                            GList         *paths);
+#endif
 
 #endif /* __GIMV_DUPL_WIN_H__ */

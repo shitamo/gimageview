@@ -29,18 +29,29 @@
 
 #include "gimv_dupl_win.h"
 
+#include <errno.h>
+#include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 
+#include <glib/gstdio.h>
+
+#include "gimv_bookmark.h"
 #include "gimv_comment.h"
 #include "gimv_dupl_scan.h"
 #include "gimv_icon_stock.h"
 #include "gimv_image_info.h"
+#include "gimv_image_win.h"
 #include "gimv_thumb.h"
 #include "prefs.h"
 
 #ifdef ENABLE_INDEX
+#  include <sqlite3.h>
 #  include "gimv_index.h"
+#  include "gimv_index_db.h"
+#  include "gimv_index_tags.h"
 #endif
 
 #define ROW_ICON_SIZE   48
@@ -80,6 +91,8 @@ struct GimvDuplWinPriv_Tag
    gboolean       running;
    gboolean       final;       /* the groups are all of them (not the
                                   same files only, first) */
+   gboolean       from_index;  /* the same files the index found (all the
+                                  indexed images, or a folder) */
    GPtrArray     *groups;      /* GimvDuplGroup *: shown */
    gboolean       groups_owned;/* ... freed here (the first ones) */
 
@@ -106,6 +119,7 @@ struct GimvDuplWinPriv_Tag
    GtkWidget     *stop_button;
    GtkWidget     *summary_label;  /* of the group shown */
    GtkWidget     *trash_button;   /* ... its images to delete */
+   GtkWidget     *trash_all_button; /* those of every group */
    gboolean       trashing;
 
    gint           current;     /* the group shown, -1 */
@@ -391,7 +405,15 @@ open_path (GimvDuplWin *sw, const gchar *path)
 {
    GimvThumb *thumb = thumb_of_path (sw, path);
 
-   if (!thumb) return;
+   if (!thumb) {
+      /* from the index (or the tab is gone): in an image window */
+      GimvImageInfo *info = gimv_image_info_get (path);
+      if (info) {
+         gimv_image_win_open_window_auto (info);
+         gimv_image_info_unref (info);
+      }
+      return;
+   }
    if (conf.simwin_sel_thumbview) {
       gimv_thumb_view_set_selection_all (sw->tv, FALSE);
       gimv_thumb_view_set_selection (thumb, TRUE);
@@ -441,6 +463,32 @@ update_summary (GimvDuplWin *sw)
    }
    g_free (text);
    g_free (size);
+
+   /* every group at once (many groups: from the index) */
+   {
+      guint i, all_del = 0, groups = 0;
+      goffset all_bytes = 0;
+
+      for (i = 0; priv->groups && i < priv->groups->len; i++) {
+         GimvDuplGroup *g = g_ptr_array_index (priv->groups, i);
+         guint d, k;
+         goffset b;
+         if (n_left (sw, g) < 2) continue;
+         groups++;
+         group_counts (sw, g, &d, &b, &k);
+         /* a group with nothing kept is left to be done by itself */
+         if (d > 0 && k > 0) { all_del += d; all_bytes += b; }
+      }
+      gtk_widget_set_visible (priv->trash_all_button, groups > 1);
+      gtk_widget_set_sensitive (priv->trash_all_button,
+                                all_del > 0 && !priv->trashing && !priv->running);
+      size = g_format_size (all_bytes);
+      text = g_strdup_printf (_("Moves the images marked Delete of all the %u groups "
+                                "to the trash: %u images (%s)"), groups, all_del, size);
+      gtk_widget_set_tooltip_text (priv->trash_all_button, text);
+      g_free (text);
+      g_free (size);
+   }
 }
 
 
@@ -723,7 +771,8 @@ card_new (GimvDuplWin *sw, GimvDuplGroup *group, guint i)
    picture = gtk_picture_new ();
    gtk_picture_set_content_fit (GTK_PICTURE (picture), GTK_CONTENT_FIT_SCALE_DOWN);
    gtk_widget_set_size_request (picture, CARD_PIC_SIZE, CARD_PIC_SIZE);
-   gtk_widget_set_tooltip_text (picture, _("Click to show it in the thumbnail window"));
+   gtk_widget_set_tooltip_text (picture, sw->tv ? _("Click to show it in the thumbnail window")
+                                                : _("Click to open it"));
    click = gtk_gesture_click_new ();
    g_signal_connect (click, "pressed", G_CALLBACK (cb_picture_pressed), cd);
    gtk_widget_add_controller (picture, GTK_EVENT_CONTROLLER (click));
@@ -735,10 +784,12 @@ card_new (GimvDuplWin *sw, GimvDuplGroup *group, guint i)
    if (sw->priv->final && item->width > 0)
       text = g_strdup_printf ("<b>%d × %d</b>", item->width, item->height);
    else
-      text = g_strdup ("<b>—</b>");
-   label = card_label (box, NULL, FALSE);
-   gtk_label_set_markup (GTK_LABEL (label), text);
-   g_free (text);
+      text = sw->priv->from_index ? NULL : g_strdup ("<b>—</b>");
+   if (text) {
+      label = card_label (box, NULL, FALSE);
+      gtk_label_set_markup (GTK_LABEL (label), text);
+      g_free (text);
+   }
 
    size = g_format_size (item->size);
    {
@@ -985,7 +1036,142 @@ idle_progress (gpointer data)
 typedef struct {
    Shared        *shared;
    GimvDuplScan  *scan;
+
+   /* from the index */
+   gboolean       from_index;
+   gchar         *dir;        /* the groups with an image below it ("/.../"),
+                                 NULL: all */
+   GHashTable    *only;       /* the groups of these paths, NULL: all */
+   gchar         *error;
+   gint64         n_hashes;   /* files hashed by the index */
 } ScanJob;
+
+
+#ifdef ENABLE_INDEX
+
+typedef struct {
+   gchar  *path;
+   gint64  size, mtime;
+} IndexMember;
+
+static void
+index_member_clear (gpointer p)
+{
+   g_free (((IndexMember *) p)->path);
+}
+
+
+/* a group of the index: its files still there, each file once (a hard
+ * link is the same file), into the scan */
+static void
+index_group_add (ScanJob *job, GArray *members, const gchar *key)
+{
+   GArray *ok;
+   GHashTable *inodes;
+   gboolean wanted = !job->dir && !job->only;
+   guint i;
+
+   if (members->len < 2) return;
+   for (i = 0; i < members->len && !wanted; i++) {
+      IndexMember *m = &g_array_index (members, IndexMember, i);
+      if (job->dir && g_str_has_prefix (m->path, job->dir)) wanted = TRUE;
+      if (job->only && g_hash_table_contains (job->only, m->path)) wanted = TRUE;
+   }
+   if (!wanted) return;
+
+   ok = g_array_new (FALSE, FALSE, sizeof (guint));
+   inodes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   for (i = 0; i < members->len; i++) {
+      IndexMember *m = &g_array_index (members, IndexMember, i);
+      GStatBuf st;
+      gchar *ino;
+
+      /* gone, or changed since the index read it */
+      if (g_stat (m->path, &st) != 0 || !S_ISREG (st.st_mode) || st.st_size != m->size)
+         continue;
+      ino = g_strdup_printf ("%" G_GUINT64_FORMAT ":%" G_GUINT64_FORMAT,
+                             (guint64) st.st_dev, (guint64) st.st_ino);
+      if (g_hash_table_contains (inodes, ino)) { g_free (ino); continue; }
+      g_hash_table_add (inodes, ino);
+      m->mtime = st.st_mtime;
+      g_array_append_val (ok, i);
+   }
+   if (ok->len >= 2) {
+      for (i = 0; i < ok->len; i++) {
+         IndexMember *m = &g_array_index (members, IndexMember, g_array_index (ok, guint, i));
+         GimvDuplItem *item = gimv_dupl_scan_add (job->scan, m->path, m->size, m->mtime, NULL);
+         item->key = g_strdup (key);
+      }
+   }
+   g_hash_table_destroy (inodes);
+   g_array_unref (ok);
+}
+
+
+/* the groups of the same files the index has found */
+static gboolean
+index_fill (ScanJob *job, GCancellable *cancel)
+{
+   gchar *dbfile = gimv_index_db_default_path ();
+   sqlite3 *db = NULL;
+   sqlite3_stmt *st = NULL;
+   GArray *members;
+   gchar *key = NULL;
+
+   if (gimv_index_db_open (dbfile, FALSE, &db, NULL) != GIMV_INDEX_DB_OK || !db) {
+      g_free (dbfile);
+      job->error = g_strdup (_("The index cannot be read (it is not made yet?)."));
+      return FALSE;
+   }
+   g_free (dbfile);
+
+   if (sqlite3_prepare_v2 (db, "SELECT count(*) FROM hashes", -1, &st, NULL) == SQLITE_OK
+       && sqlite3_step (st) == SQLITE_ROW)
+      job->n_hashes = sqlite3_column_int64 (st, 0);
+   sqlite3_finalize (st);
+   st = NULL;
+
+   if (sqlite3_prepare_v2 (db,
+          "SELECT hex (h.whole), d.path, f.name, f.size FROM hashes h "
+          "JOIN files f ON f.id = h.file_id JOIN dirs d ON d.id = f.dir_id "
+          "WHERE length (h.whole) = 20 AND h.size = f.size AND h.mtime = f.mtime "
+          "AND h.whole IN (SELECT whole FROM hashes WHERE length (whole) = 20 "
+          "                GROUP BY whole HAVING count (*) > 1) "
+          "ORDER BY h.whole", -1, &st, NULL) != SQLITE_OK) {
+      job->error = g_strdup (sqlite3_errmsg (db));
+      sqlite3_close (db);
+      return FALSE;
+   }
+
+   members = g_array_new (FALSE, TRUE, sizeof (IndexMember));
+   g_array_set_clear_func (members, index_member_clear);
+   while (sqlite3_step (st) == SQLITE_ROW && !g_cancellable_is_cancelled (cancel)) {
+      const gchar *k = (const gchar *) sqlite3_column_text (st, 0);
+      IndexMember m;
+
+      if (key && strcmp (key, k)) {
+         index_group_add (job, members, key);
+         g_array_set_size (members, 0);
+      }
+      if (!key || strcmp (key, k)) {
+         g_free (key);
+         key = g_strdup (k);
+      }
+      m.path  = g_build_filename ((const gchar *) sqlite3_column_text (st, 1),
+                                  (const gchar *) sqlite3_column_text (st, 2), NULL);
+      m.size  = sqlite3_column_int64 (st, 3);
+      m.mtime = 0;
+      g_array_append_val (members, m);
+   }
+   if (key) index_group_add (job, members, key);
+   g_array_unref (members);
+   g_free (key);
+   sqlite3_finalize (st);
+   sqlite3_close (db);
+   return !g_cancellable_is_cancelled (cancel);
+}
+
+#endif /* ENABLE_INDEX */
 
 
 static void
@@ -1008,7 +1194,14 @@ static void
 scan_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
    ScanJob *job = data;
-   gboolean ok = gimv_dupl_scan_run (job->scan, cancel, scan_progress, job);
+   gboolean ok = TRUE;
+
+#ifdef ENABLE_INDEX
+   if (job->from_index)
+      ok = index_fill (job, cancel);
+#endif
+   if (ok)
+      ok = gimv_dupl_scan_run (job->scan, cancel, scan_progress, job);
    g_task_return_boolean (task, ok);
 }
 
@@ -1020,6 +1213,9 @@ scan_job_free (gpointer data)
    /* the window gone: the scan is nobody's */
    if (!job->shared->sw) gimv_dupl_scan_free (job->scan);
    shared_unref (job->shared);
+   g_free (job->dir);
+   if (job->only) g_hash_table_destroy (job->only);
+   g_free (job->error);
    g_free (job);
 }
 
@@ -1044,6 +1240,31 @@ scan_done (GObject *source, GAsyncResult *res, gpointer data)
    n = g_list_model_get_n_items (G_LIST_MODEL (priv->group_store));
    text = ok ? g_strdup_printf (_("Done: %u groups"), n)
              : g_strdup_printf (_("Stopped: %u groups"), n);
+#ifdef ENABLE_INDEX
+   if (job->from_index) {
+      guint done, todo;
+      gchar *t = NULL;
+
+      if (job->error) {
+         t = g_strdup (job->error);
+      } else if (gimv_index_hash_progress (&done, &todo)) {
+         t = g_strdup_printf (_("%s: the index is still looking for the same files "
+                                "(%d%%); open this again later for the rest"),
+                              text, todo ? (gint) ((guint64) done * 100 / todo) : 0);
+      } else if (job->n_hashes == 0) {
+         t = g_strdup (conf.index_duplicates
+                       ? _("The index has not looked for the same files yet.")
+                       : _("The index does not look for the same files: turn on "
+                           "\"Look for the same files\" in [Preferences | Index]."));
+      }
+      if (t) {
+         g_free (text);
+         text = t;
+         if (n == 0)
+            gtk_label_set_text (GTK_LABEL (priv->empty_label), t);
+      }
+   }
+#endif
    if (priv->skipped > 0) {
       gchar *t = g_strdup_printf (_("%s (%d in archives not compared)"), text, priv->skipped);
       g_free (text);
@@ -1101,6 +1322,90 @@ gimv_dupl_win_start (GimvDuplWin *sw, GimvThumbView *tv)
 }
 
 
+#ifdef ENABLE_INDEX
+/*
+ * The same files the index found (stage 4 of the indexer): of all the
+ * indexed images (dir NULL), of those below a folder, or of some images
+ * (paths: the groups with one of them).  Nothing is read but the index.
+ */
+void
+gimv_dupl_win_start_index (GimvDuplWin *sw, const gchar *dir, GList *paths)
+{
+   GimvDuplWinPriv *priv;
+   GTask *task;
+   ScanJob *job;
+   GList *node;
+
+   g_return_if_fail (GIMV_IS_DUPL_WIN (sw));
+   priv = sw->priv;
+   g_return_if_fail (!priv->running && !priv->scan);
+
+   priv->from_index = TRUE;
+   priv->scan = gimv_dupl_scan_new (conf.search_similar_accuracy);
+   gimv_dupl_scan_set_same_only (priv->scan, TRUE);
+
+   job = g_new0 (ScanJob, 1);
+   job->shared = shared_ref (priv->shared);
+   job->scan = priv->scan;
+   job->from_index = TRUE;
+   if (dir) {
+      gsize len = strlen (dir);
+      job->dir = len > 1 && dir[len - 1] == '/' ? g_strdup (dir)
+                                                : g_strconcat (dir, "/", NULL);
+   }
+   for (node = paths; node; node = g_list_next (node)) {
+      if (!job->only)
+         job->only = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+      g_hash_table_add (job->only, g_strdup (node->data));
+   }
+
+   priv->running = TRUE;
+   priv->cancel = g_cancellable_new ();
+   gtk_widget_set_sensitive (priv->stop_button, TRUE);
+   gtk_widget_set_visible (priv->empty_label, FALSE);
+   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (priv->progress), _("Reading the index..."));
+   gtk_progress_bar_pulse (GTK_PROGRESS_BAR (priv->progress));
+
+   task = g_task_new (NULL, priv->cancel, scan_done, NULL);
+   g_task_set_task_data (task, job, scan_job_free);
+   g_task_run_in_thread (task, scan_thread);
+   g_object_unref (task);
+}
+#endif
+
+
+#ifdef ENABLE_INDEX
+/* a window of the same files the index found (see above) */
+GimvDuplWin *
+gimv_dupl_win_open_index (GtkWindow *parent, const gchar *dir, GList *paths)
+{
+   GimvDuplWin *sw = gimv_dupl_win_new ();
+   gchar *title;
+
+   if (dir) {
+      gchar *d = g_strdup (dir), *name;
+      gsize len = strlen (d);
+      if (len > 1 && d[len - 1] == '/') d[len - 1] = '\0';
+      name = g_filename_display_name (d);
+      g_free (d);
+      title = g_strdup_printf (_("Find Duplicates - \"%s\" and the folders in it"), name);
+      g_free (name);
+   } else if (paths) {
+      title = g_strdup (_("Find Duplicates - the same files as the images selected"));
+   } else {
+      title = g_strdup (_("Find Duplicates - all the indexed images"));
+   }
+   gtk_window_set_title (GTK_WINDOW (sw), title);
+   g_free (title);
+   if (parent)
+      gtk_window_set_transient_for (GTK_WINDOW (sw), parent);
+   gtk_window_present (GTK_WINDOW (sw));
+   gimv_dupl_win_start_index (sw, dir, paths);
+   return sw;
+}
+#endif
+
+
 static void
 cb_stop (GtkButton *button, GimvDuplWin *sw)
 {
@@ -1113,9 +1418,32 @@ cb_stop (GtkButton *button, GimvDuplWin *sw)
  ******************************************************************************/
 
 typedef struct {
+   gchar    *path;      /* to delete */
+   gchar    *keep;      /* the image kept of its group (NULL: none) */
+   gboolean  verify;    /* keep has the same bytes (checked again first) */
+   gboolean  extras;    /* has a comment (tags) or a bookmark */
+} TrashItem;
+
+static void
+trash_item_clear (gpointer p)
+{
+   TrashItem *t = p;
+   g_free (t->path);
+   g_free (t->keep);
+}
+
+
+typedef struct {
    Shared    *shared;
-   GPtrArray *paths;      /* gchar * */
-   GPtrArray *done;       /* the paths moved */
+   GArray    *items;      /* TrashItem */
+   gboolean   all_groups; /* every group, not the one shown */
+   gboolean   move_extras;/* comments, tags and bookmarks to the kept image */
+   guint      n_groups;
+   guint      skipped;    /* groups with nothing kept (left out) */
+   gboolean   all_marked; /* the group shown: nothing kept */
+   goffset    bytes;
+   guint      with_extras;
+   GPtrArray *done;       /* TrashItem * moved */
    GString   *errors;
    guint      position;   /* of the group in the list */
 } TrashJob;
@@ -1126,10 +1454,47 @@ trash_job_free (gpointer data)
 {
    TrashJob *job = data;
    shared_unref (job->shared);
-   g_ptr_array_unref (job->paths);
-   g_ptr_array_unref (job->done);
-   g_string_free (job->errors, TRUE);
+   g_array_unref (job->items);
+   if (job->done) g_ptr_array_unref (job->done);
+   if (job->errors) g_string_free (job->errors, TRUE);
    g_free (job);
+}
+
+
+/* the same bytes (a file checked again right before it is deleted: it
+ * may have changed since it was compared) */
+static gboolean
+same_bytes (const gchar *a, const gchar *b)
+{
+   gint fa, fb;
+   GStatBuf sa, sb;
+   gboolean same = FALSE;
+
+   if (g_stat (a, &sa) != 0 || g_stat (b, &sb) != 0) return FALSE;
+   if (sa.st_size != sb.st_size) return FALSE;
+   fa = g_open (a, O_RDONLY | O_CLOEXEC, 0);
+   fb = g_open (b, O_RDONLY | O_CLOEXEC, 0);
+   if (fa >= 0 && fb >= 0) {
+      guchar ba[65536], bb[65536];
+      same = TRUE;
+      for (;;) {
+         gssize na = read (fa, ba, sizeof ba), nb;
+         if (na < 0 && errno == EINTR) continue;
+         if (na < 0) { same = FALSE; break; }
+         nb = 0;
+         while (nb < na) {
+            gssize r = read (fb, bb + nb, na - nb);
+            if (r < 0 && errno == EINTR) continue;
+            if (r <= 0) break;
+            nb += r;
+         }
+         if (nb != na || memcmp (ba, bb, na)) { same = FALSE; break; }
+         if (na == 0) break;
+      }
+   }
+   if (fa >= 0) close (fa);
+   if (fb >= 0) close (fb);
+   return same;
 }
 
 
@@ -1139,15 +1504,24 @@ trash_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
    TrashJob *job = data;
    guint i;
 
-   for (i = 0; i < job->paths->len; i++) {
-      const gchar *path = g_ptr_array_index (job->paths, i);
-      GFile *file = g_file_new_for_path (path);
+   for (i = 0; i < job->items->len; i++) {
+      TrashItem *t = &g_array_index (job->items, TrashItem, i);
+      GFile *file;
       GError *error = NULL;
 
+      if (t->verify && !same_bytes (t->path, t->keep)) {
+         gchar *name = g_filename_display_name (t->path);
+         g_string_append_printf (job->errors, "%s: %s\n", name,
+                                 _("not the same as the image kept any more (changed or "
+                                   "gone): left as it is"));
+         g_free (name);
+         continue;
+      }
+      file = g_file_new_for_path (t->path);
       if (g_file_trash (file, NULL, &error)) {
-         g_ptr_array_add (job->done, g_strdup (path));
+         g_ptr_array_add (job->done, t);
       } else {
-         gchar *name = g_filename_display_name (path);
+         gchar *name = g_filename_display_name (t->path);
          g_string_append_printf (job->errors, "%s: %s\n", name,
                                  error ? error->message : "");
          g_free (name);
@@ -1159,28 +1533,106 @@ trash_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 }
 
 
+#ifdef ENABLE_INDEX
+/* a comment file with nothing but the tags (and empty lines) */
+static gboolean
+only_tags (const gchar *cfile)
+{
+   gchar *text = NULL, **lines;
+   gboolean only = TRUE;
+   gint i;
+
+   if (!g_file_get_contents (cfile, &text, NULL, NULL)) return FALSE;
+   lines = g_strsplit (text, "\n", -1);
+   for (i = 0; lines[i] && only; i++) {
+      g_strchomp (lines[i]);
+      if (*lines[i] && !g_str_has_prefix (lines[i], GIMV_COMMENT_TAGS_KEY ":"))
+         only = FALSE;
+   }
+   g_strfreev (lines);
+   g_free (text);
+   return only;
+}
+#endif
+
+
+/* the comment (tags) and the bookmark of a copy deleted to the image kept:
+ * the comment file moves when the kept image has none, else only the tags
+ * are added to its own (the rest of the comment stays with the copy) */
+static void
+move_extras (const gchar *from, const gchar *to)
+{
+   gchar *cfrom = gimv_comment_find_file (from);
+
+   if (cfrom) {
+      gchar *cto = gimv_comment_find_file (to);
+      if (!cto) {
+         gchar *dest = gimv_comment_get_path (to);
+         gchar *dir = dest ? g_path_get_dirname (dest) : NULL;
+         if (dest && g_mkdir_with_parents (dir, 0700) == 0 && g_rename (cfrom, dest) == 0) {
+#ifdef ENABLE_INDEX
+            gimv_index_tags_changed (to);
+            gimv_index_tags_changed (from);
+#endif
+         }
+         g_free (dir);
+         g_free (dest);
+      } else {
+#ifdef ENABLE_INDEX
+         gimv_index_tags_merge (from, to);
+         /* nothing but the tags in it: they are with the kept image now
+          * (else it would be a missing image with a comment) */
+         if (only_tags (cfrom) && g_unlink (cfrom) == 0)
+            gimv_index_tags_changed (from);
+#endif
+      }
+      g_free (cto);
+      g_free (cfrom);
+   }
+   if (gimv_bookmark_has (from)) {
+      if (gimv_bookmark_has (to))
+         gimv_bookmark_remove (from);
+      else
+         gimv_bookmark_move (from, to);
+   }
+}
+
+
 static void
 trash_done (GObject *source, GAsyncResult *res, gpointer data)
 {
    TrashJob *job = g_task_get_task_data (G_TASK (res));
    GimvDuplWin *sw = job->shared->sw;
-   guint i;
+   guint i, moved = 0;
+
+   /* the comments and bookmarks follow, the window open or not */
+   for (i = 0; i < job->done->len; i++) {
+      TrashItem *t = g_ptr_array_index (job->done, i);
+      if (job->move_extras && t->extras && t->keep) {
+         move_extras (t->path, t->keep);
+         moved++;
+      }
+   }
 
    if (!sw) return;
    sw->priv->trashing = FALSE;
    for (i = 0; i < job->done->len; i++)
-      g_hash_table_add (sw->priv->removed, g_strdup (g_ptr_array_index (job->done, i)));
+      g_hash_table_add (sw->priv->removed,
+                        g_strdup (((TrashItem *) g_ptr_array_index (job->done, i))->path));
 
    gtk_widget_set_sensitive (sw->priv->stop_button, FALSE);
    {
-      gchar *text = g_strdup_printf (_("Moved to the trash: %u images"), job->done->len);
+      gchar *text = moved > 0
+         ? g_strdup_printf (_("Moved to the trash: %u images (the comments and bookmarks of "
+                              "%u to the images kept)"), job->done->len, moved)
+         : g_strdup_printf (_("Moved to the trash: %u images"), job->done->len);
       gtk_progress_bar_set_text (GTK_PROGRESS_BAR (sw->priv->progress), text);
       g_free (text);
    }
    fill_groups (sw);
    /* the group done is gone (one left): on to the next, which is now where
     * it was */
-   {
+   if (!job->all_groups) {
       GtkSingleSelection *sel = GTK_SINGLE_SELECTION
          (gtk_list_view_get_model (GTK_LIST_VIEW (sw->priv->group_view)));
       guint n = g_list_model_get_n_items (G_LIST_MODEL (sw->priv->group_store));
@@ -1201,60 +1653,77 @@ trash_done (GObject *source, GAsyncResult *res, gpointer data)
       gtk_alert_dialog_show (dialog, GTK_WINDOW (sw));
       g_object_unref (dialog);
    }
+   update_summary (sw);
 }
 
 
-/* the paths to delete of the group shown */
-static GPtrArray *
-paths_to_delete (GimvDuplWin *sw, gboolean *all, guint *with_comment, goffset *bytes)
+/* the images to delete of a group into the job */
+static void
+add_group (GimvDuplWin *sw, TrashJob *job, GimvDuplGroup *group)
 {
-   GimvDuplWinPriv *priv = sw->priv;
-   GPtrArray *paths = g_ptr_array_new_with_free_func (g_free);
-   GimvDuplGroup *group;
+   GimvDuplItem *keep = NULL;
    guint k, n_del, n_keep;
+   goffset bytes;
 
-   *all = FALSE;
-   *with_comment = 0;
-   *bytes = 0;
-   if (!priv->groups || priv->current < 0 || priv->current >= (gint) priv->groups->len)
-      return paths;
-   group = g_ptr_array_index (priv->groups, priv->current);
-   group_counts (sw, group, &n_del, bytes, &n_keep);
-   *all = n_del > 0 && n_keep == 0;
+   group_counts (sw, group, &n_del, &bytes, &n_keep);
+   if (n_del == 0) return;
+   if (n_keep == 0) {
+      if (job->all_groups) { job->skipped++; return; }
+      job->all_marked = TRUE;
+   }
+   for (k = 0; k < group->members->len && !keep; k++) {
+      GimvDuplItem *item = g_ptr_array_index (group->members, k);
+      if (!is_removed (sw, item) && !marked_delete (sw, group, k)) keep = item;
+   }
+   job->n_groups++;
+   job->bytes += bytes;
    for (k = 0; k < group->members->len; k++) {
       GimvDuplItem *item = g_ptr_array_index (group->members, k);
+      TrashItem t = { 0 };
       if (is_removed (sw, item) || !marked_delete (sw, group, k)) continue;
-      g_ptr_array_add (paths, g_strdup (item->path));
-      if (has_comment (item->path)) (*with_comment)++;
+      t.path = g_strdup (item->path);
+      t.keep = keep ? g_strdup (keep->path) : NULL;
+      t.verify = keep && group->kind == GIMV_DUPL_SAME;
+      g_array_append_val (job->items, t);
    }
-   return paths;
+}
+
+
+static TrashJob *
+trash_job_new (GimvDuplWin *sw, gboolean all_groups)
+{
+   GimvDuplWinPriv *priv = sw->priv;
+   TrashJob *job = g_new0 (TrashJob, 1);
+   guint i;
+
+   job->shared = shared_ref (priv->shared);
+   job->items = g_array_new (FALSE, TRUE, sizeof (TrashItem));
+   g_array_set_clear_func (job->items, trash_item_clear);
+   job->all_groups = all_groups;
+   if (all_groups) {
+      for (i = 0; priv->groups && i < priv->groups->len; i++) {
+         GimvDuplGroup *g = g_ptr_array_index (priv->groups, i);
+         if (n_left (sw, g) >= 2) add_group (sw, job, g);
+      }
+   } else if (priv->groups && priv->current >= 0 && priv->current < (gint) priv->groups->len) {
+      add_group (sw, job, g_ptr_array_index (priv->groups, priv->current));
+   }
+   job->position = gtk_single_selection_get_selected
+      (GTK_SINGLE_SELECTION (gtk_list_view_get_model (GTK_LIST_VIEW (priv->group_view))));
+   return job;
 }
 
 
 static void
-cb_trash_answer (GObject *source, GAsyncResult *res, gpointer data)
+trash_start (GimvDuplWin *sw, TrashJob *job)
 {
-   Shared *shared = data;
-   gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
-   GimvDuplWin *sw = shared->sw;
-   gboolean all;
-   guint with_comment;
-   goffset bytes;
-   TrashJob *job;
    GTask *task;
 
-   if (button != 1 || !sw) { shared_unref (shared); return; }
-
-   job = g_new0 (TrashJob, 1);
-   job->shared = shared;   /* the reference passes on */
-   job->paths = paths_to_delete (sw, &all, &with_comment, &bytes);
-   job->position = gtk_single_selection_get_selected
-      (GTK_SINGLE_SELECTION (gtk_list_view_get_model (GTK_LIST_VIEW (sw->priv->group_view))));
    sw->priv->trashing = TRUE;
-   job->done = g_ptr_array_new_with_free_func (g_free);
+   job->done = g_ptr_array_new ();
    job->errors = g_string_new (NULL);
-
    gtk_widget_set_sensitive (sw->priv->trash_button, FALSE);
+   gtk_widget_set_sensitive (sw->priv->trash_all_button, FALSE);
    gtk_progress_bar_set_text (GTK_PROGRESS_BAR (sw->priv->progress),
                               _("Moving to the trash..."));
    task = g_task_new (NULL, NULL, trash_done, NULL);
@@ -1265,60 +1734,152 @@ cb_trash_answer (GObject *source, GAsyncResult *res, gpointer data)
 
 
 static void
-cb_trash (GtkButton *button, GimvDuplWin *sw)
+cb_trash_answer (GObject *source, GAsyncResult *res, gpointer data)
 {
-   gboolean all;
-   guint with_comment;
-   goffset bytes;
-   GPtrArray *paths = paths_to_delete (sw, &all, &with_comment, &bytes);
+   TrashJob *job = data;
+   gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
+   GimvDuplWin *sw = job->shared->sw;
+
+   /* 0: cancel; 1: to the trash; 2: the comments moved first */
+   if (button <= 0 || !sw || sw->priv->trashing) {
+      trash_job_free (job);
+      return;
+   }
+   job->move_extras = button == 2;
+   trash_start (sw, job);
+}
+
+
+/* the comment files looked for in a thread (thousands of images) */
+static void
+extras_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   TrashJob *job = data;
+   guint i;
+
+   for (i = 0; i < job->items->len; i++) {
+      TrashItem *t = &g_array_index (job->items, TrashItem, i);
+      t->extras = has_comment (t->path);
+   }
+   g_task_return_boolean (task, TRUE);
+}
+
+
+static void
+extras_done (GObject *source, GAsyncResult *res, gpointer data)
+{
+   TrashJob *job = g_task_get_task_data (G_TASK (res));
+   GimvDuplWin *sw = job->shared->sw;
    GtkAlertDialog *dialog;
-   GString *detail = g_string_new (NULL);
+   GString *detail;
    gchar *size;
-   const gchar *buttons[3];
+   const gchar *buttons[4];
+   guint i;
 
-   if (paths->len == 0) { g_ptr_array_unref (paths); g_string_free (detail, TRUE); return; }
+   /* the job goes on to the dialog (the task does not free it) */
+   if (!sw) { trash_job_free (job); return; }
+   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (sw->priv->progress), "");
 
-   size = g_format_size (bytes);
-   dialog = gtk_alert_dialog_new (_("Move %u images (%s) of this group to the trash?"),
-                                  paths->len, size);
+   /* the bookmarks are in this thread's hands */
+   job->with_extras = 0;
+   for (i = 0; i < job->items->len; i++) {
+      TrashItem *t = &g_array_index (job->items, TrashItem, i);
+      if (!t->extras && gimv_bookmark_has (t->path)) t->extras = TRUE;
+      if (t->extras && t->keep) job->with_extras++;
+   }
+
+   size = g_format_size (job->bytes);
+   if (job->all_groups)
+      dialog = gtk_alert_dialog_new (_("Move %u images (%s) of %u groups to the trash?"),
+                                     job->items->len, size, job->n_groups);
+   else
+      dialog = gtk_alert_dialog_new (_("Move %u images (%s) of this group to the trash?"),
+                                     job->items->len, size);
    g_free (size);
+
+   detail = g_string_new (NULL);
    /* the names, the ones not shown too (a group of many) */
-   {
-      guint k;
-      for (k = 0; k < paths->len && k < 10; k++) {
-         gchar *name = g_filename_display_basename (g_ptr_array_index (paths, k));
-         g_string_append_printf (detail, "%s\n", name);
-         g_free (name);
-      }
-      if (paths->len > 10) {
-         g_string_append_printf (detail, _("and %u more"), paths->len - 10);
-         g_string_append (detail, "\n");
-      }
+   for (i = 0; i < job->items->len && i < 10; i++) {
+      gchar *name = g_filename_display_basename (g_array_index (job->items, TrashItem, i).path);
+      g_string_append_printf (detail, "%s\n", name);
+      g_free (name);
+   }
+   if (job->items->len > 10) {
+      g_string_append_printf (detail, _("and %u more"), job->items->len - 10);
       g_string_append (detail, "\n");
    }
-   if (all) {
+   g_string_append (detail, "\n");
+   if (job->all_marked) {
       g_string_append (detail, _("Every image of this group is marked to delete."));
       g_string_append (detail, "\n");
    }
-   if (with_comment > 0) {
-      g_string_append_printf (detail,
-                              _("%u of them have comments; the comments stay."),
-                              with_comment);
+   if (job->skipped > 0) {
+      g_string_append_printf (detail, _("%u groups with every image marked to delete are "
+                                        "left out: move those one group at a time."),
+                              job->skipped);
       g_string_append (detail, "\n");
    }
-   g_string_append (detail, _("They can be put back from the trash."));
+   if (job->with_extras > 0) {
+      g_string_append_printf (detail,
+                              _("%u of them have comments (tags) or bookmarks. They can go "
+                                "to the image kept of the group: a comment moves when that "
+                                "one has none, else its tags are added to those of that one; "
+                                "a bookmark moves when that one has none."),
+                              job->with_extras);
+      g_string_append (detail, "\n");
+   }
+   g_string_append (detail, _("Each one is compared with the image kept again first. "
+                              "They can be put back from the trash."));
    gtk_alert_dialog_set_detail (dialog, detail->str);
+   g_string_free (detail, TRUE);
+
    buttons[0] = _("_Cancel");
-   buttons[1] = _("_Move to Trash");
-   buttons[2] = NULL;
+   if (job->with_extras > 0) {
+      buttons[1] = _("Move to Trash _Only");
+      buttons[2] = _("_Move Them to the Kept Ones and Trash");
+      buttons[3] = NULL;
+   } else {
+      buttons[1] = _("_Move to Trash");
+      buttons[2] = NULL;
+   }
    gtk_alert_dialog_set_buttons (dialog, buttons);
    gtk_alert_dialog_set_cancel_button (dialog, 0);
-   gtk_alert_dialog_set_default_button (dialog, all ? 0 : 1);
-   gtk_alert_dialog_choose (dialog, GTK_WINDOW (sw), NULL, cb_trash_answer,
-                            shared_ref (sw->priv->shared));
+   gtk_alert_dialog_set_default_button (dialog, job->all_marked ? 0
+                                                : job->with_extras > 0 ? 2 : 1);
+   gtk_alert_dialog_choose (dialog, GTK_WINDOW (sw), NULL, cb_trash_answer, job);
    g_object_unref (dialog);
-   g_string_free (detail, TRUE);
-   g_ptr_array_unref (paths);
+}
+
+
+static void
+trash_ask (GimvDuplWin *sw, gboolean all_groups)
+{
+   TrashJob *job;
+   GTask *task;
+
+   if (sw->priv->trashing) return;
+   job = trash_job_new (sw, all_groups);
+   if (job->items->len == 0) { trash_job_free (job); return; }
+   gtk_progress_bar_set_text (GTK_PROGRESS_BAR (sw->priv->progress),
+                              _("Looking at the images to delete..."));
+   task = g_task_new (NULL, NULL, extras_done, NULL);
+   g_task_set_task_data (task, job, NULL);
+   g_task_run_in_thread (task, extras_thread);
+   g_object_unref (task);
+}
+
+
+static void
+cb_trash (GtkButton *button, GimvDuplWin *sw)
+{
+   trash_ask (sw, FALSE);
+}
+
+
+static void
+cb_trash_all (GtkButton *button, GimvDuplWin *sw)
+{
+   trash_ask (sw, TRUE);
 }
 
 
@@ -1506,6 +2067,12 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    gtk_widget_set_valign (priv->progress, GTK_ALIGN_CENTER);
    gtk_widget_set_hexpand (priv->progress, TRUE);
    gtk_box_append (GTK_BOX (hbox), priv->progress);
+
+   priv->trash_all_button = gtk_button_new_with_mnemonic (_("Move _All Marked to Trash..."));
+   gtk_widget_add_css_class (priv->trash_all_button, "destructive-action");
+   gtk_widget_set_visible (priv->trash_all_button, FALSE);
+   g_signal_connect (priv->trash_all_button, "clicked", G_CALLBACK (cb_trash_all), sw);
+   gtk_box_append (GTK_BOX (hbox), priv->trash_all_button);
 
    priv->stop_button = gtk_button_new_with_mnemonic (_("_Stop"));
    gtk_widget_set_sensitive (priv->stop_button, FALSE);
