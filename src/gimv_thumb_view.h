@@ -119,7 +119,7 @@ struct GimvThumbViewClass_Tag
 };
 
 
-#define GIMV_THUMBNAIL_VIEW_IF_VERSION 8
+#define GIMV_THUMBNAIL_VIEW_IF_VERSION 9
 
 
 struct GimvThumbViewPlugin_Tag
@@ -152,6 +152,9 @@ struct GimvThumbViewPlugin_Tag
                                          GimvThumb     *thumb);
    GimvThumb *(*get_focus)              (GimvThumbView *tv);
    gboolean   (*is_in_view)             (GimvThumbView *tv,
+                                         GimvThumb     *thumb);
+   /* all of it on screen (NULL: is_in_view is used) */
+   gboolean   (*is_whole_in_view)       (GimvThumbView *tv,
                                          GimvThumb     *thumb);
 };
 
@@ -220,6 +223,8 @@ gchar         *gimv_thumb_view_first_in_view      (GimvThumbView    *tv);
 void           gimv_thumb_view_set_anchor         (GimvThumbView    *tv,
                                                    const gchar      *path);
 void           gimv_thumb_view_set_anchor_whole   (GimvThumbView    *tv,
+                                                   const gchar      *path);
+void           gimv_thumb_view_set_cursor_in_view (GimvThumbView    *tv,
                                                    const gchar      *path);
 /* "Update All Thumbnails" stopped (the rest keeps its caches) */
 void           gimv_thumb_view_recreate_stop      (GimvThumbView    *tv);

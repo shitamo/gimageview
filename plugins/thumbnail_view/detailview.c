@@ -53,7 +53,8 @@ static GimvThumbViewPlugin detailview_modes[] =
     detailview_set_selection,
     detailview_set_focus,
     detailview_get_focus,
-    detailview_thumbnail_is_in_viewport},
+    detailview_thumbnail_is_in_viewport,
+    detailview_thumbnail_is_whole_in_viewport},
 
    {GIMV_THUMBNAIL_VIEW_IF_VERSION,
     N_("Detail + Icon"),
@@ -69,7 +70,8 @@ static GimvThumbViewPlugin detailview_modes[] =
     detailview_set_selection,
     detailview_set_focus,
     detailview_get_focus,
-    detailview_thumbnail_is_in_viewport},
+    detailview_thumbnail_is_in_viewport,
+    detailview_thumbnail_is_whole_in_viewport},
 
    {GIMV_THUMBNAIL_VIEW_IF_VERSION,
     N_("Detail + Thumbnail"),
@@ -85,7 +87,8 @@ static GimvThumbViewPlugin detailview_modes[] =
     detailview_set_selection,
     detailview_set_focus,
     detailview_get_focus,
-    detailview_thumbnail_is_in_viewport},
+    detailview_thumbnail_is_in_viewport,
+    detailview_thumbnail_is_whole_in_viewport},
 };
 
 GIMV_PLUGIN_GET_IMPL(detailview_modes, GIMV_PLUGIN_THUMBVIEW_EMBEDER)

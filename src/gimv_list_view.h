@@ -204,6 +204,8 @@ gboolean            gimv_list_view_get_row_at         (GtkWidget  *view,
                                                        GimvRow   **row);
 /* the bounds of the row widget at position in widget coordinates (FALSE if
    the row is not realized, i.e. not near the visible area) */
+gboolean            gimv_list_view_row_whole_in_view  (GtkWidget  *view,
+                                                       guint       position);
 gboolean            gimv_list_view_get_row_area       (GtkWidget  *view,
                                                        guint       position,
                                                        graphene_rect_t *area);

@@ -3875,14 +3875,43 @@ restore_switch_scroll (GimvThumbView *tv)
 }
 
 
+static void
+cb_switch_cursor_after_paint (GdkFrameClock *clock, GimvThumbView *tv)
+{
+   g_signal_handlers_disconnect_by_func (clock, cb_switch_cursor_after_paint, tv);
+   /* tv is still referenced by the closure until here: g_list_find before */
+   if (!g_list_find (gimv_thumb_view_get_list (), tv)) return;
+   gimv_thumb_view_set_cursor_in_view
+      (tv, g_object_get_data (G_OBJECT (tv), "gimv-switch-cursor"));
+}
+
+
 static gboolean
 idle_restore_switch_scroll (gpointer data)
 {
    GimvThumbView *tv = data;
 
    if (g_list_find (gimv_thumb_view_get_list (), tv)) {
+      GtkRoot *root = gtk_widget_get_root (tv->container);
+      GtkWidget *focus = root ? gtk_root_get_focus (root) : NULL;
+
       restore_switch_scroll (tv);
       g_object_set_data (G_OBJECT (tv), "gimv-switch-scroll", NULL);
+
+      /* the focus went into the list, on its first row: the cursor where
+         it was if it is in view, on the first row in view otherwise.  What
+         is in view is known after the list is laid out at the place set
+         back: after the next frame. */
+      if (focus && gtk_widget_is_ancestor (focus, tv->container)) {
+         GdkFrameClock *clock = gtk_widget_get_frame_clock (tv->container);
+         if (clock) {
+            g_signal_connect_data (clock, "after-paint",
+                                   G_CALLBACK (cb_switch_cursor_after_paint),
+                                   g_object_ref (tv),
+                                   (GClosureNotify) (void (*) (void)) g_object_unref, 0);
+            gtk_widget_queue_draw (tv->container);
+         }
+      }
    }
    return G_SOURCE_REMOVE;
 }
@@ -3917,6 +3946,22 @@ cb_thumb_notebook_switch_page (GtkNotebook *notebook, GtkWidget *page,
    g_return_if_fail (notebook && tw);
    node = g_list_find (ThumbWinList, tw);
    if (!node) return;
+
+   /* the cursor of the page left, to put it back when it is switched to
+      again (see the _after () handler) */
+   {
+      gint cur = gtk_notebook_get_current_page (notebook);
+      GimvThumbView *old = cur >= 0 && cur != pagenum
+         ? gimv_thumb_win_find_thumbtable (tw, cur) : NULL;
+      GimvThumb *focus = old ? gimv_thumb_view_get_focus (old) : NULL;
+
+      if (old)
+         g_object_set_data_full (G_OBJECT (old), "gimv-switch-cursor",
+                                 focus && focus->info
+                                 ? g_strdup (gimv_image_info_get_path (focus->info))
+                                 : NULL,
+                                 g_free);
+   }
 
    tv = gimv_thumb_win_find_thumbtable (tw, pagenum);
 

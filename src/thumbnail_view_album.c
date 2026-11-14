@@ -65,6 +65,8 @@ static gboolean   thumbalbum_set_selection            (GimvThumbView  *tv,
 static void       thumbalbum_set_focus                (GimvThumbView  *tv,
                                                        GimvThumb      *thumb);
 static GimvThumb *thumbalbum_get_focus                (GimvThumbView  *tv);
+static gboolean   thumbalbum_thumbnail_is_whole_in_viewport (GimvThumbView *tv,
+                                                           GimvThumb     *thumb);
 static gboolean   thumbalbum_thumbnail_is_in_viewport (GimvThumbView  *tv,
                                                        GimvThumb      *thumb);
 
@@ -84,7 +86,8 @@ GimvThumbViewPlugin thumbalbum_modes[] =
     thumbalbum_set_selection,
     thumbalbum_set_focus,
     thumbalbum_get_focus,
-    thumbalbum_thumbnail_is_in_viewport},
+    thumbalbum_thumbnail_is_in_viewport,
+    thumbalbum_thumbnail_is_whole_in_viewport},
 
    {GIMV_THUMBNAIL_VIEW_IF_VERSION,
     N_("Album 2"),
@@ -100,7 +103,8 @@ GimvThumbViewPlugin thumbalbum_modes[] =
     thumbalbum_set_selection,
     thumbalbum_set_focus,
     thumbalbum_get_focus,
-    thumbalbum_thumbnail_is_in_viewport},
+    thumbalbum_thumbnail_is_in_viewport,
+    thumbalbum_thumbnail_is_whole_in_viewport},
 
    {GIMV_THUMBNAIL_VIEW_IF_VERSION,
     N_("Album 3"),
@@ -116,7 +120,8 @@ GimvThumbViewPlugin thumbalbum_modes[] =
     thumbalbum_set_selection,
     thumbalbum_set_focus,
     thumbalbum_get_focus,
-    thumbalbum_thumbnail_is_in_viewport},
+    thumbalbum_thumbnail_is_in_viewport,
+    thumbalbum_thumbnail_is_whole_in_viewport},
 };
 gint thumbalbum_modes_num
    = sizeof (thumbalbum_modes) / sizeof (GimvThumbViewPlugin);
@@ -589,6 +594,28 @@ thumbalbum_get_focus (GimvThumbView *tv)
    if (pos < 0) return NULL;
 
    return gimv_thumb_view_get_nth_thumb (tv, pos);
+}
+
+
+static gboolean
+thumbalbum_thumbnail_is_whole_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
+{
+   ThumbViewData *tv_data;
+   gint index;
+   GdkRectangle area, cell_area, inter;
+
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
+   g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
+
+   tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
+   g_return_val_if_fail (tv_data, FALSE);
+
+   index = gimv_thumb_view_get_thumb_index (tv, thumb);
+   gtkutil_get_widget_area (tv_data->album, &area);
+   if (!gimv_zlist_get_cell_area (GIMV_ZLIST (tv_data->album), index, &cell_area))
+      return FALSE;
+   return gdk_rectangle_intersect (&area, &cell_area, &inter)
+      && inter.width == cell_area.width && inter.height == cell_area.height;
 }
 
 

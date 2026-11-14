@@ -104,6 +104,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  the folder was not open yet (it showed the top of the folder).
 	* Detail view: switching tabs (closing one too) keeps where the list of
 	  the tab was scrolled to (it went to the top).
+	  The cursor (for the cursor keys) is put back on the image it was on
+	  if that is on screen, on the first image on screen otherwise (it
+	  was on the first image of the list).
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

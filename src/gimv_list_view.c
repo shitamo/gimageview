@@ -1202,6 +1202,26 @@ gimv_list_view_get_row_area (GtkWidget *view, guint position,
 }
 
 
+/* the row at position all in the visible part of the list (under the
+   titles of a column view) */
+gboolean
+gimv_list_view_row_whole_in_view (GtkWidget *view, guint position)
+{
+   GtkWidget *row_widget, *list;
+   graphene_rect_t area;
+
+   g_return_val_if_fail (GTK_IS_WIDGET (view), FALSE);
+
+   row_widget = find_row_widget_for_position (view, position);
+   if (!row_widget || !gtk_widget_get_mapped (row_widget)) return FALSE;
+   list = gtk_widget_get_ancestor (row_widget, GTK_TYPE_LIST_VIEW);
+   if (!list) list = view;
+   if (!gtk_widget_compute_bounds (row_widget, list, &area)) return FALSE;
+   return area.origin.y >= 0
+      && area.origin.y + area.size.height <= gtk_widget_get_height (list);
+}
+
+
 #define DROP_HIGHLIGHT_CLASS "gimv-drop-highlight"
 #define DROP_HIGHLIGHT_KEY   "gimv-drop-highlight-row"
 

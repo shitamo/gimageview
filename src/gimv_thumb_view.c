@@ -1913,6 +1913,42 @@ gimv_thumb_view_first_in_view (GimvThumbView *tv)
 }
 
 
+/* the cursor (focus) on the image of path when it is in view, on the first
+ * image in view otherwise: no scroll (a tab switched to keeps its place,
+ * and the cursor keys go on from there) */
+void
+gimv_thumb_view_set_cursor_in_view (GimvThumbView *tv, const gchar *path)
+{
+   GimvThumbViewPriv *priv;
+   gboolean (*in_view) (GimvThumbView *, GimvThumb *);
+   GimvThumb *first = NULL;
+   guint i;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   priv = tv->priv;
+   if (!priv || !tv->vfuncs || !tv->vfuncs->is_in_view || !tv->thumblist) return;
+   /* all of it in view: focusing one only partly in view scrolls */
+   in_view = tv->vfuncs->is_whole_in_view
+      ? tv->vfuncs->is_whole_in_view : tv->vfuncs->is_in_view;
+   build_index (tv);
+   for (i = 0; i < priv->index_array->len; i++) {
+      GimvThumb *t = g_ptr_array_index (priv->index_array, i);
+      if (!tv->vfuncs->is_in_view (tv, t)) {
+         if (first) break;      /* past the ones in view */
+         continue;
+      }
+      if (!in_view (tv, t)) continue;
+      if (!first) first = t;
+      if (!path) break;
+      if (t->info && !strcmp (gimv_image_info_get_path (t->info), path)) {
+         gimv_thumb_view_set_focus (tv, t);
+         return;
+      }
+   }
+   if (first) gimv_thumb_view_set_focus (tv, first);
+}
+
+
 /* shown again after the list is loaded again (see window_compute) */
 void
 gimv_thumb_view_set_anchor (GimvThumbView *tv, const gchar *path)

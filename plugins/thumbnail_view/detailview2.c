@@ -1306,6 +1306,25 @@ detailview_thumbnail_is_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
 }
 
 
+gboolean
+detailview_thumbnail_is_whole_in_viewport (GimvThumbView *tv, GimvThumb *thumb)
+{
+   DetailViewData *tv_data;
+   gint row;
+
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), FALSE);
+   g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
+
+   tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
+   g_return_val_if_fail (tv_data, FALSE);
+
+   row = gimv_thumb_view_get_thumb_index (tv, thumb);
+   if (row < 0 || !gtk_widget_get_mapped (GTK_WIDGET (tv_data->treeview)))
+      return FALSE;
+   return gimv_list_view_row_whole_in_view (tv_data->treeview, row);
+}
+
+
 /* typing on the list: a file by its name */
 static gchar *
 detail_search_text (GimvRow *row, gpointer data)

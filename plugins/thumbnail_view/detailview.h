@@ -59,6 +59,8 @@ gboolean   detailview_set_selection            (GimvThumbView *tv,
 void       detailview_set_focus                (GimvThumbView *tv,
                                                 GimvThumb     *thumb);
 GimvThumb *detailview_get_focus                (GimvThumbView *tv);
+gboolean   detailview_thumbnail_is_whole_in_viewport (GimvThumbView *tv,
+                                                GimvThumb     *thumb);
 gboolean   detailview_thumbnail_is_in_viewport (GimvThumbView *tv,
                                                 GimvThumb     *thumb);
 
