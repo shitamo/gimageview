@@ -6008,7 +6008,7 @@ msgid "%s — by date (not of one person)"
 msgstr "%s — 日付順 (一人の顔の一覧ではないため)"
 
 msgid "A tag put by a person: click to show the images with it"
-msgstr "手で付けたタグ: クリックでこのタグの画像を表示"
+msgstr "手動で付けたタグ: クリックでこのタグの画像を表示"
 
 msgid "A person in the image: click to show the images of the person"
 msgstr "写っている人物: クリックでこの人の画像を表示"
@@ -6410,7 +6410,7 @@ msgstr "他のプログラムが付けたキーワード (XMP・IPTC・サイド
 
 #: src/gimv_comment_view.c
 msgid "A tag (put by a person, or a keyword of another program): click to show the images with it"
-msgstr "タグ (手で付けたもの、または他のプログラムのキーワード): クリックでこのタグの画像を表示"
+msgstr "タグ (手動で付けたもの、または他のプログラムのキーワード): クリックでこのタグの画像を表示"
 
 #: src/gimv_thumb_view.c
 msgid "/Copy P_ath"
