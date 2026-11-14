@@ -119,6 +119,8 @@ struct GimvThumbViewPriv_Tag
    gchar               *anchor;        /* after a reload, the image to show
                                           again where the view was (path) */
    gint64               anchor_until;  /* given up then (monotonic) */
+   gboolean             anchor_whole;  /* the anchor all on screen at the end
+                                          (not only a part of it) */
    guint                recreate_total;
    gint                 recreate_pos;  /* the background's place in the list */
 };
@@ -531,6 +533,9 @@ gimv_thumb_view_open_folder_of (GimvThumbWin *tw, const gchar *path)
             gimv_thumb_view_set_selection_all (dir_tv, FALSE);
             gimv_thumb_view_set_selection (t, TRUE);
             gimv_thumb_view_set_focus (dir_tv, t);
+            /* a tab just made is not laid out yet, and the scroll of
+               set_focus () is lost: scrolled to it once it is */
+            gimv_thumb_view_set_anchor_whole (dir_tv, path);
             break;
          }
       }
@@ -1917,7 +1922,18 @@ gimv_thumb_view_set_anchor (GimvThumbView *tv, const gchar *path)
    g_free (tv->priv->anchor);
    tv->priv->anchor = g_strdup (path);
    tv->priv->anchor_until = g_get_monotonic_time () + 3 * G_USEC_PER_SEC;
+   tv->priv->anchor_whole = FALSE;
    window_request (tv, 0);
+}
+
+
+/* like gimv_thumb_view_set_anchor (), and the image is all on screen at
+   the end (the image chosen in a tab just opened) */
+void
+gimv_thumb_view_set_anchor_whole (GimvThumbView *tv, const gchar *path)
+{
+   gimv_thumb_view_set_anchor (tv, path);
+   if (tv->priv) tv->priv->anchor_whole = TRUE;
 }
 
 
@@ -1961,6 +1977,9 @@ window_compute (gpointer data)
          g_clear_pointer (&priv->anchor, g_free);
       } else if (tv->vfuncs->is_in_view && tv->vfuncs->is_in_view (tv, a)) {
          g_clear_pointer (&priv->anchor, g_free);   /* there */
+         /* a part may be off the edge: in (no scroll when it is all in) */
+         if (priv->anchor_whole)
+            gimv_thumb_view_adjust (tv, a);
       } else {
          gint at = gimv_thumb_view_get_thumb_index (tv, a);
          gimv_thumb_view_adjust (tv, a);

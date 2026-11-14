@@ -100,6 +100,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  nothing.
 	* Detail view: no "cb_sorter_changed: assertion" message on quit after
 	  sorting.
+	* Open the Folder (from a collection) shows the image chosen also when
+	  the folder was not open yet (it showed the top of the folder).
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

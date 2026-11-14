@@ -219,6 +219,8 @@ GimvThumb     *gimv_thumb_view_get_nth_thumb      (GimvThumbView    *tv,
 gchar         *gimv_thumb_view_first_in_view      (GimvThumbView    *tv);
 void           gimv_thumb_view_set_anchor         (GimvThumbView    *tv,
                                                    const gchar      *path);
+void           gimv_thumb_view_set_anchor_whole   (GimvThumbView    *tv,
+                                                   const gchar      *path);
 /* "Update All Thumbnails" stopped (the rest keeps its caches) */
 void           gimv_thumb_view_recreate_stop      (GimvThumbView    *tv);
 void           gimv_thumb_view_set_windowed       (GimvThumbView    *tv,
