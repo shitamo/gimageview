@@ -618,6 +618,24 @@ cb_treeview_drag_data_received (GtkWidget *widget,
    columns get a sorter, which makes their titles clickable; the view sorter
    changes when a title is clicked.  The rows are sorted by the thumbnail
    window like before (the sorters themselves do not sort anything). */
+/* the sort of the thumbnail window a column stands for */
+static GimvSortItem
+column_sort_item (gint idx)
+{
+   switch (idx) {
+   case 1:    return GIMV_SORT_NAME;
+   case 2:    return GIMV_SORT_SIZE;
+   case 3:    return GIMV_SORT_TYPE;
+   case 5:    return GIMV_SORT_ATIME;
+   case 6:    return GIMV_SORT_MTIME;
+   case 7:    return GIMV_SORT_CTIME;
+   case 11:   return GIMV_SORT_AREA;   /* Image size */
+   case 14:   return GIMV_SORT_DATE;   /* Date taken */
+   default:   return GIMV_SORT_NONE;
+   }
+}
+
+
 static gint
 dummy_sorter_compare (gconstpointer a, gconstpointer b, gpointer data)
 {
@@ -669,31 +687,8 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
 
    idx = GPOINTER_TO_INT (node->data);
 
-   switch (idx) {
-   case 1:
-      sort_item = GIMV_SORT_NAME;
-      break;
-   case 2:
-      sort_item = GIMV_SORT_SIZE;
-      break;
-   case 3:
-      sort_item = GIMV_SORT_TYPE;
-      break;
-   case 5:
-      sort_item = GIMV_SORT_ATIME;
-      break;
-   case 6:
-      sort_item = GIMV_SORT_MTIME;
-      break;
-   case 7:
-      sort_item = GIMV_SORT_CTIME;
-      break;
-   case 14:   /* Date taken */
-      sort_item = GIMV_SORT_DATE;
-      break;
-   default:
-      return;
-   }
+   sort_item = column_sort_item (idx);
+   if (sort_item == GIMV_SORT_NONE) return;
 
    current_item = gimv_thumb_win_get_sort_type (tw, &current_flag);
 
@@ -817,6 +812,13 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
    gint i, size = 0;
    /* the padding of the GtkCellRenderer used for the pixmap */
    const gint pad = 2;
+   GtkColumnViewColumn *sorted = NULL;
+   GimvSortItem current = GIMV_SORT_NONE;
+   GimvSortFlag flags = 0;
+
+   /* a tab that keeps the order it was given is not sorted */
+   if (tv->tw && !g_object_get_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER))
+      current = gimv_thumb_win_get_sort_type (tv->tw, &flags);
 
    /* pixmap column */
    if (!strcmp (DETAIL_ICON_LABEL, dest_mode))
@@ -841,6 +843,7 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
       gint idx = GPOINTER_TO_INT (node->data);
       TextCell *tc = g_new0 (TextCell, 1);
       GtkSorter *sorter;
+      GimvSortItem item;
 
       tc->column = i;
       switch (detailview_columns[idx].justification) {
@@ -864,12 +867,30 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
       gtk_column_view_column_set_fixed_width (col, detailview_columns[idx].width);
       gtk_column_view_column_set_resizable (col, TRUE);
 
-      /* clicking the title sorts the thumbnails (see cb_sorter_changed ()) */
+      /* clicking the title sorts the thumbnails (see cb_sorter_changed ());
+         a column nothing sorts by is not clickable */
+      item = column_sort_item (idx);
+      if (item == GIMV_SORT_NONE) continue;
       sorter = GTK_SORTER (gtk_custom_sorter_new (dummy_sorter_compare,
                                                   NULL, NULL));
       gtk_column_view_column_set_sorter (col, sorter);
       g_object_unref (sorter);
+
+      /* the width and the height are sorts of the menu only: shown on
+         the image size too */
+      if (item == current
+          || (item == GIMV_SORT_AREA
+              && (current == GIMV_SORT_WIDTH || current == GIMV_SORT_HEIGHT)))
+         sorted = col;
    }
+
+   /* the arrow in the title of the column the thumbnails are sorted by
+      (the view is made again for every sort) */
+   if (sorted)
+      gtk_column_view_sort_by_column (view, sorted,
+                                      (flags & GIMV_SORT_REVERSE)
+                                      ? GTK_SORT_DESCENDING
+                                      : GTK_SORT_ASCENDING);
 
    g_signal_connect (gtk_column_view_get_sorter (view), "changed",
                      G_CALLBACK (cb_sorter_changed), tv);

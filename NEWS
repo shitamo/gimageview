@@ -84,6 +84,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  background without keeping them in memory; the progress (n/N) is
 	  shown and the stop button stops it.  The preference "GUI redraw
 	  interval while loading" is gone (and the tip about it).
+	* Detail view: the title of the column the list is sorted by shows the
+	  arrow (it was lost with every sort and only stayed on columns that
+	  sort nothing); "Image size" sorts by the area; columns with no sort
+	  are not clickable.
 	* The HTML manual has a chapter "What Do You Want to Do?" that finds
 	  the way from what one wants to do (tagging several images at once,
 	  finding the images of a person, ...).
