@@ -375,6 +375,10 @@ static void cb_thumb_notebook_page_reordered (GtkNotebook   *notebook,
                                               guint          pagenum,
                                               GimvThumbWin  *tw);
 static void thumb_win_update_show_tabs (GimvThumbWin *tw);
+static void cb_thumb_notebook_switch_page_after (GtkNotebook  *notebook,
+                                                 GtkWidget    *page,
+                                                 gint          pagenum,
+                                                 GimvThumbWin *tw);
 static void cb_thumb_notebook_switch_page (GtkNotebook      *notebook,
                                            GtkWidget        *page,
                                            gint              pagenum,
@@ -2594,6 +2598,8 @@ thumbnail_view_new (GimvThumbWin *tw)
    /* GTK4: gtk_notebook_set_tab_[hv]border () removed (use CSS) */
    g_signal_connect (G_OBJECT (notebook), "switch-page",
                        G_CALLBACK(cb_thumb_notebook_switch_page), tw);
+   g_signal_connect_after (notebook, "switch-page",
+                           G_CALLBACK (cb_thumb_notebook_switch_page_after), tw);
    g_signal_connect (G_OBJECT (notebook), "page-reordered",
                        G_CALLBACK(cb_thumb_notebook_page_reordered), tw);
    g_signal_connect (notebook, "page-added", G_CALLBACK (cb_thumb_pages_changed), tw);
@@ -3851,6 +3857,54 @@ cb_thumb_notebook_page_reordered (GtkNotebook *notebook, GtkWidget *page,
 }
 
 
+/* GtkNotebook moves the focus into the page it switches to when the tabs
+   had it (a click on a tab), and a list (the detail view) given the focus
+   that way scrolls to its focused row, the first one unless a row was
+   focused by a key: the view went to the top at every switch.  Back to
+   where it was. */
+static void
+restore_switch_scroll (GimvThumbView *tv)
+{
+   gdouble *value = g_object_get_data (G_OBJECT (tv), "gimv-switch-scroll");
+   GtkAdjustment *vadj;
+
+   if (!value || !GTK_IS_SCROLLED_WINDOW (tv->container)) return;
+   vadj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (tv->container));
+   if (gtk_adjustment_get_value (vadj) != *value)
+      gtk_adjustment_set_value (vadj, *value);
+}
+
+
+static gboolean
+idle_restore_switch_scroll (gpointer data)
+{
+   GimvThumbView *tv = data;
+
+   if (g_list_find (gimv_thumb_view_get_list (), tv)) {
+      restore_switch_scroll (tv);
+      g_object_set_data (G_OBJECT (tv), "gimv-switch-scroll", NULL);
+   }
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_thumb_notebook_switch_page_after (GtkNotebook *notebook, GtkWidget *page,
+                                     gint pagenum, GimvThumbWin *tw)
+{
+   GimvThumbView *tv;
+
+   if (!g_list_find (ThumbWinList, tw)) return;
+   tv = gimv_thumb_win_find_thumbtable (tw, pagenum);
+   if (!tv || !g_object_get_data (G_OBJECT (tv), "gimv-switch-scroll")) return;
+
+   restore_switch_scroll (tv);
+   /* the list scrolls at its next layout too */
+   g_idle_add_full (G_PRIORITY_LOW, idle_restore_switch_scroll,
+                    g_object_ref (tv), g_object_unref);
+}
+
+
 static void
 cb_thumb_notebook_switch_page (GtkNotebook *notebook, GtkWidget *page,
                                gint pagenum, GimvThumbWin *tw)
@@ -3865,6 +3919,16 @@ cb_thumb_notebook_switch_page (GtkNotebook *notebook, GtkWidget *page,
    if (!node) return;
 
    tv = gimv_thumb_win_find_thumbtable (tw, pagenum);
+
+   /* where the list of the page was (see the _after () handler) */
+   if (tv && GTK_IS_SCROLLED_WINDOW (tv->container)) {
+      GtkAdjustment *vadj
+         = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (tv->container));
+      g_object_set_data_full (G_OBJECT (tv), "gimv-switch-scroll",
+                              g_memdup2 ((gdouble[]) { gtk_adjustment_get_value (vadj) },
+                                         sizeof (gdouble)),
+                              g_free);
+   }
 
    if (files_loader_query_loading ()) {
       gimv_thumb_win_set_sensitive (tw, GIMV_THUMB_WIN_STATUS_LOADING);
