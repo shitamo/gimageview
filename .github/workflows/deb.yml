@@ -35,7 +35,7 @@ jobs:
           apt-get install -y --no-install-recommends \
             build-essential devscripts dpkg-dev git ca-certificates
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: src
 
@@ -75,7 +75,7 @@ jobs:
           dpkg -s gimageview | head -12
           test -x /usr/bin/gimv
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: gimageview-debian-${{ matrix.dist }}
           path: out/*.deb
@@ -88,7 +88,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
