@@ -674,6 +674,13 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
 
    if (tv->progress) return;
 
+   /* only a click on a title of the list on screen sorts: not the columns
+      going when the list is destroyed */
+   tv_data = g_object_get_data (G_OBJECT (tv), DETAIL_VIEW_LABEL);
+   if (!tv_data || !tv_data->treeview
+       || !gtk_widget_get_mapped (tv_data->treeview))
+      return;
+
    tw = tv->tw;
    g_return_if_fail (GIMV_IS_THUMB_WIN (tw));
 
@@ -908,8 +915,10 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
                                       ? GTK_SORT_DESCENDING
                                       : GTK_SORT_ASCENDING);
 
-   g_signal_connect (gtk_column_view_get_sorter (view), "changed",
-                     G_CALLBACK (cb_sorter_changed), tv);
+   /* bound to tv: the list may be destroyed after it (on quit), and the
+      sorter changes then, when the sorted column goes */
+   g_signal_connect_object (gtk_column_view_get_sorter (view), "changed",
+                            G_CALLBACK (cb_sorter_changed), tv, 0);
 }
 
 
