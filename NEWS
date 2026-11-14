@@ -91,6 +91,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* The thumbnail size in the toolbar can be typed in (all the keys were
 	  taken from it); Enter takes the size and gives the keys back to the
 	  window (Shift+R, Ctrl+R).
+	* The editing keys of a text field (Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V,
+	  Ctrl+Z, ...) go to the text field the focus is in, not to the menu
+	  keys of the window (Ctrl+A selected all the thumbnails while the
+	  location or the thumbnail size was being edited).
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

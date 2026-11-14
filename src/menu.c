@@ -987,6 +987,50 @@ gimv_menu_entry_label (const gchar *entry_path)
 }
 
 
+/* The editing keys of a text field (Ctrl+A, Ctrl+C, Ctrl+V, ...) go to the
+   text field the focus is in, not to the menus of the window: the keys of
+   the menus are run first otherwise (Ctrl+A selected all the thumbnails
+   while the thumbnail size or the location was being edited).  The text
+   widgets do these with their actions. */
+static gboolean
+cb_text_keys_first (GtkEventControllerKey *key, guint keyval, guint keycode,
+                    GdkModifierType state, gpointer data)
+{
+   GtkWidget *window = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (key));
+   GdkModifierType mods = state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK
+                                   | GDK_ALT_MASK | GDK_SUPER_MASK);
+   const gchar *action = NULL;
+   GtkWidget *focus;
+
+   keyval = gdk_keyval_to_lower (keyval);
+   if (mods == GDK_CONTROL_MASK) {
+      switch (keyval) {
+      case GDK_KEY_a:      action = "selection.select-all"; break;
+      case GDK_KEY_c:
+      case GDK_KEY_Insert: action = "clipboard.copy";       break;
+      case GDK_KEY_x:      action = "clipboard.cut";        break;
+      case GDK_KEY_v:      action = "clipboard.paste";      break;
+      case GDK_KEY_z:      action = "text.undo";            break;
+      case GDK_KEY_y:      action = "text.redo";            break;
+      default: break;
+      }
+   } else if (mods == (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) {
+      if (keyval == GDK_KEY_z) action = "text.redo";
+   } else if (mods == GDK_SHIFT_MASK) {
+      if (keyval == GDK_KEY_Insert)      action = "clipboard.paste";
+      else if (keyval == GDK_KEY_Delete) action = "clipboard.cut";
+   }
+   if (!action) return FALSE;
+
+   focus = gtk_root_get_focus (GTK_ROOT (window));
+   if (!focus || !gtk_widget_is_sensitive (focus)) return FALSE;
+   if (!GTK_IS_TEXT (focus) && !GTK_IS_TEXT_VIEW (focus)) return FALSE;
+
+   gtk_widget_activate_action (focus, action, NULL);
+   return TRUE;
+}
+
+
 /* the key of item (item->accel) in the window of its menu */
 static void
 shortcut_bind (GimvMenuItem *item)
@@ -1013,6 +1057,16 @@ shortcut_bind (GimvMenuItem *item)
       gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_BUBBLE);
       gtk_widget_add_controller (menu->window, controller);
       g_object_set_data (G_OBJECT (menu->window), "gimv-menu-shortcuts", controller);
+
+      if (GTK_IS_ROOT (menu->window)
+          && !g_object_get_data (G_OBJECT (menu->window), "gimv-text-keys-first")) {
+         GtkEventController *keys = gtk_event_controller_key_new ();
+         gtk_event_controller_set_propagation_phase (keys, GTK_PHASE_CAPTURE);
+         g_signal_connect (keys, "key-pressed",
+                           G_CALLBACK (cb_text_keys_first), NULL);
+         gtk_widget_add_controller (menu->window, keys);
+         g_object_set_data (G_OBJECT (menu->window), "gimv-text-keys-first", keys);
+      }
    }
 
    action_name = g_strconcat (menu->prefix, ".", item->action_name, NULL);
