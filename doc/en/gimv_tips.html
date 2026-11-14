@@ -28,72 +28,33 @@
 <div class="titlepage"><div><h2 class="title" style="clear: both">
 <a name="gimv_tips"></a>10. Tips</h2></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_tips_02"></a>Making the image view finish drawing faster 1</span></dt>
-<dd>
-<p class="para">
-In <span class="emphasis"><i>[Preferences | Image Window | Show/Hide]</i></span>, either check all items or uncheck all items.
-</p>
-<p class="para">
-GImageView creates the window once and then removes the bars that are not checked. If &quot;none&quot; are checked, none of them are created, and conversely, if &quot;all are checked&quot;, all of them are created. Skipping this makes it faster by the amount of the &quot;remove&quot; operation. This is very effective when opening large images (larger than the screen resolution).
-</p>
-</dd>
-<dt><span class="term"><a name="gimv_tips_03"></a>Making the image view finish drawing faster 2</span></dt>
-<dd>
-<p class="para">
-Check <span class="emphasis"><i>[Preferences | Image Window | Image | Fit to the window size when opening a file]</i></span>.
-</p>
-<p class="para">
-Regardless of the user's settings, GImageView opens the image at the size specified in <span class="emphasis"><i>[Image Window | Window | Initial window size]</i></span>, and then resizes it to the original size of the image. Checking this option skips that resize, so it becomes faster by that amount of time. However, this is effective only when the image being opened is larger than the specified initial size.
-</p>
-<p class="para">
-Note that with this setting, the only way to &quot;display at the image size&quot; in the image view is to click <span class="emphasis"><i>[No Zoom]</i></span> to resize the image to its actual size, and then use &quot;Fit Window Size to Image&quot;.
-</p>
-</dd>
-<dt><span class="term"><a name="gimv_tips_04"></a>Making the image view finish drawing faster 3</span></dt>
-<dd>
-<p class="para">
-Uncheck <span class="emphasis"><i>[Preferences | Image Window | Image | Auto resize to image size]</i></span>.
-</p>
-<p class="para">
-With this, images smaller than the initial window size are not resized either. Combined with the setting above, images are opened at the specified size regardless of their original size, which makes it faster by the amount of the resize.
-</p>
-<p class="para">
-Note that with this setting, the only way to &quot;display at the image size&quot; in the image view is to click <span class="emphasis"><i>[No Zoom]</i></span> to resize the image to its actual size, and then use &quot;Fit Window Size to Image&quot;.
-</p>
-</dd>
 <dt><span class="term"><a name="gimv_tips_05"></a>Making drawing in the image view faster</span></dt>
 <dd>
 <p class="para">
-Check <span class="emphasis"><i>[Preferences | Image Window | Image | Keep the original image in memory]</i></span>.
+Check <span class="emphasis"><i>[Preferences | Image Window | Image | Keep the original image in memory]</i></span>.  For the image windows open only, <span class="emphasis"><i>[File | Memory Buffer]</i></span> (Ctrl + B) turns it on and off.
 </p>
 <p class="para">
-When a displayed image is resized or rotated, GImageView re-renders the &quot;original image&quot; and displays it again. If you choose to &quot;keep the original image in memory&quot;, the &quot;original image&quot; is read from memory when rendering, and the drawing speed during rendering is greatly improved compared with reading it from disk every time (when unchecked).
+When an image has been shown, GImageView drops the original image (the pixels read).  So when the zoom is changed or the image is rotated or flipped, the original image is read from the file again.  Kept in memory, it is not read again, which is faster the larger the image is.
 </p>
 <p class="para">
-When an image is opened for the very first time, it is read from disk whatever the setting, so this option does not matter there. Keeping images in memory uses an extra amount of memory of somewhat less than 1MB, and sometimes several MB or more, per image, so on a system with little memory, opening only a few images may use up the memory. For this reason the default setting is OFF.
-</p>
-<p class="para">
-This is obvious at a glance if you check the memory consumption of the GImageView process with the buffer ON and with the buffer OFF, using top or similar. Incidentally, similar programs such as GQview, gThumb and G-ThumB always have what GImageView calls the &quot;buffer&quot; ON, so the difference in memory consumption should be noticeable when several or more images are opened at the same time.
-</p>
-<p class="para">
-This is also related to the low memory consumption that GImageView claims.
+When an image is opened first, it is read from the file whatever the setting, so this option does not matter there.  Keeping the original image uses width × height × 3 or 4 bytes of memory more per image (about 40 MB for a photo of 12 megapixels).  For this reason the default setting is OFF.  Animations, movies and audio are kept whatever the setting.
 </p>
 </dd>
 <dt><span class="term"><a name="gimv_tips_06"></a>Changing the thumbnail size temporarily</span></dt>
 <dd>
 <p class="para">
-Change the value in the toolbar and press Return, then use <span class="emphasis"><i>[Edit | Reload Cache]</i></span> (Shift + R) or <span class="emphasis"><i>[Update All Thumbnails]</i></span> (Ctrl + R or the mouse menu) to apply it.
+Change the thumbnail size in the toolbar (press Enter when typing a number), then use <span class="emphasis"><i>[Edit | Reload Cache]</i></span> (Shift + R) or <span class="emphasis"><i>[Edit | Update All Thumbnails]</i></span> (Ctrl + R) to apply it.
 </p>
 <p class="para">
 If you use &quot;Reload Cache&quot;, the cached images are enlarged (or reduced) to the new thumbnail size and displayed. Reducing is fine, but when enlarging, the dots become coarse. To avoid this, use &quot;Update All Thumbnails&quot;. The cache is recreated at the new size, so the dots do not become coarse.
 </p>
 <p class="para">
-The setting made in the toolbar is not applied to new windows or new tabs (it is not saved). The value changed here is valid only in that tab. To change it permanently, change the value of <span class="emphasis"><i>[Preferences | Thumbnail Window | Thumbnail View | Thumbnail Size]</i></span>, or enable &quot;Save window state on exit&quot;.
+The thumbnail size belongs to each tab: switching tabs shows the size of that tab.  A new window or an empty tab goes back to <span class="emphasis"><i>[Preferences | Thumbnail Window | Thumbnail View | Thumbnail Size]</i></span>.  With &quot;Save window state on exit&quot; in <span class="emphasis"><i>[Preferences | Thumbnail Window]</i></span> on (the default), the value in the toolbar at exit is saved there and is the size from then on.
 </p>
 </dd>
 <dt><span class="term"><a name="gimv_tips_07"></a>Differences between [Refresh List], [Reload Cache] and [Update All Thumbnails]</span></dt>
 <dd><div class="variablelist"><dl>
-<dt><span class="term">Refresh List (R)</span></dt>
+<dt><span class="term">Refresh List (Shift + Ctrl + R)</span></dt>
 <dd><p class="para">
 Updates only the differences between the information on disk and in memory. It only updates the file list and does not resize the thumbnails.
 </p></dd>
@@ -114,39 +75,28 @@ Discards all information and reads all information from disk again. All thumbnai
 <dt><span class="term"><a name="gimv_tips_08"></a>About custom layouts</span></dt>
 <dd>
 <p class="para">
-By specifying <span class="emphasis"><i>[View | Layout]</i></span>, you can change the position of each pane of the GImageView thumbnail window. Layout 0 is the default, and layouts up to Layout 4 are provided as standard.
+<span class="emphasis"><i>[View | Layout]</i></span> places the views of the thumbnail window (directory view, thumbnail view, preview) as Layout 0 to 4 (Ctrl + 0 to 4).  Layout 0 is the default.  These layouts are fixed and cannot be changed.
 </p>
 <p class="para">
-Besides these layouts, you can also make any pane arrangement as a custom layout.
+For other arrangements there is &quot;Custom&quot;.  The layout becomes &quot;Custom&quot; by itself with these:
 </p>
+<div class="itemizedlist"><ul>
+<li><p class="para"><span class="emphasis"><i>[View | Layout | Window Composition]</i></span> chooses how the window is split (the panes horizontal or vertical, and how they are put together).</p></li>
+<li><p class="para">Dragging a view and dropping it on another one swaps the two.  The parts to drag are the tabs of the thumbnail view, the toolbar of the directory view and the tabs of the preview (Preview, Data, Note).</p></li>
+</ul></div>
 <p class="para">
-<span class="emphasis"><i>Currently (version 0.1.2), custom settings cannot be made from a GUI or CUI. To make custom settings, you need to edit ~/.gimv/gimvrc directly.</i></span> A settings screen or a settings method will probably be properly built in in the future. Until then, please do this <span class="emphasis"><i>at your own risk</i></span>.
-</p>
-<p class="para">
-The items to edit are the following 6.
+The custom layout is saved as these six items of ~/.gimv/gimvrc, which can also be edited by hand while gimv is not running:
 </p>
 <div class="itemizedlist"><ul>
 <li><p class="para">thumbwin_pane1_horizontal (whether pane1 is split horizontally or vertically)</p></li>
 <li><p class="para">thumbwin_pane2_horizontal (the same for pane2)</p></li>
 <li><p class="para">thumbwin_pane2_attach_1   (whether pane2 is attached to child1 or child2 of pane1)</p></li>
-<li><p class="para">thumbwin_widget [0]  (the widget attached to the other side of pane1. 1 is the directory view, 2 the thumbnails, 3 the preview)</p></li>
-<li><p class="para">thumbwin_widget [1]  (child1 of pane2)</p></li>
-<li><p class="para">thumbwin_widget [2]  (child2 of pane2)</p></li>
+<li><p class="para">thumbwin_widget[0]  (the widget attached to the other side of pane1: 1 is the directory view, 2 the thumbnails, 3 the preview)</p></li>
+<li><p class="para">thumbwin_widget[1]  (child1 of pane2)</p></li>
+<li><p class="para">thumbwin_widget[2]  (child2 of pane2)</p></li>
 </ul></div>
 <p class="para">
-With Custom, the values set here are used. For Layouts 0 to 4, these 6 values are preset. They cannot be changed.
-</p>
-</dd>
-<dt><span class="term"><a name="gimv_tips_09"></a>Custom layouts and window composition</span></dt>
-<dd>
-<p class="para">
-Simply put, &quot;a layout is something that can be customized freely&quot;, and &quot;a window composition is a predefined one&quot;.
-</p>
-<p class="para">
-At present, the layout can be changed freely with &quot;Window Composition&quot; or with &quot;DnD of the toolbar of the tab or directory view&quot;, and when these changes are made, the &quot;layout&quot; automatically becomes &quot;Custom&quot;.
-</p>
-<p class="para">
-For now the &quot;layouts&quot; are fixed to 5 kinds (excluding &quot;Custom&quot;), but eventually it is said that you will be able to register as many of your own preferred arrangements as you like as &quot;layouts&quot;. The interface under consideration is (adding an item &quot;Save Layout&quot; to the layout menu, so that a name can be given when saving a layout).
+Layouts 0 to 4 are these six values set in advance.
 </p>
 </dd>
 <dt><span class="term"><a name="gimv_tips_10"></a>How duplicates are found</span></dt>
@@ -164,7 +114,7 @@ For now the &quot;layouts&quot; are fixed to 5 kinds (excluding &quot;Custom&quo
 How alike they must be is &quot;Accuracy&quot; in [Preferences | Search] (0.97 by default: 97% or more alike match).  A lower value puts more images in Similar.
 </p>
 <p class="para">
-In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest, the shortest path) is marked Keep and the others Delete.  The Similar groups may be other shots: all are marked Keep.  Which to keep is for a person to check and decide, and they go to the trash a group at a time.
+In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest, the shortest path) is marked Keep and the others Delete.  The Similar groups may be other shots: all are marked Keep.  Which to keep is for a person to check and decide.  &quot;Move to Trash...&quot; moves those to delete of the group shown, &quot;Move All Marked to Trash...&quot; those of all the groups at once; they are compared with the image kept again first.
 </p>
 <p class="para">
 Because of how it works, it may not do what one expects in these cases.
@@ -175,6 +125,9 @@ Because of how it works, it may not do what one expects in these cases.
 <li><p class="para">A copy only blown up has more pixels and is marked Keep.</p></li>
 <li><p class="para">Images gimv shows but gdk-pixbuf cannot read are looked at for Identical only.  The images in archives are not compared.</p></li>
 </ol></div>
+<p class="para">
+To find the same files across folders, not only in the active tab, use <span class="emphasis"><i>[Tools | Find Duplicates in the Index...]</i></span> (the index looks for them in the background): see &quot;<a href="03.html#find_duplicates_index" title="">Find Duplicates in the Index...</a>&quot;.
+</p>
 </dd>
 </dl></div>
 </div>

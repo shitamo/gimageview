@@ -88,6 +88,12 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  arrow (it was lost with every sort and only stayed on columns that
 	  sort nothing); "Image size" sorts by the area; columns with no sort
 	  are not clickable.
+	* The thumbnail size in the toolbar can be typed in (all the keys were
+	  taken from it); Enter takes the size and gives the keys back to the
+	  window (Shift+R, Ctrl+R).
+	* Manual: the Tips are brought up to date (tips about the bars and the
+	  window size of the image window that no longer apply are removed;
+	  the memory buffer, the thumbnail size, the custom layout).
 	* The HTML manual has a chapter "What Do You Want to Do?" that finds
 	  the way from what one wants to do (tagging several images at once,
 	  finding the images of a person, ...).

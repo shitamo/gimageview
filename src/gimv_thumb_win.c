@@ -3742,12 +3742,20 @@ cb_size_spinner_key_press (GtkWidget *widget,
    g_return_val_if_fail (tw, FALSE);
 
    switch (event->keyval) {
+   case GDK_KEY_Return:
+   case GDK_KEY_KP_Enter:
+      /* the size typed in is taken, and the keys go to the window again
+         (Shift+R, Ctrl+R to load the thumbnails in that size) */
+      gtk_spin_button_update (GTK_SPIN_BUTTON (widget));
+      gtk_window_set_focus (GTK_WINDOW (tw), NULL);
+      return TRUE;
    case GDK_KEY_Escape:
       gtk_window_set_focus (GTK_WINDOW (tw), NULL);
       return TRUE;
    }
 
-   return TRUE;
+   /* the other keys to the entry: a size can be typed in */
+   return FALSE;
 }
 
 
