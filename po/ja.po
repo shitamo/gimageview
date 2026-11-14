@@ -7086,3 +7086,24 @@ msgstr "/同じファイルを探す(_D)"
 #: src/dirview2.c
 msgid "/Find _Duplicates with the Folders in It..."
 msgstr "/下のフォルダも含めて重複画像を探す(_D)..."
+
+#: src/gimv_dupl_win.c
+msgid "the link could not be made, left as it is"
+msgstr "リンクを作れなかったので、そのままにしました"
+
+#: src/gimv_dupl_win.c
+msgid "in the trash, but the link could not be put in its place"
+msgstr "ゴミ箱へ移動しましたが、その場所にリンクを置けませんでした"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Moved to the trash: %u images (links to the images kept in their places: %u)"
+msgstr "ゴミ箱へ移動: %u 枚 (その場所に残す画像へのリンク: %u)"
+
+#: src/gimv_dupl_win.c
+msgid "\"Trash and Leave Links\": each name stays, as a link to the image kept (a hard link on the same file system, else a symbolic link); its comment and bookmark stay with it."
+msgstr "「ゴミ箱へ移してリンクを残す」: それぞれの名前は残り、残す画像へのリンクになります (同じファイルシステムならハードリンク、違えばシンボリックリンク)。コメントとブックマークはその名前に付いたままです。"
+
+#: src/gimv_dupl_win.c
+msgid "Trash and Leave _Links"
+msgstr "ゴミ箱へ移してリンクを残す(_L)"

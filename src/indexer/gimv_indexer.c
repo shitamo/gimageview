@@ -3964,6 +3964,12 @@ watch_apply (Indexer *ix, gboolean *new_files_ret)
       g_hash_table_iter_init (&it, froms);
       while (g_hash_table_iter_next (&it, NULL, &value)) {
          MoveFrom *m = value;
+         struct stat sb;
+         /* moved away and something else put in its place meanwhile (a
+          * file to the trash and a link to its copy in its place, a file
+          * replaced by a rename): what is there now stays */
+         if (lstat (m->path, &sb) == 0)
+            continue;
          if (m->dir)
             dir_remove_tree (ix, m->path);
          else

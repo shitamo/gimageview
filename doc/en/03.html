@@ -584,6 +584,9 @@ Each image is marked "Keep" or "Delete".  In the Identical and Other Sizes group
 Before they are moved, the images to delete are compared with the image kept again (Identical groups): a file changed since is not moved.  When some of them have comments (tags) or bookmarks, "Move Them to the Kept Ones and Trash" can be chosen: a comment moves to the image kept when it has none, else its tags are added to those of it (a comment of tags only is then deleted); a bookmark moves when the image kept has none.  With "Move to Trash Only" the comment files stay.
 </p>
 <p class="para">
+When the file names mean something, "Trash and Leave Links" (Identical groups only) moves each file to the trash and puts a link to the image kept under its name: a hard link on the same file system (no space used, not broken when the image kept is moved), else a symbolic link (the absolute path of the image kept).  The comments, tags and bookmarks stay with the name.  When the link cannot be made, the file is not moved either.
+</p>
+<p class="para">
 The window reads the pictures itself: the images the thumbnail view has not loaded are shown too.  It can be used while it searches: the Identical groups come first, all of them at the end.  The images in archives are not compared.  How they are found and sorted: see "<a href="gimv_tips.html#gimv_tips_10" title="">How duplicates are found</a>".
 </p>
 </dd>

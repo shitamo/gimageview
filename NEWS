@@ -75,7 +75,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* Find Duplicates: "Move All Marked to Trash..." for every group; each
 	  file is compared with the one kept again before it is moved; the
 	  comments (tags) and bookmarks of the deleted ones can go to the
-	  image kept.
+	  image kept; or "Trash and Leave Links" keeps the names, as links to
+	  the image kept (hard links, symbolic links across file systems).
+	* The indexer keeps a file moved away and replaced at once (in the
+	  same batch of events) instead of dropping it.
 	* The HTML manual has a chapter "What Do You Want to Do?" that finds
 	  the way from what one wants to do (tagging several images at once,
 	  finding the images of a person, ...).

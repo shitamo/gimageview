@@ -1591,6 +1591,10 @@ typedef struct {
    GArray    *items;      /* TrashItem */
    gboolean   all_groups; /* every group, not the one shown */
    gboolean   move_extras;/* comments, tags and bookmarks to the kept image */
+   gboolean   link;       /* a link to the kept image left in the place of
+                             each one (the name kept) */
+   gint       link_button;/* the dialog's button for it (-1: none) */
+   guint      n_links;    /* links made */
    guint      n_groups;
    guint      skipped;    /* groups with nothing kept (left out) */
    gboolean   all_marked; /* the group shown: nothing kept */
@@ -1651,6 +1655,76 @@ same_bytes (const gchar *a, const gchar *b)
 }
 
 
+/*
+ * The file to the trash and, in its place, a link to the image kept: the
+ * name stays (and its comment and bookmark with it).  A hard link on the
+ * same file system (the same file, nothing to break), else a symbolic link
+ * (an absolute path).  The link is made first under a hidden name, so that
+ * nothing is moved when it cannot be made, and renamed over the place once
+ * the file is in the trash.
+ */
+static void
+link_and_trash (TrashJob *job, TrashItem *t)
+{
+   gchar *dir = g_path_get_dirname (t->path);
+   gchar *base = g_path_get_basename (t->path);
+   gchar *tmp = NULL, *name;
+   GFile *file;
+   GError *error = NULL;
+   gint i;
+
+   for (i = 0; i < 100 && !tmp; i++) {
+      gchar *n = g_strdup_printf (".%s.gimv-link-%d", base, i);
+      gchar *p = g_build_filename (dir, n, NULL);
+      g_free (n);
+      if (link (t->keep, p) == 0
+          || ((errno == EXDEV || errno == EPERM || errno == EMLINK || errno == ENOTSUP)
+              && symlink (t->keep, p) == 0))
+         tmp = p;
+      else if (errno == EEXIST)
+         g_free (p);
+      else {
+         gint e = errno;
+         g_free (p);
+         name = g_filename_display_name (t->path);
+         g_string_append_printf (job->errors, "%s: %s: %s\n", name,
+                                 _("the link could not be made, left as it is"),
+                                 g_strerror (e));
+         g_free (name);
+         break;
+      }
+   }
+   if (tmp) {
+      file = g_file_new_for_path (t->path);
+      if (g_file_trash (file, NULL, &error)) {
+         if (g_rename (tmp, t->path) == 0) {
+            g_ptr_array_add (job->done, t);
+            job->n_links++;
+         } else {
+            gint e = errno;
+            name = g_filename_display_name (t->path);
+            g_string_append_printf (job->errors, "%s: %s: %s\n", name,
+                                    _("in the trash, but the link could not be put in "
+                                      "its place"), g_strerror (e));
+            g_free (name);
+            g_unlink (tmp);
+            g_ptr_array_add (job->done, t);
+         }
+      } else {
+         name = g_filename_display_name (t->path);
+         g_string_append_printf (job->errors, "%s: %s\n", name, error ? error->message : "");
+         g_free (name);
+         g_clear_error (&error);
+         g_unlink (tmp);
+      }
+      g_object_unref (file);
+   }
+   g_free (tmp);
+   g_free (dir);
+   g_free (base);
+}
+
+
 static void
 trash_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
@@ -1668,6 +1742,10 @@ trash_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
                                  _("not the same as the image kept any more (changed or "
                                    "gone): left as it is"));
          g_free (name);
+         continue;
+      }
+      if (job->link) {
+         link_and_trash (job, t);
          continue;
       }
       file = g_file_new_for_path (t->path);
@@ -1761,7 +1839,7 @@ trash_done (GObject *source, GAsyncResult *res, gpointer data)
    /* the comments and bookmarks follow, the window open or not */
    for (i = 0; i < job->done->len; i++) {
       TrashItem *t = g_ptr_array_index (job->done, i);
-      if (job->move_extras && t->extras && t->keep) {
+      if (job->move_extras && !job->link && t->extras && t->keep) {
          move_extras (t->path, t->keep);
          moved++;
       }
@@ -1775,7 +1853,10 @@ trash_done (GObject *source, GAsyncResult *res, gpointer data)
 
    gtk_widget_set_sensitive (sw->priv->stop_button, FALSE);
    {
-      gchar *text = moved > 0
+      gchar *text = job->link
+         ? g_strdup_printf (_("Moved to the trash: %u images (links to the images kept in "
+                              "their places: %u)"), job->done->len, job->n_links)
+         : moved > 0
          ? g_strdup_printf (_("Moved to the trash: %u images (the comments and bookmarks of "
                               "%u to the images kept)"), job->done->len, moved)
          : g_strdup_printf (_("Moved to the trash: %u images"), job->done->len);
@@ -1893,12 +1974,14 @@ cb_trash_answer (GObject *source, GAsyncResult *res, gpointer data)
    gint button = gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG (source), res, NULL);
    GimvDuplWin *sw = job->shared->sw;
 
-   /* 0: cancel; 1: to the trash; 2: the comments moved first */
+   /* 0: cancel; 1: to the trash; 2: the comments moved first (when they
+    * have some); link_button: links left in their places */
    if (button <= 0 || !sw || sw->priv->trashing) {
       trash_job_free (job);
       return;
    }
-   job->move_extras = button == 2;
+   job->link = button == job->link_button;
+   job->move_extras = !job->link && button == 2;
    trash_start (sw, job);
 }
 
@@ -1926,7 +2009,9 @@ extras_done (GObject *source, GAsyncResult *res, gpointer data)
    GtkAlertDialog *dialog;
    GString *detail;
    gchar *size;
-   const gchar *buttons[4];
+   const gchar *buttons[5];
+   gboolean can_link = TRUE;
+   gint nb;
    guint i;
 
    /* the job goes on to the dialog (the task does not free it) */
@@ -1981,6 +2066,16 @@ extras_done (GObject *source, GAsyncResult *res, gpointer data)
                               job->with_extras);
       g_string_append (detail, "\n");
    }
+   /* links: of the same files only (not another size of the picture) */
+   for (i = 0; i < job->items->len && can_link; i++)
+      if (!g_array_index (job->items, TrashItem, i).verify) can_link = FALSE;
+   if (can_link) {
+      g_string_append (detail, _("\"Trash and Leave Links\": each name stays, as a link to "
+                                 "the image kept (a hard link on the same file system, "
+                                 "else a symbolic link); its comment and bookmark stay "
+                                 "with it."));
+      g_string_append (detail, "\n");
+   }
    g_string_append (detail, _("Each one is compared with the image kept again first. "
                               "They can be put back from the trash."));
    gtk_alert_dialog_set_detail (dialog, detail->str);
@@ -1990,11 +2085,17 @@ extras_done (GObject *source, GAsyncResult *res, gpointer data)
    if (job->with_extras > 0) {
       buttons[1] = _("Move to Trash _Only");
       buttons[2] = _("_Move Them to the Kept Ones and Trash");
-      buttons[3] = NULL;
+      nb = 3;
    } else {
       buttons[1] = _("_Move to Trash");
-      buttons[2] = NULL;
+      nb = 2;
    }
+   job->link_button = -1;
+   if (can_link) {
+      job->link_button = nb;
+      buttons[nb++] = _("Trash and Leave _Links");
+   }
+   buttons[nb] = NULL;
    gtk_alert_dialog_set_buttons (dialog, buttons);
    gtk_alert_dialog_set_cancel_button (dialog, 0);
    gtk_alert_dialog_set_default_button (dialog, job->all_marked ? 0

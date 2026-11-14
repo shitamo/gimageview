@@ -1258,6 +1258,40 @@ test_hash (void)
 }
 
 
+/* a file moved away and another put in its place at once (to the trash
+ * and a link to its copy in its place): the name stays in the index */
+static void
+test_replace (void)
+{
+   gchar *root = new_root ();
+   gchar *x = in (root, "a/x.png"), *tmpname = in (root, "a/.x.png.new");
+   gchar *outside = g_build_filename (tmp, "replace-outside.png", NULL);
+   gchar *marker = in (root, "marker.png");
+   const gchar *args[] = { "--auto=", NULL };
+   Indexer *ix;
+
+   write_png (x, 4, 4);
+   write_comment (x, "X-IMG-Tags: named\n");
+   ix = ix_start ("replace.db", root, args);
+   ix_wait (ix, "idle");
+   g_assert_true (has_file (ix, x));
+
+   write_png (tmpname, 4, 4);
+   g_assert_cmpint (g_rename (x, outside), ==, 0);
+   g_assert_cmpint (g_rename (tmpname, x), ==, 0);
+   /* events in order: once the marker is in, the rest has been seen */
+   write_png (marker, 4, 4);
+   ix_wait_until (ix, cond_has, marker);
+   g_assert_true (has_file (ix, x));
+   g_assert_cmpint (count (ix, "SELECT count(*) FROM file_tags ft JOIN tags t "
+                               "ON t.id = ft.tag_id WHERE t.name = 'named'"), ==, 1);
+   ix_stop (ix);
+   g_unlink (outside);
+   g_free (x); g_free (tmpname); g_free (outside); g_free (marker);
+   g_free (root);
+}
+
+
 /* the database is taken by one indexer at a time */
 static void
 test_busy (void)
@@ -1316,6 +1350,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/indexer/watch-dir-move-utf8", test_watch_dir_move_utf8);
    g_test_add_func ("/indexer/dir-remove-case", test_dir_remove_case);
    g_test_add_func ("/indexer/hash", test_hash);
+   g_test_add_func ("/indexer/replace", test_replace);
    g_test_add_func ("/indexer/busy", test_busy);
 
    ret = g_test_run ();
