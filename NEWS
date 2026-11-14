@@ -95,6 +95,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  Ctrl+Z, ...) go to the text field the focus is in, not to the menu
 	  keys of the window (Ctrl+A selected all the thumbnails while the
 	  location or the thumbnail size was being edited).
+	* Detail view: Ctrl+A and Ctrl+N (Select All, Unselect All) work with
+	  the focus in the list; the list took Ctrl+A for itself and did
+	  nothing.
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

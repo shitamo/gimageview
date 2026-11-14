@@ -636,6 +636,22 @@ column_sort_item (gint idx)
 }
 
 
+/* the "list.select-all", "list.unselect-all" of the list widgets in widget */
+static void
+disable_list_select_all (GtkWidget *widget)
+{
+   GtkWidget *child;
+
+   if (GTK_IS_LIST_VIEW (widget)) {
+      gtk_widget_action_set_enabled (widget, "list.select-all", FALSE);
+      gtk_widget_action_set_enabled (widget, "list.unselect-all", FALSE);
+   }
+   for (child = gtk_widget_get_first_child (widget); child;
+        child = gtk_widget_get_next_sibling (child))
+      disable_list_select_all (child);
+}
+
+
 static gint
 dummy_sorter_compare (gconstpointer a, gconstpointer b, gpointer data)
 {
@@ -1405,6 +1421,12 @@ detailview_create (GimvThumbView *tv, const gchar *dest_mode)
    }
 
    gtk_widget_set_visible (tv_data->treeview, TRUE);
+
+   /* Ctrl+A, Shift+Ctrl+A of the list (GtkListBase) would select through
+      the selection model, which takes a change from the mouse only, so the
+      keys did nothing (and the menu keys "Select All", "Unselect All" of
+      the window never came): off, so that the keys of the menus run */
+   disable_list_select_all (tv_data->treeview);
 
    /* the status bar shows the focused file and the files selected (Shift,
     * Ctrl); bound to tv: the view may outlive it, when a tab is closed */
