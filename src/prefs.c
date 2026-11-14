@@ -216,7 +216,6 @@ static ConfParam param_thumbview [] = {
    {"thumbwin_force_open_tab",  D_BOOL,   "FALSE", &conf.thumbwin_force_open_tab},
 
    {"thumbwin_thumb_size",      D_INT,    "96",    &conf.thumbwin_thumb_size},
-   {"thumbwin_redraw_interval", D_INT,    "1",     &conf.thumbwin_redraw_interval},
    {"thumbwin_show_progress_detail", D_BOOL, "TRUE", &conf.thumbwin_show_progress_detail},
 
    {"thumbwin_sort_type",       D_ENUM,   "0",     &conf.thumbwin_sort_type},

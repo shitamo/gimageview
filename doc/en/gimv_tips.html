@@ -28,15 +28,6 @@
 <div class="titlepage"><div><h2 class="title" style="clear: both">
 <a name="gimv_tips"></a>10. Tips</h2></div></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="gimv_tips_01"></a>Making the thumbnail view finish drawing faster</span></dt>
-<dd>
-<p class="para">
-gimv loads thumbnails at once in batches of the number specified in <span class="emphasis"><i>[Preferences | Thumbnail Window | GUI redraw interval while loading]</i></span>.
-</p>
-<p class="para">
-On a machine that draws slowly, increasing this value reduces the number of thumbnail updates (screen updates), which makes it somewhat faster. However, the larger the value, the less often the screen is updated and the longer nothing is shown, so 5 to 15 seems appropriate.
-</p>
-</dd>
 <dt><span class="term"><a name="gimv_tips_02"></a>Making the image view finish drawing faster 1</span></dt>
 <dd>
 <p class="para">
@@ -117,7 +108,7 @@ Because it is a resize and not a re-creation, if the saved cache is smaller than
 </dd>
 <dt><span class="term">Update All Thumbnails (Ctrl + R)</span></dt>
 <dd><p class="para">
-Discards all information and reads all information from disk again. All thumbnails are re-created from the original images. When the displayed thumbnail size has been changed, this is probably the best one to use.
+Discards all information and reads all information from disk again. All thumbnails are re-created from the original images. When the displayed thumbnail size has been changed, this is probably the best one to use.  The part on screen is made first and the rest in the background, keeping the scroll position.  The progress (n/N) is shown while it runs, and the stop button in the toolbar stops it.
 </p></dd>
 </dl></div></dd>
 <dt><span class="term"><a name="gimv_tips_08"></a>About custom layouts</span></dt>

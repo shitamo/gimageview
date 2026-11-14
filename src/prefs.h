@@ -185,7 +185,6 @@ typedef struct _Config {
    gboolean   thumbwin_force_open_tab;
 
    guint      thumbwin_thumb_size;
-   guint      thumbwin_redraw_interval;
    gboolean   thumbwin_show_progress_detail;
 
    guint      thumbwin_sort_type;

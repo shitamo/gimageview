@@ -561,25 +561,6 @@ prefs_thumbwin_page (void)
    /* "Loading" frame */
    gimv_prefs_ui_create_frame (_("Loading"), frame, vbox, main_vbox, FALSE);
 
-   /* GUI redraw interval */
-   hbox = gimv_hbox_new (FALSE, 10);
-   gimv_container_set_border_width (GTK_WIDGET (hbox), 5);
-   gimv_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-
-   label = gtk_label_new (_("GUI redraw interval while loading: Every"));
-   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
-   adj = (GtkAdjustment *) gtk_adjustment_new (conf.thumbwin_redraw_interval,
-                                               1.0, 1000.0, 1.0, 5.0, 0.0);
-   spinner = gtkutil_create_spin_button (adj);
-   gimv_widget_set_size(spinner, 50, -1);
-   g_signal_connect (G_OBJECT (adj), "value_changed",
-                       G_CALLBACK (gtkutil_get_data_from_adjustment_by_int_cb),
-                       &config_changed->thumbwin_redraw_interval);
-   gimv_box_pack_start (GTK_BOX (hbox), spinner, FALSE, FALSE, 0);
-
-   label = gtk_label_new (_("files"));
-   gimv_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
-
    /* show detail of progress */
    toggle = gtkutil_create_check_button (_("Show detail of loading progress"),
                                          conf.thumbwin_show_progress_detail,

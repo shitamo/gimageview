@@ -3767,6 +3767,16 @@ cb_stop_button (GtkWidget *widget, GimvThumbWin *tw)
    */
 
    files_loader_stop ();
+
+   /* "Update All Thumbnails" goes on in the background: stopped too */
+   {
+      GList *node;
+      for (node = gimv_thumb_view_get_list (); node; node = g_list_next (node)) {
+         GimvThumbView *tv = node->data;
+         if (GIMV_IS_THUMB_VIEW (tv) && tv->tw == tw)
+            gimv_thumb_view_recreate_stop (tv);
+      }
+   }
 }
 
 
@@ -4956,12 +4966,14 @@ void
 gimv_thumb_win_reload_thumbnail (GimvThumbWin *tw, ThumbLoadType type)
 {
    GimvThumbView *tv;
-   gchar *path = NULL;
+   gchar *path = NULL, *anchor;
 
    tv = gimv_thumb_win_find_thumbtable (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
    if (!tv) return;
 
    path = g_strdup (gimv_thumb_view_get_path (tv));
+   /* where the view is: shown (and loaded) first again */
+   anchor = gimv_thumb_view_first_in_view (tv);
 
    if (tv->mode == GIMV_THUMB_VIEW_MODE_DIR) {
       open_dir_images (path, tw, tv, type, conf.scan_dir_recursive);
@@ -4988,6 +5000,9 @@ gimv_thumb_win_reload_thumbnail (GimvThumbWin *tw, ThumbLoadType type)
       files_loader_delete (files);
    }
 
+   if (anchor && g_list_find (gimv_thumb_view_get_list (), tv))
+      gimv_thumb_view_set_anchor (tv, anchor);
+   g_free (anchor);
    g_free (path);
 }
 

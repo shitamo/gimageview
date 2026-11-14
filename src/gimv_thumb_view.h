@@ -214,6 +214,13 @@ GimvThumb     *gimv_thumb_view_get_nth_thumb      (GimvThumbView    *tv,
                                                    gint              pos);
 /* only the thumbnails near the visible part are loaded, the far ones are
    dropped (large collections) */
+/* the first image in view (to be freed; NULL: at the top), and shown
+ * again after a reload */
+gchar         *gimv_thumb_view_first_in_view      (GimvThumbView    *tv);
+void           gimv_thumb_view_set_anchor         (GimvThumbView    *tv,
+                                                   const gchar      *path);
+/* "Update All Thumbnails" stopped (the rest keeps its caches) */
+void           gimv_thumb_view_recreate_stop      (GimvThumbView    *tv);
 void           gimv_thumb_view_set_windowed       (GimvThumbView    *tv,
                                                    gboolean          windowed);
 gboolean       gimv_thumb_view_is_windowed        (GimvThumbView    *tv);

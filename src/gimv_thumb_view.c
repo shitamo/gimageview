@@ -111,6 +111,16 @@ struct GimvThumbViewPriv_Tag
    gint                 win_first, win_last, win_lo, win_hi, win_step;
    gint                 win_head, win_tail;   /* the ends of the list */
    gboolean             async_wait;  /* too many made in threads: wait for them */
+
+   /* "Update All Thumbnails": made again from the images, those near the
+    * view first (by the window), then the rest in the background, which
+    * are not kept (the cache is written) */
+   GHashTable          *recreate;      /* GimvThumb still to make again */
+   gchar               *anchor;        /* after a reload, the image to show
+                                          again where the view was (path) */
+   gint64               anchor_until;  /* given up then (monotonic) */
+   guint                recreate_total;
+   gint                 recreate_pos;  /* the background's place in the list */
 };
 
 
@@ -1870,7 +1880,44 @@ window_stop (GimvThumbView *tv)
    }
    if (tv->priv->loaded)
       g_hash_table_remove_all (tv->priv->loaded);
+   g_clear_pointer (&tv->priv->recreate, g_hash_table_unref);
    tv->priv->window_started = FALSE;
+}
+
+
+/* the first image in view (path, to be freed), to come back to it after a
+ * reload: NULL when at the top or not shown */
+gchar *
+gimv_thumb_view_first_in_view (GimvThumbView *tv)
+{
+   GimvThumbViewPriv *priv;
+   guint i;
+
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
+   priv = tv->priv;
+   if (!priv || !tv->vfuncs || !tv->vfuncs->is_in_view || !tv->thumblist) return NULL;
+   build_index (tv);
+   for (i = 0; i < priv->index_array->len; i++) {
+      GimvThumb *t = g_ptr_array_index (priv->index_array, i);
+      if (tv->vfuncs->is_in_view (tv, t)) {
+         if (i == 0 || !t->info) return NULL;
+         return g_strdup (gimv_image_info_get_path (t->info));
+      }
+   }
+   return NULL;
+}
+
+
+/* shown again after the list is loaded again (see window_compute) */
+void
+gimv_thumb_view_set_anchor (GimvThumbView *tv, const gchar *path)
+{
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   if (!tv->priv) return;
+   g_free (tv->priv->anchor);
+   tv->priv->anchor = g_strdup (path);
+   tv->priv->anchor_until = g_get_monotonic_time () + 3 * G_USEC_PER_SEC;
+   window_request (tv, 0);
 }
 
 
@@ -1899,6 +1946,27 @@ window_compute (gpointer data)
          } else if (first >= 0) {
             break;
          }
+      }
+   }
+   /* reloaded ("Update All Thumbnails"...): back where the view was, and
+    * that part loaded first even before the view gets there */
+   if (priv->anchor) {
+      GimvThumb *a = NULL;
+      for (i = 0; i < n && !a; i++) {
+         GimvThumb *t = g_ptr_array_index (priv->index_array, i);
+         const gchar *p = t && t->info ? gimv_image_info_get_path (t->info) : NULL;
+         if (p && !strcmp (p, priv->anchor)) a = t;
+      }
+      if (!a || g_get_monotonic_time () > priv->anchor_until) {
+         g_clear_pointer (&priv->anchor, g_free);
+      } else if (tv->vfuncs->is_in_view && tv->vfuncs->is_in_view (tv, a)) {
+         g_clear_pointer (&priv->anchor, g_free);   /* there */
+      } else {
+         gint at = gimv_thumb_view_get_thumb_index (tv, a);
+         gimv_thumb_view_adjust (tv, a);
+         first = at;
+         last = MIN (n - 1, at + MAX (last - MAX (first, 0), WINDOW_MIN_CELLS - 1));
+         window_request (tv, 100);    /* again once it is laid out */
       }
    }
    if (first < 0) {
@@ -1951,6 +2019,8 @@ window_compute (gpointer data)
          if (i >= keep_lo && i <= keep_hi) continue;
          if (i <= priv->win_head || i >= priv->win_tail) continue;
          t = g_ptr_array_index (priv->index_array, i);
+         /* not those made again in the background */
+         if (priv->recreate && g_hash_table_contains (priv->recreate, t)) continue;
          if (gimv_thumb_async_pending (t)) gimv_thumb_async_cancel (t);
       }
    }
@@ -1998,6 +2068,99 @@ window_idle_again (gpointer data)
 }
 
 
+static gboolean
+recreate_wanted (GimvThumbView *tv, GimvThumb *thumb)
+{
+   return tv->priv->recreate && g_hash_table_contains (tv->priv->recreate, thumb);
+}
+
+
+/* the progress of "Update All Thumbnails" in the status bar (the tab shown) */
+static void
+recreate_progress (GimvThumbView *tv)
+{
+   GimvThumbViewPriv *priv = tv->priv;
+   GtkProgressBar *bar;
+   guint left;
+
+   if (!tv->tw || !tv->tw->progressbar
+       || gimv_thumb_win_find_thumbtable (tv->tw, GIMV_THUMB_WIN_CURRENT_PAGE) != tv)
+      return;
+   bar = GTK_PROGRESS_BAR (tv->tw->progressbar);
+   left = priv->recreate ? g_hash_table_size (priv->recreate) : 0;
+   /* the stop button stops it (the window may have turned it off) */
+   if (tv->tw->button.stop)
+      gtk_widget_set_sensitive (tv->tw->button.stop, left > 0);
+   if (left > 0 && priv->recreate_total > 0) {
+      gchar *text = g_strdup_printf ("%u/%u", priv->recreate_total - left,
+                                     priv->recreate_total);
+      gtk_progress_bar_set_fraction (bar, (gdouble) (priv->recreate_total - left)
+                                          / priv->recreate_total);
+      gtk_progress_bar_set_text (bar, text);
+      gtk_progress_bar_set_show_text (bar, TRUE);
+      g_free (text);
+   } else {
+      gtk_progress_bar_set_fraction (bar, 0.0);
+      gtk_progress_bar_set_show_text (bar, FALSE);
+   }
+}
+
+
+/* made again: one less */
+static void
+recreate_done (GimvThumbView *tv, GimvThumb *thumb)
+{
+   GimvThumbViewPriv *priv = tv->priv;
+
+   if (!priv->recreate || !g_hash_table_remove (priv->recreate, thumb)) return;
+   if (g_hash_table_size (priv->recreate) == 0)
+      g_clear_pointer (&priv->recreate, g_hash_table_unref);
+   recreate_progress (tv);
+}
+
+
+/* "Update All Thumbnails" stopped (the stop button): those not made yet
+ * keep their caches */
+void
+gimv_thumb_view_recreate_stop (GimvThumbView *tv)
+{
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   if (!tv->priv || !tv->priv->recreate) return;
+   g_clear_pointer (&tv->priv->recreate, g_hash_table_unref);
+   recreate_progress (tv);
+}
+
+
+/* a thumbnail made again in the background: the cache is written; kept
+ * only when it is near the view */
+static void
+recreate_bg_done (GimvThumb *thumb, gboolean made, gboolean cancelled, gpointer data)
+{
+   GimvThumbView *tv = data;
+   GimvThumbViewPriv *priv = tv->priv;
+   gint pos;
+
+   if (!priv || gimv_thumb_get_parent_thumbview (thumb) != tv) return;
+   if (!made && !cancelled && recreate_wanted (tv, thumb))
+      gimv_thumb_load (thumb, tv->thumb_size, CREATE_THUMB);   /* a plugin format */
+   if (made || !cancelled) {
+      recreate_done (tv, thumb);
+      pos = gimv_thumb_view_get_thumb_index (tv, thumb);
+      if (pos >= priv->win_lo && pos <= priv->win_hi) {
+         window_mark_loaded (tv, thumb);
+         if (tv->vfuncs && tv->vfuncs->update_thumb)
+            tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
+      } else if (!(priv->loaded && g_hash_table_contains (priv->loaded, thumb))) {
+         gimv_thumb_unload (thumb);
+      }
+   }
+   if (priv->async_wait && !priv->window_idle) {
+      priv->async_wait = FALSE;
+      priv->window_idle = g_idle_add (window_idle_load, tv);
+   }
+}
+
+
 /* a thumbnail made in a thread (gimv_thumb_async) */
 static void
 window_async_done (GimvThumb *thumb, gboolean made, gboolean cancelled, gpointer data)
@@ -2007,12 +2170,15 @@ window_async_done (GimvThumb *thumb, gboolean made, gboolean cancelled, gpointer
 
    if (!priv || gimv_thumb_get_parent_thumbview (thumb) != tv) return;
    if (made) {
+      recreate_done (tv, thumb);
       window_mark_loaded (tv, thumb);
       if (tv->vfuncs && tv->vfuncs->update_thumb)
          tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
    } else if (!cancelled) {
       /* not read there: the usual way (a format of the plugins) */
-      gimv_thumb_load (thumb, tv->thumb_size, priv->load_type);
+      gimv_thumb_load (thumb, tv->thumb_size,
+                       recreate_wanted (tv, thumb) ? CREATE_THUMB : priv->load_type);
+      recreate_done (tv, thumb);
       window_mark_loaded (tv, thumb);
       if (tv->vfuncs && tv->vfuncs->update_thumb)
          tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
@@ -2031,6 +2197,40 @@ window_async_done (GimvThumb *thumb, gboolean made, gboolean cancelled, gpointer
 /* made in threads at most this many at a time (waiting or being made):
  * more only fill the queue with ones a scroll makes useless */
 #define WINDOW_ASYNC_MAX  48
+
+/* "Update All Thumbnails" far from the view, in list order, within the
+ * slice; TRUE: more to do in this slice's next call (FALSE: waiting for
+ * the threads, or all asked) */
+static gboolean
+recreate_background (GimvThumbView *tv, gint64 start)
+{
+   GimvThumbViewPriv *priv = tv->priv;
+   gint n = priv->index_array ? (gint) priv->index_array->len : 0;
+
+   while (priv->recreate && priv->recreate_pos < n
+          && g_get_monotonic_time () - start < WINDOW_SLICE_USEC)
+   {
+      GimvThumb *thumb = g_ptr_array_index (priv->index_array, priv->recreate_pos);
+
+      if (!recreate_wanted (tv, thumb) || gimv_thumb_async_pending (thumb)) {
+         priv->recreate_pos++;
+         continue;
+      }
+      if (gimv_thumb_async_can (thumb)) {
+         if (gimv_thumb_async_n_pending () >= WINDOW_ASYNC_MAX) {
+            priv->async_wait = TRUE;
+            return FALSE;
+         }
+         gimv_thumb_async_load (thumb, tv->thumb_size, CREATE_THUMB, recreate_bg_done, tv);
+      } else {
+         /* a plugin format: here */
+         recreate_bg_done (thumb, FALSE, FALSE, tv);
+      }
+      priv->recreate_pos++;
+   }
+   return priv->recreate && priv->recreate_pos < n;
+}
+
 
 static gboolean
 window_idle_load (gpointer data)
@@ -2051,13 +2251,21 @@ window_idle_load (gpointer data)
    while (g_get_monotonic_time () - start < WINDOW_SLICE_USEC) {
       gint pos = window_nth_position (priv, priv->win_step);
       GimvThumb *thumb;
+      ThumbLoadType type;
+      gboolean again;
 
       if (pos < 0) {
+         /* near the view done: the rest of "Update All Thumbnails" */
+         if (priv->recreate && recreate_background (tv, start))
+            return G_SOURCE_CONTINUE;
          priv->window_idle = 0;
          return G_SOURCE_REMOVE;
       }
       thumb = gimv_thumb_view_get_nth_thumb (tv, pos);
-      if (thumb && !gimv_thumb_is_loaded (thumb) && !gimv_thumb_async_pending (thumb)
+      again = thumb && recreate_wanted (tv, thumb);
+      type = again ? CREATE_THUMB : priv->load_type;
+      if (thumb && (!gimv_thumb_is_loaded (thumb) || again)
+          && !gimv_thumb_async_pending (thumb)
           && gimv_thumb_async_n_pending () >= WINDOW_ASYNC_MAX
           && gimv_thumb_async_can (thumb))
       {
@@ -2068,23 +2276,24 @@ window_idle_load (gpointer data)
       }
       priv->win_step++;
 
-      if (!thumb || gimv_thumb_is_loaded (thumb)) {
+      if (!thumb || (gimv_thumb_is_loaded (thumb) && !again)) {
          if (thumb) window_mark_loaded (tv, thumb);
          continue;
       }
       if (gimv_thumb_async_pending (thumb)) {
          /* waiting (maybe cancelled before): wanted */
-         gimv_thumb_async_load (thumb, tv->thumb_size, priv->load_type,
+         gimv_thumb_async_load (thumb, tv->thumb_size, type,
                                 window_async_done, tv);
          continue;
       }
       /* the cache (fast) here; the image itself in a thread when it can */
-      if (!gimv_thumb_load_quick (thumb, tv->thumb_size, priv->load_type)
-          && gimv_thumb_async_load (thumb, tv->thumb_size, priv->load_type,
+      if (!gimv_thumb_load_quick (thumb, tv->thumb_size, type)
+          && gimv_thumb_async_load (thumb, tv->thumb_size, type,
                                     window_async_done, tv))
          continue;
-      if (!gimv_thumb_is_loaded (thumb))
-         gimv_thumb_load (thumb, tv->thumb_size, priv->load_type);
+      if (!gimv_thumb_is_loaded (thumb) || again)
+         gimv_thumb_load (thumb, tv->thumb_size, type);
+      recreate_done (tv, thumb);
       window_mark_loaded (tv, thumb);
       if (tv->vfuncs && tv->vfuncs->update_thumb)
          tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
@@ -3633,11 +3842,23 @@ gimv_thumb_view_load_thumbnails (GimvThumbView *tv, GList *loadlist,
 
    g_return_val_if_fail (tv->vfuncs, FALSE);
 
-   /* "Update All Thumbnails" (CREATE_THUMB) asks for every one of them */
-   if (tv->priv->windowed && files->thumb_load_type != CREATE_THUMB) {
+   if (tv->priv->windowed) {
       /* nothing is loaded here: the window loads what is near the
        * visible part while gimv stays free */
-      tv->priv->load_type = files->thumb_load_type;
+      tv->priv->load_type = LOAD_CACHE;
+      if (files->thumb_load_type == CREATE_THUMB) {
+         /* "Update All Thumbnails": all of them made again, those near
+          * the view first, the rest in the background */
+         GList *node;
+         g_clear_pointer (&tv->priv->recreate, g_hash_table_unref);
+         tv->priv->recreate = g_hash_table_new (g_direct_hash, g_direct_equal);
+         for (node = loadlist; node; node = g_list_next (node))
+            g_hash_table_add (tv->priv->recreate, node->data);
+         tv->priv->recreate_total = g_hash_table_size (tv->priv->recreate);
+         tv->priv->recreate_pos = 0;
+         if (tv->priv->recreate_total == 0)
+            g_clear_pointer (&tv->priv->recreate, g_hash_table_unref);
+      }
       tv->priv->window_started = TRUE;
       window_request (tv, 0);
       return TRUE;
@@ -3657,8 +3878,7 @@ gimv_thumb_view_load_thumbnails (GimvThumbView *tv, GList *loadlist,
    for (pos = 1; tv->load_list && files->status < CANCEL; pos++) {
       GimvThumb *thumb;
 
-      if (tv->progress->pos % conf.thumbwin_redraw_interval == 0)
-         gimv_flush_events ();
+      gimv_flush_events ();
 
       thumb = tv->load_list->data;
 
@@ -4672,6 +4892,7 @@ gimv_thumb_view_destroy (GimvObject *object)
 
       g_free (tv->priv->dirname);
       tv->priv->dirname = NULL;
+      g_clear_pointer (&tv->priv->anchor, g_free);
 
       /* remove archive */
       if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE && tv->priv->archive) {
