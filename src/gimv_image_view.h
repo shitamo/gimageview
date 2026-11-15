@@ -414,7 +414,7 @@ void       gimv_image_view_nth                    (GimvImageView  *iv,
  *  GimvImageView Embeder Plugin interface
  *
  ****************************************************************************/
-#define GIMV_IMAGE_VIEW_IF_VERSION 7
+#define GIMV_IMAGE_VIEW_IF_VERSION 8
 
 struct GimvImageViewPlugin_Tag
 {
@@ -435,6 +435,16 @@ struct GimvImageViewPlugin_Tag
    GimvImageViewRotatableIF    *rotatable;
    GimvImageViewScrollableIF   *scrollable;
    GimvImageViewPlayableIF     *playable;
+};
+
+
+/* optional: the zoom of what the plugin shows (the album art of a song).
+   TRUE: done by the plugin, the image view does nothing else. */
+struct GimvImageViewScalableIF_Tag {
+   gboolean (*zoom_fn) (GimvImageView         *iv,
+                        GimvImageViewZoomType  zoom,
+                        gfloat                 x_scale,  /* [%], ZOOM_FREE */
+                        gfloat                 y_scale);
 };
 
 

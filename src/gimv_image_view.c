@@ -4420,6 +4420,12 @@ gimv_image_view_zoom_image (GimvImageView *iv, GimvImageViewZoomType zoom,
 
    g_return_if_fail (iv);
 
+   /* a plugin zooming what it shows itself (the album art of a song) */
+   if (iv->draw_area_funcs && iv->draw_area_funcs->scalable
+       && iv->draw_area_funcs->scalable->zoom_fn
+       && iv->draw_area_funcs->scalable->zoom_fn (iv, zoom, x_scale, y_scale))
+      return;
+
    src_x_scale = iv->priv->x_scale;
    src_y_scale = iv->priv->y_scale;
 

@@ -87,6 +87,9 @@ typedef struct GimvGstPlayer_Tag
    guint          idle_id;
    GstSample     *shown;      /* the frame on the screen */
    GdkTexture    *cover;      /* the album art of a song (its tags) */
+   gdouble        cover_scale;/* its zoom: 1.0 its own size */
+   gboolean       cover_fit;  /* as large as the place (zoom "fit") */
+   gchar         *cover_uri;  /* the file the zoom is of */
 
    gboolean       playing;    /* PLAYING was requested */
    gboolean       paused;
@@ -142,6 +145,16 @@ static gboolean   prefs_gst_get_page             (guint              idx,
                                                   guint             *size);
 
 
+static gboolean   imageview_gst_zoom             (GimvImageView         *iv,
+                                                  GimvImageViewZoomType  zoom,
+                                                  gfloat                 x_scale,
+                                                  gfloat                 y_scale);
+
+static GimvImageViewScalableIF scalable_if = {
+   zoom_fn:             imageview_gst_zoom,
+};
+
+
 static GimvImageViewPlayableIF playable_if = {
    is_playable_fn:      imageview_gst_is_playable,
    is_seekable_fn:      imageview_gst_is_seekable,
@@ -172,7 +185,7 @@ static GimvImageViewPlugin imageview_gst =
    create_thumbnail_fn: imageview_gst_create_thumbnail,
    fullscreen_fn:       NULL,
 
-   scalable:            NULL,
+   scalable:            &scalable_if,
    rotatable:           NULL,
    playable:            &playable_if,
 };
@@ -965,12 +978,159 @@ texture_from_pixbuf (GdkPixbuf *pixbuf)
 }
 
 
+/* a texture at a size of its own (the zoom of the album art): the picture
+   shows it at that size, smaller if the place is smaller */
+#define GIMV_TYPE_SCALED_PAINTABLE (gimv_scaled_paintable_get_type ())
+G_DECLARE_FINAL_TYPE (GimvScaledPaintable, gimv_scaled_paintable,
+                      GIMV, SCALED_PAINTABLE, GObject)
+
+struct _GimvScaledPaintable {
+   GObject     parent;
+   GdkTexture *texture;
+   gdouble     scale;
+};
+
+static void
+scaled_paintable_snapshot (GdkPaintable *paintable, GdkSnapshot *snapshot,
+                           gdouble width, gdouble height)
+{
+   GimvScaledPaintable *self = GIMV_SCALED_PAINTABLE (paintable);
+   gdk_paintable_snapshot (GDK_PAINTABLE (self->texture), snapshot, width, height);
+}
+
+static gint
+scaled_paintable_width (GdkPaintable *paintable)
+{
+   GimvScaledPaintable *self = GIMV_SCALED_PAINTABLE (paintable);
+   return MAX (1, (gint) (gdk_texture_get_width (self->texture) * self->scale + 0.5));
+}
+
+static gint
+scaled_paintable_height (GdkPaintable *paintable)
+{
+   GimvScaledPaintable *self = GIMV_SCALED_PAINTABLE (paintable);
+   return MAX (1, (gint) (gdk_texture_get_height (self->texture) * self->scale + 0.5));
+}
+
+static void
+scaled_paintable_iface_init (GdkPaintableInterface *iface)
+{
+   iface->snapshot             = scaled_paintable_snapshot;
+   iface->get_intrinsic_width  = scaled_paintable_width;
+   iface->get_intrinsic_height = scaled_paintable_height;
+}
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (GimvScaledPaintable, gimv_scaled_paintable, G_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (GDK_TYPE_PAINTABLE,
+                                                      scaled_paintable_iface_init))
+
+static void
+gimv_scaled_paintable_finalize (GObject *object)
+{
+   g_clear_object (&GIMV_SCALED_PAINTABLE (object)->texture);
+   G_OBJECT_CLASS (gimv_scaled_paintable_parent_class)->finalize (object);
+}
+
+static void
+gimv_scaled_paintable_class_init (GimvScaledPaintableClass *klass)
+{
+   G_OBJECT_CLASS (klass)->finalize = gimv_scaled_paintable_finalize;
+}
+
+static void
+gimv_scaled_paintable_init (GimvScaledPaintable *self)
+{
+   self->scale = 1.0;
+}
+
+static GdkPaintable *
+scaled_paintable_new (GdkTexture *texture, gdouble scale)
+{
+   GimvScaledPaintable *self = g_object_new (GIMV_TYPE_SCALED_PAINTABLE, NULL);
+   self->texture = g_object_ref (texture);
+   self->scale = scale;
+   return GDK_PAINTABLE (self);
+}
+
+
+/* the album art at its zoom: its own size by default, never larger
+   than the place (and not stretched over its size unless "fit") */
+static void
+player_show_cover (GimvGstPlayer *player)
+{
+   GdkPaintable *paintable;
+
+   if (!player->cover || player->shown) return;
+   gtk_picture_set_content_fit (GTK_PICTURE (player->picture),
+                                player->cover_fit ? GTK_CONTENT_FIT_CONTAIN
+                                                  : GTK_CONTENT_FIT_SCALE_DOWN);
+   paintable = scaled_paintable_new (player->cover, player->cover_scale);
+   gtk_picture_set_paintable (GTK_PICTURE (player->picture), paintable);
+   g_object_unref (paintable);
+}
+
+
+/* the zoom of the image view (keys, menu, wheel) for the album art; a
+   movie is not zoomed (FALSE: as before) */
+#define COVER_SCALE_MIN 0.1
+#define COVER_SCALE_MAX 8.0
+
+static gboolean
+imageview_gst_zoom (GimvImageView *iv, GimvImageViewZoomType zoom,
+                    gfloat x_scale, gfloat y_scale)
+{
+   GimvGstPlayer *player = get_player (iv);
+   gdouble scale;
+
+   if (!player || !player->cover || player->shown) return FALSE;
+
+   scale = player->cover_scale;
+   if (player->cover_fit) {
+      /* from the size it is shown at */
+      gint w = gtk_widget_get_width (player->picture);
+      gint h = gtk_widget_get_height (player->picture);
+      if (w > 0 && h > 0)
+         scale = MIN ((gdouble) w / gdk_texture_get_width (player->cover),
+                      (gdouble) h / gdk_texture_get_height (player->cover));
+   }
+
+   switch (zoom) {
+   case GIMV_IMAGE_VIEW_ZOOM_IN:    scale *= 1.25; player->cover_fit = FALSE; break;
+   case GIMV_IMAGE_VIEW_ZOOM_OUT:   scale /= 1.25; player->cover_fit = FALSE; break;
+   case GIMV_IMAGE_VIEW_ZOOM_FIT:
+   case GIMV_IMAGE_VIEW_ZOOM_FIT_WIDTH:
+   case GIMV_IMAGE_VIEW_ZOOM_FIT_HEIGHT:
+      player->cover_fit = TRUE;  scale = 1.0;  break;
+   case GIMV_IMAGE_VIEW_ZOOM_FIT_ZOOM_OUT_ONLY:
+      player->cover_fit = FALSE; scale = 1.0;  break;
+   case GIMV_IMAGE_VIEW_ZOOM_10:  player->cover_fit = FALSE; scale = 0.10; break;
+   case GIMV_IMAGE_VIEW_ZOOM_25:  player->cover_fit = FALSE; scale = 0.25; break;
+   case GIMV_IMAGE_VIEW_ZOOM_50:  player->cover_fit = FALSE; scale = 0.50; break;
+   case GIMV_IMAGE_VIEW_ZOOM_75:  player->cover_fit = FALSE; scale = 0.75; break;
+   case GIMV_IMAGE_VIEW_ZOOM_100: player->cover_fit = FALSE; scale = 1.00; break;
+   case GIMV_IMAGE_VIEW_ZOOM_125: player->cover_fit = FALSE; scale = 1.25; break;
+   case GIMV_IMAGE_VIEW_ZOOM_150: player->cover_fit = FALSE; scale = 1.50; break;
+   case GIMV_IMAGE_VIEW_ZOOM_175: player->cover_fit = FALSE; scale = 1.75; break;
+   case GIMV_IMAGE_VIEW_ZOOM_200: player->cover_fit = FALSE; scale = 2.00; break;
+   case GIMV_IMAGE_VIEW_ZOOM_300: player->cover_fit = FALSE; scale = 3.00; break;
+   case GIMV_IMAGE_VIEW_ZOOM_FREE:
+      player->cover_fit = FALSE;
+      if (x_scale > 0) scale = x_scale / 100.0;
+      break;
+   default:
+      return TRUE;
+   }
+   player->cover_scale = CLAMP (scale, COVER_SCALE_MIN, COVER_SCALE_MAX);
+   player_show_cover (player);
+   return TRUE;
+}
+
+
 /* the album art on the screen while there is no video frame (a song) */
 static void
 player_take_tags (GimvGstPlayer *player, GstTagList *tags)
 {
    GdkTexture *cover;
-
    GdkPixbuf *pixbuf;
 
    if (player->cover) return;              /* the first one stays */
@@ -979,9 +1139,7 @@ player_take_tags (GimvGstPlayer *player, GstTagList *tags)
    cover = texture_from_pixbuf (pixbuf);
    g_object_unref (pixbuf);
    player->cover = cover;
-   if (!player->shown)
-      gtk_picture_set_paintable (GTK_PICTURE (player->picture),
-                                 GDK_PAINTABLE (cover));
+   player_show_cover (player);
 }
 
 
@@ -1002,6 +1160,9 @@ idle_show_frame (gpointer data)
 
    texture = texture_from_sample (sample);
    if (texture) {
+      if (!player->shown)   /* after the album art: the frames fill the place */
+         gtk_picture_set_content_fit (GTK_PICTURE (player->picture),
+                                      GTK_CONTENT_FIT_CONTAIN);
       gtk_picture_set_paintable (GTK_PICTURE (player->picture),
                                  GDK_PAINTABLE (texture));
       g_object_unref (texture);
@@ -1475,6 +1636,7 @@ player_free (gpointer data)
    player_shutdown (player);
    if (player->shown) gst_sample_unref (player->shown);
    g_clear_object (&player->cover);
+   g_free (player->cover_uri);
    g_mutex_clear (&player->lock);
    g_free (player);
 }
@@ -1569,6 +1731,13 @@ player_start (GimvGstPlayer *player)
       player->shown = NULL;
    }
    g_clear_object (&player->cover);
+   /* the zoom of the album art stays while the same file plays again */
+   if (g_strcmp0 (player->cover_uri, uri)) {
+      g_free (player->cover_uri);
+      player->cover_uri   = g_strdup (uri);
+      player->cover_scale = 1.0;
+      player->cover_fit   = FALSE;
+   }
 
    g_object_set (player->playbin, "uri", uri, NULL);
    g_free (uri);
@@ -1615,6 +1784,7 @@ imageview_gst_create (GimvImageView *iv)
    }
 
    player = g_new0 (GimvGstPlayer, 1);
+   player->cover_scale = 1.0;
    g_mutex_init (&player->lock);
    player->iv = iv;
 

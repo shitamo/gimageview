@@ -122,6 +122,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  artist, album, album artist, composer, track, disc, date, genre,
 	  comment, length, the formats of the sound and the picture
 	  (GStreamer's discoverer, in a thread; shown only, in italics).
+	* The album art is shown at its own size (it was stretched over the
+	  place, coarse), smaller only when the place is smaller; the zoom of
+	  images (zoom in / out, the percentages, fit) changes its size.
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).
