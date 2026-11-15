@@ -88,6 +88,7 @@ typedef struct Dialog_Tag {
    GtkWidget    *auto_label;
    GtkWidget    *diff_check;
    GtkWidget    *detail;
+   GtkWidget    *legend;     /* how to read the detail */
    GtkWidget    *status;
    GtkWidget    *show_button;
    GtkWidget    *close_button;
@@ -685,23 +686,38 @@ draw_detail (GtkDrawingArea *area, cairo_t *cr, gint aw, gint ah, gpointer data)
    cairo_paint (cr);
    g_object_unref (dest);
 
-   /* where the second begins and the first ends */
-   cairo_set_line_width (cr, 1);
-   cairo_set_source_rgba (cr, 0.9, 0.1, 0.1, 0.8);
-   if (side) {
-      gdouble xb = floor ((pl[b].x - x0) * s) + 0.5, xa = floor ((pl[a].x + pl[a].w - x0) * s) + 0.5;
-      cairo_move_to (cr, xb, 0); cairo_line_to (cr, xb, 10);
-      cairo_move_to (cr, xb, ah - 10); cairo_line_to (cr, xb, ah);
-      cairo_move_to (cr, xa, 0); cairo_line_to (cr, xa, 10);
-      cairo_move_to (cr, xa, ah - 10); cairo_line_to (cr, xa, ah);
-   } else {
-      gdouble yb = floor ((pl[b].y - y0) * s) + 0.5, ya = floor ((pl[a].y + pl[a].h - y0) * s) + 0.5;
-      cairo_move_to (cr, 0, yb); cairo_line_to (cr, 10, yb);
-      cairo_move_to (cr, aw - 10, yb); cairo_line_to (cr, aw, yb);
-      cairo_move_to (cr, 0, ya); cairo_line_to (cr, 10, ya);
-      cairo_move_to (cr, aw - 10, ya); cairo_line_to (cr, aw, ya);
+   /* where the second begins and the first ends: red triangles at the
+      sides (white edged, seen on any picture) */
+   {
+      gdouble at[2];
+      gint k;
+      if (side) {
+         at[0] = floor ((pl[b].x - x0) * s) + 0.5;
+         at[1] = floor ((pl[a].x + pl[a].w - x0) * s) + 0.5;
+      } else {
+         at[0] = floor ((pl[b].y - y0) * s) + 0.5;
+         at[1] = floor ((pl[a].y + pl[a].h - y0) * s) + 0.5;
+      }
+      for (k = 0; k < (ov > 0 ? 2 : 1); k++) {
+         gdouble p = at[k], far = side ? ah : aw;
+         if (side) {
+            cairo_move_to (cr, p - 7, 0);   cairo_line_to (cr, p, 11);   cairo_line_to (cr, p + 7, 0);
+            cairo_close_path (cr);
+            cairo_move_to (cr, p - 7, far); cairo_line_to (cr, p, far - 11); cairo_line_to (cr, p + 7, far);
+            cairo_close_path (cr);
+         } else {
+            cairo_move_to (cr, 0, p - 7);   cairo_line_to (cr, 11, p);   cairo_line_to (cr, 0, p + 7);
+            cairo_close_path (cr);
+            cairo_move_to (cr, far, p - 7); cairo_line_to (cr, far - 11, p); cairo_line_to (cr, far, p + 7);
+            cairo_close_path (cr);
+         }
+      }
+      cairo_set_source_rgb (cr, 0.9, 0.1, 0.1);
+      cairo_fill_preserve (cr);
+      cairo_set_source_rgb (cr, 1, 1, 1);
+      cairo_set_line_width (cr, 1);
+      cairo_stroke (cr);
    }
-   cairo_stroke (cr);
    g_free (pl);
 }
 
@@ -718,6 +734,7 @@ update_seam (Dialog *d)
 
    gtk_widget_set_visible (d->seam_box, seams);
    gtk_widget_set_visible (d->detail, seams);
+   gtk_widget_set_visible (d->legend, seams);
    if (!seams) return;
    pl = layout (d, &cw, &ch);
    max = mode_of (d) == JOIN_HORIZONTAL ? MIN (pl[a].w, pl[b].w) - 1 : MIN (pl[a].h, pl[b].h) - 1;
@@ -1413,6 +1430,14 @@ gimv_join_dialog_open (GList *paths, GtkWindow *parent)
    gtk_widget_set_size_request (d->detail, 300, 200);
    gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (d->detail), draw_detail, d, NULL);
    gtk_box_append (GTK_BOX (right), d->detail);
+   d->legend = gtk_label_new (_("Between the red triangles the two images overlap; the second "
+                                "one begins at the first ones.  They match when the picture "
+                                "goes on without a step there (with \"As the difference\": "
+                                "when the band between the triangles is black)."));
+   gtk_label_set_wrap (GTK_LABEL (d->legend), TRUE);
+   gtk_label_set_xalign (GTK_LABEL (d->legend), 0.0);
+   gtk_widget_add_css_class (d->legend, "dim-label");
+   gtk_box_append (GTK_BOX (right), d->legend);
 
    /* the status, the buttons */
    d->status = gtk_label_new (_("Reading the images..."));
@@ -1454,6 +1479,7 @@ gimv_join_dialog_open (GList *paths, GtkWindow *parent)
    gtk_widget_set_visible (d->cols_box, conf.join_mode == JOIN_GRID);
    gtk_widget_set_visible (d->seam_box, FALSE);
    gtk_widget_set_visible (d->detail, FALSE);
+   gtk_widget_set_visible (d->legend, FALSE);
    gtk_window_present (GTK_WINDOW (window));
 
    job = g_new0 (LoadJob, 1);

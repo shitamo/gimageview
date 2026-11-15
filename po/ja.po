@@ -7484,3 +7484,6 @@ msgstr "新しい名前には画像の拡張子がありません: 画像とし�
 
 msgid "Change the _extension too"
 msgstr "拡張子も変更する(_E)"
+
+msgid "Between the red triangles the two images overlap; the second one begins at the first ones.  They match when the picture goes on without a step there (with \"As the difference\": when the band between the triangles is black)."
+msgstr "赤い三角の間が 2 枚の重なった部分で、2 枚目は 1 組目の三角から始まります。そこで絵に段差がなく続いていれば合っています (「差で表示」では、三角の間の帯が黒くなれば合っています)。"
