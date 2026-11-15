@@ -118,3 +118,6 @@ span.toolnum { display: inline-block;
                color: #ffffff;
                font-weight: bold;
                text-align: center; }
+
+/* long words (paths, names) wrapped too */
+li p.para { overflow-wrap: break-word; }

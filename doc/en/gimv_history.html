@@ -27,430 +27,367 @@
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
 <a name="gimv_history"></a>11. GImageView History</h2></div></div>
-<pre class="screen">
-2026-11-06: Version 0.2.27+gtk4 (GTK 4 version), changes since 2026-09-26
-    o Bookmarks of images (~/.gimv/bookmarks), in the index or not:
-      [Edit | Bookmark...] and the right button menus (no key by default,
-      one can be given in ~/.gimv/keyaccelrc), an optional note, the
-      "Bookmarks" tab (by the day added, with or without a note), the
-      note in the tooltip; they follow the images moved or renamed.
-    o Edit Tags: an entry with the tags below it (x takes one away),
-      the tags in use to click, the names of people kept; also in
-      [Edit | Edit Tags...] and the right button menus of the preview
-      and the image window.
-    o The tags of the Data tab and of Edit Tags laid out as words (no
-      wide gaps).  A row of the Data tab with a key not edited there
-      (X-IMG-Tags, ...) shows its own key and is only shown.  A line
-      break in a tag or a value (a pasted text) becomes a space.
-    o The "Date" of the comment is the date of the image (before EXIF;
-      for images of SNS).
-    o "Date taken" column of the detail view and View > Sort File List > by
-      Date Taken (the date of the index; Reverse Order for the newest
-      first).
-    o After a sort (or a change of the display mode) the thumbnails made
-      first are the ones now at the top.
-    o Data tab: a value typed is kept by "Save" without Enter.
-    o Properties: long names and types cut (the dialog stays on the
-      screen), selectable; "Copy" for the full path.  "Copy Path" in the
-      right button menu of the thumbnails.
-    o Keywords mangled as UTF-8 read as Shift_JIS (Windows Photo Gallery)
-      put right, or left out.
-    o The keywords of other programs (XMP, IPTC, the sidecar files
-      "x.jpg.xmp" and "x.xmp") in the index: kept apart, shown and looked
-      for as the tags put by hand of the same name.
-    o With gexiv2 (Exiv2) the index reads EXIF, XMP and IPTC of HEIF, PNG,
-      WebP, TIFF, raw files, ... (the date, the camera, the keywords).
-    o With gexiv2 the EXIF of the formats other than JPEG too: Show EXIF
-      Data... shows it, images and thumbnails are turned by its orientation.
-    o "Scan EXIF Data..." is now "Show EXIF Data...".
-    o Tools > Find Duplicates... rewritten: one search sorts them into
-      Identical, Other Sizes and Similar; the groups on the left, their
-      images side by side on the right to compare, each to keep or to
-      delete (suggested for the identical and resized), and "Move to
-      Trash..." for the group shown (a group at a time).  It searches in
-      a thread and reads the pictures itself.
-    o File > Save Image... [Ctrl+S]: saves the image shown as JPEG, PNG,
-      WebP, AVIF, TIFF, BMP or PNM (a HEIC as a JPEG, ...), keeping its EXIF
-      and XMP with gexiv2.  New gdk-pixbuf image saver plugin.
-    o Tags are a tree by "/" in the tag tab ("Travel/Kyoto" below "Travel"):
-      a parent opens the images of the tags below it too; renaming a parent
-      renames the tags below it.
-    o The Data tab shows a tag with levels part by part, a parent part opens
-      the tags below it; in Edit Tags a parent in "Tags in Use" types
-      "Travel/" to pick from the tags below it.
-    o A tag dragged onto another in the tag tab moves below it or merges into it.
-    o The tags of the search window make a tree, a parent counting the tags below it.
-    o [Edit | Keyboard Shortcuts...] to change the keys without editing the files.
-    o The tags of people are a tree by "/" too (tag tab, people tab, search, data tab).
-    o Edit the tags of a folder and the folders below it, from the directory view.
-    o Manual: a new chapter "What Do You Want to Do?" (9) finds the way from what you want to do.
-    o The same files in different folders: the index looks for them in the background ([Tools | Find Duplicates in the Index...]); all the groups to the trash at once, checked again first, the comments and bookmarks to the image kept, or links to it left in the places of the copies.
-    o Update All Thumbnails works like loading: the thumbnails on the screen first (the scroll position is kept), the rest in the background without keeping them in memory; the progress (n/N) is shown and the stop button stops it.  The preference "GUI redraw interval while loading" (and its tip) is gone.
-    o Detail view: the title of the column sorted by shows the arrow (it was lost with every sort); "Image size" sorts by the area; columns with no sort are not clickable.
-    o The thumbnail size in the toolbar can be typed in; Enter takes it and gives the keys back to the window (Shift+R, Ctrl+R).
-    o The editing keys of a text field (Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z, ...) go to the text field the focus is in, not to the menu keys of the window (Ctrl+A selected all the thumbnails while the location or the thumbnail size was edited).
-    o Detail view: Ctrl+A (Select All) works with the focus in the list (the list took the key and did nothing).
-    o Detail view: no "cb_sorter_changed: assertion" message on quit after sorting.
-    o Open the Folder: the image chosen is shown also when the folder was not open yet (the top of the folder was shown).
-    o Detail view: switching tabs (or closing one) keeps where the list of the tab was scrolled to (it went to the top).
-    o Detail view: switching tabs puts the cursor (of the cursor keys) back on the image it was on if that is on screen, on the first image on screen otherwise (it was on the first image of the list).
-    o Tabs of the thumbnails in a narrow place: the current tab keeps a width its name can be read in, the others a few characters (all were "..."); the close button on the current tab only, the middle button closes any tab; the current tab is lighter.  "Show full path" is off by default (the full path is in the tooltip either way).
-    o Movie player: a mute button and a volume slider at the right end of the control bar (GStreamer, MPlayer); the same for all the windows, kept after quitting.
-    o Songs (m4a, mp3, flac, ogg, ...): the album art is shown while the song plays and is its thumbnail (GStreamer).
-    o The "Data" tab shows the information of a song or a movie (title, artist, album, album artist, composer, track, disc, date, genre, comment, length, the formats of the sound and the picture; GStreamer, read in a thread; shown only).
-    o The album art is shown at its own size (it was stretched, coarse), smaller only when the place is smaller; the zoom of images changes its size.
-    o The seek bar of movies goes to the end (it stopped at 99 %: the time at the end was short of the length, e.g. 03:11 / 03:13).
-    o Text viewer (plain text documents): a horizontal scroll bar for long lines (they could be read only by moving the cursor).
-    o "Save Smaller..." in the right button menu of the thumbnails: saves the selected images smaller (800 px of height or less by default) as new files; what to add to the names ("_resized" by default: big_resized.jpg), the quality, keeping the shooting information, leaving out the location and copying the comments can be chosen.  Saved in a thread, nothing is overwritten.
-    o "Crop Image..." (C, [Edit] of the image window and the right button menus of the image): a frame on the image moved, resized or drawn anew, the ratio, "Detect the Edges" (what is inside the border of the color of the edges; the shadows of the scanner left out, a small margin), Enter saves name_crop.jpg next to the image (never over another file), Esc stops.  Read, detected and saved in threads.
-    o "Join Images..." in the right button menu of the thumbnails: the selected images one below another, side by side or in a grid, the width (height) made the one of the smallest, of the largest or not changed, saved as name_join.jpg next to the first one (never over another file).  The overlaps of the pieces of one photo are looked for (a little different JPEG too) and can be put right for each seam, shown near its size, also as the difference.  Read, detected and saved in threads.
-    o "Open the Folder" and "Show the Saved Image": the image chosen is shown in the preview too (it was only selected).
-    o Rename: only the name without the extension is edited, the extension stays (without it the file was no longer shown).  "Change the extension too" edits the whole name; losing the extension of an image is asked about.
-    o Detail view: the widths of the columns as the user left them stay after a rename, a sort or a refresh, in the other tabs and the next time (they went back to the defaults).
-    o Manual: the Tips are brought up to date (the tips about the bars and the window size of the image window that no longer apply are removed; the memory buffer, the thumbnail size, the custom layout rewritten).
-    o Context menus open to the right of the pointer (no scroll bars).
-    o Data tab: "Remove Item" for the item selected; "Delete Comment..."
-      asks first and keeps the tags.  The index follows a comment saved
-      or deleted at once.
-    o Slide show: the images after the first one are drawn again.
-    o Corrected spelling and wording of the English messages and menus
-      (Faild -&gt; Failed, Buttton, Thumnail, Tool -&gt; Tools, ...); old key
-      bindings in ~/.gimv/keyaccelrc for renamed menu items are migrated.
-      po/gimageview.pot regenerated (tools/po-update.py).
-    o Dialog buttons (OK, Cancel, Apply, ...) are translated again.
-    o Help &gt; Document shows the (Japanese) documents in other locales too.
-    o View &gt; Layout and Window Composition show pictures of the layouts
-      (a row of icon buttons; name and shortcut in the tooltip).
-    o New GStreamer movie plugin: plays movies and audio in the image view
-      (the formats depend on the installed GStreamer plugins) and makes
-      movie thumbnails.  It is the default player when no default view
-      mode for movies is set.
-    o Archives are read with libarchive instead of running lha, unzip, rar
-      and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS file
-      names in old zip/lha archives are converted.
-    o Buttons use the icons of the desktop icon theme (Preferences &gt;
-      Common &gt; Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/&lt;name&gt;)
-      may contain PNG and SVG files.
-    o Tools &gt; Set as Wallpaper sets the selected image as the desktop
-      wallpaper (Xfce, GNOME, KDE Plasma, MATE, Cinnamon, LXDE/LXQt, feh;
-      "This Desktop" picks the running one).  Other formats and images in
-      archives are converted to PNG in ~/.gimv/wallpaper.
-    o The movie player shows the elapsed and the total time; a click on a
-      playing movie no longer moves on to the next file.
-    o Top-down BMP and CMYK JPEG files are loaded.
-    o Printing (GTK print dialog): File &gt; Print... (Ctrl+P) in the image
-      window and the thumbnail window (selected images, one per page), and
-      Print... in the popup menus.  The "Image" tab of the print dialog
-      chooses fit to the page or a resolution in dpi, turning the image to
-      the page orientation, and printing the file name.
-    o Movie seek bar: pointing at it shows the frame and the time there
-      (GStreamer player; the time only for audio).
-    o Transparent images are shown over a checkerboard (View &gt;
-      Checkerboard Behind Transparency, also in the popup menu and in
-      Preferences &gt; Image Window &gt; Background); off blends them with the
-      background colour as before.
-    o Preferences &gt; Movie and Audio: continuous play on/off.
-    o Preferences &gt; Movie and Audio: optionally ignore mouse actions for
-      next/previous image, zoom, rotation and scrolling while a movie or
-      audio file plays (off by default: the mouse settings apply).
-    o Thumbnail view: directory names end with "/" in all view modes.
-    o Movies and audio files in archives can be played (they are extracted
-      first; before, the player reported "Resource not found").
-    o Detail view: the image size is read from the file header (formats
-      of gdk-pixbuf, and JPEG) instead of "Unknown" until the image was
-      loaded; it is also updated when an image is opened.  The sizes are
-      read in the background after the list is shown.
-    o The rotation of each image is remembered (kept in its comment file
-      under ~/.gimv/comment, hidden in the comment editor) and restored
-      when it is opened again; Preferences &gt; Image Window &gt; Image.
-    o The HTML manual (Japanese) has screenshots, and its descriptions of
-      the menus, toolbars, mouse menus, preferences and key bindings were
-      changed to match this version.
-    o Mouse button preferences: the side buttons "back" (button 8) and
-      "forward" (button 9) can be assigned (nothing by default).
-    o English manual (HTML) and English plain text documents in the Help
-      menu; they are shown for every language that has no documents of its
-      own (only Japanese has).
-    o Color scheme (Preferences &gt; Common &gt; Appearance): the desktop theme,
-      light or dark.  With the desktop theme, a dark theme that GTK 4
-      cannot read (no gtk-4.0 directory, e.g. Greybird-dark) is shown with
-      the dark Adwaita.  Icons of GImageView drawn only with black lines
-      are drawn with light lines in dark colors.
-    o File open dialog: "Thumbnails of the selected files" also opens the
-      selected folders, each in a tab of its own.
-    o Image index (SQLite): gimv-indexer keeps the dates and tags of the
-      images of the directories given in Preferences &gt; Index, in the
-      background.  The "Date" and "Tag" tabs of the side notebook open
-      them in a result tab; tags are edited from the thumbnail view and
-      kept in the comment files, renamed and merged with F2; automatic
-      tags (folder, camera, shape); desktop notices of new images; Tools &gt;
-      Missing Images... for the comments of images that went missing.
-    o Faces and people (OpenCV 4.8, YuNet and SFace models): gimv-faces
-      finds faces and groups them; the "People" tab, the faces window
-      (naming, guesses, unnamed groups, tags of people) and the faces
-      panel of the image view (P), where a face can also be added by hand.
-      The names are kept in the comment files as "person/NAME" tags.
-    o Tools &gt; Search Images...: images of the index by tags and names
-      (and, not), by the date taken, narrowed by the tags of the images
-      found; searches can be kept by name.
-    o Thumbnails: the freedesktop.org cache (~/.cache/thumbnails) is read
-      and written; thumbnails are made in worker threads, from the EXIF
-      thumbnail of a JPEG when it is big enough; they are turned and
-      flipped by the EXIF orientation and by the rotation and flip the
-      user gave the image.
-    o Lists: Ctrl+F searches the rows (directory view, detail view, Data
-      tab, preferences, index tabs, ...).
-    o Status bar: the path, position and size of the focused image, or
-      the number and total size of the images selected.
-    o Data tab: the comments written in the image file itself (JPEG, PNG,
-      GIF, MAG) are shown in italics, and the tags of the image.
-    o Image view: Copy the Image to the Clipboard (Shift+Ctrl+C), Flip
-      Horizontally (X, remembered with the rotation), Open the Folder.
-    o Scrollbars are always shown (a preference, on by default).
-    o GtkTreeView and the other API deprecated in GTK 4.10 are no longer
-      used (GtkListView / GtkColumnView); GTK 4.12 and GLib 2.72 are
-      required.
-
-2026-09-26: Version 0.2.27+gtk4 (GTK 4 version)
-    o Ported to GTK 4, built with Meson
-    o Removed the support for Susie plugins
-    o Removed lib/dllloader
-    o The system libexif and GLib replace the bundled libexif and MD5 code
-    o New loaders for PNM, XPM, Sun raster, WBMP, ZIM (KID98) and AK5/MSL (MASL)
-    o Formats of the installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL,
-      ...) are recognized, and formats nothing can read are not listed
-    o Supports new movie formats (mp4, mkv, webm, flv, etc.)
-    o The scrollbars of the image view are shown only when the image does
-      not fit
-    o Added "Show splash window" to the preferences
-    o "Plugin Info" in Help is split by type and shows descriptions and
-      extensions
-    o Converted the help documents to UTF-8; the built-in text viewer
-      detects the character encoding automatically
-    o Changed the default web browser to xdg-open
-    o Comments on the thumbnail view ("Subject" and "Comment" columns in
-      the detail view, a tooltip in the album view)
-    o Comment editor window: Close button (Esc also closes it)
-
-2002-11-04: Version 0.2.7
-    o Fixed a problem where, in file operations, cache files and comment
-      files were moved/copied/linked even when the file operation was
-      cancelled or failed
-    o Changed back to deleting the original file when moving a file to a
-      different file system
-	 o Fixed a problem where key accelerators were not disabled in the file
-      name entry in rename mode (when using Gtk+2)
-    o Fixed a problem where character encodings were not converted correctly
-      in rename mode (when using Gtk+2)
-    o Fixed a problem where moving the focus between thumbnails did not work
-      correctly in the thumbnail view (when using Gtk+2)
-
-2002-11-02: Version 0.2.6
-    o Improved Gtk+-2.0 support (mainly support for GtkTreeView, and many
-      other bug fixes)
-    o Added a new sort menu
-    o Fixed a problem where recursive loading with directories shown in the
-      thumbnail view caused an infinite loop
-    o Added a "Clear cache" menu to the thumbnail window
-    o Fixed a problem where the ZAlbum widget did not take multibyte strings
-      into account.
-    o Fixed a problem where the character encoding conversion of file names
-      in comment data was wrong.
-    o Code cleanup
-    o Other minor fixes
-
-2002-09-22: Version 0.2.5
-    o Improved the speed of creating thumbnails
-    o Changed the default thumbnail display mode to "Thumbnail 2"
-    o Directories whose thumbnails have been loaded are now highlighted
-    o The image size can now be shown in "Detail" mode
-    o Added mouse button settings for the directory view
-    o The background color of the image window can now be set
-    o Fixed compile errors (Thanks! Mr. Shitamori &amp; Mr. Ezura)
-    o Other minor fixes
-
-2002-09-02: Version 0.2.4
-    o Changed the behavior of "Fullscreen"
-    o Changed the installation directory of the documents
-    o Fixed configure/compile errors
-    o Supports Nautilus-2.0 thumbnails
-    o Improved compatibility of XV thumbnails with other programs
-    o Improved Gtk+-2.0 support
-    o Many other bug fixes
-
-2002-07-01: Version 0.2.3
-    o Added support for animated GIF (when using gdk-pixbuf)
-    o Added MNG/JNG support (requires libmng)
-    o Experimental support for compressed files (gzip, bz2). To use this
-      feature, add &quot;gz&quot; and &quot;bz2&quot; to Preferences-&gt;Common-&gt;Filtering
-    o Added a French catalog file (Thanks! Guillaume Libersat)
-    o When loading thumbnails, thumbnails inside the visible area are now
-      loaded first
-    o Other bug fixes
-
-2002-05-31: Version 0.2.2
-    o Added SVG support (requires librsvg)
-    o Added experimental movie file support (requires xine-lib)
-    o Added experimental Susie plugin support (Broken)
-    o Improved Gtk+-2.0 support
-    o Added a desktop file
-    o Other minor improvements
-
-2002-05-08: Version 0.2.1
-    o In "Thumbnail 2" mode, improved the response when selecting a range by
-      mouse drag, and made it accelerate according to the amount of mouse
-      movement
-    o Added "List 2" mode (uses the same ZAlbum widget as "Thumbnail 2")
-    o ${datadir}/gimageview/gtkrc is now read
-    o The style of the tab label is now changed while loading
-    o Fixed a crash when closing an image window right after opening it
-    o Fixed a crash when closing the similar image search result window after
-      changing the thumbnail size
-    o Fixed a typo in the spec file, pointed out by ns
-
-2002-04-25: Version 0.2.0
-    o Comments can now be added to images
-    o Supports XCF
-    o The window composition can now be changed almost freely
-    o The preferences window now has a tree structure
-    o A splash image is now shown at startup
-    o Brought back the scrollbars of the image view / added the navigation
-      window
-    o Added "Thumbnail 2" mode
-    o Added the similar image search feature
-    o Image saving and thumbnail related features are now plugins
-    o Provisional support for archive files
-    o Provisional support for EXIF
-    o Many other minor fixes
-
-2002-02-18: Version 0.1.9
-    o Fixed a problem where the location entry could not be operated while
-      loading thumbnails, pointed out by jissama
-    o Fixed a bug where switching images in the image view while loading
-      thumbnails sometimes made it impossible to open files afterwards,
-      pointed out by jissama
-
-2002-02-09: Version 0.1.8
-    o Supports the MAG and TGA formats
-    o Semi-original implementation of the image loader for the Windows Bitmap
-      format
-    o Fixed a fatal bug in the PCX loader
-    o Fixed a bug where long command line options with values were not
-      recognized correctly (Thanks! Kazuki Iwamoto)
-    o Fixed minor memory leaks and other bugs
-
-2002-01-02: Version 0.1.7
-    o Fixed a problem where files could not be dropped onto a collection tab
-    o Fixed a problem where opening a collection tab from the main menu made
-      it impossible to operate
-    o Fixed a crash at the end of DnD in the directory view
-    o Added an option to ignore links when getting directories recursively
-
-2001-12-24: Version 0.1.6
-    o The thumbnail window is now opened when no arguments are given
-    o Fixed a problem where loading sometimes could not be cancelled
-    o Reviewed the default settings
-    o Opening files by single-clicking a thumbnail
-    o Supports moving to the next/previous image in the image window
-    o Other fixes/bug fixes
-
-2001-12-08: Version 0.1.5
-    o Fixed a problem where KDE-2.2 format thumbnails were not enabled
-    o Fixed a serious memory leak
-    o Other minor fixes
-
-2001-12-08: Version 0.1.5
-    o Fixed a problem where KDE-2.2 format thumbnails were not enabled
-    o Fixed a serious memory leak
-    o Other minor fixes
-
-2001-11-28: Version 0.1.4
-    o Provisional support for KDE-2.2 format thumbnails (Thanks!! TAM)
-    o Supports dropping tabs onto the thumbnail view area
-    o Changed the position of the location entry
-    o Fixed a bug where the cache loading setting could not be disabled
-    o Fixed a problem where files could not be moved/copied to a directory
-      that is the target of a symbolic link
-    o Fixed bugs around the location entry
-    o Other bug fixes
-
-2001-11-07: Version 0.1.3
-    o Fixed a problem where the scrollbar sometimes could not be dragged,
-      depending on the environment
-    o Fixed a buffer overflow in &quot;Detail&quot; mode
-
-2001-11-05: Version 0.1.2
-    o Added an icon list view to the thumbnail window
-    o The layout of the thumbnail window can now be changed
-    o Along with the change above, changed the pane widget (borrowed from
-      gThumb)
-    o Added a "Tab" category to the main menu of the thumbnail window
-    o Moving tabs by DnD, dropping files onto tabs
-    o Added a location entry to the thumbnail window
-    o (Temporarily) removed the close button of the thumbnail window
-    o Text documents can now be shown from the Help menu
-    o External commands can now be run
-    o Changed/added mouse button assignments
-    o ~/.gimv/gtkrc is now read
-    o Reviewed the internal management of image information
-    o Reviewed the internal management of icons (supports switching icon
-      sets; setting via the GUI is not implemented yet)
-    o Fixed fatal bugs
-    o Many other fixes
-
-2001-10-05: Version 0.1.1
-    o File operations by DnD
-    o Other basic file/directory operation features
-    o The top directory of the directory view can now be changed
-    o Added a toolbar to the directory view
-    o Fixed a bug where refreshing the directory tree collapsed the expanded
-      tree
-    o Added "Refresh List" to the thumbnail window
-    o Selection information is now synchronized across all display modes
-    o Added &quot;Cache type&quot; to the &quot;Detail&quot; display
-    o All functions bound to the middle mouse button were changed to left
-      double-click
-    o Fixed a Segmentation fault when closing a tab right after switching tabs
-    o Fixed a Segmentation fault when closing the dialog before opening has
-      finished, when opening files from the file dialog
-    o The size used when saving GImageView format thumbnails can now be
-      changed
-    o It can now be switched whether the tab name shows the full path or only
-      the directory name
-    o Short command line options can now be given together, like &quot;-wdR&quot;
-    o Fixed a problem where the thumbnail display mode switched by itself
-    o Fixed a problem where updates of the file list were sometimes not
-      reflected in thumbnail table mode
-    o Many other fixes/changes/bug fixes
-
-2001-09-02: Version 0.1.0
-    o Added a directory tree display to the thumbnail window
-    o Added a preview display to the thumbnail window
-    o Added a &quot;Detail&quot; display to the thumbnail window
-    o The state of the thumbnail window is now saved on exit
-    o When an already open directory is specified, it now moves to that tab
-    o Added close buttons to tabs
-    o Added a popup menu to tabs
-    o Tabs can now be moved (within the same window)
-    o Thumbnails can now be removed from the list in collection mode.
-    o Removed the scrollbars of the image window
-    o Slightly improved the image display method of the image view
-    o Fixed a bug where the image was not shown when the window was resized
-    o Fixed a problem with reading .xvpics when using gdk-pibuf
-    o Many other bug fixes
-
-2001-08-02: Version 0.0.3
-    o Minor bug fixes
-
-2001-07-28: Version 0.0.2
-    o Supports gdk-pixbuf
-    o Shortcut key settings (~/.gimv/keyconf). A GUI will come sometime
-    o Cleaned up the cache handling a little.
-    o Other bug fixes
-
-2001-07-01: Version 0.0.1
-    o First release
-</pre>
+<div class="sect2">
+<h3 class="title"><a name="history_1"></a>2026-11-06: Version 0.2.27+gtk4 (GTK 4 version), changes since 2026-09-26</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Bookmarks of images (~/.gimv/bookmarks), in the index or not: [Edit | Bookmark...] and the right button menus (no key by default, one can be given in ~/.gimv/keyaccelrc), an optional note, the "Bookmarks" tab (by the day added, with or without a note), the note in the tooltip; they follow the images moved or renamed.</p></li>
+<li><p class="para">Edit Tags: an entry with the tags below it (x takes one away), the tags in use to click, the names of people kept; also in [Edit | Edit Tags...] and the right button menus of the preview and the image window.</p></li>
+<li><p class="para">The tags of the Data tab and of Edit Tags laid out as words (no wide gaps).  A row of the Data tab with a key not edited there (X-IMG-Tags, ...) shows its own key and is only shown.  A line break in a tag or a value (a pasted text) becomes a space.</p></li>
+<li><p class="para">The "Date" of the comment is the date of the image (before EXIF; for images of SNS).</p></li>
+<li><p class="para">"Date taken" column of the detail view and View > Sort File List > by Date Taken (the date of the index; Reverse Order for the newest first).</p></li>
+<li><p class="para">After a sort (or a change of the display mode) the thumbnails made first are the ones now at the top.</p></li>
+<li><p class="para">Data tab: a value typed is kept by "Save" without Enter.</p></li>
+<li><p class="para">Properties: long names and types cut (the dialog stays on the screen), selectable; "Copy" for the full path.  "Copy Path" in the right button menu of the thumbnails.</p></li>
+<li><p class="para">Keywords mangled as UTF-8 read as Shift_JIS (Windows Photo Gallery) put right, or left out.</p></li>
+<li><p class="para">The keywords of other programs (XMP, IPTC, the sidecar files "x.jpg.xmp" and "x.xmp") in the index: kept apart, shown and looked for as the tags put by hand of the same name.</p></li>
+<li><p class="para">With gexiv2 (Exiv2) the index reads EXIF, XMP and IPTC of HEIF, PNG, WebP, TIFF, raw files, ... (the date, the camera, the keywords).</p></li>
+<li><p class="para">With gexiv2 the EXIF of the formats other than JPEG too: Show EXIF Data... shows it, images and thumbnails are turned by its orientation.</p></li>
+<li><p class="para">"Scan EXIF Data..." is now "Show EXIF Data...".</p></li>
+<li><p class="para">Tools > Find Duplicates... rewritten: one search sorts them into Identical, Other Sizes and Similar; the groups on the left, their images side by side on the right to compare, each to keep or to delete (suggested for the identical and resized), and "Move to Trash..." for the group shown (a group at a time).  It searches in a thread and reads the pictures itself.</p></li>
+<li><p class="para">File > Save Image... [Ctrl+S]: saves the image shown as JPEG, PNG, WebP, AVIF, TIFF, BMP or PNM (a HEIC as a JPEG, ...), keeping its EXIF and XMP with gexiv2.  New gdk-pixbuf image saver plugin.</p></li>
+<li><p class="para">Tags are a tree by "/" in the tag tab ("Travel/Kyoto" below "Travel"): a parent opens the images of the tags below it too; renaming a parent renames the tags below it.</p></li>
+<li><p class="para">The Data tab shows a tag with levels part by part, a parent part opens the tags below it; in Edit Tags a parent in "Tags in Use" types "Travel/" to pick from the tags below it.</p></li>
+<li><p class="para">A tag dragged onto another in the tag tab moves below it or merges into it.</p></li>
+<li><p class="para">The tags of the search window make a tree, a parent counting the tags below it.</p></li>
+<li><p class="para">[Edit | Keyboard Shortcuts...] to change the keys without editing the files.</p></li>
+<li><p class="para">The tags of people are a tree by "/" too (tag tab, people tab, search, data tab).</p></li>
+<li><p class="para">Edit the tags of a folder and the folders below it, from the directory view.</p></li>
+<li><p class="para">Manual: a new chapter "What Do You Want to Do?" (9) finds the way from what you want to do.</p></li>
+<li><p class="para">The same files in different folders: the index looks for them in the background ([Tools | Find Duplicates in the Index...]); all the groups to the trash at once, checked again first, the comments and bookmarks to the image kept, or links to it left in the places of the copies.</p></li>
+<li><p class="para">Update All Thumbnails works like loading: the thumbnails on the screen first (the scroll position is kept), the rest in the background without keeping them in memory; the progress (n/N) is shown and the stop button stops it.  The preference "GUI redraw interval while loading" (and its tip) is gone.</p></li>
+<li><p class="para">Detail view: the title of the column sorted by shows the arrow (it was lost with every sort); "Image size" sorts by the area; columns with no sort are not clickable.</p></li>
+<li><p class="para">The thumbnail size in the toolbar can be typed in; Enter takes it and gives the keys back to the window (Shift+R, Ctrl+R).</p></li>
+<li><p class="para">The editing keys of a text field (Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z, ...) go to the text field the focus is in, not to the menu keys of the window (Ctrl+A selected all the thumbnails while the location or the thumbnail size was edited).</p></li>
+<li><p class="para">Detail view: Ctrl+A (Select All) works with the focus in the list (the list took the key and did nothing).</p></li>
+<li><p class="para">Detail view: no "cb_sorter_changed: assertion" message on quit after sorting.</p></li>
+<li><p class="para">Open the Folder: the image chosen is shown also when the folder was not open yet (the top of the folder was shown).</p></li>
+<li><p class="para">Detail view: switching tabs (or closing one) keeps where the list of the tab was scrolled to (it went to the top).</p></li>
+<li><p class="para">Detail view: switching tabs puts the cursor (of the cursor keys) back on the image it was on if that is on screen, on the first image on screen otherwise (it was on the first image of the list).</p></li>
+<li><p class="para">Tabs of the thumbnails in a narrow place: the current tab keeps a width its name can be read in, the others a few characters (all were "..."); the close button on the current tab only, the middle button closes any tab; the current tab is lighter.  "Show full path" is off by default (the full path is in the tooltip either way).</p></li>
+<li><p class="para">Movie player: a mute button and a volume slider at the right end of the control bar (GStreamer, MPlayer); the same for all the windows, kept after quitting.</p></li>
+<li><p class="para">Songs (m4a, mp3, flac, ogg, ...): the album art is shown while the song plays and is its thumbnail (GStreamer).</p></li>
+<li><p class="para">The "Data" tab shows the information of a song or a movie (title, artist, album, album artist, composer, track, disc, date, genre, comment, length, the formats of the sound and the picture; GStreamer, read in a thread; shown only).</p></li>
+<li><p class="para">The album art is shown at its own size (it was stretched, coarse), smaller only when the place is smaller; the zoom of images changes its size.</p></li>
+<li><p class="para">The seek bar of movies goes to the end (it stopped at 99 %: the time at the end was short of the length, e.g. 03:11 / 03:13).</p></li>
+<li><p class="para">Text viewer (plain text documents): a horizontal scroll bar for long lines (they could be read only by moving the cursor).</p></li>
+<li><p class="para">"Save Smaller..." in the right button menu of the thumbnails: saves the selected images smaller (800 px of height or less by default) as new files; what to add to the names ("_resized" by default: big_resized.jpg), the quality, keeping the shooting information, leaving out the location and copying the comments can be chosen.  Saved in a thread, nothing is overwritten.</p></li>
+<li><p class="para">"Crop Image..." (C, [Edit] of the image window and the right button menus of the image): a frame on the image moved, resized or drawn anew, the ratio, "Detect the Edges" (what is inside the border of the color of the edges; the shadows of the scanner left out, a small margin), Enter saves name_crop.jpg next to the image (never over another file), Esc stops.  Read, detected and saved in threads.</p></li>
+<li><p class="para">"Join Images..." in the right button menu of the thumbnails: the selected images one below another, side by side or in a grid, the width (height) made the one of the smallest, of the largest or not changed, saved as name_join.jpg next to the first one (never over another file).  The overlaps of the pieces of one photo are looked for (a little different JPEG too) and can be put right for each seam, shown near its size, also as the difference.  Read, detected and saved in threads.</p></li>
+<li><p class="para">"Open the Folder" and "Show the Saved Image": the image chosen is shown in the preview too (it was only selected).</p></li>
+<li><p class="para">Rename: only the name without the extension is edited, the extension stays (without it the file was no longer shown).  "Change the extension too" edits the whole name; losing the extension of an image is asked about.</p></li>
+<li><p class="para">Detail view: the widths of the columns as the user left them stay after a rename, a sort or a refresh, in the other tabs and the next time (they went back to the defaults).</p></li>
+<li><p class="para">Manual: the Tips are brought up to date (the tips about the bars and the window size of the image window that no longer apply are removed; the memory buffer, the thumbnail size, the custom layout rewritten).</p></li>
+<li><p class="para">Context menus open to the right of the pointer (no scroll bars).</p></li>
+<li><p class="para">Data tab: "Remove Item" for the item selected; "Delete Comment..." asks first and keeps the tags.  The index follows a comment saved or deleted at once.</p></li>
+<li><p class="para">Slide show: the images after the first one are drawn again.</p></li>
+<li><p class="para">Corrected spelling and wording of the English messages and menus (Faild -&gt; Failed, Buttton, Thumnail, Tool -&gt; Tools, ...); old key bindings in ~/.gimv/keyaccelrc for renamed menu items are migrated. po/gimageview.pot regenerated (tools/po-update.py).</p></li>
+<li><p class="para">Dialog buttons (OK, Cancel, Apply, ...) are translated again.</p></li>
+<li><p class="para">Help &gt; Document shows the (Japanese) documents in other locales too.</p></li>
+<li><p class="para">View &gt; Layout and Window Composition show pictures of the layouts (a row of icon buttons; name and shortcut in the tooltip).</p></li>
+<li><p class="para">New GStreamer movie plugin: plays movies and audio in the image view (the formats depend on the installed GStreamer plugins) and makes movie thumbnails.  It is the default player when no default view mode for movies is set.</p></li>
+<li><p class="para">Archives are read with libarchive instead of running lha, unzip, rar and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS file names in old zip/lha archives are converted.</p></li>
+<li><p class="para">Buttons use the icons of the desktop icon theme (Preferences &gt; Common &gt; Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/&lt;name&gt;) may contain PNG and SVG files.</p></li>
+<li><p class="para">Tools &gt; Set as Wallpaper sets the selected image as the desktop wallpaper (Xfce, GNOME, KDE Plasma, MATE, Cinnamon, LXDE/LXQt, feh; "This Desktop" picks the running one).  Other formats and images in archives are converted to PNG in ~/.gimv/wallpaper.</p></li>
+<li><p class="para">The movie player shows the elapsed and the total time; a click on a playing movie no longer moves on to the next file.</p></li>
+<li><p class="para">Top-down BMP and CMYK JPEG files are loaded.</p></li>
+<li><p class="para">Printing (GTK print dialog): File &gt; Print... (Ctrl+P) in the image window and the thumbnail window (selected images, one per page), and Print... in the popup menus.  The "Image" tab of the print dialog chooses fit to the page or a resolution in dpi, turning the image to the page orientation, and printing the file name.</p></li>
+<li><p class="para">Movie seek bar: pointing at it shows the frame and the time there (GStreamer player; the time only for audio).</p></li>
+<li><p class="para">Transparent images are shown over a checkerboard (View &gt; Checkerboard Behind Transparency, also in the popup menu and in Preferences &gt; Image Window &gt; Background); off blends them with the background colour as before.</p></li>
+<li><p class="para">Preferences &gt; Movie and Audio: continuous play on/off.</p></li>
+<li><p class="para">Preferences &gt; Movie and Audio: optionally ignore mouse actions for next/previous image, zoom, rotation and scrolling while a movie or audio file plays (off by default: the mouse settings apply).</p></li>
+<li><p class="para">Thumbnail view: directory names end with "/" in all view modes.</p></li>
+<li><p class="para">Movies and audio files in archives can be played (they are extracted first; before, the player reported "Resource not found").</p></li>
+<li><p class="para">Detail view: the image size is read from the file header (formats of gdk-pixbuf, and JPEG) instead of "Unknown" until the image was loaded; it is also updated when an image is opened.  The sizes are read in the background after the list is shown.</p></li>
+<li><p class="para">The rotation of each image is remembered (kept in its comment file under ~/.gimv/comment, hidden in the comment editor) and restored when it is opened again; Preferences &gt; Image Window &gt; Image.</p></li>
+<li><p class="para">The HTML manual (Japanese) has screenshots, and its descriptions of the menus, toolbars, mouse menus, preferences and key bindings were changed to match this version.</p></li>
+<li><p class="para">Mouse button preferences: the side buttons "back" (button 8) and "forward" (button 9) can be assigned (nothing by default).</p></li>
+<li><p class="para">English manual (HTML) and English plain text documents in the Help menu; they are shown for every language that has no documents of its own (only Japanese has).</p></li>
+<li><p class="para">Color scheme (Preferences &gt; Common &gt; Appearance): the desktop theme, light or dark.  With the desktop theme, a dark theme that GTK 4 cannot read (no gtk-4.0 directory, e.g. Greybird-dark) is shown with the dark Adwaita.  Icons of GImageView drawn only with black lines are drawn with light lines in dark colors.</p></li>
+<li><p class="para">File open dialog: "Thumbnails of the selected files" also opens the selected folders, each in a tab of its own.</p></li>
+<li><p class="para">Image index (SQLite): gimv-indexer keeps the dates and tags of the images of the directories given in Preferences &gt; Index, in the background.  The "Date" and "Tag" tabs of the side notebook open them in a result tab; tags are edited from the thumbnail view and kept in the comment files, renamed and merged with F2; automatic tags (folder, camera, shape); desktop notices of new images; Tools &gt; Missing Images... for the comments of images that went missing.</p></li>
+<li><p class="para">Faces and people (OpenCV 4.8, YuNet and SFace models): gimv-faces finds faces and groups them; the "People" tab, the faces window (naming, guesses, unnamed groups, tags of people) and the faces panel of the image view (P), where a face can also be added by hand. The names are kept in the comment files as "person/NAME" tags.</p></li>
+<li><p class="para">Tools &gt; Search Images...: images of the index by tags and names (and, not), by the date taken, narrowed by the tags of the images found; searches can be kept by name.</p></li>
+<li><p class="para">Thumbnails: the freedesktop.org cache (~/.cache/thumbnails) is read and written; thumbnails are made in worker threads, from the EXIF thumbnail of a JPEG when it is big enough; they are turned and flipped by the EXIF orientation and by the rotation and flip the user gave the image.</p></li>
+<li><p class="para">Lists: Ctrl+F searches the rows (directory view, detail view, Data tab, preferences, index tabs, ...).</p></li>
+<li><p class="para">Status bar: the path, position and size of the focused image, or the number and total size of the images selected.</p></li>
+<li><p class="para">Data tab: the comments written in the image file itself (JPEG, PNG, GIF, MAG) are shown in italics, and the tags of the image.</p></li>
+<li><p class="para">Image view: Copy the Image to the Clipboard (Shift+Ctrl+C), Flip Horizontally (X, remembered with the rotation), Open the Folder.</p></li>
+<li><p class="para">Scrollbars are always shown (a preference, on by default).</p></li>
+<li><p class="para">GtkTreeView and the other API deprecated in GTK 4.10 are no longer used (GtkListView / GtkColumnView); GTK 4.12 and GLib 2.72 are required.</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_2"></a>2026-09-26: Version 0.2.27+gtk4 (GTK 4 version)</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Ported to GTK 4, built with Meson</p></li>
+<li><p class="para">Removed the support for Susie plugins</p></li>
+<li><p class="para">Removed lib/dllloader</p></li>
+<li><p class="para">The system libexif and GLib replace the bundled libexif and MD5 code</p></li>
+<li><p class="para">New loaders for PNM, XPM, Sun raster, WBMP, ZIM (KID98) and AK5/MSL (MASL)</p></li>
+<li><p class="para">Formats of the installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...) are recognized, and formats nothing can read are not listed</p></li>
+<li><p class="para">Supports new movie formats (mp4, mkv, webm, flv, etc.)</p></li>
+<li><p class="para">The scrollbars of the image view are shown only when the image does not fit</p></li>
+<li><p class="para">Added "Show splash window" to the preferences</p></li>
+<li><p class="para">"Plugin Info" in Help is split by type and shows descriptions and extensions</p></li>
+<li><p class="para">Converted the help documents to UTF-8; the built-in text viewer detects the character encoding automatically</p></li>
+<li><p class="para">Changed the default web browser to xdg-open</p></li>
+<li><p class="para">Comments on the thumbnail view ("Subject" and "Comment" columns in the detail view, a tooltip in the album view)</p></li>
+<li><p class="para">Comment editor window: Close button (Esc also closes it)</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_3"></a>2002-11-04: Version 0.2.7</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Fixed a problem where, in file operations, cache files and comment files were moved/copied/linked even when the file operation was cancelled or failed</p></li>
+<li><p class="para">Changed back to deleting the original file when moving a file to a different file system</p></li>
+<li><p class="para">Fixed a problem where key accelerators were not disabled in the file name entry in rename mode (when using Gtk+2)</p></li>
+<li><p class="para">Fixed a problem where character encodings were not converted correctly in rename mode (when using Gtk+2)</p></li>
+<li><p class="para">Fixed a problem where moving the focus between thumbnails did not work correctly in the thumbnail view (when using Gtk+2)</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_4"></a>2002-11-02: Version 0.2.6</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Improved Gtk+-2.0 support (mainly support for GtkTreeView, and many other bug fixes)</p></li>
+<li><p class="para">Added a new sort menu</p></li>
+<li><p class="para">Fixed a problem where recursive loading with directories shown in the thumbnail view caused an infinite loop</p></li>
+<li><p class="para">Added a "Clear cache" menu to the thumbnail window</p></li>
+<li><p class="para">Fixed a problem where the ZAlbum widget did not take multibyte strings into account.</p></li>
+<li><p class="para">Fixed a problem where the character encoding conversion of file names in comment data was wrong.</p></li>
+<li><p class="para">Code cleanup</p></li>
+<li><p class="para">Other minor fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_5"></a>2002-09-22: Version 0.2.5</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Improved the speed of creating thumbnails</p></li>
+<li><p class="para">Changed the default thumbnail display mode to "Thumbnail 2"</p></li>
+<li><p class="para">Directories whose thumbnails have been loaded are now highlighted</p></li>
+<li><p class="para">The image size can now be shown in "Detail" mode</p></li>
+<li><p class="para">Added mouse button settings for the directory view</p></li>
+<li><p class="para">The background color of the image window can now be set</p></li>
+<li><p class="para">Fixed compile errors (Thanks! Mr. Shitamori &amp; Mr. Ezura)</p></li>
+<li><p class="para">Other minor fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_6"></a>2002-09-02: Version 0.2.4</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Changed the behavior of "Fullscreen"</p></li>
+<li><p class="para">Changed the installation directory of the documents</p></li>
+<li><p class="para">Fixed configure/compile errors</p></li>
+<li><p class="para">Supports Nautilus-2.0 thumbnails</p></li>
+<li><p class="para">Improved compatibility of XV thumbnails with other programs</p></li>
+<li><p class="para">Improved Gtk+-2.0 support</p></li>
+<li><p class="para">Many other bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_7"></a>2002-07-01: Version 0.2.3</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Added support for animated GIF (when using gdk-pixbuf)</p></li>
+<li><p class="para">Added MNG/JNG support (requires libmng)</p></li>
+<li><p class="para">Experimental support for compressed files (gzip, bz2). To use this feature, add &quot;gz&quot; and &quot;bz2&quot; to Preferences-&gt;Common-&gt;Filtering</p></li>
+<li><p class="para">Added a French catalog file (Thanks! Guillaume Libersat)</p></li>
+<li><p class="para">When loading thumbnails, thumbnails inside the visible area are now loaded first</p></li>
+<li><p class="para">Other bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_8"></a>2002-05-31: Version 0.2.2</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Added SVG support (requires librsvg)</p></li>
+<li><p class="para">Added experimental movie file support (requires xine-lib)</p></li>
+<li><p class="para">Added experimental Susie plugin support (Broken)</p></li>
+<li><p class="para">Improved Gtk+-2.0 support</p></li>
+<li><p class="para">Added a desktop file</p></li>
+<li><p class="para">Other minor improvements</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_9"></a>2002-05-08: Version 0.2.1</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">In "Thumbnail 2" mode, improved the response when selecting a range by mouse drag, and made it accelerate according to the amount of mouse movement</p></li>
+<li><p class="para">Added "List 2" mode (uses the same ZAlbum widget as "Thumbnail 2")</p></li>
+<li><p class="para">${datadir}/gimageview/gtkrc is now read</p></li>
+<li><p class="para">The style of the tab label is now changed while loading</p></li>
+<li><p class="para">Fixed a crash when closing an image window right after opening it</p></li>
+<li><p class="para">Fixed a crash when closing the similar image search result window after changing the thumbnail size</p></li>
+<li><p class="para">Fixed a typo in the spec file, pointed out by ns</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_10"></a>2002-04-25: Version 0.2.0</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Comments can now be added to images</p></li>
+<li><p class="para">Supports XCF</p></li>
+<li><p class="para">The window composition can now be changed almost freely</p></li>
+<li><p class="para">The preferences window now has a tree structure</p></li>
+<li><p class="para">A splash image is now shown at startup</p></li>
+<li><p class="para">Brought back the scrollbars of the image view / added the navigation window</p></li>
+<li><p class="para">Added "Thumbnail 2" mode</p></li>
+<li><p class="para">Added the similar image search feature</p></li>
+<li><p class="para">Image saving and thumbnail related features are now plugins</p></li>
+<li><p class="para">Provisional support for archive files</p></li>
+<li><p class="para">Provisional support for EXIF</p></li>
+<li><p class="para">Many other minor fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_11"></a>2002-02-18: Version 0.1.9</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Fixed a problem where the location entry could not be operated while loading thumbnails, pointed out by jissama</p></li>
+<li><p class="para">Fixed a bug where switching images in the image view while loading thumbnails sometimes made it impossible to open files afterwards, pointed out by jissama</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_12"></a>2002-02-09: Version 0.1.8</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Supports the MAG and TGA formats</p></li>
+<li><p class="para">Semi-original implementation of the image loader for the Windows Bitmap format</p></li>
+<li><p class="para">Fixed a fatal bug in the PCX loader</p></li>
+<li><p class="para">Fixed a bug where long command line options with values were not recognized correctly (Thanks! Kazuki Iwamoto)</p></li>
+<li><p class="para">Fixed minor memory leaks and other bugs</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_13"></a>2002-01-02: Version 0.1.7</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Fixed a problem where files could not be dropped onto a collection tab</p></li>
+<li><p class="para">Fixed a problem where opening a collection tab from the main menu made it impossible to operate</p></li>
+<li><p class="para">Fixed a crash at the end of DnD in the directory view</p></li>
+<li><p class="para">Added an option to ignore links when getting directories recursively</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_14"></a>2001-12-24: Version 0.1.6</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">The thumbnail window is now opened when no arguments are given</p></li>
+<li><p class="para">Fixed a problem where loading sometimes could not be cancelled</p></li>
+<li><p class="para">Reviewed the default settings</p></li>
+<li><p class="para">Opening files by single-clicking a thumbnail</p></li>
+<li><p class="para">Supports moving to the next/previous image in the image window</p></li>
+<li><p class="para">Other fixes/bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_15"></a>2001-12-08: Version 0.1.5</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Fixed a problem where KDE-2.2 format thumbnails were not enabled</p></li>
+<li><p class="para">Fixed a serious memory leak</p></li>
+<li><p class="para">Other minor fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_16"></a>2001-12-08: Version 0.1.5</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Fixed a problem where KDE-2.2 format thumbnails were not enabled</p></li>
+<li><p class="para">Fixed a serious memory leak</p></li>
+<li><p class="para">Other minor fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_17"></a>2001-11-28: Version 0.1.4</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Provisional support for KDE-2.2 format thumbnails (Thanks!! TAM)</p></li>
+<li><p class="para">Supports dropping tabs onto the thumbnail view area</p></li>
+<li><p class="para">Changed the position of the location entry</p></li>
+<li><p class="para">Fixed a bug where the cache loading setting could not be disabled</p></li>
+<li><p class="para">Fixed a problem where files could not be moved/copied to a directory that is the target of a symbolic link</p></li>
+<li><p class="para">Fixed bugs around the location entry</p></li>
+<li><p class="para">Other bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_18"></a>2001-11-07: Version 0.1.3</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Fixed a problem where the scrollbar sometimes could not be dragged, depending on the environment</p></li>
+<li><p class="para">Fixed a buffer overflow in &quot;Detail&quot; mode</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_19"></a>2001-11-05: Version 0.1.2</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Added an icon list view to the thumbnail window</p></li>
+<li><p class="para">The layout of the thumbnail window can now be changed</p></li>
+<li><p class="para">Along with the change above, changed the pane widget (borrowed from gThumb)</p></li>
+<li><p class="para">Added a "Tab" category to the main menu of the thumbnail window</p></li>
+<li><p class="para">Moving tabs by DnD, dropping files onto tabs</p></li>
+<li><p class="para">Added a location entry to the thumbnail window</p></li>
+<li><p class="para">(Temporarily) removed the close button of the thumbnail window</p></li>
+<li><p class="para">Text documents can now be shown from the Help menu</p></li>
+<li><p class="para">External commands can now be run</p></li>
+<li><p class="para">Changed/added mouse button assignments</p></li>
+<li><p class="para">~/.gimv/gtkrc is now read</p></li>
+<li><p class="para">Reviewed the internal management of image information</p></li>
+<li><p class="para">Reviewed the internal management of icons (supports switching icon sets; setting via the GUI is not implemented yet)</p></li>
+<li><p class="para">Fixed fatal bugs</p></li>
+<li><p class="para">Many other fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_20"></a>2001-10-05: Version 0.1.1</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">File operations by DnD</p></li>
+<li><p class="para">Other basic file/directory operation features</p></li>
+<li><p class="para">The top directory of the directory view can now be changed</p></li>
+<li><p class="para">Added a toolbar to the directory view</p></li>
+<li><p class="para">Fixed a bug where refreshing the directory tree collapsed the expanded tree</p></li>
+<li><p class="para">Added "Refresh List" to the thumbnail window</p></li>
+<li><p class="para">Selection information is now synchronized across all display modes</p></li>
+<li><p class="para">Added &quot;Cache type&quot; to the &quot;Detail&quot; display</p></li>
+<li><p class="para">All functions bound to the middle mouse button were changed to left double-click</p></li>
+<li><p class="para">Fixed a Segmentation fault when closing a tab right after switching tabs</p></li>
+<li><p class="para">Fixed a Segmentation fault when closing the dialog before opening has finished, when opening files from the file dialog</p></li>
+<li><p class="para">The size used when saving GImageView format thumbnails can now be changed</p></li>
+<li><p class="para">It can now be switched whether the tab name shows the full path or only the directory name</p></li>
+<li><p class="para">Short command line options can now be given together, like &quot;-wdR&quot;</p></li>
+<li><p class="para">Fixed a problem where the thumbnail display mode switched by itself</p></li>
+<li><p class="para">Fixed a problem where updates of the file list were sometimes not reflected in thumbnail table mode</p></li>
+<li><p class="para">Many other fixes/changes/bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_21"></a>2001-09-02: Version 0.1.0</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Added a directory tree display to the thumbnail window</p></li>
+<li><p class="para">Added a preview display to the thumbnail window</p></li>
+<li><p class="para">Added a &quot;Detail&quot; display to the thumbnail window</p></li>
+<li><p class="para">The state of the thumbnail window is now saved on exit</p></li>
+<li><p class="para">When an already open directory is specified, it now moves to that tab</p></li>
+<li><p class="para">Added close buttons to tabs</p></li>
+<li><p class="para">Added a popup menu to tabs</p></li>
+<li><p class="para">Tabs can now be moved (within the same window)</p></li>
+<li><p class="para">Thumbnails can now be removed from the list in collection mode.</p></li>
+<li><p class="para">Removed the scrollbars of the image window</p></li>
+<li><p class="para">Slightly improved the image display method of the image view</p></li>
+<li><p class="para">Fixed a bug where the image was not shown when the window was resized</p></li>
+<li><p class="para">Fixed a problem with reading .xvpics when using gdk-pibuf</p></li>
+<li><p class="para">Many other bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_22"></a>2001-08-02: Version 0.0.3</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Minor bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_23"></a>2001-07-28: Version 0.0.2</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Supports gdk-pixbuf</p></li>
+<li><p class="para">Shortcut key settings (~/.gimv/keyconf). A GUI will come sometime</p></li>
+<li><p class="para">Cleaned up the cache handling a little.</p></li>
+<li><p class="para">Other bug fixes</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 class="title"><a name="history_24"></a>2001-07-01: Version 0.0.1</h3>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">First release</p></li>
+</ul></div>
+</div>
 </div>
 <div class="navfooter">
 <hr>
