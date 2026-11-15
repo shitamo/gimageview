@@ -597,13 +597,32 @@ player_show_message (GimvGstPlayer *player, const gchar *message)
 /* the album art in tags (the front cover first, then any picture, then
    a preview picture), decoded; NULL if none */
 #define TAG_IMAGE_TYPE_FRONT_COVER 1   /* GST_TAG_IMAGE_TYPE_FRONT_COVER */
+#define COVER_SHOW_MAX  1024             /* on the screen */
+#define COVER_THUMB_MAX  512             /* for a thumbnail */
 
-static GdkTexture *
-cover_from_tags (const GstTagList *tags)
+static void
+cb_cover_size_prepared (GdkPixbufLoader *loader, gint width, gint height,
+                        gpointer data)
+{
+   gint max = GPOINTER_TO_INT (data);
+
+   if (max > 0 && (width > max || height > max)) {
+      if (width >= height)
+         gdk_pixbuf_loader_set_size (loader, max, MAX (1, (gint) ((gint64) height * max / width)));
+      else
+         gdk_pixbuf_loader_set_size (loader, MAX (1, (gint) ((gint64) width * max / height)), max);
+   }
+}
+
+
+/* decoded no larger than max (a big JPEG is decoded scaled down by libjpeg,
+   quickly: the main thread does it) */
+static GdkPixbuf *
+cover_from_tags (const GstTagList *tags, gint max)
 {
    const gchar *names[] = { GST_TAG_IMAGE, GST_TAG_PREVIEW_IMAGE };
    GstSample *best = NULL;
-   GdkTexture *texture = NULL;
+   GdkPixbuf *pixbuf = NULL;
    guint t, i;
 
    if (!tags) return NULL;
@@ -635,14 +654,52 @@ cover_from_tags (const GstTagList *tags)
       GstMapInfo map;
 
       if (buffer && gst_buffer_map (buffer, &map, GST_MAP_READ)) {
-         GBytes *bytes = g_bytes_new (map.data, map.size);
-         texture = gdk_texture_new_from_bytes (bytes, NULL);  /* PNG, JPEG, TIFF */
-         g_bytes_unref (bytes);
+         GdkPixbufLoader *loader = gdk_pixbuf_loader_new ();
+
+         g_signal_connect (loader, "size-prepared",
+                           G_CALLBACK (cb_cover_size_prepared), GINT_TO_POINTER (max));
+         if (gdk_pixbuf_loader_write (loader, map.data, map.size, NULL)
+             && gdk_pixbuf_loader_close (loader, NULL))
+         {
+            pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+            if (pixbuf) g_object_ref (pixbuf);
+         } else {
+            gdk_pixbuf_loader_close (loader, NULL);
+         }
+         g_object_unref (loader);
          gst_buffer_unmap (buffer, &map);
       }
    }
    gst_sample_unref (best);
 
+   return pixbuf;
+}
+
+
+static void
+cover_pixbuf_free (gpointer data)
+{
+   g_object_unref (data);
+}
+
+
+static GdkTexture *
+texture_from_pixbuf (GdkPixbuf *pixbuf)
+{
+   GBytes *bytes;
+   GdkTexture *texture;
+   gint h = gdk_pixbuf_get_height (pixbuf);
+   gint stride = gdk_pixbuf_get_rowstride (pixbuf);
+   gboolean alpha = gdk_pixbuf_get_has_alpha (pixbuf);
+
+   bytes = g_bytes_new_with_free_func (gdk_pixbuf_read_pixels (pixbuf),
+                                       (gsize) stride * (h - 1)
+                                       + gdk_pixbuf_get_width (pixbuf) * (alpha ? 4 : 3),
+                                       cover_pixbuf_free, g_object_ref (pixbuf));
+   texture = gdk_memory_texture_new (gdk_pixbuf_get_width (pixbuf), h,
+                                     alpha ? GDK_MEMORY_R8G8B8A8 : GDK_MEMORY_R8G8B8,
+                                     bytes, stride);
+   g_bytes_unref (bytes);
    return texture;
 }
 
@@ -653,9 +710,13 @@ player_take_tags (GimvGstPlayer *player, GstTagList *tags)
 {
    GdkTexture *cover;
 
+   GdkPixbuf *pixbuf;
+
    if (player->cover) return;              /* the first one stays */
-   cover = cover_from_tags (tags);
-   if (!cover) return;
+   pixbuf = cover_from_tags (tags, COVER_SHOW_MAX);
+   if (!pixbuf) return;
+   cover = texture_from_pixbuf (pixbuf);
+   g_object_unref (pixbuf);
    player->cover = cover;
    if (!player->shown)
       gtk_picture_set_paintable (GTK_PICTURE (player->picture),
@@ -1516,7 +1577,7 @@ song_cover_load (GimvImageLoader *loader, const gchar *filename)
 {
    GstElement *playbin, *video_sink, *audio_sink;
    GimvImage *image = NULL;
-   GdkTexture *cover = NULL;
+   GdkPixbuf *cover = NULL;
    GstBus *bus;
    GstMessage *msg;
    gchar *uri;
@@ -1551,7 +1612,7 @@ song_cover_load (GimvImageLoader *loader, const gchar *filename)
       while (!cover && (msg = gst_bus_pop_filtered (bus, GST_MESSAGE_TAG))) {
          GstTagList *tags = NULL;
          gst_message_parse_tag (msg, &tags);
-         cover = cover_from_tags (tags);
+         cover = cover_from_tags (tags, COVER_THUMB_MAX);
          if (tags) gst_tag_list_unref (tags);
          gst_message_unref (msg);
       }
@@ -1561,10 +1622,8 @@ song_cover_load (GimvImageLoader *loader, const gchar *filename)
    gst_object_unref (playbin);
 
    if (cover) {
-      image = gimv_image_create_from_texture (cover, 0, 0,
-                                              gdk_texture_get_width (cover),
-                                              gdk_texture_get_height (cover));
-      g_object_unref (cover);
+      image = gimv_image_new ();
+      image->image = cover;                /* GimvImage holds a GdkPixbuf */
    }
    return image;
 }
