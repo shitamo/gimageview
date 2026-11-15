@@ -171,6 +171,15 @@ typedef struct _Config {
    gboolean   crop_metadata;
    gboolean   crop_comment;
 
+   /* Join Images (gimv_join_dialog.c) */
+   gint       join_mode;            /* 0: one below another, 1: side by side, 2: grid */
+   gint       join_cols;
+   gint       join_fit;             /* 0: to the smallest, 1: the largest, 2: not */
+   gboolean   join_auto;            /* look for overlaps */
+   gint       join_quality;
+   gboolean   join_metadata;
+   gboolean   join_comment;
+
    gchar     *imgview_mouse_button;
 
    /* Thumbnail View */

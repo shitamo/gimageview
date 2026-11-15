@@ -140,6 +140,12 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  the ratio, "Detect the Edges" (the border of the color of the edges
 	  taken off: a small thing scanned on white), saved as name_crop.jpg
 	  next to the image (Enter; Esc stops), in threads.
+	* "Join Images..." in the right button menu of the thumbnails: the
+	  selected images one below another, side by side or in a grid, the
+	  same width (height) or not, saved as name_join.jpg next to the
+	  first one; the overlaps of the pieces of one photo are looked for
+	  and can be put right, the seam shown near its size (also as the
+	  difference), in threads.
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

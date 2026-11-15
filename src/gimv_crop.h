@@ -23,4 +23,17 @@ void     gimv_crop_start     (GimvImageView *iv);
 void     gimv_crop_stop      (GimvImageView *iv);
 gboolean gimv_crop_is_active (GimvImageView *iv);
 
+/* pixbuf saved next to the image src as name<suffix>.ext, in the format
+ * of src when gdk-pixbuf writes it (else JPEG, PNG with alpha), never over
+ * another file (any thread); FALSE: not saved (*error_text); *warning:
+ * saved, the information of the file (EXIF, ...) not copied */
+gboolean gimv_crop_save_pixbuf (GdkPixbuf   *pixbuf,
+                                const gchar *src,
+                                const gchar *suffix,
+                                gint         quality,
+                                gboolean     metadata,
+                                gchar      **dest,
+                                gchar      **error_text,
+                                gchar      **warning);
+
 #endif /* __GIMV_CROP_H__ */

@@ -56,6 +56,7 @@
 #include "menu.h"
 #include "gimv_print.h"
 #include "gimv_resize_dialog.h"
+#include "gimv_join_dialog.h"
 #include "prefs.h"
 
 #ifdef ENABLE_EXIF
@@ -237,6 +238,7 @@ static GCompareFunc
 static void cb_bookmark (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
 static void cb_copy_path (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
 static void cb_save_smaller (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
+static void cb_join_images  (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
 
 static GimvMenuEntry thumb_button_popup_items [] =
 {
@@ -270,6 +272,7 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/_Move Files To..."),         NULL,  cb_file_operate,  FILE_MOVE,   NULL},
    {N_("/_Link Files To..."),         NULL,  cb_file_operate,  FILE_LINK,   NULL},
    {N_("/Save S_maller..."),          NULL,  cb_save_smaller,  0,           NULL},
+   {N_("/_Join Images..."),           NULL,  cb_join_images,   0,           NULL},
    {N_("/_Remove Files..."),           NULL,  cb_remove_file,   0,           NULL},
    {NULL, NULL, NULL, 0, NULL},
 };
@@ -893,6 +896,42 @@ cb_save_smaller (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
 
    if (paths)
       gimv_resize_dialog_open (paths, tv->tw ? GTK_WINDOW (tv->tw) : NULL);
+   g_list_free (paths);
+}
+
+
+/* the images chosen (not folders, archives, movies, sounds) */
+static GList *
+chosen_image_paths (GimvThumbView *tv)
+{
+   GList *thumblist, *node, *paths = NULL;
+
+   thumblist = gimv_thumb_view_get_selection_list (tv);
+   for (node = thumblist; node; node = g_list_next (node)) {
+      GimvThumb *thumb = node->data;
+      if (!thumb || !thumb->info) continue;
+      if (gimv_image_info_is_dir (thumb->info)
+          || gimv_image_info_is_archive (thumb->info)
+          || gimv_image_info_is_in_archive (thumb->info)
+          || gimv_image_info_is_movie (thumb->info)
+          || gimv_image_info_is_audio (thumb->info))
+         continue;
+      paths = g_list_append (paths, (gpointer) gimv_image_info_get_path (thumb->info));
+   }
+   g_list_free (thumblist);
+   return paths;
+}
+
+
+static void
+cb_join_images (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   GList *paths;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+   paths = chosen_image_paths (tv);
+   if (g_list_length (paths) >= 2)
+      gimv_join_dialog_open (paths, tv->tw ? GTK_WINDOW (tv->tw) : NULL);
    g_list_free (paths);
 }
 
@@ -3254,6 +3293,10 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
    }
    g_free (dirname);
 
+   if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE || g_list_length (thumblist) < 2) {
+      menuitem = gimv_menu_get_item (ifactory, "/Join Images...");
+      gimv_menu_item_set_sensitive (menuitem, FALSE);
+   }
    if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE) {
       menuitem = gimv_menu_get_item (ifactory, "/Save Smaller...");
       gimv_menu_item_set_sensitive (menuitem, FALSE);

@@ -817,9 +817,9 @@ format_for (const gchar *src, gboolean alpha, const gchar **ext)
 }
 
 
-/* name_crop.ext next to the image, a name not taken */
+/* name<suffix>.ext next to the image, a name not taken */
 static gchar *
-dest_for (const gchar *src, const gchar *new_ext)
+dest_for (const gchar *src, const gchar *suffix, const gchar *new_ext)
 {
    gchar *dir = g_path_get_dirname (src), *base = g_path_get_basename (src);
    gchar *dot = strrchr (base, '.'), *stem, *path;
@@ -828,10 +828,10 @@ dest_for (const gchar *src, const gchar *new_ext)
 
    stem = dot && dot != base ? g_strndup (base, dot - base) : g_strdup (base);
    ext = new_ext ? new_ext : (dot && dot != base ? dot + 1 : "jpg");
-   path = g_strdup_printf ("%s/%s_crop.%s", dir, stem, ext);
+   path = g_strdup_printf ("%s/%s%s.%s", dir, stem, suffix, ext);
    for (i = 1; g_file_test (path, G_FILE_TEST_EXISTS); i++) {
       g_free (path);
-      path = g_strdup_printf ("%s/%s_crop-%d.%s", dir, stem, i, ext);
+      path = g_strdup_printf ("%s/%s%s-%d.%s", dir, stem, suffix, i, ext);
    }
    g_free (stem);
    g_free (base);
@@ -840,54 +840,71 @@ dest_for (const gchar *src, const gchar *new_ext)
 }
 
 
-static void
-save_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+/* pixbuf saved next to the image src as name<suffix>.ext (any thread);
+   FALSE: not saved (*error); *warning: saved, the information not copied */
+gboolean
+gimv_crop_save_pixbuf (GdkPixbuf *pixbuf, const gchar *src, const gchar *suffix,
+                       gint quality, gboolean metadata,
+                       gchar **dest, gchar **error_text, gchar **warning)
 {
-   SaveJob *job = data;
    const gchar *ext, *writer;
    gchar *buf = NULL;
    gsize len = 0;
    GError *error = NULL;
    gboolean ok;
 
-   writer = format_for (job->src, gdk_pixbuf_get_has_alpha (job->pixbuf), &ext);
-   job->dest = dest_for (job->src, ext);
+   writer = format_for (src, gdk_pixbuf_get_has_alpha (pixbuf), &ext);
+   *dest = dest_for (src, suffix, ext);
 
+   if (!strcmp (writer, "jpeg")
+       && (gdk_pixbuf_get_width (pixbuf) > 65500 || gdk_pixbuf_get_height (pixbuf) > 65500))
+   {
+      *error_text = g_strdup (_("JPEG can not be larger than 65500 px."));
+      return FALSE;
+   }
    if (!strcmp (writer, "jpeg") || !strcmp (writer, "webp")) {
       gchar q[8];
-      GdkPixbuf *pixbuf = job->pixbuf;
-      g_snprintf (q, sizeof q, "%d", job->quality);
-      if (!strcmp (writer, "jpeg") && gdk_pixbuf_get_has_alpha (pixbuf))
-         pixbuf = gdk_pixbuf_composite_color_simple (pixbuf, gdk_pixbuf_get_width (pixbuf),
-                                                     gdk_pixbuf_get_height (pixbuf),
-                                                     GDK_INTERP_NEAREST, 255, 8,
-                                                     0xffffff, 0xffffff);
+      GdkPixbuf *p = pixbuf;
+      g_snprintf (q, sizeof q, "%d", quality);
+      if (!strcmp (writer, "jpeg") && gdk_pixbuf_get_has_alpha (p))
+         p = gdk_pixbuf_composite_color_simple (p, gdk_pixbuf_get_width (p),
+                                                gdk_pixbuf_get_height (p),
+                                                GDK_INTERP_NEAREST, 255, 8,
+                                                0xffffff, 0xffffff);
       else
-         g_object_ref (pixbuf);
-      ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error,
-                                      "quality", q, NULL);
-      g_object_unref (pixbuf);
+         g_object_ref (p);
+      ok = gdk_pixbuf_save_to_buffer (p, &buf, &len, writer, &error, "quality", q, NULL);
+      g_object_unref (p);
    } else {
-      ok = gdk_pixbuf_save_to_buffer (job->pixbuf, &buf, &len, writer, &error, NULL);
+      ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);
    }
-   if (ok) ok = g_file_set_contents (job->dest, buf, len, &error);
+   if (ok) ok = g_file_set_contents (*dest, buf, len, &error);
    g_free (buf);
    if (!ok) {
-      job->error = g_strdup (error ? error->message : "?");
+      *error_text = g_strdup (error ? error->message : "?");
       g_clear_error (&error);
-      g_task_return_boolean (task, TRUE);
-      return;
+      return FALSE;
    }
 
 #ifdef ENABLE_GEXIV2
-   if (job->metadata && strcmp (writer, "webp")) {
+   if (metadata && strcmp (writer, "webp")) {
       gchar *e = NULL;
-      if (!gimv_save_copy_metadata (job->src, job->dest,
-                                    gdk_pixbuf_get_width (job->pixbuf),
-                                    gdk_pixbuf_get_height (job->pixbuf), FALSE, &e))
-         job->warning = e;
+      if (!gimv_save_copy_metadata (src, *dest, gdk_pixbuf_get_width (pixbuf),
+                                    gdk_pixbuf_get_height (pixbuf), FALSE, &e))
+         *warning = e;
    }
 #endif
+   return TRUE;
+}
+
+
+static void
+save_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   SaveJob *job = data;
+
+   gimv_crop_save_pixbuf (job->pixbuf, job->src, "_crop", job->quality, job->metadata,
+                          &job->dest, &job->error, &job->warning);
    g_task_return_boolean (task, TRUE);
 }
 

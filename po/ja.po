@@ -7377,3 +7377,93 @@ msgstr "/編集(_E)/切り抜き(_M)..."
 
 msgid "There is no border to take off."
 msgstr "取り除く縁はありませんでした。"
+
+msgid "Looking for the overlaps..."
+msgstr "重なりを探しています..."
+
+msgid "(looking for it...)"
+msgstr "(探しています...)"
+
+msgid "(found: %d px)"
+msgstr "(見つけた重なり: %d px)"
+
+msgid "(none found)"
+msgstr "(重なりは見つかりませんでした)"
+
+msgid "%u and %u"
+msgstr "%u と %u"
+
+msgid "Saved next to the first image as %s_join"
+msgstr "1 枚目と同じフォルダに %s_join として保存します"
+
+msgid "Two images or more are needed."
+msgstr "2 枚以上の画像が必要です。"
+
+msgid "Not enough memory for the image."
+msgstr "画像を作るメモリが足りません。"
+
+msgid "One below another"
+msgstr "縦 (上から下へ)"
+
+msgid "Side by side"
+msgstr "横 (左から右へ)"
+
+msgid "In a grid"
+msgstr "格子状"
+
+msgid "To the smallest"
+msgstr "小さいものに合わせる"
+
+msgid "To the largest"
+msgstr "大きいものに合わせる"
+
+msgid "Not changed"
+msgstr "そろえない"
+
+msgid "Join Images"
+msgstr "画像を連結"
+
+msgid "_Images (in this order):"
+msgstr "画像 (この順に並べます)(_I):"
+
+msgid "_Arrange:"
+msgstr "並べ方(_A):"
+
+msgid "Colu_mns:"
+msgstr "列の数(_M):"
+
+msgid "The width made the same (the height side by side)"
+msgstr "幅をそろえます (横に並べる時は高さ)"
+
+msgid "_Look for overlaps (pieces of one photo)"
+msgstr "重なりを探す (1 枚の写真を分けたもの)(_L)"
+
+msgid "_Keep the information of the first file (EXIF: the date, the camera, ...)"
+msgstr "1 枚目のファイルの情報を残す (EXIF: 撮影日・カメラなど)(_K)"
+
+msgid "Copy the comment and the _tags given by hand of the first one"
+msgstr "1 枚目のコメントと手動で付けたタグを引き継ぐ(_T)"
+
+msgid "S_eam:"
+msgstr "継ぎ目(_E):"
+
+msgid "As the _difference"
+msgstr "差で表示(_D)"
+
+msgid "The overlap shown as the difference of the two images: dark where they are the same"
+msgstr "重なった部分を 2 枚の差で表示します: 同じところは暗くなります"
+
+msgid "_Overlap:"
+msgstr "重なり(_O):"
+
+msgid "Reading the images..."
+msgstr "画像を読み込んでいます..."
+
+msgid "JPEG can not be larger than 65500 px."
+msgstr "JPEG は 65500 px より大きくできません。"
+
+msgid "/_Join Images..."
+msgstr "/画像を連結(_J)..."
+
+msgid "S_how the Saved Image"
+msgstr "保存した画像を表示(_H)"

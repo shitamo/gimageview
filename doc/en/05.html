@@ -159,6 +159,23 @@ You can also choose whether to keep the shooting information (EXIF etc.), whethe
 The size and the file size of the first image after saving are estimated in the dialog.  Saving runs in the background, so you can keep working; [Stop] stops the rest.  When it is done, [Show the Saved Image] chooses the image saved.
 </p>
 </dd>
+<dt><span class="term"><a name="join_images"></a>Join Images...</span></dt>
+<dd>
+<p class="para">
+Joins the two or more selected images into one, saved as a new file.  The images are not changed.
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Images: the order they are joined in; ↑ ↓ move the image chosen.</p></li>
+<li><p class="para">Arrange: one below another, side by side, in a grid (with the number of columns).</p></li>
+<li><p class="para">Size: the width (the height side by side) made the one of the smallest, of the largest, or not changed (then centered, white around).</p></li>
+<li><p class="para">Look for overlaps: for the pieces of one photo that overlap where they meet, the end of an image and the start of the next most alike are found and put over each other (a little different JPEG too).  A plain part (white) is not taken as an overlap.</p></li>
+<li><p class="para">Seam, Overlap: the overlap (px) of each seam can be put right with the slider or the number; the seam is shown below near its own size.  "As the difference" shows the overlap as the difference of the two images: dark where they match.</p></li>
+<li><p class="para">The quality (JPEG, WebP; 90 by default), keeping the information (EXIF, ...) of the first file, copying the comment and the tags given by hand of the first one.</p></li>
+</ul></div>
+<p class="para">
+Saved next to the first image as "name_join.jpg" (in its format; JPEG when gdk-pixbuf cannot write it), never over another file (-1, -2, ... is added).  The EXIF orientation is applied first.  The images are read, the overlaps found and the image saved in threads.  [Show the Saved Image] then chooses it in the thumbnail window.
+</p>
+</dd>
 </dl></div>
 </div>
 <div class="sect2">
