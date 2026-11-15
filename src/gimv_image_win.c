@@ -546,7 +546,7 @@ gimv_image_win_init (GimvImageWin *iw)
    gimv_box_pack_start (GTK_BOX (hbox), iw->player_bar, FALSE, FALSE, 0);
    gimv_widget_show_all (iw->player_bar);
 
-   adj = gtk_adjustment_new (0.0, 0.0, 100.0, 0.1, 1.0, 1.0);
+   adj = gtk_adjustment_new (0.0, 0.0, 100.0, 0.1, 1.0, 0.0);  /* no page size: up to 100 % */
 
    /* draw area */
 #ifdef ENABLE_INDEX

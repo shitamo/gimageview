@@ -3400,7 +3400,9 @@ gimv_image_view_create_player_toolbar (GimvImageView *iv)
    iv->player.eject = button;
    gtk_widget_set_sensitive (button, FALSE);
 
-   adj = gtk_adjustment_new (0.0, 0.0, 100.0, 0.1, 1.0, 1.0);
+   /* no page size: a page size of 1 kept the value under 99 % (the
+      last 1 % of the time was never shown: 03:11 / 03:13 at the end) */
+   adj = gtk_adjustment_new (0.0, 0.0, 100.0, 0.1, 1.0, 0.0);
    seekbar = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adj);
    gtk_scale_set_draw_value (GTK_SCALE (seekbar), FALSE);
    gimv_box_pack_start (GTK_BOX (hbox), seekbar, TRUE, TRUE, 0);
