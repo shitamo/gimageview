@@ -927,9 +927,10 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
                                                          pixmap_cell_bind,
                                                          GINT_TO_POINTER (size),
                                                          NULL, FALSE));
-   /* "Detail" mode: no pixmaps */
+   /* "Detail" mode: no pixmaps.  Hidden, not 1 px wide: its cells (their
+      padding) need more, and GTK warned for each row when it was made */
    if (size <= 0)
-      gtk_column_view_column_set_fixed_width (col, 1);
+      gtk_column_view_column_set_visible (col, FALSE);
 
    /* other column */
    for (node = detailview_title_idx_list, i = N_COLUMN;
