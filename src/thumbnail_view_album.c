@@ -30,6 +30,7 @@
 #include "dnd.h"
 #include "fileutil.h"
 #include "gimv_comment.h"
+#include "gimv_find_popover.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
@@ -339,6 +340,76 @@ cb_album_key_press (GtkWidget *widget,
 
    return FALSE;
 }
+
+
+/*
+ *  Ctrl+F: a file by its name (as the detail view)
+ */
+static guint
+find_count (gpointer data)
+{
+   GimvThumbView *tv = data;
+   return GIMV_IS_THUMB_VIEW (tv) ? g_list_length (tv->thumblist) : 0;
+}
+
+
+static gchar *
+find_text (guint pos, gpointer data)
+{
+   GimvThumbView *tv = data;
+   GimvThumb *thumb = gimv_thumb_view_get_nth_thumb (tv, pos);
+   const gchar *path;
+
+   if (!GIMV_IS_THUMB (thumb) || !thumb->info
+       || !(path = gimv_image_info_get_path (thumb->info)))
+      return NULL;
+   return charset_to_internal (fileutil_basename (path), conf.charset_filename,
+                               conf.charset_auto_detect_fn, conf.charset_filename_mode);
+}
+
+
+/* the file found: chosen alone and focused, as a click does; in view */
+static void
+find_select (guint pos, gpointer data)
+{
+   GimvThumbView *tv = data;
+   GimvThumb *thumb = gimv_thumb_view_get_nth_thumb (tv, pos);
+
+   if (!GIMV_IS_THUMB (thumb)) return;
+   gimv_thumb_view_set_selection_all (tv, FALSE);
+   gimv_thumb_view_set_selection (thumb, TRUE);
+   gimv_thumb_view_set_focus (tv, thumb);
+   if (!thumbalbum_thumbnail_is_whole_in_viewport (tv, thumb))
+      thumbalbum_adjust (tv, thumb);
+}
+
+
+/* Enter: opened as Enter on it does */
+static void
+find_activate (guint pos, gpointer data)
+{
+   GimvThumbView *tv = data;
+   GimvThumb *thumb = gimv_thumb_view_get_nth_thumb (tv, pos);
+
+   if (!GIMV_IS_THUMB (thumb)) return;
+   gimv_thumb_view_open_image (tv, thumb, GIMV_THUMB_VIEW_OPEN_IMAGE_AUTO);
+}
+
+
+static guint
+find_current (gpointer data)
+{
+   GimvThumbView *tv = data;
+   ThumbViewData *tv_data = g_object_get_data (G_OBJECT (tv), THUMBALBUM_LABEL);
+   gint pos = tv_data && tv_data->album ? GIMV_ZLIST (tv_data->album)->focus : -1;
+
+   return pos >= 0 ? (guint) pos : GIMV_FIND_NONE;
+}
+
+
+static const GimvFindFuncs album_find_funcs = {
+   find_count, find_text, find_select, find_activate, find_current,
+};
 
 
 /******************************************************************************
@@ -816,6 +887,9 @@ thumbalbum_create (GimvThumbView *tv, const gchar *dest_mode)
    gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_album_button_release), tv);
    gimv_event_connect (GTK_WIDGET (tv_data->album), GIMV_EVENT_SCROLL, G_CALLBACK (cb_album_scroll), tv);
    gimv_event_connect_after (GTK_WIDGET (tv_data->album), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_album_key_press), tv);
+
+   /* Ctrl+F: a file by its name (before the window's [File | Open...]) */
+   gimv_find_popover_attach (tv_data->album, NULL, &album_find_funcs, tv);
 
    g_signal_connect_after (G_OBJECT (tv_data->album), "cell_select",
                              G_CALLBACK (cb_select_cell), tv);

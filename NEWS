@@ -140,6 +140,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  the ratio, "Detect the Edges" (the border of the color of the edges
 	  taken off: a small thing scanned on white), saved as name_crop.jpg
 	  next to the image (Enter; Esc stops), in threads.
+	* Album modes: Ctrl+F finds a thumbnail by its file name, as the
+	  detail view.
 	* Detail view: the widths of the columns are kept (after a rename, a
 	  sort, a refresh; in other tabs; the next time).
 	* Rename: the name without the extension is edited, the extension
