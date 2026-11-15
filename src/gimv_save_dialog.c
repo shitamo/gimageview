@@ -247,10 +247,12 @@ save_job_free (gpointer p)
 
 #ifdef ENABLE_GEXIV2
 /* the EXIF, XMP and IPTC of src into dest (saved as it is shown: the
- * orientation is normal, the thumbnail of the EXIF is gone) */
-static gboolean
-copy_metadata (const gchar *src, const gchar *dest, gint width, gint height,
-               gchar **error_text)
+ * orientation is normal, the thumbnail of the EXIF is gone; without the
+ * place it was taken at when no_gps) */
+gboolean
+gimv_save_copy_metadata (const gchar *src, const gchar *dest,
+                         gint width, gint height, gboolean no_gps,
+                         gchar **error_text)
 {
    static gsize init = 0;
    GExiv2Metadata *m;
@@ -274,6 +276,13 @@ copy_metadata (const gchar *src, const gchar *dest, gint width, gint height,
    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
    gexiv2_metadata_try_set_orientation (m, GEXIV2_ORIENTATION_NORMAL, NULL);
    gexiv2_metadata_try_erase_exif_thumbnail (m, NULL);
+   if (no_gps) {
+      gexiv2_metadata_try_delete_gps_info (m, NULL);
+      /* the XMP may have it too */
+      gexiv2_metadata_try_clear_tag (m, "Xmp.exif.GPSLatitude", NULL);
+      gexiv2_metadata_try_clear_tag (m, "Xmp.exif.GPSLongitude", NULL);
+      gexiv2_metadata_try_clear_tag (m, "Xmp.exif.GPSAltitude", NULL);
+   }
    {
       gchar w[16], h[16];
       g_snprintf (w, sizeof w, "%d", width);
@@ -312,8 +321,9 @@ save_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
    else if (job->metadata && job->src_path) {
       gchar *e = NULL;
       GimvImage *image = gimv_image_saver_get_image (job->saver);
-      if (!copy_metadata (job->src_path, job->path,
-                          gimv_image_width (image), gimv_image_height (image), &e))
+      if (!gimv_save_copy_metadata (job->src_path, job->path,
+                                    gimv_image_width (image), gimv_image_height (image),
+                                    FALSE, &e))
          job->warning = e;
    }
 #endif

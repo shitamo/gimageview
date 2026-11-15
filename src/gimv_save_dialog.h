@@ -20,4 +20,12 @@
 /* the dialog for the image of iv, over parent */
 void gimv_save_dialog_open (GimvImageView *iv, GtkWindow *parent);
 
+#ifdef ENABLE_GEXIV2
+/* the EXIF, XMP and IPTC of src into dest, which is width x height and
+   turned as it is shown (any thread) */
+gboolean gimv_save_copy_metadata (const gchar *src, const gchar *dest,
+                                  gint width, gint height, gboolean no_gps,
+                                  gchar **error_text);
+#endif
+
 #endif /* __GIMV_SAVE_DIALOG_H__ */

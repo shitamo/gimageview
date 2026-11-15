@@ -154,6 +154,15 @@ typedef struct _Config {
    gint       imgview_movie_volume;      /* 0 - 100 [%] */
    gboolean   imgview_movie_mute;
 
+   /* Save Smaller */
+   gint       resize_mode;          /* 0: height, 1: width, 2: longer side */
+   gint       resize_size;          /* [px] */
+   gint       resize_quality;
+   gchar     *resize_dir;           /* the folder next to the images */
+   gboolean   resize_metadata;
+   gboolean   resize_no_gps;
+   gboolean   resize_comment;
+
    gchar     *imgview_mouse_button;
 
    /* Thumbnail View */

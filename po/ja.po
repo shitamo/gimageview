@@ -7181,3 +7181,127 @@ msgstr "モノラル"
 #: plugins/image_view/image_view_gst.c
 msgid "stereo"
 msgstr "ステレオ"
+
+#: src/gimv_resize_dialog.c
+msgid "/Save S_maller..."
+msgstr "/縮小して保存(_M)..."
+
+#: src/gimv_resize_dialog.c
+msgid "Height"
+msgstr "高さ"
+
+#: src/gimv_resize_dialog.c
+msgid "Width"
+msgstr "幅"
+
+#: src/gimv_resize_dialog.c
+msgid "Longer side"
+msgstr "長い辺"
+
+#: src/gimv_resize_dialog.c
+msgid " (stopped)"
+msgstr " (中止しました)"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid "%u images (%s, ...)"
+msgstr "%u 枚 (%s など)"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid "%u saved smaller"
+msgstr "%u 枚を縮小して保存しました"
+
+#: src/gimv_resize_dialog.c
+msgid "(next to each image; the images are not changed)"
+msgstr "(各画像と同じ場所に作ります。元の画像は変えません)"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid ", %u copied as they are (not larger)"
+msgstr "、%u 枚は小さいのでそのままコピー"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid ", %u could not be saved"
+msgstr "、%u 枚は保存できませんでした"
+
+#: src/gimv_resize_dialog.c
+msgid "Copy the _comment and the tags given by hand"
+msgstr "コメントと手動で付けたタグを引き継ぐ(_C)"
+
+#: src/gimv_resize_dialog.c
+msgid "Give the name of a folder (made next to the images)."
+msgstr "フォルダの名前を入れてください (各画像と同じ場所に作ります)。"
+
+#: src/gimv_resize_dialog.c
+msgid "Images:"
+msgstr "画像:"
+
+#: src/gimv_resize_dialog.c
+msgid "Of JPEG and WebP"
+msgstr "JPEG と WebP の画質"
+
+#: src/gimv_resize_dialog.c
+msgid "Save Smaller"
+msgstr "縮小して保存"
+
+#: src/gimv_resize_dialog.c
+msgid "Save _in the folder:"
+msgstr "保存先のフォルダ(_I):"
+
+#: src/gimv_resize_dialog.c
+msgid "Si_ze:"
+msgstr "大きさ(_Z):"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid "The first image: %d × %d, %s (not larger: copied as it is)"
+msgstr "1 枚目: %d × %d、%s (小さいのでそのままコピー)"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid "The first image: %d × %d, %s → %d × %d, about %s"
+msgstr "1 枚目: %d × %d、%s → %d × %d、約 %s"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid "The first image: %s"
+msgstr "1 枚目: %s"
+
+#: src/gimv_resize_dialog.c
+msgid "The first image: ..."
+msgstr "1 枚目: …"
+
+#: src/gimv_resize_dialog.c
+msgid "Without the _place it was taken at (GPS)"
+msgstr "撮影場所 (GPS) は消す(_P)"
+
+#: src/gimv_resize_dialog.c
+msgid "_Keep the information of the file (EXIF: the date, the camera, ...)"
+msgstr "ファイルの情報を残す (EXIF: 撮影日・カメラなど)(_K)"
+
+#: src/gimv_resize_dialog.c
+msgid "_Open the Folder"
+msgstr "フォルダを開く(_O)"
+
+#: src/gimv_resize_dialog.c
+msgid "could not be read"
+msgstr "読み込めませんでした"
+
+#: src/gimv_resize_dialog.c
+msgid "could not be written"
+msgstr "書き込めませんでした"
+
+#: src/gimv_resize_dialog.c
+msgid "not an image gdk-pixbuf can read"
+msgstr "gdk-pixbuf で読めない画像です"
+
+#: src/gimv_resize_dialog.c
+msgid "px or less"
+msgstr "px 以下"
+
+#: src/gimv_resize_dialog.c
+#, c-format
+msgid "the folder %s could not be made"
+msgstr "フォルダ %s を作れませんでした"

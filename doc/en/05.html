@@ -144,6 +144,21 @@ Bookmarks the selected images and shows a field for a note (<a href="02.html#02-
 The same as the items of the <a href="03.html#03-02" title="3.2. Edit">[Edit]</a> menu.
 </p>
 </dd>
+<dt><span class="term"><a name="save_smaller"></a>Save Smaller...</span></dt>
+<dd>
+<p class="para">
+Saves the selected images smaller, as new files.  The original files are not changed.  Useful to make photos take less space.
+</p>
+<p class="para">
+You can choose which of the height, the width or the longer side to keep at or below how many pixels (800 px of the height by default), the quality of JPEG and WebP, and the folder to save in ("resized" in the folder of the images by default).  When a file of the same name is already there, -1, -2, ... is added to the name; nothing is overwritten.  The EXIF orientation is applied to the pixels.
+</p>
+<p class="para">
+You can also choose whether to keep the shooting information (EXIF etc.), whether to leave out the location (GPS) then, and whether to copy the comments and tags.  Images already smaller than the size are copied as they are.  Images in formats gdk-pixbuf cannot write are saved as JPEG.
+</p>
+<p class="para">
+The size and the file size of the first image after saving are estimated in the dialog.  Saving runs in the background, so you can keep working; [Stop] stops the rest.  When it is done, [Open the Folder] opens the folder saved in.
+</p>
+</dd>
 </dl></div>
 </div>
 <div class="sect2">

@@ -130,6 +130,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  (03:11 / 03:13) and the last 1 % could not be seeked to.
 	* Text viewer (plain text documents): a horizontal scroll bar for long
 	  lines (they could be read only by moving the cursor).
+	* "Save Smaller..." in the right button menu of the thumbnails saves
+	  the selected images smaller (800 px of height or less by default)
+	  as new files in a folder ("resized"), in a thread; it can keep the
+	  EXIF without the GPS and copy the comments, and never overwrites.
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

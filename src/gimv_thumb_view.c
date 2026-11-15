@@ -55,6 +55,7 @@
 #include "gimv_thumb_win.h"
 #include "menu.h"
 #include "gimv_print.h"
+#include "gimv_resize_dialog.h"
 #include "prefs.h"
 
 #ifdef ENABLE_EXIF
@@ -235,6 +236,7 @@ static GCompareFunc
 /* reference popup menu for each thumbnail */
 static void cb_bookmark (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
 static void cb_copy_path (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
+static void cb_save_smaller (GimvThumbView *tv, guint action, GimvMenuItem *menuitem);
 
 static GimvMenuEntry thumb_button_popup_items [] =
 {
@@ -267,6 +269,7 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/_Copy Files To..."),         NULL,  cb_file_operate,  FILE_COPY,   NULL},
    {N_("/_Move Files To..."),         NULL,  cb_file_operate,  FILE_MOVE,   NULL},
    {N_("/_Link Files To..."),         NULL,  cb_file_operate,  FILE_LINK,   NULL},
+   {N_("/Save S_maller..."),          NULL,  cb_save_smaller,  0,           NULL},
    {N_("/_Remove Files..."),           NULL,  cb_remove_file,   0,           NULL},
    {NULL, NULL, NULL, 0, NULL},
 };
@@ -864,6 +867,34 @@ cb_exif (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
                             GTK_WINDOW (tv->tw));
 }
 #endif /* ENABLE_EXIF */
+
+
+/* the selected images saved smaller, as new files next to them */
+static void
+cb_save_smaller (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   GList *thumblist, *node, *paths = NULL;
+
+   g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
+
+   thumblist = gimv_thumb_view_get_selection_list (tv);
+   for (node = thumblist; node; node = g_list_next (node)) {
+      GimvThumb *thumb = node->data;
+      if (!thumb || !thumb->info) continue;
+      if (gimv_image_info_is_dir (thumb->info)
+          || gimv_image_info_is_archive (thumb->info)
+          || gimv_image_info_is_in_archive (thumb->info)
+          || gimv_image_info_is_movie (thumb->info)
+          || gimv_image_info_is_audio (thumb->info))
+         continue;
+      paths = g_list_append (paths, (gpointer) gimv_image_info_get_path (thumb->info));
+   }
+   g_list_free (thumblist);
+
+   if (paths)
+      gimv_resize_dialog_open (paths, tv->tw ? GTK_WINDOW (tv->tw) : NULL);
+   g_list_free (paths);
+}
 
 
 static void
@@ -3224,6 +3255,8 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
    g_free (dirname);
 
    if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE) {
+      menuitem = gimv_menu_get_item (ifactory, "/Save Smaller...");
+      gimv_menu_item_set_sensitive (menuitem, FALSE);
       menuitem = gimv_menu_get_item (ifactory, "/Copy Files To...");
       gimv_menu_item_set_sensitive (menuitem, FALSE);
       menuitem = gimv_menu_get_item (ifactory, "/Link Files To...");
