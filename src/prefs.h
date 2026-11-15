@@ -158,7 +158,7 @@ typedef struct _Config {
    gint       resize_mode;          /* 0: height, 1: width, 2: longer side */
    gint       resize_size;          /* [px] */
    gint       resize_quality;
-   gchar     *resize_dir;           /* the folder next to the images */
+   gchar     *resize_suffix;        /* added to the names: "_resized" */
    gboolean   resize_metadata;
    gboolean   resize_no_gps;
    gboolean   resize_comment;

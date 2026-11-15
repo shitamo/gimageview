@@ -52,7 +52,8 @@ typedef struct {
    GtkWidget     *mode_drop;
    GtkWidget     *size_spin;
    GtkWidget     *quality_scale;
-   GtkWidget     *dir_entry;
+   GtkWidget     *suffix_entry;
+   GtkWidget     *example;     /* "→ big_resized.jpg" */
    GtkWidget     *metadata_check;
    GtkWidget     *gps_check;
    GtkWidget     *comment_check;
@@ -72,7 +73,7 @@ typedef struct {
    gboolean       closed;
    guint          next;         /* the index of the next image */
    guint          made, copied, failed;
-   gchar         *first_saved;  /* to open its folder */
+   gchar         *first_saved;  /* to show it */
    GString       *errors;
 } Dialog;
 
@@ -470,7 +471,7 @@ job_from_dialog (Dialog *d, const gchar *src)
 static void
 remember (Dialog *d)
 {
-   const gchar *dir = gtk_editable_get_text (GTK_EDITABLE (d->dir_entry));
+   const gchar *suffix = gtk_editable_get_text (GTK_EDITABLE (d->suffix_entry));
 
    conf.resize_mode     = gtk_drop_down_get_selected (GTK_DROP_DOWN (d->mode_drop));
    conf.resize_size     = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (d->size_spin));
@@ -478,9 +479,9 @@ remember (Dialog *d)
    conf.resize_metadata = gtk_check_button_get_active (GTK_CHECK_BUTTON (d->metadata_check));
    conf.resize_no_gps   = gtk_check_button_get_active (GTK_CHECK_BUTTON (d->gps_check));
    conf.resize_comment  = gtk_check_button_get_active (GTK_CHECK_BUTTON (d->comment_check));
-   if (dir && *dir) {
-      g_free (conf.resize_dir);
-      conf.resize_dir = g_strdup (dir);
+   if (suffix && *suffix) {
+      g_free (conf.resize_suffix);
+      conf.resize_suffix = g_strdup (suffix);
    }
 }
 
@@ -583,20 +584,19 @@ cb_metadata_toggled (GtkCheckButton *check, Dialog *d)
 
 /*** the saving ***/
 
-/* dest in the folder dirname of the image; a name not taken (never over
-   another file) */
+/* the new file next to the image: the stem, the suffix, the extension
+   (".jpg" when its format can not be written).  With unique, a name not
+   taken (never over another file): name_resized-1.jpg, ... */
 static gchar *
-dest_for (const gchar *src, const gchar *dirname)
+dest_for (const gchar *src, const gchar *suffix, gboolean unique)
 {
    gchar *dir = g_path_get_dirname (src);
    gchar *base = g_path_get_basename (src);
-   gchar *outdir = g_build_filename (dir, dirname, NULL);
    gchar *dot, *stem, *path, *ext_new = NULL;
    const gchar *ext;
    GdkPixbufFormat *format;
    gint i;
 
-   /* written as JPEG when its format can not be written */
    format = gdk_pixbuf_get_file_info (src, NULL, NULL);
    if (format) {
       gchar *name = gdk_pixbuf_format_get_name (format);
@@ -606,21 +606,48 @@ dest_for (const gchar *src, const gchar *dirname)
    }
 
    dot = strrchr (base, '.');
-   stem = dot ? g_strndup (base, dot - base) : g_strdup (base);
-   ext = ext_new ? ext_new : (dot ? dot + 1 : "jpg");
+   stem = dot && dot != base ? g_strndup (base, dot - base) : g_strdup (base);
+   ext = ext_new ? ext_new : (dot && dot != base ? dot + 1 : "jpg");
 
-   path = g_strdup_printf ("%s/%s.%s", outdir, stem, ext);
-   for (i = 1; g_file_test (path, G_FILE_TEST_EXISTS); i++) {
+   path = g_strdup_printf ("%s/%s%s.%s", dir, stem, suffix, ext);
+   for (i = 1; unique && g_file_test (path, G_FILE_TEST_EXISTS); i++) {
       g_free (path);
-      path = g_strdup_printf ("%s/%s-%d.%s", outdir, stem, i, ext);
+      path = g_strdup_printf ("%s/%s%s-%d.%s", dir, stem, suffix, i, ext);
    }
 
    g_free (ext_new);
    g_free (stem);
-   g_free (outdir);
    g_free (base);
    g_free (dir);
    return path;
+}
+
+
+static gboolean
+suffix_ok (const gchar *suffix)
+{
+   return suffix && *suffix && !strchr (suffix, '/');
+}
+
+
+/* "→ big_resized.jpg" under the suffix */
+static void
+update_example (Dialog *d)
+{
+   const gchar *suffix = gtk_editable_get_text (GTK_EDITABLE (d->suffix_entry));
+   gchar *text;
+
+   if (suffix_ok (suffix)) {
+      gchar *dest = dest_for (g_ptr_array_index (d->paths, 0), suffix, FALSE);
+      gchar *name = g_filename_display_basename (dest);
+      text = g_strdup_printf (_("→ %s (in the same folder)"), name);
+      g_free (name);
+      g_free (dest);
+   } else {
+      text = g_strdup ("");
+   }
+   gtk_label_set_text (GTK_LABEL (d->example), text);
+   g_free (text);
 }
 
 
@@ -640,7 +667,6 @@ finish (Dialog *d)
       g_string_append_printf (msg, _(", %u could not be saved"), d->failed);
    if (g_cancellable_is_cancelled (d->cancel))
       g_string_append (msg, _(" (stopped)"));
-   g_string_append (msg, ".");
    if (d->errors && d->errors->len) {
       g_string_append (msg, "\n");
       g_string_append (msg, d->errors->str);
@@ -649,15 +675,24 @@ finish (Dialog *d)
    set_status (d, text, d->failed > 0);
    g_free (text);
 
-   /* a thumbnail view of the folder shows the new files */
+   /* the thumbnail views of the folders show the new files */
    if (d->first_saved) {
-      gchar *dir = g_path_get_dirname (d->first_saved);
-      gchar *dir_slash = g_strconcat (dir, "/", NULL);
-      GimvThumbView *tv = gimv_thumb_view_find_opened_dir (dir_slash);
-      if (!tv) tv = gimv_thumb_view_find_opened_dir (dir);
-      if (tv) gimv_thumb_view_refresh_list (tv);
-      g_free (dir_slash);
-      g_free (dir);
+      GHashTable *done = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+      guint i;
+      for (i = 0; i < d->paths->len; i++) {
+         gchar *dir = g_path_get_dirname (g_ptr_array_index (d->paths, i));
+         if (!g_hash_table_contains (done, dir)) {
+            gchar *dir_slash = g_strconcat (dir, "/", NULL);
+            GimvThumbView *tv = gimv_thumb_view_find_opened_dir (dir_slash);
+            if (!tv) tv = gimv_thumb_view_find_opened_dir (dir);
+            if (tv) gimv_thumb_view_refresh_list (tv);
+            g_free (dir_slash);
+            g_hash_table_add (done, dir);
+         } else {
+            g_free (dir);
+         }
+      }
+      g_hash_table_destroy (done);
    }
 
    {
@@ -710,8 +745,7 @@ resize_done (GObject *source, GAsyncResult *res, gpointer data)
 static void
 run_next (Dialog *d)
 {
-   const gchar *dirname;
-   gchar *dest, *outdir;
+   const gchar *suffix;
    Job *job;
    GTask *task;
    gchar *text;
@@ -728,15 +762,9 @@ run_next (Dialog *d)
    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (d->progress),
                                   (gdouble) d->next / d->paths->len);
 
-   dirname = gtk_editable_get_text (GTK_EDITABLE (d->dir_entry));
+   suffix = gtk_editable_get_text (GTK_EDITABLE (d->suffix_entry));
    job = job_from_dialog (d, g_ptr_array_index (d->paths, d->next++));
-   dest = dest_for (job->src, dirname);
-   outdir = g_path_get_dirname (dest);
-   if (g_mkdir_with_parents (outdir, 0755) != 0) {
-      job->error = g_strdup_printf (_("the folder %s could not be made"), outdir);
-   }
-   g_free (outdir);
-   job->dest = dest;
+   job->dest = dest_for (job->src, suffix, TRUE);
 
    task = g_task_new (NULL, d->cancel, resize_done, d);
    g_task_set_task_data (task, job, job_free);
@@ -752,13 +780,11 @@ run_next (Dialog *d)
 static void
 cb_save (GtkButton *button, Dialog *d)
 {
-   const gchar *dirname = gtk_editable_get_text (GTK_EDITABLE (d->dir_entry));
+   const gchar *suffix = gtk_editable_get_text (GTK_EDITABLE (d->suffix_entry));
 
    if (d->running) return;
-   if (!dirname || !*dirname || strchr (dirname, '/') || !strcmp (dirname, ".")
-       || !strcmp (dirname, ".."))
-   {
-      set_status (d, _("Give the name of a folder (made next to the images)."), TRUE);
+   if (!suffix_ok (suffix)) {
+      set_status (d, _("Give what to add to the names (without \"/\")."), TRUE);
       return;
    }
 
@@ -789,8 +815,7 @@ cb_close (GtkButton *button, Dialog *d)
 }
 
 
-/* the folder of the first image saved, in the thumbnail window, with it
-   chosen */
+/* the first image saved, chosen in its folder in the thumbnail window */
 static void
 cb_open (GtkButton *button, Dialog *d)
 {
@@ -859,7 +884,6 @@ gimv_resize_dialog_open (GList *paths, GtkWindow *parent)
    window = d->window = gtk_window_new ();
    gtk_window_set_title (GTK_WINDOW (window), _("Save Smaller"));
    if (parent) gtk_window_set_transient_for (GTK_WINDOW (window), parent);
-   gtk_window_set_default_size (GTK_WINDOW (window), 560, -1);
    g_signal_connect (window, "destroy", G_CALLBACK (cb_destroy), d);
    {
       GtkEventController *keys = gtk_shortcut_controller_new ();
@@ -928,20 +952,30 @@ gimv_resize_dialog_open (GList *paths, GtkWindow *parent)
    gtk_label_set_mnemonic_widget (GTK_LABEL (label), d->quality_scale);
    gtk_grid_attach (GTK_GRID (grid), d->quality_scale, 1, row++, 1, 1);
 
-   /* where */
-   label = label_new (_("Save _in the folder:"));
+   /* the names */
+   label = label_new (_("Add to the _names:"));
    gtk_grid_attach (GTK_GRID (grid), label, 0, row, 1, 1);
    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-   d->dir_entry = gtk_entry_new ();
-   gtk_editable_set_text (GTK_EDITABLE (d->dir_entry),
-                          conf.resize_dir && *conf.resize_dir ? conf.resize_dir : "resized");
-   gtk_label_set_mnemonic_widget (GTK_LABEL (label), d->dir_entry);
-   g_signal_connect_swapped (d->dir_entry, "activate", G_CALLBACK (cb_save), d);
-   gtk_box_append (GTK_BOX (hbox), d->dir_entry);
-   label = gtk_label_new (_("(next to each image; the images are not changed)"));
-   gtk_widget_add_css_class (label, "dim-label");
-   gtk_box_append (GTK_BOX (hbox), label);
+   d->suffix_entry = gtk_entry_new ();
+   gtk_editable_set_width_chars (GTK_EDITABLE (d->suffix_entry), 12);
+   gtk_editable_set_text (GTK_EDITABLE (d->suffix_entry),
+                          conf.resize_suffix && *conf.resize_suffix
+                          ? conf.resize_suffix : "_resized");
+   gtk_label_set_mnemonic_widget (GTK_LABEL (label), d->suffix_entry);
+   gtk_widget_set_tooltip_text (d->suffix_entry,
+      _("Saved next to each image; the images are not changed"));
+   g_signal_connect_swapped (d->suffix_entry, "activate", G_CALLBACK (cb_save), d);
+   g_signal_connect_swapped (d->suffix_entry, "changed", G_CALLBACK (update_example), d);
+   gtk_box_append (GTK_BOX (hbox), d->suffix_entry);
+   d->example = gtk_label_new (NULL);
+   gtk_label_set_xalign (GTK_LABEL (d->example), 0.0);
+   gtk_label_set_ellipsize (GTK_LABEL (d->example), PANGO_ELLIPSIZE_MIDDLE);
+   gtk_label_set_width_chars (GTK_LABEL (d->example), 28);
+   gtk_widget_set_hexpand (d->example, TRUE);
+   gtk_widget_add_css_class (d->example, "dim-label");
+   gtk_box_append (GTK_BOX (hbox), d->example);
    gtk_grid_attach (GTK_GRID (grid), hbox, 1, row++, 1, 1);
+   update_example (d);
 
    /* the information */
    d->metadata_check = gtk_check_button_new_with_mnemonic
@@ -960,14 +994,17 @@ gimv_resize_dialog_open (GList *paths, GtkWindow *parent)
    gtk_widget_set_visible (d->gps_check, FALSE);
 #endif
    d->comment_check = gtk_check_button_new_with_mnemonic
-      (_("Copy the _comment and the tags given by hand"));
+      (_("Copy the comment and the _tags given by hand"));
    gtk_check_button_set_active (GTK_CHECK_BUTTON (d->comment_check), conf.resize_comment);
    gtk_grid_attach (GTK_GRID (grid), d->comment_check, 1, row++, 1, 1);
 
    /* the estimate */
    d->estimate = gtk_label_new (NULL);
    gtk_label_set_xalign (GTK_LABEL (d->estimate), 0.0);
-   gtk_label_set_wrap (GTK_LABEL (d->estimate), TRUE);
+   /* one line of a fixed width: the window is not measured again when
+      the text changes */
+   gtk_label_set_ellipsize (GTK_LABEL (d->estimate), PANGO_ELLIPSIZE_END);
+   gtk_label_set_width_chars (GTK_LABEL (d->estimate), 50);
    gtk_widget_add_css_class (d->estimate, "dim-label");
    gtk_grid_attach (GTK_GRID (grid), d->estimate, 1, row++, 1, 1);
 
@@ -979,12 +1016,13 @@ gimv_resize_dialog_open (GList *paths, GtkWindow *parent)
    d->status = gtk_label_new (NULL);
    gtk_label_set_xalign (GTK_LABEL (d->status), 0.0);
    gtk_label_set_wrap (GTK_LABEL (d->status), TRUE);
+   gtk_label_set_max_width_chars (GTK_LABEL (d->status), 60);
    gtk_label_set_selectable (GTK_LABEL (d->status), TRUE);
    gtk_box_append (GTK_BOX (vbox), d->status);
 
    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
    gtk_widget_set_halign (hbox, GTK_ALIGN_END);
-   d->open_button = gtk_button_new_with_mnemonic (_("_Open the Folder"));
+   d->open_button = gtk_button_new_with_mnemonic (_("_Show the Saved Image"));
    gtk_widget_set_visible (d->open_button, FALSE);
    g_signal_connect (d->open_button, "clicked", G_CALLBACK (cb_open), d);
    gtk_box_append (GTK_BOX (hbox), d->open_button);

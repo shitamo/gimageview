@@ -7213,10 +7213,6 @@ msgid "%u saved smaller"
 msgstr "%u 枚を縮小して保存しました"
 
 #: src/gimv_resize_dialog.c
-msgid "(next to each image; the images are not changed)"
-msgstr "(各画像と同じ場所に作ります。元の画像は変えません)"
-
-#: src/gimv_resize_dialog.c
 #, c-format
 msgid ", %u copied as they are (not larger)"
 msgstr "、%u 枚は小さいのでそのままコピー"
@@ -7227,12 +7223,8 @@ msgid ", %u could not be saved"
 msgstr "、%u 枚は保存できませんでした"
 
 #: src/gimv_resize_dialog.c
-msgid "Copy the _comment and the tags given by hand"
-msgstr "コメントと手動で付けたタグを引き継ぐ(_C)"
-
-#: src/gimv_resize_dialog.c
-msgid "Give the name of a folder (made next to the images)."
-msgstr "フォルダの名前を入れてください (各画像と同じ場所に作ります)。"
+msgid "Copy the comment and the _tags given by hand"
+msgstr "コメントと手動で付けたタグを引き継ぐ(_T)"
 
 #: src/gimv_resize_dialog.c
 msgid "Images:"
@@ -7245,10 +7237,6 @@ msgstr "JPEG と WebP の画質"
 #: src/gimv_resize_dialog.c
 msgid "Save Smaller"
 msgstr "縮小して保存"
-
-#: src/gimv_resize_dialog.c
-msgid "Save _in the folder:"
-msgstr "保存先のフォルダ(_I):"
 
 #: src/gimv_resize_dialog.c
 msgid "Si_ze:"
@@ -7282,10 +7270,6 @@ msgid "_Keep the information of the file (EXIF: the date, the camera, ...)"
 msgstr "ファイルの情報を残す (EXIF: 撮影日・カメラなど)(_K)"
 
 #: src/gimv_resize_dialog.c
-msgid "_Open the Folder"
-msgstr "フォルダを開く(_O)"
-
-#: src/gimv_resize_dialog.c
 msgid "could not be read"
 msgstr "読み込めませんでした"
 
@@ -7301,7 +7285,17 @@ msgstr "gdk-pixbuf で読めない画像です"
 msgid "px or less"
 msgstr "px 以下"
 
-#: src/gimv_resize_dialog.c
-#, c-format
-msgid "the folder %s could not be made"
-msgstr "フォルダ %s を作れませんでした"
+msgid "Add to the _names:"
+msgstr "名前に付ける(_N):"
+
+msgid "→ %s (in the same folder)"
+msgstr "→ %s (同じフォルダに)"
+
+msgid "Saved next to each image; the images are not changed"
+msgstr "各画像と同じフォルダに保存します。元の画像は変えません"
+
+msgid "Give what to add to the names (without \"/\")."
+msgstr "名前に付ける文字を入れてください (「/」は使えません)。"
+
+msgid "_Show the Saved Image"
+msgstr "保存した画像を表示(_O)"
