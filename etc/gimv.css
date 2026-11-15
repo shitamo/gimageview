@@ -20,6 +20,11 @@
   color: #ff0000;
 }
 
+/* the current tab of the thumbnails stands out (as the side notebook's) */
+#ThumbViewNoteBook > header > tabs > tab:checked {
+  background-color: @theme_base_color;
+}
+
 /* toolbars built from plain boxes */
 .gimv-toolbar {
   padding: 2px;

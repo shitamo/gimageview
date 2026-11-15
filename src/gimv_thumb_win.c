@@ -375,6 +375,7 @@ static void cb_thumb_notebook_page_reordered (GtkNotebook   *notebook,
                                               guint          pagenum,
                                               GimvThumbWin  *tw);
 static void thumb_win_update_show_tabs (GimvThumbWin *tw);
+static void thumb_tabs_update (GtkNotebook *notebook);
 static void cb_thumb_notebook_switch_page_after (GtkNotebook  *notebook,
                                                  GtkWidget    *page,
                                                  gint          pagenum,
@@ -2543,6 +2544,7 @@ cb_thumb_pages_changed (GtkNotebook *notebook, GtkWidget *child, guint num,
                         GimvThumbWin *tw)
 {
    thumb_win_update_show_tabs (tw);
+   thumb_tabs_update (notebook);
 }
 
 
@@ -3924,6 +3926,7 @@ cb_thumb_notebook_switch_page_after (GtkNotebook *notebook, GtkWidget *page,
    GimvThumbView *tv;
 
    if (!g_list_find (ThumbWinList, tw)) return;
+   thumb_tabs_update (notebook);
    tv = gimv_thumb_win_find_thumbtable (tw, pagenum);
    if (!tv || !g_object_get_data (G_OBJECT (tv), "gimv-switch-scroll")) return;
 
@@ -4803,6 +4806,87 @@ gimv_thumb_win_set_sensitive (GimvThumbWin *tw, GimvThumbwinStatus status)
 #undef SET_SENSITIVE_WIDGETS_NUM
 
 
+/* the text of a tab for its title without "Show full path": a folder or an
+   archive (a path) by its own name, other titles (a collection) as they are */
+static gchar *
+tab_title_shown (const gchar *title)
+{
+   gsize len;
+   const gchar *p;
+
+   if (!title) return g_strdup ("");
+   if (!(title[0] == '/' || (title[0] == '~' && (title[1] == '/' || !title[1]))))
+      return g_strdup (title);
+   len = strlen (title);
+   while (len > 1 && title[len - 1] == '/') len--;
+   if (len == 1) return g_strndup (title, 1);            /* "/" or "~" */
+   for (p = title + len - 1; p > title && p[-1] != '/'; p--);
+   return g_strndup (p, title + len - p);
+}
+
+
+/* the width of text in chars of the label (a wide char is 2) */
+static gint
+tab_text_width (const gchar *text)
+{
+   gint w = 0;
+   for (; text && *text; text = g_utf8_next_char (text))
+      w += g_unichar_iswide (g_utf8_get_char (text)) ? 2 : 1;
+   return w;
+}
+
+
+/* the tabs of the thumbnails in a narrow place: the current tab keeps a
+   width its name can be read in, the others a few chars (a tab's
+   least width was "…" only, all of them were "…"); the close button only
+   on the current tab; and it is lighter (see gimv.css) */
+#define TAB_CURRENT_CHARS 16
+#define TAB_OTHER_CHARS    5
+
+static void
+thumb_tabs_update (GtkNotebook *notebook)
+{
+   gint i, n = gtk_notebook_get_n_pages (notebook);
+   gint cur = gtk_notebook_get_current_page (notebook);
+
+   for (i = 0; i < n; i++) {
+      GtkWidget *page = gtk_notebook_get_nth_page (notebook, i);
+      GtkWidget *label = g_object_get_data (G_OBJECT (page), "tab-label");
+      GtkWidget *button;
+      gint w;
+
+      if (!label) continue;
+      w = tab_text_width (gtk_label_get_text (GTK_LABEL (label)));
+      gtk_label_set_width_chars (GTK_LABEL (label),
+                                 MIN (w, i == cur ? TAB_CURRENT_CHARS
+                                                  : TAB_OTHER_CHARS));
+      button = g_object_get_data (G_OBJECT (label), "close-button");
+      if (button)
+         gtk_widget_set_visible (button,
+                                 conf.thumbwin_show_tab_close && i == cur);
+   }
+}
+
+
+/* the middle button on a tab closes it (the close button is on the
+   current tab only) */
+static void
+cb_tab_middle_click (GtkGestureClick *gesture, gint n_press,
+                     gdouble x, gdouble y, GimvThumbWin *tw)
+{
+   GtkWidget *hbox = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+   GtkWidget *container = g_object_get_data (G_OBJECT (hbox), "page-container");
+   gint num;
+
+   if (!container || !g_list_find (ThumbWinList, tw)) return;
+   num = gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), container);
+   if (num < 0) return;
+   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+   gimv_thumb_win_close_tab (tw, num);
+   gimv_thumb_win_set_statusbar_page_info (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
+}
+
+
 void
 gimv_thumb_win_set_tab_label_text (GtkWidget *page_container,
                                    const gchar *title)
@@ -4816,16 +4900,23 @@ gimv_thumb_win_set_tab_label_text (GtkWidget *page_container,
       /* a full path: cut at the start (the folder's own name at the end
        * stays); the name only (of a folder or of an archive): cut at the
        * end, its beginning stays */
-      gtk_label_set_ellipsize (GTK_LABEL (tablabel),
-                               title && strchr (title, '/')
-                               ? PANGO_ELLIPSIZE_START : PANGO_ELLIPSIZE_END);
-      gtk_label_set_text (GTK_LABEL (tablabel), title);
-      gtk_widget_set_tooltip_text (tablabel, title);
+      gboolean full = conf.thumbwin_tab_fullpath;
+      gchar *shown = full ? g_strdup (title ? title : "") : tab_title_shown (title);
 
-      if (conf.thumbwin_show_tab_close) {
-         gtk_widget_set_visible (button, TRUE);
-      } else {
-         gtk_widget_set_visible (button, FALSE);
+      /* a full path is cut at the start (the folder's own name at the end
+         stays), a name at the end (its beginning stays); the whole title
+         is in the tooltip */
+      gtk_label_set_ellipsize (GTK_LABEL (tablabel),
+                               full && title && strchr (title, '/')
+                               ? PANGO_ELLIPSIZE_START : PANGO_ELLIPSIZE_END);
+      gtk_label_set_text (GTK_LABEL (tablabel), shown);
+      gtk_widget_set_tooltip_text (tablabel, title);
+      g_free (shown);
+
+      (void) button;
+      {
+         GtkWidget *nb = gtk_widget_get_ancestor (page_container, GTK_TYPE_NOTEBOOK);
+         if (nb) thumb_tabs_update (GTK_NOTEBOOK (nb));
       }
    }
 
@@ -4928,7 +5019,7 @@ gimv_thumb_win_create_tab_container (GimvThumbWin *tw)
     * than its place, which pushed the right side of the thumbnails (and
     * the scroll bar) out of the window: cut at the start, the folder's
     * own name at the end stays; the whole title is in the tooltip */
-   gtk_label_set_ellipsize (GTK_LABEL (tablabel), PANGO_ELLIPSIZE_START);
+   gtk_label_set_ellipsize (GTK_LABEL (tablabel), PANGO_ELLIPSIZE_END);
    gtk_label_set_max_width_chars (GTK_LABEL (tablabel), 30);
    gimv_box_pack_start(GTK_BOX(hbox), tablabel, TRUE, TRUE, 0);
 
@@ -4947,10 +5038,12 @@ gimv_thumb_win_create_tab_container (GimvThumbWin *tw)
 
    gimv_widget_show_all (hbox);
 
-   if (conf.thumbwin_show_tab_close) {
-      gtk_widget_set_visible (button, TRUE);
-   } else {
-      gtk_widget_set_visible (button, FALSE);
+   gtk_widget_set_visible (button, FALSE);   /* see thumb_tabs_update () */
+   {
+      GtkGesture *middle = gtk_gesture_click_new ();
+      gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (middle), GDK_BUTTON_MIDDLE);
+      g_signal_connect (middle, "pressed", G_CALLBACK (cb_tab_middle_click), tw);
+      gtk_widget_add_controller (hbox, GTK_EVENT_CONTROLLER (middle));
    }
 
    dnd_dest_set (hbox, dnd_types_all, dnd_types_all_num);
@@ -4971,6 +5064,7 @@ gimv_thumb_win_create_tab_container (GimvThumbWin *tw)
    gtk_label_set_text (GTK_LABEL (tablabel), buf);
    gtk_notebook_set_menu_label_text (GTK_NOTEBOOK (tw->notebook),
                                      scrolled_window, buf);
+   thumb_tabs_update (GTK_NOTEBOOK (tw->notebook));
 
    /* switch to this page */
    if (conf.thumbwin_move_to_newtab || tw->pagenum == 1)

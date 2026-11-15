@@ -107,6 +107,12 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  The cursor (for the cursor keys) is put back on the image it was on
 	  if that is on screen, on the first image on screen otherwise (it
 	  was on the first image of the list).
+	* Tabs of the thumbnails in a narrow place: the current tab keeps a
+	  width its name can be read in, the others a few characters (all were
+	  "..."); the close button is on the current tab only, the middle
+	  button closes any tab; the current tab is lighter.  "Show full path"
+	  is off by default (the name of the folder; the full path in the
+	  tooltip either way).
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

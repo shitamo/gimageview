@@ -212,7 +212,7 @@ static ConfParam param_thumbview [] = {
    {"thumbwin_tab_pos",         D_ENUM,   "2",     &conf.thumbwin_tab_pos},
    {"thumbwin_move_to_newtab",  D_BOOL,   "TRUE",  &conf.thumbwin_move_to_newtab},
    {"thumbwin_show_tab_close",  D_BOOL,   "TRUE",  &conf.thumbwin_show_tab_close},
-   {"thumbwin_tab_fullpath",    D_BOOL,   "TRUE",  &conf.thumbwin_tab_fullpath},
+   {"thumbwin_tab_fullpath",    D_BOOL,   "FALSE", &conf.thumbwin_tab_fullpath},
    {"thumbwin_force_open_tab",  D_BOOL,   "FALSE", &conf.thumbwin_force_open_tab},
 
    {"thumbwin_thumb_size",      D_INT,    "96",    &conf.thumbwin_thumb_size},

@@ -4590,17 +4590,9 @@ gimv_thumb_view_reset_tab_label (GimvThumbView *tv, const gchar *title)
          return;
       }
 
-      if (conf.thumbwin_tab_fullpath) {
-         tmpstr = fileutil_home2tilde (filename);
-      } else {
-         if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE) {
-            tmpstr = g_strdup (fileutil_basename (filename));
-         } else {
-            gchar *dirname = g_path_get_dirname (filename);
-            tmpstr = fileutil_dir_basename (dirname);
-            g_free (dirname);
-         }
-      }
+      /* the full path: the tab shows the name only unless "Show full
+         path" (gimv_thumb_win_set_tab_label_text ()), the tooltip all */
+      tmpstr = fileutil_home2tilde (filename);
 
       g_free (tv->tabtitle);
       tv->tabtitle = charset_to_internal (tmpstr,
