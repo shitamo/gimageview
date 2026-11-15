@@ -37,6 +37,7 @@
 #include "gimv_image_win.h"
 #ifdef ENABLE_INDEX
 #include "gimv_face_panel.h"
+#include "gimv_crop.h"
 #endif
 #include "gimv_prefs_win.h"
 #include "gimv_thumb_win.h"
@@ -205,6 +206,9 @@ static void     cb_exif                 (GimvImageWin *iw,
 static void     cb_print           (GimvImageWin   *iw,
                                     guint           action,
                                     GimvMenuItem   *menuitem);
+static void     cb_crop            (GimvImageWin   *iw,
+                                    guint           action,
+                                    GimvMenuItem   *menuitem);
 static void     cb_save_image      (GimvImageWin   *iw,
                                      guint           action,
                                      GimvMenuItem   *menuitem);
@@ -327,6 +331,7 @@ GimvMenuEntry gimv_image_win_menu_items[] =
 #endif
    {N_("/_Edit/Create _Thumbnail"),      "<shift>T",   cb_create_thumb,   0,  NULL},
    {N_("/_Edit/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
+   {N_("/_Edit/Crop I_mage..."),         "C",          cb_crop,           0,  NULL},
    /* no key: one can be given in ~/.gimv/keyaccelrc */
    {N_("/_Edit/Boo_kmark..."),           NULL,         cb_bookmark,       0,  NULL},
    {N_("/_Edit/---"),                    NULL,         NULL,              0,  "<Separator>"},
@@ -1602,6 +1607,14 @@ cb_print (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
    g_return_if_fail (iw->iv);
 
    gimv_print_image_view (iw->iv, GTK_WINDOW (iw));
+}
+
+
+static void
+cb_crop (GimvImageWin *iw, guint action, GimvMenuItem *menuitem)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_WIN (iw));
+   if (iw->iv) gimv_crop_start (iw->iv);
 }
 
 

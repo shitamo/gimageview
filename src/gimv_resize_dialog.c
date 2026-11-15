@@ -265,8 +265,8 @@ resize_copy_file (const gchar *src, const gchar *dest, GError **error)
 
 
 /* the comment (with the tags given by hand) of src for dest too */
-static void
-copy_comment (const gchar *src, const gchar *dest)
+void
+gimv_resize_copy_comment (const gchar *src, const gchar *dest)
 {
    gchar *from = gimv_comment_find_file (src);
    gchar *to, *dir;
@@ -731,7 +731,7 @@ resize_done (GObject *source, GAsyncResult *res, gpointer data)
    } else {
       if (job->resized) d->made++; else d->copied++;
       if (!d->first_saved) d->first_saved = g_strdup (job->dest);
-      if (job->comment) copy_comment (job->src, job->dest);
+      if (job->comment) gimv_resize_copy_comment (job->src, job->dest);
    }
 
    if (d->closed && !d->running) {

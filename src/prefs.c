@@ -185,6 +185,13 @@ static ConfParam param_imageview [] = {
    {"resize_metadata",            D_BOOL,   "TRUE",    &conf.resize_metadata},
    {"resize_no_gps",              D_BOOL,   "FALSE",   &conf.resize_no_gps},
    {"resize_comment",             D_BOOL,   "FALSE",   &conf.resize_comment},
+   /* Crop (gimv_crop.c) */
+   {"crop_aspect",                D_INT,    "0",       &conf.crop_aspect},
+   {"crop_tolerance",             D_INT,    "40",      &conf.crop_tolerance},
+   {"crop_margin",                D_INT,    "8",       &conf.crop_margin},
+   {"crop_quality",               D_INT,    "90",      &conf.crop_quality},
+   {"crop_metadata",              D_BOOL,   "TRUE",    &conf.crop_metadata},
+   {"crop_comment",               D_BOOL,   "FALSE",   &conf.crop_comment},
    {"imgview_movie_lock_mouse",   D_BOOL,   "FALSE",   &conf.imgview_movie_lock_mouse},
    {"movie_default_view_mode",    D_STRING, NULL,      &conf.movie_default_view_mode},
    {"imgview_mouse_button",       D_STRING,

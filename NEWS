@@ -135,6 +135,11 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  as new files (big_resized.jpg next to big.jpg), in a thread; it can
 	  keep the EXIF without the GPS and copy the comments, and never
 	  overwrites.
+	* "Crop Image..." (C) in the image window and the right button menus
+	  of the image: a frame on the image (moved, resized, drawn anew),
+	  the ratio, "Detect the Edges" (the border of the color of the edges
+	  taken off: a small thing scanned on white), saved as name_crop.jpg
+	  next to the image (Enter; Esc stops), in threads.
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

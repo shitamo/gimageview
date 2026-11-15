@@ -297,6 +297,38 @@ void        gimv_image_view_set_face_mark   (GimvImageView *iv,
                                              gdouble        h,
                                              const gchar   *label);
 gint        gimv_image_view_get_exif_orientation (GimvImageView *iv);
+/* the rectangle to crop (show FALSE: none); x, y, w, h in [0, 1] of the
+ * image as it is shown (turned) */
+void        gimv_image_view_set_crop_mark   (GimvImageView *iv,
+                                             gboolean       show,
+                                             gdouble        x,
+                                             gdouble        y,
+                                             gdouble        w,
+                                             gdouble        h);
+/* a point of the drawing area <-> [0, 1] of the image as it is shown;
+ * FALSE: no image shown */
+gboolean    gimv_image_view_point_to_shown  (GimvImageView *iv,
+                                             gdouble        wx,
+                                             gdouble        wy,
+                                             gdouble       *fx,
+                                             gdouble       *fy);
+gboolean    gimv_image_view_shown_to_point  (GimvImageView *iv,
+                                             gdouble        fx,
+                                             gdouble        fy,
+                                             gdouble       *wx,
+                                             gdouble       *wy);
+/* turned over left and right (before the rotation) */
+gboolean    gimv_image_view_get_flip        (GimvImageView *iv);
+/* a widget over the image */
+void        gimv_image_view_add_overlay     (GimvImageView *iv,
+                                             GtkWidget     *widget);
+void        gimv_image_view_remove_overlay  (GimvImageView *iv,
+                                             GtkWidget     *widget);
+/* a bar above the image, taking room */
+void        gimv_image_view_add_bar         (GimvImageView *iv,
+                                             GtkWidget     *widget);
+void        gimv_image_view_remove_bar      (GimvImageView *iv,
+                                             GtkWidget     *widget);
 /* a point of the drawing area -> [0, 1] of the image as its EXIF
  * orientation shows it (as the face marks); FALSE: no image shown */
 gboolean    gimv_image_view_point_to_face   (GimvImageView *iv,

@@ -52,6 +52,7 @@
 #include "gimv_thumb_cache.h"
 #ifdef ENABLE_INDEX
 #include "gimv_face_panel.h"
+#include "gimv_crop.h"
 #endif
 
 #ifdef ENABLE_EXIF
@@ -143,6 +144,11 @@ struct GimvImageViewPrivate_Tag
    gdouble          face_x, face_y, face_w, face_h;
    gchar           *face_label;
    GimvImageInfo   *face_orient_info;   /* not a reference: compared only */
+
+   /* the rectangle chosen to crop (gimv_crop.c): in [0, 1] of the image
+    * as it is shown (turned) */
+   gboolean         crop_mark;
+   gdouble          crop_x, crop_y, crop_w, crop_h;
    gint             face_orient;        /* its EXIF orientation, 1..8 */
 
    gint             default_zoom;      /* should be defined as enum */
@@ -245,6 +251,7 @@ static void cb_copy_to_clipboard   (GimvImageView     *iv,
                                     guint              action,
                                     GimvMenuItem      *widget);
 static void cb_save_image (GimvImageView *iv, guint action, GimvMenuItem *widget);
+static void cb_crop       (GimvImageView *iv, guint action, GimvMenuItem *widget);
 static void cb_edit_faces          (GimvImageView     *iv,
                                     guint              action,
                                     GimvMenuItem      *widget);
@@ -365,6 +372,7 @@ GimvMenuEntry gimv_image_view_popup_items [] =
    {N_("/Open the _Folder"),      NULL,         cb_open_folder,      0, NULL},
    {N_("/Copy the Image to the C_lipboard"), "<control><shift>C", cb_copy_to_clipboard, 0, NULL},
    {N_("/Save Image _As..."),     NULL,         cb_save_image,       0, NULL},
+   {N_("/Crop I_mage..."),        "C",          cb_crop,             0, NULL},
    {N_("/Edit Faces (_People)"),  "P",          cb_edit_faces,       0, NULL},
 #ifdef ENABLE_INDEX
    {N_("/Edit Ta_gs..."),         NULL,         cb_edit_tags,        0, NULL},
@@ -1130,6 +1138,14 @@ cb_save_image (GimvImageView *iv, guint action, GimvMenuItem *widget)
 
    root = gtk_widget_get_root (GTK_WIDGET (iv));
    gimv_save_dialog_open (iv, GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL);
+}
+
+
+static void
+cb_crop (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   gimv_crop_start (iv);
 }
 
 
@@ -2346,7 +2362,9 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
 
    if (!g_list_find (GimvImageViewList, iv)) return;
 
-   /* the mark of a face is of the image before */
+   /* the marks of a face and of a crop are of the image before */
+   gimv_crop_stop (iv);
+   iv->priv->crop_mark = FALSE;
    iv->priv->face_mark = FALSE;
    iv->priv->face_orient_info = NULL;
    iv->priv->face_orient = 0;
@@ -2609,6 +2627,144 @@ paint_face_mark (GimvImageView *iv, cairo_t *cr)
       g_object_unref (layout);
    }
    cairo_restore (cr);
+}
+
+
+/* the rectangle to crop: the outside darkened, a frame with handles at
+ * the corners and the middles of the sides */
+static void
+paint_crop_mark (GimvImageView *iv, cairo_t *cr)
+{
+   gdouble tw = gdk_texture_get_width (iv->priv->pixmap);
+   gdouble th = gdk_texture_get_height (iv->priv->pixmap);
+   gdouble ix = iv->priv->x_pos, iy = iv->priv->y_pos;
+   gdouble x0 = ix + iv->priv->crop_x * tw, y0 = iy + iv->priv->crop_y * th;
+   gdouble x1 = x0 + iv->priv->crop_w * tw, y1 = y0 + iv->priv->crop_h * th;
+   gdouble hx[3], hy[3];
+   gint i, j;
+
+   cairo_save (cr);
+   cairo_set_fill_rule (cr, CAIRO_FILL_RULE_EVEN_ODD);
+   cairo_rectangle (cr, ix, iy, tw, th);
+   cairo_rectangle (cr, x0, y0, x1 - x0, y1 - y0);
+   cairo_set_source_rgba (cr, 0, 0, 0, 0.55);
+   cairo_fill (cr);
+
+   cairo_rectangle (cr, x0 + 0.5, y0 + 0.5, x1 - x0 - 1, y1 - y0 - 1);
+   cairo_set_source_rgba (cr, 0, 0, 0, 0.6);
+   cairo_set_line_width (cr, 3);
+   cairo_stroke_preserve (cr);
+   cairo_set_source_rgb (cr, 1, 1, 1);
+   cairo_set_line_width (cr, 1);
+   cairo_stroke (cr);
+
+   hx[0] = x0; hx[1] = (x0 + x1) / 2; hx[2] = x1;
+   hy[0] = y0; hy[1] = (y0 + y1) / 2; hy[2] = y1;
+   for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+         if (i == 1 && j == 1) continue;
+         cairo_rectangle (cr, hx[i] - 4, hy[j] - 4, 8, 8);
+      }
+   }
+   cairo_set_source_rgb (cr, 1, 1, 1);
+   cairo_fill_preserve (cr);
+   cairo_set_source_rgba (cr, 0, 0, 0, 0.7);
+   cairo_set_line_width (cr, 1);
+   cairo_stroke (cr);
+   cairo_restore (cr);
+}
+
+
+/* the rectangle to crop (show FALSE: none); x, y, w, h in [0, 1] of the
+ * image as it is shown */
+void
+gimv_image_view_set_crop_mark (GimvImageView *iv, gboolean show,
+                               gdouble x, gdouble y, gdouble w, gdouble h)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   iv->priv->crop_mark = show;
+   iv->priv->crop_x = x;
+   iv->priv->crop_y = y;
+   iv->priv->crop_w = w;
+   iv->priv->crop_h = h;
+   if (iv->draw_area)
+      gtk_widget_queue_draw (GTK_WIDGET (iv->draw_area));
+}
+
+
+/* a point of the drawing area <-> [0, 1] of the image as it is shown */
+gboolean
+gimv_image_view_point_to_shown (GimvImageView *iv, gdouble wx, gdouble wy,
+                                gdouble *fx, gdouble *fy)
+{
+   gdouble tw, th;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+   if (!iv->priv->pixmap) return FALSE;
+   tw = gdk_texture_get_width (iv->priv->pixmap);
+   th = gdk_texture_get_height (iv->priv->pixmap);
+   if (tw <= 0 || th <= 0) return FALSE;
+   *fx = (wx - iv->priv->x_pos) / tw;
+   *fy = (wy - iv->priv->y_pos) / th;
+   return TRUE;
+}
+
+
+gboolean
+gimv_image_view_shown_to_point (GimvImageView *iv, gdouble fx, gdouble fy,
+                                gdouble *wx, gdouble *wy)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+   if (!iv->priv->pixmap) return FALSE;
+   *wx = iv->priv->x_pos + fx * gdk_texture_get_width (iv->priv->pixmap);
+   *wy = iv->priv->y_pos + fy * gdk_texture_get_height (iv->priv->pixmap);
+   return TRUE;
+}
+
+
+gboolean
+gimv_image_view_get_flip (GimvImageView *iv)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+   return iv->priv->flip;
+}
+
+
+/* a widget over the image (the bar of the crop) */
+void
+gimv_image_view_add_overlay (GimvImageView *iv, GtkWidget *widget)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   gtk_overlay_add_overlay (GTK_OVERLAY (iv->priv->overlay), widget);
+}
+
+
+void
+gimv_image_view_remove_overlay (GimvImageView *iv, GtkWidget *widget)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   if (gtk_widget_get_parent (widget) == iv->priv->overlay)
+      gtk_overlay_remove_overlay (GTK_OVERLAY (iv->priv->overlay), widget);
+}
+
+
+/* a bar above the image (the crop): it takes room, the image is not
+   under it */
+void
+gimv_image_view_add_bar (GimvImageView *iv, GtkWidget *widget)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   gtk_box_prepend (GTK_BOX (iv), widget);
+}
+
+
+void
+gimv_image_view_remove_bar (GimvImageView *iv, GtkWidget *widget)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   if (gtk_widget_get_parent (widget) == GTK_WIDGET (iv))
+      gtk_box_remove (GTK_BOX (iv), widget);
 }
 
 
@@ -2877,6 +3033,8 @@ gimv_image_view_paint (GimvImageView *iv, cairo_t *cr,
 
    if (iv->priv->face_mark && iv->priv->pixmap)
       paint_face_mark (iv, cr);
+   if (iv->priv->crop_mark && iv->priv->pixmap)
+      paint_crop_mark (iv, cr);
 }
 
 
@@ -4686,6 +4844,10 @@ gimv_image_view_rotate_image (GimvImageView *iv, GimvImageViewOrientation angle)
       gimv_thumb_view_reload_thumbnail (iv->info);
    }
 
+   /* turned by the user: the rectangle to crop no longer fits */
+   if (iv->priv && (gint) angle != iv->priv->rotate)
+      gimv_crop_stop (iv);
+
    if (iv->priv->load_end_signal_id)
       g_signal_handler_disconnect (G_OBJECT (iv), iv->priv->load_end_signal_id);
 
@@ -4719,6 +4881,8 @@ gimv_image_view_flip_horizontal (GimvImageView *iv)
    if (!iv->info || !iv->priv) return;
    if (gimv_image_info_is_movie (iv->info) || gimv_image_info_is_audio (iv->info))
       return;
+
+   gimv_crop_stop (iv);
 
    /* 90 degrees one way becomes 90 degrees the other way */
    angle = (4 - iv->priv->rotate) % 4;

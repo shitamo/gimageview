@@ -17,4 +17,8 @@
 /* paths: gchar * of the images (copied) */
 void gimv_resize_dialog_open (GList *paths, GtkWindow *parent);
 
+/* the comment (with the tags given by hand) of the image src for the new
+ * image dest too (the main thread) */
+void gimv_resize_copy_comment (const gchar *src, const gchar *dest);
+
 #endif /* __GIMV_RESIZE_DIALOG_H__ */

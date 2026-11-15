@@ -163,6 +163,14 @@ typedef struct _Config {
    gboolean   resize_no_gps;
    gboolean   resize_comment;
 
+   /* Crop (gimv_crop.c) */
+   gint       crop_aspect;          /* index of the ratios */
+   gint       crop_tolerance;       /* of the color of the border, 0 - 255 */
+   gint       crop_margin;          /* [px] around what is found */
+   gint       crop_quality;
+   gboolean   crop_metadata;
+   gboolean   crop_comment;
+
    gchar     *imgview_mouse_button;
 
    /* Thumbnail View */

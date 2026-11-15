@@ -233,6 +233,27 @@ This cannot be undone.  Answer the confirmation dialog carefully.
 <span class="emphasis"><i>Image window only</i></span>.  Creates the thumbnail of the image shown, in the format of "Cache type for saving" in [Preferences | Thumbnail Cache].
 </p>
 </dd>
+<dt><span class="term"><a name="crop"></a>Crop Image... [C]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Image window only</i></span>.  Crops the image shown and saves the part as a new file; the image is not changed.  "Crop Image..." in the right button menu of the image view and of the preview is the same.
+</p>
+<p class="para">
+A frame of the part (the whole image at first) is shown on the image, and a bar above it; outside the frame the image is darker.
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Dragged inside, the frame moves; dragged at a side or a corner (the white squares), its size changes; dragged outside it (or anywhere while it is the whole image), a new frame is drawn.  Dragging outside the image scrolls as before.</p></li>
+<li><p class="para">Detect the Edges: the frame takes what is inside the border of the color of the edges of the image: for a small thing scanned on a sheet of A4, white around it.  The shadows of the edges of the scanner and dust are left out, a small margin is kept.  The result is the frame, to be put right by hand before saving.</p></li>
+<li><p class="para">Settings (≡): the color tolerance (40 by default: larger for a noisy scan, smaller for a pale thing), the margin (px, 8 by default), the quality (JPEG, WebP; 90 by default), keeping the information of the file (EXIF, ...), copying the comment and the tags given by hand.</p></li>
+<li><p class="para">Ratio: free, the one of the image, 1:1, 4:3, 3:2, 16:9; standing or lying as the frame does.</p></li>
+<li><p class="para">The size of the frame is shown in pixels of the image.</p></li>
+<li><p class="para">Save [Enter]: saved next to the image as "name_crop.jpg" (in the format of the image; JPEG when gdk-pixbuf cannot write it, PNG with transparency).  When the name is taken, -1, -2, ... is added: nothing is overwritten.  A "Show" button then chooses the new image in the thumbnail window.</p></li>
+<li><p class="para">Stop [Esc]: stops cropping; going to another image or turning it stops it too.</p></li>
+</ul></div>
+<p class="para">
+The image is cropped in its full size, turned as it is shown (rotation, flip).  It is read, its edges found and the part saved in threads.
+</p>
+</dd>
 <dt><span class="term"><a name="edit_tags_menu"></a>Edit Tags...</span></dt>
 <dd>
 <p class="para">

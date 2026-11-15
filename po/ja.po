@@ -7299,3 +7299,81 @@ msgstr "名前に付ける文字を入れてください (「/」は使えませ
 
 msgid "_Show the Saved Image"
 msgstr "保存した画像を表示(_O)"
+
+msgid "Free"
+msgstr "自由"
+
+msgid "Original"
+msgstr "元の画像と同じ"
+
+msgid "%d × %d px"
+msgstr "%d × %d px"
+
+msgid "The image could not be read."
+msgstr "画像を読めませんでした。"
+
+msgid "No edges were found."
+msgstr "端が見つかりませんでした。"
+
+msgid "Finding the edges..."
+msgstr "端を探しています..."
+
+msgid "_Show"
+msgstr "表示(_S)"
+
+msgid "Choose it in the thumbnail window"
+msgstr "サムネイルウィンドウで選びます"
+
+msgid "Saved as %s (the information of the file could not be copied: %s)"
+msgstr "%s として保存しました (ファイルの情報はコピーできませんでした: %s)"
+
+msgid "Saved as %s"
+msgstr "%s として保存しました"
+
+msgid "_Color tolerance:"
+msgstr "色の差の許容(_C):"
+
+msgid "How far (0 - 255) a color may be from the one of the edges and still be the border: larger for a noisy scan, smaller for a pale object"
+msgstr "端の色からどれだけ (0〜255) 違っても縁とみなすか: ノイズの多いスキャンでは大きく、薄い色の物では小さく"
+
+msgid "_Margin (px):"
+msgstr "余白 (px)(_M):"
+
+msgid "Left around what is found"
+msgstr "見つけた範囲のまわりに残す幅"
+
+msgid "_Detect the Edges"
+msgstr "端を検出(_D)"
+
+msgid "Choose what is inside the border of the color of the edges (a small thing scanned on a white sheet)"
+msgstr "まわりと同じ色の縁を除いた範囲を選びます (白い紙の上でスキャンした小さな物など)"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "_Ratio:"
+msgstr "縦横比(_R):"
+
+msgid "Save the part as %s_crop next to the image (Enter)"
+msgstr "選んだ部分を %s_crop として同じフォルダに保存 (Enter)"
+
+msgid "S_top"
+msgstr "やめる(_T)"
+
+msgid "Stop cropping (Esc)"
+msgstr "切り抜きをやめる (Esc)"
+
+msgid "This can not be cropped (only an image file)."
+msgstr "切り抜けません (画像ファイルだけです)。"
+
+msgid "Reading the image..."
+msgstr "画像を読み込んでいます..."
+
+msgid "/Crop I_mage..."
+msgstr "/切り抜き(_M)..."
+
+msgid "/_Edit/Crop I_mage..."
+msgstr "/編集(_E)/切り抜き(_M)..."
+
+msgid "There is no border to take off."
+msgstr "取り除く縁はありませんでした。"
