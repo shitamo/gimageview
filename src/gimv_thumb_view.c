@@ -542,6 +542,9 @@ gimv_thumb_view_open_folder_of (GimvThumbWin *tw, const gchar *path)
             /* a tab just made is not laid out yet, and the scroll of
                set_focus () is lost: scrolled to it once it is */
             gimv_thumb_view_set_anchor_whole (dir_tv, path);
+            /* shown in the preview too, as a click on it */
+            if (tw->show_preview)
+               gimv_thumb_view_open_image (dir_tv, t, GIMV_THUMB_VIEW_OPEN_IMAGE_PREVIEW);
             break;
          }
       }
