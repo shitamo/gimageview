@@ -48,6 +48,40 @@ GIMV_PLUGIN_PREFS_GET_VALUE(detailview, "Thumbnail View Detail Mode",
                             GIMV_PLUGIN_THUMBVIEW_EMBEDER,
                             detailview_prefs_entry)
 
+/* the widths of the columns as the user left them ("Name:180;Type:90"),
+   kept apart from the page of the preferences (not shown, not applied
+   from there) */
+static gchar *detailview_column_widths_value;
+
+static GimvPluginPrefsEntry detailview_widths_entry [] = {
+   {"column_widths", GIMV_PLUGIN_PREFS_STRING, "", &detailview_column_widths_value},
+};
+
+GIMV_PLUGIN_PREFS_GET_VALUE(detailview_widths, "Thumbnail View Detail Mode",
+                            GIMV_PLUGIN_THUMBVIEW_EMBEDER,
+                            detailview_widths_entry)
+
+
+const gchar *
+detailview_prefs_get_column_widths (void)
+{
+   gchar *value = NULL;
+
+   if (!detailview_widths_prefs_get_value ("column_widths", (gpointer) &value))
+      return NULL;
+   return value;
+}
+
+
+void
+detailview_prefs_set_column_widths (const gchar *value)
+{
+   gimv_plugin_prefs_save_value ("Thumbnail View Detail Mode",
+                                 GIMV_PLUGIN_THUMBVIEW_EMBEDER,
+                                 "column_widths", value ? value : "");
+}
+
+
 static GtkWidget *detailview_prefs_ui       (void);
 static gboolean   detailview_prefs_ui_apply (GimvPrefsWinAction action);
 

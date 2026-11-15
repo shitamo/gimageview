@@ -29,7 +29,7 @@ typedef gchar *(*DetailViewColDataStr) (GimvThumb *thumb);
 
 typedef struct DetailViewColumn_Tag {
    gchar                *title;  /* column title */
-   gint                  width;  /* Column width. Currentry, this value not used */
+   gint                  width;  /* the width of the column (as the user left it) */
    gboolean              free;   /* Free after setting text data to columns or not */
    DetailViewColDataStr  func;   /* Pointer to function convert data to string */
    GtkJustification      justification;

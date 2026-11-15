@@ -31,6 +31,7 @@
 
 #include <time.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "charset.h"
 #include "dnd.h"
@@ -825,6 +826,76 @@ text_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
 }
 
 
+/*
+ *  the widths of the columns: as the user leaves them, for all the views and
+ *  the next time (the view is made again when its list changes: a rename,
+ *  a sort, a refresh)
+ */
+static guint widths_save_id = 0;
+
+
+static void
+widths_load (void)
+{
+   static gboolean loaded = FALSE;
+   const gchar *value;
+   gchar **pairs;
+   gint i, idx;
+
+   if (loaded) return;
+   loaded = TRUE;
+   value = detailview_prefs_get_column_widths ();
+   if (!value || !*value) return;
+   pairs = g_strsplit (value, ";", -1);
+   for (i = 0; pairs[i]; i++) {
+      gchar *colon = strrchr (pairs[i], ':');
+      gint width;
+      if (!colon) continue;
+      *colon = '\0';
+      width = atoi (colon + 1);
+      if (width < 8 || width > 4000) continue;
+      for (idx = 1; idx < detailview_columns_num; idx++)
+         if (detailview_columns[idx].title
+             && !strcmp (detailview_columns[idx].title, pairs[i]))
+            detailview_columns[idx].width = width;
+   }
+   g_strfreev (pairs);
+}
+
+
+static gboolean
+widths_save (gpointer data)
+{
+   GString *str = g_string_new (NULL);
+   gint idx;
+
+   widths_save_id = 0;
+   for (idx = 1; idx < detailview_columns_num; idx++) {
+      if (!detailview_columns[idx].title) continue;
+      g_string_append_printf (str, "%s%s:%d", str->len ? ";" : "",
+                              detailview_columns[idx].title,
+                              detailview_columns[idx].width);
+   }
+   detailview_prefs_set_column_widths (str->str);
+   g_string_free (str, TRUE);
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+cb_column_width (GtkColumnViewColumn *col, GParamSpec *pspec, gpointer data)
+{
+   gint idx = GPOINTER_TO_INT (data);
+   gint width = gtk_column_view_column_get_fixed_width (col);
+
+   if (width <= 0 || width == detailview_columns[idx].width) return;
+   detailview_columns[idx].width = width;
+   /* once the drag is over */
+   if (widths_save_id) g_source_remove (widths_save_id);
+   widths_save_id = g_timeout_add (800, widths_save, NULL);
+}
+
+
 static void
 set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
                   const gchar *dest_mode)
@@ -838,6 +909,8 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
    GtkColumnViewColumn *sorted = NULL;
    GimvSortItem current = GIMV_SORT_NONE;
    GimvSortFlag flags = 0;
+
+   widths_load ();
 
    /* a tab that keeps the order it was given is not sorted */
    if (tv->tw && !g_object_get_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER))
@@ -889,6 +962,8 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
                                                             FALSE));
       gtk_column_view_column_set_fixed_width (col, detailview_columns[idx].width);
       gtk_column_view_column_set_resizable (col, TRUE);
+      g_signal_connect (col, "notify::fixed-width", G_CALLBACK (cb_column_width),
+                        GINT_TO_POINTER (idx));
 
       /* clicking the title sorts the thumbnails (see cb_sorter_changed ());
          a column nothing sorts by is not clickable */

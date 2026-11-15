@@ -35,5 +35,8 @@ gboolean gimv_prefs_ui_detailview_get_page (guint              idx,
                                             guint             *size);
 gboolean detailview_prefs_get_value        (const gchar *key,
                                             gpointer    *value);
+/* the widths of the columns left by the user: "Name:180;Type:90" */
+const gchar *detailview_prefs_get_column_widths (void);
+void         detailview_prefs_set_column_widths (const gchar *value);
 
 #endif /* __DETAILVIEW_PREFS_H__ */
