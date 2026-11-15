@@ -140,6 +140,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  the ratio, "Detect the Edges" (the border of the color of the edges
 	  taken off: a small thing scanned on white), saved as name_crop.jpg
 	  next to the image (Enter; Esc stops), in threads.
+	* Rename: the name without the extension is edited, the extension
+	  stays; "Change the extension too" edits it all, and a name without
+	  the extension of an image is asked about.
 	* "Join Images..." in the right button menu of the thumbnails: the
 	  selected images one below another, side by side or in a grid, the
 	  same width (height) or not, saved as name_join.jpg next to the

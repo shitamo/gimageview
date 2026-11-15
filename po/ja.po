@@ -7467,3 +7467,20 @@ msgstr "/画像を連結(_J)..."
 
 msgid "S_how the Saved Image"
 msgstr "保存した画像を表示(_H)"
+
+msgid "Rename _without It"
+msgstr "拡張子なしで変更(_W)"
+
+msgid "_New file name:"
+msgstr "新しいファイル名(_N):"
+
+
+
+msgid "The new name has no extension of an image (it had %s): the file will not be shown as an image.  Rename it so?"
+msgstr "新しい名前には画像の拡張子がありません (元は %s): 画像として表示されなくなります。このまま変更しますか?"
+
+msgid "The new name has no extension of an image: the file will not be shown as an image.  Rename it so?"
+msgstr "新しい名前には画像の拡張子がありません: 画像として表示されなくなります。このまま変更しますか?"
+
+msgid "Change the _extension too"
+msgstr "拡張子も変更する(_E)"

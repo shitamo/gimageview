@@ -3390,6 +3390,227 @@ gimv_thumb_view_file_operate (GimvThumbView *tv, FileOperateType type)
 }
 
 
+/*
+ *  the dialog of a new file name: only the name without the extension is
+ *  edited, the extension stays (a file without the extension of an image is
+ *  not shown here any more); "Change the extension too" edits the whole
+ *  name, and a name that loses the extension of an image is asked about
+ *  first
+ */
+typedef struct {
+   GMainLoop   *loop;
+   GtkWidget   *window;
+   GtkWidget   *entry;
+   GtkWidget   *ext_label;
+   GtkWidget   *ext_check;
+   GtkWidget   *warning;
+   GtkWidget   *ok_button;
+   const gchar *old_ext;      /* ".jpg", NULL: none */
+   gboolean     old_known;    /* the old name is of a type shown */
+   gboolean     warned;       /* the warning was shown for this text */
+   gchar       *result;
+} RenameDialog;
+
+
+static gboolean
+rename_whole (RenameDialog *rd)
+{
+   return !rd->ext_check
+      || gtk_check_button_get_active (GTK_CHECK_BUTTON (rd->ext_check));
+}
+
+
+/* the new name as it is in the dialog */
+static gchar *
+rename_text (RenameDialog *rd)
+{
+   const gchar *text = gtk_editable_get_text (GTK_EDITABLE (rd->entry));
+
+   if (!text || !*text) return NULL;
+   if (rename_whole (rd)) return g_strdup (text);
+   return g_strconcat (text, rd->old_ext, NULL);
+}
+
+
+static gboolean
+rename_loses_type (RenameDialog *rd, const gchar *name)
+{
+   if (!rd->old_known || !name || !*name) return FALSE;
+   return gimv_image_detect_type_by_ext (name) == NULL;
+}
+
+
+static void
+rename_set_warning (RenameDialog *rd, gboolean on)
+{
+   rd->warned = on;
+   gtk_widget_set_visible (rd->warning, on);
+   gtk_button_set_label (GTK_BUTTON (rd->ok_button),
+                         on ? _("Rename _without It") : _("_OK"));
+   /* the room of the warning given back */
+   if (!on)
+      gtk_window_set_default_size (GTK_WINDOW (rd->window),
+                                   gtk_widget_get_width (rd->window), 1);
+}
+
+
+static void
+cb_rename_changed (GtkEditable *editable, RenameDialog *rd)
+{
+   if (rd->warned) rename_set_warning (rd, FALSE);
+}
+
+
+/* the extension into the entry (or out of it) */
+static void
+cb_rename_ext_toggled (GtkCheckButton *check, RenameDialog *rd)
+{
+   const gchar *text = gtk_editable_get_text (GTK_EDITABLE (rd->entry));
+   gchar *name;
+
+   if (gtk_check_button_get_active (check)) {
+      name = g_strconcat (text, rd->old_ext, NULL);
+   } else if (g_str_has_suffix (text, rd->old_ext) && strlen (text) > strlen (rd->old_ext)) {
+      name = g_strndup (text, strlen (text) - strlen (rd->old_ext));
+   } else {
+      name = g_strdup (text);
+   }
+   gtk_widget_set_visible (rd->ext_label, !gtk_check_button_get_active (check));
+   gtk_editable_set_text (GTK_EDITABLE (rd->entry), name);
+   gtk_widget_grab_focus (rd->entry);
+   gtk_editable_set_position (GTK_EDITABLE (rd->entry), -1);
+   g_free (name);
+   if (rd->warned) rename_set_warning (rd, FALSE);
+}
+
+
+static void
+cb_rename_ok (GtkWidget *widget, RenameDialog *rd)
+{
+   gchar *name = rename_text (rd);
+
+   if (!name) return;
+   /* asked once; OK again renames as it is */
+   if (!rd->warned && rename_loses_type (rd, name)) {
+      rename_set_warning (rd, TRUE);
+      g_free (name);
+      return;
+   }
+   rd->result = name;
+   gtk_window_destroy (GTK_WINDOW (rd->window));
+}
+
+
+static void
+cb_rename_cancel (GtkWidget *widget, RenameDialog *rd)
+{
+   gtk_window_destroy (GTK_WINDOW (rd->window));
+}
+
+
+static void
+cb_rename_destroy (GtkWidget *window, RenameDialog *rd)
+{
+   g_main_loop_quit (rd->loop);
+}
+
+
+static gchar *
+rename_dialog (const gchar *name, GtkWindow *parent)
+{
+   RenameDialog rd = { 0 };
+   GtkWidget *vbox, *hbox, *label, *box;
+   const gchar *dot = strrchr (name, '.');
+   gchar *ext = NULL, *stem, *text;
+
+   if (dot && dot != name && dot[1]) ext = g_strdup (dot);
+   rd.old_ext = ext;
+   rd.old_known = gimv_image_detect_type_by_ext (name) != NULL;
+   stem = ext ? g_strndup (name, dot - name) : g_strdup (name);
+
+   rd.window = gtk_window_new ();
+   gtk_window_set_title (GTK_WINDOW (rd.window), _("Rename a File"));
+   gtk_window_set_modal (GTK_WINDOW (rd.window), TRUE);
+   if (parent) gtk_window_set_transient_for (GTK_WINDOW (rd.window), parent);
+   gtk_window_set_default_size (GTK_WINDOW (rd.window), 480, -1);
+   g_signal_connect (rd.window, "destroy", G_CALLBACK (cb_rename_destroy), &rd);
+   {
+      GtkEventController *keys = gtk_shortcut_controller_new ();
+      gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (keys),
+         gtk_shortcut_new (gtk_keyval_trigger_new (GDK_KEY_Escape, 0),
+                           gtk_named_action_new ("window.close")));
+      gtk_widget_add_controller (rd.window, keys);
+   }
+
+   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
+   gtk_widget_set_margin_top (vbox, 12);
+   gtk_widget_set_margin_bottom (vbox, 12);
+   gtk_widget_set_margin_start (vbox, 12);
+   gtk_widget_set_margin_end (vbox, 12);
+   gtk_window_set_child (GTK_WINDOW (rd.window), vbox);
+
+   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   label = gtk_label_new_with_mnemonic (_("_New file name:"));
+   gtk_box_append (GTK_BOX (hbox), label);
+   rd.entry = gtk_entry_new ();
+   gtk_widget_set_hexpand (rd.entry, TRUE);
+   gtk_editable_set_text (GTK_EDITABLE (rd.entry), stem);
+   gtk_label_set_mnemonic_widget (GTK_LABEL (label), rd.entry);
+   g_signal_connect (rd.entry, "activate", G_CALLBACK (cb_rename_ok), &rd);
+   gtk_box_append (GTK_BOX (hbox), rd.entry);
+   if (ext) {
+      rd.ext_label = gtk_label_new (ext);
+      gtk_box_append (GTK_BOX (hbox), rd.ext_label);
+   }
+   gtk_box_append (GTK_BOX (vbox), hbox);
+
+   if (ext) {
+      rd.ext_check = gtk_check_button_new_with_mnemonic (_("Change the _extension too"));
+      g_signal_connect (rd.ext_check, "toggled", G_CALLBACK (cb_rename_ext_toggled), &rd);
+      gtk_box_append (GTK_BOX (vbox), rd.ext_check);
+   }
+
+   text = ext
+      ? g_strdup_printf (_("The new name has no extension of an image (it had %s): "
+                           "the file will not be shown as an image.  Rename it so?"), ext)
+      : g_strdup (_("The new name has no extension of an image: the file will not be "
+                    "shown as an image.  Rename it so?"));
+   rd.warning = gtk_label_new (text);
+   g_free (text);
+   gtk_label_set_wrap (GTK_LABEL (rd.warning), TRUE);
+   gtk_label_set_max_width_chars (GTK_LABEL (rd.warning), 50);
+   gtk_label_set_xalign (GTK_LABEL (rd.warning), 0.0);
+   gtk_widget_add_css_class (rd.warning, "warning");
+   gtk_widget_set_visible (rd.warning, FALSE);
+   gtk_box_append (GTK_BOX (vbox), rd.warning);
+
+   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
+   gtk_widget_set_halign (box, GTK_ALIGN_END);
+   {
+      GtkWidget *cancel = gtk_button_new_with_mnemonic (_("_Cancel"));
+      g_signal_connect (cancel, "clicked", G_CALLBACK (cb_rename_cancel), &rd);
+      gtk_box_append (GTK_BOX (box), cancel);
+   }
+   rd.ok_button = gtk_button_new_with_mnemonic (_("_OK"));
+   gtk_widget_add_css_class (rd.ok_button, "suggested-action");
+   g_signal_connect (rd.ok_button, "clicked", G_CALLBACK (cb_rename_ok), &rd);
+   gtk_box_append (GTK_BOX (box), rd.ok_button);
+   gtk_box_append (GTK_BOX (vbox), box);
+
+   g_signal_connect (rd.entry, "changed", G_CALLBACK (cb_rename_changed), &rd);
+
+   gtk_widget_grab_focus (rd.entry);
+
+   rd.loop = g_main_loop_new (NULL, FALSE);
+   gtk_window_present (GTK_WINDOW (rd.window));
+   g_main_loop_run (rd.loop);
+   g_main_loop_unref (rd.loop);
+   g_free (stem);
+   g_free (ext);
+   return rd.result;
+}
+
+
 void
 gimv_thumb_view_rename_file (GimvThumbView *tv)
 {
@@ -3426,10 +3647,7 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
                                                conf.charset_auto_detect_fn,
                                                conf.charset_filename_mode);
 
-      tmpstr = gtkutil_popup_textentry (_("Rename a File"),
-                                        _("New file name: "),
-                                        src_file_internal, NULL, -1, 0,
-                                        GTK_WINDOW (tv->tw));
+      tmpstr = rename_dialog (src_file_internal, GTK_WINDOW (tv->tw));
       g_free (src_file_internal);
       src_file_internal = NULL;
 
