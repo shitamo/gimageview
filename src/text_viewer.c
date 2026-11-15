@@ -129,8 +129,10 @@ text_viewer_create (gchar *filename)
 
    /* text box */
    scrolledwin = gimv_scrolled_window_new (NULL, NULL);
+   /* a long line (no wrap: laid out for a fixed width font) scrolls
+      sideways (it could be read only by moving the cursor) */
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledwin),
-                                   GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+                                   GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
    gimv_box_pack_start (GTK_BOX (vbox), scrolledwin, TRUE, TRUE, 0);
    gtk_widget_set_visible (scrolledwin, TRUE);
 
