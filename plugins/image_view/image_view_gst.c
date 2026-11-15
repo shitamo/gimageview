@@ -84,6 +84,7 @@ typedef struct GimvGstPlayer_Tag
    GstSample     *pending;    /* the newest frame, from the streaming thread */
    guint          idle_id;
    GstSample     *shown;      /* the frame on the screen */
+   GdkTexture    *cover;      /* the album art of a song (its tags) */
 
    gboolean       playing;    /* PLAYING was requested */
    gboolean       paused;
@@ -593,6 +594,75 @@ player_show_message (GimvGstPlayer *player, const gchar *message)
 }
 
 
+/* the album art in tags (the front cover first, then any picture, then
+   a preview picture), decoded; NULL if none */
+#define TAG_IMAGE_TYPE_FRONT_COVER 1   /* GST_TAG_IMAGE_TYPE_FRONT_COVER */
+
+static GdkTexture *
+cover_from_tags (const GstTagList *tags)
+{
+   const gchar *names[] = { GST_TAG_IMAGE, GST_TAG_PREVIEW_IMAGE };
+   GstSample *best = NULL;
+   GdkTexture *texture = NULL;
+   guint t, i;
+
+   if (!tags) return NULL;
+
+   for (t = 0; t < G_N_ELEMENTS (names) && !best; t++) {
+      guint n = gst_tag_list_get_tag_size (tags, names[t]);
+      for (i = 0; i < n; i++) {
+         GstSample *sample = NULL;
+         const GstStructure *info;
+         gint type = -1;
+
+         if (!gst_tag_list_get_sample_index (tags, names[t], i, &sample)) continue;
+         info = gst_sample_get_info (sample);
+         if (info) gst_structure_get_enum (info, "image-type",
+                                           g_type_from_name ("GstTagImageType"), &type);
+         if (!best || type == TAG_IMAGE_TYPE_FRONT_COVER) {
+            if (best) gst_sample_unref (best);
+            best = sample;
+            if (type == TAG_IMAGE_TYPE_FRONT_COVER) break;
+         } else {
+            gst_sample_unref (sample);
+         }
+      }
+   }
+   if (!best) return NULL;
+
+   {
+      GstBuffer *buffer = gst_sample_get_buffer (best);
+      GstMapInfo map;
+
+      if (buffer && gst_buffer_map (buffer, &map, GST_MAP_READ)) {
+         GBytes *bytes = g_bytes_new (map.data, map.size);
+         texture = gdk_texture_new_from_bytes (bytes, NULL);  /* PNG, JPEG, TIFF */
+         g_bytes_unref (bytes);
+         gst_buffer_unmap (buffer, &map);
+      }
+   }
+   gst_sample_unref (best);
+
+   return texture;
+}
+
+
+/* the album art on the screen while there is no video frame (a song) */
+static void
+player_take_tags (GimvGstPlayer *player, GstTagList *tags)
+{
+   GdkTexture *cover;
+
+   if (player->cover) return;              /* the first one stays */
+   cover = cover_from_tags (tags);
+   if (!cover) return;
+   player->cover = cover;
+   if (!player->shown)
+      gtk_picture_set_paintable (GTK_PICTURE (player->picture),
+                                 GDK_PAINTABLE (cover));
+}
+
+
 static gboolean
 idle_show_frame (gpointer data)
 {
@@ -703,6 +773,16 @@ cb_bus_message (GstBus *bus, GstMessage *msg, gpointer data)
    GimvGstPlayer *player = data;
 
    switch (GST_MESSAGE_TYPE (msg)) {
+   case GST_MESSAGE_TAG:
+   {
+      GstTagList *tags = NULL;
+
+      gst_message_parse_tag (msg, &tags);
+      player_take_tags (player, tags);
+      if (tags) gst_tag_list_unref (tags);
+      break;
+   }
+
    case GST_MESSAGE_EOS:
    {
       gboolean next = FALSE;
@@ -1072,6 +1152,7 @@ player_free (gpointer data)
 
    player_shutdown (player);
    if (player->shown) gst_sample_unref (player->shown);
+   g_clear_object (&player->cover);
    g_mutex_clear (&player->lock);
    g_free (player);
 }
@@ -1165,6 +1246,7 @@ player_start (GimvGstPlayer *player)
       gst_sample_unref (player->shown);
       player->shown = NULL;
    }
+   g_clear_object (&player->cover);
 
    g_object_set (player->playbin, "uri", uri, NULL);
    g_free (uri);
@@ -1426,6 +1508,68 @@ wait_for_preroll (GimvImageLoader *loader, GstElement *pipeline)
 }
 
 
+/* the album art of a song for its thumbnail (NULL: none, the song's icon) */
+#define PLAY_FLAG_AUDIO (1 << 1)
+
+static GimvImage *
+song_cover_load (GimvImageLoader *loader, const gchar *filename)
+{
+   GstElement *playbin, *video_sink, *audio_sink;
+   GimvImage *image = NULL;
+   GdkTexture *cover = NULL;
+   GstBus *bus;
+   GstMessage *msg;
+   gchar *uri;
+
+   uri = gst_filename_to_uri (filename, NULL);
+   if (!uri) return NULL;
+
+   playbin    = gst_element_factory_make ("playbin", NULL);
+   video_sink = gst_element_factory_make ("fakesink", NULL);
+   audio_sink = gst_element_factory_make ("fakesink", NULL);
+   if (!playbin || !video_sink || !audio_sink) {
+      if (playbin)    gst_object_unref (gst_object_ref_sink (playbin));
+      if (video_sink) gst_object_unref (gst_object_ref_sink (video_sink));
+      if (audio_sink) gst_object_unref (gst_object_ref_sink (audio_sink));
+      g_free (uri);
+      return NULL;
+   }
+   gst_object_ref_sink (playbin);
+   g_object_set (audio_sink, "sync", FALSE, NULL);
+   g_object_set (playbin,
+                 "uri",        uri,
+                 "video-sink", video_sink,
+                 "audio-sink", audio_sink,
+                 "flags",      PLAY_FLAG_AUDIO,
+                 NULL);
+   g_free (uri);
+
+   /* the tags (with the pictures) come before the sound */
+   gst_element_set_state (playbin, GST_STATE_PAUSED);
+   if (wait_for_preroll (loader, playbin)) {
+      bus = gst_element_get_bus (playbin);
+      while (!cover && (msg = gst_bus_pop_filtered (bus, GST_MESSAGE_TAG))) {
+         GstTagList *tags = NULL;
+         gst_message_parse_tag (msg, &tags);
+         cover = cover_from_tags (tags);
+         if (tags) gst_tag_list_unref (tags);
+         gst_message_unref (msg);
+      }
+      gst_object_unref (bus);
+   }
+   gst_element_set_state (playbin, GST_STATE_NULL);
+   gst_object_unref (playbin);
+
+   if (cover) {
+      image = gimv_image_create_from_texture (cover, 0, 0,
+                                              gdk_texture_get_width (cover),
+                                              gdk_texture_get_height (cover));
+      g_object_unref (cover);
+   }
+   return image;
+}
+
+
 static GimvImage *
 gst_image_loader_load (GimvImageLoader *loader, gpointer data)
 {
@@ -1441,7 +1585,10 @@ gst_image_loader_load (GimvImageLoader *loader, gpointer data)
 
    filename = gimv_image_loader_get_path (loader);
    if (!filename || !*filename) return NULL;
-   if (!loader->info || !gimv_image_info_is_movie (loader->info)) return NULL;
+   if (!loader->info) return NULL;
+   if (gimv_image_info_is_audio (loader->info))
+      return song_cover_load (loader, filename);
+   if (!gimv_image_info_is_movie (loader->info)) return NULL;
    if (!prefs_gst_get_thumb_enable ()) return NULL;
 
    uri = gst_filename_to_uri (filename, NULL);

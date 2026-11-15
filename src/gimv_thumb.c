@@ -657,9 +657,7 @@ gimv_thumb_load (GimvThumb    *thumb,
       return FALSE;
    }
 #endif
-   if (gimv_image_info_is_audio (thumb->info))
-      return FALSE;
-
+   /* a song: its album art (the GStreamer plugin), or its icon */
    /* create cache if not exist */
    if (!thumb->thumbnail && !gimv_thumb_cache_write_disabled ())
    {

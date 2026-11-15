@@ -116,6 +116,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* Movie player: a mute button and a volume slider at the right end of
 	  the control bar (GStreamer, MPlayer); the same for all the windows,
 	  kept in gimvrc (imgview_movie_volume, imgview_movie_mute).
+	* Songs (m4a, mp3, flac, ogg, ...): the album art in the tags is shown
+	  while the song plays, and is its thumbnail (GStreamer).
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).
