@@ -48,7 +48,8 @@ xine_dep  = dependency('libxine', version : '>= 1.2', required : get_option('xin
 gst_dep   = dependency('gstreamer-1.0', version : '>= 1.16', required : get_option('gstreamer'))
 gst_video_dep = dependency('gstreamer-video-1.0', version : '>= 1.16', required : get_option('gstreamer'))
 gst_app_dep   = dependency('gstreamer-app-1.0', version : '>= 1.16', required : get_option('gstreamer'))
-have_gst = gst_dep.found() and gst_video_dep.found() and gst_app_dep.found()
+gst_pbutils_dep = dependency('gstreamer-pbutils-1.0', version : '>= 1.16', required : get_option('gstreamer'))
+have_gst = gst_dep.found() and gst_video_dep.found() and gst_app_dep.found() and gst_pbutils_dep.found()
 libarchive_dep = dependency('libarchive', version : '>= 3.3', required : get_option('libarchive'))
 sqlite_dep = dependency('sqlite3', version : '>= 3.22', required : get_option('index'))
 # face recognition (gimv-faces): C++ and OpenCV >= 4.8 (FaceDetectorYN and

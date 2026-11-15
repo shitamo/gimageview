@@ -12,6 +12,6 @@ if xine_dep.found()
 endif
 if have_gst
   gimv_plugins += shared_module('gimv_gst', ['image_view_gst.c'],
-    dependencies : common_deps + [gst_dep, gst_video_dep, gst_app_dep],
+    dependencies : common_deps + [gst_dep, gst_video_dep, gst_app_dep, gst_pbutils_dep],
     install_dir : dir, kwargs : plugin_kwargs)
 endif

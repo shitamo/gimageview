@@ -7124,3 +7124,60 @@ msgstr "音量: %d%%%s"
 #: src/gimv_image_view.c
 msgid " (muted)"
 msgstr " (ミュート中)"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Title"
+msgstr "タイトル"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Artist"
+msgstr "アーティスト"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Album Artist"
+msgstr "アルバムアーティスト"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Composer"
+msgstr "作曲者"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Track"
+msgstr "トラック"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Disc"
+msgstr "ディスク"
+
+
+#: plugins/image_view/image_view_gst.c
+msgid "Genre"
+msgstr "ジャンル"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Length"
+msgstr "長さ"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Video"
+msgstr "映像の形式"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Picture"
+msgstr "画面"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Audio"
+msgstr "音声の形式"
+
+#: plugins/image_view/image_view_gst.c
+msgid "Sound"
+msgstr "音質"
+
+#: plugins/image_view/image_view_gst.c
+msgid "mono"
+msgstr "モノラル"
+
+#: plugins/image_view/image_view_gst.c
+msgid "stereo"
+msgstr "ステレオ"

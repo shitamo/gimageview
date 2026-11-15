@@ -36,6 +36,7 @@
 #endif
 #include "dnd.h"
 #include "gimv_comment.h"
+#include "gimv_media_tags.h"
 #include "gimv_file_comment.h"
 #include "gimv_icon_stock.h"
 #include "gimv_image_info.h"
@@ -342,6 +343,10 @@ cb_destroyed (GtkWidget *widget, GimvCommentView *cv)
    if (cv->del_cancel) {
       g_cancellable_cancel (cv->del_cancel);
       g_clear_object (&cv->del_cancel);
+   }
+   if (cv->media_cancel) {
+      g_cancellable_cancel (cv->media_cancel);
+      g_clear_object (&cv->media_cancel);
    }
 
 #ifdef ENABLE_INDEX
@@ -1250,6 +1255,86 @@ gimv_comment_view_data_enter (GimvCommentView *cv)
 }
 
 
+/* a row shown only (in italics), as the comments written in the file */
+static void
+append_file_row (GimvCommentView *cv, const gchar *name, const gchar *value,
+                 const gchar *whole)
+{
+   GListModel *model = gimv_list_view_get_model (cv->comment_clist);
+   gchar *tip = g_markup_escape_text (whole ? whole : value, -1);
+   GimvRow *row = comment_row_new ();
+
+   gimv_row_set (row,
+                 COLUMN_KEY,       name,
+                 COLUMN_VALUE,     value,
+                 COLUMN_RAW_ENTRY, NULL,
+                 COLUMN_FILE,      TRUE,
+                 COLUMN_TIP,       tip,
+                 COLUMN_TERMINATOR);
+   g_list_store_append (G_LIST_STORE (model), row);
+   g_object_unref (row);
+   g_free (tip);
+}
+
+
+/* the tags of a song or a movie (artist, album, ...), read by the GStreamer
+   plugin in a thread: after the rows of the file */
+typedef struct {
+   GimvCommentView *cv;
+   GCancellable    *cancel;
+} MediaTagsJob;
+
+static void
+cb_media_tags (GPtrArray *pairs, gpointer data)
+{
+   MediaTagsJob *job = data;
+   guint i;
+
+   if (!g_cancellable_is_cancelled (job->cancel) && pairs) {
+      for (i = 0; i + 1 < pairs->len; i += 2) {
+         const gchar *value = g_ptr_array_index (pairs, i + 1);
+         const gchar *nl = strchr (value, '\n');
+         gchar *first = nl ? g_strdup_printf ("%.*s …", (gint) (nl - value), value)
+                           : NULL;
+
+         append_file_row (job->cv, g_ptr_array_index (pairs, i),
+                          first ? first : value, value);
+         g_free (first);
+      }
+   }
+   if (pairs) g_ptr_array_unref (pairs);
+   g_object_unref (job->cancel);
+   g_free (job);
+}
+
+
+static void
+read_media_tags (GimvCommentView *cv, GimvImageInfo *info)
+{
+   MediaTagsJob *job;
+
+   if (cv->media_cancel) {
+      g_cancellable_cancel (cv->media_cancel);
+      g_clear_object (&cv->media_cancel);
+   }
+   if (!info || gimv_image_info_is_in_archive (info)
+       || !(gimv_image_info_is_audio (info) || gimv_image_info_is_movie (info))
+       || !gimv_image_info_get_path (info))
+      return;
+
+   cv->media_cancel = g_cancellable_new ();
+   job = g_new0 (MediaTagsJob, 1);
+   job->cv = cv;
+   job->cancel = g_object_ref (cv->media_cancel);
+   if (!gimv_media_tags_read (gimv_image_info_get_path (info), job->cancel,
+                              cb_media_tags, job))
+   {
+      g_object_unref (job->cancel);
+      g_free (job);
+   }
+}
+
+
 static void
 gimv_comment_view_reset_data (GimvCommentView *cv)
 {
@@ -1324,6 +1409,8 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
          g_ptr_array_unref (list);
       }
 
+      read_media_tags (cv, info);
+
       if (cv->comment->note && *cv->comment->note) {
          GtkTextBuffer *buffer;
 
@@ -1347,6 +1434,12 @@ void
 gimv_comment_view_clear (GimvCommentView *cv)
 {
    g_return_if_fail (cv);
+
+   /* the tags of the file before are not wanted any more */
+   if (cv->media_cancel) {
+      g_cancellable_cancel (cv->media_cancel);
+      g_clear_object (&cv->media_cancel);
+   }
 
    g_list_store_remove_all (G_LIST_STORE (gimv_list_view_get_model (cv->comment_clist)));
 

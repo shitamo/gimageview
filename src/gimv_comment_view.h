@@ -52,6 +52,7 @@ struct GimvCommentView_Tag
    GtkWidget *delete_button;      /* the whole comment (asks first) */
    GtkWidget *item_del_button;    /* the item selected */
    GCancellable *del_cancel;      /* the question of delete_button */
+   GCancellable *media_cancel;    /* the tags of a song / movie being read */
 
    gpointer   accel_group;  /* GTK4: always NULL (mnemonics are used) */
 

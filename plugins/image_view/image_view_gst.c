@@ -42,6 +42,7 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
 #include <gst/video/video.h>
+#include <gst/pbutils/pbutils.h>
 
 #include "gimageview.h"
 #include "gimv_gtk4_compat.h"
@@ -49,6 +50,7 @@
 #include "gimv_image_info.h"
 #include "gimv_image_loader.h"
 #include "gimv_image_view.h"
+#include "gimv_media_tags.h"
 #include "gimv_mime_types.h"
 #include "gimv_plugin.h"
 #include "gimv_prefs_ui_utils.h"
@@ -272,6 +274,262 @@ GimvPluginInfo gimv_plugin_info =
 };
 
 
+/******************************************************************************
+ *
+ *   tags of songs and movies (the "Data" page), read in a thread
+ *
+ ******************************************************************************/
+typedef struct {
+   gchar            *path;
+   GCancellable     *cancel;     /* the caller's: the work is skipped */
+   GimvMediaTagsDone done;
+   gpointer          data;
+} MediaTagsTask;
+
+
+static void
+media_tags_task_free (gpointer p)
+{
+   MediaTagsTask *t = p;
+   g_free (t->path);
+   if (t->cancel) g_object_unref (t->cancel);
+   g_free (t);
+}
+
+
+static void
+add_pair (GPtrArray *pairs, const gchar *name, gchar *value)
+{
+   if (!value || !*value) { g_free (value); return; }
+   g_ptr_array_add (pairs, g_strdup (name));
+   g_ptr_array_add (pairs, value);
+}
+
+
+/* all the strings of a tag, joined (several artists) */
+static gchar *
+tag_strings (const GstTagList *tags, const gchar *tag)
+{
+   GString *str;
+   guint i, n;
+
+   if (!tags || !(n = gst_tag_list_get_tag_size (tags, tag))) return NULL;
+   str = g_string_new (NULL);
+   for (i = 0; i < n; i++) {
+      const gchar *s = NULL;
+      if (!gst_tag_list_peek_string_index (tags, tag, i, &s) || !s || !*s) continue;
+      if (str->len) g_string_append (str, ", ");
+      g_string_append (str, s);
+   }
+   return g_string_free (str, str->len == 0);
+}
+
+
+static gchar *
+tag_number_of (const GstTagList *tags, const gchar *num_tag, const gchar *count_tag)
+{
+   guint num = 0, count = 0;
+
+   if (!tags || !gst_tag_list_get_uint (tags, num_tag, &num) || !num) return NULL;
+   if (gst_tag_list_get_uint (tags, count_tag, &count) && count)
+      return g_strdup_printf ("%u / %u", num, count);
+   return g_strdup_printf ("%u", num);
+}
+
+
+static gchar *
+tag_date (const GstTagList *tags)
+{
+   GstDateTime *dt = NULL;
+   GDate *date = NULL;
+   gchar *str = NULL;
+
+   if (!tags) return NULL;
+   if (gst_tag_list_get_date_time (tags, GST_TAG_DATE_TIME, &dt) && dt) {
+      if (gst_date_time_has_day (dt))
+         str = g_strdup_printf ("%04d-%02d-%02d", gst_date_time_get_year (dt),
+                                gst_date_time_get_month (dt), gst_date_time_get_day (dt));
+      else if (gst_date_time_has_year (dt))
+         str = g_strdup_printf ("%04d", gst_date_time_get_year (dt));
+      gst_date_time_unref (dt);
+   } else if (gst_tag_list_get_date (tags, GST_TAG_DATE, &date) && date) {
+      if (g_date_valid (date))
+         str = g_strdup_printf ("%04d-%02d-%02d", g_date_get_year (date),
+                                g_date_get_month (date), g_date_get_day (date));
+      g_date_free (date);
+   }
+   return str;
+}
+
+
+static gchar *
+duration_string (GstClockTime len)
+{
+   guint s;
+
+   if (!GST_CLOCK_TIME_IS_VALID (len) || len == 0) return NULL;
+   s = (guint) (len / GST_SECOND);
+   if (s >= 3600)
+      return g_strdup_printf ("%u:%02u:%02u", s / 3600, s / 60 % 60, s % 60);
+   return g_strdup_printf ("%u:%02u", s / 60, s % 60);
+}
+
+
+static gchar *
+stream_codec (GstDiscovererStreamInfo *sinfo)
+{
+   const GstTagList *tags = gst_discoverer_stream_info_get_tags (sinfo);
+   const gchar *tag = GST_IS_DISCOVERER_AUDIO_INFO (sinfo)
+      ? GST_TAG_AUDIO_CODEC : GST_TAG_VIDEO_CODEC;
+   gchar *codec = NULL;
+   GstCaps *caps;
+
+   if (tags && gst_tag_list_get_string (tags, tag, &codec) && codec) return codec;
+   caps = gst_discoverer_stream_info_get_caps (sinfo);
+   if (caps) {
+      codec = gst_pb_utils_get_codec_description (caps);
+      gst_caps_unref (caps);
+   }
+   return codec;
+}
+
+
+static void
+media_tags_thread (GTask *task, gpointer source, gpointer task_data,
+                   GCancellable *unused)
+{
+   MediaTagsTask *t = task_data;
+   GCancellable *cancellable = t->cancel;
+   GstDiscoverer *disc;
+   GstDiscovererInfo *info = NULL;
+   GPtrArray *pairs = NULL;
+   gchar *uri;
+   GList *streams, *node;
+   GstTagList *tags = NULL;
+   gboolean audio_done = FALSE, video_done = FALSE;
+
+   uri = gst_filename_to_uri (t->path, NULL);
+   disc = uri ? gst_discoverer_new (5 * GST_SECOND, NULL) : NULL;
+   if (disc && !g_cancellable_is_cancelled (cancellable))
+      info = gst_discoverer_discover_uri (disc, uri, NULL);
+   g_free (uri);
+   if (disc) g_object_unref (disc);
+   if (!info || g_cancellable_is_cancelled (cancellable)) {
+      if (info) gst_discoverer_info_unref (info);
+      g_task_return_pointer (task, NULL, NULL);
+      return;
+   }
+
+   /* the tags of the file and of its streams together */
+   if (gst_discoverer_info_get_tags (info))
+      tags = gst_tag_list_copy (gst_discoverer_info_get_tags (info));
+   streams = gst_discoverer_info_get_stream_list (info);
+   for (node = streams; node; node = g_list_next (node)) {
+      const GstTagList *st = gst_discoverer_stream_info_get_tags (node->data);
+      if (!st) continue;
+      if (!tags) tags = gst_tag_list_copy (st);
+      else gst_tag_list_insert (tags, st, GST_TAG_MERGE_KEEP);
+   }
+
+   pairs = g_ptr_array_new_with_free_func (g_free);
+   add_pair (pairs, _("Title"),        tag_strings (tags, GST_TAG_TITLE));
+   add_pair (pairs, _("Artist"),       tag_strings (tags, GST_TAG_ARTIST));
+   add_pair (pairs, _("Album"),        tag_strings (tags, GST_TAG_ALBUM));
+   add_pair (pairs, _("Album Artist"), tag_strings (tags, GST_TAG_ALBUM_ARTIST));
+   add_pair (pairs, _("Composer"),     tag_strings (tags, GST_TAG_COMPOSER));
+   add_pair (pairs, _("Track"),        tag_number_of (tags, GST_TAG_TRACK_NUMBER,
+                                                      GST_TAG_TRACK_COUNT));
+   add_pair (pairs, _("Disc"),         tag_number_of (tags, GST_TAG_ALBUM_VOLUME_NUMBER,
+                                                      GST_TAG_ALBUM_VOLUME_COUNT));
+   add_pair (pairs, _("Released"),     tag_date (tags));
+   add_pair (pairs, _("Genre"),        tag_strings (tags, GST_TAG_GENRE));
+   add_pair (pairs, _("Comment"),      tag_strings (tags, GST_TAG_COMMENT));
+   add_pair (pairs, _("Length"),       duration_string (gst_discoverer_info_get_duration (info)));
+
+   for (node = streams; node; node = g_list_next (node)) {
+      GstDiscovererStreamInfo *sinfo = node->data;
+
+      if (GST_IS_DISCOVERER_VIDEO_INFO (sinfo) && !video_done) {
+         GstDiscovererVideoInfo *v = GST_DISCOVERER_VIDEO_INFO (sinfo);
+         if (gst_discoverer_video_info_is_image (v)) continue;   /* a cover */
+         video_done = TRUE;
+         add_pair (pairs, _("Video"), stream_codec (sinfo));
+         add_pair (pairs, _("Picture"),
+                   g_strdup_printf ("%u x %u, %.2f fps",
+                                    gst_discoverer_video_info_get_width (v),
+                                    gst_discoverer_video_info_get_height (v),
+                                    gst_discoverer_video_info_get_framerate_denom (v)
+                                    ? (gdouble) gst_discoverer_video_info_get_framerate_num (v)
+                                      / gst_discoverer_video_info_get_framerate_denom (v)
+                                    : 0.0));
+      } else if (GST_IS_DISCOVERER_AUDIO_INFO (sinfo) && !audio_done) {
+         GstDiscovererAudioInfo *a = GST_DISCOVERER_AUDIO_INFO (sinfo);
+         guint bitrate = gst_discoverer_audio_info_get_bitrate (a);
+         GString *str = g_string_new (NULL);
+
+         audio_done = TRUE;
+         add_pair (pairs, _("Audio"), stream_codec (sinfo));
+         if (!bitrate && tags) {
+            if (!gst_tag_list_get_uint (tags, GST_TAG_BITRATE, &bitrate))
+               gst_tag_list_get_uint (tags, GST_TAG_NOMINAL_BITRATE, &bitrate);
+         }
+         if (bitrate) g_string_append_printf (str, "%u kbps", (bitrate + 500) / 1000);
+         if (gst_discoverer_audio_info_get_sample_rate (a))
+            g_string_append_printf (str, "%s%u Hz", str->len ? ", " : "",
+                                    gst_discoverer_audio_info_get_sample_rate (a));
+         switch (gst_discoverer_audio_info_get_channels (a)) {
+         case 0:  break;
+         case 1:  g_string_append_printf (str, "%s%s", str->len ? ", " : "", _("mono"));   break;
+         case 2:  g_string_append_printf (str, "%s%s", str->len ? ", " : "", _("stereo")); break;
+         default: g_string_append_printf (str, "%s%u ch", str->len ? ", " : "",
+                                          gst_discoverer_audio_info_get_channels (a));
+         }
+         add_pair (pairs, _("Sound"), g_string_free (str, FALSE));
+      }
+   }
+
+   gst_discoverer_stream_info_list_free (streams);
+   if (tags) gst_tag_list_unref (tags);
+   gst_discoverer_info_unref (info);
+
+   if (pairs->len == 0) {
+      g_ptr_array_unref (pairs);
+      pairs = NULL;
+   }
+   g_task_return_pointer (task, pairs, (GDestroyNotify) g_ptr_array_unref);
+}
+
+
+static void
+media_tags_ready (GObject *source, GAsyncResult *res, gpointer data)
+{
+   MediaTagsTask *t = g_task_get_task_data (G_TASK (res));
+   GPtrArray *pairs = g_task_propagate_pointer (G_TASK (res), NULL);
+
+   t->done (pairs, t->data);   /* the caller frees pairs */
+}
+
+
+static void
+media_tags_read (const gchar *path, GCancellable *cancellable,
+                 GimvMediaTagsDone done, gpointer data)
+{
+   MediaTagsTask *t = g_new0 (MediaTagsTask, 1);
+   GTask *task;
+
+   t->path = g_strdup (path);
+   t->cancel = cancellable ? g_object_ref (cancellable) : NULL;
+   t->done = done;
+   t->data = data;
+   /* no cancellable for the task itself: done is always called (the caller
+      checks its own); the thread looks at it to skip the work */
+   task = g_task_new (NULL, NULL, media_tags_ready, NULL);
+   g_task_set_task_data (task, t, media_tags_task_free);
+   g_task_run_in_thread (task, media_tags_thread);
+   g_object_unref (task);
+}
+
+
 gchar *
 g_module_check_init (GModule *module)
 {
@@ -287,6 +545,9 @@ g_module_check_init (GModule *module)
    /* gimv loads plugins with G_MODULE_BIND_LAZY and may unload a module;
       GStreamer keeps callbacks into this one */
    g_module_make_resident (module);
+
+   /* the data of songs and movies (artist, album, length, ...) */
+   gimv_media_tags_set_reader (media_tags_read);
 
    return NULL;
 }
