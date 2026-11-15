@@ -112,6 +112,7 @@ struct GimvMPlayer_Tag
    gchar             *filename;
    gfloat             pos;
    gfloat             speed;
+   gint               volume;    /* 0 - 100 [%], -1: mplayer's own */
    GimvMPlayerStatus  status;
    GimvMPlayerFlags   flags;
 
@@ -183,6 +184,9 @@ void              gimv_mplayer_start                 (GimvMPlayer  *player,
                                                       gfloat        speed);
 void              gimv_mplayer_stop                  (GimvMPlayer  *player);
 void              gimv_mplayer_toggle_pause          (GimvMPlayer  *player);
+/* the volume of mplayer's own (-softvol) [0 - 100 %] (0: no sound) */
+void              gimv_mplayer_set_volume            (GimvMPlayer  *player,
+                                                      gint          volume);
 void              gimv_mplayer_set_speed             (GimvMPlayer  *player,
                                                       gfloat        speed);
 gfloat            gimv_mplayer_get_speed             (GimvMPlayer  *player);

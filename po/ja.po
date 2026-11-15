@@ -7107,3 +7107,20 @@ msgstr "「ゴミ箱へ移してリンクを残す」: それぞれの名前は�
 #: src/gimv_dupl_win.c
 msgid "Trash and Leave _Links"
 msgstr "ゴミ箱へ移してリンクを残す(_L)"
+
+#: src/gimv_image_view.c
+msgid "Sound on"
+msgstr "音を出す"
+
+#: src/gimv_image_view.c
+msgid "Mute"
+msgstr "ミュート"
+
+#: src/gimv_image_view.c
+#, c-format
+msgid "Volume: %d%%%s"
+msgstr "音量: %d%%%s"
+
+#: src/gimv_image_view.c
+msgid " (muted)"
+msgstr " (ミュート中)"

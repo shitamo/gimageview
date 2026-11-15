@@ -306,6 +306,7 @@ gimv_mplayer_init (GimvMPlayer *player)
    player->filename   = NULL;
    player->pos        = 0.0;
    player->speed      = 1.0;
+   player->volume     = -1;
    player->status     = GimvMPlayerStatusStop;
    player->flags      = GimvMPlayerEmbedFlag
                         | GimvMPlayerAllowFrameDroppingFlag;
@@ -747,6 +748,13 @@ gimv_mplayer_start (GimvMPlayer *player, gfloat pos, gfloat speed)
    arg_list = g_list_append (arg_list, g_strdup (player->command));
    arg_list = g_list_append (arg_list, g_strdup("-slave"));
 
+   /* the volume of this mplayer, not of the sound card */
+   if (player->volume >= 0) {
+      arg_list = g_list_append (arg_list, g_strdup ("-softvol"));
+      arg_list = g_list_append (arg_list, g_strdup ("-volume"));
+      arg_list = g_list_append (arg_list, g_strdup_printf ("%d", player->volume));
+   }
+
    /* GTK4: embedding is only possible on the X11 backend (player->xid is
     * our X child window); elsewhere mplayer opens its own video window. */
    if (gtk_widget_get_realized (GTK_WIDGET (player)) && player->xid) {
@@ -849,6 +857,20 @@ void
 gimv_mplayer_toggle_pause (GimvMPlayer *player)
 {
    gimv_mplayer_send_command (player, "pause\n");
+}
+
+
+void
+gimv_mplayer_set_volume (GimvMPlayer *player, gint volume)
+{
+   gchar buf[64];
+
+   g_return_if_fail (GIMV_IS_MPLAYER (player));
+
+   player->volume = CLAMP (volume, 0, 100);
+   /* "volume <value> 1": the value itself (not a step) */
+   g_snprintf (buf, sizeof (buf), "volume %d 1\n", player->volume);
+   gimv_mplayer_send_command (player, buf);
 }
 
 

@@ -113,6 +113,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  button closes any tab; the current tab is lighter.  "Show full path"
 	  is off by default (the name of the folder; the full path in the
 	  tooltip either way).
+	* Movie player: a mute button and a volume slider at the right end of
+	  the control bar (GStreamer, MPlayer); the same for all the windows,
+	  kept in gimvrc (imgview_movie_volume, imgview_movie_mute).
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

@@ -2973,6 +2973,10 @@ gimv_image_view_change_view_mode (GimvImageView *iv,
 
 
 /* GTK4: replacement of gtk_toolbar_append_item () (icon only toolbar) */
+static void player_volume_sync (GimvImageView *iv);
+static void cb_player_volume   (GtkRange *range, GimvImageView *iv);
+static void cb_player_mute     (GtkWidget *button, GimvImageView *iv);
+
 static GtkWidget *
 player_toolbar_append_item (GtkWidget   *toolbar,
                             const gchar *tooltip,
@@ -2990,9 +2994,89 @@ player_toolbar_append_item (GtkWidget   *toolbar,
    if (tooltip)
       gtk_widget_set_tooltip_text (button, tooltip);
    g_signal_connect (G_OBJECT (button), "clicked", callback, data);
-   gtk_box_append (GTK_BOX (toolbar), button);
+   if (toolbar)
+      gtk_box_append (GTK_BOX (toolbar), button);
 
    return button;
+}
+
+
+/* the controls of the sound of iv as conf says */
+static gboolean player_volume_syncing = FALSE;
+
+static void
+player_volume_sync (GimvImageView *iv)
+{
+   gint volume = CLAMP (conf.imgview_movie_volume, 0, 100);
+   gboolean mute = conf.imgview_movie_mute;
+   gchar buf[64];
+
+   if (!iv->player.volume || !iv->player.mute) return;
+
+   player_volume_syncing = TRUE;
+   gtk_range_set_value (GTK_RANGE (iv->player.volume), volume);
+   player_volume_syncing = FALSE;
+
+   gtk_image_set_from_icon_name
+      (GTK_IMAGE (iv->player.mute_icon),
+       mute || volume == 0  ? "audio-volume-muted-symbolic"
+       : volume < 34        ? "audio-volume-low-symbolic"
+       : volume < 67        ? "audio-volume-medium-symbolic"
+       :                      "audio-volume-high-symbolic");
+   gtk_widget_set_tooltip_text (iv->player.mute,
+                                mute ? _("Sound on") : _("Mute"));
+   g_snprintf (buf, sizeof (buf), _("Volume: %d%%%s"), volume,
+               mute ? _(" (muted)") : "");
+   gtk_widget_set_tooltip_text (iv->player.volume, buf);
+   /* a slider of a muted sound looks so */
+   gtk_widget_set_opacity (iv->player.volume, mute ? 0.5 : 1.0);
+}
+
+
+static void
+cb_player_volume (GtkRange *range, GimvImageView *iv)
+{
+   if (player_volume_syncing) return;
+   /* moving the slider of a muted sound turns it on */
+   gimv_image_view_set_volume ((gint) (gtk_range_get_value (range) + 0.5), FALSE);
+}
+
+
+static void
+cb_player_mute (GtkWidget *button, GimvImageView *iv)
+{
+   gimv_image_view_set_volume (conf.imgview_movie_volume, !conf.imgview_movie_mute);
+}
+
+
+void
+gimv_image_view_get_volume (gint *volume, gboolean *mute)
+{
+   if (volume) *volume = CLAMP (conf.imgview_movie_volume, 0, 100);
+   if (mute)   *mute   = conf.imgview_movie_mute;
+}
+
+
+/* the same for all the views: the controls of all follow, and the players
+   of all that play */
+void
+gimv_image_view_set_volume (gint volume, gboolean mute)
+{
+   GList *node;
+
+   conf.imgview_movie_volume = volume = CLAMP (volume, 0, 100);
+   conf.imgview_movie_mute   = mute;
+
+   for (node = GimvImageViewList; node; node = g_list_next (node)) {
+      GimvImageView *iv = node->data;
+      GimvImageViewPlayableIF *playable;
+
+      player_volume_sync (iv);
+      if (!iv->draw_area_funcs) continue;
+      playable = iv->draw_area_funcs->playable;
+      if (playable && playable->set_volume_fn)
+         playable->set_volume_fn (iv, volume, mute);
+   }
 }
 
 
@@ -3336,6 +3420,24 @@ gimv_image_view_create_player_toolbar (GimvImageView *iv)
    gimv_box_pack_start (GTK_BOX (hbox), iv->player.time_label, FALSE, FALSE, 0);
    g_signal_connect_swapped (adj, "value-changed",
                              G_CALLBACK (player_update_time), iv);
+
+   /* the sound: mute and the volume (the same for all the views) */
+   iv->player.mute_icon = gtk_image_new_from_icon_name ("audio-volume-high-symbolic");
+   button = player_toolbar_append_item (NULL, NULL, iv->player.mute_icon,
+                                        G_CALLBACK (cb_player_mute), iv);
+   gimv_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
+   iv->player.mute = button;
+
+   adj = gtk_adjustment_new (100.0, 0.0, 100.0, 1.0, 10.0, 0.0);
+   iv->player.volume = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adj);
+   gtk_scale_set_draw_value (GTK_SCALE (iv->player.volume), FALSE);
+   gtk_widget_set_size_request (iv->player.volume, 80, -1);
+   gtk_widget_set_focusable (iv->player.volume, FALSE);
+   gtk_widget_set_margin_end (iv->player.volume, 4);
+   gimv_box_pack_start (GTK_BOX (hbox), iv->player.volume, FALSE, FALSE, 0);
+   g_signal_connect (iv->player.volume, "value-changed",
+                     G_CALLBACK (cb_player_volume), iv);
+   player_volume_sync (iv);
 
    return hbox;
 }
@@ -5495,6 +5597,11 @@ gimv_image_view_playable_set_status (GimvImageView *iv,
       enable = playable->eject_fn ? TRUE : FALSE;
       gtk_widget_set_sensitive (iv->player.eject, enable);
       if (eject) gimv_menu_item_set_sensitive (eject, enable);
+
+      /* a player without the volume (the setting stays for the others) */
+      enable = playable->set_volume_fn ? TRUE : FALSE;
+      if (iv->player.mute)   gtk_widget_set_sensitive (iv->player.mute,   enable);
+      if (iv->player.volume) gtk_widget_set_sensitive (iv->player.volume, enable);
 
       if (playable->is_seekable_fn
           && playable->is_seekable_fn (iv)

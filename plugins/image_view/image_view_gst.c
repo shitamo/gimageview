@@ -127,6 +127,9 @@ static guint      imageview_gst_get_length       (GimvImageView *iv);
 static guint      imageview_gst_get_position     (GimvImageView *iv);
 static void       imageview_gst_preview          (GimvImageView *iv,
                                                   guint          pos);
+static void       imageview_gst_set_volume       (GimvImageView *iv,
+                                                  gint           volume,
+                                                  gboolean       mute);
 
 static GimvImage *gst_image_loader_load          (GimvImageLoader *loader,
                                                   gpointer         data);
@@ -150,6 +153,7 @@ static GimvImageViewPlayableIF playable_if = {
    get_length_fn:       imageview_gst_get_length,
    get_position_fn:     imageview_gst_get_position,
    preview_fn:          imageview_gst_preview,
+   set_volume_fn:       imageview_gst_set_volume,
 };
 
 
@@ -563,6 +567,21 @@ get_player (GimvImageView *iv)
    if (!iv->draw_area) return NULL;
 
    return g_object_get_data (G_OBJECT (iv->draw_area), GST_KEY);
+}
+
+
+/* the volume slider [%] as the ear hears it: cubic (as GstStreamVolume's
+   GST_STREAM_VOLUME_FORMAT_CUBIC): 50 % is about half as loud */
+static void
+player_apply_volume (GimvGstPlayer *player, gint volume, gboolean mute)
+{
+   gdouble v = CLAMP (volume, 0, 100) / 100.0;
+
+   if (!player->playbin) return;
+   g_object_set (player->playbin,
+                 "volume", v * v * v,
+                 "mute",   mute,
+                 NULL);
 }
 
 
@@ -1097,6 +1116,13 @@ player_create_pipeline (GimvGstPlayer *player)
 
    g_object_set (player->playbin, "video-sink", sink, NULL);
 
+   {
+      gint volume;
+      gboolean mute;
+      gimv_image_view_get_volume (&volume, &mute);
+      player_apply_volume (player, volume, mute);
+   }
+
    bus = gst_element_get_bus (player->playbin);
    player->bus_watch = gst_bus_add_watch (bus, cb_bus_message, player);
    gst_object_unref (bus);
@@ -1275,6 +1301,15 @@ imageview_gst_play (GimvImageView *iv)
    } else {
       imageview_gst_pause (iv);          /* the play button toggles */
    }
+}
+
+
+static void
+imageview_gst_set_volume (GimvImageView *iv, gint volume, gboolean mute)
+{
+   GimvGstPlayer *player = get_player (iv);
+
+   if (player) player_apply_volume (player, volume, mute);
 }
 
 

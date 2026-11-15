@@ -151,6 +151,8 @@ typedef struct _Config {
    gint       imgview_player_visible;
    gboolean   imgview_scroll_nolimit;
    gboolean   imgview_movie_continuance;
+   gint       imgview_movie_volume;      /* 0 - 100 [%] */
+   gboolean   imgview_movie_mute;
 
    gchar     *imgview_mouse_button;
 

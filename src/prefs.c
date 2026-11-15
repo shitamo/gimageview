@@ -174,6 +174,8 @@ static ConfParam param_imageview [] = {
    {"imgview_player_visible",     D_ENUM,   "2",       &conf.imgview_player_visible},
    {"imgview_scroll_nolimit",     D_BOOL,   "FALSE",   &conf.imgview_scroll_nolimit},
    {"imgview_movie_continuance",  D_BOOL,   "FALSE",   &conf.imgview_movie_continuance},
+   {"imgview_movie_volume",       D_INT,    "100",     &conf.imgview_movie_volume},
+   {"imgview_movie_mute",         D_BOOL,   "FALSE",   &conf.imgview_movie_mute},
    {"imgview_movie_lock_mouse",   D_BOOL,   "FALSE",   &conf.imgview_movie_lock_mouse},
    {"movie_default_view_mode",    D_STRING, NULL,      &conf.movie_default_view_mode},
    {"imgview_mouse_button",       D_STRING,

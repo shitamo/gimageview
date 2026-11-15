@@ -55,6 +55,10 @@ static guint      imageview_mplayer_get_length       (GimvImageView *iv);
 static guint      imageview_mplayer_get_position     (GimvImageView *iv);
 
 
+static void imageview_mplayer_set_volume (GimvImageView *iv,
+                                         gint           volume,
+                                         gboolean       mute);
+
 static GimvImageViewPlayableIF playable_if = {
    is_playable_fn:      imageview_mplayer_is_playable,
    is_seekable_fn:      imageview_mplayer_is_seekable,
@@ -68,6 +72,8 @@ static GimvImageViewPlayableIF playable_if = {
    get_status_fn:       imageview_mplayer_get_status,
    get_length_fn:       imageview_mplayer_get_length,
    get_position_fn:     imageview_mplayer_get_position,
+   preview_fn:          NULL,
+   set_volume_fn:       imageview_mplayer_set_volume,
 };
 
 
@@ -625,6 +631,10 @@ imageview_mplayer_play (GimvImageView *iv)
    speed = gimv_mplayer_get_speed (mplayer);
 
    if (!gimv_mplayer_is_running (mplayer)) {
+      gint volume;
+      gboolean mute;
+      gimv_image_view_get_volume (&volume, &mute);
+      mplayer->volume = mute ? 0 : volume;
       imageview_mplayer_real_play (iv);
    } else if (status == GimvMPlayerStatusPause) {
       gimv_mplayer_toggle_pause (mplayer);
@@ -635,6 +645,18 @@ imageview_mplayer_play (GimvImageView *iv)
    } else if (status == GimvMPlayerStatusPlay) {
       gimv_mplayer_set_speed (GIMV_MPLAYER (mplayer), 1.0);
    }
+}
+
+
+static void
+imageview_mplayer_set_volume (GimvImageView *iv, gint volume, gboolean mute)
+{
+   GimvMPlayer *mplayer;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   mplayer = get_mplayer (iv);
+   if (!mplayer) return;
+   gimv_mplayer_set_volume (mplayer, mute ? 0 : volume);
 }
 
 

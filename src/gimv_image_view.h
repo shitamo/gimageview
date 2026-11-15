@@ -155,6 +155,9 @@ struct GimvImageView_Tag
       GtkWidget *seekbar;
       GtkWidget *play_icon;
       GtkWidget *time_label;   /* "elapsed / total" */
+      GtkWidget *mute;         /* sound on / off */
+      GtkWidget *mute_icon;
+      GtkWidget *volume;       /* the volume slider */
       GtkWidget *preview;      /* seek bar preview popover */
       GtkWidget *preview_picture;
       GtkWidget *preview_label;
@@ -364,6 +367,11 @@ void       gimv_image_view_playable_eject         (GimvImageView  *iv);
 GimvImageViewPlayableStatus
            gimv_image_view_playable_get_status    (GimvImageView  *iv);
 gboolean   gimv_image_view_playable_is_busy       (GimvImageView  *iv);
+/* the volume of movies and sound, for all the views (kept in gimvrc) */
+void       gimv_image_view_get_volume             (gint           *volume,
+                                                   gboolean       *mute);
+void       gimv_image_view_set_volume             (gint            volume,
+                                                   gboolean        mute);
 gboolean   gimv_image_view_frame_resized          (GimvImageView  *iv);
 /* checkerboard behind the transparent parts of an image (else the
    background colour shows through) */
@@ -406,7 +414,7 @@ void       gimv_image_view_nth                    (GimvImageView  *iv,
  *  GimvImageView Embeder Plugin interface
  *
  ****************************************************************************/
-#define GIMV_IMAGE_VIEW_IF_VERSION 6
+#define GIMV_IMAGE_VIEW_IF_VERSION 7
 
 struct GimvImageViewPlugin_Tag
 {
@@ -451,6 +459,12 @@ struct GimvImageViewPlayableIF_Tag {
       loop).  A new request may come before the last one is answered. */
    void     (*preview_fn)      (GimvImageView *iv,
                                 guint          pos);
+   /* optional: the volume of the sound [0 - 100 %] and mute; called when
+      they are changed.  A player starting takes them from
+      gimv_image_view_get_volume (). */
+   void     (*set_volume_fn)   (GimvImageView *iv,
+                                gint           volume,
+                                gboolean       mute);
 };
 
 
