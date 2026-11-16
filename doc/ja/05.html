@@ -196,8 +196,14 @@ EXIF 対応で作成した場合にある項目です。画像の EXIF データ
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
 <a name="05-03"></a>5.3. ディレクトリビュー</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_dirview.png" width="277" height="382" alt="ディレクトリビューのマウスメニュー">
-<p class="caption">ディレクトリビューのマウスメニュー</p></div>
+<p class="para">
+ディレクトリビューには、ディレクトリのタブのほかに、画像の索引の日付・タグ・人物のタブ (<a href="02.html#02-02">2.2</a>、<a href="02.html#02-03">2.3</a>) とブックマークのタブ (<a href="02.html#02-08">2.8</a>) があります。上のアイコンでタブを切り替えます。右クリックのメニューはタブごとに違います。
+</p>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-01"></a>5.3.1. ディレクトリのタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_dirview.png" width="277" height="382" alt="ディレクトリのタブのマウスメニュー">
+<p class="caption">ディレクトリのタブのマウスメニュー</p></div>
 <p class="para">
 ディレクトリビューでは、ディレクトリの複数選択は出来ません。そのため、各コマンドの実行対象は、必然的にマウスカーソル下のディレクトリになります。
 </p>
@@ -269,37 +275,75 @@ EXIF 対応で作成した場合にある項目です。画像の EXIF データ
 </p>
 </dd>
 </dl></div>
-<p class="para">
-索引のタブ (日付・タグ・人物) とブックマークのタブでは、行を右クリックすると次のメニューが出ます。日付とブックマークのタブは「開く」「新しいタブで開く」だけです。
-</p>
-<div class="figure"><img class="popup" src="images/popup_index_tag.png" width="206" height="120" alt="タグタブのマウスメニュー">
-<p class="caption">タグタブのマウスメニュー</p></div>
-<div class="figure"><img class="popup" src="images/popup_index_person.png" width="131" height="120" alt="人物タブのマウスメニュー">
-<p class="caption">人物タブのマウスメニュー</p></div>
-<div class="figure"><img class="popup" src="images/popup_index_date.png" width="128" height="60" alt="日付タブ・ブックマークタブのマウスメニュー">
-<p class="caption">日付タブ・ブックマークタブのマウスメニュー</p></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-02"></a>5.3.2. 日付のタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_date.png" width="128" height="60" alt="日付のタブのマウスメニュー">
+<p class="caption">日付のタブのマウスメニュー</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="mouse_index_open"></a>開く</span></dt>
 <dd><p class="para">
-その行の画像を、サムネイルビューの結果のタブに表示します。行の文字をクリックした時と同じです (<a href="02.html#index_open">2.2</a>)。
+その行 (年・月・日) の画像を、サムネイルビューの結果のタブに表示します。行の文字をクリックした時と同じです (<a href="02.html#index_open">2.2</a>)。
 </p></dd>
 <dt><span class="term"><a name="mouse_index_open_new_tab"></a>新しいタブで開く</span></dt>
 <dd><p class="para">
 結果のタブを使わずに、新しいタブに表示します。中ボタンのクリックでも同じです。
 </p></dd>
-<dt><span class="term"><a name="mouse_index_faces"></a>顔を表示...</span></dt>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-03"></a>5.3.3. タグのタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_tag.png" width="206" height="120" alt="タグのタブのマウスメニュー">
+<p class="caption">タグのタブのマウスメニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">開く・新しいタブで開く</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>人物タブのみ</i></span>。その人 (名前のないグループや名前の候補も) の顔を、顔の一覧ウィンドウで開きます。名前を付けたり、違う顔を外したりできます (<a href="02.html#faces_window">2.3</a>)。
+日付のタブと同じです (<a href="#05-03-02">5.3.2</a>)。
 </p></dd>
 <dt><span class="term"><a name="mouse_index_rename"></a>名前を変更... (F2)</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>タグタブと人物タブ</i></span>。手動で付けたタグの名前を変えます (<a href="02.html#index_rename">2.2</a>)。索引が自動で付けたタグ (フォルダ・カメラ・形など) では使えません。人物タブで変えられるのは人物のタグで、人の名前は顔の一覧ウィンドウで変えます。
+手動で付けたタグの名前を変えます (<a href="02.html#index_rename">2.2</a>)。索引が自動で付けたタグ (フォルダ・カメラ・形など) では使えません。
 </p></dd>
 <dt><span class="term"><a name="mouse_index_no_folder_tag"></a>このフォルダ名をタグにしない</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>タグタブのみ</i></span>。フォルダ名の自動タグの行で使えます。そのフォルダ名を [設定 | 索引 | 自動タグ] の「タグにしないフォルダ名」に加え、タグから外します (<a href="02.html#index_auto_tags">2.2</a>)。設定ウィンドウを開いている間は使えません。
+フォルダ名の自動タグの行で使えます。そのフォルダ名を [設定 | 索引 | 自動タグ] の「タグにしないフォルダ名」に加え、タグから外します (<a href="02.html#index_auto_tags">2.2</a>)。設定ウィンドウを開いている間は使えません。
 </p></dd>
 </dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-04"></a>5.3.4. 人物のタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_person.png" width="131" height="120" alt="人物のタブのマウスメニュー">
+<p class="caption">人物のタブのマウスメニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">開く・新しいタブで開く</span></dt>
+<dd><p class="para">
+日付のタブと同じです (<a href="#05-03-02">5.3.2</a>)。
+</p></dd>
+<dt><span class="term"><a name="mouse_index_faces"></a>顔を表示...</span></dt>
+<dd><p class="para">
+その人 (名前のないグループや名前の候補も) の顔を、顔の一覧ウィンドウで開きます。名前を付けたり、違う顔を外したりできます (<a href="02.html#faces_window">2.3</a>)。
+</p></dd>
+<dt><span class="term"><a name="mouse_index_rename_person"></a>名前を変更... (F2)</span></dt>
+<dd><p class="para">
+人物のタグの名前を変えます (<a href="02.html#person_tags">2.3</a>)。人の名前は顔の一覧ウィンドウで変えます。
+</p></dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-05"></a>5.3.5. ブックマークのタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_bookmark.png" width="128" height="60" alt="ブックマークのタブのマウスメニュー">
+<p class="caption">ブックマークのタブのマウスメニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">開く・新しいタブで開く</span></dt>
+<dd><p class="para">
+その行 (全て・月・メモあり・メモなし) のブックマークの画像を表示します。使い方は日付のタブと同じです (<a href="#05-03-02">5.3.2</a>)。
+</p></dd>
+</dl></div>
+</div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">

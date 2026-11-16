@@ -196,8 +196,14 @@ It is useful when many tabs were created, for example by reading directories rec
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
 <a name="05-03"></a>5.3. Directory View</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_dirview.png" width="287" height="382" alt="The mouse menu of the directory view">
-<p class="caption">The mouse menu of the directory view</p></div>
+<p class="para">
+Besides the tab of the directories, the directory view has the Date, Tag and People tabs of the image index (<a href="02.html#02-02">2.2</a>, <a href="02.html#02-03">2.3</a>) and the Bookmarks tab (<a href="02.html#02-08">2.8</a>), chosen with the icons at its top.  Each has its own right button menu.
+</p>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-01"></a>5.3.1. The directory tab</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_dirview.png" width="287" height="382" alt="Right button menu of the directory tab">
+<p class="caption">Right button menu of the directory tab</p></div>
 <p class="para">
 Only one directory can be selected in the directory view, so the commands always apply to the directory under the mouse cursor.
 </p>
@@ -269,37 +275,75 @@ Deletes the directory under the cursor after a confirmation dialog.
 </p>
 </dd>
 </dl></div>
-<p class="para">
-In the tabs of the index (Date, Tag, People) and the Bookmarks tab, the right button on a row shows this menu.  The Date and Bookmarks tabs have only "Open" and "Open in New Tab".
-</p>
-<div class="figure"><img class="popup" src="images/popup_index_tag.png" width="264" height="120" alt="Right button menu of the Tag tab">
-<p class="caption">Right button menu of the Tag tab</p></div>
-<div class="figure"><img class="popup" src="images/popup_index_person.png" width="136" height="120" alt="Right button menu of the People tab">
-<p class="caption">Right button menu of the People tab</p></div>
-<div class="figure"><img class="popup" src="images/popup_index_date.png" width="133" height="60" alt="Right button menu of the Date and Bookmarks tabs">
-<p class="caption">Right button menu of the Date and Bookmarks tabs</p></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-02"></a>5.3.2. The Date tab</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_date.png" width="133" height="60" alt="Right button menu of the Date tab">
+<p class="caption">Right button menu of the Date tab</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="mouse_index_open"></a>Open</span></dt>
 <dd><p class="para">
-Shows the images of the row in the result tab of the thumbnail view, as a click on the text of the row (<a href="02.html#index_open">2.2</a>).
+Shows the images of the row (a year, a month, a day) in the result tab of the thumbnail view, as a click on the text of the row (<a href="02.html#index_open">2.2</a>).
 </p></dd>
 <dt><span class="term"><a name="mouse_index_open_new_tab"></a>Open in New Tab</span></dt>
 <dd><p class="para">
 Shows them in a new tab instead of the result tab.  A click with the middle button does the same.
 </p></dd>
-<dt><span class="term"><a name="mouse_index_faces"></a>Show the Faces...</span></dt>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-03"></a>5.3.3. The Tag tab</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_tag.png" width="264" height="120" alt="Right button menu of the Tag tab">
+<p class="caption">Right button menu of the Tag tab</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">Open, Open in New Tab</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>People tab only</i></span>.  Opens the faces of the person (or of the unnamed group, of the name guessed) in the faces window, where they can be named or a wrong face taken out (<a href="02.html#faces_window">2.3</a>).
+As in the Date tab (<a href="#05-03-02">5.3.2</a>).
 </p></dd>
 <dt><span class="term"><a name="mouse_index_rename"></a>Rename... (F2)</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>Tag and People tabs</i></span>.  Renames a tag added by hand (<a href="02.html#index_rename">2.2</a>); not the tags the index makes (folders, cameras, shapes, ...).  In the People tab only the tags of people are renamed: the names of the people are changed in the faces window.
+Renames a tag added by hand (<a href="02.html#index_rename">2.2</a>); not the tags the index makes (folders, cameras, shapes, ...).
 </p></dd>
 <dt><span class="term"><a name="mouse_index_no_folder_tag"></a>Do Not Make This Folder Name a Tag</span></dt>
 <dd><p class="para">
-<span class="emphasis"><i>Tag tab only</i></span>, on the automatic tag of a folder name: adds the folder name to "Folder Names Not Made Tags" of [Preferences | Index | Automatic Tags], and the tag goes (<a href="02.html#index_auto_tags">2.2</a>).  Not while the preferences window is open.
+On the automatic tag of a folder name: adds the folder name to "Folder Names Not Made Tags" of [Preferences | Index | Automatic Tags], and the tag goes (<a href="02.html#index_auto_tags">2.2</a>).  Not while the preferences window is open.
 </p></dd>
 </dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-04"></a>5.3.4. The People tab</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_person.png" width="136" height="120" alt="Right button menu of the People tab">
+<p class="caption">Right button menu of the People tab</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">Open, Open in New Tab</span></dt>
+<dd><p class="para">
+As in the Date tab (<a href="#05-03-02">5.3.2</a>).
+</p></dd>
+<dt><span class="term"><a name="mouse_index_faces"></a>Show the Faces...</span></dt>
+<dd><p class="para">
+Opens the faces of the person (or of the unnamed group, of the name guessed) in the faces window, where they can be named or a wrong face taken out (<a href="02.html#faces_window">2.3</a>).
+</p></dd>
+<dt><span class="term"><a name="mouse_index_rename_person"></a>Rename... (F2)</span></dt>
+<dd><p class="para">
+Renames a tag of people (<a href="02.html#person_tags">2.3</a>); the names of the people are changed in the faces window.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="05-03-05"></a>5.3.5. The Bookmarks tab</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_bookmark.png" width="133" height="60" alt="Right button menu of the Bookmarks tab">
+<p class="caption">Right button menu of the Bookmarks tab</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">Open, Open in New Tab</span></dt>
+<dd><p class="para">
+Show the bookmarked images of the row (all, a month, with a note, without a note), as in the Date tab (<a href="#05-03-02">5.3.2</a>).
+</p></dd>
+</dl></div>
+</div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
