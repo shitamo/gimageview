@@ -838,6 +838,9 @@ https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face
 https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx<br>
 https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx</p></li>
 </ul></div>
+<p class="para">
+GImageView checks what is in the model files (SHA-256): a broken download, or another file (another version) of the same name, is not used; then this page and the tooltip of the status bar tell which file to download again and its URL.  The index records the model the features of the faces were made with: when a new version of GImageView has another model, the features are made again at the place of each face found (the faces, their names and "not this person" stay; the status bar shows how far it is; the faces of an image that cannot be read any more are looked for again when it can be).
+</p>
 <div class="figure"><img src="images/prefs_index_faces.png" width="953" height="699" alt="[Preferences | Index | Faces]">
 <p class="caption">[Preferences | Index | Faces]</p></div>
 </dd>

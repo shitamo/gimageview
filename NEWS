@@ -153,6 +153,13 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  first one; the overlaps of the pieces of one photo are looked for
 	  and can be put right, the seam shown near its size (also as the
 	  difference), in threads.
+	* Faces: the model files are checked (SHA-256); a broken download or
+	  another file of the same name is not used, and the preferences tell
+	  which one to download again.  The index records the model the
+	  features of the faces were made with; with another one (a new
+	  version), the features are made again at the place of each face,
+	  the faces and their names kept.  "meson test faces" runs the models
+	  when they are there.
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).

@@ -15,6 +15,9 @@ test_env.set('GIO_USE_VFS', 'local')
 test_env.set('GSETTINGS_BACKEND', 'memory')
 if sqlite_dep.found()
   test_env.set('GIMV_TEST_INDEXER', gimv_indexer_exe.full_path())
+  if opencv_dep.found()
+    test_env.set('GIMV_TEST_FACES', gimv_faces_exe.full_path())
+  endif
 endif
 
 test_kwargs = {
@@ -120,6 +123,21 @@ if sqlite_dep.found()
     protocol : 'tap',
     args : ['--tap'],
     timeout : 120)
+
+  # gimv-faces with the model files (skipped without them, see the file)
+  faces_depends = [gimv_indexer_exe]
+  if opencv_dep.found()
+    faces_depends += gimv_faces_exe
+  endif
+  test('faces',
+    executable('test-faces', 'test_faces.c',
+      include_directories : test_inc,
+      dependencies : [glib_dep, gio_dep, sqlite_dep, pixbuf_dep]),
+    depends : faces_depends,
+    env : test_env,
+    protocol : 'tap',
+    args : ['--tap'],
+    timeout : 180)
 endif
 
 # gimv started on a virtual X display (xvfb-run -a): skipped without

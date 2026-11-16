@@ -33,6 +33,11 @@
  *   grouping <faces>
  *   done <files read> <faces found> <groups>
  *   no-models <dir>               the model files are not there
+ *   models-unknown <file>         a model file is not the one expected
+ *                                 (broken, or another version): not used
+ *   refeature <faces>             the features of the faces in the index
+ *                                 made again (the recognizer changed),
+ *                                 then "progress" lines, before "start"
  *   busy                          another gimv-faces runs
  *   error <message>
  * It stops when stdin is closed (gimv has gone) or reads "quit".
@@ -63,6 +68,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#include <glib.h>
 #include <sqlite3.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -72,6 +78,23 @@
 #define DB_VERSION        6
 #define DETECT_MODEL      "face_detection_yunet_2023mar.onnx"
 #define RECOGNIZE_MODEL   "face_recognition_sface_2021dec.onnx"
+
+/* the model files known (SHA-256, the same on GitHub and Hugging Face): a
+ * file of the same name with something else in it (a broken download,
+ * another version) is not used, as its faces and features would not go
+ * with the ones in the index */
+static const struct {
+   const char *name, *sha256;
+} known_models[] = {
+   { DETECT_MODEL,    "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4" },
+   { RECOGNIZE_MODEL, "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79" },
+};
+
+/* meta: the recognizer the features of the faces were made with ("name
+ * sha256"); when it is not the one now, they are made again, the files
+ * done so far kept in REFEATURE_KEY (the last file_id) */
+#define FEATURE_KEY       "face_feature_model"
+#define REFEATURE_KEY     "face_refeature_file"
 
 /* the long side of the image the faces are looked for in */
 #define DETECT_SIZE       1600
@@ -232,7 +255,85 @@ open_db (Db &d, const char *path)
     * again */
    d.exec ("CREATE TABLE IF NOT EXISTS face_manual ("
            "  face_id INTEGER PRIMARY KEY REFERENCES faces(id) ON DELETE CASCADE)");
+   /* made by the indexer too */
+   d.exec ("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)");
    return true;
+}
+
+
+/* the SHA-256 of a file, "" when it cannot be read */
+static std::string
+file_sha256 (const std::string &path)
+{
+   FILE *fp = fopen (path.c_str (), "rb");
+   if (!fp) return "";
+   GChecksum *sum = g_checksum_new (G_CHECKSUM_SHA256);
+   std::vector<guchar> buf (1 << 16);
+   size_t n;
+   while ((n = fread (buf.data (), 1, buf.size (), fp)) > 0)
+      g_checksum_update (sum, buf.data (), n);
+   bool ok = !ferror (fp);
+   fclose (fp);
+   std::string hex = ok ? g_checksum_get_string (sum) : "";
+   g_checksum_free (sum);
+   return hex;
+}
+
+
+/* the model files there and the ones known: true; else "no-models" or
+ * "models-unknown" said.  recognizer: "name sha256" of the recognizer */
+static bool
+check_models (const std::string &models, std::string &recognizer)
+{
+   for (const auto &m : known_models) {
+      std::string path = models + "/" + m.name;
+      if (access (path.c_str (), R_OK)) {
+         say ("no-models %s", models.c_str ());
+         return false;
+      }
+   }
+   for (const auto &m : known_models) {
+      std::string sha = file_sha256 (models + "/" + m.name);
+      if (sha != m.sha256) {
+         say ("models-unknown %s", m.name);
+         return false;
+      }
+      if (!strcmp (m.name, RECOGNIZE_MODEL))
+         recognizer = std::string (m.name) + " " + sha;
+   }
+   return true;
+}
+
+
+static std::string
+meta_get (Db &d, const char *key, bool *found = nullptr)
+{
+   std::string v;
+   sqlite3_stmt *st = d.prep ("SELECT value FROM meta WHERE key = ?");
+   if (found) *found = false;
+   if (!st) return v;
+   sqlite3_bind_text (st, 1, key, -1, SQLITE_STATIC);
+   if (sqlite3_step (st) == SQLITE_ROW) {
+      const unsigned char *t = sqlite3_column_text (st, 0);
+      if (t) v = (const char *) t;
+      if (found) *found = true;
+   }
+   sqlite3_finalize (st);
+   return v;
+}
+
+
+/* value nullptr: the key taken out */
+static void
+meta_set (Db &d, const char *key, const char *value)
+{
+   sqlite3_stmt *st = d.prep (value ? "INSERT OR REPLACE INTO meta VALUES (?, ?)"
+                                    : "DELETE FROM meta WHERE key = ?");
+   if (!st) return;
+   sqlite3_bind_text (st, 1, key, -1, SQLITE_STATIC);
+   if (value) sqlite3_bind_text (st, 2, value, -1, SQLITE_TRANSIENT);
+   sqlite3_step (st);
+   sqlite3_finalize (st);
 }
 
 
@@ -361,7 +462,8 @@ list_files (Db &d, const std::vector<std::string> &dirs,
 
 static int guard_fd = -1;
 
-static void
+/* the file the last run died on (0: none) */
+static long long
 guard_open (Db &d, const std::string &dbfile)
 {
    std::string g = dbfile + ".faces-reading";
@@ -393,6 +495,7 @@ guard_open (Db &d, const std::string &dbfile)
       say ("skipped %lld", id);
    }
    guard_fd = open (g.c_str (), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+   return id;
 }
 
 
@@ -999,6 +1102,82 @@ make_groups (Db &d)
 #define ADD_FACE_SIZE  200
 #define ADD_SCORE_MIN  0.5f    /* a person said it is a face */
 
+/* the feature of the face "want" (in the pixels of the image as shown) of
+ * img (read "scale" times smaller): looked for again there, enlarged (a
+ * small face, the eyes for the feature); else a square on it, as marked.
+ * out: the face found again (found_again), else "want"; its feature (and
+ * score).  nullptr, else why not (cv::Exception: the models fail) */
+static const char *
+face_feature (const cv::Mat &img, double scale, const Face &want,
+              cv::Ptr<cv::FaceDetectorYN> &det, cv::Ptr<cv::FaceRecognizerSF> &rec,
+              Face &out, bool &found_again)
+{
+   int x = want.x, y = want.y, w = want.w, h = want.h;
+
+   found_again = false;
+   /* in the pixels of img */
+   double fx = x / scale, fy = y / scale, fw = w / scale, fh = h / scale;
+   double side = std::max (fw, fh);
+   if (side < 4) return "too small";
+   double cx = fx + fw / 2, cy = fy + fh / 2, half = side * 1.1;
+   int x0 = std::clamp ((int) (cx - half), 0, img.cols - 1);
+   int y0 = std::clamp ((int) (cy - half), 0, img.rows - 1);
+   int x1 = std::clamp ((int) (cx + half), x0 + 1, img.cols);
+   int y1 = std::clamp ((int) (cy + half), y0 + 1, img.rows);
+   cv::Rect reg (x0, y0, x1 - x0, y1 - y0);
+   double f = std::min ((double) ADD_FACE_SIZE / side,
+                        (double) DETECT_SIZE / std::max (reg.width, reg.height));
+   cv::Mat crop, found;
+   cv::resize (img (reg), crop, cv::Size (), f, f, f > 1 ? cv::INTER_CUBIC : cv::INTER_AREA);
+   cv::Mat padded = pad32 (crop);
+   det->setInputSize (padded.size ());
+   det->detect (padded, found);
+
+   /* the face found most over the one marked */
+   Face u;
+   u.x = (int) ((fx - x0) * f); u.y = (int) ((fy - y0) * f);
+   u.w = (int) (fw * f);        u.h = (int) (fh * f);
+   int best = -1;
+   double best_ov = 0.3;
+   for (int i = 0; i < found.rows; i++) {
+      const float *r = found.ptr<float> (i);
+      Face g;
+      g.x = (int) r[0]; g.y = (int) r[1]; g.w = (int) r[2]; g.h = (int) r[3];
+      double ov = overlap (u, g);
+      if (ov > best_ov) { best_ov = ov; best = i; }
+   }
+   cv::Mat feat;
+   if (best >= 0) {
+      const float *r = found.ptr<float> (best);
+      cv::Mat aligned;
+      rec->alignCrop (padded, found.row (best), aligned);
+      rec->feature (aligned, feat);
+      out.x = (int) std::lround ((x0 + std::max (0.0f, r[0]) / f) * scale);
+      out.y = (int) std::lround ((y0 + std::max (0.0f, r[1]) / f) * scale);
+      out.w = (int) std::lround (r[2] / f * scale);
+      out.h = (int) std::lround (r[3] / f * scale);
+      out.score = r[14];
+      found_again = true;
+   } else {
+      /* as marked: a square on it, as the recognizer takes a face */
+      int s = std::max (8, (int) side);
+      int sx = std::clamp ((int) (cx - s / 2.0), 0, std::max (0, img.cols - s));
+      int sy = std::clamp ((int) (cy - s / 2.0), 0, std::max (0, img.rows - s));
+      s = std::min (s, std::min (img.cols - sx, img.rows - sy));
+      cv::Mat sq;
+      cv::resize (img (cv::Rect (sx, sy, s, s)), sq, cv::Size (112, 112), 0, 0,
+                  s > 112 ? cv::INTER_AREA : cv::INTER_CUBIC);
+      rec->feature (sq, feat);
+      out = want;
+      out.score = 0;
+   }
+   if (feat.total () != FEATURE_LEN) return "no feature";
+   out.feature.assign ((const float *) feat.data, (const float *) feat.data + FEATURE_LEN);
+   normalize (out.feature);
+   return nullptr;
+}
+
+
 static int
 run_add_face (const std::string &dbfile, const std::string &models, const std::string &path,
               int x, int y, int w, int h)
@@ -1038,10 +1217,8 @@ run_add_face (const std::string &dbfile, const std::string &models, const std::s
    sqlite3_finalize (st);
 
    std::string detm = models + "/" DETECT_MODEL, recm = models + "/" RECOGNIZE_MODEL;
-   if (access (detm.c_str (), R_OK) || access (recm.c_str (), R_OK)) {
-      say ("no-models %s", models.c_str ());
-      return 1;
-   }
+   std::string recognizer;
+   if (!check_models (models, recognizer)) return 1;
    cv::Ptr<cv::FaceDetectorYN> det;
    cv::Ptr<cv::FaceRecognizerSF> rec;
    cv::Mat img;
@@ -1052,66 +1229,8 @@ run_add_face (const std::string &dbfile, const std::string &models, const std::s
       det = cv::FaceDetectorYN::create (detm, "", cv::Size (320, 320), ADD_SCORE_MIN, 0.3f, 5000);
       rec = cv::FaceRecognizerSF::create (recm, "");
       if (!load_image (path, img, scale)) { say ("error the image cannot be read"); return 1; }
-
-      /* in the pixels of img */
-      double fx = x / scale, fy = y / scale, fw = w / scale, fh = h / scale;
-      double side = std::max (fw, fh);
-      if (side < 4) { say ("error too small"); return 1; }
-      double cx = fx + fw / 2, cy = fy + fh / 2, half = side * 1.1;
-      int x0 = std::clamp ((int) (cx - half), 0, img.cols - 1);
-      int y0 = std::clamp ((int) (cy - half), 0, img.rows - 1);
-      int x1 = std::clamp ((int) (cx + half), x0 + 1, img.cols);
-      int y1 = std::clamp ((int) (cy + half), y0 + 1, img.rows);
-      cv::Rect reg (x0, y0, x1 - x0, y1 - y0);
-      double f = std::min ((double) ADD_FACE_SIZE / side,
-                           (double) DETECT_SIZE / std::max (reg.width, reg.height));
-      cv::Mat crop, found;
-      cv::resize (img (reg), crop, cv::Size (), f, f, f > 1 ? cv::INTER_CUBIC : cv::INTER_AREA);
-      cv::Mat padded = pad32 (crop);
-      det->setInputSize (padded.size ());
-      det->detect (padded, found);
-
-      /* the face found most over the one marked */
-      Face u;
-      u.x = (int) ((fx - x0) * f); u.y = (int) ((fy - y0) * f);
-      u.w = (int) (fw * f);        u.h = (int) (fh * f);
-      int best = -1;
-      double best_ov = 0.3;
-      for (int i = 0; i < found.rows; i++) {
-         const float *r = found.ptr<float> (i);
-         Face g;
-         g.x = (int) r[0]; g.y = (int) r[1]; g.w = (int) r[2]; g.h = (int) r[3];
-         double ov = overlap (u, g);
-         if (ov > best_ov) { best_ov = ov; best = i; }
-      }
-      cv::Mat feat;
-      if (best >= 0) {
-         const float *r = found.ptr<float> (best);
-         cv::Mat aligned;
-         rec->alignCrop (padded, found.row (best), aligned);
-         rec->feature (aligned, feat);
-         out.x = (int) std::lround ((x0 + std::max (0.0f, r[0]) / f) * scale);
-         out.y = (int) std::lround ((y0 + std::max (0.0f, r[1]) / f) * scale);
-         out.w = (int) std::lround (r[2] / f * scale);
-         out.h = (int) std::lround (r[3] / f * scale);
-         out.score = r[14];
-         found_again = true;
-      } else {
-         /* as marked: a square on it, as the recognizer takes a face */
-         int s = std::max (8, (int) side);
-         int sx = std::clamp ((int) (cx - s / 2.0), 0, std::max (0, img.cols - s));
-         int sy = std::clamp ((int) (cy - s / 2.0), 0, std::max (0, img.rows - s));
-         s = std::min (s, std::min (img.cols - sx, img.rows - sy));
-         cv::Mat sq;
-         cv::resize (img (cv::Rect (sx, sy, s, s)), sq, cv::Size (112, 112), 0, 0,
-                     s > 112 ? cv::INTER_AREA : cv::INTER_CUBIC);
-         rec->feature (sq, feat);
-         out = want;
-         out.score = 0;
-      }
-      if (feat.total () != FEATURE_LEN) { say ("error no feature"); return 1; }
-      out.feature.assign ((const float *) feat.data, (const float *) feat.data + FEATURE_LEN);
-      normalize (out.feature);
+      const char *why = face_feature (img, scale, want, det, rec, out, found_again);
+      if (why) { say ("error %s", why); return 1; }
       make_thumb (img, scale, out);
    } catch (const cv::Exception &e) {
       /* OpenCV's messages are long: the first line */
@@ -1152,6 +1271,157 @@ run_add_face (const std::string &dbfile, const std::string &models, const std::s
    if (!face_id) { say ("error %s", sqlite3_errmsg (d.db)); return 1; }
    say ("added %lld %d", face_id, found_again ? 1 : 0);
    return 0;
+}
+
+
+/******************************************************************************
+ *  the features made again: another recognizer than the one they were made
+ *  with (a new version of GImageView with a new model)
+ *
+ *  Features of two models cannot be compared, so each face in the index is
+ *  given a feature of the recognizer now, looked for again at its place as
+ *  for --add-face.  The faces stay (their names, "not this person",
+ *  ignored, the thumbnails); the faces of an image that cannot be read any
+ *  more go, the image is looked at again when it can be (face_scans).
+ *  It goes a file at a time in short transactions, the last file done kept
+ *  (REFEATURE_KEY): stopped, it goes on from there next time.
+ ******************************************************************************/
+
+struct ReFace {
+   long long id, file;
+   Face      box;
+   std::string path;
+};
+
+
+/* true: all the faces done (or none), the recognizer recorded */
+static bool
+refeature (Db &d, const std::string &recognizer, long long skipped,
+           cv::Ptr<cv::FaceDetectorYN> &det, cv::Ptr<cv::FaceRecognizerSF> &rec,
+           bool &failed)
+{
+   long long from = std::atoll (meta_get (d, REFEATURE_KEY).c_str ());
+   std::vector<ReFace> todo;
+   sqlite3_stmt *st = d.prep (
+      "SELECT fa.id, fa.file_id, fa.x, fa.y, fa.w, fa.h, d.path, f.name "
+      "FROM faces fa JOIN files f ON f.id = fa.file_id JOIN dirs d ON d.id = f.dir_id "
+      "WHERE fa.file_id > ? ORDER BY fa.file_id, fa.id");
+   if (!st) { failed = true; return false; }
+   sqlite3_bind_int64 (st, 1, from);
+   while (sqlite3_step (st) == SQLITE_ROW) {
+      ReFace r;
+      r.id = sqlite3_column_int64 (st, 0);
+      r.file = sqlite3_column_int64 (st, 1);
+      r.box.x = sqlite3_column_int (st, 2);
+      r.box.y = sqlite3_column_int (st, 3);
+      r.box.w = sqlite3_column_int (st, 4);
+      r.box.h = sqlite3_column_int (st, 5);
+      r.path = (const char *) sqlite3_column_text (st, 6);
+      if (r.path.back () != '/') r.path += '/';
+      r.path += (const char *) sqlite3_column_text (st, 7);
+      todo.push_back (std::move (r));
+   }
+   sqlite3_finalize (st);
+   say ("refeature %zu", todo.size ());
+
+   sqlite3_stmt *upd = d.prep ("UPDATE faces SET feature = ? WHERE id = ?");
+   sqlite3_stmt *gone = d.prep ("DELETE FROM faces WHERE file_id = ?");
+   sqlite3_stmt *again = d.prep ("DELETE FROM face_scans WHERE file_id = ?");
+   if (!upd || !gone || !again) {
+      sqlite3_finalize (upd);
+      sqlite3_finalize (gone);
+      sqlite3_finalize (again);
+      failed = true;
+      return false;
+   }
+
+   /* the faces of a file: their features, or the file to look at again */
+   struct Done { long long file; bool read; std::vector<std::pair<long long, std::vector<float>>> f; };
+   std::vector<Done> pending;
+   auto write = [&] () {
+      if (pending.empty ()) return;
+      if (sqlite3_exec (d.db, "BEGIN IMMEDIATE", nullptr, nullptr, nullptr) != SQLITE_OK) return;
+      for (const Done &dn : pending) {
+         if (!dn.read) {
+            sqlite3_bind_int64 (gone, 1, dn.file);
+            sqlite3_step (gone);
+            sqlite3_reset (gone);
+            sqlite3_bind_int64 (again, 1, dn.file);
+            sqlite3_step (again);
+            sqlite3_reset (again);
+            continue;
+         }
+         for (const auto &p : dn.f) {
+            sqlite3_bind_blob (upd, 1, p.second.data (), FEATURE_LEN * sizeof (float),
+                               SQLITE_STATIC);
+            sqlite3_bind_int64 (upd, 2, p.first);
+            sqlite3_step (upd);
+            sqlite3_reset (upd);
+         }
+      }
+      meta_set (d, REFEATURE_KEY, std::to_string (pending.back ().file).c_str ());
+      d.exec ("COMMIT");
+      pending.clear ();
+   };
+
+   long long last_commit = now_usec (), last_say = 0;
+   size_t i = 0;
+   while (i < todo.size () && !quit && !failed) {
+      check_stdin ();
+      if (quit) break;
+      long long file = todo[i].file;
+      size_t end = i;
+      while (end < todo.size () && todo[end].file == file) end++;
+
+      Done dn;
+      dn.file = file;
+      cv::Mat img;
+      double scale;
+      guard_set (file);
+      /* the last run died on it: as one that cannot be read */
+      dn.read = file != skipped && load_image (todo[i].path, img, scale);
+      for (size_t k = i; dn.read && k < end; k++) {
+         Face out;
+         bool found_again;
+         const char *why = nullptr;
+         try {
+            why = face_feature (img, scale, todo[k].box, det, rec, out, found_again);
+         } catch (const cv::Exception &e) {
+            std::string m = e.what ();
+            say ("error %s", m.substr (0, m.find ('\n')).c_str ());
+            failed = true;
+            break;
+         }
+         /* too small for a feature now: the face goes with the file */
+         if (why) { dn.read = false; break; }
+         dn.f.emplace_back (todo[k].id, std::move (out.feature));
+      }
+      guard_set (0);
+      if (failed) break;
+      pending.push_back (std::move (dn));
+      i = end;
+
+      long long now = now_usec ();
+      if (now - last_commit >= COMMIT_USEC) {
+         write ();
+         last_commit = now;
+      }
+      if (now - last_say >= 1000000LL || i == todo.size ()) {
+         say ("progress %zu %zu", i, todo.size ());
+         last_say = now;
+      }
+   }
+   write ();
+   sqlite3_finalize (upd);
+   sqlite3_finalize (gone);
+   sqlite3_finalize (again);
+   if (quit || failed || i < todo.size ()) return false;
+
+   if (sqlite3_exec (d.db, "BEGIN IMMEDIATE", nullptr, nullptr, nullptr) != SQLITE_OK) return false;
+   meta_set (d, FEATURE_KEY, recognizer.c_str ());
+   meta_set (d, REFEATURE_KEY, nullptr);
+   d.exec ("COMMIT");
+   return true;
 }
 
 
@@ -1669,10 +1939,8 @@ main (int argc, char *argv[])
    }
 
    std::string detm = models + "/" DETECT_MODEL, recm = models + "/" RECOGNIZE_MODEL;
-   if (access (detm.c_str (), R_OK) || access (recm.c_str (), R_OK)) {
-      say ("no-models %s", models.c_str ());
-      return 0;
-   }
+   std::string recognizer;
+   if (!check_models (models, recognizer)) return 0;
 
    cv::Ptr<cv::FaceDetectorYN> det;
    cv::Ptr<cv::FaceRecognizerSF> rec;
@@ -1684,7 +1952,34 @@ main (int argc, char *argv[])
       return 1;
    }
 
-   guard_open (d, dbfile);
+   long long skipped = guard_open (d, dbfile);
+
+   /* the features in the index made with the recognizer now: recorded
+    * when none were made before (or before it was recorded); made again
+    * when it is another one */
+   {
+      bool recorded;
+      std::string was = meta_get (d, FEATURE_KEY, &recorded);
+      if (!recorded) {
+         meta_set (d, FEATURE_KEY, recognizer.c_str ());
+      } else if (was != recognizer) {
+         cv::Ptr<cv::FaceDetectorYN> det_one;
+         bool failed = false;
+         try {
+            det_one = cv::FaceDetectorYN::create (detm, "", cv::Size (320, 320),
+                                                  ADD_SCORE_MIN, 0.3f, 5000);
+         } catch (const cv::Exception &e) {
+            say ("error the models cannot be read: %s", e.what ());
+            guard_close (dbfile);
+            return 1;
+         }
+         if (!refeature (d, recognizer, skipped, det_one, rec, failed)) {
+            guard_close (dbfile);
+            return failed ? 1 : 0;
+         }
+         regroup = true;
+      }
+   }
 
    std::vector<Todo> todo;
    long long total = 0;

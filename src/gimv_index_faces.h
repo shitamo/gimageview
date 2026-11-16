@@ -22,6 +22,7 @@ typedef enum {
    GIMV_INDEX_FACES_DONE,
    GIMV_INDEX_FACES_NO_MODELS,
    GIMV_INDEX_FACES_ERROR,
+   GIMV_INDEX_FACES_BAD_MODELS,   /* a model file is not the one expected */
 } GimvIndexFacesState;
 
 /* built with OpenCV */
@@ -34,6 +35,10 @@ gchar              *gimv_index_faces_user_model_dir (void);
 gchar              *gimv_index_faces_model_dir      (void);
 
 GimvIndexFacesState gimv_index_faces_get_state      (void);
+/* GIMV_INDEX_FACES_BAD_MODELS: the name of the file (not freed) */
+const gchar        *gimv_index_faces_bad_model      (void);
+/* the URL to download a model file (name) from */
+gchar              *gimv_index_faces_model_url      (const gchar *name);
 gchar              *gimv_index_faces_status         (void);
 gchar              *gimv_index_faces_tooltip        (void);
 

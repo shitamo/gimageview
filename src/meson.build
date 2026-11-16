@@ -33,8 +33,8 @@ if sqlite_dep.found()
     install : true,
     install_dir : get_option('libexecdir') / 'gimageview')
   if opencv_dep.found()
-    executable('gimv-faces', files('faces/gimv_faces.cpp'),
-      dependencies : [sqlite_dep, opencv_dep],
+    gimv_faces_exe = executable('gimv-faces', files('faces/gimv_faces.cpp'),
+      dependencies : [glib_dep, sqlite_dep, opencv_dep],
       cpp_args : ['-O2'],
       install : true,
       install_dir : get_option('libexecdir') / 'gimageview')

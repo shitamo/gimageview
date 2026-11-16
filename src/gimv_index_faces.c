@@ -39,6 +39,8 @@ static struct {
    gboolean          regroup;
    guint             todo, done;
    gchar            *error;
+   gchar            *bad_model;  /* GIMV_INDEX_FACES_BAD_MODELS */
+   gboolean          refeature;  /* the features made again (todo: faces) */
 } fx;
 
 
@@ -125,6 +127,28 @@ gimv_index_faces_get_state (void)
 }
 
 
+const gchar *
+gimv_index_faces_bad_model (void)
+{
+   return fx.state == GIMV_INDEX_FACES_BAD_MODELS ? fx.bad_model : NULL;
+}
+
+
+gchar *
+gimv_index_faces_model_url (const gchar *name)
+{
+   gchar *dir = g_strdup (name), *dot;
+
+   /* face_detection_yunet_2023mar.onnx: models/face_detection_yunet/ */
+   dot = strrchr (dir, '_');
+   if (dot) *dot = '\0';
+   gchar *url = g_strdup_printf ("https://github.com/opencv/opencv_zoo/raw/main/models/%s/%s",
+                                 dir, name);
+   g_free (dir);
+   return url;
+}
+
+
 static void
 count_faces (guint *faces, guint *groups, guint *named)
 {
@@ -166,6 +190,9 @@ gimv_index_faces_tooltip (void)
 
    switch (fx.state) {
    case GIMV_INDEX_FACES_RUNNING:
+      if (fx.refeature)
+         return g_strdup_printf (_("Faces: the features made again for the new model file: "
+                                   "%'u of %'u faces."), fx.done, fx.todo);
       if (fx.todo)
          return g_strdup_printf (_("Finding faces: %'u of %'u images."), fx.done, fx.todo);
       return g_strdup (_("Finding faces: starting."));
@@ -177,6 +204,11 @@ gimv_index_faces_tooltip (void)
       return text;
    case GIMV_INDEX_FACES_ERROR:
       return g_strdup_printf (_("Faces: stopped (%s)."), fx.error ? fx.error : "?");
+   case GIMV_INDEX_FACES_BAD_MODELS:
+      return g_strdup_printf (_("Faces: the model file %s is not the one expected (a broken "
+                                "download, or another version). Download it again (see the "
+                                "Index page of the preferences)."),
+                              fx.bad_model ? fx.bad_model : "?");
    case GIMV_INDEX_FACES_DONE:
       count_faces (&faces, &groups, &named);
       return g_strdup_printf (_("Faces: %'u found, %'u groups of faces that look alike."),
@@ -231,7 +263,13 @@ handle_line (const gchar *line)
 
    if (n == 0) {
       /* nothing */
+   } else if (!strcmp (v[0], "refeature") && n >= 2) {
+      fx.refeature = TRUE;
+      fx.todo = strtoul (v[1], NULL, 10);
+      fx.done = 0;
+      gimv_index_status_changed ();
    } else if (!strcmp (v[0], "start") && n >= 2) {
+      fx.refeature = FALSE;
       fx.todo = strtoul (v[1], NULL, 10);
       fx.done = 0;
       gimv_index_status_changed ();
@@ -247,6 +285,11 @@ handle_line (const gchar *line)
       gimv_index_sync_names ();
    } else if (!strcmp (v[0], "no-models")) {
       fx.state = GIMV_INDEX_FACES_NO_MODELS;
+      gimv_index_status_changed ();
+   } else if (!strcmp (v[0], "models-unknown") && n >= 2) {
+      g_free (fx.bad_model);
+      fx.bad_model = g_strdup (v[1]);
+      fx.state = GIMV_INDEX_FACES_BAD_MODELS;
       gimv_index_status_changed ();
    } else if (!strcmp (v[0], "busy")) {
       fx.state = GIMV_INDEX_FACES_OFF;
@@ -404,6 +447,7 @@ start_faces (void)
    fx.out = g_data_input_stream_new (g_subprocess_get_stdout_pipe (fx.proc));
    fx.cancel = g_cancellable_new ();
    fx.todo = fx.done = 0;
+   fx.refeature = FALSE;
    set_state (GIMV_INDEX_FACES_RUNNING);
    read_line ();
 }
@@ -902,6 +946,10 @@ cb_add_done (GObject *source, GAsyncResult *res, gpointer data)
       } else if (g_str_has_prefix (lines[i], "no-models") && !error) {
          error = g_error_new (G_IO_ERROR, G_IO_ERROR_NOT_FOUND, "%s",
                               _("The models for faces are not there."));
+      } else if (g_str_has_prefix (lines[i], "models-unknown ") && !error) {
+         error = g_error_new (G_IO_ERROR, G_IO_ERROR_INVALID_DATA,
+                              _("The model file %s is not the one expected (a broken "
+                                "download, or another version)."), lines[i] + 15);
       }
    }
    g_strfreev (lines);

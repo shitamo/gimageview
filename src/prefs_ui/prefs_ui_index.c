@@ -289,7 +289,16 @@ prefs_ui_index_faces (void)
       gtk_widget_set_size_request (dirs, -1, 160);
       gimv_box_pack_start (GTK_BOX (fvbox), dirs, FALSE, FALSE, 0);
 
-      if (models) {
+      if (models && gimv_index_faces_bad_model ()) {
+         /* as gimv-faces said the last time it ran */
+         const gchar *bad = gimv_index_faces_bad_model ();
+         gchar *url = gimv_index_faces_model_url (bad);
+         text = g_strdup_printf (
+            _("The model file %s in %s is not the one expected (a broken download, or "
+              "another version): faces are not looked for. Download it again:\n%s"),
+            bad, models, url);
+         g_free (url);
+      } else if (models) {
          text = g_strdup_printf (_("The model files: %s"), models);
       } else {
          udir = gimv_index_faces_user_model_dir ();

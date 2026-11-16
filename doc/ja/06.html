@@ -842,6 +842,9 @@ https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face
 https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx<br>
 https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx</p></li>
 </ul></div>
+<p class="para">
+GImageView はモデルファイルの中身を確かめ (SHA-256)、ダウンロードが壊れていたり、同じ名前で中身の違うファイル (別の版) だったりすると使いません。その時はこのページとステータスバーのツールチップに、入手し直すファイルと URL を表示します。顔の特徴をどのモデルで計算したかは索引に記録しています。新しい版の GImageView でモデルが変わった時は、見つけてある顔の場所で特徴を計算し直します (顔・名前・「この人ではない」はそのままで、ステータスバーに進み具合が出ます。読めなくなった画像の顔は、読めるようになった時に探し直します)。
+</p>
 <div class="figure"><img src="images/prefs_index_faces.png" width="756" height="744" alt="[設定 | 索引 | 顔]">
 <p class="caption">[設定 | 索引 | 顔]</p></div>
 </dd>
