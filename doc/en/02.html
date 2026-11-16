@@ -120,7 +120,7 @@ A click on the text of a row shows its images in the result tab of the thumbnail
 "Edit Tags with the Folders in It..." of the right button menu of a folder in the directory view edits the tags of all the images in the folder and in the folders in it (without opening or selecting them). The images are looked for in the background, their number shown when it takes a while (it can be cancelled). The dialog is the same. With many images the writing shows its progress, and "Stop" stops it: the images done so far are changed, the others are as they were. Every image is checked before anything is written, so nothing is written when the tags of one would be too long.</p>
 <div class="figure"><img src="images/tags_dialog.png" width="440" height="526" alt="Editing tags">
 <p class="caption">Editing tags</p></div>
-<p class="para"> They are written in the "X-IMG-Tags:" line of the comment files (~/.gimv/comment), so they are kept when the index is made again. The names of the people given to the faces (the tags "person/NAME") are not among the tags: they are shown under "People" and kept as they are (names are given in the faces window or the faces panel). The "Tags:" row of the "Data" tab (comment window and preview) shows the tags of the image; a click opens the images with the tag. A tag with levels is shown part by part, like "travel / Kyoto / temple": a click on a parent part (dimmed) opens the images with it and with the tags below it.
+<p class="para"> They are written in the "X-IMG-Tags:" line of the comment files (~/.gimv/comment, <a href="#02-09">2.9</a>), so they are kept when the index is made again. The names of the people given to the faces (the tags "person/NAME") are not among the tags: they are shown under "People" and kept as they are (names are given in the faces window or the faces panel). The "Tags:" row of the "Data" tab (comment window and preview) shows the tags of the image; a click opens the images with the tag. A tag with levels is shown part by part, like "travel / Kyoto / temple": a click on a parent part (dimmed) opens the images with it and with the tags below it.
 </p></dd>
 <dt><span class="term"><a name="index_rename"></a>Renaming and merging tags</span></dt>
 <dd><p class="para">
@@ -220,7 +220,7 @@ At the left, the full path of the focused image; in the middle, its position ("1
 <div class="itemizedlist"><ul>
 <li><p class="para">"Copy the Image to the Clipboard" (Shift+Ctrl+C) in the right button menu of an image view copies the image shown, to be pasted in other programs.</p></li>
 <li><p class="para">"Flip Horizontally" (X) and the rotation of an image view are remembered for each image and restored when it is opened again ("Remember the rotation and flip of each image" in [Preferences | Image Window | Image]).</p></li>
-<li><p class="para">The "Data" tab of the preview and of the comment window shows the comments written in the image file itself (JPEG, PNG, GIF, MAG) in italics (shown only).</p></li>
+<li><p class="para">The "Data" tab of the preview and of the comment window (<a href="#02-09">2.9</a>) shows the comments written in the image file itself (JPEG, PNG, GIF, MAG) in italics (shown only).</p></li>
 <li><p class="para">For a song or a movie, the information in the file (title, artist, album, track, genre, length, the formats of the sound and the picture, ...) is shown in the "Data" tab too, in italics (shown only; the GStreamer plugin).</p></li>
 <li><p class="para">In the "Data" tab, choose a "Key", type the "Value" and press Enter or "Save" (the value is free text; a date in "Date" is the date of the image for the index).</p></li>
 <li><p class="para">"Remove Item" of the "Data" tab (Delete in the list) removes the item selected, kept by "Save".  "Delete Comment..." below deletes, after asking, the data and the note of the image; the tags (X-IMG-Tags) are kept.  The row of the tags is only shown: the tags are edited with "Edit Tags...".</p></li>
@@ -259,6 +259,31 @@ The tooltip of the thumbnail of a bookmarked image starts with "&#9733; the note
 <dt><span class="term"><a name="bookmark_move"></a>Moved and missing images</span></dt>
 <dd><p class="para">
 An image renamed or moved with GImageView keeps its bookmark. In the indexed directories, the bookmarks also follow images and folders moved or renamed by other programs. Other images not found any more are counted in "Not Found" of the tab.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-09"></a>2.9. Comments (data, note and tags)</h3></div></div>
+<p class="para">
+GImageView keeps the notes of each image (subject, date, location, ...) and its tags in a separate text file, the comment file, without changing the image file. "Comment" in this manual means what is in that file.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="comment_file"></a>Comment files</span></dt>
+<dd><p class="para">
+One file for each image, under ~/.gimv/comment, named the full path of the image with ".txt" (/home/user/Pictures/cat.jpg: ~/.gimv/comment/home/user/Pictures/cat.jpg.txt). In it are lines "key: value" (the data), then free text (the note). The character set is chosen in [Preferences | Comment]. An image without a comment has no file.
+</p></dd>
+<dt><span class="term"><a name="comment_contents"></a>What is kept in it</span></dt>
+<dd><p class="para">
+The values of the "Data" tab (subject, date, location, ...: more keys can be added in [Preferences | Comment]), the text of the "Note" tab, the tags added by hand with "Edit Tags..." (the X-IMG-Tags line), the names given to the faces (the tags "person/NAME") and the rotation and flip of each image (not shown in the comment editor). The automatic tags of the index and the comments, EXIF and keywords inside the image files are not written in it.
+</p></dd>
+<dt><span class="term"><a name="comment_edit"></a>Seeing and editing</span></dt>
+<dd><p class="para">
+The comment window is opened from the right button menu of the thumbnails or [Edit | Edit Comment...] of the image window. The "Data" tab of the preview shows the same. The detail view ("Subject" and "Comment" columns) and the tooltips of the album view can show it too.
+</p></dd>
+<dt><span class="term"><a name="comment_move"></a>Moving images, the index</span></dt>
+<dd><p class="para">
+Images moved, copied or renamed by GImageView take their comment files with them. Images moved by other programs and lost can be given their comments back in [Tools | Missing Images...]. The comment files are apart from the database of the index: the tags and names are kept when the index is made again.
 </p></dd>
 </dl></div>
 </div>
