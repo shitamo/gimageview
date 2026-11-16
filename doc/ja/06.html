@@ -824,6 +824,24 @@ GImageView が検索する、プラグインのディレクトリパスを指定
 <dd><p class="para">
 顔を認識するフォルダ (索引を作るディレクトリの中) と、モデルファイルの場所です。モデルファイルが見つからない場合は、置き場所と入手先 (URL) を表示します。顔の認識が使える場合だけの項目です。
 </p>
+<p class="para">
+モデルファイルは次の 2 つです。~/.local/share/gimageview/models に置きます (名前はこのまま。同じ場所にある量子化版の「_int8」「_int8bq」は使いません)。
+</p>
+<div class="itemizedlist"><ul>
+<li><p class="para">face_detection_yunet_2023mar.onnx (顔を探す、約 230 KB)</p></li>
+<li><p class="para">face_recognition_sface_2021dec.onnx (顔を比べる、約 39 MB)</p></li>
+</ul></div>
+<p class="para">
+入手先は OpenCV Zoo です。
+</p>
+<div class="itemizedlist"><ul>
+<li><p class="para">GitHub (設定のページに出る URL):<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx</p></li>
+<li><p class="para">Hugging Face (GitHub から取れない時。OpenCV Zoo は Hugging Face に移ったと GitHub の README にあります):<br>
+https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx<br>
+https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx</p></li>
+</ul></div>
 <div class="figure"><img src="images/prefs_index_faces.png" width="756" height="744" alt="[設定 | 索引 | 顔]">
 <p class="caption">[設定 | 索引 | 顔]</p></div>
 </dd>

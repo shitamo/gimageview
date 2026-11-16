@@ -820,6 +820,24 @@ The kinds of automatic tags (folder name, camera, shape, the keywords of other p
 <dd><p class="para">
 The folders to find faces in (inside the directories to index), and where the model files are. When they are not found, where to put them and where to get them (URLs) are shown. Only with face recognition.
 </p>
+<p class="para">
+The model files are these two, put in ~/.local/share/gimageview/models (with these names; the quantized "_int8" and "_int8bq" ones next to them are not used):
+</p>
+<div class="itemizedlist"><ul>
+<li><p class="para">face_detection_yunet_2023mar.onnx (finding faces, about 230 KB)</p></li>
+<li><p class="para">face_recognition_sface_2021dec.onnx (comparing faces, about 39 MB)</p></li>
+</ul></div>
+<p class="para">
+They come from the OpenCV Zoo:
+</p>
+<div class="itemizedlist"><ul>
+<li><p class="para">GitHub (the URLs shown on the preferences page):<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx</p></li>
+<li><p class="para">Hugging Face (when GitHub does not give them; the README on GitHub says the OpenCV Zoo moved there):<br>
+https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx<br>
+https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx</p></li>
+</ul></div>
 <div class="figure"><img src="images/prefs_index_faces.png" width="953" height="699" alt="[Preferences | Index | Faces]">
 <p class="caption">[Preferences | Index | Faces]</p></div>
 </dd>
