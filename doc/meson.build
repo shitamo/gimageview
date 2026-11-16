@@ -1,7 +1,7 @@
 # Help menu documents, laid out as the program expects them (src/help.c):
 # <helpdir>/html/<lang>/ and <helpdir>/text/<lang>/ (like the GTK2 build)
 install_data(files('ja/gimageview.css', 'ja/index.html', 'ja/01.html', 'ja/02.html',
-                   'ja/03.html', 'ja/04.html', 'ja/05.html', 'ja/06.html', 'ja/07.html',
+                   'ja/04.html', 'ja/05.html', 'ja/06.html', 'ja/07.html', 'ja/08.html',
                    'ja/gimv_faq.html', 'ja/howto.html', 'ja/gimv_tips.html', 'ja/gimv_history.html',
                    'ja/todo.html', 'ja/document.html', 'ja/changelog.html'),
              install_dir : gimv_helpdir / 'html' / 'ja')
@@ -86,11 +86,11 @@ install_data(files('en/gimageview.css',
                    'en/index.html',
                    'en/01.html',
                    'en/02.html',
-                   'en/03.html',
                    'en/04.html',
                    'en/05.html',
                    'en/06.html',
                    'en/07.html',
+                   'en/08.html',
                    'en/gimv_faq.html',
                    'en/howto.html',
                    'en/gimv_tips.html',

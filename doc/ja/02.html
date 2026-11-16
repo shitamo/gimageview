@@ -8,7 +8,7 @@
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
 <link rel="previous" href="01.html" title="1. はじめに">
-<link rel="next" href="03.html" title="3. メニューバー">
+<link rel="next" href="howto.html" title="3. 目的別の操作">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
@@ -18,7 +18,7 @@
 <td width="20%" align="left">
 <a accesskey="p" href="01.html">前のページ</a>&#160;</td>
 <th width="60%" align="center">&#160;</th>
-<td width="20%" align="right">&#160;<a accesskey="n" href="03.html">次のページ</a>
+<td width="20%" align="right">&#160;<a accesskey="n" href="howto.html">次のページ</a>
 </td>
 </tr>
 </table>
@@ -88,7 +88,99 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-02"></a>2.2. 画像の索引 (日付・タグ)</h3></div></div>
+<a name="02-02"></a>2.2. サムネイル</h3></div></div>
+<div class="itemizedlist"><ul>
+<li><p class="para">サムネイルは freedesktop.org の Thumbnail Managing Standard の形式 (~/.cache/thumbnails) で読み書きでき、他のプログラムと共有できます ([設定 | サムネイルキャッシュ])。</p></li>
+<li><p class="para">JPEG・PNG など GdkPixbuf で読める画像のサムネイルは別スレッドで作るので、作成中も操作できます。JPEG に十分な大きさの縮小画像 (EXIF) があればそれを使います ([設定 | サムネイルキャッシュ] の「サムネイルの作成」)。</p></li>
+<li><p class="para">サムネイルは EXIF の向き (回転・左右反転) どおりに表示し、その向きでキャッシュに保存します。イメージビューで回転・左右反転して記憶した向きがあれば、その向きで表示します (キャッシュには保存しません)。</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-03"></a>2.3. 一覧の操作</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="list_search"></a>一覧の検索 (Ctrl+F)</span></dt>
+<dd><p class="para">
+ディレクトリビュー、詳細表示、データタブ、設定の一覧などで Ctrl+F を押すと、一覧の上に検索欄が出ます。ファイル名・フォルダ名・タグ名など、一覧に出ている名前を入力すると、その文字で始まるもの (なければ含むもの) を選びます。↑↓ で前・次の一致に移り、Enter で決定、Esc で閉じます (5 秒入力しないと閉じます)。索引のタブでは、畳んである中の名前も探します。サムネイルビューのアルバム表示でも、Ctrl+F でファイル名からサムネイルを探せます (見つけた画像を選んで見える位置まで送り、Enter で開きます)。サムネイルビュー以外にフォーカスがある時の Ctrl+F は [ファイル | 開く...] です。
+</p></dd>
+<dt><span class="term"><a name="statusbar"></a>ステータスバー</span></dt>
+<dd><p class="para">
+左にフォーカスのある画像のフルパス、中央に「何枚目 / 全体の枚数」とファイルのサイズを表示します。複数の画像を選ぶと「n 枚選択」と選んだ画像の合計のサイズを表示します。右端は索引の状態とお知らせです。
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-04"></a>2.4. コメント (データ・ノート・タグ)</h3></div></div>
+<p class="para">
+GImageView は、画像ごとの題名・日付・場所などのメモやタグを、画像ファイルを書き換えずに、別のテキストファイル (コメントファイル) に保存します。マニュアルで「コメント」と書いているのはこのファイルの中身のことです。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="comment_file"></a>コメントファイル</span></dt>
+<dd><p class="para">
+画像 1 枚ごとに、~/.gimv/comment の下に、画像のフルパスに「.txt」を付けた名前で作ります (例: /home/user/Pictures/cat.jpg なら ~/.gimv/comment/home/user/Pictures/cat.jpg.txt)。中身は「キー: 値」の行 (データ) と、その後の自由な文章 (ノート) です。文字コードは [設定 | コメント] で指定します。コメントを付けていない画像にはファイルはありません。
+</p></dd>
+<dt><span class="term"><a name="comment_contents"></a>保存されるもの</span></dt>
+<dd><p class="para">
+「データ」タブで入れた値 (題名・日付・場所など。項目は [設定 | コメント] のキー定義で増やせます)、「ノート」タブの文章、「タグを編集...」で手動で付けたタグ (X-IMG-Tags の行)、顔に付けた名前 (「person/名前」のタグ)、画像ごとの回転・左右反転の向き (コメントの編集画面には出ません) です。索引が自動で付けるタグや、画像ファイルの中のコメント・EXIF・キーワードは、コメントファイルには書きません。
+</p></dd>
+<dt><span class="term"><a name="comment_edit"></a>見る・編集する</span></dt>
+<dd><p class="para">
+サムネイルの右クリックかイメージウィンドウの [編集 | コメントを編集...] でコメントウィンドウを開きます。プレビューの「データ」タブにも同じ内容が出ます。詳細表示の「題名」「コメント」列、アルバム表示のツールチップにも表示できます。
+</p></dd>
+<dt><span class="term"><a name="comment_data_tab"></a>「データ」タブ</span></dt>
+<dd>
+<div class="itemizedlist"><ul>
+<li><p class="para">プレビューとコメントウィンドウの「データ」タブには、画像ファイル自体に書かれたコメント (JPEG・PNG・GIF・MAG) を斜体で表示します (表示のみ)。</p></li>
+<li><p class="para">曲や動画では、ファイルに入っている情報 (タイトル・アーティスト・アルバム・トラック・ジャンル・長さ・音声や映像の形式など) も「データ」タブに斜体で表示します (表示のみ、GStreamer プラグイン)。</p></li>
+<li><p class="para">「データ」タブでは、「キー」を選んで「値」を入れ、Enter か「保存」で登録します (値の書き方に決まりはありません。ただし「日付」に日付として読める値を書くと、索引はそれを撮影日にします)。</p></li>
+<li><p class="para">「データ」タブの「項目を削除」(一覧では Delete キー) は選んでいる項目を消し、「保存」で確定します。下の「コメントを削除...」は、確認のあと、その画像のデータとノートを消します。タグ (X-IMG-Tags) は残ります。タグの行は表示だけで、タグは「タグを編集...」で編集します。</p></li>
+</ul></div>
+</dd>
+<dt><span class="term"><a name="comment_move"></a>画像の移動と索引</span></dt>
+<dd><p class="para">
+GImageView で画像を移動・コピー・名前変更すると、コメントファイルも一緒に移ります。他のプログラムで移動して見つからなくなった画像は [ツール | 行方不明の画像...] で付け直せます。コメントファイルは索引のデータベースとは別なので、索引を作り直してもタグや名前は失われません。
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-05"></a>2.5. ブックマーク</h3></div></div>
+<p class="para">
+気になった画像に、後から見返すための印を付けられます。索引の対象外のフォルダの画像にも付けられます。ブックマークは ~/.gimv/bookmarks に保存します (索引のデータベースとは別なので、索引を作り直しても消えません)。
+</p>
+<div class="figure"><img src="images/bookmark.png" width="700" height="450" alt="ブックマークタブとメモの入力">
+<p class="caption">ブックマークタブとメモの入力</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="bookmark_add"></a>付け方</span></dt>
+<dd><p class="para">
+サムネイルビューで画像を選び (複数可)、[編集 | ブックマーク...] か右クリックの「ブックマーク...」を選びます。イメージウィンドウでは [編集 | ブックマーク...]、プレビューでは右クリックの「ブックマーク...」です。選んだ時点でブックマークが付き、メモの欄が出ます。メモは何も書かずに Esc で閉じてもかまいません (雑に付けておいて、後から書けます)。Enter か欄の外をクリックすると、書いたメモを保存します。すでに付いている画像で選ぶと、メモを直したり「外す」で外したりできます。
+</p></dd>
+<dt><span class="term"><a name="bookmark_key"></a>キー</span></dt>
+<dd><p class="para">
+標準ではキーは割り当てていません。<a href="04.html#shortcuts">[編集 | キーボードショートカット...]</a> で割り当てられます。~/.gimv/keyaccelrc に次のように書いても、次の起動からそのキーで付けられます (Ctrl+K の例。行の先頭に「;」があると無効です)。
+</p>
+<pre class="programlisting">(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ImageWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ThumbWinPreviewPop&gt;/Bookmark..." "&lt;Control&gt;k")</pre>
+</dd>
+<dt><span class="term"><a name="bookmark_tab"></a>ブックマークタブ</span></dt>
+<dd><p class="para">
+ディレクトリビューの並びの「ブックマーク」タブ (星) に、付けた日ごと (今日、昨日、1 週間以内、それより前は月ごと) と、「全て」「メモあり」「メモなし」が件数付きで並びます。行をクリックすると、結果のタブに新しく付けたものから順に開きます (索引のタブと同じく、ファイル名だけを表示)。並べ替えのメニューを選ぶと、その順になります。
+</p></dd>
+<dt><span class="term"><a name="bookmark_note"></a>メモの表示</span></dt>
+<dd><p class="para">
+ブックマークを付けた画像は、サムネイルのツールチップの先頭に「★ メモ」(メモがなければ「★ ブックマークしました」) を表示します。
+</p></dd>
+<dt><span class="term"><a name="bookmark_move"></a>移動と行方不明</span></dt>
+<dd><p class="para">
+GImageView で名前を変えたり移動したりした画像は、ブックマークも一緒に移ります。索引の対象のフォルダでは、ほかのプログラムで移動・名前変更した画像やフォルダにも付いていきます。それ以外で見つからなくなった画像は、タブの「見つからない」に件数だけ表示します。
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-06"></a>2.6. 画像の索引 (日付・タグ)</h3></div></div>
 <p class="para">
 [設定 | 索引] で「索引を作るディレクトリ」を指定すると、GImageView の起動中に索引プロセス (gimv-indexer) がその下の画像を調べ、撮影日時とタグのデータベース (~/.local/share/gimageview/index.db) を作ります。索引プロセスは低い優先度で動き、起動中のファイルの追加・移動・削除も取り込みます。進み具合はステータスバーの右端に「索引: …」と表示されます。SQLite を使ってビルドした場合だけの機能です。
 </p>
@@ -120,7 +212,7 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 ディレクトリビューでフォルダを右クリックして「下のフォルダも含めてタグを編集...」を選ぶと、そのフォルダと下のフォルダにある画像すべてが対象になります (開いたり選んだりする必要はありません)。画像を探すのは裏で行い、時間がかかるときは見つかった枚数を表示します (キャンセルできます)。ダイアログの使い方は同じです。枚数が多いときは書き込みの進み具合を表示し、「中止」で止められます。止めたときは、それまでの画像だけが変わり、残りは元のままです。書き込む前にすべての画像を確認するので、タグが長すぎる画像があるときは何も書き込みません。</p>
 <div class="figure"><img src="images/tags_dialog.png" width="440" height="550" alt="タグの編集">
 <p class="caption">タグの編集</p></div>
-<p class="para">タグはコメントファイル (~/.gimv/comment、<a href="#02-09">2.9</a>) の「X-IMG-Tags:」の行に書かれ、索引を作り直しても失われません。顔に付けた人物の名前 (「person/名前」のタグ) は欄には出さずに「人物」に表示し、タグの編集では変わりません (名前は顔の一覧ウィンドウか顔パネルで付けます)。コメントウィンドウとプレビューの「データ」タブの「タグ:」の行には、その画像のタグが並び、クリックするとそのタグの画像を開きます。階層のあるタグは「旅行 / 京都 / 寺」のように部分ごとに並び、親の部分 (薄い字) をクリックすると、その親と下のタグの画像をまとめて開きます。
+<p class="para">タグはコメントファイル (~/.gimv/comment、<a href="#02-04">2.4</a>) の「X-IMG-Tags:」の行に書かれ、索引を作り直しても失われません。顔に付けた人物の名前 (「person/名前」のタグ) は欄には出さずに「人物」に表示し、タグの編集では変わりません (名前は顔の一覧ウィンドウか顔パネルで付けます)。コメントウィンドウとプレビューの「データ」タブの「タグ:」の行には、その画像のタグが並び、クリックするとそのタグの画像を開きます。階層のあるタグは「旅行 / 京都 / 寺」のように部分ごとに並び、親の部分 (薄い字) をクリックすると、その親と下のタグの画像をまとめて開きます。
 </p></dd>
 <dt><span class="term"><a name="index_rename"></a>タグの名前の変更・統合</span></dt>
 <dd><p class="para">
@@ -142,16 +234,16 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-03"></a>2.3. 顔と人物</h3></div></div>
+<a name="02-07"></a>2.7. 顔と人物</h3></div></div>
 <p class="para">
-[設定 | 索引 | 顔] の「顔を認識するフォルダ」(索引を作るディレクトリの中) の画像から、gimv-faces が顔を探し、似た顔をグループにまとめます。索引のあとで、ゆっくり動きます。OpenCV 4.8 以上を使ってビルドした場合だけの機能で、モデルファイル (OpenCV の YuNet と SFace、約 40 MB) を ~/.local/share/gimageview/models に置く必要があります (ファイル名と入手先は <a href="06.html#Index_faces">[設定 | 索引 | 顔]</a> を見て下さい。設定のページにも表示されます)。
+[設定 | 索引 | 顔] の「顔を認識するフォルダ」(索引を作るディレクトリの中) の画像から、gimv-faces が顔を探し、似た顔をグループにまとめます。索引のあとで、ゆっくり動きます。OpenCV 4.8 以上を使ってビルドした場合だけの機能で、モデルファイル (OpenCV の YuNet と SFace、約 40 MB) を ~/.local/share/gimageview/models に置く必要があります (ファイル名と入手先は <a href="07.html#Index_faces">[設定 | 索引 | 顔]</a> を見て下さい。設定のページにも表示されます)。
 </p>
 <div class="figure"><img src="images/faces_window.png" width="700" height="390" alt="顔の一覧ウィンドウ">
 <p class="caption">顔の一覧ウィンドウ</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="people_tab"></a>人物タブ</span></dt>
 <dd><p class="para">
-名前を付けた人 (人物のタグでまとめて表示)、名前の候補 (「名前？」)、名前のないグループ、その他の顔、無視した顔を表示します。クリックでその人の写っている画像を開きます。右クリックの「顔を表示...」で顔の一覧ウィンドウを開きます (右クリックのメニューは <a href="05.html#05-03-04">5.3.4</a>)。
+名前を付けた人 (人物のタグでまとめて表示)、名前の候補 (「名前？」)、名前のないグループ、その他の顔、無視した顔を表示します。クリックでその人の写っている画像を開きます。右クリックの「顔を表示...」で顔の一覧ウィンドウを開きます (右クリックのメニューは <a href="06.html#06-03-04">6.3.4</a>)。
 </p></dd>
 <dt><span class="term"><a name="faces_window"></a>顔の一覧ウィンドウ</span></dt>
 <dd><p class="para">
@@ -176,7 +268,7 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-04"></a>2.4. 画像の検索</h3></div></div>
+<a name="02-08"></a>2.8. 画像の検索</h3></div></div>
 <div class="figure"><img src="images/search_window.png" width="460" height="640" alt="画像の検索ウィンドウ">
 <p class="caption">画像の検索ウィンドウ</p></div>
 <p class="para">
@@ -193,99 +285,12 @@ GUI からディレクトリを開きたい場合は、ディレクトリビュ�
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-05"></a>2.5. 一覧の操作</h3></div></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="list_search"></a>一覧の検索 (Ctrl+F)</span></dt>
-<dd><p class="para">
-ディレクトリビュー、詳細表示、データタブ、設定の一覧などで Ctrl+F を押すと、一覧の上に検索欄が出ます。ファイル名・フォルダ名・タグ名など、一覧に出ている名前を入力すると、その文字で始まるもの (なければ含むもの) を選びます。↑↓ で前・次の一致に移り、Enter で決定、Esc で閉じます (5 秒入力しないと閉じます)。索引のタブでは、畳んである中の名前も探します。サムネイルビューのアルバム表示でも、Ctrl+F でファイル名からサムネイルを探せます (見つけた画像を選んで見える位置まで送り、Enter で開きます)。サムネイルビュー以外にフォーカスがある時の Ctrl+F は [ファイル | 開く...] です。
-</p></dd>
-<dt><span class="term"><a name="statusbar"></a>ステータスバー</span></dt>
-<dd><p class="para">
-左にフォーカスのある画像のフルパス、中央に「何枚目 / 全体の枚数」とファイルのサイズを表示します。複数の画像を選ぶと「n 枚選択」と選んだ画像の合計のサイズを表示します。右端は索引の状態とお知らせです。
-</p></dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-06"></a>2.6. サムネイル</h3></div></div>
-<div class="itemizedlist"><ul>
-<li><p class="para">サムネイルは freedesktop.org の Thumbnail Managing Standard の形式 (~/.cache/thumbnails) で読み書きでき、他のプログラムと共有できます ([設定 | サムネイルキャッシュ])。</p></li>
-<li><p class="para">JPEG・PNG など GdkPixbuf で読める画像のサムネイルは別スレッドで作るので、作成中も操作できます。JPEG に十分な大きさの縮小画像 (EXIF) があればそれを使います ([設定 | サムネイルキャッシュ] の「サムネイルの作成」)。</p></li>
-<li><p class="para">サムネイルは EXIF の向き (回転・左右反転) どおりに表示し、その向きでキャッシュに保存します。イメージビューで回転・左右反転して記憶した向きがあれば、その向きで表示します (キャッシュには保存しません)。</p></li>
-</ul></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-07"></a>2.7. その他</h3></div></div>
+<a name="02-09"></a>2.9. その他</h3></div></div>
 <div class="itemizedlist"><ul>
 <li><p class="para">イメージビューの右クリックの「画像をクリップボードにコピー」(Shift+Ctrl+C) で、表示している画像を他のプログラムに貼り付けられます。</p></li>
 <li><p class="para">イメージビューの「左右反転」(X) と回転は画像ごとに記憶し、次に開いたときに戻します ([設定 | イメージウィンドウ | 画像] の「画像ごとに回転・左右反転を覚える」)。</p></li>
-<li><p class="para">プレビューとコメントウィンドウ (<a href="#02-09">2.9</a>) の「データ」タブには、画像ファイル自体に書かれたコメント (JPEG・PNG・GIF・MAG) を斜体で表示します (表示のみ)。</p></li>
-<li><p class="para">曲や動画では、ファイルに入っている情報 (タイトル・アーティスト・アルバム・トラック・ジャンル・長さ・音声や映像の形式など) も「データ」タブに斜体で表示します (表示のみ、GStreamer プラグイン)。</p></li>
-<li><p class="para">「データ」タブでは、「キー」を選んで「値」を入れ、Enter か「保存」で登録します (値の書き方に決まりはありません。ただし「日付」に日付として読める値を書くと、索引はそれを撮影日にします)。</p></li>
-<li><p class="para">「データ」タブの「項目を削除」(一覧では Delete キー) は選んでいる項目を消し、「保存」で確定します。下の「コメントを削除...」は、確認のあと、その画像のデータとノートを消します。タグ (X-IMG-Tags) は残ります。タグの行は表示だけで、タグは「タグを編集...」で編集します。</p></li>
 <li><p class="para">サムネイルビューとイメージビューの右クリックの「元のフォルダを開く」で、画像のあるフォルダを開きます。</p></li>
 </ul></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-08"></a>2.8. ブックマーク</h3></div></div>
-<p class="para">
-気になった画像に、後から見返すための印を付けられます。索引の対象外のフォルダの画像にも付けられます。ブックマークは ~/.gimv/bookmarks に保存します (索引のデータベースとは別なので、索引を作り直しても消えません)。
-</p>
-<div class="figure"><img src="images/bookmark.png" width="700" height="450" alt="ブックマークタブとメモの入力">
-<p class="caption">ブックマークタブとメモの入力</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="bookmark_add"></a>付け方</span></dt>
-<dd><p class="para">
-サムネイルビューで画像を選び (複数可)、[編集 | ブックマーク...] か右クリックの「ブックマーク...」を選びます。イメージウィンドウでは [編集 | ブックマーク...]、プレビューでは右クリックの「ブックマーク...」です。選んだ時点でブックマークが付き、メモの欄が出ます。メモは何も書かずに Esc で閉じてもかまいません (雑に付けておいて、後から書けます)。Enter か欄の外をクリックすると、書いたメモを保存します。すでに付いている画像で選ぶと、メモを直したり「外す」で外したりできます。
-</p></dd>
-<dt><span class="term"><a name="bookmark_key"></a>キー</span></dt>
-<dd><p class="para">
-標準ではキーは割り当てていません。<a href="03.html#shortcuts">[編集 | キーボードショートカット...]</a> で割り当てられます。~/.gimv/keyaccelrc に次のように書いても、次の起動からそのキーで付けられます (Ctrl+K の例。行の先頭に「;」があると無効です)。
-</p>
-<pre class="programlisting">(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
-(gtk_accel_path "&lt;ImageWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
-(gtk_accel_path "&lt;ThumbWinPreviewPop&gt;/Bookmark..." "&lt;Control&gt;k")</pre>
-</dd>
-<dt><span class="term"><a name="bookmark_tab"></a>ブックマークタブ</span></dt>
-<dd><p class="para">
-ディレクトリビューの並びの「ブックマーク」タブ (星) に、付けた日ごと (今日、昨日、1 週間以内、それより前は月ごと) と、「全て」「メモあり」「メモなし」が件数付きで並びます。行をクリックすると、結果のタブに新しく付けたものから順に開きます (索引のタブと同じく、ファイル名だけを表示)。並べ替えのメニューを選ぶと、その順になります。
-</p></dd>
-<dt><span class="term"><a name="bookmark_note"></a>メモの表示</span></dt>
-<dd><p class="para">
-ブックマークを付けた画像は、サムネイルのツールチップの先頭に「★ メモ」(メモがなければ「★ ブックマークしました」) を表示します。
-</p></dd>
-<dt><span class="term"><a name="bookmark_move"></a>移動と行方不明</span></dt>
-<dd><p class="para">
-GImageView で名前を変えたり移動したりした画像は、ブックマークも一緒に移ります。索引の対象のフォルダでは、ほかのプログラムで移動・名前変更した画像やフォルダにも付いていきます。それ以外で見つからなくなった画像は、タブの「見つからない」に件数だけ表示します。
-</p></dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-09"></a>2.9. コメント (データ・ノート・タグ)</h3></div></div>
-<p class="para">
-GImageView は、画像ごとの題名・日付・場所などのメモやタグを、画像ファイルを書き換えずに、別のテキストファイル (コメントファイル) に保存します。マニュアルで「コメント」と書いているのはこのファイルの中身のことです。
-</p>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="comment_file"></a>コメントファイル</span></dt>
-<dd><p class="para">
-画像 1 枚ごとに、~/.gimv/comment の下に、画像のフルパスに「.txt」を付けた名前で作ります (例: /home/user/Pictures/cat.jpg なら ~/.gimv/comment/home/user/Pictures/cat.jpg.txt)。中身は「キー: 値」の行 (データ) と、その後の自由な文章 (ノート) です。文字コードは [設定 | コメント] で指定します。コメントを付けていない画像にはファイルはありません。
-</p></dd>
-<dt><span class="term"><a name="comment_contents"></a>保存されるもの</span></dt>
-<dd><p class="para">
-「データ」タブで入れた値 (題名・日付・場所など。項目は [設定 | コメント] のキー定義で増やせます)、「ノート」タブの文章、「タグを編集...」で手動で付けたタグ (X-IMG-Tags の行)、顔に付けた名前 (「person/名前」のタグ)、画像ごとの回転・左右反転の向き (コメントの編集画面には出ません) です。索引が自動で付けるタグや、画像ファイルの中のコメント・EXIF・キーワードは、コメントファイルには書きません。
-</p></dd>
-<dt><span class="term"><a name="comment_edit"></a>見る・編集する</span></dt>
-<dd><p class="para">
-サムネイルの右クリックかイメージウィンドウの [編集 | コメントを編集...] でコメントウィンドウを開きます。プレビューの「データ」タブにも同じ内容が出ます。詳細表示の「題名」「コメント」列、アルバム表示のツールチップにも表示できます。
-</p></dd>
-<dt><span class="term"><a name="comment_move"></a>画像の移動と索引</span></dt>
-<dd><p class="para">
-GImageView で画像を移動・コピー・名前変更すると、コメントファイルも一緒に移ります。他のプログラムで移動して見つからなくなった画像は [ツール | 行方不明の画像...] で付け直せます。コメントファイルは索引のデータベースとは別なので、索引を作り直してもタグや名前は失われません。
-</p></dd>
-</dl></div>
 </div>
 </div>
 <div class="navfooter">
@@ -295,13 +300,13 @@ GImageView で画像を移動・コピー・名前変更すると、コメント
 <td width="40%" align="left">
 <a accesskey="p" href="01.html">前のページ</a>&#160;</td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">ホーム</a></td>
-<td width="40%" align="right">&#160;<a accesskey="n" href="03.html">次のページ</a>
+<td width="40%" align="right">&#160;<a accesskey="n" href="howto.html">次のページ</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left">1. はじめに&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
-<td width="40%" align="right">&#160;3. メニューバー</td>
+<td width="40%" align="right">&#160;3. 目的別の操作</td>
 </tr>
 </table>
 </div>

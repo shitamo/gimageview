@@ -2,23 +2,23 @@
 <html lang="ja">
 <head>
 <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-<title>7. デフォルト キーバインド</title>
+<title>7. 設定</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
-<link rel="previous" href="06.html" title="6. 設定">
-<link rel="next" href="gimv_faq.html" title="8. GImageView FAQ">
+<link rel="previous" href="06.html" title="6. マウスメニュー">
+<link rel="next" href="08.html" title="8. デフォルト キーバインド">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">7. デフォルト キーバインド</th></tr>
+<tr><th colspan="3" align="center">7. 設定</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="06.html">前のページ</a>&#160;</td>
 <th width="60%" align="center">&#160;</th>
-<td width="20%" align="right">&#160;<a accesskey="n" href="gimv_faq.html">次のページ</a>
+<td width="20%" align="right">&#160;<a accesskey="n" href="08.html">次のページ</a>
 </td>
 </tr>
 </table>
@@ -26,513 +26,836 @@
 </div>
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
-<a name="07"></a>7. デフォルト キーバインド</h2></div></div>
+<a name="07"></a>7. 設定</h2></div></div>
+<p class="para">
+設定ダイアログの各項目について説明します。
+</p>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="07-01"></a>7.1. 共通</h3></div></div>
+<a name="07-01"></a>7.1. 一般</h3></div></div>
+<div class="figure"><img src="images/prefs_general.png" width="756" height="744" alt="[設定 | 一般] (既定の設定)">
+<p class="caption">[設定 | 一般] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="File_Open_Window"></a>ファイルを開くウィンドウ</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>B</i></span> : タブ表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>F</i></span> : 最大化</p></li>
-<li><p class="para">
-<span class="emphasis"><i>M</i></span> : メニューバー表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>N</i></span> : ツールバー表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>V</i></span> : ステータスバー表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + C</i></span> : GImageView 全終了</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + F</i></span> : ファイルオープンダイアログ (一覧にフォーカスがあるときは、その一覧の検索)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + I</i></span> : 新規イメージウィンドウ</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + O</i></span> : 設定</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + P</i></span> : 印刷</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Q</i></span> : ウィンドウを閉じる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + T</i></span> : 新規タブ</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + W</i></span> : 新規ウィンドウ</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + S</i></span> : スクロールバー表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + F10</i></span> : ポップアップメニュー</p></li>
+コマンドラインからファイルを開いた時、また、ファイルオープンダイアログから「了解」を押した際の展開先ウィンドウを設定します。
+</p>
+<p class="para">
+「〜ウィンドウで開く」のような指定が無い箇所では、ここの指定に従って展開先が決まります。
+</p>
+</dd>
+<dt><span class="term"><a name="Directory_Open_Window"></a>ディレクトリを開くウィンドウ</span></dt>
+<dd>
+<p class="para">
+コマンドラインからディレクトリを開いた時の展開先ウィンドウを設定します。
+</p>
+</dd>
+<dt><span class="term"><a name="Archive_Open_Window"></a>アーカイブを開くウィンドウ</span></dt>
+<dd>
+<p class="para">
+コマンドラインからアーカイブを開いた時の展開先ウィンドウを設定します。
+</p>
+</dd>
+<dt><span class="term"><a name="Scan_directories_recursively"></a>ディレクトリを再帰的に取得する</span></dt>
+<dd>
+<p class="para">
+コマンドラインでディレクトリを引数に取った時、常に再帰的に取得するようになります。
+</p>
+<p class="para">
+コマンドラインオプション、-dR と同義です。
+</p>
+</dd>
+<dt><span class="term"><a name="Follow_symbolic_link"></a>シンボリックリンク先のディレクトリを読み込む / リンク先のディレクトリを読み込まない</span></dt>
+<dd>
+<p class="para">
+再帰的に取得する際に、シンボリックリンク先のディレクトリも読み込むかどうかです。
+</p>
+</dd>
+<dt><span class="term"><a name="Interpolation_type_for_scaling"></a>スケーリング時の補間法</span></dt>
+<dd>
+<p class="para">
+画像をスケーリング(拡大縮小)する際の、補間方法を指定します。以下の4種類から指定できます。
+</p>
+<p class="para">
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Nearest : 最近傍法。最も速いが、画質は粗くなります。</p></li>
+<li><p class="para">Tiles : 拡大時は Nearest と同じ、縮小時は画素を平均します。</p></li>
+<li><p class="para">Bilinear : 双線形補間。速度と画質のバランスが良い方法です。</p></li>
+<li><p class="para">Hyperbolic : ハイパーボリック。最も高画質ですが、遅くなります。</p></li>
 </ul></div>
 </p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-02"></a>7.2. サムネイルウィンドウ</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Color_scheme"></a>配色</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>H</i></span> : 前のページ(タブ)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>J</i></span> : 最後のページ(タブ)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>K</i></span> : 最初のページ(タブ)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>L</i></span> : 次のページ(タブ)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Q</i></span> : タブを閉じる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Ctrl + R</i></span> : リスト更新</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + 1〜6</i></span> : サムネイルビューの表示モード (アルバム、アルバム2、アルバム3、詳細、詳細 + アイコン、詳細 + サムネイル)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 0</i></span> : レイアウト 0</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 1</i></span> : レイアウト 1</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 2</i></span> : レイアウト 2</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 3</i></span> : レイアウト 3</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 4</i></span> : レイアウト 4</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + A</i></span> : 全て選択</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + D</i></span> : タブを切り離す</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + N</i></span> : 全て選択解除</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Q</i></span> : ウィンドウを閉じる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + R</i></span> : 全てのサムネイルを再作成</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + S</i></span> : スライドショー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + T</i></span> : 新規タブ</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + C</i></span> : ディレクトリへコピー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + B</i></span> : タブを後方へ移動</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + D</i></span> : ディレクトリビュー表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + E</i></span> : ファイル名変更</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + F</i></span> : タブを前方へ移動</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + L</i></span> : ディレクトリへリンク</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + M</i></span> : ディレクトリへ移動</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + N</i></span> : ディレクトリビューツールバー表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + P</i></span> : プレビュー表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + R</i></span> : キャッシュ再読込</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Z</i></span> : タブ (プレビュー) 表示 ON/OFF</p></li>
+ウィンドウの配色を、以下の3つから選びます。変更は「適用」または「了解」ですぐに反映されます。GTK 4 版で追加した項目です (初期値は「デスクトップのテーマ」)。
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">デスクトップのテーマ : デスクトップで選んだテーマ (GTK の gtk-theme-name。X11 では XSETTINGS の Net/ThemeName) で表示します。GTK 4 は gtk-4.0 ディレクトリのないテーマ (GTK 2/3 用のテーマ) を読めず、明るい Adwaita で表示します。そのようなテーマの名前に「dark」が含まれる場合 (Greybird-dark など) は、暗い Adwaita で表示します。</p></li>
+<li><p class="para">ライト : 明るい配色で表示します。テーマの名前が「-dark」で終わる場合は、それを除いた名前のテーマを使います。そのテーマを GTK 4 が読めない場合は Adwaita を使います。</p></li>
+<li><p class="para">ダーク : 暗い配色で表示します。テーマに暗い版 (gtk-dark.css) がない場合は、暗い Adwaita を使います。</p></li>
 </ul></div>
-</p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-03"></a>7.3. サムネイルウィンドウ / サムネイルビュー</h3></div></div>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>カーソルキー</i></span> : カーソル移動</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Space</i></span> : ファイルを選択/選択解除</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Enter</i></span> : そのファイルのみを選択して画像を開く</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Enter</i></span> : そのファイルを選択して画像を開く</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Delete</i></span> : 選択ファイルを削除</p></li>
-</ul></div>
+環境変数 GTK_THEME が設定されている場合は、GTK はそのテーマを使い、この項目は働きません。黒い線だけで描かれた GImageView 独自のアイコン (ズーム、ドットファイル表示/非表示など) は、暗い配色では明るい線で表示されます。
+</p>
+</dd>
+<dt><span class="term"><a name="Use_theme_icons"></a>ボタンにデスクトップのアイコンテーマのアイコンを使う</span></dt>
+<dd>
+<p class="para">
+ツールバーなどのボタンに、デスクトップのアイコンテーマ (Adwaita、Papirus など) のアイコンを使います。テーマに対応するアイコンがないボタンや、ディレクトリツリーのアイコンは GImageView 独自のものです。変更後に開いたウィンドウから反映されます。GTK 4 版で追加した項目です (初期値は ON)。
 </p>
 <p class="para">
-ただし、ファイル選択の挙動はモードによって少し異なる場合があります。
+独自のアイコンを使いたい場合は、~/.gimv/icons/&lt;名前&gt;/ にアイコン名のファイル (back.png、zoom_in.svg、refresh.xpm など。PNG、SVG、XPM が使えます) を置き、~/.gimv/gimvrc の iconset= にその名前を書いて下さい。置いたアイコンはテーマのアイコンより優先されます。
 </p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-04"></a>7.4. サムネイルウィンドウ / プレビュー</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Scrollbars_always"></a>スクロールバーを常に表示する</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>1</i></span> : 10%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>2</i></span> : 25%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>3</i></span> : 50%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>4</i></span> : 75%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>5</i></span> : 100%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>6</i></span> : 125%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>7</i></span> : 150%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>8</i></span> : 175%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>9</i></span> : 200%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>A</i></span> : 5%縮小</p></li>
-<li><p class="para">
-<span class="emphasis"><i>D</i></span> : 180度回転</p></li>
-<li><p class="para">
-<span class="emphasis"><i>E</i></span> : 反時計回りに90°回転</p></li>
-<li><p class="para">
-<span class="emphasis"><i>R</i></span> : 時計回りに90°回転</p></li>
-<li><p class="para">
-<span class="emphasis"><i>S</i></span> : 5%拡大</p></li>
-<li><p class="para">
-<span class="emphasis"><i>W</i></span> : ウィンドウの大きさに合わせる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + B</i></span> : メモリバッファ</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + A</i></span> : アスペクト比を保持</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + H</i></span> : 高さを合わせる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + W</i></span> : 幅を合わせる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + T</i></span> : サムネイル作成</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Up</i></span> : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Down, Space</i></span> : 次の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Home</i></span> : 最初の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>End</i></span> : 最後の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>カーソルキー</i></span> : 画像移動</p></li>
-</ul></div>
+一覧などのスクロールバーを常に表示します。OFF にすると、GTK 4 の標準どおり、ポインタを近づけたときだけ内容に重ねて表示します。GTK 4 版で追加した項目です (初期値は ON)。
 </p>
+</dd>
+<dt><span class="term"><a name="Open_thumbnail_window"></a>サムネイルウィンドウを開く</span></dt>
+<dd>
 <p class="para">
-ズーム及び回転はナビゲーションウィンドウでも有効です。
+GImageView を起動した時、常にサムネイルウィンドウを開くかどうか、です。
 </p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-05"></a>7.5. イメージウィンドウ</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Ignore_directory"></a>ディレクトリを無視する</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>1</i></span> : 10%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>2</i></span> : 25%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>3</i></span> : 50%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>4</i></span> : 75%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>5</i></span> : 100%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>6</i></span> : 125%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>7</i></span> : 150%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>8</i></span> : 175%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>9</i></span> : 200%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>A</i></span> : 5%縮小</p></li>
-<li><p class="para">
-<span class="emphasis"><i>D</i></span> : 180度回転</p></li>
-<li><p class="para">
-<span class="emphasis"><i>E</i></span> : 反時計回りに90°回転</p></li>
-<li><p class="para">
-<span class="emphasis"><i>H</i></span> : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>I</i></span> : 画像の大きさに合わせる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>J</i></span> : 最後の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>K</i></span> : 最初の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>L</i></span> : 次の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Q</i></span> : ウィンドウを閉じる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>R</i></span> : 時計回りに90°回転</p></li>
-<li><p class="para">
-<span class="emphasis"><i>S</i></span> : 5%拡大</p></li>
-<li><p class="para">
-<span class="emphasis"><i>W</i></span> : ウィンドウの大きさに合わせる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + B</i></span> : メモリバッファ</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + A</i></span> : アスペクト比を保持</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + H</i></span> : 高さを合わせる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + W</i></span> : 幅を合わせる</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + F</i></span> : 全画面</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + N</i></span> : スライドショープレーヤ表示 ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + T</i></span> : サムネイル作成</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Up</i></span> : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Down, Space</i></span> : 次の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Home</i></span> : 最初の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>End</i></span> : 最後の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>カーソルキー</i></span> : 画像移動</p></li>
-</ul></div>
+引数にディレクトリを与えられた時、それを無視するようになります。
 </p>
+</dd>
+<dt><span class="term"><a name="No_warning"></a>警告を表示しない</span></dt>
+<dd>
 <p class="para">
-ズーム及び回転はナビゲーションウィンドウでも有効です。
+コマンドラインから起動した時に表示される警告メッセージを抑制します。
 </p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-06"></a>7.6. マウス</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Show_splash_window"></a>スプラッシュウィンドウを表示する</span></dt>
+<dd>
+<p class="para">
+起動時にスプラッシュウィンドウ(ロゴ画像)を表示するかどうか、です。GTK 4 版で追加した項目です。
+</p>
+</dd>
+</dl></div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="07-06-1"></a>7.6.1. サムネイルビュー</h4></div></div>
+<a name="07-01-01"></a>7.1.1. フィルタ</h4></div></div>
+<div class="figure"><img src="images/prefs_filter.png" width="756" height="744" alt="[設定 | 一般 | フィルタ] (既定の設定)">
+<p class="caption">[設定 | 一般 | フィルタ] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="File_type"></a>ファイルタイプ</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1</i></span> (左クリック) : 開く (Window を自動選択)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 1</i></span> (Ctrl + 左クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 1</i></span> (Shift + 左クリック) : クリックした画像まで一気に選択。選択解除は出来ません。全て選択解除(Ctrl+N)してください。</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 1</i></span> (Alt + 左クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 2</i></span> (中クリック) : 開く (自動 &amp; 強制)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 2</i></span> (Ctrl + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 2</i></span> (Shift + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 2</i></span> (Alt + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 3</i></span> (右クリック) : ポップアップメニュー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 3</i></span> (Ctrl + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 3</i></span> (Shift + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 3</i></span> (Alt + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1 ダブルクリック</i></span> (左ダブルクリック) : 開く (自動 &amp; 強制)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 1 ダブルクリック</i></span> (Ctrl + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 1 ダブルクリック</i></span> (Shift + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 1 ダブルクリック</i></span> (Alt + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 4</i></span> (ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 4</i></span> (Ctrl + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 4</i></span> (Shift + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 4</i></span> (Alt + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 5</i></span> (ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 5</i></span> (Ctrl + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 5</i></span> (Shift + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 5</i></span> (Alt + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 8</i></span> (サイドボタンの「戻る」) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 9</i></span> (サイドボタンの「進む」) : none</p></li>
-</ul></div>
+拡張子とファイルタイプ (MIME タイプ) の対応の一覧です。「状態」が「無効」の拡張子のファイルは読み込みません。
 </p>
+<p class="para">
+一覧の下の欄で拡張子とファイルタイプを入力し、「追加」で新しい対応を登録します。登録済みの対応は、選択して「変更」「削除」できます。「無効」にチェックを入れると、その拡張子を無効にします。「システム定義」の対応は削除できません。
+</p>
+</dd>
+<dt><span class="term"><a name="Read_dotfiles"></a>ドットファイルを読み込む</span></dt>
+<dd>
+<p class="para">
+.で始まる画像ファイルやディレクトリを開くかどうか、です。なお、ディレクトリビューに関しては専用の設定 (<a href="#07-03-03" title="7.3.3. ディレクトリビュー">項7.3.3</a>) がありますので、ここの設定に従いません。
+</p>
+</dd>
+<dt><span class="term"><a name="Ignore file name extension"></a>拡張子を無視する</span></dt>
+<dd>
+<p class="para">
+ファイルの拡張子による判別を行わず、全てのファイルを読み込みの対象にします。
+</p>
+</dd>
+</dl></div>
 </div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="07-06-2"></a>7.6.2. プレビュー</h4></div></div>
+<a name="07-01-02"></a>7.1.2. キャラクターセット</h4></div></div>
+<div class="figure"><img src="images/prefs_charset.png" width="756" height="744" alt="[設定 | 一般 | キャラクターセット] (既定の設定)">
+<p class="caption">[設定 | 一般 | キャラクターセット] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Locale_character_set"></a>ロカールのキャラクターセット</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1</i></span> (左クリック) : 次の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 1</i></span> (Ctrl + 左クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 1</i></span> (Shift + 左クリック) : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 1</i></span> (Alt + 左クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 2</i></span> (中クリック) : 新規ウィンドウで開く</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 2</i></span> (Ctrl + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 2</i></span> (Shift + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 2</i></span> (Alt + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 3</i></span> (右クリック) : ポップアップメニュー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 3</i></span> (Ctrl + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 3</i></span> (Shift + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 3</i></span> (Alt + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1 ダブルクリック</i></span> (左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 1 ダブルクリック</i></span> (Ctrl + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 1 ダブルクリック</i></span> (Shift + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 1 ダブルクリック</i></span> (Alt + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 4</i></span> (ホイールアップ) : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 4</i></span> (Ctrl + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 4</i></span> (Shift + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 4</i></span> (Alt + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 5</i></span> (ホイールダウン) : 次の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 5</i></span> (Ctrl + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 5</i></span> (Shift + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 5</i></span> (Alt + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 8</i></span> (サイドボタンの「戻る」) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 9</i></span> (サイドボタンの「進む」) : none</p></li>
-</ul></div>
+画像につけるコメントのロカールキャラクターセットの定義です。
+</p>
+</dd>
+<dt><span class="term"><a name="Internal_character_set"></a>内部キャラクターセット</span></dt>
+<dd>
+<p class="para">
+GImageView で使用する、内部キャラクターセットの定義です。
+</p>
+</dd>
+<dt><span class="term"><a name="Language_for_auto_detecting"></a>自動検出する言語</span></dt>
+<dd>
+<p class="para">
+GImageView が自動検出する言語の設定です。
+</p>
+</dd>
+<dt><span class="term"><a name="Character_set_of_file_name"></a>ファイル名のキャラクターセット</span></dt>
+<dd>
+<p class="para">
+ファイル名を表示する際などに用いられる、キャラクターセットです。「変換しない」「ロカール」「自動検出」「任意」から選びます。「任意」の場合は、右の欄でキャラクターセットを指定します。
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-02"></a>7.2. イメージウィンドウ</h3></div></div>
+<div class="figure"><img src="images/prefs_imagewin.png" width="756" height="744" alt="[設定 | イメージウィンドウ] (既定の設定)">
+<p class="caption">[設定 | イメージウィンドウ] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Save_window_state_on_exit"></a>終了時にウィンドウの状態を保存する</span></dt>
+<dd>
+<p class="para">
+終了時のウィンドウサイズ、各バーの表示/非表示などを保存し、次回起動時に反映させるようになります。このオプションが OFF の場合、「ウィンドウの初期サイズ」と「表示/非表示」の各項目で初期状態を設定します。
+</p>
+</dd>
+<dt><span class="term"><a name="Initial_window_size"></a>ウィンドウの初期サイズ</span></dt>
+<dd>
+<p class="para">
+イメージウィンドウを生成した時の、初期サイズ (幅・高さ) を決めます。
+</p>
+</dd>
+<dt><span class="term"><a name="Auto_resize_to_image_size"></a>自動的に画像のサイズにリサイズする</span></dt>
+<dd>
+<p class="para">
+イメージウィンドウを生成した時、自動的に展開画像のイメージサイズにウィンドウをリサイズするようになります。
 </p>
 <p class="para">
-プレビュー表示画像を変更した場合、サムネイルビューの選択も併せて移動していきます。サムネイルの表示タイプは問いません。</p>
+GImageViewの詳しい挙動を書きますと、まず上の「ウィンドウの初期サイズ」のサイズでイメージウィンドウが生成されます。その後、ここのオプションが有効になっていれば、展開した画像のサイズにイメージウィンドウが自動的にリサイズします。このように動作が2段階になりますので、処理時間は増えることになります。
+</p>
+</dd>
+<dt><span class="term"><a name="Open_each_file_in_separate_window"></a>ファイルごとに別のウィンドウを開く</span></dt>
+<dd>
+<p class="para">
+毎回、ファイルごとに新規イメージウィンドウを作ります。展開したファイルの数だけイメージウィンドウが出来ることになります。また、それらのウィンドウは共有されることはありません。
+</p>
+</dd>
+<dt><span class="term"><a name="Raise_window_when_open_image_in_shared_window"></a>共有ウィンドウで開くときは、前面に出す</span></dt>
+<dd>
+<p class="para">
+サムネイル右クリックメニュー、共有ウィンドウで開くから、共有イメージウィンドウを生成した場合に、ウィンドウを最前面に出すようにします。
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_show_hide"></a>メニューバー / ツールバー / スライドショープレーヤ / ステータスバー / スクロールバー</span></dt>
+<dd>
+<p class="para">
+イメージウィンドウを開いた時に各種バーを表示するかどうかです。[設定 | イメージウィンドウ] の<a href="#Save_window_state_on_exit">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。
+</p>
+<p class="para">
+スクロールバーは、画像がウィンドウからはみ出す向きにだけ表示されます。この項目を OFF にすると、はみ出す場合も表示しません。
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_player_toolbar"></a>プレーヤツールバー</span></dt>
+<dd>
+<p class="para">
+動画・音声の再生用ツールバーの表示方法です。「表示」「非表示」のほか、「自動」では動画・音声を表示している時だけ表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_bg_color"></a>背景色を指定</span></dt>
+<dd>
+<p class="para">
+チェックを入れると、画像の背景を「色選択」で選んだ色で塗ります。
+</p>
+</dd>
+<dt><span class="term"><a name="Alpha_checker"></a>画像の透過部分を市松模様で表示する</span></dt>
+<dd>
+<p class="para">
+透過のある画像の背景を、灰色の市松模様で表示します。GTK 4 版で追加した項目です (初期値は ON)。
+</p>
+</dd>
+<dt><span class="term"><a name="Fullscreen_bg_color"></a>フルスクリーンの背景色を指定</span></dt>
+<dd>
+<p class="para">
+チェックを入れると、全画面表示の時の背景を「色選択」で選んだ色で塗ります。
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-02-01"></a>7.2.1. 画像</h4></div></div>
+<div class="figure"><img src="images/prefs_imagewin_image.png" width="756" height="744" alt="[設定 | イメージウィンドウ | 画像] (既定の設定)">
+<p class="caption">[設定 | イメージウィンドウ | 画像] (既定の設定)</p></div>
+<p class="para">
+イメージウィンドウで画像を表示する時の設定です。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Image_zoom"></a>ズーム</span></dt>
+<dd>
+<p class="para">
+画像を表示する時の大きさを、以下から選びます。
+</p>
+<p class="para">
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">デフォルトの画像拡大率 : 下の「デフォルトの画像拡大率」で表示します。</p></li>
+<li><p class="para">変更しない : 直前に表示していた画像の拡大率のまま表示します。</p></li>
+<li><p class="para">ウィンドウの大きさに合わせる : ウィンドウの大きさに合わせて拡大縮小します。</p></li>
+<li><p class="para">ウィンドウの大きさに合わせる(拡大しない) : ウィンドウより大きい画像だけを縮小します (初期値)。</p></li>
+<li><p class="para">画像をフレーム幅に合わせる / 画像をフレーム高さに合わせる : 幅または高さをウィンドウに合わせます。</p></li>
+</ul></div>
+</p>
+</dd>
+<dt><span class="term"><a name="Image_rotation"></a>回転</span></dt>
+<dd>
+<p class="para">
+画像を表示する時の向きです。0°、90°反時計回り、180°、90°時計回りのほか、「変更しない」(直前の画像の向きのまま) を選べます。EXIF 対応で作成した場合は、「EXIFデータに応じる」も選べます。
+</p>
+</dd>
+<dt><span class="term"><a name="Remember_rotation"></a>画像ごとに回転した向きを覚える (コメントと一緒に保存)</span></dt>
+<dd>
+<p class="para">
+画像を回転すると、その向きをコメントと同じ場所に保存し、次にその画像を開いた時に同じ向きで表示します。GTK 4 版で追加した項目です (初期値は ON)。
+</p>
+</dd>
+<dt><span class="term"><a name="Keep_aspect_rario"></a>アスペクト比を保持</span></dt>
+<dd>
+<p class="para">
+画像を拡大縮小した時、アスペクト比(画像の縦横比率)を保持するようになります。
+</p>
+</dd>
+<dt><span class="term"><a name="Default_Image_Scale"></a>デフォルトの画像拡大率</span></dt>
+<dd>
+<p class="para">
+デフォルトの画像拡大率を指定します。「ズーム」が「デフォルトの画像拡大率」か「変更しない」の場合に指定できます。
+</p>
+</dd>
+<dt><span class="term"><a name="Keep_original_image_on_memory"></a>元の画像をメモリに保持するか否か</span></dt>
+<dd>
+<p class="para">
+表示した画像をメモリ上に保持するようになります。具体的な効果は、Tipsの「<a href="gimv_tips.html#gimv_tips_05" title="">イメージビューの描画を速くする</a>」を参照して下さい。
+</p>
+</dd>
+</dl></div>
 </div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="07-06-3"></a>7.6.3. ディレクトリビュー</h4></div></div>
+<a name="07-02-02"></a>7.2.2. マウスボタン</h4></div></div>
+<div class="figure"><img src="images/prefs_imagewin_mouse.png" width="756" height="744" alt="[設定 | イメージウィンドウ | マウスボタン] (既定の設定)">
+<p class="caption">[設定 | イメージウィンドウ | マウスボタン] (既定の設定)</p></div>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1</i></span> (左クリック) : ディレクトリ選択</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1 ([+]の部分)</i></span> (左クリック) : ディレクトリツリー展開</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 2</i></span> (中クリック) : サムネイル読み込み</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 3</i></span> (右クリック) : ポップアップメニュー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1 ダブルクリック</i></span> (左ダブルクリック) : サムネイル読み込み</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 8</i></span> (サイドボタンの「戻る」) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 9</i></span> (サイドボタンの「進む」) : none</p></li>
-</ul></div>
-</p>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="07-06-4"></a>7.6.4. イメージビュー</h4></div></div>
-<p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1</i></span> (左クリック) : 次の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 1</i></span> (Ctrl + 左クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 1</i></span> (Shift + 左クリック) : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 1</i></span> (Alt + 左クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 2</i></span> (中クリック) : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 2</i></span> (Ctrl + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 2</i></span> (Shift + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 2</i></span> (Alt + 中クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 3</i></span> (右クリック) : ポップアップメニュー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 3</i></span> (Ctrl + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 3</i></span> (Shift + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 3</i></span> (Alt + 右クリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 1 ダブルクリック</i></span> (左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 1 ダブルクリック</i></span> (Ctrl + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 1 ダブルクリック</i></span> (Shift + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 1 ダブルクリック</i></span> (Alt + 左ダブルクリック) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 4</i></span> (ホイールアップ) : 前の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 4</i></span> (Ctrl + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 4</i></span> (Shift + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 4</i></span> (Alt + ホイールアップ) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 5</i></span> (ホイールダウン) : 次の画像</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + ボタン 5</i></span> (Ctrl + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + ボタン 5</i></span> (Shift + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + ボタン 5</i></span> (Alt + ホイールダウン) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 8</i></span> (サイドボタンの「戻る」) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>ボタン 9</i></span> (サイドボタンの「進む」) : none</p></li>
-</ul></div>
+マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
 </p>
 </div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="07-07"></a>7.7. GTK 4 版で追加したキー</h3></div></div>
-<p class="para">一覧 (ディレクトリビュー、詳細表示、データタブ、設定の一覧など)</p>
+<a name="07-03"></a>7.3. サムネイルウィンドウ</h3></div></div>
+<div class="figure"><img src="images/prefs_thumbwin.png" width="756" height="698" alt="[設定 | サムネイルウィンドウ] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Thumbwin_save_win_state"></a>終了時にウィンドウの状態を保存する</span></dt>
+<dd>
+<p class="para">
+終了時のウィンドウサイズ、レイアウト、各部の表示/非表示などを保存し、次回起動時に反映させるようになります。このオプションが OFF の場合、「幅」「高さ」「レイアウト」と「表示/非表示」の各項目で初期状態を設定します。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_size"></a>幅 / 高さ</span></dt>
+<dd>
+<p class="para">
+サムネイルウィンドウを生成した時の、初期サイズを決めます。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_layout"></a>レイアウト</span></dt>
+<dd>
+<p class="para">
+サムネイルウィンドウ内の各ビュー(ディレクトリ・サムネイル・プレビュー)の配置を、レイアウト0〜4、カスタムから選びます。メニューの<a href="04.html#layout" title="">表示 | レイアウト</a>と同じものです。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_show_hide"></a>表示/非表示</span></dt>
+<dd>
+<p class="para">
+サムネイルウィンドウを開いた時に、ディレクトリビュー・プレビュー・プレビュータブ・メニューバー・ツールバー・ステータスバー・タブを表示するかどうかです。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_player_toolbar"></a>プレーヤツールバー</span></dt>
+<dd>
+<p class="para">
+プレビューの動画・音声用ツールバーの表示方法です。「自動」では動画・音声を表示している時だけ表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="Raise_window_when_opening_thumbnails"></a>サムネイルを開くときにウィンドウを前面に出す</span></dt>
+<dd>
+<p class="para">
+サムネイル展開終了時にウィンドウを前面に出すかどうか、です。
+</p>
+<p class="para">
+これは「ディレクトリの再帰読み込み」を行った時も有効です。この場合、各ディレクトリのサムネイル展開が終了するたびにサムネイルウィンドウが最前面に出てくるようになります。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_toolbar_style"></a>ツールバーのスタイル</span></dt>
+<dd>
+<p class="para">
+ツールバーのボタンを、アイコン・テキスト・その両方のどれで表示するかを選びます。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_progress_detail"></a>ローディングの詳細情報を表示</span></dt>
+<dd>
+<p class="para">
+サムネイルの読み込み中に、プログレスバーに「読み込んだ数/全体の数」と、読み込んでいるファイル名を表示します。
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-01"></a>7.3.1. タブ</h4></div></div>
+<div class="figure"><img src="images/prefs_tab.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | タブ] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | タブ] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Tab_Position"></a>タブの位置</span></dt>
+<dd>
+<p class="para">
+ウィンドウのタブ位置を指定します。
+</p>
+<p class="para">
+ただし、[設定 | サムネイルウィンドウ] の終了時にウィンドウの状態を保存するが OFF 状態でないと、本項目は有効になりません。
+</p>
+</dd>
+<dt><span class="term"><a name="Move_to_new_tab_automatically"></a>自動的に新規タブに移動する</span></dt>
+<dd>
+<p class="para">
+新しくタブが生成された時、そこに移動するようになります。
+</p>
+</dd>
+<dt><span class="term"><a name="Show_close_button"></a>クローズボタンを表示</span></dt>
+<dd>
+<p class="para">
+表示しているタブの右端にクローズボタンが表示されるようになります。他のタブは、中ボタンでタブをクリックしても閉じられます (この設定に関わらず)。
+</p>
+</dd>
+<dt><span class="term"><a name="Show_full_path"></a>フルパスを表示する</span></dt>
+<dd>
+<p class="para">
+タブにディレクトリ (アーカイブ) のパスを全て表示します。デフォルトでは OFF で、ディレクトリ名 (アーカイブのファイル名) だけを表示します。どちらの場合も、マウスを合わせるとパス全体が表示されます。<br>タブがたくさんあって狭い時は、表示しているタブには名前が読める幅を取り、他のタブは数文字に縮めます。入りきらない時はタブの両端の矢印でスクロールできます。
+</p>
+</dd>
+<dt><span class="term"><a name="pen_new_tab_whether_image_is_exist_or_not_in_the_directory"></a>画像が存在しないディレクトリを指定した場合もタブを開く</span></dt>
+<dd>
+<p class="para">
+画像が存在しないディレクトリを指定した場合もタブを開くようになります。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-02"></a>7.3.2. サムネイルビュー</h4></div></div>
+<div class="figure"><img src="images/prefs_thumbview.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Thumbview_show_hide"></a>表示/非表示</span></dt>
+<dd>
+<p class="para">
+サムネイルビュー内に、ディレクトリ、アーカイブを表示するかどうかです。
+</p>
+</dd>
+<dt><span class="term"><a name="Default_display_mode"></a>デフォルト表示モード</span></dt>
+<dd>
+<p class="para">
+サムネイルウィンドウのデフォルト表示モードを指定します。[設定 | サムネイルウィンドウ] の<a href="#Thumbwin_save_win_state">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumnail_Size"></a>サムネイルサイズ</span></dt>
+<dd>
+<p class="para">
+デフォルトのサムネイルサイズを指定します。[設定 | サムネイルウィンドウ] の<a href="#Thumbwin_save_win_state">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-02-1"></a>7.3.2.1. マウスボタン</h5></div></div>
+<div class="figure"><img src="images/prefs_thumbview_mouse.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー | マウスボタン] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー | マウスボタン] (既定の設定)</p></div>
+<p class="para">
+マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
+</p>
+</div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-02-2"></a>7.3.2.2. アルバム</h5></div></div>
+<div class="figure"><img src="images/prefs_album.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー | アルバム] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー | アルバム] (既定の設定)</p></div>
+<p class="para">
+表示モードが「アルバム」「アルバム2」「アルバム3」の場合の設定です。各表示モードの画面は、<a href="05.html#display_mode" title="">項5.1 のサムネイルビューの表示モード</a>を参照して下さい。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Row_Spacing"></a>行間の空白</span></dt>
+<dd>
+<p class="para">
+サムネイルの行間の空白幅を指定します。
+</p>
+</dd>
+<dt><span class="term"><a name="Column_Spacing"></a>列間の空白</span></dt>
+<dd>
+<p class="para">
+サムネイルの列間の空白幅を指定します。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-02-3"></a>7.3.2.3. 詳細ビュー</h5></div></div>
+<div class="figure"><img src="images/prefs_detail.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー | 詳細ビュー] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー | 詳細ビュー] (既定の設定)</p></div>
+<p class="para">
+表示モードが「詳細」「詳細 + アイコン」「詳細 + サムネイル」の場合に表示するコラムを指定します。右側の「表示するコラム」にある項目が表示項目です。「追加」「削除」で項目を移し、「上へ」「下へ」で順番を変えます。また、「コラムタイトルを表示する」でコラムタイトルの表示/非表示も設定できます。
+</p>
+<p class="para">
+GTK 4 版では、コメントの「題名」と「コメント」(メモ欄の 1 行目) の項目を追加しました。表示するには、これらを右側のペインに移して下さい。コメントを保存・削除すると、表示中の一覧にすぐ反映されます。なお、アルバム表示では、コメントのある画像にマウスを合わせると、題名とメモ欄の内容がツールチップで表示されます。
+</p>
+<p class="para">
+「撮影日」の項目は、画像の索引の撮影日 (コメントの「日付」、EXIF、ファイル名の日付、更新日時の順) を表示します。索引の外の画像は更新日時です。コラムタイトルをクリックすると撮影日の順に並べ、もう一度クリックすると逆順 (新しい順) になります ([表示 | ファイルソート | 撮影日] と同じです)。
+</p>
+<p class="para">
+並べ替えに使っているコラムのタイトルには矢印 (昇順は上向き、逆順は下向き) が付きます。メニューで並べ替えた場合も同じです。「画像サイズ」のタイトルをクリックすると面積の順に並べます。並べ替えのないコラム (キャッシュタイプ、ユーザー、題名など) のタイトルはクリックできません。
+</p>
+</div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-03"></a>7.3.3. ディレクトリビュー</h4></div></div>
+<div class="figure"><img src="images/prefs_dirview.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | ディレクトリビュー] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | ディレクトリビュー] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Dirview_show_toolbar"></a>ツールバーを表示</span></dt>
+<dd>
+<p class="para">
+ディレクトリビューのツールバーを表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="Show_dot_file"></a>ドットファイルを表示</span></dt>
+<dd>
+<p class="para">
+ディレクトリビューにドットファイル (. で始まるディレクトリ) と「.」、「..」を表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="show_dotfiles_1"></a>ドットファイルを隠している場合も "." ディレクトリを表示する</span></dt>
+<dd>
+<p class="para">
+「ドットファイルを表示」するオプションが OFF の時でも、ディレクトリビューに "." ディレクトリを表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="show_dotfiles_2"></a>ドットファイルを隠している場合も ".." ディレクトリを表示する</span></dt>
+<dd>
+<p class="para">
+「ドットファイルを表示」するオプションが OFF の時でも、ディレクトリビューに ".." ディレクトリを表示します。
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-03-1"></a>7.3.3.1. マウスボタン</h5></div></div>
+<div class="figure"><img src="images/prefs_dirview_mouse.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | ディレクトリビュー | マウスボタン] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | ディレクトリビュー | マウスボタン] (既定の設定)</p></div>
+<p class="para">
+マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
+</p>
+</div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-04"></a>7.3.4. プレビュー</h4></div></div>
+<div class="figure"><img src="images/prefs_preview.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | プレビュー] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | プレビュー] (既定の設定)</p></div>
+<p class="para">
+プレビューで画像を表示する時の設定です。「ズーム」「回転」「アスペクト比を保持」「デフォルトの画像拡大率」「元の画像をメモリに保持するか否か」は、イメージウィンドウの同じ項目 (<a href="#07-02-01" title="7.2.1. 画像">項7.2.1</a>) と同じ意味です。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Show_scrollbar"></a>スクロールバーを表示</span></dt>
+<dd>
+<p class="para">
+スクロールバーを表示します。[設定 | サムネイルウィンドウ] の<a href="#Thumbwin_save_win_state">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。画像がはみ出す向きにだけ表示されます。
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-04-1"></a>7.3.4.1. マウスボタン</h5></div></div>
+<div class="figure"><img src="images/prefs_preview_mouse.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | プレビュー | マウスボタン] (既定の設定)">
+<p class="caption">[設定 | サムネイルウィンドウ | プレビュー | マウスボタン] (既定の設定)</p></div>
+<p class="para">
+マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
+</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-04"></a>7.4. 動画と音声</h3></div></div>
+<div class="figure"><img src="images/prefs_movie.png" width="756" height="744" alt="[設定 | 動画と音声] (既定の設定)">
+<p class="caption">[設定 | 動画と音声] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Movie_default_view_mode"></a>動画と音声用のデフォルト表示モード</span></dt>
+<dd>
+<p class="para">
+動画・音声ファイルを再生するプラグイン (GStreamer・MPlayer・Xine のうち、組み込まれているもの) を選びます。
+</p>
+</dd>
+<dt><span class="term"><a name="Movie_continuance"></a>動画・音声の再生が終わったら次のファイルを再生する (連続再生)</span></dt>
+<dd>
+<p class="para">
+再生が終わると、次のファイルに移って再生します。GTK 4 版で追加した項目です (初期値は OFF)。
+</p>
+</dd>
+<dt><span class="term"><a name="Movie_lock_mouse"></a>動画・音声の再生中は、マウスでの次/前の画像・拡大縮小・回転・スクロールを無効にする</span></dt>
+<dd>
+<p class="para">
+再生中の誤操作を防ぎます。マウスボタンに割り当てたポップアップメニューは使えます。GTK 4 版で追加した項目です (初期値は OFF)。
+</p>
+</dd>
+</dl></div>
+<p class="para">
+その下の「GStreamer」「MPlayer」「Xine」の各ページでは、それぞれのプラグインで動画のサムネイルを作成するかどうかと、サムネイルにする位置 (ストリームの位置) を指定します。MPlayer・Xine のページでは、使用するドライバも指定します。ページは、組み込まれているプラグインの分だけ表示されます。
+</p>
+<div class="figure"><img src="images/prefs_gst.png" width="756" height="744" alt="[設定 | 動画と音声 | GStreamer] (既定の設定)">
+<p class="caption">[設定 | 動画と音声 | GStreamer] (既定の設定)</p></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-05"></a>7.5. スライドショー</h3></div></div>
+<div class="figure"><img src="images/prefs_slideshow.png" width="756" height="744" alt="[設定 | スライドショー] (既定の設定)">
+<p class="caption">[設定 | スライドショー] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Image_change_interval"></a>画像を切り替える間隔</span></dt>
+<dd>
+<p class="para">
+スライドショーを実行した時、画像を送っていく時間を指定します。
+</p>
+</dd>
+<dt><span class="term"><a name="Repeat_slide_show"></a>繰り返す</span></dt>
+<dd>
+<p class="para">
+通常、スライドショーはサムネイルビュー内の画像を一巡したら終了しますが、それを繰り返すようになります。
+</p>
+</dd>
+<dt><span class="term"><a name="Slideshow_image"></a>画像 (ズーム / 回転 / アスペクト比を保持 / デフォルトの画像拡大率)</span></dt>
+<dd>
+<p class="para">
+スライドショーで画像を表示する時の設定です。各項目の意味は、イメージウィンドウの同じ項目 (<a href="#07-02-01" title="7.2.1. 画像">項7.2.1</a>) と同じです。
+</p>
+</dd>
+<dt><span class="term"><a name="slide_show_Back_Ground"></a>背景</span></dt>
+<dd>
+<p class="para">
+「指定色を使う」にチェックを入れると、スライドショー時の背景を「色選択」で選んだ色で塗ります。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-06"></a>7.6. サムネイルキャッシュ</h3></div></div>
+<div class="figure"><img src="images/prefs_cache.png" width="756" height="744" alt="[設定 | サムネイルキャッシュ] (既定の設定)">
+<p class="caption">[設定 | サムネイルキャッシュ] (既定の設定)</p></div>
+<p class="para">
+キャッシュについて、読込、書込のファイル形式を指定します。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Cache_reading"></a>キャッシュ読込</span></dt>
+<dd>
+<p class="para">
+右側の「使用するキャッシュタイプ」にある形式のキャッシュを、上から順に探して読み込みます。「追加」「削除」で項目を移し、「上へ」「下へ」で順番を変えます。
+</p>
+</dd>
+<dt><span class="term"><a name="Cache_writing"></a>キャッシュ書込</span></dt>
+<dd>
+<p class="para">
+サムネイルを作成した時に保存するキャッシュの形式を選びます。「設定」で、選んだ形式の設定を変更できます。
+</p>
+</dd>
+<dt><span class="term"><a name="Cache_freedesktop"></a>freedesktop.org</span></dt>
+<dd>
+<p class="para">
+GTK 4 版で追加したキャッシュ形式です。freedesktop.org の Thumbnail Managing Standard に従い、~/.cache/thumbnails に他のプログラム (Nautilus、Thunar など) と共有するサムネイルを読み書きします。画像が更新されると、古いサムネイルは使いません。サムネイルは EXIF の向きどおりに回して保存します。
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbnail_use_exif"></a>サムネイルの作成</span></dt>
+<dd>
+<p class="para">
+「JPEG に埋め込まれた縮小画像 (EXIF) が十分な大きさならそれを使う」を ON にすると、JPEG のサムネイルをファイルの先頭だけ読んで速く作ります。OFF にすると、常に画像そのものから作ります (縮小画像を更新しないソフトで編集した画像でも、正しいサムネイルになります)。GTK 4 版で追加した項目です (初期値は ON)。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-07"></a>7.7. コメント</h3></div></div>
+<div class="figure"><img src="images/prefs_comment.png" width="756" height="744" alt="[設定 | コメント] (既定の設定)">
+<p class="caption">[設定 | コメント] (既定の設定)</p></div>
+<p class="para">
+コメント (<a href="02.html#02-04">2.4</a>) の項目 (キー) とコメントファイルのキャラクターセットを指定します。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Comment_keys"></a>キー定義</span></dt>
+<dd>
+<p class="para">
+コメントの項目 (キー) の一覧です。「状態」が無効のキーは使いません。「自動」が有効のキーは、値を画像ファイルから自動的に設定します。「表示」が有効のキーは、コメントの編集画面に表示します。一覧の下の欄で、キーの新規作成・追加・変更・削除ができます。
+</p>
+</dd>
+<dt><span class="term"><a name="Comment_charset"></a>キャラクターセット</span></dt>
+<dd>
+<p class="para">
+コメントファイルのキャラクターセットを指定します。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-08"></a>7.8. 索引</h3></div></div>
+<p class="para">
+画像の索引 (<a href="02.html#02-06">2.6</a>) と顔の認識 (<a href="02.html#02-07">2.7</a>) の設定です。SQLite を使ってビルドした場合だけのページです。変更は「適用」または「了解」の後、索引プロセスを起動し直して反映します。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Index_dirs"></a>索引</span></dt>
+<dd><p class="para">
+「画像の索引を作り、日付で見られるようにする」と「索引を作るディレクトリ」です。指定したディレクトリの下の画像が索引の対象になります。「同じファイルを探しておく」がオンのときは、ほかの処理のあとで、ほかの画像と同じ大きさの画像を読み、同じファイルを探しておきます (<a href="04.html#find_duplicates_index">索引から重複画像を探す</a>)。初回は何時間もかかることがあり、途中で終了しても次の起動で続きから進みます。
+</p>
+<div class="figure"><img src="images/prefs_index.png" width="756" height="744" alt="[設定 | 索引]">
+<p class="caption">[設定 | 索引]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_newimg"></a>索引 | 新しい画像</span></dt>
+<dd><p class="para">
+新しい画像をデスクトップに通知するかどうか、まとめて通知するまでの待ち時間、通知の最小間隔、通知の表示時間、通知しないフォルダです。通知の出る場所は、デスクトップの通知の設定によります。
+</p>
+<div class="figure"><img src="images/prefs_index_newimg.png" width="756" height="744" alt="[設定 | 索引 | 新しい画像]">
+<p class="caption">[設定 | 索引 | 新しい画像]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_auto"></a>索引 | 自動タグ</span></dt>
+<dd><p class="para">
+自動で付けるタグの種類 (フォルダ名、カメラ、形、他のプログラムが付けたキーワード) と、タグにしないフォルダ名 (「*」は任意の文字列、「?」は任意の 1 文字。大文字と小文字は区別しません) です。カメラ・形・キーワードをオンにすると全ての画像を読み直すので、画像が多いと時間がかかります。
+</p>
+<div class="figure"><img src="images/prefs_index_auto.png" width="756" height="744" alt="[設定 | 索引 | 自動タグ]">
+<p class="caption">[設定 | 索引 | 自動タグ]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_faces"></a>索引 | 顔</span></dt>
+<dd><p class="para">
+顔を認識するフォルダ (索引を作るディレクトリの中) と、モデルファイルの場所です。モデルファイルが見つからない場合は、置き場所と入手先 (URL) を表示します。顔の認識が使える場合だけの項目です。
+</p>
+<p class="para">
+モデルファイルは次の 2 つです。~/.local/share/gimageview/models に置きます (名前はこのまま。同じ場所にある量子化版の「_int8」「_int8bq」は使いません)。
+</p>
 <div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + F</i></span> : その一覧の検索 (↑↓ で前・次の一致、Enter で決定、Esc で閉じる)</p></li>
+<li><p class="para">face_detection_yunet_2023mar.onnx (顔を探す、約 230 KB)</p></li>
+<li><p class="para">face_recognition_sface_2021dec.onnx (顔を比べる、約 39 MB)</p></li>
 </ul></div>
-<p class="para">索引のタブ (日付・タグ・人物)</p>
+<p class="para">
+入手先は OpenCV Zoo です。
+</p>
 <div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Enter</i></span> : 選んだ日付・タグ・人物の画像を開く</p></li>
-<li><p class="para">
-<span class="emphasis"><i>F2</i></span> : タグの名前を変更</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + C</i></span> : 選んだ名前をコピー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + F</i></span> : 名前で検索 (畳んである中も)</p></li>
+<li><p class="para">GitHub (設定のページに出る URL):<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx</p></li>
+<li><p class="para">Hugging Face (GitHub から取れない時。OpenCV Zoo は Hugging Face に移ったと GitHub の README にあります):<br>
+https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx<br>
+https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx</p></li>
 </ul></div>
-<p class="para">イメージビュー (イメージウィンドウ・プレビュー)</p>
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>X</i></span> : 左右反転</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Ctrl + C</i></span> : 画像をクリップボードにコピー</p></li>
-<li><p class="para">
-<span class="emphasis"><i>P</i></span> : 顔の編集 (顔パネル)</p></li>
-</ul></div>
-<p class="para">顔の一覧ウィンドウ</p>
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + A</i></span> : 全ての顔を選択</p></li>
-</ul></div>
+<p class="para">
+GImageView はモデルファイルの中身を確かめ (SHA-256)、ダウンロードが壊れていたり、同じ名前で中身の違うファイル (別の版) だったりすると使いません。その時はこのページとステータスバーのツールチップに、入手し直すファイルと URL を表示します。顔の特徴をどのモデルで計算したかは索引に記録しています。新しい版の GImageView でモデルが変わった時は、見つけてある顔の場所で特徴を計算し直します (顔・名前・「この人ではない」はそのままで、ステータスバーに進み具合が出ます。読めなくなった画像の顔は、読めるようになった時に探し直します)。
+</p>
+<div class="figure"><img src="images/prefs_index_faces.png" width="756" height="744" alt="[設定 | 索引 | 顔]">
+<p class="caption">[設定 | 索引 | 顔]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_missing"></a>索引 | 行方不明の画像</span></dt>
+<dd><p class="para">
+コメント (タグ) の付いた画像が見つからなくなったときのログを、いくつ残すかです (0 は作りません)。
+</p>
+<div class="figure"><img src="images/prefs_index_missing.png" width="756" height="744" alt="[設定 | 索引 | 行方不明の画像]">
+<p class="caption">[設定 | 索引 | 行方不明の画像]</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-09"></a>7.9. 検索</h3></div></div>
+<div class="figure"><img src="images/prefs_search.png" width="756" height="744" alt="[設定 | 検索] (既定の設定)">
+<p class="caption">[設定 | 検索] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Search_accuracy"></a>精度</span></dt>
+<dd>
+<p class="para">
+[ツール | 重複画像を探す] で「似ている」とする一致度です。初期値は0.97、97%以上一致していれば似ているとします。詳細は、「<a href="gimv_tips.html#gimv_tips_10" title="">重複画像の探し方</a>」を見て下さい。
+</p>
+</dd>
+<dt><span class="term"><a name="Search_result_behavior"></a>検索結果ウィンドウのサムネイル選択時の挙動</span></dt>
+<dd>
+<p class="para">
+重複画像の結果のウィンドウで画像をクリックした時に、サムネイルビューの同じサムネイルを選択する・画像をプレビューに表示する・新規ウィンドウに表示する・共有ウィンドウに表示する、のそれぞれを行うかどうかを指定します。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-10"></a>7.10. ドラッグ&amp;ドロップ</h3></div></div>
+<div class="figure"><img src="images/prefs_dnd.png" width="756" height="744" alt="[設定 | ドラッグ &amp; ドロップ] (既定の設定)">
+<p class="caption">[設定 | ドラッグ &amp; ドロップ] (既定の設定)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Enable_DnD_to_external_proccess_Experimental"></a>外部プロセスへの DnD を有効 (実験段階)</span></dt>
+<dd>
+<p class="para">
+外部プロセスへのDnDを有効にします。
+</p>
+</dd>
+<dt><span class="term"><a name="Enable_DnD_from_extenal_proccess_Experimental"></a>外部プロセスからの DnD を有効 (実験段階)</span></dt>
+<dd>
+<p class="para">
+外部プロセスからのDnDを有効にします。
+</p>
+</dd>
+<dt><span class="term"><a name="Always_refresh_list_when_DnD_end"></a>DnD 終了時に常にリストを更新する</span></dt>
+<dd>
+<p class="para">
+DnD終了時に、常にリストを更新するようになります。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-11"></a>7.11. 外部プログラム</h3></div></div>
+<div class="figure"><img src="images/prefs_progs.png" width="756" height="744" alt="[設定 | 外部プログラム] (既定の設定)">
+<p class="caption">[設定 | 外部プログラム] (既定の設定)</p></div>
+<p class="para">
+GImageView から利用する、各種外部プログラムを指定します。
+</p>
+<p class="para">
+「画像ビューア/エディタ」は、マウスメニューの「外部プログラムで開く」に表示されるプログラムの一覧です。プログラム名とコマンドを入力して追加・変更・削除し、「上へ」「下へ」で順番を変えます。「ダイアログ」にチェックを入れると、実行前にダイアログを表示します。
+</p>
+<p class="para">
+「Web ブラウザ」はヘルプの HTML 文書やマニュアルを開くのに使います。%s が文書のパスに置き換わります。GTK 4 版の初期値は xdg-open %s (デスクトップの既定のブラウザ) です。以前の初期値 mozilla %s が保存されている場合は、自動的に xdg-open %s に置き換えます。
+</p>
+<p class="para">
+「テキストビューア」で「内部ビューアを使う」を on にすると、テキスト文書を GImageView 内蔵のビューアで表示します。内蔵ビューアは UTF-8、EUC-JP、Shift_JIS、ISO-2022-JP の文書を自動判別して表示します。
+</p>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-11-1"></a>7.11.1. スクリプト</h4></div></div>
+<div class="figure"><img src="images/prefs_scripts.png" width="756" height="744" alt="[設定 | 外部プログラム | スクリプト] (既定の設定)">
+<p class="caption">[設定 | 外部プログラム | スクリプト] (既定の設定)</p></div>
+<p class="para">
+GImageView から使用する、スクリプトのディレクトリパスを指定します。「デフォルトのスクリプト検索ディレクトリを使用」を OFF にすると、ディレクトリを指定できます。また、「スクリプト実行前にダイアログを表示」で、実行前にダイアログを表示するかどうかも指定できます。
+</p>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-12"></a>7.12. プラグイン</h3></div></div>
+<div class="figure"><img src="images/prefs_plugin.png" width="756" height="744" alt="[設定 | プラグイン] (既定の設定)">
+<p class="caption">[設定 | プラグイン] (既定の設定)</p></div>
+<p class="para">
+GImageView が検索する、プラグインのディレクトリパスを指定します。「デフォルトのプラグイン検索ディレクトリを使用」を OFF にすると、ディレクトリを指定できます。
+</p>
+<p class="para">
+その下の「画像読み込み」「画像保存」「入出力ストリーム」「アーカイバ」「サムネイル」「イメージビュー」「サムネイルビュー」の各ページには、読み込まれているプラグインの一覧が表示されます。
+</p>
+<div class="figure"><img src="images/prefs_plugin_loader.png" width="756" height="744" alt="[設定 | プラグイン | 画像読み込み]">
+<p class="caption">[設定 | プラグイン | 画像読み込み] (モジュール名の場所はインストール先によって異なります)</p></div>
 </div>
 </div>
 <div class="navfooter">
@@ -542,13 +865,13 @@
 <td width="40%" align="left">
 <a accesskey="p" href="06.html">前のページ</a>&#160;</td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">ホーム</a></td>
-<td width="40%" align="right">&#160;<a accesskey="n" href="gimv_faq.html">次のページ</a>
+<td width="40%" align="right">&#160;<a accesskey="n" href="08.html">次のページ</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left">6. 設定&#160;</td>
+<td width="40%" align="left">6. マウスメニュー&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
-<td width="40%" align="right">&#160;8. GImageView FAQ</td>
+<td width="40%" align="right">&#160;8. デフォルト キーバインド</td>
 </tr>
 </table>
 </div>

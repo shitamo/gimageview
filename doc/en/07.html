@@ -2,23 +2,23 @@
 <html lang="en">
 <head>
 <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-<title>7. Default Key Bindings</title>
+<title>7. Preferences</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
-<link rel="previous" href="06.html" title="6. Preferences">
-<link rel="next" href="gimv_faq.html" title="8. GImageView FAQ">
+<link rel="previous" href="06.html" title="6. Mouse Menus">
+<link rel="next" href="08.html" title="8. Default Key Bindings">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">7. Default Key Bindings</th></tr>
+<tr><th colspan="3" align="center">7. Preferences</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="06.html">Prev</a>&#160;</td>
 <th width="60%" align="center">&#160;</th>
-<td width="20%" align="right">&#160;<a accesskey="n" href="gimv_faq.html">Next</a>
+<td width="20%" align="right">&#160;<a accesskey="n" href="08.html">Next</a>
 </td>
 </tr>
 </table>
@@ -26,513 +26,832 @@
 </div>
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
-<a name="07"></a>7. Default Key Bindings</h2></div></div>
+<a name="07"></a>7. Preferences</h2></div></div>
+<p class="para">
+This section describes the items of the preferences dialog.
+</p>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
 <a name="07-01"></a>7.1. Common</h3></div></div>
+<div class="figure"><img src="images/prefs_general.png" width="953" height="699" alt="[Preferences | Common] (default settings)">
+<p class="caption">[Preferences | Common] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="File_Open_Window"></a>File Open Window</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>B</i></span> : Tab ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>F</i></span> : Maximize</p></li>
-<li><p class="para">
-<span class="emphasis"><i>M</i></span> : Menubar ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>N</i></span> : Toolbar ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>V</i></span> : Statusbar ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + C</i></span> : Quit GImageView entirely</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + F</i></span> : File open dialog (in a list with the focus: search the list)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + I</i></span> : New Image Window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + O</i></span> : Options</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + P</i></span> : Print</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Q</i></span> : Close Window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + T</i></span> : New Tab</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + W</i></span> : New Window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + S</i></span> : Scrollbar ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + F10</i></span> : Popup menu</p></li>
+The window a file is opened in when it is given on the command line or chosen with "OK" in the file open dialog.
+</p>
+<p class="para">
+Where nothing like "Open in ... window" is specified, this setting decides the window.
+</p>
+</dd>
+<dt><span class="term"><a name="Directory_Open_Window"></a>Directory Open Window</span></dt>
+<dd>
+<p class="para">
+The window a directory given on the command line is opened in.
+</p>
+</dd>
+<dt><span class="term"><a name="Archive_Open_Window"></a>Archive Open Window</span></dt>
+<dd>
+<p class="para">
+The window an archive given on the command line is opened in.
+</p>
+</dd>
+<dt><span class="term"><a name="Scan_directories_recursively"></a>Scan directories recursively</span></dt>
+<dd>
+<p class="para">
+Directories given on the command line are always read recursively.
+</p>
+<p class="para">
+This is the same as the command line option -dR.
+</p>
+</dd>
+<dt><span class="term"><a name="Follow_symbolic_link"></a>Follow symbolic links / Do not follow symbolic links</span></dt>
+<dd>
+<p class="para">
+Whether directories that symbolic links point to are read when reading recursively.
+</p>
+</dd>
+<dt><span class="term"><a name="Interpolation_type_for_scaling"></a>Interpolation type for scaling</span></dt>
+<dd>
+<p class="para">
+The interpolation used when an image is scaled.  One of these four:
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Nearest: nearest neighbor.  The fastest, but the result is coarse.</p></li>
+<li><p class="para">Tiles: like Nearest when enlarging; averages the pixels when reducing.</p></li>
+<li><p class="para">Bilinear: bilinear interpolation.  A good balance of speed and quality.</p></li>
+<li><p class="para">Hyperbolic: the best quality, but slow.</p></li>
 </ul></div>
-</p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-02"></a>7.2. Thumbnail Window</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Color_scheme"></a>Color scheme</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>H</i></span> : Previous Page (tab)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>J</i></span> : Last Page (tab)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>K</i></span> : First Page (tab)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>L</i></span> : Next Page (tab)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Q</i></span> : Close Tab</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Ctrl + R</i></span> : Refresh List</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + 1-6</i></span> : Display mode of the thumbnail view (Album, Album2, Album3, Detail, Detail + Icon, Detail + Thumbnail)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 0</i></span> : Layout 0</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 1</i></span> : Layout 1</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 2</i></span> : Layout 2</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 3</i></span> : Layout 3</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + 4</i></span> : Layout 4</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + A</i></span> : Select All</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + D</i></span> : Detach Tab</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + N</i></span> : Unselect All</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Q</i></span> : Close Window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + R</i></span> : Update All Thumbnails</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + S</i></span> : Slideshow</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + T</i></span> : New Tab</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + C</i></span> : Copy Files To...</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + B</i></span> : Move Tab Backward</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + D</i></span> : Directory View ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + E</i></span> : Rename...</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + F</i></span> : Move Tab Forward</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + L</i></span> : Link Files To...</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + M</i></span> : Move Files To...</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + N</i></span> : DirView Toolbar ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + P</i></span> : Preview ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + R</i></span> : Reload Cache</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Z</i></span> : Tab (Preview) ON/OFF</p></li>
+The colors of the windows.  One of these three; the change is used at once (Apply or OK).  This item was added in the GTK 4 version (Desktop theme by default).
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Desktop theme: the theme chosen on the desktop (gtk-theme-name of GTK; on X11 the XSETTINGS value Net/ThemeName).  GTK 4 cannot read themes without a gtk-4.0 directory (themes for GTK 2/3) and shows the light Adwaita instead.  If the name of such a theme contains "dark" (Greybird-dark, for example), the dark Adwaita is used.</p></li>
+<li><p class="para">Light: light colors.  If the name of the theme ends with "-dark", the theme of the name without it is used, or Adwaita if GTK 4 cannot read that theme.</p></li>
+<li><p class="para">Dark: dark colors.  If the theme has no dark version (gtk-dark.css), the dark Adwaita is used.</p></li>
 </ul></div>
-</p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-03"></a>7.3. Thumbnail Window / Thumbnail View</h3></div></div>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Cursor keys</i></span> : Move the cursor</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Space</i></span> : Select/unselect the file</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Enter</i></span> : Select only that file and open the image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Enter</i></span> : Select that file and open the image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Delete</i></span> : Remove the selected files</p></li>
-</ul></div>
+If the environment variable GTK_THEME is set, GTK uses that theme and this item has no effect.  The icons of GImageView drawn only with black lines (Zoom, Show/Hide dotfiles, ...) are drawn with light lines in dark colors.
+</p>
+</dd>
+<dt><span class="term"><a name="Use_theme_icons"></a>Use icons of the desktop icon theme for buttons</span></dt>
+<dd>
+<p class="para">
+Toolbar and other buttons use icons of the desktop icon theme (Adwaita, Papirus, ...).  Buttons with no matching icon in the theme, and the icons of the directory tree, use the icons of GImageView.  Windows opened after the change use it.  This item was added in the GTK 4 version (on by default).
 </p>
 <p class="para">
-However, the file selection behavior may differ slightly depending on the mode.
+To use your own icons, put files named after the icons (back.png, zoom_in.svg, refresh.xpm, ...; PNG, SVG and XPM can be used) in ~/.gimv/icons/&lt;name&gt;/ and write that name as iconset= in ~/.gimv/gimvrc.  These icons take precedence over the icons of the theme.
 </p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-04"></a>7.4. Thumbnail Window / Preview</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Scrollbars_always"></a>Always show the scrollbars</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>1</i></span> : 10%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>2</i></span> : 25%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>3</i></span> : 50%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>4</i></span> : 75%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>5</i></span> : 100%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>6</i></span> : 125%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>7</i></span> : 150%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>8</i></span> : 175%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>9</i></span> : 200%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>A</i></span> : Zoom Out (5%)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>D</i></span> : Rotate 180 Degrees</p></li>
-<li><p class="para">
-<span class="emphasis"><i>E</i></span> : Rotate 90 Degrees Counterclockwise</p></li>
-<li><p class="para">
-<span class="emphasis"><i>R</i></span> : Rotate 90 Degrees Clockwise</p></li>
-<li><p class="para">
-<span class="emphasis"><i>S</i></span> : Zoom In (5%)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>W</i></span> : Fit to Window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + B</i></span> : Memory Buffer</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + A</i></span> : Keep Aspect Ratio</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + H</i></span> : Fit Height</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + W</i></span> : Fit Width</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + T</i></span> : Create Thumbnail</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Up</i></span> : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Down, Space</i></span> : Next image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Home</i></span> : First image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>End</i></span> : Last image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Cursor keys</i></span> : Move the image</p></li>
-</ul></div>
+Shows the scrollbars of the lists and other views all the time. Off: as GTK 4 does by default, they are shown over the contents only while the pointer is near them. Added in the GTK 4 port (on by default).
 </p>
+</dd>
+<dt><span class="term"><a name="Open_thumbnail_window"></a>Open thumbnail window</span></dt>
+<dd>
 <p class="para">
-Zoom and rotation also work in the navigation window.
+Whether a thumbnail window is always opened when GImageView starts.
 </p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-05"></a>7.5. Image Window</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Ignore_directory"></a>Ignore directories</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>1</i></span> : 10%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>2</i></span> : 25%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>3</i></span> : 50%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>4</i></span> : 75%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>5</i></span> : 100%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>6</i></span> : 125%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>7</i></span> : 150%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>8</i></span> : 175%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>9</i></span> : 200%</p></li>
-<li><p class="para">
-<span class="emphasis"><i>A</i></span> : Zoom Out (5%)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>D</i></span> : Rotate 180 Degrees</p></li>
-<li><p class="para">
-<span class="emphasis"><i>E</i></span> : Rotate 90 Degrees Counterclockwise</p></li>
-<li><p class="para">
-<span class="emphasis"><i>H</i></span> : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>I</i></span> : Fit to Image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>J</i></span> : Last image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>K</i></span> : First image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>L</i></span> : Next image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Q</i></span> : Close Window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>R</i></span> : Rotate 90 Degrees Clockwise</p></li>
-<li><p class="para">
-<span class="emphasis"><i>S</i></span> : Zoom In (5%)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>W</i></span> : Fit to Window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + B</i></span> : Memory Buffer</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + A</i></span> : Keep Aspect Ratio</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + H</i></span> : Fit Height</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + W</i></span> : Fit Width</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + F</i></span> : Fullscreen</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + N</i></span> : Slideshow Player ON/OFF</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + T</i></span> : Create Thumbnail</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Up</i></span> : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Page Down, Space</i></span> : Next image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Home</i></span> : First image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>End</i></span> : Last image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Cursor keys</i></span> : Move the image</p></li>
-</ul></div>
+Directories given as arguments are ignored.
 </p>
+</dd>
+<dt><span class="term"><a name="No_warning"></a>No warning</span></dt>
+<dd>
 <p class="para">
-Zoom and rotation also work in the navigation window.
+Suppresses the warning messages shown when started from the command line.
 </p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="07-06"></a>7.6. Mouse</h3></div></div>
+</dd>
+<dt><span class="term"><a name="Show_splash_window"></a>Show splash window</span></dt>
+<dd>
+<p class="para">
+Whether the splash window (logo image) is shown at startup.  This item was added in the GTK 4 version.
+</p>
+</dd>
+</dl></div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="07-06-1"></a>7.6.1. Thumbnail View</h4></div></div>
+<a name="07-01-01"></a>7.1.1. Filtering</h4></div></div>
+<div class="figure"><img src="images/prefs_filter.png" width="953" height="699" alt="[Preferences | Common | Filtering] (default settings)">
+<p class="caption">[Preferences | Common | Filtering] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="File_type"></a>File type</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Button 1</i></span> (left click) : Open (Auto select window)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 1</i></span> (Ctrl + left click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 1</i></span> (Shift + left click) : Selects everything up to the clicked image at once. It cannot unselect. Use Unselect All (Ctrl+N).</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 1</i></span> (Alt + left click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 2</i></span> (middle click) : Open (Auto &amp; Force)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 2</i></span> (Ctrl + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 2</i></span> (Shift + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 2</i></span> (Alt + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 3</i></span> (right click) : Popup menu</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 3</i></span> (Ctrl + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 3</i></span> (Shift + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 3</i></span> (Alt + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 1 double click</i></span> (left double click) : Open (Auto &amp; Force)</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 1 double click</i></span> (Ctrl + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 1 double click</i></span> (Shift + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 1 double click</i></span> (Alt + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 4</i></span> (wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 4</i></span> (Ctrl + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 4</i></span> (Shift + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 4</i></span> (Alt + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 5</i></span> (wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 5</i></span> (Ctrl + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 5</i></span> (Shift + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 5</i></span> (Alt + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 8</i></span> (side button "back") : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 9</i></span> (side button "forward") : none</p></li>
-</ul></div>
+The list of file name extensions and their file types (MIME types).  Files with an extension whose status is "Disable" are not read.
 </p>
+<p class="para">
+Enter an extension and a file type in the fields below the list and press "Add" to register a new pair.  A registered pair can be selected and changed ("Change") or deleted ("Delete").  Checking "Disable" disables the extension.  "System defined" pairs cannot be deleted.
+</p>
+</dd>
+<dt><span class="term"><a name="Read_dotfiles"></a>Read dotfiles</span></dt>
+<dd>
+<p class="para">
+Whether image files and directories whose names begin with "." are opened.  The directory view has its own setting (<a href="#07-03-03" title="7.3.3. Directory View">7.3.3</a>) and does not follow this one.
+</p>
+</dd>
+<dt><span class="term"><a name="Ignore file name extension"></a>Ignore file name extension</span></dt>
+<dd>
+<p class="para">
+Files are not distinguished by their extensions; all files are candidates for reading.
+</p>
+</dd>
+</dl></div>
 </div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="07-06-2"></a>7.6.2. Preview</h4></div></div>
+<a name="07-01-02"></a>7.1.2. Character Set</h4></div></div>
+<div class="figure"><img src="images/prefs_charset.png" width="953" height="699" alt="[Preferences | Common | Character Set] (default settings)">
+<p class="caption">[Preferences | Common | Character Set] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Locale_character_set"></a>Locale character set</span></dt>
+<dd>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Button 1</i></span> (left click) : Next image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 1</i></span> (Ctrl + left click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 1</i></span> (Shift + left click) : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 1</i></span> (Alt + left click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 2</i></span> (middle click) : Open in new window</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 2</i></span> (Ctrl + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 2</i></span> (Shift + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 2</i></span> (Alt + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 3</i></span> (right click) : Popup menu</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 3</i></span> (Ctrl + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 3</i></span> (Shift + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 3</i></span> (Alt + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 1 double click</i></span> (left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 1 double click</i></span> (Ctrl + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 1 double click</i></span> (Shift + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 1 double click</i></span> (Alt + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 4</i></span> (wheel up) : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 4</i></span> (Ctrl + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 4</i></span> (Shift + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 4</i></span> (Alt + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 5</i></span> (wheel down) : Next image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 5</i></span> (Ctrl + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 5</i></span> (Shift + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 5</i></span> (Alt + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 8</i></span> (side button "back") : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 9</i></span> (side button "forward") : none</p></li>
-</ul></div>
+The character set of the locale, used for the comments of images.
+</p>
+</dd>
+<dt><span class="term"><a name="Internal_character_set"></a>Internal character set</span></dt>
+<dd>
+<p class="para">
+The character set GImageView uses internally.
+</p>
+</dd>
+<dt><span class="term"><a name="Language_for_auto_detecting"></a>Language for auto detecting</span></dt>
+<dd>
+<p class="para">
+The language GImageView detects automatically.
+</p>
+</dd>
+<dt><span class="term"><a name="Character_set_of_file_name"></a>Character set of file names</span></dt>
+<dd>
+<p class="para">
+The character set used, for example, to display file names.  Choose from "Never convert", "Locale", "Auto detect" and "Any"; with "Any", enter the character set in the field to the right.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-02"></a>7.2. Image Window</h3></div></div>
+<div class="figure"><img src="images/prefs_imagewin.png" width="953" height="699" alt="[Preferences | Image Window] (default settings)">
+<p class="caption">[Preferences | Image Window] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Save_window_state_on_exit"></a>Save window state on exit</span></dt>
+<dd>
+<p class="para">
+The window size, the visibility of the bars and so on are saved on exit and used at the next start.  When this is off, "Initial window size" and the "Show/Hide" items set the initial state.
+</p>
+</dd>
+<dt><span class="term"><a name="Initial_window_size"></a>Initial window size</span></dt>
+<dd>
+<p class="para">
+The size (width and height) of a new image window.
+</p>
+</dd>
+<dt><span class="term"><a name="Auto_resize_to_image_size"></a>Auto resize to image size</span></dt>
+<dd>
+<p class="para">
+A new image window is resized to the size of the image automatically.
 </p>
 <p class="para">
-When the image shown in the preview is changed, the selection in the thumbnail view moves along with it. This applies to any thumbnail display type.</p>
+In detail: the image window is first created with the "Initial window size" above; then, when this option is on, it is resized to the size of the image.  Since this takes two steps, it takes more time.
+</p>
+</dd>
+<dt><span class="term"><a name="Open_each_file_in_separate_window"></a>Open each file in separate window</span></dt>
+<dd>
+<p class="para">
+A new image window is created for each file: as many image windows as files opened.  These windows are never shared.
+</p>
+</dd>
+<dt><span class="term"><a name="Raise_window_when_open_image_in_shared_window"></a>Raise the window when opening an image in the shared window</span></dt>
+<dd>
+<p class="para">
+The shared image window is raised when an image is opened with "Open in Shared Window" of the thumbnail mouse menu.
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_show_hide"></a>Menubar / Toolbar / Slideshow player / Statusbar / Scrollbar</span></dt>
+<dd>
+<p class="para">
+Whether each bar is shown in a new image window.  It can be set when <a href="#Save_window_state_on_exit">Save window state on exit</a> in [Preferences | Image Window] is off.
+</p>
+<p class="para">
+The scroll bars are shown only in the directions in which the image does not fit in the window.  When this item is off, they are not shown even then.
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_player_toolbar"></a>Player toolbar</span></dt>
+<dd>
+<p class="para">
+How the toolbar for playing movies and audio is shown: "Show", "Hide", or "Auto", which shows it only while a movie or audio file is shown.
+</p>
+</dd>
+<dt><span class="term"><a name="Imagewin_bg_color"></a>Specify the background color</span></dt>
+<dd>
+<p class="para">
+When checked, the background of images is painted with the color chosen with "Choose Color".
+</p>
+</dd>
+<dt><span class="term"><a name="Alpha_checker"></a>Show a checkerboard behind transparent parts of images</span></dt>
+<dd>
+<p class="para">
+The background of images with transparency is shown as a gray checkerboard.  This item was added in the GTK 4 version (on by default).
+</p>
+</dd>
+<dt><span class="term"><a name="Fullscreen_bg_color"></a>Specify the background color in fullscreen</span></dt>
+<dd>
+<p class="para">
+When checked, the background in fullscreen is painted with the color chosen with "Choose Color".
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-02-01"></a>7.2.1. Image</h4></div></div>
+<div class="figure"><img src="images/prefs_imagewin_image.png" width="953" height="699" alt="[Preferences | Image Window | Image] (default settings)">
+<p class="caption">[Preferences | Image Window | Image] (default settings)</p></div>
+<p class="para">
+Settings for showing images in the image window.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Image_zoom"></a>Zoom</span></dt>
+<dd>
+<p class="para">
+The size an image is shown in.  One of:
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">Default image scale: the "Default Image Scale" below.</p></li>
+<li><p class="para">Do not change: the scale of the image shown before.</p></li>
+<li><p class="para">Fit image to window: enlarges or reduces the image to the size of the window.</p></li>
+<li><p class="para">Fit image to window (zoom out only): reduces only images larger than the window (default).</p></li>
+<li><p class="para">Fit image to width / Fit image to height: fits the width or the height to the window.</p></li>
+</ul></div>
+</dd>
+<dt><span class="term"><a name="Image_rotation"></a>Rotation</span></dt>
+<dd>
+<p class="para">
+The orientation an image is shown in.  Besides 0, 90 degrees counterclockwise, 180 and 90 degrees clockwise, "Do not change" (the orientation of the image shown before) can be chosen.  When built with EXIF support, "Automatic EXIF" can be chosen too.
+</p>
+</dd>
+<dt><span class="term"><a name="Remember_rotation"></a>Remember the rotation of each image (saved with its comment)</span></dt>
+<dd>
+<p class="para">
+When an image is rotated, its orientation is saved where its comment is kept, and the image is shown in that orientation the next time it is opened.  This item was added in the GTK 4 version (on by default).
+</p>
+</dd>
+<dt><span class="term"><a name="Keep_aspect_rario"></a>Keep aspect ratio</span></dt>
+<dd>
+<p class="para">
+The aspect ratio (the ratio of width and height) is kept when an image is enlarged or reduced.
+</p>
+</dd>
+<dt><span class="term"><a name="Default_Image_Scale"></a>Default Image Scale</span></dt>
+<dd>
+<p class="para">
+The default scale of images.  It can be set when "Zoom" is "Default image scale" or "Do not change".
+</p>
+</dd>
+<dt><span class="term"><a name="Keep_original_image_on_memory"></a>Keep the original image in memory</span></dt>
+<dd>
+<p class="para">
+The image shown is kept in memory.  For the effect, see "<a href="gimv_tips.html#gimv_tips_05" title="">Making the image view draw faster</a>" in the Tips.
+</p>
+</dd>
+</dl></div>
 </div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="07-06-3"></a>7.6.3. Directory View</h4></div></div>
+<a name="07-02-02"></a>7.2.2. Mouse Buttons</h4></div></div>
+<div class="figure"><img src="images/prefs_imagewin_mouse.png" width="953" height="699" alt="[Preferences | Image Window | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Image Window | Mouse Buttons] (default settings)</p></div>
 <p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Button 1</i></span> (left click) : Select the directory</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 1 (on [+])</i></span> (left click) : Expand the directory tree</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 2</i></span> (middle click) : Load thumbnails</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 3</i></span> (right click) : Popup menu</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 1 double click</i></span> (left double click) : Load thumbnails</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 8</i></span> (side button "back") : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 9</i></span> (side button "forward") : none</p></li>
-</ul></div>
-</p>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="07-06-4"></a>7.6.4. Image View</h4></div></div>
-<p class="para">
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Button 1</i></span> (left click) : Next image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 1</i></span> (Ctrl + left click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 1</i></span> (Shift + left click) : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 1</i></span> (Alt + left click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 2</i></span> (middle click) : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 2</i></span> (Ctrl + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 2</i></span> (Shift + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 2</i></span> (Alt + middle click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 3</i></span> (right click) : Popup menu</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 3</i></span> (Ctrl + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 3</i></span> (Shift + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 3</i></span> (Alt + right click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 1 double click</i></span> (left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 1 double click</i></span> (Ctrl + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 1 double click</i></span> (Shift + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 1 double click</i></span> (Alt + left double click) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 4</i></span> (wheel up) : Previous image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 4</i></span> (Ctrl + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 4</i></span> (Shift + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 4</i></span> (Alt + wheel up) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 5</i></span> (wheel down) : Next image</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + Button 5</i></span> (Ctrl + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Button 5</i></span> (Shift + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Alt + Button 5</i></span> (Alt + wheel down) : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 8</i></span> (side button "back") : none</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Button 9</i></span> (side button "forward") : none</p></li>
-</ul></div>
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
 </p>
 </div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="07-07"></a>7.7. Keys added in the GTK 4 port</h3></div></div>
-<p class="para">Lists (the directory view, the detail view, the Data tab, the lists of the preferences, ...)</p>
+<a name="07-03"></a>7.3. Thumbnail Window</h3></div></div>
+<div class="figure"><img src="images/prefs_thumbwin.png" width="953" height="674" alt="[Preferences | Thumbnail Window] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Thumbwin_save_win_state"></a>Save window state on exit</span></dt>
+<dd>
+<p class="para">
+The window size, the layout, the visibility of each part and so on are saved on exit and used at the next start.  When this is off, "width", "height", "Default Layout" and the "Show/Hide" items set the initial state.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_size"></a>width / height</span></dt>
+<dd>
+<p class="para">
+The size of a new thumbnail window.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_layout"></a>Default Layout</span></dt>
+<dd>
+<p class="para">
+The arrangement of the views (directory, thumbnail and preview) in the thumbnail window: Layout0 to Layout4, or Custom.  These are the same as <a href="04.html#layout" title="">View | Layout</a> of the menu.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_show_hide"></a>Show/Hide</span></dt>
+<dd>
+<p class="para">
+Whether the directory view, the preview, the preview tab, the menu bar, the toolbar, the status bar and the tabs are shown in a new thumbnail window.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_player_toolbar"></a>Player toolbar</span></dt>
+<dd>
+<p class="para">
+How the toolbar for movies and audio in the preview is shown.  "Auto" shows it only while a movie or audio file is shown.
+</p>
+</dd>
+<dt><span class="term"><a name="Raise_window_when_opening_thumbnails"></a>Raise window when opening thumbnails</span></dt>
+<dd>
+<p class="para">
+Whether the window is raised when the thumbnails have been loaded.
+</p>
+<p class="para">
+This applies also to "Load Thumbnails Recursively": the thumbnail window is raised each time the thumbnails of a directory have been loaded.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_toolbar_style"></a>Toolbar Style</span></dt>
+<dd>
+<p class="para">
+Whether the toolbar buttons show an icon, text, or both.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbwin_progress_detail"></a>Show detail of loading progress</span></dt>
+<dd>
+<p class="para">
+While thumbnails are loaded, the progress bar shows "loaded/total files" and the name of the file being loaded.
+</p>
+</dd>
+</dl></div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-01"></a>7.3.1. Tab</h4></div></div>
+<div class="figure"><img src="images/prefs_tab.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Tab] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Tab] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Tab_Position"></a>Tab Position</span></dt>
+<dd>
+<p class="para">
+The position of the tabs of the window.
+</p>
+<p class="para">
+This item takes effect only when "Save window state on exit" in [Preferences | Thumbnail Window] is off.
+</p>
+</dd>
+<dt><span class="term"><a name="Move_to_new_tab_automatically"></a>Move to new tab automatically</span></dt>
+<dd>
+<p class="para">
+A new tab becomes the active tab.
+</p>
+</dd>
+<dt><span class="term"><a name="Show_close_button"></a>Show close button</span></dt>
+<dd>
+<p class="para">
+A close button is shown at the right end of the current tab.  Any tab is also closed by a click on it with the middle button (whatever this setting).
+</p>
+</dd>
+<dt><span class="term"><a name="Show_full_path"></a>Show full path</span></dt>
+<dd>
+<p class="para">
+Tabs show the full path of the directory (archive).  Off by default: they show only the name of the directory (archive file).  Either way the whole path is shown when the mouse is on the tab.<br>When many tabs share a narrow place, the current tab keeps a width its name can be read in and the others are shortened to a few characters; the arrows at the ends of the tabs scroll them when they do not fit.
+</p>
+</dd>
+<dt><span class="term"><a name="pen_new_tab_whether_image_is_exist_or_not_in_the_directory"></a>Open a new tab even if the directory has no images</span></dt>
+<dd>
+<p class="para">
+A tab is opened also for a directory that has no images.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-02"></a>7.3.2. Thumbnail View</h4></div></div>
+<div class="figure"><img src="images/prefs_thumbview.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Thumbnail View] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Thumbview_show_hide"></a>Show/Hide</span></dt>
+<dd>
+<p class="para">
+Whether directories and archives are shown in the thumbnail view.
+</p>
+</dd>
+<dt><span class="term"><a name="Default_display_mode"></a>Default display mode</span></dt>
+<dd>
+<p class="para">
+The default display mode of the thumbnail window.  It can be set when <a href="#Thumbwin_save_win_state">Save window state on exit</a> in [Preferences | Thumbnail Window] is off.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumnail_Size"></a>Thumbnail Size</span></dt>
+<dd>
+<p class="para">
+The default thumbnail size.  It can be set when <a href="#Thumbwin_save_win_state">Save window state on exit</a> in [Preferences | Thumbnail Window] is off.
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-02-1"></a>7.3.2.1. Mouse Buttons</h5></div></div>
+<div class="figure"><img src="images/prefs_thumbview_mouse.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Thumbnail View | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View | Mouse Buttons] (default settings)</p></div>
+<p class="para">
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
+</p>
+</div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-02-2"></a>7.3.2.2. Album</h5></div></div>
+<div class="figure"><img src="images/prefs_album.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Thumbnail View | Album] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View | Album] (default settings)</p></div>
+<p class="para">
+Settings for the display modes "Album", "Album2" and "Album3".  For pictures of the display modes, see <a href="05.html#display_mode" title="">the display mode of the thumbnail view in section 5.1</a>.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Row_Spacing"></a>Row spacing</span></dt>
+<dd>
+<p class="para">
+The space between rows of thumbnails.
+</p>
+</dd>
+<dt><span class="term"><a name="Column_Spacing"></a>Column spacing</span></dt>
+<dd>
+<p class="para">
+The space between columns of thumbnails.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-02-3"></a>7.3.2.3. Detail View</h5></div></div>
+<div class="figure"><img src="images/prefs_detail.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Thumbnail View | Detail View] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Thumbnail View | Detail View] (default settings)</p></div>
+<p class="para">
+The columns shown in the display modes "Detail", "Detail + Icon" and "Detail + Thumbnail".  The items in "Displayed columns" on the right are shown.  "Add" and "Delete" move items, "Up" and "Down" change their order.  "Show column title" shows or hides the column titles.
+</p>
+<p class="para">
+The GTK 4 version adds the "Subject" and "Comment" (first line of the note) columns of the comments.  To show them, move them to the right pane.  When a comment is saved or deleted, the list shown is updated at once.  In the album view, the subject and the note of an image with a comment are shown as a tooltip when the mouse is over it.
+</p>
+<p class="para">
+The "Date taken" column shows the date of the image index (the "Date" of the comment, EXIF, a date in the file name, the modification time, in this order); the modification time for an image outside the index.  A click on its title sorts by it, another click reverses the order (newest first), as [View | Sort File List | by Date Taken].
+</p>
+<p class="para">
+The title of the column the list is sorted by has an arrow (up for ascending, down for reversed), also when it was sorted from the menu.  A click on the title of "Image size" sorts by the area.  The titles of the columns with no sort (Cache type, User, Subject, ...) cannot be clicked.
+</p>
+</div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-03"></a>7.3.3. Directory View</h4></div></div>
+<div class="figure"><img src="images/prefs_dirview.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Directory View] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Directory View] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Dirview_show_toolbar"></a>Show toolbar</span></dt>
+<dd>
+<p class="para">
+The toolbar of the directory view is shown.
+</p>
+</dd>
+<dt><span class="term"><a name="Show_dot_file"></a>Show dotfiles</span></dt>
+<dd>
+<p class="para">
+Dotfiles (directories beginning with ".") and "." and ".." are shown in the directory view.
+</p>
+</dd>
+<dt><span class="term"><a name="show_dotfiles_1"></a>Show the "." directory even when dotfiles are hidden</span></dt>
+<dd>
+<p class="para">
+The "." directory is shown in the directory view even when "Show dotfiles" is off.
+</p>
+</dd>
+<dt><span class="term"><a name="show_dotfiles_2"></a>Show the ".." directory even when dotfiles are hidden</span></dt>
+<dd>
+<p class="para">
+The ".." directory is shown in the directory view even when "Show dotfiles" is off.
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-03-1"></a>7.3.3.1. Mouse Buttons</h5></div></div>
+<div class="figure"><img src="images/prefs_dirview_mouse.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Directory View | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Directory View | Mouse Buttons] (default settings)</p></div>
+<p class="para">
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
+</p>
+</div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-03-04"></a>7.3.4. Preview</h4></div></div>
+<div class="figure"><img src="images/prefs_preview.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Preview] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Preview] (default settings)</p></div>
+<p class="para">
+Settings for showing images in the preview.  "Zoom", "Rotation", "Keep aspect ratio", "Default Image Scale" and "Keep the original image in memory" mean the same as the items of the image window (<a href="#07-02-01" title="7.2.1. Image">7.2.1</a>).
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Show_scrollbar"></a>Show scrollbar</span></dt>
+<dd>
+<p class="para">
+The scroll bars are shown.  It can be set when <a href="#Thumbwin_save_win_state">Save window state on exit</a> in [Preferences | Thumbnail Window] is off.  They are shown only in the directions in which the image does not fit.
+</p>
+</dd>
+</dl></div>
+<div class="sect4">
+<div class="titlepage"><div><h5 class="title">
+<a name="07-03-04-1"></a>7.3.4.1. Mouse Buttons</h5></div></div>
+<div class="figure"><img src="images/prefs_preview_mouse.png" width="953" height="699" alt="[Preferences | Thumbnail Window | Preview | Mouse Buttons] (default settings)">
+<p class="caption">[Preferences | Thumbnail Window | Preview | Mouse Buttons] (default settings)</p></div>
+<p class="para">
+Assigns functions to the mouse buttons.  For each button (left, middle, right, wheel up and down, double click of the left button, and the side buttons "back" (button 8) and "forward" (button 9)), choose on the tabs of the modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it runs when the button is pressed or released.  Buttons 8 and 9 do nothing by default.
+</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-04"></a>7.4. Movie and Audio</h3></div></div>
+<div class="figure"><img src="images/prefs_movie.png" width="953" height="699" alt="[Preferences | Movie and Audio] (default settings)">
+<p class="caption">[Preferences | Movie and Audio] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Movie_default_view_mode"></a>Default view mode for movie and audio</span></dt>
+<dd>
+<p class="para">
+The plugin that plays movie and audio files (GStreamer, MPlayer or Xine, those that are built in).
+</p>
+</dd>
+<dt><span class="term"><a name="Movie_continuance"></a>Play the next file when a movie or audio file ends (continuous play)</span></dt>
+<dd>
+<p class="para">
+When playback ends, the next file is opened and played.  This item was added in the GTK 4 version (off by default).
+</p>
+</dd>
+<dt><span class="term"><a name="Movie_lock_mouse"></a>Ignore mouse actions for next/previous image, zoom, rotation and scrolling while a movie or audio file is playing</span></dt>
+<dd>
+<p class="para">
+Prevents mistakes during playback.  A popup menu assigned to a mouse button can still be used.  This item was added in the GTK 4 version (off by default).
+</p>
+</dd>
+</dl></div>
+<p class="para">
+The pages "GStreamer", "MPlayer" and "Xine" below it set whether the plugin makes thumbnails of movies and the position used for them (stream position).  The MPlayer and Xine pages also set the drivers.  A page is shown for each built-in plugin.
+</p>
+<div class="figure"><img src="images/prefs_gst.png" width="953" height="699" alt="[Preferences | Movie and Audio | GStreamer] (default settings)">
+<p class="caption">[Preferences | Movie and Audio | GStreamer] (default settings)</p></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-05"></a>7.5. Slideshow</h3></div></div>
+<div class="figure"><img src="images/prefs_slideshow.png" width="953" height="699" alt="[Preferences | Slideshow] (default settings)">
+<p class="caption">[Preferences | Slideshow] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Image_change_interval"></a>Image change interval</span></dt>
+<dd>
+<p class="para">
+The time each image is shown in a slideshow.
+</p>
+</dd>
+<dt><span class="term"><a name="Repeat_slide_show"></a>Repeat slideshow</span></dt>
+<dd>
+<p class="para">
+A slideshow normally ends after all images of the thumbnail view; with this option it starts over.
+</p>
+</dd>
+<dt><span class="term"><a name="Slideshow_image"></a>Image (Zoom / Rotation / Keep aspect ratio / Default Image Scale)</span></dt>
+<dd>
+<p class="para">
+Settings for showing images in a slideshow.  The items mean the same as those of the image window (<a href="#07-02-01" title="7.2.1. Image">7.2.1</a>).
+</p>
+</dd>
+<dt><span class="term"><a name="slide_show_Back_Ground"></a>Background</span></dt>
+<dd>
+<p class="para">
+When "Use specified color" is checked, the background of the slideshow is painted with the color chosen with "Choose Color".
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-06"></a>7.6. Thumbnail Cache</h3></div></div>
+<div class="figure"><img src="images/prefs_cache.png" width="953" height="699" alt="[Preferences | Thumbnail Cache] (default settings)">
+<p class="caption">[Preferences | Thumbnail Cache] (default settings)</p></div>
+<p class="para">
+The file formats of the thumbnail cache for reading and writing.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Cache_reading"></a>Cache reading</span></dt>
+<dd>
+<p class="para">
+Caches of the formats in "Cache type to use" on the right are searched from the top and read.  "Add" and "Delete" move items, "Up" and "Down" change their order.
+</p>
+</dd>
+<dt><span class="term"><a name="Cache_writing"></a>Cache writing</span></dt>
+<dd>
+<p class="para">
+The format of the cache saved when a thumbnail is made.  "Preferences" changes the settings of the chosen format.
+</p>
+</dd>
+<dt><span class="term"><a name="Cache_freedesktop"></a>freedesktop.org</span></dt>
+<dd>
+<p class="para">
+A cache type added in the GTK 4 port: thumbnails of the freedesktop.org Thumbnail Managing Standard in ~/.cache/thumbnails, shared with other programs (Nautilus, Thunar, ...). A thumbnail older than its image is not used. Thumbnails are kept turned by the EXIF orientation.
+</p>
+</dd>
+<dt><span class="term"><a name="Thumbnail_use_exif"></a>Making thumbnails</span></dt>
+<dd>
+<p class="para">
+"Use the thumbnail embedded in a JPEG (EXIF) when it is big enough": the thumbnail of a JPEG is made fast from the start of the file. Off: always made from the image itself (right also for an image edited by a program that left its old thumbnail). Added in the GTK 4 port (on by default).
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-07"></a>7.7. Comment</h3></div></div>
+<div class="figure"><img src="images/prefs_comment.png" width="953" height="699" alt="[Preferences | Comment] (default settings)">
+<p class="caption">[Preferences | Comment] (default settings)</p></div>
+<p class="para">
+The keys of the comments (<a href="02.html#02-04">2.4</a>) and the character set of the comment files.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Comment_keys"></a>Key Name Definition</span></dt>
+<dd>
+<p class="para">
+The list of the items (keys) of comments.  Keys whose "Status" is disabled are not used.  For keys with "Auto" enabled, the value is set from the image file automatically.  Keys with "Display" enabled are shown in the comment editor.  The fields below the list create, add, change and delete keys.
+</p>
+</dd>
+<dt><span class="term"><a name="Comment_charset"></a>Character set</span></dt>
+<dd>
+<p class="para">
+The character set of the comment files.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-08"></a>7.8. Index</h3></div></div>
+<p class="para">
+The image index (<a href="02.html#02-06">2.6</a>) and face recognition (<a href="02.html#02-07">2.7</a>). Only in a build with SQLite. Changes take effect after "Apply" or "OK", with the indexer started again.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Index_dirs"></a>Index</span></dt>
+<dd><p class="para">
+"Index images by date" and "Directories to index": the images below these directories are indexed.  With "Look for the same files" on, the images of the same size as another one are read after the rest, to find the same files (<a href="04.html#find_duplicates_index">Find Duplicates in the Index</a>).  The first time may take hours; it goes on at the next start when GImageView is quit in the middle.
+</p>
+<div class="figure"><img src="images/prefs_index.png" width="953" height="699" alt="[Preferences | Index]">
+<p class="caption">[Preferences | Index]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_newimg"></a>Index | New Images</span></dt>
+<dd><p class="para">
+Whether new images are notified on the desktop, how long they are gathered into one notification, the interval between two notifications, how long one is shown, and the folders not to notify. Where the notifications appear is set in the desktop's notification settings.
+</p>
+<div class="figure"><img src="images/prefs_index_newimg.png" width="953" height="699" alt="[Preferences | Index | New Images]">
+<p class="caption">[Preferences | Index | New Images]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_auto"></a>Index | Automatic Tags</span></dt>
+<dd><p class="para">
+The kinds of automatic tags (folder name, camera, shape, the keywords of other programs) and the folder names not made tags ("*" matches any letters, "?" one; capitals and small letters are the same). Turning the camera, the shape or the keywords on reads every image again, which takes long with many images.
+</p>
+<div class="figure"><img src="images/prefs_index_auto.png" width="953" height="699" alt="[Preferences | Index | Automatic Tags]">
+<p class="caption">[Preferences | Index | Automatic Tags]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_faces"></a>Index | Faces</span></dt>
+<dd><p class="para">
+The folders to find faces in (inside the directories to index), and where the model files are. When they are not found, where to put them and where to get them (URLs) are shown. Only with face recognition.
+</p>
+<p class="para">
+The model files are these two, put in ~/.local/share/gimageview/models (with these names; the quantized "_int8" and "_int8bq" ones next to them are not used):
+</p>
 <div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + F</i></span> : search the list (Up and Down: the one before and the next, Enter: done, Escape: close)</p></li>
+<li><p class="para">face_detection_yunet_2023mar.onnx (finding faces, about 230 KB)</p></li>
+<li><p class="para">face_recognition_sface_2021dec.onnx (comparing faces, about 39 MB)</p></li>
 </ul></div>
-<p class="para">The index tabs (Date, Tag, People)</p>
+<p class="para">
+They come from the OpenCV Zoo:
+</p>
 <div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Enter</i></span> : open the images of the date, tag or person selected</p></li>
-<li><p class="para">
-<span class="emphasis"><i>F2</i></span> : rename the tag</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + C</i></span> : copy the name selected</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + F</i></span> : search by name (also inside the closed branches)</p></li>
+<li><p class="para">GitHub (the URLs shown on the preferences page):<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx<br>
+https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx</p></li>
+<li><p class="para">Hugging Face (when GitHub does not give them; the README on GitHub says the OpenCV Zoo moved there):<br>
+https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx<br>
+https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx</p></li>
 </ul></div>
-<p class="para">Image views (image window, preview)</p>
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>X</i></span> : flip horizontally</p></li>
-<li><p class="para">
-<span class="emphasis"><i>Shift + Ctrl + C</i></span> : copy the image to the clipboard</p></li>
-<li><p class="para">
-<span class="emphasis"><i>P</i></span> : edit faces (the faces panel)</p></li>
-</ul></div>
-<p class="para">The faces window</p>
-<div class="itemizedlist"><ul>
-<li><p class="para">
-<span class="emphasis"><i>Ctrl + A</i></span> : select all the faces</p></li>
-</ul></div>
+<p class="para">
+GImageView checks what is in the model files (SHA-256): a broken download, or another file (another version) of the same name, is not used; then this page and the tooltip of the status bar tell which file to download again and its URL.  The index records the model the features of the faces were made with: when a new version of GImageView has another model, the features are made again at the place of each face found (the faces, their names and "not this person" stay; the status bar shows how far it is; the faces of an image that cannot be read any more are looked for again when it can be).
+</p>
+<div class="figure"><img src="images/prefs_index_faces.png" width="953" height="699" alt="[Preferences | Index | Faces]">
+<p class="caption">[Preferences | Index | Faces]</p></div>
+</dd>
+<dt><span class="term"><a name="Index_missing"></a>Index | Missing Images</span></dt>
+<dd><p class="para">
+How many logs of the images with comments (tags) that went missing are kept (0: none).
+</p>
+<div class="figure"><img src="images/prefs_index_missing.png" width="953" height="699" alt="[Preferences | Index | Missing Images]">
+<p class="caption">[Preferences | Index | Missing Images]</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-09"></a>7.9. Search</h3></div></div>
+<div class="figure"><img src="images/prefs_search.png" width="953" height="699" alt="[Preferences | Search] (default settings)">
+<p class="caption">[Preferences | Search] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Search_accuracy"></a>Accuracy</span></dt>
+<dd>
+<p class="para">
+How alike the pictures [Tools | Find Duplicates...] calls similar must be.  The default is 0.97: pictures that match 97% or more are similar.  See "<a href="gimv_tips.html#gimv_tips_10" title="">How duplicates are found</a>" for details.
+</p>
+</dd>
+<dt><span class="term"><a name="Search_result_behavior"></a>Behavior when selecting a thumbnail in the result window</span></dt>
+<dd>
+<p class="para">
+What happens when a picture is clicked in the result window of the duplicates: selecting the same thumbnail in the thumbnail view, showing the image in the preview, in a new window, or in the shared window - each can be turned on or off.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-10"></a>7.10. Drag and Drop</h3></div></div>
+<div class="figure"><img src="images/prefs_dnd.png" width="953" height="699" alt="[Preferences | Drag and Drop] (default settings)">
+<p class="caption">[Preferences | Drag and Drop] (default settings)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="Enable_DnD_to_external_proccess_Experimental"></a>Enable DnD to external processes (experimental)</span></dt>
+<dd>
+<p class="para">
+Enables drag and drop to other processes.
+</p>
+</dd>
+<dt><span class="term"><a name="Enable_DnD_from_extenal_proccess_Experimental"></a>Enable DnD from external processes (experimental)</span></dt>
+<dd>
+<p class="para">
+Enables drag and drop from other processes.
+</p>
+</dd>
+<dt><span class="term"><a name="Always_refresh_list_when_DnD_end"></a>Always refresh list when DnD ends</span></dt>
+<dd>
+<p class="para">
+The list is always refreshed when a drag and drop ends.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-11"></a>7.11. External Program</h3></div></div>
+<div class="figure"><img src="images/prefs_progs.png" width="953" height="699" alt="[Preferences | External Program] (default settings)">
+<p class="caption">[Preferences | External Program] (default settings)</p></div>
+<p class="para">
+The external programs GImageView uses.
+</p>
+<p class="para">
+"Image Viewer/Editor" is the list of programs shown in "Open in External Program" of the mouse menu.  Enter a program name and a command to add, change or delete an entry; "Up" and "Down" change the order.  When "Dialog" is checked, a dialog is shown before the program runs.
+</p>
+<p class="para">
+"Web Browser" opens the HTML documents and the manual of the Help menu.  %s is replaced with the path of the document.  The default of the GTK 4 version is xdg-open %s (the default browser of the desktop).  If the old default mozilla %s is saved, it is replaced with xdg-open %s automatically.
+</p>
+<p class="para">
+When "Use internal viewer" of "Text Viewer" is on, text documents are shown in the viewer built into GImageView.  It detects UTF-8, EUC-JP, Shift_JIS and ISO-2022-JP documents automatically.
+</p>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="07-11-1"></a>7.11.1. Scripts</h4></div></div>
+<div class="figure"><img src="images/prefs_scripts.png" width="953" height="699" alt="[Preferences | External Program | Scripts] (default settings)">
+<p class="caption">[Preferences | External Program | Scripts] (default settings)</p></div>
+<p class="para">
+The directories of the scripts GImageView uses.  When "Use default script search directories" is off, the directories can be specified.  "Show dialog before executing script" sets whether a dialog is shown before a script runs.
+</p>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="07-12"></a>7.12. Plugin</h3></div></div>
+<div class="figure"><img src="images/prefs_plugin.png" width="953" height="699" alt="[Preferences | Plugin] (default settings)">
+<p class="caption">[Preferences | Plugin] (default settings)</p></div>
+<p class="para">
+The directories GImageView searches for plugins.  When "Use default plugin search directories" is off, the directories can be specified.
+</p>
+<p class="para">
+The pages below it, "Image Loader", "Image Saver", "IO Stream", "Archiver", "Thumbnail", "Image View" and "Thumbnail View", list the plugins that are loaded.
+</p>
+<div class="figure"><img src="images/prefs_plugin_loader.png" width="953" height="699" alt="[Preferences | Plugin | Image Loader]">
+<p class="caption">[Preferences | Plugin | Image Loader] (the location in "Module name" depends on where it is installed)</p></div>
 </div>
 </div>
 <div class="navfooter">
@@ -542,13 +861,13 @@ When the image shown in the preview is changed, the selection in the thumbnail v
 <td width="40%" align="left">
 <a accesskey="p" href="06.html">Prev</a>&#160;</td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
-<td width="40%" align="right">&#160;<a accesskey="n" href="gimv_faq.html">Next</a>
+<td width="40%" align="right">&#160;<a accesskey="n" href="08.html">Next</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left">6. Preferences&#160;</td>
+<td width="40%" align="left">6. Mouse Menus&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
-<td width="40%" align="right">&#160;8. GImageView FAQ</td>
+<td width="40%" align="right">&#160;8. Default Key Bindings</td>
 </tr>
 </table>
 </div>

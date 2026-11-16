@@ -2,18 +2,18 @@
 <html lang="ja">
 <head>
 <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-<title>5. マウスメニュー</title>
+<title>5. ツールバー</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
-<link rel="previous" href="04.html" title="4. ツールバー">
-<link rel="next" href="06.html" title="6. 設定">
+<link rel="previous" href="04.html" title="4. メニューバー">
+<link rel="next" href="06.html" title="6. マウスメニュー">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">5. マウスメニュー</th></tr>
+<tr><th colspan="3" align="center">5. ツールバー</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="04.html">前のページ</a>&#160;</td>
@@ -26,352 +26,270 @@
 </div>
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
-<a name="05"></a>5. マウスメニュー</h2></div></div>
+<a name="05"></a>5. ツールバー</h2></div></div>
 <p class="para">
-ここでは、マウスボタンで表示されるメニュー (マウスメニュー) について説明します。既定の設定では、右ボタンを押すと表示されます。割り当ては [設定] の各「マウスボタン」のページ (<a href="06.html" title="6. 設定">項6</a>) で変更できます。メニューバーと同じ項目については、<a href="03.html" title="3. メニューバー">項3</a>も参照して下さい。
+ここではツールバーの各ボタンについて説明します。ツールバーの画像の番号は、説明の項目の番号に対応しています。メニューバーに同等の機能があるボタンについては、メニューバーの項目 (<a href="04.html" title="4. メニューバー">項4</a>) も参照して下さい。
+</p>
+<p class="para">
+項目名は、ボタンにマウスカーソルを合わせた時に表示されるポップアップ内容に合わせています。
 </p>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="05-01"></a>5.1. サムネイルビュー</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_thumbview.png" width="208" height="669" alt="サムネイルビューのマウスメニュー (画像ファイルの上で表示した場合)">
-<p class="caption">サムネイルビューのマウスメニュー (画像ファイルの上で表示した場合)</p></div>
-<p class="para">
-サムネイルビュー上でのマウスメニューです。複数選択されている場合、選択されている全ての画像に対して有効です。
-</p>
+<a name="05-01"></a>5.1. サムネイルウィンドウ</h3></div></div>
+<div class="figure"><img src="images/toolbar_thumbwin.png" width="600" height="72" alt="サムネイルウィンドウのツールバー">
+<p class="caption">サムネイルウィンドウのツールバー (既定の設定、番号は下の説明に対応)</p></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="open_thumbnail"></a>開く</span></dt>
+<dt><span class="term"><a name="toolbar_open"></a><span class="toolnum">1</span> ファイルを開く</span></dt>
 <dd>
 <p class="para">
-ディレクトリ・アーカイブの上で表示した場合にだけある項目です。そのディレクトリ・アーカイブのサムネイルを開きます。
+<a href="04.html#load_file" title="">[ファイル | 開く]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="open_new_image_window"></a>新規ウィンドウで開く</span></dt>
+<dt><span class="term"><a name="toolbar_prefs"></a><span class="toolnum">2</span> 設定</span></dt>
 <dd>
 <p class="para">
-選択中の画像を、新規にイメージウィンドウを作成して開きます。複数選択されている場合、その数だけイメージウィンドウが作成されます。
+<a href="04.html#options" title="">[編集 | 設定]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="open_shared_image_window"></a>共有ウィンドウで開く</span></dt>
+<dt><span class="term"><a name="toolbar_prev_page"></a><span class="toolnum">3</span> 前のページへ</span></dt>
 <dd>
 <p class="para">
-共有イメージウィンドウで開きます。共有イメージウィンドウを一つも作成していない場合、新規に作成します。既に共有イメージウィンドウが作成されている場合、そのウィンドウを再利用します。なお、このコマンドは複数選択時には使えません。
+前のタブ(1つ左)をアクティブにします。<a href="04.html#previous_page" title="">[タブ | 前のページ]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="open_external_program"></a>外部プログラムで開く</span></dt>
+<dt><span class="term"><a name="toolbar_next_page"></a><span class="toolnum">4</span> 次のページへ</span></dt>
 <dd>
 <p class="para">
-選択中のファイルを登録した外部プログラムに渡します。外部プログラムのリストは、<a href="06.html#06-10" title="6.10. 外部プログラム">項6.10</a>を参照して下さい。
+次のタブ(1つ右)をアクティブにします。<a href="04.html#next_page" title="">[タブ | 次のページ]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="open_script"></a>スクリプト</span></dt>
+<dt><span class="term"><a name="toolbar_reload"></a><span class="toolnum">5</span> キャッシュ再読込</span></dt>
 <dd>
 <p class="para">
-選択中のファイルを登録したスクリプトに渡します。スクリプトの設定は、<a href="06.html#06-10-1" title="6.10.1. スクリプト">項6.10.1</a>を参照して下さい。
+<a href="04.html#reload_cache" title="">[編集 | キャッシュ再読込]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="update_thumbnail_mouse_menu"></a>サムネイル再作成</span></dt>
+<dt><span class="term"><a name="toolbar_skip"></a><span class="toolnum">6</span> 現ページのサムネイル作成をスキップ</span></dt>
 <dd>
 <p class="para">
-選択中の画像のサムネイルを再作成します。
+ディレクトリビューのマウスメニューから、<a href="06.html#mouse_directory_load_thumbnail_recursively" title="">サムネイルを再帰的に読み込み</a>を行った時に、任意のディレクトリのサムネイル展開をスキップします。
+</p>
+<p class="para">
+スキップされたタブ(ディレクトリ)は、ファイル名だけの表示となります。サムネイルを作成していない時は使えません。
 </p>
 </dd>
-<dt><span class="term"><a name="remove_from_list"></a>リストから削除</span></dt>
+<dt><span class="term"><a name="stop"></a><span class="toolnum">7</span> サムネイル作成を中止</span></dt>
 <dd>
 <p class="para">
-<span class="emphasis"><i>このコマンドはコレクションタブのみ有効です。</i></span>
-</p>
-<p class="para">
-リストから削除します。ファイル自体が削除されるわけではありません。
+ディレクトリビューのマウスメニューから、[サムネイルを再帰的に読み込み]を行った時に、それを完全に中止します。サムネイルを作成していない時は使えません。
 </p>
 </dd>
-<dt><span class="term"><a name="print_mouse_menu"></a>印刷</span></dt>
+<dt><span class="term"><a name="thumbnail_size"></a><span class="toolnum">8</span> サムネイルサイズ</span></dt>
 <dd>
 <p class="para">
-選択中の画像を印刷します。<a href="03.html#print" title="">[ファイル | 印刷]</a>と同じです。
+サムネイルサイズを変更します。
+</p>
+<p class="para">
+ここに任意の値を入れ、Enter した後に、「キャッシュ再読込」「全てのサムネイルを再作成」のどちらかを行うことによって、サムネイルが新しいサイズになります。
+</p>
+<p class="para">
+サムネイルへの反映を、メニューからではなくショートカットキーで行う場合、ESC キーを押して、サイズ入力部からフォーカスを外してください。フォーカスを外さないと、その文字が入力されてしまいます。
+</p>
+<p class="para">
+ここでの変更はアクティブになっていたタブにのみ有効です。
+</p>
+<p class="para">
+キャッシュ再読込の方法については、Tips の「<a href="gimv_tips.html#gimv_tips_07" title="">[リスト更新]・[キャッシュ再読込]・[全てのサムネイルを再作成]の違いについて</a>」を参照して下さい。
 </p>
 </dd>
-<dt><span class="term"><a name="file_property"></a>プロパティ</span></dt>
+<dt><span class="term"><a name="location_entry"></a><span class="toolnum">9</span> ディレクトリ入力欄</span></dt>
 <dd>
 <p class="para">
-ファイルのプロパティを表示します。ファイルの権限や所有者などを変更できます。ファイル名と種類は選択してコピーでき、長いものは途中を省いて表示します (全体はツールチップ)。ファイル名の横の「コピー」でフルパスをクリップボードに入れます。
+アクティブになっているタブのパスが表示されます。
+</p>
+<p class="para">
+この欄に、まだタブ表示されていないディレクトリを指定すると、そのディレクトリに画像があった場合のみ、新規にタブを開きます。また、ここではタブ補完が可能です。
 </p>
 </dd>
-<dt><span class="term"><a name="copy_path"></a>パスをコピー</span></dt>
+<dt><span class="term"><a name="display_mode"></a><span class="toolnum">10</span> サムネイルビューの表示モード</span></dt>
 <dd>
 <p class="para">
-選択中の画像のフルパスをクリップボードに入れます (複数なら 1 行に 1 つ)。
-</p>
-</dd>
-<dt><span class="term"><a name="scan_exif"></a>EXIFデータを表示</span></dt>
-<dd>
-<p class="para">
-EXIF 対応で作成した場合にある項目です。画像の EXIF データを表示します。gexiv2 (Exiv2) を使って作成した場合は JPEG 以外 (TIFF・RAW・PNG・WebP・HEIF など) の EXIF も表示します (gexiv2 なしでは JPEG だけで、他の形式ではこの項目は出ません)。
-</p>
-</dd>
-<dt><span class="term"><a name="scan_exif_data"></a>コメントを編集</span></dt>
-<dd>
-<p class="para">
-選んだ画像のコメント (<a href="02.html#02-09">2.9</a>) を編集します。
-</p>
-</dd>
-<dt><span class="term"><a name="open_folder_mouse_menu"></a>元のフォルダを開く</span></dt>
-<dd>
-<p class="para">
-画像のあるフォルダをサムネイルウィンドウで開き、その画像を選びます。索引や検索の結果のタブなど、いろいろなフォルダの画像が並ぶタブで便利です。
-</p>
-</dd>
-<dt><span class="term"><a name="find_same_mouse_menu"></a>同じファイルを探す</span></dt>
-<dd>
-<p class="para">
-選んだ画像と中身がまったく同じファイルを、索引の全部の画像から探し、重複画像の結果のウィンドウで開きます (<a href="03.html#find_duplicates_index">索引から重複画像を探す</a>)。
-</p>
-</dd>
-<dt><span class="term"><a name="edit_tags_mouse_menu"></a>タグを編集</span></dt>
-<dd>
-<p class="para">
-画像の索引が使える場合にある項目です。選んだ画像のタグを編集します (<a href="02.html#index_tags">2.2</a>)。
-</p>
-</dd>
-<dt><span class="term"><a name="bookmark_mouse_menu"></a>ブックマーク</span></dt>
-<dd>
-<p class="para">
-選んだ画像をブックマークし、メモの欄を出します (<a href="02.html#02-08">2.8</a>)。
-</p>
-</dd>
-<dt><span class="term"><a name="file_operation_mouse_menu"></a>ファイル名変更 / ディレクトリへコピー / ディレクトリへ移動 / ディレクトリへリンク / ファイル削除</span></dt>
-<dd>
-<p class="para">
-<a href="03.html#03-02" title="3.2. 編集">[編集]</a> メニューの同じ項目と同じです。
-</p>
-</dd>
-<dt><span class="term"><a name="save_smaller"></a>縮小して保存</span></dt>
-<dd>
-<p class="para">
-選択されている画像を小さくして、別のファイルとして保存します。元のファイルは変わりません。写真の容量を減らしたい時などに使います。
+アクティブになっているタブの、表示モードを変更します。ここでの指定はアクティブになっているタブにのみ有効です。指定できるのは以下の6つです。下の画像は、ウィンドウを広げた状態のサムネイルビューです。
 </p>
 <p class="para">
-「高さ」「幅」「長い辺」のどれを何 px 以下にするか (初期値は高さ 800 px)、JPEG と WebP の画質、名前に付ける文字 (初期値は「_resized」。big.jpg なら big_resized.jpg を元の画像と同じフォルダに) を選べます。同じ名前のファイルがある時は、名前に -1, -2 などを付けて上書きしません。EXIF の向きは画素に反映して保存します。
+<b>アルバム</b> : サムネイルを横に並べ、その下にファイル名を表示します。
 </p>
+<div class="figure"><img src="images/mode_album.png" width="598" height="418" alt="アルバム">
+<p class="caption">アルバム</p></div>
+
 <p class="para">
-撮影情報 (EXIF など) を残すか、残す時に位置情報 (GPS) を除くか、コメントやタグをコピーするかも選べます。指定より小さい画像はそのままコピーします。gdk-pixbuf で書き出せない形式の画像は JPEG で保存します。
+<b>アルバム2</b> : 小さなサムネイルとファイル名を、縦に並べて表示します。
 </p>
+<div class="figure"><img src="images/mode_album2.png" width="598" height="418" alt="アルバム2">
+<p class="caption">アルバム2</p></div>
+
 <p class="para">
-1 枚目の画像で、保存後の大きさと容量の見込みを表示します。保存は裏で行うので、その間も操作できます。[中止] で残りを止められます。終わったら [保存した画像を表示] で保存した画像を選んだ状態にできます。
+<b>アルバム3</b> : サムネイルの横にファイル名・サイズ・更新日時を表示します。上から下へ並べ、下まで来ると次の列に続きます。
 </p>
-</dd>
-<dt><span class="term"><a name="join_images"></a>画像を連結</span></dt>
-<dd>
+<div class="figure"><img src="images/mode_album3.png" width="598" height="418" alt="アルバム3">
+<p class="caption">アルバム3</p></div>
+
 <p class="para">
-選択されている 2 枚以上の画像を 1 枚につなげて、別のファイルとして保存します。元の画像は変わりません。
+<b>詳細</b> : ファイル名・画像サイズ・サイズ・ファイルタイプなどを表にして表示します。表示するコラムは [設定 | サムネイルウィンドウ | サムネイルビュー | 詳細ビュー] (<a href="07.html#07-03-02-3" title="7.3.2.3. 詳細ビュー">項7.3.2.3</a>) で指定します。
 </p>
-<div class="itemizedlist"><ul type="disc">
-<li><p class="para">画像: つなげる順です。画像を選んで ↑ ↓ で順を変えられます。</p></li>
-<li><p class="para">並べ方: 縦 (上から下へ)・横 (左から右へ)・格子状 (列の数を指定)。</p></li>
-<li><p class="para">大きさ: 幅 (横に並べる時は高さ) を、小さいものに合わせる・大きいものに合わせる・そろえない。そろえない時は中央にそろえ、すき間は白にします。</p></li>
-<li><p class="para">重なりを探す: 1 枚の写真を分けたもののように、つなぎ目で重なっている部分がある時に、前の画像の終わりと次の画像の始まりのいちばん似ている幅を探して重ねます (JPEG で少し違っていても見つけます)。白い部分のように模様のないところは重なりとみなしません。</p></li>
-<li><p class="para">継ぎ目・重なり: つなぎ目ごとに、重なりの幅 (px) をスライダーや数字で直せます。「継ぎ目」で直すつなぎ目 (1 と 2、2 と 3、…) を選びます。横の (見つけた重なり: n px) は自動で見つけた値で、見つからなかった時は (重なりは見つかりませんでした) と出ます。</p></li>
-<li><p class="para">継ぎ目の表示: 上の全体の見本では、つなぎ目を赤い破線で示します (選んでいるつなぎ目は濃く)。その下に、選んだつなぎ目のあたりを元に近い大きさで表示します。縦に並べた時は、上が前の画像の終わり、下が次の画像の始まりです。両端に赤い三角が 2 組あり、1 組目 (上・左) が次の画像の始まり、2 組目 (下・右) が前の画像の終わりで、その間が重なっている部分です (重なりが 0 なら 1 組)。1 組目から先は次の画像を表示しているので、1 組目の位置で絵に段差 (ずれ) がなく続いていれば合っています。</p></li>
-<li><p class="para">差で表示: 重なっている帯 (2 組の三角の間) を 2 枚の画像の差で表示します。ぴったり合っていると帯が真っ黒になり、ずれていると物の輪郭が明るく浮き出ます。数字を 1 ずつ変えて、帯がいちばん暗くなるところを探すと合わせやすくなります。</p></li>
-<li><p class="para">重なりが見つからない時: 空や白い背景のように模様のない部分だけで重なっていると、自動では見つけられないことがあります (どこでも同じように見えてしまうため)。その時は、両方の画像に写っている目印 (物の端や文字など) を手がかりに、数字で重なりを入れてください。</p></li>
-<li><p class="para">画質 (JPEG・WebP、初期値 90)、1 枚目のファイルの情報 (EXIF など) を残すか、1 枚目のコメントと手動で付けたタグを引き継ぐか。</p></li>
-</ul></div>
+<div class="figure"><img src="images/mode_detail.png" width="598" height="418" alt="詳細">
+<p class="caption">詳細</p></div>
+
 <p class="para">
-1 枚目と同じフォルダに「名前_join.jpg」(形式は 1 枚目のまま。gdk-pixbuf が書けない形式は JPEG) として保存します。同じ名前があれば -1, -2 などを付けて、上書きはしません。EXIF の向きは画素に反映してから並べます。読み込み・重なりの検出・保存は別スレッドで行います。保存後、[保存した画像を表示] でサムネイルウィンドウの新しい画像を選べます。
+<b>詳細 + アイコン</b> : 「詳細」の各行の先頭に、小さなサムネイルを表示します。
 </p>
+<div class="figure"><img src="images/mode_detail_icon.png" width="598" height="418" alt="詳細 + アイコン">
+<p class="caption">詳細 + アイコン</p></div>
+
+<p class="para">
+<b>詳細 + サムネイル</b> : 「詳細」の各行の先頭に、サムネイルを表示します。
+</p>
+<div class="figure"><img src="images/mode_detail_thumb.png" width="598" height="418" alt="詳細 + サムネイル">
+<p class="caption">詳細 + サムネイル</p></div>
+
 </dd>
 </dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="05-02"></a>5.2. タブ</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_tab.png" width="101" height="69" alt="タブのマウスメニュー (タブが 1 つの状態)">
-<p class="caption">タブのマウスメニュー (タブが 1 つの状態)</p></div>
+<a name="05-02"></a>5.2. ディレクトリビュー</h3></div></div>
+<div class="figure"><img src="images/toolbar_dirview.png" width="200" height="61" alt="ディレクトリビューのツールバー">
+<p class="caption">ディレクトリビューのツールバー (番号は下の説明に対応)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="home"></a><span class="toolnum">1</span> ホーム</span></dt>
+<dd>
 <p class="para">
-タブの部分で右クリックすると、現在表示しているタブのリストが表示されます。ここから任意のタブに移動することが可能です。
+ディレクトリビューのカーソルをユーザのホームディレクトリ直下に変更すると同時に、全てのツリーを閉じます。サムネイルビューへの影響はありません。
+</p>
+</dd>
+<dt><span class="term"><a name="directory_up"></a><span class="toolnum">2</span> 上へ</span></dt>
+<dd>
+<p class="para">
+現在のトップディレクトリを、さらに1つ上に上げます。
 </p>
 <p class="para">
-ディレクトリを再帰的に読み込んだ時など、大量のタブが生成された時に便利です。
+このコマンドは、マウスメニューの<a href="06.html#mouse_directory_go_to_here" title="">トップをここに変更</a>を行った後に使うと便利です。
 </p>
+</dd>
+<dt><span class="term"><a name="directory_toolbar_reload"></a><span class="toolnum">3</span> 更新</span></dt>
+<dd>
+<p class="para">
+ディレクトリビューを更新します。
+</p>
+<p class="para">
+主に、コマンドラインからディレクトリ操作(新規作成・削除)を行った時に、それらを反映させるために使用します。
+</p>
+</dd>
+<dt><span class="term"><a name="directory_toolbar_show_dot_files"></a><span class="toolnum">4</span> ドットファイル表示/非表示</span></dt>
+<dd>
+<p class="para">
+ディレクトリビューへの、ドットディレクトリ表示 ON/OFF です。
+</p>
+</dd>
+</dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="05-03"></a>5.3. ディレクトリビュー</h3></div></div>
+<a name="05-03"></a>5.3. イメージウィンドウ</h3></div></div>
+<div class="figure"><img src="images/toolbar_imagewin.png" width="667" height="72" alt="イメージウィンドウのツールバー">
+<p class="caption">イメージウィンドウのツールバー (既定の設定、番号は下の説明に対応)</p></div>
 <p class="para">
-ディレクトリビューには、ディレクトリのタブのほかに、画像の索引の日付・タグ・人物のタブ (<a href="02.html#02-02">2.2</a>、<a href="02.html#02-03">2.3</a>) とブックマークのタブ (<a href="02.html#02-08">2.8</a>) があります。上のアイコンでタブを切り替えます。右クリックのメニューはタブごとに違います。
+ここに示す、イメージウィンドウ・イメージビューのズーム(拡大縮小)、フィットなどの項目は、[設定 | イメージウィンドウ] の<a href="07.html#Auto_resize_to_image_size" title="">自動的に画像のサイズにリサイズする</a>の影響を受けます。設定によって、イメージウィンドウが自動リサイズされたりされなかったりします。
 </p>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-01"></a>5.3.1. ディレクトリのタブ</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_dirview.png" width="277" height="382" alt="ディレクトリのタブのマウスメニュー">
-<p class="caption">ディレクトリのタブのマウスメニュー</p></div>
 <p class="para">
-ディレクトリビューでは、ディレクトリの複数選択は出来ません。そのため、各コマンドの実行対象は、必然的にマウスカーソル下のディレクトリになります。
+また、<a href="07.html#Keep_aspect_rario" title="">アスペクト比を保持</a>する設定になっている場合、拡大縮小時にイメージビューのアスペクト比が維持されます。
 </p>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="mouse_directory_load_thumbnail"></a>サムネイル読み込み</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_open"></a><span class="toolnum">1</span> ファイルを開く</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリを読み込み、サムネイルビューに表示します。初めてサムネイル表示する場合は新規にタブが生成され、既に読み込まれている場合は、そのタブがアクティブになります。
+<a href="04.html#load_file" title="">[ファイル | 開く]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_load_thumbnail_recursively"></a>サムネイルを再帰的に読み込み</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_prefs"></a><span class="toolnum">2</span> 設定</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリ以下を再帰的に読み込みます。ディレクトリごとにタブが生成されます。
+<a href="04.html#options" title="">[編集 | 設定]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_load_thumbnail_one_tab"></a>サムネイルを1タブ内に再帰読み込み</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_prev"></a><span class="toolnum">3</span> 前の画像</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリ以下を再帰的に読み込み、全ての画像を1つのタブに表示します。
+<a href="04.html#go_previous" title="">[移動 | 前へ]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_edit_tags"></a>下のフォルダも含めてタグを編集...</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_next"></a><span class="toolnum">4</span> 次の画像</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリと、その下のディレクトリにある全ての画像のタグを編集します (<a href="02.html#index_tags">2</a>)。
+<a href="04.html#go_next" title="">[移動 | 次へ]</a>と同じです。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_find_duplicates"></a>下のフォルダも含めて重複画像を探す...</span></dt>
+<dt><span class="term"><a name="no_zoom"></a><span class="toolnum">5</span> 等倍</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリと、その下のディレクトリにある画像のうち、中身がまったく同じファイルがあるものを探します。同じファイルがほかのフォルダにあっても見つけます (<a href="03.html#find_duplicates_index">索引から重複画像を探す</a>)。
+イメージビューを本来の画像の大きさ(100%)にします。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_go_to_here"></a>トップをここに変更</span></dt>
+<dt><span class="term"><a name="zoom_in"></a><span class="toolnum">6</span> 拡大</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリを、ディレクトリビューのトップにします。
+イメージビューの倍率を 5% 大きくします。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_refresh_tree"></a>ツリー更新</span></dt>
+<dt><span class="term"><a name="zoom_out"></a><span class="toolnum">7</span> 縮小</span></dt>
 <dd>
 <p class="para">
-ディレクトリビューを更新します。コマンドラインからディレクトリ操作(作成・移動・削除)を行った場合に、それらを反映させるために行います。
+イメージビューの倍率を 5% 小さくします。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_property"></a>プロパティ</span></dt>
+<dt><span class="term"><a name="fit"></a><span class="toolnum">8</span> フィット</span></dt>
 <dd>
 <p class="para">
-ディレクトリのプロパティを表示します。権限や所有者などを変更できます。
+イメージウィンドウの大きさに、イメージビューを拡大縮小します。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_new"></a>ディレクトリ作成</span></dt>
+<dt><span class="term"><a name="x_scale"></a><span class="toolnum">9</span> X軸スケール / Y軸スケール</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリ直下に、新規にディレクトリを生成します。
+イメージビューの倍率(%)を設定します。
+</p>
+<p class="para">
+アスペクト比を保持する設定になっている場合は、X軸スケールだけが表示されます。保持しない設定の場合は、その右に Y軸スケールも表示され、X軸・Y軸の倍率を別々に設定できます。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_name_edit"></a>ディレクトリ名変更</span></dt>
+<dt><span class="term"><a name="zoom"></a><span class="toolnum">10</span> ズーム</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリ名を変更します。
+スケール部に入力した値に、イメージビューをズーム(拡大縮小)します。
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_delete"></a>ディレクトリ削除</span></dt>
+<dt><span class="term"><a name="rotate_image"></a><span class="toolnum">11</span> 画像を回転</span></dt>
 <dd>
 <p class="para">
-カーソル下のディレクトリを削除します。確認ダイアログの後、削除が実行されます。
+画像の向きを、0°・90°時計回り・180°・90°反時計回りから選びます。
+</p>
+</dd>
+<dt><span class="term"><a name="fit_window_to_image"></a><span class="toolnum">12</span> ウィンドウの大きさを画像に合わせる</span></dt>
+<dd>
+<p class="para">
+イメージビューのサイズに、イメージウィンドウをリサイズします。<a href="04.html#Fit_to_Image" title="">[表示 | 画像の大きさに合わせる]</a>と同じです。
+</p>
+</dd>
+<dt><span class="term"><a name="full_screen_toolbar"></a><span class="toolnum">13</span> 全画面</span></dt>
+<dd>
+<p class="para">
+全画面表示にします。
+</p>
+<p class="para">
+もう一度ボタンを押すことで、ウィンドウ表示に戻ります。
 </p>
 </dd>
 </dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-02"></a>5.3.2. 日付のタブ</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_index_date.png" width="128" height="60" alt="日付のタブのマウスメニュー">
-<p class="caption">日付のタブのマウスメニュー</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="mouse_index_open"></a>開く</span></dt>
-<dd><p class="para">
-その行 (年・月・日) の画像を、サムネイルビューの結果のタブに表示します。行の文字をクリックした時と同じです (<a href="02.html#index_open">2.2</a>)。
-</p></dd>
-<dt><span class="term"><a name="mouse_index_open_new_tab"></a>新しいタブで開く</span></dt>
-<dd><p class="para">
-結果のタブを使わずに、新しいタブに表示します。中ボタンのクリックでも同じです。
-</p></dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-03"></a>5.3.3. タグのタブ</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_index_tag.png" width="206" height="120" alt="タグのタブのマウスメニュー">
-<p class="caption">タグのタブのマウスメニュー</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term">開く・新しいタブで開く</span></dt>
-<dd><p class="para">
-日付のタブと同じです (<a href="#05-03-02">5.3.2</a>)。
-</p></dd>
-<dt><span class="term"><a name="mouse_index_rename"></a>名前を変更... (F2)</span></dt>
-<dd><p class="para">
-手動で付けたタグの名前を変えます (<a href="02.html#index_rename">2.2</a>)。索引が自動で付けたタグ (フォルダ・カメラ・形など) では使えません。
-</p></dd>
-<dt><span class="term"><a name="mouse_index_no_folder_tag"></a>このフォルダ名をタグにしない</span></dt>
-<dd><p class="para">
-フォルダ名の自動タグの行で使えます。そのフォルダ名を [設定 | 索引 | 自動タグ] の「タグにしないフォルダ名」に加え、タグから外します (<a href="02.html#index_auto_tags">2.2</a>)。設定ウィンドウを開いている間は使えません。
-</p></dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-04"></a>5.3.4. 人物のタブ</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_index_person.png" width="131" height="120" alt="人物のタブのマウスメニュー">
-<p class="caption">人物のタブのマウスメニュー</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term">開く・新しいタブで開く</span></dt>
-<dd><p class="para">
-日付のタブと同じです (<a href="#05-03-02">5.3.2</a>)。
-</p></dd>
-<dt><span class="term"><a name="mouse_index_faces"></a>顔を表示...</span></dt>
-<dd><p class="para">
-その人 (名前のないグループや名前の候補も) の顔を、顔の一覧ウィンドウで開きます。名前を付けたり、違う顔を外したりできます (<a href="02.html#faces_window">2.3</a>)。
-</p></dd>
-<dt><span class="term"><a name="mouse_index_rename_person"></a>名前を変更... (F2)</span></dt>
-<dd><p class="para">
-人物のタグの名前を変えます (<a href="02.html#person_tags">2.3</a>)。人の名前は顔の一覧ウィンドウで変えます。
-</p></dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-05"></a>5.3.5. ブックマークのタブ</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_bookmark.png" width="128" height="60" alt="ブックマークのタブのマウスメニュー">
-<p class="caption">ブックマークのタブのマウスメニュー</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term">開く・新しいタブで開く</span></dt>
-<dd><p class="para">
-その行 (全て・月・メモあり・メモなし) のブックマークの画像を表示します。使い方は日付のタブと同じです (<a href="#05-03-02">5.3.2</a>)。
-</p></dd>
-</dl></div>
-</div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="05-04"></a>5.4. プレビュー</h3></div></div>
-<p class="para">
-プレビュー上のマウスメニューには、ズーム・回転・アルファチャンネルを無視・透過部分を市松模様で表示・動画・表示モード・スクロールバーを表示 [Shift + S]・サムネイル作成 [Shift + T]・メモリバッファ [Ctrl + B]・画像を保存・印刷 があります。各項目は、イメージウィンドウのメニューの同じ項目 (<a href="03.html#03-01" title="3.1. ファイル">項3.1</a>〜<a href="03.html#03-03" title="3.3. 表示">項3.3</a>、<a href="03.html#03-08" title="3.8. 動画">項3.8</a>) と同じです。
-</p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="05-05"></a>5.5. イメージビュー</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_imageview.png" width="269" height="549" alt="イメージウィンドウのイメージビューのマウスメニュー">
-<p class="caption">イメージウィンドウのイメージビューのマウスメニュー</p></div>
-<p class="para">
-イメージウィンドウのイメージビュー上のマウスメニューは、イメージウィンドウの [表示] メニュー (<a href="03.html#03-03" title="3.3. 表示">項3.3</a>) と同じです。
-</p>
-<p class="para">
-GTK 4 版では、次の項目を加えています (プレビューのマウスメニューにもあります)。
-</p>
-<div class="itemizedlist"><ul>
-<li><p class="para">回転 - 左右反転 (X) : 画像を左右反転します。回転と同じく、画像ごとに記憶します。</p></li>
-<li><p class="para">画像をクリップボードにコピー (Shift+Ctrl+C) : 表示している画像をクリップボードにコピーします。</p></li>
-<li><p class="para">切り抜き (C) : 表示している画像の一部を切り抜いて別のファイルに保存します (<a href="03.html#crop">3.2</a>)。</p></li>
-<li><p class="para">顔の編集 (P) : 顔パネルを開き、画像に写っている顔に名前を付けます (<a href="02.html#face_panel">2.3</a>)。顔の認識が使える場合だけの項目です。</p></li>
-<li><p class="para">元のフォルダを開く : 画像のあるフォルダをサムネイルウィンドウで開きます。</p></li>
-<li><p class="para">タグを編集 : 表示している画像のタグを編集します (<a href="02.html#index_tags">2.2</a>)。画像の索引が使える場合だけの項目です。</p></li>
-<li><p class="para">ブックマーク : 表示している画像をブックマークします (<a href="02.html#02-08">2.8</a>)。</p></li>
-</ul></div>
 </div>
 </div>
 <div class="navfooter">
@@ -385,9 +303,9 @@ GTK 4 版では、次の項目を加えています (プレビューのマウス
 </td>
 </tr>
 <tr>
-<td width="40%" align="left">4. ツールバー&#160;</td>
+<td width="40%" align="left">4. メニューバー&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
-<td width="40%" align="right">&#160;6. 設定</td>
+<td width="40%" align="right">&#160;6. マウスメニュー</td>
 </tr>
 </table>
 </div>

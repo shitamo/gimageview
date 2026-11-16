@@ -8,7 +8,7 @@
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
 <link rel="previous" href="01.html" title="1. Introduction">
-<link rel="next" href="03.html" title="3. Menu Bar">
+<link rel="next" href="howto.html" title="3. What Do You Want to Do?">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
@@ -18,7 +18,7 @@
 <td width="20%" align="left">
 <a accesskey="p" href="01.html">Prev</a>&#160;</td>
 <th width="60%" align="center">&#160;</th>
-<td width="20%" align="right">&#160;<a accesskey="n" href="03.html">Next</a>
+<td width="20%" align="right">&#160;<a accesskey="n" href="howto.html">Next</a>
 </td>
 </tr>
 </table>
@@ -88,7 +88,99 @@ To open a directory from the GUI, double-click it in the directory view, or type
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-02"></a>2.2. Image index (dates and tags)</h3></div></div>
+<a name="02-02"></a>2.2. Thumbnails</h3></div></div>
+<div class="itemizedlist"><ul>
+<li><p class="para">Thumbnails can be read and written in the format of the freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails), shared with other programs ([Preferences | Thumbnail Cache]).</p></li>
+<li><p class="para">The thumbnails of the images GdkPixbuf reads (JPEG, PNG, ...) are made in worker threads, so the window can be used while they are made. A JPEG's embedded (EXIF) thumbnail is used when it is big enough ("Making thumbnails" in [Preferences | Thumbnail Cache]).</p></li>
+<li><p class="para">Thumbnails are turned and flipped by the EXIF orientation, and kept so in the cache. When an image was turned or flipped in an image view (and that is remembered), its thumbnail is shown so (not kept in the cache).</p></li>
+</ul></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-03"></a>2.3. Lists</h3></div></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="list_search"></a>Searching a list (Ctrl+F)</span></dt>
+<dd><p class="para">
+Ctrl+F in a list (the directory view, the detail view, the Data tab, the lists of the preferences, ...) opens a search entry at its top. Type a name shown in the list (a file, a folder, a tag, ...): the first one beginning with it (else having it) is selected. Up and Down go to the one before and the next, Enter closes it on the one found, Escape closes it (and so do 5 seconds without typing). In the index tabs, the names inside the closed branches are looked at too.  In the album modes of the thumbnail view too, Ctrl+F finds a thumbnail by its file name (chosen and scrolled to; Enter opens it).  Elsewhere Ctrl+F is [File | Open...].
+</p></dd>
+<dt><span class="term"><a name="statusbar"></a>Status bar</span></dt>
+<dd><p class="para">
+At the left, the full path of the focused image; in the middle, its position ("12 / 33") and its file size. With several images selected, their number and their total size ("5 selected  812 kB"). At the right end, the state of the index and the notices.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-04"></a>2.4. Comments (data, note and tags)</h3></div></div>
+<p class="para">
+GImageView keeps the notes of each image (subject, date, location, ...) and its tags in a separate text file, the comment file, without changing the image file. "Comment" in this manual means what is in that file.
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="comment_file"></a>Comment files</span></dt>
+<dd><p class="para">
+One file for each image, under ~/.gimv/comment, named the full path of the image with ".txt" (/home/user/Pictures/cat.jpg: ~/.gimv/comment/home/user/Pictures/cat.jpg.txt). In it are lines "key: value" (the data), then free text (the note). The character set is chosen in [Preferences | Comment]. An image without a comment has no file.
+</p></dd>
+<dt><span class="term"><a name="comment_contents"></a>What is kept in it</span></dt>
+<dd><p class="para">
+The values of the "Data" tab (subject, date, location, ...: more keys can be added in [Preferences | Comment]), the text of the "Note" tab, the tags added by hand with "Edit Tags..." (the X-IMG-Tags line), the names given to the faces (the tags "person/NAME") and the rotation and flip of each image (not shown in the comment editor). The automatic tags of the index and the comments, EXIF and keywords inside the image files are not written in it.
+</p></dd>
+<dt><span class="term"><a name="comment_edit"></a>Seeing and editing</span></dt>
+<dd><p class="para">
+The comment window is opened from the right button menu of the thumbnails or [Edit | Edit Comment...] of the image window. The "Data" tab of the preview shows the same. The detail view ("Subject" and "Comment" columns) and the tooltips of the album view can show it too.
+</p></dd>
+<dt><span class="term"><a name="comment_data_tab"></a>The "Data" tab</span></dt>
+<dd>
+<div class="itemizedlist"><ul>
+<li><p class="para">The "Data" tab of the preview and of the comment window shows the comments written in the image file itself (JPEG, PNG, GIF, MAG) in italics (shown only).</p></li>
+<li><p class="para">For a song or a movie, the information in the file (title, artist, album, track, genre, length, the formats of the sound and the picture, ...) is shown in the "Data" tab too, in italics (shown only; the GStreamer plugin).</p></li>
+<li><p class="para">In the "Data" tab, choose a "Key", type the "Value" and press Enter or "Save" (the value is free text; a date in "Date" is the date of the image for the index).</p></li>
+<li><p class="para">"Remove Item" of the "Data" tab (Delete in the list) removes the item selected, kept by "Save".  "Delete Comment..." below deletes, after asking, the data and the note of the image; the tags (X-IMG-Tags) are kept.  The row of the tags is only shown: the tags are edited with "Edit Tags...".</p></li>
+</ul></div>
+</dd>
+<dt><span class="term"><a name="comment_move"></a>Moving images, the index</span></dt>
+<dd><p class="para">
+Images moved, copied or renamed by GImageView take their comment files with them. Images moved by other programs and lost can be given their comments back in [Tools | Missing Images...]. The comment files are apart from the database of the index: the tags and names are kept when the index is made again.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-05"></a>2.5. Bookmarks</h3></div></div>
+<p class="para">
+Images can be bookmarked to look at them again later, in the indexed directories or not. The bookmarks are kept in ~/.gimv/bookmarks (apart from the index database: making the index again keeps them).
+</p>
+<div class="figure"><img src="images/bookmark.png" width="700" height="450" alt="The Bookmarks tab and a note">
+<p class="caption">The Bookmarks tab and a note</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="bookmark_add"></a>Bookmarking</span></dt>
+<dd><p class="para">
+Select images in the thumbnail view (one or more) and choose [Edit | Bookmark...] or "Bookmark..." in the right button menu; in the image window [Edit | Bookmark...], in the preview "Bookmark..." in the right button menu. The images are bookmarked at once, and a field for a note comes up. It can be closed with Escape without writing anything (a note can be written later). Enter, or a click elsewhere, keeps the note written. Chosen on a bookmarked image, it changes the note, or "Remove" takes the bookmark off.
+</p></dd>
+<dt><span class="term"><a name="bookmark_key"></a>Key</span></dt>
+<dd><p class="para">
+No key is given by default. One can be given in <a href="04.html#shortcuts">[Edit | Keyboard Shortcuts...]</a>. With lines like these in ~/.gimv/keyaccelrc (Ctrl+K here; a line starting with ";" does nothing), the key bookmarks from the next start.
+</p>
+<pre class="programlisting">(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ImageWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
+(gtk_accel_path "&lt;ThumbWinPreviewPop&gt;/Bookmark..." "&lt;Control&gt;k")</pre>
+</dd>
+<dt><span class="term"><a name="bookmark_tab"></a>Bookmarks tab</span></dt>
+<dd><p class="para">
+The "Bookmarks" tab (a star) next to the directory view lists the bookmarks by the day they were added (Today, Yesterday, This Week, then by month), and "All", "With a Note", "Without a Note", with their numbers. A click on a row opens them in the result tab, the newest first (the file names only, as the index tabs). Choosing a sort in the menu sorts them so.
+</p></dd>
+<dt><span class="term"><a name="bookmark_note"></a>The notes</span></dt>
+<dd><p class="para">
+The tooltip of the thumbnail of a bookmarked image starts with "&#9733; the note" ("&#9733; Bookmarked" without a note).
+</p></dd>
+<dt><span class="term"><a name="bookmark_move"></a>Moved and missing images</span></dt>
+<dd><p class="para">
+An image renamed or moved with GImageView keeps its bookmark. In the indexed directories, the bookmarks also follow images and folders moved or renamed by other programs. Other images not found any more are counted in "Not Found" of the tab.
+</p></dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="02-06"></a>2.6. Image index (dates and tags)</h3></div></div>
 <p class="para">
 When "Directories to index" are given in [Preferences | Index], an indexer process (gimv-indexer) looks at the images below them while GImageView runs, and keeps their dates and tags in a database (~/.local/share/gimageview/index.db). The indexer runs at a low priority, and also takes in files added, moved and deleted while GImageView runs. Its progress is shown at the right end of the status bar ("Index: ..."). This needs a build with SQLite.
 </p>
@@ -120,7 +212,7 @@ A click on the text of a row shows its images in the result tab of the thumbnail
 "Edit Tags with the Folders in It..." of the right button menu of a folder in the directory view edits the tags of all the images in the folder and in the folders in it (without opening or selecting them). The images are looked for in the background, their number shown when it takes a while (it can be cancelled). The dialog is the same. With many images the writing shows its progress, and "Stop" stops it: the images done so far are changed, the others are as they were. Every image is checked before anything is written, so nothing is written when the tags of one would be too long.</p>
 <div class="figure"><img src="images/tags_dialog.png" width="440" height="526" alt="Editing tags">
 <p class="caption">Editing tags</p></div>
-<p class="para"> They are written in the "X-IMG-Tags:" line of the comment files (~/.gimv/comment, <a href="#02-09">2.9</a>), so they are kept when the index is made again. The names of the people given to the faces (the tags "person/NAME") are not among the tags: they are shown under "People" and kept as they are (names are given in the faces window or the faces panel). The "Tags:" row of the "Data" tab (comment window and preview) shows the tags of the image; a click opens the images with the tag. A tag with levels is shown part by part, like "travel / Kyoto / temple": a click on a parent part (dimmed) opens the images with it and with the tags below it.
+<p class="para"> They are written in the "X-IMG-Tags:" line of the comment files (~/.gimv/comment, <a href="#02-04">2.4</a>), so they are kept when the index is made again. The names of the people given to the faces (the tags "person/NAME") are not among the tags: they are shown under "People" and kept as they are (names are given in the faces window or the faces panel). The "Tags:" row of the "Data" tab (comment window and preview) shows the tags of the image; a click opens the images with the tag. A tag with levels is shown part by part, like "travel / Kyoto / temple": a click on a parent part (dimmed) opens the images with it and with the tags below it.
 </p></dd>
 <dt><span class="term"><a name="index_rename"></a>Renaming and merging tags</span></dt>
 <dd><p class="para">
@@ -142,16 +234,16 @@ Images with comments (tags) that went missing are listed in a log for each start
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-03"></a>2.3. Faces and people</h3></div></div>
+<a name="02-07"></a>2.7. Faces and people</h3></div></div>
 <p class="para">
-gimv-faces looks for faces in the images of the "Folders to find faces in" of [Preferences | Index | Faces] (which must be in the index), and puts faces that look alike in groups. It runs after the rest of the index, slowly. This needs a build with OpenCV 4.8 or later, and the model files (OpenCV YuNet and SFace, about 40 MB) in ~/.local/share/gimageview/models (their names and where to get them: <a href="06.html#Index_faces">[Preferences | Index | Faces]</a>; the preferences page shows them too).
+gimv-faces looks for faces in the images of the "Folders to find faces in" of [Preferences | Index | Faces] (which must be in the index), and puts faces that look alike in groups. It runs after the rest of the index, slowly. This needs a build with OpenCV 4.8 or later, and the model files (OpenCV YuNet and SFace, about 40 MB) in ~/.local/share/gimageview/models (their names and where to get them: <a href="07.html#Index_faces">[Preferences | Index | Faces]</a>; the preferences page shows them too).
 </p>
 <div class="figure"><img src="images/faces_window.png" width="700" height="415" alt="The faces window">
 <p class="caption">The faces window</p></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><a name="people_tab"></a>People tab</span></dt>
 <dd><p class="para">
-The people named (grouped by their tags), the guesses ("name?"), the unnamed groups, the other faces and the ignored faces. A click opens the images of the person; "Show the Faces..." of the right button menu opens the faces window (the right button menu: <a href="05.html#05-03-04">5.3.4</a>).
+The people named (grouped by their tags), the guesses ("name?"), the unnamed groups, the other faces and the ignored faces. A click opens the images of the person; "Show the Faces..." of the right button menu opens the faces window (the right button menu: <a href="06.html#06-03-04">6.3.4</a>).
 </p></dd>
 <dt><span class="term"><a name="faces_window"></a>Faces window</span></dt>
 <dd><p class="para">
@@ -176,7 +268,7 @@ As the tags put by hand, they make a tree by "/": "Family/Parents" is a tag belo
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-04"></a>2.4. Searching images</h3></div></div>
+<a name="02-08"></a>2.8. Searching images</h3></div></div>
 <div class="figure"><img src="images/search_window.png" width="460" height="640" alt="The search window">
 <p class="caption">The search window</p></div>
 <p class="para">
@@ -193,99 +285,12 @@ As the tags put by hand, they make a tree by "/": "Family/Parents" is a tag belo
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="02-05"></a>2.5. Lists</h3></div></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="list_search"></a>Searching a list (Ctrl+F)</span></dt>
-<dd><p class="para">
-Ctrl+F in a list (the directory view, the detail view, the Data tab, the lists of the preferences, ...) opens a search entry at its top. Type a name shown in the list (a file, a folder, a tag, ...): the first one beginning with it (else having it) is selected. Up and Down go to the one before and the next, Enter closes it on the one found, Escape closes it (and so do 5 seconds without typing). In the index tabs, the names inside the closed branches are looked at too.  In the album modes of the thumbnail view too, Ctrl+F finds a thumbnail by its file name (chosen and scrolled to; Enter opens it).  Elsewhere Ctrl+F is [File | Open...].
-</p></dd>
-<dt><span class="term"><a name="statusbar"></a>Status bar</span></dt>
-<dd><p class="para">
-At the left, the full path of the focused image; in the middle, its position ("12 / 33") and its file size. With several images selected, their number and their total size ("5 selected  812 kB"). At the right end, the state of the index and the notices.
-</p></dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-06"></a>2.6. Thumbnails</h3></div></div>
-<div class="itemizedlist"><ul>
-<li><p class="para">Thumbnails can be read and written in the format of the freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails), shared with other programs ([Preferences | Thumbnail Cache]).</p></li>
-<li><p class="para">The thumbnails of the images GdkPixbuf reads (JPEG, PNG, ...) are made in worker threads, so the window can be used while they are made. A JPEG's embedded (EXIF) thumbnail is used when it is big enough ("Making thumbnails" in [Preferences | Thumbnail Cache]).</p></li>
-<li><p class="para">Thumbnails are turned and flipped by the EXIF orientation, and kept so in the cache. When an image was turned or flipped in an image view (and that is remembered), its thumbnail is shown so (not kept in the cache).</p></li>
-</ul></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-07"></a>2.7. Other features</h3></div></div>
+<a name="02-09"></a>2.9. Other features</h3></div></div>
 <div class="itemizedlist"><ul>
 <li><p class="para">"Copy the Image to the Clipboard" (Shift+Ctrl+C) in the right button menu of an image view copies the image shown, to be pasted in other programs.</p></li>
 <li><p class="para">"Flip Horizontally" (X) and the rotation of an image view are remembered for each image and restored when it is opened again ("Remember the rotation and flip of each image" in [Preferences | Image Window | Image]).</p></li>
-<li><p class="para">The "Data" tab of the preview and of the comment window (<a href="#02-09">2.9</a>) shows the comments written in the image file itself (JPEG, PNG, GIF, MAG) in italics (shown only).</p></li>
-<li><p class="para">For a song or a movie, the information in the file (title, artist, album, track, genre, length, the formats of the sound and the picture, ...) is shown in the "Data" tab too, in italics (shown only; the GStreamer plugin).</p></li>
-<li><p class="para">In the "Data" tab, choose a "Key", type the "Value" and press Enter or "Save" (the value is free text; a date in "Date" is the date of the image for the index).</p></li>
-<li><p class="para">"Remove Item" of the "Data" tab (Delete in the list) removes the item selected, kept by "Save".  "Delete Comment..." below deletes, after asking, the data and the note of the image; the tags (X-IMG-Tags) are kept.  The row of the tags is only shown: the tags are edited with "Edit Tags...".</p></li>
 <li><p class="para">"Open the Folder" in the right button menus of the thumbnail view and the image view opens the folder of the image.</p></li>
 </ul></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-08"></a>2.8. Bookmarks</h3></div></div>
-<p class="para">
-Images can be bookmarked to look at them again later, in the indexed directories or not. The bookmarks are kept in ~/.gimv/bookmarks (apart from the index database: making the index again keeps them).
-</p>
-<div class="figure"><img src="images/bookmark.png" width="700" height="450" alt="The Bookmarks tab and a note">
-<p class="caption">The Bookmarks tab and a note</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="bookmark_add"></a>Bookmarking</span></dt>
-<dd><p class="para">
-Select images in the thumbnail view (one or more) and choose [Edit | Bookmark...] or "Bookmark..." in the right button menu; in the image window [Edit | Bookmark...], in the preview "Bookmark..." in the right button menu. The images are bookmarked at once, and a field for a note comes up. It can be closed with Escape without writing anything (a note can be written later). Enter, or a click elsewhere, keeps the note written. Chosen on a bookmarked image, it changes the note, or "Remove" takes the bookmark off.
-</p></dd>
-<dt><span class="term"><a name="bookmark_key"></a>Key</span></dt>
-<dd><p class="para">
-No key is given by default. One can be given in <a href="03.html#shortcuts">[Edit | Keyboard Shortcuts...]</a>. With lines like these in ~/.gimv/keyaccelrc (Ctrl+K here; a line starting with ";" does nothing), the key bookmarks from the next start.
-</p>
-<pre class="programlisting">(gtk_accel_path "&lt;ThumbWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
-(gtk_accel_path "&lt;ImageWinMainMenu&gt;/Edit/Bookmark..." "&lt;Control&gt;k")
-(gtk_accel_path "&lt;ThumbWinPreviewPop&gt;/Bookmark..." "&lt;Control&gt;k")</pre>
-</dd>
-<dt><span class="term"><a name="bookmark_tab"></a>Bookmarks tab</span></dt>
-<dd><p class="para">
-The "Bookmarks" tab (a star) next to the directory view lists the bookmarks by the day they were added (Today, Yesterday, This Week, then by month), and "All", "With a Note", "Without a Note", with their numbers. A click on a row opens them in the result tab, the newest first (the file names only, as the index tabs). Choosing a sort in the menu sorts them so.
-</p></dd>
-<dt><span class="term"><a name="bookmark_note"></a>The notes</span></dt>
-<dd><p class="para">
-The tooltip of the thumbnail of a bookmarked image starts with "&#9733; the note" ("&#9733; Bookmarked" without a note).
-</p></dd>
-<dt><span class="term"><a name="bookmark_move"></a>Moved and missing images</span></dt>
-<dd><p class="para">
-An image renamed or moved with GImageView keeps its bookmark. In the indexed directories, the bookmarks also follow images and folders moved or renamed by other programs. Other images not found any more are counted in "Not Found" of the tab.
-</p></dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="02-09"></a>2.9. Comments (data, note and tags)</h3></div></div>
-<p class="para">
-GImageView keeps the notes of each image (subject, date, location, ...) and its tags in a separate text file, the comment file, without changing the image file. "Comment" in this manual means what is in that file.
-</p>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="comment_file"></a>Comment files</span></dt>
-<dd><p class="para">
-One file for each image, under ~/.gimv/comment, named the full path of the image with ".txt" (/home/user/Pictures/cat.jpg: ~/.gimv/comment/home/user/Pictures/cat.jpg.txt). In it are lines "key: value" (the data), then free text (the note). The character set is chosen in [Preferences | Comment]. An image without a comment has no file.
-</p></dd>
-<dt><span class="term"><a name="comment_contents"></a>What is kept in it</span></dt>
-<dd><p class="para">
-The values of the "Data" tab (subject, date, location, ...: more keys can be added in [Preferences | Comment]), the text of the "Note" tab, the tags added by hand with "Edit Tags..." (the X-IMG-Tags line), the names given to the faces (the tags "person/NAME") and the rotation and flip of each image (not shown in the comment editor). The automatic tags of the index and the comments, EXIF and keywords inside the image files are not written in it.
-</p></dd>
-<dt><span class="term"><a name="comment_edit"></a>Seeing and editing</span></dt>
-<dd><p class="para">
-The comment window is opened from the right button menu of the thumbnails or [Edit | Edit Comment...] of the image window. The "Data" tab of the preview shows the same. The detail view ("Subject" and "Comment" columns) and the tooltips of the album view can show it too.
-</p></dd>
-<dt><span class="term"><a name="comment_move"></a>Moving images, the index</span></dt>
-<dd><p class="para">
-Images moved, copied or renamed by GImageView take their comment files with them. Images moved by other programs and lost can be given their comments back in [Tools | Missing Images...]. The comment files are apart from the database of the index: the tags and names are kept when the index is made again.
-</p></dd>
-</dl></div>
 </div>
 </div>
 <div class="navfooter">
@@ -295,13 +300,13 @@ Images moved, copied or renamed by GImageView take their comment files with them
 <td width="40%" align="left">
 <a accesskey="p" href="01.html">Prev</a>&#160;</td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
-<td width="40%" align="right">&#160;<a accesskey="n" href="03.html">Next</a>
+<td width="40%" align="right">&#160;<a accesskey="n" href="howto.html">Next</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left">1. Introduction&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
-<td width="40%" align="right">&#160;3. Menu Bar</td>
+<td width="40%" align="right">&#160;3. What Do You Want to Do?</td>
 </tr>
 </table>
 </div>

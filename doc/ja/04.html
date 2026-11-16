@@ -2,21 +2,21 @@
 <html lang="ja">
 <head>
 <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-<title>4. ツールバー</title>
+<title>4. メニューバー</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
-<link rel="previous" href="03.html" title="3. メニューバー">
-<link rel="next" href="05.html" title="5. マウスメニュー">
+<link rel="previous" href="howto.html" title="3. 目的別の操作">
+<link rel="next" href="05.html" title="5. ツールバー">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">4. ツールバー</th></tr>
+<tr><th colspan="3" align="center">4. メニューバー</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="03.html">前のページ</a>&#160;</td>
+<a accesskey="p" href="howto.html">前のページ</a>&#160;</td>
 <th width="60%" align="center">&#160;</th>
 <td width="20%" align="right">&#160;<a accesskey="n" href="05.html">次のページ</a>
 </td>
@@ -26,267 +26,717 @@
 </div>
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
-<a name="04"></a>4. ツールバー</h2></div></div>
+<a name="04"></a>4. メニューバー</h2></div></div>
 <p class="para">
-ここではツールバーの各ボタンについて説明します。ツールバーの画像の番号は、説明の項目の番号に対応しています。メニューバーに同等の機能があるボタンについては、メニューバーの項目 (<a href="03.html" title="3. メニューバー">項3</a>) も参照して下さい。
-</p>
-<p class="para">
-項目名は、ボタンにマウスカーソルを合わせた時に表示されるポップアップ内容に合わせています。
+ここではメニューバーの各項目について説明します。メニューバーはサムネイルウィンドウとイメージウィンドウの両方に存在しますが、ここでは一緒に扱います。なお、片方のウィンドウにしかない項目には、「サムネイルウィンドウのみ」「イメージウィンドウのみ」と表記しています。項目名の後の [ ] 内は、既定のショートカットキーです。
 </p>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="04-01"></a>4.1. サムネイルウィンドウ</h3></div></div>
-<div class="figure"><img src="images/toolbar_thumbwin.png" width="600" height="72" alt="サムネイルウィンドウのツールバー">
-<p class="caption">サムネイルウィンドウのツールバー (既定の設定、番号は下の説明に対応)</p></div>
+<a name="04-01"></a>4.1. ファイル</h3></div></div>
+<div class="figure"><img src="images/menu_file.png" width="248" height="312" alt="サムネイルウィンドウの [ファイル] メニュー">
+<p class="caption">サムネイルウィンドウの [ファイル] メニュー</p></div>
+<div class="figure"><img src="images/menu_i_file.png" width="294" height="325" alt="イメージウィンドウの [ファイル] メニュー">
+<p class="caption">イメージウィンドウの [ファイル] メニュー</p></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="toolbar_open"></a><span class="toolnum">1</span> ファイルを開く</span></dt>
+<dt><span class="term"><a name="load_file"></a>開く [Ctrl + F]</span></dt>
 <dd>
 <p class="para">
-<a href="03.html#load_file" title="">[ファイル | 開く]</a>と同じです。
+ファイルオープンダイアログを表示します。
+</p>
+<p class="para">
+「選択したファイルを開く」と、イメージウィンドウを新規に作成し、画像を展開します。
+</p>
+<p class="para">
+「選択したファイルのサムネイル」とすると、コレクションタブが新規に生成され、そこにコレクション(サムネイル表示)されます。選択したフォルダ (ディレクトリ) は、フォルダごとに新しいタブで開きます (ディレクトリビューでダブルクリックした時と同じです)。ファイルとフォルダを一緒に選んだ場合は、ファイルはコレクションタブに、フォルダはそれぞれのタブに表示されます。
 </p>
 </dd>
-<dt><span class="term"><a name="toolbar_prefs"></a><span class="toolnum">2</span> 設定</span></dt>
+<dt><span class="term"><a name="open_new_image_window"></a>新規イメージウィンドウ [Ctrl + I]</span></dt>
 <dd>
 <p class="para">
-<a href="03.html#options" title="">[編集 | 設定]</a>と同じです。
+空のイメージウィンドウを新規に作成します。
 </p>
 </dd>
-<dt><span class="term"><a name="toolbar_prev_page"></a><span class="toolnum">3</span> 前のページへ</span></dt>
+<dt><span class="term"><a name="open_new_window"></a>新規ウィンドウ [Ctrl + W]</span></dt>
 <dd>
 <p class="para">
-前のタブ(1つ左)をアクティブにします。<a href="03.html#previous_page" title="">[タブ | 前のページ]</a>と同じです。
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。サムネイルウィンドウを新規に作成します。
 </p>
 </dd>
-<dt><span class="term"><a name="toolbar_next_page"></a><span class="toolnum">4</span> 次のページへ</span></dt>
+<dt><span class="term"><a name="open_thumbnail_window"></a>新規サムネイルウィンドウ [Ctrl + W]</span></dt>
 <dd>
 <p class="para">
-次のタブ(1つ右)をアクティブにします。<a href="03.html#next_page" title="">[タブ | 次のページ]</a>と同じです。
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。サムネイルウィンドウを新規に作成します。
 </p>
 </dd>
-<dt><span class="term"><a name="toolbar_reload"></a><span class="toolnum">5</span> キャッシュ再読込</span></dt>
+<dt><span class="term"><a name="open_new_tab"></a>新規タブ [Ctrl + T]</span></dt>
 <dd>
 <p class="para">
-<a href="03.html#reload_cache" title="">[編集 | キャッシュ再読込]</a>と同じです。
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。空のタブを新規に生成します。
 </p>
 </dd>
-<dt><span class="term"><a name="toolbar_skip"></a><span class="toolnum">6</span> 現ページのサムネイル作成をスキップ</span></dt>
+<dt><span class="term"><a name="memory_buffer"></a>メモリバッファ [Ctrl + B]</span></dt>
 <dd>
 <p class="para">
-ディレクトリビューのマウスメニューから、<a href="05.html#mouse_directory_load_thumbnail_recursively" title="">サムネイルを再帰的に読み込み</a>を行った時に、任意のディレクトリのサムネイル展開をスキップします。
-</p>
-<p class="para">
-スキップされたタブ(ディレクトリ)は、ファイル名だけの表示となります。サムネイルを作成していない時は使えません。
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。展開している画像をメモリバッファに保持します。メモリバッファについての詳しい説明は、Tips の「<a href="gimv_tips.html#gimv_tips_05" title="">イメージビューの描画を速くする</a>」を参照してください。
 </p>
 </dd>
-<dt><span class="term"><a name="stop"></a><span class="toolnum">7</span> サムネイル作成を中止</span></dt>
+<dt><span class="term"><a name="save_image"></a>画像を保存 [Ctrl + S]</span></dt>
 <dd>
 <p class="para">
-ディレクトリビューのマウスメニューから、[サムネイルを再帰的に読み込み]を行った時に、それを完全に中止します。サムネイルを作成していない時は使えません。
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。表示している画像を、形式を指定して別のファイルに保存します (HEIC を JPEG にする、など)。サムネイルウィンドウのプレビューのマウスメニューの「画像を保存」も同じです。
+</p>
+<div class="figure"><img src="images/save_dialog.png" width="560" height="291" alt="画像を保存のダイアログ">
+<p class="caption">画像を保存のダイアログ</p></div>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">保存先: 初めは元の画像と同じフォルダ・同じ名前で、形式の拡張子にしたものです (元の画像と同じになる場合は名前に「_2」を付けます)。「参照...」でファイル選択のダイアログから選べます。同じ名前のファイルがあれば、上書きするか確認します。</p></li>
+<li><p class="para">形式: JPEG・PNG・WebP・AVIF・TIFF・BMP・PNM のうち、保存できるものが出ます (WebP・AVIF などは gdk-pixbuf の書き出し機能があるとき)。</p></li>
+<li><p class="para">画質: JPEG・WebP・AVIF の画質 (1〜100、初期値 90) です。</p></li>
+<li><p class="para">撮影日時・カメラなどの情報 (EXIF・XMP・IPTC) を残す: gexiv2 (Exiv2) を使って作成した場合の項目です。元のファイルの情報を新しいファイルにコピーします (JPEG・PNG・WebP・TIFF)。画像は表示している向きで保存するので、情報の「向き」は標準にし、EXIF の縮小画像は除きます。</p></li>
+</ul></div>
+<p class="para">
+画像は元の大きさで、表示している向き (回転・左右反転) のまま保存します。保存は別スレッドで行います。保存したフォルダをサムネイルウィンドウで開いていれば、一覧を更新します。選んだ形式と画質は、gimv を終了するまで覚えています。
 </p>
 </dd>
-<dt><span class="term"><a name="thumbnail_size"></a><span class="toolnum">8</span> サムネイルサイズ</span></dt>
+<dt><span class="term"><a name="print"></a>印刷 [Ctrl + P]</span></dt>
 <dd>
 <p class="para">
-サムネイルサイズを変更します。
+サムネイルウィンドウでは、サムネイルビューで選択されている画像を印刷します。1 枚の画像を 1 ページに印刷します。画像が選択されておらず、プレビューに画像が表示されている場合は、その画像を印刷します。
 </p>
 <p class="para">
-ここに任意の値を入れ、Enter した後に、「キャッシュ再読込」「全てのサムネイルを再作成」のどちらかを行うことによって、サムネイルが新しいサイズになります。
-</p>
-<p class="para">
-サムネイルへの反映を、メニューからではなくショートカットキーで行う場合、ESC キーを押して、サイズ入力部からフォーカスを外してください。フォーカスを外さないと、その文字が入力されてしまいます。
-</p>
-<p class="para">
-ここでの変更はアクティブになっていたタブにのみ有効です。
-</p>
-<p class="para">
-キャッシュ再読込の方法については、Tips の「<a href="gimv_tips.html#gimv_tips_07" title="">[リスト更新]・[キャッシュ再読込]・[全てのサムネイルを再作成]の違いについて</a>」を参照して下さい。
+イメージウィンドウでは、表示している画像を回転した向きで印刷します。
 </p>
 </dd>
-<dt><span class="term"><a name="location_entry"></a><span class="toolnum">9</span> ディレクトリ入力欄</span></dt>
+<dt><span class="term"><a name="close_tab"></a>タブを閉じる [Q]</span></dt>
 <dd>
 <p class="para">
-アクティブになっているタブのパスが表示されます。
-</p>
-<p class="para">
-この欄に、まだタブ表示されていないディレクトリを指定すると、そのディレクトリに画像があった場合のみ、新規にタブを開きます。また、ここではタブ補完が可能です。
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。アクティブになっているタブを閉じます。
 </p>
 </dd>
-<dt><span class="term"><a name="display_mode"></a><span class="toolnum">10</span> サムネイルビューの表示モード</span></dt>
+<dt><span class="term"><a name="close_window"></a>ウィンドウを閉じる [Ctrl + Q] / 閉じる [Q]</span></dt>
 <dd>
 <p class="para">
-アクティブになっているタブの、表示モードを変更します。ここでの指定はアクティブになっているタブにのみ有効です。指定できるのは以下の6つです。下の画像は、ウィンドウを広げた状態のサムネイルビューです。
-</p>
-<p class="para">
-<b>アルバム</b> : サムネイルを横に並べ、その下にファイル名を表示します。
-</p>
-<div class="figure"><img src="images/mode_album.png" width="598" height="418" alt="アルバム">
-<p class="caption">アルバム</p></div>
-
-<p class="para">
-<b>アルバム2</b> : 小さなサムネイルとファイル名を、縦に並べて表示します。
-</p>
-<div class="figure"><img src="images/mode_album2.png" width="598" height="418" alt="アルバム2">
-<p class="caption">アルバム2</p></div>
-
-<p class="para">
-<b>アルバム3</b> : サムネイルの横にファイル名・サイズ・更新日時を表示します。上から下へ並べ、下まで来ると次の列に続きます。
-</p>
-<div class="figure"><img src="images/mode_album3.png" width="598" height="418" alt="アルバム3">
-<p class="caption">アルバム3</p></div>
-
-<p class="para">
-<b>詳細</b> : ファイル名・画像サイズ・サイズ・ファイルタイプなどを表にして表示します。表示するコラムは [設定 | サムネイルウィンドウ | サムネイルビュー | 詳細ビュー] (<a href="06.html#06-03-02-3" title="6.3.2.3. 詳細ビュー">項6.3.2.3</a>) で指定します。
-</p>
-<div class="figure"><img src="images/mode_detail.png" width="598" height="418" alt="詳細">
-<p class="caption">詳細</p></div>
-
-<p class="para">
-<b>詳細 + アイコン</b> : 「詳細」の各行の先頭に、小さなサムネイルを表示します。
-</p>
-<div class="figure"><img src="images/mode_detail_icon.png" width="598" height="418" alt="詳細 + アイコン">
-<p class="caption">詳細 + アイコン</p></div>
-
-<p class="para">
-<b>詳細 + サムネイル</b> : 「詳細」の各行の先頭に、サムネイルを表示します。
-</p>
-<div class="figure"><img src="images/mode_detail_thumb.png" width="598" height="418" alt="詳細 + サムネイル">
-<p class="caption">詳細 + サムネイル</p></div>
-
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="04-02"></a>4.2. ディレクトリビュー</h3></div></div>
-<div class="figure"><img src="images/toolbar_dirview.png" width="200" height="61" alt="ディレクトリビューのツールバー">
-<p class="caption">ディレクトリビューのツールバー (番号は下の説明に対応)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="home"></a><span class="toolnum">1</span> ホーム</span></dt>
-<dd>
-<p class="para">
-ディレクトリビューのカーソルをユーザのホームディレクトリ直下に変更すると同時に、全てのツリーを閉じます。サムネイルビューへの影響はありません。
+サムネイルウィンドウの「ウィンドウを閉じる」は、サムネイルウィンドウを閉じます。この時、展開されているイメージウィンドウはそのまま残ります。イメージウィンドウの「閉じる」は、そのイメージウィンドウを閉じます。
 </p>
 </dd>
-<dt><span class="term"><a name="directory_up"></a><span class="toolnum">2</span> 上へ</span></dt>
+<dt><span class="term"><a name="quit"></a>終了 [Ctrl + C]</span></dt>
 <dd>
 <p class="para">
-現在のトップディレクトリを、さらに1つ上に上げます。
+GImageView に関する、<span class="emphasis"><i>全ての</i></span>ウィンドウを閉じます。
 </p>
 <p class="para">
-このコマンドは、マウスメニューの<a href="05.html#mouse_directory_go_to_here" title="">トップをここに変更</a>を行った後に使うと便利です。
-</p>
-</dd>
-<dt><span class="term"><a name="directory_toolbar_reload"></a><span class="toolnum">3</span> 更新</span></dt>
-<dd>
-<p class="para">
-ディレクトリビューを更新します。
-</p>
-<p class="para">
-主に、コマンドラインからディレクトリ操作(新規作成・削除)を行った時に、それらを反映させるために使用します。
-</p>
-</dd>
-<dt><span class="term"><a name="directory_toolbar_show_dot_files"></a><span class="toolnum">4</span> ドットファイル表示/非表示</span></dt>
-<dd>
-<p class="para">
-ディレクトリビューへの、ドットディレクトリ表示 ON/OFF です。
+サムネイルウィンドウ・イメージウィンドウが複数ある場合、それらは全て閉じられます。
 </p>
 </dd>
 </dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="04-03"></a>4.3. イメージウィンドウ</h3></div></div>
-<div class="figure"><img src="images/toolbar_imagewin.png" width="667" height="72" alt="イメージウィンドウのツールバー">
-<p class="caption">イメージウィンドウのツールバー (既定の設定、番号は下の説明に対応)</p></div>
+<a name="04-02"></a>4.2. 編集</h3></div></div>
+<div class="figure"><img src="images/menu_edit.png" width="358" height="518" alt="サムネイルウィンドウの [編集] メニュー (画像を 1 つ選択した状態)">
+<p class="caption">サムネイルウィンドウの [編集] メニュー (画像を 1 つ選択した状態)</p></div>
+<div class="figure"><img src="images/menu_i_edit.png" width="421" height="329" alt="イメージウィンドウの [編集] メニュー">
+<p class="caption">イメージウィンドウの [編集] メニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="select_all"></a>全て選択 [Ctrl + A]</span></dt>
+<dd>
 <p class="para">
-ここに示す、イメージウィンドウ・イメージビューのズーム(拡大縮小)、フィットなどの項目は、[設定 | イメージウィンドウ] の<a href="06.html#Auto_resize_to_image_size" title="">自動的に画像のサイズにリサイズする</a>の影響を受けます。設定によって、イメージウィンドウが自動リサイズされたりされなかったりします。
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。アクティブになっているタブ内のファイルを「全て選択」します。
+</p>
+</dd>
+<dt><span class="term"><a name="unselect_all"></a>全て選択解除 [Ctrl + N]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。アクティブになっているタブの「選択解除」を行います。
 </p>
 <p class="para">
-また、<a href="06.html#Keep_aspect_rario" title="">アスペクト比を保持</a>する設定になっている場合、拡大縮小時にイメージビューのアスペクト比が維持されます。
+GImageView は、タブごとに選択(非選択)状態を保持しています。「全て選択解除」を行っても、アクティブになっていないタブについては、選択解除を行いません。
+</p>
+</dd>
+<dt><span class="term"><a name="refresh_list"></a>リスト更新 [Shift + Ctrl + R]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。アクティブになっているタブの「リスト更新」を行います。
+</p>
+</dd>
+<dt><span class="term"><a name="reload_cache"></a>キャッシュ再読込 [Shift + R]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。アクティブになっているタブの「キャッシュを再読込」を行います。
+</p>
+</dd>
+<dt><span class="term"><a name="update_all_thumbnail"></a>全てのサムネイルを再作成 [Ctrl + R]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。アクティブになっているタブの「サムネイルを再作成」を行います。表示している部分から作り直し、残りは裏で作り直します。作り直している間は進み具合 (n/N) が表示され、ツールバーのストップボタンで止められます。表示位置はそのままです。
+</p>
+<p class="para">
+「リスト更新」「キャッシュを再読込」「サムネイルを再作成」の違いについては、Tips の「<a href="gimv_tips.html#gimv_tips_07" title="">[リスト更新]・[キャッシュ再読込]・[全てのサムネイルを再作成]の違いについて</a>」を参照してください。
+</p>
+</dd>
+<dt><span class="term"><a name="rename"></a>ファイル名変更 [Shift + E]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。サムネイルビューで選択されている画像(ファイル)の名前を変更します。
+</p>
+<p class="para">
+変更するのは拡張子を除いた名前で、拡張子 (.jpg など) はそのまま残ります (拡張子がなくなると画像として表示されなくなるため)。拡張子も変えたい時は「拡張子も変更する」をチェックすると、全体を編集できます。その時、新しい名前に画像の拡張子がなければ確認し、もう一度 [拡張子なしで変更] を押すとそのまま変更します。
+</p>
+<p class="para">
+なお、画像(ファイル)が複数選択されている場合には、実行できません。
+</p>
+</dd>
+<dt><span class="term"><a name="copy_file_to"></a>ディレクトリへコピー [Shift + C]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。選択されている画像(ファイル)を他のディレクトリにコピーします。
+</p>
+<p class="para">
+なお、対象ディレクトリを選択するダイアログでは、タブ補完が可能です。
+</p>
+</dd>
+<dt><span class="term"><a name="move_file_to"></a>ディレクトリへ移動 [Shift + M]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。選択されている画像(ファイル)を他のディレクトリに移動します。
+</p>
+<p class="para">
+なお、対象ディレクトリを選択するダイアログでは、タブ補完が可能です。
+</p>
+</dd>
+<dt><span class="term"><a name="link_file_to"></a>ディレクトリへリンク [Shift + L]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。選択されている画像(ファイル)に対するシンボリックリンクを張ります。シンボリックリンクを作りたいディレクトリを指定してください。
+</p>
+</dd>
+<dt><span class="term"><a name="remove_file"></a>ファイル削除 [Delete]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。選択されている画像(ファイル)を削除します。
+</p>
+<p class="para">
+やり直しはききません。確認ダイアログに対する答えは、十分注意してください。
+</p>
+</dd>
+<dt><span class="term"><a name="edit_comment"></a>コメントを編集</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。表示している画像のコメント (題名・日付などのデータとノート。画像ファイルとは別のコメントファイルに保存します。<a href="02.html#02-04">2.4</a>) を編集します。
+</p>
+</dd>
+<dt><span class="term"><a name="scan_exif"></a>EXIFデータを表示</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。表示している画像の EXIF データを表示します。gexiv2 (Exiv2) を使って作成した場合は JPEG 以外の EXIF も表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="create_thumbnail"></a>サムネイル作成 [Shift + T]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。表示している画像のサムネイルを、[設定 | サムネイルキャッシュ] の「キャッシュ書込タイプ」の形式で作成します。
+</p>
+</dd>
+<dt><span class="term"><a name="crop"></a>切り抜き [C]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。表示している画像の一部を切り抜いて、別のファイルとして保存します。元の画像は変わりません。イメージビューとプレビューのマウスメニューの「切り抜き」も同じです。
+</p>
+<p class="para">
+画像の上に切り抜く範囲の枠 (初めは画像全体) と、画像の上にバーが出ます。枠の外は暗く表示します。
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">枠の中をドラッグすると枠が動き、辺や角 (白い四角) をドラッグすると大きさが変わります。枠の外 (枠が画像全体の時は中も) をドラッグすると新しい枠を描きます。画像の外のドラッグはこれまでどおりスクロールです。</p></li>
+<li><p class="para">端を検出: まわり (画像の端) と同じ色の縁を除いた範囲を枠にします。A4 で読み取った小さな物や黒い布の上で撮った物のように、まわりが一色 (白や黒など) の画像に使います。スキャナの端の影やゴミは無視し、少し余白を残します。結果は枠として出るので、手で直してから保存できます。</p></li>
+<li><p class="para">設定 (≡): 端の色との差の許容 (初期値 40。ノイズが多ければ大きく、物の色が薄ければ小さく)、余白 (px、初期値 8)、画質 (JPEG・WebP、初期値 90)、ファイルの情報 (EXIF など) を残すか、コメントと手動で付けたタグを引き継ぐかです。</p></li>
+<li><p class="para">縦横比: 自由・元の画像と同じ・1:1・4:3・3:2・16:9。縦長か横長かは枠に合わせます。</p></li>
+<li><p class="para">枠の大きさを元の画像のピクセル数で表示します。</p></li>
+<li><p class="para">保存 [Enter]: 元の画像と同じフォルダに「名前_crop.jpg」(形式は元のまま。gdk-pixbuf が書けない形式は JPEG、透過があれば PNG) で保存します。同じ名前があれば -1, -2 などを付けて、上書きはしません。保存すると下に「表示」のボタンが出て、サムネイルウィンドウで新しい画像を選べます。</p></li>
+<li><p class="para">やめる [Esc]: 切り抜きをやめます。別の画像に移ったり、回転したりしてもやめます。</p></li>
+</ul></div>
+<p class="para">
+画像は元の大きさで、表示している向き (回転・左右反転) のまま切り抜きます。読み込み・端の検出・保存は別スレッドで行います。
+</p>
+</dd>
+<dt><span class="term"><a name="edit_tags_menu"></a>タグを編集</span></dt>
+<dd>
+<p class="para">
+画像の索引が使える場合にある項目です。選択している画像 (イメージウィンドウでは表示している画像) のタグを編集します (<a href="02.html#index_tags">2.6</a>)。標準ではキーはありません。
+</p>
+</dd>
+<dt><span class="term"><a name="bookmark_menu"></a>ブックマーク</span></dt>
+<dd>
+<p class="para">
+選択している画像 (イメージウィンドウでは表示している画像) をブックマークし、メモの欄を出します (<a href="02.html#02-05">2.5</a>)。標準ではキーはありません。
+</p>
+</dd>
+<dt><span class="term"><a name="options"></a>設定 [Ctrl + O]</span></dt>
+<dd>
+<p class="para">
+設定ダイアログを表示します。
+</p>
+<p class="para">
+設定内容の詳細は、<a href="07.html" title="7. 設定">項7</a>を参照してください。
+</p>
+</dd>
+<dt><span class="term"><a name="shortcuts"></a>キーボードショートカット...</span></dt>
+<dd>
+<p class="para">
+サムネイルウィンドウ (プレビューも) と画像ウィンドウのメニュー項目のキーと、その他のキー (右ボタンメニュー、パスの補完、ナビゲーター、サムネイルウィンドウの表示形式) を一覧し、変更します。行のキーをクリックして新しいキーを押してください。Esc でそのまま、BackSpace でキーなしになります。同じウィンドウの別の項目のキーだったときは、そちらから外すか確認します。行の戻すボタンか「すべて標準に戻す...」で標準のキーに戻ります。変えたキーはすぐに使え (表示形式のキーは次回の起動から)、~/.gimv/keyaccelrc か ~/.gimv/keyconf に保存されます。上の入力欄で名前やキーの一部 (「ctrl+t」) で絞り込めます。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-03"></a>4.3. 表示</h3></div></div>
+<div class="figure"><img src="images/menu_view.png" width="469" height="505" alt="サムネイルウィンドウの [表示] メニュー">
+<p class="caption">サムネイルウィンドウの [表示] メニュー</p></div>
+<div class="figure"><img src="images/menu_i_view.png" width="429" height="595" alt="イメージウィンドウの [表示] メニュー">
+<p class="caption">イメージウィンドウの [表示] メニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="sort_file_list"></a>ファイルソート</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。サムネイルビューを指定した順でソートします。
+</p>
+<p class="para">
+ここでの指定は、アクティブになっているタブと指定した後に開く全てのタブに対して有効です。
+</p>
+<p class="para">
+GImageView は、選択(非選択)状態と同様に、タブごとに並び順を保持していますので、開いていないタブについては、それまでのソート順が維持されます。なお、指定できる順は以下のとおりです。
+</p>
+<p class="para">
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">名前</p></li>
+<li><p class="para">参照日時</p></li>
+<li><p class="para">更新日時</p></li>
+<li><p class="para">撮影日 (画像の索引の撮影日: コメントの「日付」、EXIF、ファイル名の日付、更新日時の順。索引の外の画像は更新日時。新しい順にするには「逆順」も指定します)</p></li>
+<li><p class="para">状態変更日時</p></li>
+<li><p class="para">サイズ</p></li>
+<li><p class="para">種類</p></li>
+<li><p class="para">画像幅</p></li>
+<li><p class="para">画像高さ</p></li>
+<li><p class="para">画像面積</p></li>
+</ul></div>
+</p>
+<p class="para">
+このほか、「逆順」「大文字小文字を区別しない」「ディレクトリを区別しない」を指定できます。
+</p>
+</dd>
+<dt><span class="term"><a name="layout"></a>レイアウト</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。サムネイルウィンドウの各ビュー(ディレクトリ・サムネイル・プレビュー)のレイアウトを変更します。レイアウト0〜4 (Ctrl + 0〜4)、カスタムから選択する事ができます。なお、カスタムレイアウトについての詳細は、Tips の「<a href="gimv_tips.html#gimv_tips_08" title="">カスタムレイアウトについて</a>」を参照してください。
+</p>
+<p class="para">
+GTK 4 版では、各レイアウトは配置を表す絵のボタンで並べて表示されます。絵の文字は、D がディレクトリビュー、T がサムネイルビュー、P がプレビューを表します。ボタンにマウスを乗せると、名前とショートカットキー (Ctrl + 0〜4) が表示されます。カスタムの絵は、その時点のカスタムレイアウトを表します。
+</p>
+</dd>
+<dt><span class="term"><a name="window_composition"></a>レイアウト | ウィンドウ構成</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。サムネイルウィンドウ内の各ビュー(ディレクトリ・サムネイル・プレビュー)の配置を、あらかじめ用意されている構成から選択します。
+</p>
+<p class="para">
+GTK 4 版では、各構成は配置を表す絵のボタンで並べて表示されます。ボタンにマウスを乗せると名前が表示されます。
+</p>
+</dd>
+<dt><span class="term"><a name="slideshow"></a>スライドショー [Ctrl + S]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。アクティブになっているタブについて、スライドショーを行います。
+</p>
+<p class="para">
+スライドショーについての設定は、<a href="07.html#07-05" title="7.5. スライドショー">項7.5</a>で行ってください。
+</p>
+</dd>
+<dt><span class="term"><a name="slideshow_options"></a>スライドショーオプション</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。スライドショーの順序と対象を指定します。
+</p>
+<p class="para">
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">最初から開始 / 選択画像から開始 / ランダム順 : 表示する順序です。</p></li>
+<li><p class="para">選択画像のみ : 選択されている画像だけを表示します。</p></li>
+<li><p class="para">画像と動画 / 画像のみ / 動画のみ : 表示するファイルの種類です。</p></li>
+</ul></div>
+</p>
+</dd>
+<dt><span class="term"><a name="zoom"></a>ズーム</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。イメージビューのズーム(拡大縮小)、「アスペクト比の保持」設定などを行います。
+</p>
+<p class="para">
+拡大 [S]、縮小 [A]、ウィンドウの大きさに合わせる [W]、幅を合わせる [Shift + W]、高さを合わせる [Shift + H]、アスペクト比を保持 [Shift + A] と、10〜200% [1〜9] があります。これ以外の倍率については、ツールバーから直接指定してください。
+</p>
+<p class="para">
+「アスペクト比を保持」にチェックが入っている場合、イメージビューの拡大縮小を行った時に、アスペクト比が保持されます。
+</p>
+</dd>
+<dt><span class="term"><a name="rotate"></a>回転</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。イメージビューを回転します。時計回りに90°回転 [R]、反時計回りに90°回転 [E]、180度回転 [D] の3種類です。
+</p>
+</dd>
+<dt><span class="term"><a name="ignore_alpha"></a>アルファチャンネルを無視</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。画像の透過情報を使わずに表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="alpha_checker"></a>透過部分を市松模様で表示</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。透過のある画像の背景を、灰色の市松模様で表示します。初期状態は [設定 | イメージウィンドウ] の<a href="07.html#Alpha_checker" title="">画像の透過部分を市松模様で表示する</a>に従います。
+</p>
+</dd>
+<dt><span class="term"><a name="directory_view"></a>ディレクトリビュー [Shift + D]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。ディレクトリビュー表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="preview"></a>プレビュー [Shift + P]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。プレビューの ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="menubar_view"></a>メニューバー [M]</span></dt>
+<dd>
+<p class="para">
+メニューバー表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="tool_bar_view"></a>ツールバー [N]</span></dt>
+<dd>
+<p class="para">
+ツールバー表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="drectory_view_tool_bar_view"></a>ディレクトリビューツールバー [Shift + N]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。ディレクトリビューの、ツールバー表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="slideshow_player"></a>スライドショープレーヤ [Shift + N]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。スライドショー操作用のツールバー表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="status_bar_view"></a>ステータスバー [V]</span></dt>
+<dd>
+<p class="para">
+ステータスバー表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="scrollbar_view"></a>スクロールバー [Shift + S]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。スクロールバー表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="tab_bar_view"></a>タブ [B]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。サムネイルビューのタブ表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="tab_bar_preview"></a>タブ (プレビュー) [Shift + Z]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのみ</i></span>。プレビューのタブ表示 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="tool_bar_player"></a>プレーヤ</span></dt>
+<dd>
+<p class="para">
+動画・音声の再生用ツールバーの表示を、「表示」「非表示」「自動」から選びます。「自動」では動画・音声を表示している時だけ表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="view_modes"></a>表示モード</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。表示に使う方式 (画像表示、動画・音声のプラグイン) を切り替えます。
+</p>
+</dd>
+<dt><span class="term"><a name="Fit_to_Image"></a>画像の大きさに合わせる [I]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。イメージウィンドウをイメージビューの大きさ(表示されている画像のサイズ)にリサイズします。ツールバーの[ウィンドウの大きさを画像に合わせる]と同じです。
+</p>
+<p class="para">
+イメージビューの倍率(表示されている画像のサイズ)は変更されません。リサイズされるのはイメージウィンドウの方です。
+</p>
+</dd>
+<dt><span class="term"><a name="maximize"></a>最大化 [F]</span></dt>
+<dd>
+<p class="para">
+ウィンドウの最大化 ON/OFF です。
+</p>
+</dd>
+<dt><span class="term"><a name="full_screen"></a>全画面 [Shift + F]</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>イメージウィンドウのみ</i></span>。全画面表示 ON/OFF です。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-04"></a>4.4. タブ</h3></div></div>
+<div class="figure"><img src="images/menu_tab.png" width="435" height="312" alt="サムネイルウィンドウの [タブ] メニュー (タブが 1 つの状態)">
+<p class="caption">サムネイルウィンドウの [タブ] メニュー (タブが 1 つの状態)</p></div>
+<p class="para">
+サムネイルウィンドウのみのメニューです。
 </p>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="imagewin_toolbar_open"></a><span class="toolnum">1</span> ファイルを開く</span></dt>
+<dt><span class="term"><a name="tab_position"></a>タブの位置</span></dt>
 <dd>
 <p class="para">
-<a href="03.html#load_file" title="">[ファイル | 開く]</a>と同じです。
+タブの表示位置を変更します。上・下・左・右の4つがあります。
 </p>
 </dd>
-<dt><span class="term"><a name="imagewin_toolbar_prefs"></a><span class="toolnum">2</span> 設定</span></dt>
+<dt><span class="term"><a name="first_page"></a>最初のページ [K]</span></dt>
 <dd>
 <p class="para">
-<a href="03.html#options" title="">[編集 | 設定]</a>と同じです。
+最初のタブ(左端)をアクティブにします。
 </p>
 </dd>
-<dt><span class="term"><a name="imagewin_toolbar_prev"></a><span class="toolnum">3</span> 前の画像</span></dt>
+<dt><span class="term"><a name="last_page"></a>最後のページ [J]</span></dt>
 <dd>
 <p class="para">
-<a href="03.html#go_previous" title="">[移動 | 前へ]</a>と同じです。
+最後のタブ(右端)をアクティブにします。
 </p>
 </dd>
-<dt><span class="term"><a name="imagewin_toolbar_next"></a><span class="toolnum">4</span> 次の画像</span></dt>
+<dt><span class="term"><a name="next_page"></a>次のページ [L]</span></dt>
 <dd>
 <p class="para">
-<a href="03.html#go_next" title="">[移動 | 次へ]</a>と同じです。
+次のタブ(1つ右)をアクティブにします。
 </p>
 </dd>
-<dt><span class="term"><a name="no_zoom"></a><span class="toolnum">5</span> 等倍</span></dt>
+<dt><span class="term"><a name="previous_page"></a>前のページ [H]</span></dt>
 <dd>
 <p class="para">
-イメージビューを本来の画像の大きさ(100%)にします。
+前のタブ(1つ左)をアクティブにします。
 </p>
 </dd>
-<dt><span class="term"><a name="zoom_in"></a><span class="toolnum">6</span> 拡大</span></dt>
+<dt><span class="term"><a name="move_tab_forward"></a>タブを前方へ移動 [Shift + F]</span></dt>
 <dd>
 <p class="para">
-イメージビューの倍率を 5% 大きくします。
+アクティブになっているタブを、前に(1つ左)にずらします。
 </p>
 </dd>
-<dt><span class="term"><a name="zoom_out"></a><span class="toolnum">7</span> 縮小</span></dt>
+<dt><span class="term"><a name="move_tab_backward"></a>タブを後方へ移動 [Shift + B]</span></dt>
 <dd>
 <p class="para">
-イメージビューの倍率を 5% 小さくします。
+アクティブになっているタブを、後ろ(1つ右)にずらします。
 </p>
 </dd>
-<dt><span class="term"><a name="fit"></a><span class="toolnum">8</span> フィット</span></dt>
+<dt><span class="term"><a name="detach_tab"></a>タブを切り離す [Ctrl + D]</span></dt>
 <dd>
 <p class="para">
-イメージウィンドウの大きさに、イメージビューを拡大縮小します。
+アクティブになっているタブを切り離し、新規にサムネイルウィンドウを生成します。
 </p>
 </dd>
-<dt><span class="term"><a name="x_scale"></a><span class="toolnum">9</span> X軸スケール / Y軸スケール</span></dt>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-05"></a>4.5. アクション</h3></div></div>
+<div class="figure"><img src="images/menu_action.png" width="676" height="176" alt="サムネイルウィンドウの [アクション | フォーカス] メニュー">
+<p class="caption">サムネイルウィンドウの [アクション | フォーカス] メニュー</p></div>
+<p class="para">
+サムネイルウィンドウのみのメニューです。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="focus"></a>フォーカス</span></dt>
 <dd>
 <p class="para">
-イメージビューの倍率(%)を設定します。
-</p>
-<p class="para">
-アスペクト比を保持する設定になっている場合は、X軸スケールだけが表示されます。保持しない設定の場合は、その右に Y軸スケールも表示され、X軸・Y軸の倍率を別々に設定できます。
+キーボードフォーカスを、ディレクトリビュー [Shift + Alt + D]・サムネイルビュー [Shift + Alt + T]・プレビュー [Shift + Alt + P]・ロケーションエントリ (ツールバーのディレクトリ入力欄) [Shift + Alt + L] に移します。
 </p>
 </dd>
-<dt><span class="term"><a name="zoom"></a><span class="toolnum">10</span> ズーム</span></dt>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-06"></a>4.6. ツール</h3></div></div>
+<div class="figure"><img src="images/menu_tools.png" width="583" height="252" alt="サムネイルウィンドウの [ツール] メニュー">
+<p class="caption">サムネイルウィンドウの [ツール] メニュー</p></div>
+<p class="para">
+サムネイルウィンドウのみのメニューです。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="clear_all_caches"></a>全てのキャッシュをクリア</span></dt>
 <dd>
 <p class="para">
-スケール部に入力した値に、イメージビューをズーム(拡大縮小)します。
+[設定 | サムネイルキャッシュ] の「キャッシュ書込タイプ」の形式のサムネイルキャッシュを、全て削除します。
 </p>
 </dd>
-<dt><span class="term"><a name="rotate_image"></a><span class="toolnum">11</span> 画像を回転</span></dt>
+<dt><span class="term"><a name="missing_images"></a>行方不明の画像</span></dt>
 <dd>
 <p class="para">
-画像の向きを、0°・90°時計回り・180°・90°反時計回りから選びます。
+コメント (タグ) の付いた画像のうち、見つからなくなったものの一覧を開きます。コメントを移動先や別の画像に付け直したり、削除したりできます (<a href="02.html#index_missing">2.6</a>)。画像の索引が使える場合だけのメニューです。
 </p>
 </dd>
-<dt><span class="term"><a name="fit_window_to_image"></a><span class="toolnum">12</span> ウィンドウの大きさを画像に合わせる</span></dt>
+<dt><span class="term"><a name="search_images"></a>画像を検索</span></dt>
 <dd>
 <p class="para">
-イメージビューのサイズに、イメージウィンドウをリサイズします。<a href="03.html#Fit_to_Image" title="">[表示 | 画像の大きさに合わせる]</a>と同じです。
+索引から、タグ・人物・撮影日の期間を組み合わせて画像を探すウィンドウを開きます (<a href="02.html#02-08">2.8</a>)。画像の索引が使える場合だけのメニューです。
 </p>
 </dd>
-<dt><span class="term"><a name="full_screen_toolbar"></a><span class="toolnum">13</span> 全画面</span></dt>
+<dt><span class="term"><a name="find_duplicates"></a>重複画像を探す</span></dt>
 <dd>
 <p class="para">
-全画面表示にします。
+アクティブなタブの全ての画像から重複している画像を探し、結果のウィンドウを開きます (ファイルの選択は関係ありません)。1 回で次の 3 種類に分けて探します。
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para">完全に同じ: 中身がまったく同じファイル。</p></li>
+<li><p class="para">大きさ違い: 同じ写真で大きさ (画素数) だけが違うもの。縦横比が同じで、同じ大きさのものがないとき。同じファイルも含みます。</p></li>
+<li><p class="para">似ている: それ以外の似ている画像 (編集したもの・保存し直したもの・別に撮ったもの)。どの程度似ていれば見つけるかは [設定 | 検索] の「精度」です。</p></li>
+</ul></div>
+<div class="figure"><img src="images/dupl_win.png" width="960" height="600" alt="重複画像の結果のウィンドウ">
+<p class="caption">重複画像の結果のウィンドウ</p></div>
+<p class="para">
+左はグループの一覧です。種類・枚数と、削除にしている枚数・容量が出ます。グループを選ぶと、右にその画像が並び、大きさ・容量・形式・撮影日・先頭との一致度・場所・コメントの有無を比べられます。画像をクリックするとサムネイルウィンドウで表示します (動きは [設定 | 検索] で指定)。
 </p>
 <p class="para">
-もう一度ボタンを押すことで、ウィンドウ表示に戻ります。
+それぞれの画像の「残す」「削除」で選びます。「完全に同じ」「大きさ違い」のグループは、画素数が大きいもの (同じなら容量が大きいもの・古いもの) を「残す」に、他を「削除」にしてあります。「似ている」のグループは全て「残す」です。右上の「ゴミ箱へ移動...」は、表示しているグループで削除にした画像だけを、確認のあとゴミ箱へ移動します (ゴミ箱から元に戻せます)。慎重に確かめられるよう、ゴミ箱へ移すのは 1 グループずつです。確認にはファイル名が出て、グループの全てを削除にしているときやコメントのある画像があるときはそう表示します (全てを削除にしているときは「キャンセル」が既定)。移動のあとは次のグループを表示します。グループが 2 つ以上あるときは、下の「全部のグループの削除をゴミ箱へ...」で、全部のグループで削除にした画像をまとめて移動できます (全てを削除にしているグループは含めません)。
+</p>
+<p class="para">
+移動の前に、削除する画像がもう一度、残す画像と同じかを比べます (「完全に同じ」のグループ)。調べたあとに変わったファイルは移動しません。削除する画像にコメント (タグ) かブックマークがあるときは、確認で「残す画像に移してゴミ箱へ移動」を選べます。残す画像にコメントがなければコメントごと移し、あればタグだけを加えます (タグだけのコメントは消します)。ブックマークは残す画像になければ移します。「移さずにゴミ箱へ移動」では、コメントファイルはそのまま残ります。
+</p>
+<p class="para">
+ファイル名に意味があって残したいときは「ゴミ箱へ移してリンクを残す」です (「完全に同じ」のグループだけ)。ファイルはゴミ箱へ移り、同じ名前で残す画像へのリンクが置かれます。同じファイルシステムならハードリンク (容量を使わず、残す画像を移動しても切れません)、違えばシンボリックリンク (残す画像の絶対パス) です。コメント・タグ・ブックマークはその名前に付いたままです。リンクを作れないときは、ゴミ箱へも移しません。
+</p>
+<p class="para">
+画像はこのウィンドウが自分で読み込むので、サムネイルビューで読み込んでいない画像も表示します。探している間も操作でき、まず「完全に同じ」グループが出て、終わると全てのグループになります。アーカイブの中の画像は対象外です。探し方と分け方の詳細は「<a href="gimv_tips.html#gimv_tips_10" title="">重複画像の探し方</a>」を見て下さい。
+</p>
+</dd>
+<dt><span class="term"><a name="find_duplicates_index"></a>索引から重複画像を探す</span></dt>
+<dd>
+<p class="para">
+索引の全部の画像から、中身がまったく同じファイル (「完全に同じ」) を探し、同じ結果のウィンドウで開きます。別のフォルダにある同じファイルも見つかります。索引が前もって調べておいた結果を使うので、画像を読まずにすぐ表示します。[設定 | 索引] の「同じファイルを探しておく」がオンのときに使えます。
+</p>
+<p class="para">
+索引は、ほかの画像と同じ大きさ (バイト数) の画像だけを、ほかの処理のあとで読みます。先頭の 64 KB を比べ、同じものだけファイル全体を比べます。同じ名前で同じ大きさの画像 (別のフォルダに保存し直したもの) を先に調べるので、その分はすぐに見つかります。画像が多いと初回は何時間もかかることがあり、その間はステータスバーに「索引: 同じファイル n%」と出ます。途中でも、見つかった分だけを表示します。同じファイルへのハードリンクは 1 つとして数えます。大きさ違いや似ている画像は探しません (タブの画像から「重複画像を探す」で探します)。
+</p>
+<p class="para">
+フォルダの下だけで探すときは、ディレクトリビューの右クリックの「<a href="06.html#mouse_directory_find_duplicates">下のフォルダも含めて重複画像を探す...</a>」、ある画像と同じファイルを探すときは、サムネイルの右クリックの「<a href="06.html#find_same_mouse_menu">同じファイルを探す</a>」です。
+</p>
+</dd>
+<dt><span class="term"><a name="set_wallpaper"></a>壁紙設定</span></dt>
+<dd>
+<p class="para">
+選択している画像を、デスクトップの壁紙にします。「このデスクトップ」は、実行中のデスクトップ (環境変数 XDG_CURRENT_DESKTOP) に合うコマンドを使います。その下には、Xfce・GNOME・KDE Plasma などのデスクトップごとの項目があります。
+</p>
+<p class="para">
+JPEG・PNG 以外の画像やアーカイブ内の画像は、PNG に変換して ~/.gimv/wallpaper/ に置いたものを壁紙にします。項目とコマンドは ~/.gimv/gimvrc の wallpaper_menu で変更できます。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-07"></a>4.7. 移動</h3></div></div>
+<div class="figure"><img src="images/menu_i_go.png" width="331" height="171" alt="イメージウィンドウの [移動] メニュー">
+<p class="caption">イメージウィンドウの [移動] メニュー</p></div>
+<p class="para">
+イメージウィンドウのみのメニューです。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="go_next"></a>次へ [L]</span></dt>
+<dd>
+<p class="para">
+次の画像を表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="go_previous"></a>前へ [H]</span></dt>
+<dd>
+<p class="para">
+前の画像を表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="go_first"></a>最初へ [K]</span></dt>
+<dd>
+<p class="para">
+最初の画像を表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="go_last"></a>最後へ [J]</span></dt>
+<dd>
+<p class="para">
+最後の画像を表示します。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-08"></a>4.8. 動画</h3></div></div>
+<div class="figure"><img src="images/menu_i_movie.png" width="408" height="287" alt="イメージウィンドウの [動画] メニュー (画像を表示している状態)">
+<p class="caption">イメージウィンドウの [動画] メニュー (画像を表示している状態)</p></div>
+<p class="para">
+イメージウィンドウのみのメニューです。動画・音声を表示している時に使えます。
+</p>
+<p class="para">
+曲 (m4a・mp3・flac・ogg など) にアルバムアートが入っていれば、再生している間はそれを表示し、サムネイルにも使います (GStreamer プラグイン)。アルバムアートは元の大きさで表示し (表示する場所より大きい時だけ縮めます)、画像と同じズームの操作 (拡大・縮小・倍率・ウィンドウの大きさに合わせる) で大きさを変えられます。アルバムアートの無い曲は、これまでどおり黒い画面で、サムネイルはありません。
+</p>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="movie_play"></a>再生 / 停止 / 一時停止 / 早送り / 巻戻し</span></dt>
+<dd>
+<p class="para">
+動画・音声の再生を操作します。
+</p>
+</dd>
+<dt><span class="term"><a name="movie_continuance"></a>連続再生</span></dt>
+<dd>
+<p class="para">
+再生が終わると、次のファイルに移って再生します。初期状態は [設定 | 動画と音声] の<a href="07.html#Movie_continuance" title="">連続再生</a>に従います。
+</p>
+</dd>
+<dt><span class="term"><a name="movie_eject"></a>取り出し</span></dt>
+<dd>
+<p class="para">
+Xine プラグインで表示している時に使えます。停止中に、xine の入力プラグインを選び、そのプラグインが再生できるもの (MRL) の一覧を表示対象にします。
+</p>
+</dd>
+<dt><span class="term"><a name="movie_volume"></a>音量・ミュート</span></dt>
+<dd>
+<p class="para">
+動画の下の操作バーの右端にあります (メニューにはありません)。スピーカーのボタンで音を消したり戻したりし、その右のスライダーで音量を変えます (ホイールでも変えられます)。音を消している時にスライダーを動かすと、音が戻ります。音量とミュートはすべてのウィンドウで共通で、終了しても覚えています。GStreamer と MPlayer のプラグインで使えます (MPlayer では mplayer 自身の音量で、サウンドカードの音量は変えません)。
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="04-09"></a>4.9. ヘルプ</h3></div></div>
+<div class="figure"><img src="images/menu_help.png" width="634" height="136" alt="サムネイルウィンドウの [ヘルプ] メニュー">
+<p class="caption">サムネイルウィンドウの [ヘルプ] メニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="manual"></a>マニュアル</span></dt>
+<dd>
+<p class="para">
+マニュアルを表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="gimv_document"></a>ドキュメント</span></dt>
+<dd>
+<p class="para">
+GImageView に付属するドキュメントを表示します。
+</p>
+</dd>
+<dt><span class="term"><a name="about"></a>GImageViewについて</span></dt>
+<dd>
+<p class="para">
+GImageView のバージョン、ライセンス、著作者、開発者などを表示します。
 </p>
 </dd>
 </dl></div>
@@ -297,15 +747,15 @@
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="03.html">前のページ</a>&#160;</td>
+<a accesskey="p" href="howto.html">前のページ</a>&#160;</td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">ホーム</a></td>
 <td width="40%" align="right">&#160;<a accesskey="n" href="05.html">次のページ</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left">3. メニューバー&#160;</td>
+<td width="40%" align="left">3. 目的別の操作&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
-<td width="40%" align="right">&#160;5. マウスメニュー</td>
+<td width="40%" align="right">&#160;5. ツールバー</td>
 </tr>
 </table>
 </div>

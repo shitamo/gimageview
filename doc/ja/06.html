@@ -2,18 +2,18 @@
 <html lang="ja">
 <head>
 <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-<title>6. 設定</title>
+<title>6. マウスメニュー</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
-<link rel="previous" href="05.html" title="5. マウスメニュー">
-<link rel="next" href="07.html" title="7. デフォルト キーバインド">
+<link rel="previous" href="05.html" title="5. ツールバー">
+<link rel="next" href="07.html" title="7. 設定">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">6. 設定</th></tr>
+<tr><th colspan="3" align="center">6. マウスメニュー</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="05.html">前のページ</a>&#160;</td>
@@ -26,836 +26,352 @@
 </div>
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
-<a name="06"></a>6. 設定</h2></div></div>
+<a name="06"></a>6. マウスメニュー</h2></div></div>
 <p class="para">
-設定ダイアログの各項目について説明します。
+ここでは、マウスボタンで表示されるメニュー (マウスメニュー) について説明します。既定の設定では、右ボタンを押すと表示されます。割り当ては [設定] の各「マウスボタン」のページ (<a href="07.html" title="7. 設定">項7</a>) で変更できます。メニューバーと同じ項目については、<a href="04.html" title="4. メニューバー">項4</a>も参照して下さい。
 </p>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="06-01"></a>6.1. 一般</h3></div></div>
-<div class="figure"><img src="images/prefs_general.png" width="756" height="744" alt="[設定 | 一般] (既定の設定)">
-<p class="caption">[設定 | 一般] (既定の設定)</p></div>
+<a name="06-01"></a>6.1. タブ</h3></div></div>
+<div class="figure"><img class="popup" src="images/popup_tab.png" width="101" height="69" alt="タブのマウスメニュー (タブが 1 つの状態)">
+<p class="caption">タブのマウスメニュー (タブが 1 つの状態)</p></div>
+<p class="para">
+タブの部分で右クリックすると、現在表示しているタブのリストが表示されます。ここから任意のタブに移動することが可能です。
+</p>
+<p class="para">
+ディレクトリを再帰的に読み込んだ時など、大量のタブが生成された時に便利です。
+</p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-02"></a>6.2. サムネイルビュー</h3></div></div>
+<div class="figure"><img class="popup" src="images/popup_thumbview.png" width="208" height="669" alt="サムネイルビューのマウスメニュー (画像ファイルの上で表示した場合)">
+<p class="caption">サムネイルビューのマウスメニュー (画像ファイルの上で表示した場合)</p></div>
+<p class="para">
+サムネイルビュー上でのマウスメニューです。複数選択されている場合、選択されている全ての画像に対して有効です。
+</p>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="File_Open_Window"></a>ファイルを開くウィンドウ</span></dt>
+<dt><span class="term"><a name="open_thumbnail"></a>開く</span></dt>
 <dd>
 <p class="para">
-コマンドラインからファイルを開いた時、また、ファイルオープンダイアログから「了解」を押した際の展開先ウィンドウを設定します。
-</p>
-<p class="para">
-「〜ウィンドウで開く」のような指定が無い箇所では、ここの指定に従って展開先が決まります。
+ディレクトリ・アーカイブの上で表示した場合にだけある項目です。そのディレクトリ・アーカイブのサムネイルを開きます。
 </p>
 </dd>
-<dt><span class="term"><a name="Directory_Open_Window"></a>ディレクトリを開くウィンドウ</span></dt>
+<dt><span class="term"><a name="open_new_image_window"></a>新規ウィンドウで開く</span></dt>
 <dd>
 <p class="para">
-コマンドラインからディレクトリを開いた時の展開先ウィンドウを設定します。
+選択中の画像を、新規にイメージウィンドウを作成して開きます。複数選択されている場合、その数だけイメージウィンドウが作成されます。
 </p>
 </dd>
-<dt><span class="term"><a name="Archive_Open_Window"></a>アーカイブを開くウィンドウ</span></dt>
+<dt><span class="term"><a name="open_shared_image_window"></a>共有ウィンドウで開く</span></dt>
 <dd>
 <p class="para">
-コマンドラインからアーカイブを開いた時の展開先ウィンドウを設定します。
+共有イメージウィンドウで開きます。共有イメージウィンドウを一つも作成していない場合、新規に作成します。既に共有イメージウィンドウが作成されている場合、そのウィンドウを再利用します。なお、このコマンドは複数選択時には使えません。
 </p>
 </dd>
-<dt><span class="term"><a name="Scan_directories_recursively"></a>ディレクトリを再帰的に取得する</span></dt>
+<dt><span class="term"><a name="open_external_program"></a>外部プログラムで開く</span></dt>
 <dd>
 <p class="para">
-コマンドラインでディレクトリを引数に取った時、常に再帰的に取得するようになります。
-</p>
-<p class="para">
-コマンドラインオプション、-dR と同義です。
+選択中のファイルを登録した外部プログラムに渡します。外部プログラムのリストは、<a href="07.html#07-11" title="7.11. 外部プログラム">項7.11</a>を参照して下さい。
 </p>
 </dd>
-<dt><span class="term"><a name="Follow_symbolic_link"></a>シンボリックリンク先のディレクトリを読み込む / リンク先のディレクトリを読み込まない</span></dt>
+<dt><span class="term"><a name="open_script"></a>スクリプト</span></dt>
 <dd>
 <p class="para">
-再帰的に取得する際に、シンボリックリンク先のディレクトリも読み込むかどうかです。
+選択中のファイルを登録したスクリプトに渡します。スクリプトの設定は、<a href="07.html#07-11-1" title="7.11.1. スクリプト">項7.11.1</a>を参照して下さい。
 </p>
 </dd>
-<dt><span class="term"><a name="Interpolation_type_for_scaling"></a>スケーリング時の補間法</span></dt>
+<dt><span class="term"><a name="update_thumbnail_mouse_menu"></a>サムネイル再作成</span></dt>
 <dd>
 <p class="para">
-画像をスケーリング(拡大縮小)する際の、補間方法を指定します。以下の4種類から指定できます。
+選択中の画像のサムネイルを再作成します。
+</p>
+</dd>
+<dt><span class="term"><a name="remove_from_list"></a>リストから削除</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>このコマンドはコレクションタブのみ有効です。</i></span>
 </p>
 <p class="para">
+リストから削除します。ファイル自体が削除されるわけではありません。
+</p>
+</dd>
+<dt><span class="term"><a name="print_mouse_menu"></a>印刷</span></dt>
+<dd>
+<p class="para">
+選択中の画像を印刷します。<a href="04.html#print" title="">[ファイル | 印刷]</a>と同じです。
+</p>
+</dd>
+<dt><span class="term"><a name="file_property"></a>プロパティ</span></dt>
+<dd>
+<p class="para">
+ファイルのプロパティを表示します。ファイルの権限や所有者などを変更できます。ファイル名と種類は選択してコピーでき、長いものは途中を省いて表示します (全体はツールチップ)。ファイル名の横の「コピー」でフルパスをクリップボードに入れます。
+</p>
+</dd>
+<dt><span class="term"><a name="copy_path"></a>パスをコピー</span></dt>
+<dd>
+<p class="para">
+選択中の画像のフルパスをクリップボードに入れます (複数なら 1 行に 1 つ)。
+</p>
+</dd>
+<dt><span class="term"><a name="scan_exif"></a>EXIFデータを表示</span></dt>
+<dd>
+<p class="para">
+EXIF 対応で作成した場合にある項目です。画像の EXIF データを表示します。gexiv2 (Exiv2) を使って作成した場合は JPEG 以外 (TIFF・RAW・PNG・WebP・HEIF など) の EXIF も表示します (gexiv2 なしでは JPEG だけで、他の形式ではこの項目は出ません)。
+</p>
+</dd>
+<dt><span class="term"><a name="scan_exif_data"></a>コメントを編集</span></dt>
+<dd>
+<p class="para">
+選んだ画像のコメント (<a href="02.html#02-04">2.4</a>) を編集します。
+</p>
+</dd>
+<dt><span class="term"><a name="open_folder_mouse_menu"></a>元のフォルダを開く</span></dt>
+<dd>
+<p class="para">
+画像のあるフォルダをサムネイルウィンドウで開き、その画像を選びます。索引や検索の結果のタブなど、いろいろなフォルダの画像が並ぶタブで便利です。
+</p>
+</dd>
+<dt><span class="term"><a name="find_same_mouse_menu"></a>同じファイルを探す</span></dt>
+<dd>
+<p class="para">
+選んだ画像と中身がまったく同じファイルを、索引の全部の画像から探し、重複画像の結果のウィンドウで開きます (<a href="04.html#find_duplicates_index">索引から重複画像を探す</a>)。
+</p>
+</dd>
+<dt><span class="term"><a name="edit_tags_mouse_menu"></a>タグを編集</span></dt>
+<dd>
+<p class="para">
+画像の索引が使える場合にある項目です。選んだ画像のタグを編集します (<a href="02.html#index_tags">2.6</a>)。
+</p>
+</dd>
+<dt><span class="term"><a name="bookmark_mouse_menu"></a>ブックマーク</span></dt>
+<dd>
+<p class="para">
+選んだ画像をブックマークし、メモの欄を出します (<a href="02.html#02-05">2.5</a>)。
+</p>
+</dd>
+<dt><span class="term"><a name="file_operation_mouse_menu"></a>ファイル名変更 / ディレクトリへコピー / ディレクトリへ移動 / ディレクトリへリンク / ファイル削除</span></dt>
+<dd>
+<p class="para">
+<a href="04.html#04-02" title="4.2. 編集">[編集]</a> メニューの同じ項目と同じです。
+</p>
+</dd>
+<dt><span class="term"><a name="save_smaller"></a>縮小して保存</span></dt>
+<dd>
+<p class="para">
+選択されている画像を小さくして、別のファイルとして保存します。元のファイルは変わりません。写真の容量を減らしたい時などに使います。
+</p>
+<p class="para">
+「高さ」「幅」「長い辺」のどれを何 px 以下にするか (初期値は高さ 800 px)、JPEG と WebP の画質、名前に付ける文字 (初期値は「_resized」。big.jpg なら big_resized.jpg を元の画像と同じフォルダに) を選べます。同じ名前のファイルがある時は、名前に -1, -2 などを付けて上書きしません。EXIF の向きは画素に反映して保存します。
+</p>
+<p class="para">
+撮影情報 (EXIF など) を残すか、残す時に位置情報 (GPS) を除くか、コメントやタグをコピーするかも選べます。指定より小さい画像はそのままコピーします。gdk-pixbuf で書き出せない形式の画像は JPEG で保存します。
+</p>
+<p class="para">
+1 枚目の画像で、保存後の大きさと容量の見込みを表示します。保存は裏で行うので、その間も操作できます。[中止] で残りを止められます。終わったら [保存した画像を表示] で保存した画像を選んだ状態にできます。
+</p>
+</dd>
+<dt><span class="term"><a name="join_images"></a>画像を連結</span></dt>
+<dd>
+<p class="para">
+選択されている 2 枚以上の画像を 1 枚につなげて、別のファイルとして保存します。元の画像は変わりません。
+</p>
 <div class="itemizedlist"><ul type="disc">
-<li><p class="para">Nearest : 最近傍法。最も速いが、画質は粗くなります。</p></li>
-<li><p class="para">Tiles : 拡大時は Nearest と同じ、縮小時は画素を平均します。</p></li>
-<li><p class="para">Bilinear : 双線形補間。速度と画質のバランスが良い方法です。</p></li>
-<li><p class="para">Hyperbolic : ハイパーボリック。最も高画質ですが、遅くなります。</p></li>
-</ul></div>
-</p>
-</dd>
-<dt><span class="term"><a name="Color_scheme"></a>配色</span></dt>
-<dd>
-<p class="para">
-ウィンドウの配色を、以下の3つから選びます。変更は「適用」または「了解」ですぐに反映されます。GTK 4 版で追加した項目です (初期値は「デスクトップのテーマ」)。
-</p>
-<div class="itemizedlist"><ul type="disc">
-<li><p class="para">デスクトップのテーマ : デスクトップで選んだテーマ (GTK の gtk-theme-name。X11 では XSETTINGS の Net/ThemeName) で表示します。GTK 4 は gtk-4.0 ディレクトリのないテーマ (GTK 2/3 用のテーマ) を読めず、明るい Adwaita で表示します。そのようなテーマの名前に「dark」が含まれる場合 (Greybird-dark など) は、暗い Adwaita で表示します。</p></li>
-<li><p class="para">ライト : 明るい配色で表示します。テーマの名前が「-dark」で終わる場合は、それを除いた名前のテーマを使います。そのテーマを GTK 4 が読めない場合は Adwaita を使います。</p></li>
-<li><p class="para">ダーク : 暗い配色で表示します。テーマに暗い版 (gtk-dark.css) がない場合は、暗い Adwaita を使います。</p></li>
+<li><p class="para">画像: つなげる順です。画像を選んで ↑ ↓ で順を変えられます。</p></li>
+<li><p class="para">並べ方: 縦 (上から下へ)・横 (左から右へ)・格子状 (列の数を指定)。</p></li>
+<li><p class="para">大きさ: 幅 (横に並べる時は高さ) を、小さいものに合わせる・大きいものに合わせる・そろえない。そろえない時は中央にそろえ、すき間は白にします。</p></li>
+<li><p class="para">重なりを探す: 1 枚の写真を分けたもののように、つなぎ目で重なっている部分がある時に、前の画像の終わりと次の画像の始まりのいちばん似ている幅を探して重ねます (JPEG で少し違っていても見つけます)。白い部分のように模様のないところは重なりとみなしません。</p></li>
+<li><p class="para">継ぎ目・重なり: つなぎ目ごとに、重なりの幅 (px) をスライダーや数字で直せます。「継ぎ目」で直すつなぎ目 (1 と 2、2 と 3、…) を選びます。横の (見つけた重なり: n px) は自動で見つけた値で、見つからなかった時は (重なりは見つかりませんでした) と出ます。</p></li>
+<li><p class="para">継ぎ目の表示: 上の全体の見本では、つなぎ目を赤い破線で示します (選んでいるつなぎ目は濃く)。その下に、選んだつなぎ目のあたりを元に近い大きさで表示します。縦に並べた時は、上が前の画像の終わり、下が次の画像の始まりです。両端に赤い三角が 2 組あり、1 組目 (上・左) が次の画像の始まり、2 組目 (下・右) が前の画像の終わりで、その間が重なっている部分です (重なりが 0 なら 1 組)。1 組目から先は次の画像を表示しているので、1 組目の位置で絵に段差 (ずれ) がなく続いていれば合っています。</p></li>
+<li><p class="para">差で表示: 重なっている帯 (2 組の三角の間) を 2 枚の画像の差で表示します。ぴったり合っていると帯が真っ黒になり、ずれていると物の輪郭が明るく浮き出ます。数字を 1 ずつ変えて、帯がいちばん暗くなるところを探すと合わせやすくなります。</p></li>
+<li><p class="para">重なりが見つからない時: 空や白い背景のように模様のない部分だけで重なっていると、自動では見つけられないことがあります (どこでも同じように見えてしまうため)。その時は、両方の画像に写っている目印 (物の端や文字など) を手がかりに、数字で重なりを入れてください。</p></li>
+<li><p class="para">画質 (JPEG・WebP、初期値 90)、1 枚目のファイルの情報 (EXIF など) を残すか、1 枚目のコメントと手動で付けたタグを引き継ぐか。</p></li>
 </ul></div>
 <p class="para">
-環境変数 GTK_THEME が設定されている場合は、GTK はそのテーマを使い、この項目は働きません。黒い線だけで描かれた GImageView 独自のアイコン (ズーム、ドットファイル表示/非表示など) は、暗い配色では明るい線で表示されます。
-</p>
-</dd>
-<dt><span class="term"><a name="Use_theme_icons"></a>ボタンにデスクトップのアイコンテーマのアイコンを使う</span></dt>
-<dd>
-<p class="para">
-ツールバーなどのボタンに、デスクトップのアイコンテーマ (Adwaita、Papirus など) のアイコンを使います。テーマに対応するアイコンがないボタンや、ディレクトリツリーのアイコンは GImageView 独自のものです。変更後に開いたウィンドウから反映されます。GTK 4 版で追加した項目です (初期値は ON)。
-</p>
-<p class="para">
-独自のアイコンを使いたい場合は、~/.gimv/icons/&lt;名前&gt;/ にアイコン名のファイル (back.png、zoom_in.svg、refresh.xpm など。PNG、SVG、XPM が使えます) を置き、~/.gimv/gimvrc の iconset= にその名前を書いて下さい。置いたアイコンはテーマのアイコンより優先されます。
-</p>
-</dd>
-<dt><span class="term"><a name="Scrollbars_always"></a>スクロールバーを常に表示する</span></dt>
-<dd>
-<p class="para">
-一覧などのスクロールバーを常に表示します。OFF にすると、GTK 4 の標準どおり、ポインタを近づけたときだけ内容に重ねて表示します。GTK 4 版で追加した項目です (初期値は ON)。
-</p>
-</dd>
-<dt><span class="term"><a name="Open_thumbnail_window"></a>サムネイルウィンドウを開く</span></dt>
-<dd>
-<p class="para">
-GImageView を起動した時、常にサムネイルウィンドウを開くかどうか、です。
-</p>
-</dd>
-<dt><span class="term"><a name="Ignore_directory"></a>ディレクトリを無視する</span></dt>
-<dd>
-<p class="para">
-引数にディレクトリを与えられた時、それを無視するようになります。
-</p>
-</dd>
-<dt><span class="term"><a name="No_warning"></a>警告を表示しない</span></dt>
-<dd>
-<p class="para">
-コマンドラインから起動した時に表示される警告メッセージを抑制します。
-</p>
-</dd>
-<dt><span class="term"><a name="Show_splash_window"></a>スプラッシュウィンドウを表示する</span></dt>
-<dd>
-<p class="para">
-起動時にスプラッシュウィンドウ(ロゴ画像)を表示するかどうか、です。GTK 4 版で追加した項目です。
+1 枚目と同じフォルダに「名前_join.jpg」(形式は 1 枚目のまま。gdk-pixbuf が書けない形式は JPEG) として保存します。同じ名前があれば -1, -2 などを付けて、上書きはしません。EXIF の向きは画素に反映してから並べます。読み込み・重なりの検出・保存は別スレッドで行います。保存後、[保存した画像を表示] でサムネイルウィンドウの新しい画像を選べます。
 </p>
 </dd>
 </dl></div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="06-01-01"></a>6.1.1. フィルタ</h4></div></div>
-<div class="figure"><img src="images/prefs_filter.png" width="756" height="744" alt="[設定 | 一般 | フィルタ] (既定の設定)">
-<p class="caption">[設定 | 一般 | フィルタ] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="File_type"></a>ファイルタイプ</span></dt>
-<dd>
-<p class="para">
-拡張子とファイルタイプ (MIME タイプ) の対応の一覧です。「状態」が「無効」の拡張子のファイルは読み込みません。
-</p>
-<p class="para">
-一覧の下の欄で拡張子とファイルタイプを入力し、「追加」で新しい対応を登録します。登録済みの対応は、選択して「変更」「削除」できます。「無効」にチェックを入れると、その拡張子を無効にします。「システム定義」の対応は削除できません。
-</p>
-</dd>
-<dt><span class="term"><a name="Read_dotfiles"></a>ドットファイルを読み込む</span></dt>
-<dd>
-<p class="para">
-.で始まる画像ファイルやディレクトリを開くかどうか、です。なお、ディレクトリビューに関しては専用の設定 (<a href="#06-03-03" title="6.3.3. ディレクトリビュー">項6.3.3</a>) がありますので、ここの設定に従いません。
-</p>
-</dd>
-<dt><span class="term"><a name="Ignore file name extension"></a>拡張子を無視する</span></dt>
-<dd>
-<p class="para">
-ファイルの拡張子による判別を行わず、全てのファイルを読み込みの対象にします。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="06-01-02"></a>6.1.2. キャラクターセット</h4></div></div>
-<div class="figure"><img src="images/prefs_charset.png" width="756" height="744" alt="[設定 | 一般 | キャラクターセット] (既定の設定)">
-<p class="caption">[設定 | 一般 | キャラクターセット] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Locale_character_set"></a>ロカールのキャラクターセット</span></dt>
-<dd>
-<p class="para">
-画像につけるコメントのロカールキャラクターセットの定義です。
-</p>
-</dd>
-<dt><span class="term"><a name="Internal_character_set"></a>内部キャラクターセット</span></dt>
-<dd>
-<p class="para">
-GImageView で使用する、内部キャラクターセットの定義です。
-</p>
-</dd>
-<dt><span class="term"><a name="Language_for_auto_detecting"></a>自動検出する言語</span></dt>
-<dd>
-<p class="para">
-GImageView が自動検出する言語の設定です。
-</p>
-</dd>
-<dt><span class="term"><a name="Character_set_of_file_name"></a>ファイル名のキャラクターセット</span></dt>
-<dd>
-<p class="para">
-ファイル名を表示する際などに用いられる、キャラクターセットです。「変換しない」「ロカール」「自動検出」「任意」から選びます。「任意」の場合は、右の欄でキャラクターセットを指定します。
-</p>
-</dd>
-</dl></div>
-</div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="06-02"></a>6.2. イメージウィンドウ</h3></div></div>
-<div class="figure"><img src="images/prefs_imagewin.png" width="756" height="744" alt="[設定 | イメージウィンドウ] (既定の設定)">
-<p class="caption">[設定 | イメージウィンドウ] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Save_window_state_on_exit"></a>終了時にウィンドウの状態を保存する</span></dt>
-<dd>
+<a name="06-03"></a>6.3. ディレクトリビュー</h3></div></div>
 <p class="para">
-終了時のウィンドウサイズ、各バーの表示/非表示などを保存し、次回起動時に反映させるようになります。このオプションが OFF の場合、「ウィンドウの初期サイズ」と「表示/非表示」の各項目で初期状態を設定します。
+ディレクトリビューには、ディレクトリのタブのほかに、画像の索引の日付・タグ・人物のタブ (<a href="02.html#02-06">2.6</a>、<a href="02.html#02-07">2.7</a>) とブックマークのタブ (<a href="02.html#02-05">2.5</a>) があります。上のアイコンでタブを切り替えます。右クリックのメニューはタブごとに違います。
 </p>
-</dd>
-<dt><span class="term"><a name="Initial_window_size"></a>ウィンドウの初期サイズ</span></dt>
-<dd>
-<p class="para">
-イメージウィンドウを生成した時の、初期サイズ (幅・高さ) を決めます。
-</p>
-</dd>
-<dt><span class="term"><a name="Auto_resize_to_image_size"></a>自動的に画像のサイズにリサイズする</span></dt>
-<dd>
-<p class="para">
-イメージウィンドウを生成した時、自動的に展開画像のイメージサイズにウィンドウをリサイズするようになります。
-</p>
-<p class="para">
-GImageViewの詳しい挙動を書きますと、まず上の「ウィンドウの初期サイズ」のサイズでイメージウィンドウが生成されます。その後、ここのオプションが有効になっていれば、展開した画像のサイズにイメージウィンドウが自動的にリサイズします。このように動作が2段階になりますので、処理時間は増えることになります。
-</p>
-</dd>
-<dt><span class="term"><a name="Open_each_file_in_separate_window"></a>ファイルごとに別のウィンドウを開く</span></dt>
-<dd>
-<p class="para">
-毎回、ファイルごとに新規イメージウィンドウを作ります。展開したファイルの数だけイメージウィンドウが出来ることになります。また、それらのウィンドウは共有されることはありません。
-</p>
-</dd>
-<dt><span class="term"><a name="Raise_window_when_open_image_in_shared_window"></a>共有ウィンドウで開くときは、前面に出す</span></dt>
-<dd>
-<p class="para">
-サムネイル右クリックメニュー、共有ウィンドウで開くから、共有イメージウィンドウを生成した場合に、ウィンドウを最前面に出すようにします。
-</p>
-</dd>
-<dt><span class="term"><a name="Imagewin_show_hide"></a>メニューバー / ツールバー / スライドショープレーヤ / ステータスバー / スクロールバー</span></dt>
-<dd>
-<p class="para">
-イメージウィンドウを開いた時に各種バーを表示するかどうかです。[設定 | イメージウィンドウ] の<a href="#Save_window_state_on_exit">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。
-</p>
-<p class="para">
-スクロールバーは、画像がウィンドウからはみ出す向きにだけ表示されます。この項目を OFF にすると、はみ出す場合も表示しません。
-</p>
-</dd>
-<dt><span class="term"><a name="Imagewin_player_toolbar"></a>プレーヤツールバー</span></dt>
-<dd>
-<p class="para">
-動画・音声の再生用ツールバーの表示方法です。「表示」「非表示」のほか、「自動」では動画・音声を表示している時だけ表示します。
-</p>
-</dd>
-<dt><span class="term"><a name="Imagewin_bg_color"></a>背景色を指定</span></dt>
-<dd>
-<p class="para">
-チェックを入れると、画像の背景を「色選択」で選んだ色で塗ります。
-</p>
-</dd>
-<dt><span class="term"><a name="Alpha_checker"></a>画像の透過部分を市松模様で表示する</span></dt>
-<dd>
-<p class="para">
-透過のある画像の背景を、灰色の市松模様で表示します。GTK 4 版で追加した項目です (初期値は ON)。
-</p>
-</dd>
-<dt><span class="term"><a name="Fullscreen_bg_color"></a>フルスクリーンの背景色を指定</span></dt>
-<dd>
-<p class="para">
-チェックを入れると、全画面表示の時の背景を「色選択」で選んだ色で塗ります。
-</p>
-</dd>
-</dl></div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="06-02-01"></a>6.2.1. 画像</h4></div></div>
-<div class="figure"><img src="images/prefs_imagewin_image.png" width="756" height="744" alt="[設定 | イメージウィンドウ | 画像] (既定の設定)">
-<p class="caption">[設定 | イメージウィンドウ | 画像] (既定の設定)</p></div>
+<a name="06-03-01"></a>6.3.1. ディレクトリのタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_dirview.png" width="277" height="382" alt="ディレクトリのタブのマウスメニュー">
+<p class="caption">ディレクトリのタブのマウスメニュー</p></div>
 <p class="para">
-イメージウィンドウで画像を表示する時の設定です。
+ディレクトリビューでは、ディレクトリの複数選択は出来ません。そのため、各コマンドの実行対象は、必然的にマウスカーソル下のディレクトリになります。
 </p>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="Image_zoom"></a>ズーム</span></dt>
+<dt><span class="term"><a name="mouse_directory_load_thumbnail"></a>サムネイル読み込み</span></dt>
 <dd>
 <p class="para">
-画像を表示する時の大きさを、以下から選びます。
-</p>
-<p class="para">
-<div class="itemizedlist"><ul type="disc">
-<li><p class="para">デフォルトの画像拡大率 : 下の「デフォルトの画像拡大率」で表示します。</p></li>
-<li><p class="para">変更しない : 直前に表示していた画像の拡大率のまま表示します。</p></li>
-<li><p class="para">ウィンドウの大きさに合わせる : ウィンドウの大きさに合わせて拡大縮小します。</p></li>
-<li><p class="para">ウィンドウの大きさに合わせる(拡大しない) : ウィンドウより大きい画像だけを縮小します (初期値)。</p></li>
-<li><p class="para">画像をフレーム幅に合わせる / 画像をフレーム高さに合わせる : 幅または高さをウィンドウに合わせます。</p></li>
-</ul></div>
+カーソル下のディレクトリを読み込み、サムネイルビューに表示します。初めてサムネイル表示する場合は新規にタブが生成され、既に読み込まれている場合は、そのタブがアクティブになります。
 </p>
 </dd>
-<dt><span class="term"><a name="Image_rotation"></a>回転</span></dt>
+<dt><span class="term"><a name="mouse_directory_load_thumbnail_recursively"></a>サムネイルを再帰的に読み込み</span></dt>
 <dd>
 <p class="para">
-画像を表示する時の向きです。0°、90°反時計回り、180°、90°時計回りのほか、「変更しない」(直前の画像の向きのまま) を選べます。EXIF 対応で作成した場合は、「EXIFデータに応じる」も選べます。
+カーソル下のディレクトリ以下を再帰的に読み込みます。ディレクトリごとにタブが生成されます。
 </p>
 </dd>
-<dt><span class="term"><a name="Remember_rotation"></a>画像ごとに回転した向きを覚える (コメントと一緒に保存)</span></dt>
+<dt><span class="term"><a name="mouse_directory_load_thumbnail_one_tab"></a>サムネイルを1タブ内に再帰読み込み</span></dt>
 <dd>
 <p class="para">
-画像を回転すると、その向きをコメントと同じ場所に保存し、次にその画像を開いた時に同じ向きで表示します。GTK 4 版で追加した項目です (初期値は ON)。
+カーソル下のディレクトリ以下を再帰的に読み込み、全ての画像を1つのタブに表示します。
 </p>
 </dd>
-<dt><span class="term"><a name="Keep_aspect_rario"></a>アスペクト比を保持</span></dt>
+<dt><span class="term"><a name="mouse_directory_edit_tags"></a>下のフォルダも含めてタグを編集...</span></dt>
 <dd>
 <p class="para">
-画像を拡大縮小した時、アスペクト比(画像の縦横比率)を保持するようになります。
+カーソル下のディレクトリと、その下のディレクトリにある全ての画像のタグを編集します (<a href="02.html#index_tags">2</a>)。
 </p>
 </dd>
-<dt><span class="term"><a name="Default_Image_Scale"></a>デフォルトの画像拡大率</span></dt>
+<dt><span class="term"><a name="mouse_directory_find_duplicates"></a>下のフォルダも含めて重複画像を探す...</span></dt>
 <dd>
 <p class="para">
-デフォルトの画像拡大率を指定します。「ズーム」が「デフォルトの画像拡大率」か「変更しない」の場合に指定できます。
+カーソル下のディレクトリと、その下のディレクトリにある画像のうち、中身がまったく同じファイルがあるものを探します。同じファイルがほかのフォルダにあっても見つけます (<a href="04.html#find_duplicates_index">索引から重複画像を探す</a>)。
 </p>
 </dd>
-<dt><span class="term"><a name="Keep_original_image_on_memory"></a>元の画像をメモリに保持するか否か</span></dt>
+<dt><span class="term"><a name="mouse_directory_go_to_here"></a>トップをここに変更</span></dt>
 <dd>
 <p class="para">
-表示した画像をメモリ上に保持するようになります。具体的な効果は、Tipsの「<a href="gimv_tips.html#gimv_tips_05" title="">イメージビューの描画を速くする</a>」を参照して下さい。
+カーソル下のディレクトリを、ディレクトリビューのトップにします。
+</p>
+</dd>
+<dt><span class="term"><a name="mouse_directory_refresh_tree"></a>ツリー更新</span></dt>
+<dd>
+<p class="para">
+ディレクトリビューを更新します。コマンドラインからディレクトリ操作(作成・移動・削除)を行った場合に、それらを反映させるために行います。
+</p>
+</dd>
+<dt><span class="term"><a name="mouse_directory_property"></a>プロパティ</span></dt>
+<dd>
+<p class="para">
+ディレクトリのプロパティを表示します。権限や所有者などを変更できます。
+</p>
+</dd>
+<dt><span class="term"><a name="mouse_directory_new"></a>ディレクトリ作成</span></dt>
+<dd>
+<p class="para">
+カーソル下のディレクトリ直下に、新規にディレクトリを生成します。
+</p>
+</dd>
+<dt><span class="term"><a name="mouse_directory_name_edit"></a>ディレクトリ名変更</span></dt>
+<dd>
+<p class="para">
+カーソル下のディレクトリ名を変更します。
+</p>
+</dd>
+<dt><span class="term"><a name="mouse_directory_delete"></a>ディレクトリ削除</span></dt>
+<dd>
+<p class="para">
+カーソル下のディレクトリを削除します。確認ダイアログの後、削除が実行されます。
 </p>
 </dd>
 </dl></div>
 </div>
 <div class="sect3">
 <div class="titlepage"><div><h4 class="title">
-<a name="06-02-02"></a>6.2.2. マウスボタン</h4></div></div>
-<div class="figure"><img src="images/prefs_imagewin_mouse.png" width="756" height="744" alt="[設定 | イメージウィンドウ | マウスボタン] (既定の設定)">
-<p class="caption">[設定 | イメージウィンドウ | マウスボタン] (既定の設定)</p></div>
-<p class="para">
-マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
-</p>
-</div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-03"></a>6.3. サムネイルウィンドウ</h3></div></div>
-<div class="figure"><img src="images/prefs_thumbwin.png" width="756" height="698" alt="[設定 | サムネイルウィンドウ] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ] (既定の設定)</p></div>
+<a name="06-03-02"></a>6.3.2. 日付のタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_date.png" width="128" height="60" alt="日付のタブのマウスメニュー">
+<p class="caption">日付のタブのマウスメニュー</p></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="Thumbwin_save_win_state"></a>終了時にウィンドウの状態を保存する</span></dt>
-<dd>
-<p class="para">
-終了時のウィンドウサイズ、レイアウト、各部の表示/非表示などを保存し、次回起動時に反映させるようになります。このオプションが OFF の場合、「幅」「高さ」「レイアウト」と「表示/非表示」の各項目で初期状態を設定します。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumbwin_size"></a>幅 / 高さ</span></dt>
-<dd>
-<p class="para">
-サムネイルウィンドウを生成した時の、初期サイズを決めます。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumbwin_layout"></a>レイアウト</span></dt>
-<dd>
-<p class="para">
-サムネイルウィンドウ内の各ビュー(ディレクトリ・サムネイル・プレビュー)の配置を、レイアウト0〜4、カスタムから選びます。メニューの<a href="03.html#layout" title="">表示 | レイアウト</a>と同じものです。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumbwin_show_hide"></a>表示/非表示</span></dt>
-<dd>
-<p class="para">
-サムネイルウィンドウを開いた時に、ディレクトリビュー・プレビュー・プレビュータブ・メニューバー・ツールバー・ステータスバー・タブを表示するかどうかです。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumbwin_player_toolbar"></a>プレーヤツールバー</span></dt>
-<dd>
-<p class="para">
-プレビューの動画・音声用ツールバーの表示方法です。「自動」では動画・音声を表示している時だけ表示します。
-</p>
-</dd>
-<dt><span class="term"><a name="Raise_window_when_opening_thumbnails"></a>サムネイルを開くときにウィンドウを前面に出す</span></dt>
-<dd>
-<p class="para">
-サムネイル展開終了時にウィンドウを前面に出すかどうか、です。
-</p>
-<p class="para">
-これは「ディレクトリの再帰読み込み」を行った時も有効です。この場合、各ディレクトリのサムネイル展開が終了するたびにサムネイルウィンドウが最前面に出てくるようになります。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumbwin_toolbar_style"></a>ツールバーのスタイル</span></dt>
-<dd>
-<p class="para">
-ツールバーのボタンを、アイコン・テキスト・その両方のどれで表示するかを選びます。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumbwin_progress_detail"></a>ローディングの詳細情報を表示</span></dt>
-<dd>
-<p class="para">
-サムネイルの読み込み中に、プログレスバーに「読み込んだ数/全体の数」と、読み込んでいるファイル名を表示します。
-</p>
-</dd>
-</dl></div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="06-03-01"></a>6.3.1. タブ</h4></div></div>
-<div class="figure"><img src="images/prefs_tab.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | タブ] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | タブ] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Tab_Position"></a>タブの位置</span></dt>
-<dd>
-<p class="para">
-ウィンドウのタブ位置を指定します。
-</p>
-<p class="para">
-ただし、[設定 | サムネイルウィンドウ] の終了時にウィンドウの状態を保存するが OFF 状態でないと、本項目は有効になりません。
-</p>
-</dd>
-<dt><span class="term"><a name="Move_to_new_tab_automatically"></a>自動的に新規タブに移動する</span></dt>
-<dd>
-<p class="para">
-新しくタブが生成された時、そこに移動するようになります。
-</p>
-</dd>
-<dt><span class="term"><a name="Show_close_button"></a>クローズボタンを表示</span></dt>
-<dd>
-<p class="para">
-表示しているタブの右端にクローズボタンが表示されるようになります。他のタブは、中ボタンでタブをクリックしても閉じられます (この設定に関わらず)。
-</p>
-</dd>
-<dt><span class="term"><a name="Show_full_path"></a>フルパスを表示する</span></dt>
-<dd>
-<p class="para">
-タブにディレクトリ (アーカイブ) のパスを全て表示します。デフォルトでは OFF で、ディレクトリ名 (アーカイブのファイル名) だけを表示します。どちらの場合も、マウスを合わせるとパス全体が表示されます。<br>タブがたくさんあって狭い時は、表示しているタブには名前が読める幅を取り、他のタブは数文字に縮めます。入りきらない時はタブの両端の矢印でスクロールできます。
-</p>
-</dd>
-<dt><span class="term"><a name="pen_new_tab_whether_image_is_exist_or_not_in_the_directory"></a>画像が存在しないディレクトリを指定した場合もタブを開く</span></dt>
-<dd>
-<p class="para">
-画像が存在しないディレクトリを指定した場合もタブを開くようになります。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="06-03-02"></a>6.3.2. サムネイルビュー</h4></div></div>
-<div class="figure"><img src="images/prefs_thumbview.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Thumbview_show_hide"></a>表示/非表示</span></dt>
-<dd>
-<p class="para">
-サムネイルビュー内に、ディレクトリ、アーカイブを表示するかどうかです。
-</p>
-</dd>
-<dt><span class="term"><a name="Default_display_mode"></a>デフォルト表示モード</span></dt>
-<dd>
-<p class="para">
-サムネイルウィンドウのデフォルト表示モードを指定します。[設定 | サムネイルウィンドウ] の<a href="#Thumbwin_save_win_state">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumnail_Size"></a>サムネイルサイズ</span></dt>
-<dd>
-<p class="para">
-デフォルトのサムネイルサイズを指定します。[設定 | サムネイルウィンドウ] の<a href="#Thumbwin_save_win_state">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。
-</p>
-</dd>
-</dl></div>
-<div class="sect4">
-<div class="titlepage"><div><h5 class="title">
-<a name="06-03-02-1"></a>6.3.2.1. マウスボタン</h5></div></div>
-<div class="figure"><img src="images/prefs_thumbview_mouse.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー | マウスボタン] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー | マウスボタン] (既定の設定)</p></div>
-<p class="para">
-マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
-</p>
-</div>
-<div class="sect4">
-<div class="titlepage"><div><h5 class="title">
-<a name="06-03-02-2"></a>6.3.2.2. アルバム</h5></div></div>
-<div class="figure"><img src="images/prefs_album.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー | アルバム] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー | アルバム] (既定の設定)</p></div>
-<p class="para">
-表示モードが「アルバム」「アルバム2」「アルバム3」の場合の設定です。各表示モードの画面は、<a href="04.html#display_mode" title="">項4.1 のサムネイルビューの表示モード</a>を参照して下さい。
-</p>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Row_Spacing"></a>行間の空白</span></dt>
-<dd>
-<p class="para">
-サムネイルの行間の空白幅を指定します。
-</p>
-</dd>
-<dt><span class="term"><a name="Column_Spacing"></a>列間の空白</span></dt>
-<dd>
-<p class="para">
-サムネイルの列間の空白幅を指定します。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect4">
-<div class="titlepage"><div><h5 class="title">
-<a name="06-03-02-3"></a>6.3.2.3. 詳細ビュー</h5></div></div>
-<div class="figure"><img src="images/prefs_detail.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | サムネイルビュー | 詳細ビュー] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | サムネイルビュー | 詳細ビュー] (既定の設定)</p></div>
-<p class="para">
-表示モードが「詳細」「詳細 + アイコン」「詳細 + サムネイル」の場合に表示するコラムを指定します。右側の「表示するコラム」にある項目が表示項目です。「追加」「削除」で項目を移し、「上へ」「下へ」で順番を変えます。また、「コラムタイトルを表示する」でコラムタイトルの表示/非表示も設定できます。
-</p>
-<p class="para">
-GTK 4 版では、コメントの「題名」と「コメント」(メモ欄の 1 行目) の項目を追加しました。表示するには、これらを右側のペインに移して下さい。コメントを保存・削除すると、表示中の一覧にすぐ反映されます。なお、アルバム表示では、コメントのある画像にマウスを合わせると、題名とメモ欄の内容がツールチップで表示されます。
-</p>
-<p class="para">
-「撮影日」の項目は、画像の索引の撮影日 (コメントの「日付」、EXIF、ファイル名の日付、更新日時の順) を表示します。索引の外の画像は更新日時です。コラムタイトルをクリックすると撮影日の順に並べ、もう一度クリックすると逆順 (新しい順) になります ([表示 | ファイルソート | 撮影日] と同じです)。
-</p>
-<p class="para">
-並べ替えに使っているコラムのタイトルには矢印 (昇順は上向き、逆順は下向き) が付きます。メニューで並べ替えた場合も同じです。「画像サイズ」のタイトルをクリックすると面積の順に並べます。並べ替えのないコラム (キャッシュタイプ、ユーザー、題名など) のタイトルはクリックできません。
-</p>
-</div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="06-03-03"></a>6.3.3. ディレクトリビュー</h4></div></div>
-<div class="figure"><img src="images/prefs_dirview.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | ディレクトリビュー] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | ディレクトリビュー] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Dirview_show_toolbar"></a>ツールバーを表示</span></dt>
-<dd>
-<p class="para">
-ディレクトリビューのツールバーを表示します。
-</p>
-</dd>
-<dt><span class="term"><a name="Show_dot_file"></a>ドットファイルを表示</span></dt>
-<dd>
-<p class="para">
-ディレクトリビューにドットファイル (. で始まるディレクトリ) と「.」、「..」を表示します。
-</p>
-</dd>
-<dt><span class="term"><a name="show_dotfiles_1"></a>ドットファイルを隠している場合も "." ディレクトリを表示する</span></dt>
-<dd>
-<p class="para">
-「ドットファイルを表示」するオプションが OFF の時でも、ディレクトリビューに "." ディレクトリを表示します。
-</p>
-</dd>
-<dt><span class="term"><a name="show_dotfiles_2"></a>ドットファイルを隠している場合も ".." ディレクトリを表示する</span></dt>
-<dd>
-<p class="para">
-「ドットファイルを表示」するオプションが OFF の時でも、ディレクトリビューに ".." ディレクトリを表示します。
-</p>
-</dd>
-</dl></div>
-<div class="sect4">
-<div class="titlepage"><div><h5 class="title">
-<a name="06-03-03-1"></a>6.3.3.1. マウスボタン</h5></div></div>
-<div class="figure"><img src="images/prefs_dirview_mouse.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | ディレクトリビュー | マウスボタン] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | ディレクトリビュー | マウスボタン] (既定の設定)</p></div>
-<p class="para">
-マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
-</p>
-</div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="06-03-04"></a>6.3.4. プレビュー</h4></div></div>
-<div class="figure"><img src="images/prefs_preview.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | プレビュー] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | プレビュー] (既定の設定)</p></div>
-<p class="para">
-プレビューで画像を表示する時の設定です。「ズーム」「回転」「アスペクト比を保持」「デフォルトの画像拡大率」「元の画像をメモリに保持するか否か」は、イメージウィンドウの同じ項目 (<a href="#06-02-01" title="6.2.1. 画像">項6.2.1</a>) と同じ意味です。
-</p>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Show_scrollbar"></a>スクロールバーを表示</span></dt>
-<dd>
-<p class="para">
-スクロールバーを表示します。[設定 | サムネイルウィンドウ] の<a href="#Thumbwin_save_win_state">終了時にウィンドウの状態を保存する</a>が OFF の場合に指定できます。画像がはみ出す向きにだけ表示されます。
-</p>
-</dd>
-</dl></div>
-<div class="sect4">
-<div class="titlepage"><div><h5 class="title">
-<a name="06-03-04-1"></a>6.3.4.1. マウスボタン</h5></div></div>
-<div class="figure"><img src="images/prefs_preview_mouse.png" width="756" height="744" alt="[設定 | サムネイルウィンドウ | プレビュー | マウスボタン] (既定の設定)">
-<p class="caption">[設定 | サムネイルウィンドウ | プレビュー | マウスボタン] (既定の設定)</p></div>
-<p class="para">
-マウスボタンの割り当てを設定します。ボタン (左・中・右、ホイールの上下、左のダブルクリック、サイドボタンの「戻る」(ボタン 8) と「進む」(ボタン 9)) ごとに、修飾キー (普通・Shift・Control・Mod1 (Alt)) の組み合わせについて、機能と、ボタンを押した時 (プレス) と離した時 (リリース) のどちらで実行するかを指定して下さい。ボタン 8・9 の初期値は「なし」です。
-</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-04"></a>6.4. 動画と音声</h3></div></div>
-<div class="figure"><img src="images/prefs_movie.png" width="756" height="744" alt="[設定 | 動画と音声] (既定の設定)">
-<p class="caption">[設定 | 動画と音声] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Movie_default_view_mode"></a>動画と音声用のデフォルト表示モード</span></dt>
-<dd>
-<p class="para">
-動画・音声ファイルを再生するプラグイン (GStreamer・MPlayer・Xine のうち、組み込まれているもの) を選びます。
-</p>
-</dd>
-<dt><span class="term"><a name="Movie_continuance"></a>動画・音声の再生が終わったら次のファイルを再生する (連続再生)</span></dt>
-<dd>
-<p class="para">
-再生が終わると、次のファイルに移って再生します。GTK 4 版で追加した項目です (初期値は OFF)。
-</p>
-</dd>
-<dt><span class="term"><a name="Movie_lock_mouse"></a>動画・音声の再生中は、マウスでの次/前の画像・拡大縮小・回転・スクロールを無効にする</span></dt>
-<dd>
-<p class="para">
-再生中の誤操作を防ぎます。マウスボタンに割り当てたポップアップメニューは使えます。GTK 4 版で追加した項目です (初期値は OFF)。
-</p>
-</dd>
-</dl></div>
-<p class="para">
-その下の「GStreamer」「MPlayer」「Xine」の各ページでは、それぞれのプラグインで動画のサムネイルを作成するかどうかと、サムネイルにする位置 (ストリームの位置) を指定します。MPlayer・Xine のページでは、使用するドライバも指定します。ページは、組み込まれているプラグインの分だけ表示されます。
-</p>
-<div class="figure"><img src="images/prefs_gst.png" width="756" height="744" alt="[設定 | 動画と音声 | GStreamer] (既定の設定)">
-<p class="caption">[設定 | 動画と音声 | GStreamer] (既定の設定)</p></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-05"></a>6.5. スライドショー</h3></div></div>
-<div class="figure"><img src="images/prefs_slideshow.png" width="756" height="744" alt="[設定 | スライドショー] (既定の設定)">
-<p class="caption">[設定 | スライドショー] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Image_change_interval"></a>画像を切り替える間隔</span></dt>
-<dd>
-<p class="para">
-スライドショーを実行した時、画像を送っていく時間を指定します。
-</p>
-</dd>
-<dt><span class="term"><a name="Repeat_slide_show"></a>繰り返す</span></dt>
-<dd>
-<p class="para">
-通常、スライドショーはサムネイルビュー内の画像を一巡したら終了しますが、それを繰り返すようになります。
-</p>
-</dd>
-<dt><span class="term"><a name="Slideshow_image"></a>画像 (ズーム / 回転 / アスペクト比を保持 / デフォルトの画像拡大率)</span></dt>
-<dd>
-<p class="para">
-スライドショーで画像を表示する時の設定です。各項目の意味は、イメージウィンドウの同じ項目 (<a href="#06-02-01" title="6.2.1. 画像">項6.2.1</a>) と同じです。
-</p>
-</dd>
-<dt><span class="term"><a name="slide_show_Back_Ground"></a>背景</span></dt>
-<dd>
-<p class="para">
-「指定色を使う」にチェックを入れると、スライドショー時の背景を「色選択」で選んだ色で塗ります。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-06"></a>6.6. サムネイルキャッシュ</h3></div></div>
-<div class="figure"><img src="images/prefs_cache.png" width="756" height="744" alt="[設定 | サムネイルキャッシュ] (既定の設定)">
-<p class="caption">[設定 | サムネイルキャッシュ] (既定の設定)</p></div>
-<p class="para">
-キャッシュについて、読込、書込のファイル形式を指定します。
-</p>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Cache_reading"></a>キャッシュ読込</span></dt>
-<dd>
-<p class="para">
-右側の「使用するキャッシュタイプ」にある形式のキャッシュを、上から順に探して読み込みます。「追加」「削除」で項目を移し、「上へ」「下へ」で順番を変えます。
-</p>
-</dd>
-<dt><span class="term"><a name="Cache_writing"></a>キャッシュ書込</span></dt>
-<dd>
-<p class="para">
-サムネイルを作成した時に保存するキャッシュの形式を選びます。「設定」で、選んだ形式の設定を変更できます。
-</p>
-</dd>
-<dt><span class="term"><a name="Cache_freedesktop"></a>freedesktop.org</span></dt>
-<dd>
-<p class="para">
-GTK 4 版で追加したキャッシュ形式です。freedesktop.org の Thumbnail Managing Standard に従い、~/.cache/thumbnails に他のプログラム (Nautilus、Thunar など) と共有するサムネイルを読み書きします。画像が更新されると、古いサムネイルは使いません。サムネイルは EXIF の向きどおりに回して保存します。
-</p>
-</dd>
-<dt><span class="term"><a name="Thumbnail_use_exif"></a>サムネイルの作成</span></dt>
-<dd>
-<p class="para">
-「JPEG に埋め込まれた縮小画像 (EXIF) が十分な大きさならそれを使う」を ON にすると、JPEG のサムネイルをファイルの先頭だけ読んで速く作ります。OFF にすると、常に画像そのものから作ります (縮小画像を更新しないソフトで編集した画像でも、正しいサムネイルになります)。GTK 4 版で追加した項目です (初期値は ON)。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-07"></a>6.7. コメント</h3></div></div>
-<div class="figure"><img src="images/prefs_comment.png" width="756" height="744" alt="[設定 | コメント] (既定の設定)">
-<p class="caption">[設定 | コメント] (既定の設定)</p></div>
-<p class="para">
-コメント (<a href="02.html#02-09">2.9</a>) の項目 (キー) とコメントファイルのキャラクターセットを指定します。
-</p>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Comment_keys"></a>キー定義</span></dt>
-<dd>
-<p class="para">
-コメントの項目 (キー) の一覧です。「状態」が無効のキーは使いません。「自動」が有効のキーは、値を画像ファイルから自動的に設定します。「表示」が有効のキーは、コメントの編集画面に表示します。一覧の下の欄で、キーの新規作成・追加・変更・削除ができます。
-</p>
-</dd>
-<dt><span class="term"><a name="Comment_charset"></a>キャラクターセット</span></dt>
-<dd>
-<p class="para">
-コメントファイルのキャラクターセットを指定します。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-08"></a>6.8. 検索</h3></div></div>
-<div class="figure"><img src="images/prefs_search.png" width="756" height="744" alt="[設定 | 検索] (既定の設定)">
-<p class="caption">[設定 | 検索] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Search_accuracy"></a>精度</span></dt>
-<dd>
-<p class="para">
-[ツール | 重複画像を探す] で「似ている」とする一致度です。初期値は0.97、97%以上一致していれば似ているとします。詳細は、「<a href="gimv_tips.html#gimv_tips_10" title="">重複画像の探し方</a>」を見て下さい。
-</p>
-</dd>
-<dt><span class="term"><a name="Search_result_behavior"></a>検索結果ウィンドウのサムネイル選択時の挙動</span></dt>
-<dd>
-<p class="para">
-重複画像の結果のウィンドウで画像をクリックした時に、サムネイルビューの同じサムネイルを選択する・画像をプレビューに表示する・新規ウィンドウに表示する・共有ウィンドウに表示する、のそれぞれを行うかどうかを指定します。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-09"></a>6.9. ドラッグ&amp;ドロップ</h3></div></div>
-<div class="figure"><img src="images/prefs_dnd.png" width="756" height="744" alt="[設定 | ドラッグ &amp; ドロップ] (既定の設定)">
-<p class="caption">[設定 | ドラッグ &amp; ドロップ] (既定の設定)</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Enable_DnD_to_external_proccess_Experimental"></a>外部プロセスへの DnD を有効 (実験段階)</span></dt>
-<dd>
-<p class="para">
-外部プロセスへのDnDを有効にします。
-</p>
-</dd>
-<dt><span class="term"><a name="Enable_DnD_from_extenal_proccess_Experimental"></a>外部プロセスからの DnD を有効 (実験段階)</span></dt>
-<dd>
-<p class="para">
-外部プロセスからのDnDを有効にします。
-</p>
-</dd>
-<dt><span class="term"><a name="Always_refresh_list_when_DnD_end"></a>DnD 終了時に常にリストを更新する</span></dt>
-<dd>
-<p class="para">
-DnD終了時に、常にリストを更新するようになります。
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-10"></a>6.10. 外部プログラム</h3></div></div>
-<div class="figure"><img src="images/prefs_progs.png" width="756" height="744" alt="[設定 | 外部プログラム] (既定の設定)">
-<p class="caption">[設定 | 外部プログラム] (既定の設定)</p></div>
-<p class="para">
-GImageView から利用する、各種外部プログラムを指定します。
-</p>
-<p class="para">
-「画像ビューア/エディタ」は、マウスメニューの「外部プログラムで開く」に表示されるプログラムの一覧です。プログラム名とコマンドを入力して追加・変更・削除し、「上へ」「下へ」で順番を変えます。「ダイアログ」にチェックを入れると、実行前にダイアログを表示します。
-</p>
-<p class="para">
-「Web ブラウザ」はヘルプの HTML 文書やマニュアルを開くのに使います。%s が文書のパスに置き換わります。GTK 4 版の初期値は xdg-open %s (デスクトップの既定のブラウザ) です。以前の初期値 mozilla %s が保存されている場合は、自動的に xdg-open %s に置き換えます。
-</p>
-<p class="para">
-「テキストビューア」で「内部ビューアを使う」を on にすると、テキスト文書を GImageView 内蔵のビューアで表示します。内蔵ビューアは UTF-8、EUC-JP、Shift_JIS、ISO-2022-JP の文書を自動判別して表示します。
-</p>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="06-10-1"></a>6.10.1. スクリプト</h4></div></div>
-<div class="figure"><img src="images/prefs_scripts.png" width="756" height="744" alt="[設定 | 外部プログラム | スクリプト] (既定の設定)">
-<p class="caption">[設定 | 外部プログラム | スクリプト] (既定の設定)</p></div>
-<p class="para">
-GImageView から使用する、スクリプトのディレクトリパスを指定します。「デフォルトのスクリプト検索ディレクトリを使用」を OFF にすると、ディレクトリを指定できます。また、「スクリプト実行前にダイアログを表示」で、実行前にダイアログを表示するかどうかも指定できます。
-</p>
-</div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-11"></a>6.11. プラグイン</h3></div></div>
-<div class="figure"><img src="images/prefs_plugin.png" width="756" height="744" alt="[設定 | プラグイン] (既定の設定)">
-<p class="caption">[設定 | プラグイン] (既定の設定)</p></div>
-<p class="para">
-GImageView が検索する、プラグインのディレクトリパスを指定します。「デフォルトのプラグイン検索ディレクトリを使用」を OFF にすると、ディレクトリを指定できます。
-</p>
-<p class="para">
-その下の「画像読み込み」「画像保存」「入出力ストリーム」「アーカイバ」「サムネイル」「イメージビュー」「サムネイルビュー」の各ページには、読み込まれているプラグインの一覧が表示されます。
-</p>
-<div class="figure"><img src="images/prefs_plugin_loader.png" width="756" height="744" alt="[設定 | プラグイン | 画像読み込み]">
-<p class="caption">[設定 | プラグイン | 画像読み込み] (モジュール名の場所はインストール先によって異なります)</p></div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="06-12"></a>6.12. 索引</h3></div></div>
-<p class="para">
-画像の索引 (<a href="02.html#02-02">2.2</a>) と顔の認識 (<a href="02.html#02-03">2.3</a>) の設定です。SQLite を使ってビルドした場合だけのページです。変更は「適用」または「了解」の後、索引プロセスを起動し直して反映します。
-</p>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="Index_dirs"></a>索引</span></dt>
+<dt><span class="term"><a name="mouse_index_open"></a>開く</span></dt>
 <dd><p class="para">
-「画像の索引を作り、日付で見られるようにする」と「索引を作るディレクトリ」です。指定したディレクトリの下の画像が索引の対象になります。「同じファイルを探しておく」がオンのときは、ほかの処理のあとで、ほかの画像と同じ大きさの画像を読み、同じファイルを探しておきます (<a href="03.html#find_duplicates_index">索引から重複画像を探す</a>)。初回は何時間もかかることがあり、途中で終了しても次の起動で続きから進みます。
-</p>
-<div class="figure"><img src="images/prefs_index.png" width="756" height="744" alt="[設定 | 索引]">
-<p class="caption">[設定 | 索引]</p></div>
-</dd>
-<dt><span class="term"><a name="Index_newimg"></a>索引 | 新しい画像</span></dt>
+その行 (年・月・日) の画像を、サムネイルビューの結果のタブに表示します。行の文字をクリックした時と同じです (<a href="02.html#index_open">2.6</a>)。
+</p></dd>
+<dt><span class="term"><a name="mouse_index_open_new_tab"></a>新しいタブで開く</span></dt>
 <dd><p class="para">
-新しい画像をデスクトップに通知するかどうか、まとめて通知するまでの待ち時間、通知の最小間隔、通知の表示時間、通知しないフォルダです。通知の出る場所は、デスクトップの通知の設定によります。
-</p>
-<div class="figure"><img src="images/prefs_index_newimg.png" width="756" height="744" alt="[設定 | 索引 | 新しい画像]">
-<p class="caption">[設定 | 索引 | 新しい画像]</p></div>
-</dd>
-<dt><span class="term"><a name="Index_auto"></a>索引 | 自動タグ</span></dt>
+結果のタブを使わずに、新しいタブに表示します。中ボタンのクリックでも同じです。
+</p></dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-03-03"></a>6.3.3. タグのタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_tag.png" width="206" height="120" alt="タグのタブのマウスメニュー">
+<p class="caption">タグのタブのマウスメニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">開く・新しいタブで開く</span></dt>
 <dd><p class="para">
-自動で付けるタグの種類 (フォルダ名、カメラ、形、他のプログラムが付けたキーワード) と、タグにしないフォルダ名 (「*」は任意の文字列、「?」は任意の 1 文字。大文字と小文字は区別しません) です。カメラ・形・キーワードをオンにすると全ての画像を読み直すので、画像が多いと時間がかかります。
-</p>
-<div class="figure"><img src="images/prefs_index_auto.png" width="756" height="744" alt="[設定 | 索引 | 自動タグ]">
-<p class="caption">[設定 | 索引 | 自動タグ]</p></div>
-</dd>
-<dt><span class="term"><a name="Index_faces"></a>索引 | 顔</span></dt>
+日付のタブと同じです (<a href="#06-03-02">6.3.2</a>)。
+</p></dd>
+<dt><span class="term"><a name="mouse_index_rename"></a>名前を変更... (F2)</span></dt>
 <dd><p class="para">
-顔を認識するフォルダ (索引を作るディレクトリの中) と、モデルファイルの場所です。モデルファイルが見つからない場合は、置き場所と入手先 (URL) を表示します。顔の認識が使える場合だけの項目です。
+手動で付けたタグの名前を変えます (<a href="02.html#index_rename">2.6</a>)。索引が自動で付けたタグ (フォルダ・カメラ・形など) では使えません。
+</p></dd>
+<dt><span class="term"><a name="mouse_index_no_folder_tag"></a>このフォルダ名をタグにしない</span></dt>
+<dd><p class="para">
+フォルダ名の自動タグの行で使えます。そのフォルダ名を [設定 | 索引 | 自動タグ] の「タグにしないフォルダ名」に加え、タグから外します (<a href="02.html#index_auto_tags">2.6</a>)。設定ウィンドウを開いている間は使えません。
+</p></dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-03-04"></a>6.3.4. 人物のタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_index_person.png" width="131" height="120" alt="人物のタブのマウスメニュー">
+<p class="caption">人物のタブのマウスメニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">開く・新しいタブで開く</span></dt>
+<dd><p class="para">
+日付のタブと同じです (<a href="#06-03-02">6.3.2</a>)。
+</p></dd>
+<dt><span class="term"><a name="mouse_index_faces"></a>顔を表示...</span></dt>
+<dd><p class="para">
+その人 (名前のないグループや名前の候補も) の顔を、顔の一覧ウィンドウで開きます。名前を付けたり、違う顔を外したりできます (<a href="02.html#faces_window">2.7</a>)。
+</p></dd>
+<dt><span class="term"><a name="mouse_index_rename_person"></a>名前を変更... (F2)</span></dt>
+<dd><p class="para">
+人物のタグの名前を変えます (<a href="02.html#person_tags">2.7</a>)。人の名前は顔の一覧ウィンドウで変えます。
+</p></dd>
+</dl></div>
+</div>
+<div class="sect3">
+<div class="titlepage"><div><h4 class="title">
+<a name="06-03-05"></a>6.3.5. ブックマークのタブ</h4></div></div>
+<div class="figure"><img class="popup" src="images/popup_bookmark.png" width="128" height="60" alt="ブックマークのタブのマウスメニュー">
+<p class="caption">ブックマークのタブのマウスメニュー</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term">開く・新しいタブで開く</span></dt>
+<dd><p class="para">
+その行 (全て・月・メモあり・メモなし) のブックマークの画像を表示します。使い方は日付のタブと同じです (<a href="#06-03-02">6.3.2</a>)。
+</p></dd>
+</dl></div>
+</div>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-04"></a>6.4. プレビュー</h3></div></div>
+<p class="para">
+プレビュー上のマウスメニューには、ズーム・回転・アルファチャンネルを無視・透過部分を市松模様で表示・動画・表示モード・スクロールバーを表示 [Shift + S]・サムネイル作成 [Shift + T]・メモリバッファ [Ctrl + B]・画像を保存・印刷 があります。各項目は、イメージウィンドウのメニューの同じ項目 (<a href="04.html#04-01" title="4.1. ファイル">項4.1</a>〜<a href="04.html#04-03" title="4.3. 表示">項4.3</a>、<a href="04.html#04-08" title="4.8. 動画">項4.8</a>) と同じです。
+</p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><h3 class="title">
+<a name="06-05"></a>6.5. イメージビュー</h3></div></div>
+<div class="figure"><img class="popup" src="images/popup_imageview.png" width="269" height="549" alt="イメージウィンドウのイメージビューのマウスメニュー">
+<p class="caption">イメージウィンドウのイメージビューのマウスメニュー</p></div>
+<p class="para">
+イメージウィンドウのイメージビュー上のマウスメニューは、イメージウィンドウの [表示] メニュー (<a href="04.html#04-03" title="4.3. 表示">項4.3</a>) と同じです。
 </p>
 <p class="para">
-モデルファイルは次の 2 つです。~/.local/share/gimageview/models に置きます (名前はこのまま。同じ場所にある量子化版の「_int8」「_int8bq」は使いません)。
+GTK 4 版では、次の項目を加えています (プレビューのマウスメニューにもあります)。
 </p>
 <div class="itemizedlist"><ul>
-<li><p class="para">face_detection_yunet_2023mar.onnx (顔を探す、約 230 KB)</p></li>
-<li><p class="para">face_recognition_sface_2021dec.onnx (顔を比べる、約 39 MB)</p></li>
+<li><p class="para">回転 - 左右反転 (X) : 画像を左右反転します。回転と同じく、画像ごとに記憶します。</p></li>
+<li><p class="para">画像をクリップボードにコピー (Shift+Ctrl+C) : 表示している画像をクリップボードにコピーします。</p></li>
+<li><p class="para">切り抜き (C) : 表示している画像の一部を切り抜いて別のファイルに保存します (<a href="04.html#crop">4.2</a>)。</p></li>
+<li><p class="para">顔の編集 (P) : 顔パネルを開き、画像に写っている顔に名前を付けます (<a href="02.html#face_panel">2.7</a>)。顔の認識が使える場合だけの項目です。</p></li>
+<li><p class="para">元のフォルダを開く : 画像のあるフォルダをサムネイルウィンドウで開きます。</p></li>
+<li><p class="para">タグを編集 : 表示している画像のタグを編集します (<a href="02.html#index_tags">2.6</a>)。画像の索引が使える場合だけの項目です。</p></li>
+<li><p class="para">ブックマーク : 表示している画像をブックマークします (<a href="02.html#02-05">2.5</a>)。</p></li>
 </ul></div>
-<p class="para">
-入手先は OpenCV Zoo です。
-</p>
-<div class="itemizedlist"><ul>
-<li><p class="para">GitHub (設定のページに出る URL):<br>
-https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx<br>
-https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx</p></li>
-<li><p class="para">Hugging Face (GitHub から取れない時。OpenCV Zoo は Hugging Face に移ったと GitHub の README にあります):<br>
-https://huggingface.co/opencv/face_detection_yunet/resolve/main/face_detection_yunet_2023mar.onnx<br>
-https://huggingface.co/opencv/face_recognition_sface/resolve/main/face_recognition_sface_2021dec.onnx</p></li>
-</ul></div>
-<p class="para">
-GImageView はモデルファイルの中身を確かめ (SHA-256)、ダウンロードが壊れていたり、同じ名前で中身の違うファイル (別の版) だったりすると使いません。その時はこのページとステータスバーのツールチップに、入手し直すファイルと URL を表示します。顔の特徴をどのモデルで計算したかは索引に記録しています。新しい版の GImageView でモデルが変わった時は、見つけてある顔の場所で特徴を計算し直します (顔・名前・「この人ではない」はそのままで、ステータスバーに進み具合が出ます。読めなくなった画像の顔は、読めるようになった時に探し直します)。
-</p>
-<div class="figure"><img src="images/prefs_index_faces.png" width="756" height="744" alt="[設定 | 索引 | 顔]">
-<p class="caption">[設定 | 索引 | 顔]</p></div>
-</dd>
-<dt><span class="term"><a name="Index_missing"></a>索引 | 行方不明の画像</span></dt>
-<dd><p class="para">
-コメント (タグ) の付いた画像が見つからなくなったときのログを、いくつ残すかです (0 は作りません)。
-</p>
-<div class="figure"><img src="images/prefs_index_missing.png" width="756" height="744" alt="[設定 | 索引 | 行方不明の画像]">
-<p class="caption">[設定 | 索引 | 行方不明の画像]</p></div>
-</dd>
-</dl></div>
 </div>
 </div>
 <div class="navfooter">
@@ -869,9 +385,9 @@ GImageView はモデルファイルの中身を確かめ (SHA-256)、ダウン�
 </td>
 </tr>
 <tr>
-<td width="40%" align="left">5. マウスメニュー&#160;</td>
+<td width="40%" align="left">5. ツールバー&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">上に戻る</a></td>
-<td width="40%" align="right">&#160;7. デフォルト キーバインド</td>
+<td width="40%" align="right">&#160;7. 設定</td>
 </tr>
 </table>
 </div>

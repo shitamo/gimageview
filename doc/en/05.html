@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
 <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-<title>5. Mouse Menus</title>
+<title>5. Toolbar</title>
 <link rel="stylesheet" href="./gimageview.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.45">
 <link rel="home" href="index.html" title="GImageView User's Manual">
 <link rel="up" href="index.html" title="GImageView User's Manual">
-<link rel="previous" href="04.html" title="4. Toolbar">
-<link rel="next" href="06.html" title="6. Preferences">
+<link rel="previous" href="04.html" title="4. Menu Bar">
+<link rel="next" href="06.html" title="6. Mouse Menus">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">5. Mouse Menus</th></tr>
+<tr><th colspan="3" align="center">5. Toolbar</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="04.html">Prev</a>&#160;</td>
@@ -26,352 +26,270 @@
 </div>
 <div class="sect1">
 <div class="titlepage"><div><h2 class="title" style="clear: both">
-<a name="05"></a>5. Mouse Menus</h2></div></div>
+<a name="05"></a>5. Toolbar</h2></div></div>
 <p class="para">
-This section describes the menus shown with a mouse button (mouse menus).  With the default settings they are shown by pressing the right button.  The assignment can be changed on the "Mouse Buttons" pages of the preferences (<a href="06.html" title="6. Preferences">section 6</a>).  For items that are also in the menu bar, see also <a href="03.html" title="3. Menu Bar">section 3</a>.
+This section describes the buttons of the toolbars.  The numbers in the toolbar pictures match the numbers of the items.  For buttons that have the same function in the menu bar, see also the menu items (<a href="04.html" title="4. Menu Bar">section 4</a>).
+</p>
+<p class="para">
+The item names follow the tooltips shown when the pointer is on a button.
 </p>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="05-01"></a>5.1. Thumbnail View</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_thumbview.png" width="227" height="669" alt="The mouse menu of the thumbnail view (shown on an image file)">
-<p class="caption">The mouse menu of the thumbnail view (shown on an image file)</p></div>
-<p class="para">
-The mouse menu of the thumbnail view.  When several files are selected, it applies to all selected images.
-</p>
+<a name="05-01"></a>5.1. Thumbnail Window</h3></div></div>
+<div class="figure"><img src="images/toolbar_thumbwin.png" width="600" height="72" alt="The toolbar of the thumbnail window">
+<p class="caption">The toolbar of the thumbnail window (default settings; the numbers match the items below)</p></div>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="open_thumbnail"></a>Open</span></dt>
+<dt><span class="term"><a name="toolbar_open"></a><span class="toolnum">1</span> Open File</span></dt>
 <dd>
 <p class="para">
-Exists only when the menu is shown on a directory or an archive.  Opens the thumbnails of that directory or archive.
+The same as <a href="04.html#load_file" title="">[File | Open...]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="open_new_image_window"></a>Open in New Window</span></dt>
+<dt><span class="term"><a name="toolbar_prefs"></a><span class="toolnum">2</span> Preferences</span></dt>
 <dd>
 <p class="para">
-Opens the selected images, each in a new image window.  When several are selected, that many image windows are created.
+The same as <a href="04.html#options" title="">[Edit | Options...]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="open_shared_image_window"></a>Open in Shared Window</span></dt>
+<dt><span class="term"><a name="toolbar_prev_page"></a><span class="toolnum">3</span> Go to previous page</span></dt>
 <dd>
 <p class="para">
-Opens the image in the shared image window.  When there is no shared image window yet, it is created; otherwise it is reused.  This command cannot be used when more than one file is selected.
+Makes the previous tab (one to the left) active.  The same as <a href="04.html#previous_page" title="">[Tab | Previous Page]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="open_external_program"></a>Open in External Program</span></dt>
+<dt><span class="term"><a name="toolbar_next_page"></a><span class="toolnum">4</span> Go to next page</span></dt>
 <dd>
 <p class="para">
-Passes the selected files to a registered external program.  For the list of external programs see <a href="06.html#06-10" title="6.10. External Program">6.10</a>.
+Makes the next tab (one to the right) active.  The same as <a href="04.html#next_page" title="">[Tab | Next Page]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="open_script"></a>Scripts</span></dt>
+<dt><span class="term"><a name="toolbar_reload"></a><span class="toolnum">5</span> Reload Cache</span></dt>
 <dd>
 <p class="para">
-Passes the selected files to a registered script.  For the settings of scripts see <a href="06.html#06-10-1" title="6.10.1. Scripts">6.10.1</a>.
+The same as <a href="04.html#reload_cache" title="">[Edit | Reload Cache]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="update_thumbnail_mouse_menu"></a>Update Thumbnail</span></dt>
+<dt><span class="term"><a name="toolbar_skip"></a><span class="toolnum">6</span> Skip creating the current thumbnail table</span></dt>
 <dd>
 <p class="para">
-Creates the thumbnails of the selected images again.
+While "<a href="06.html#mouse_directory_load_thumbnail_recursively" title="">Load Thumbnails Recursively</a>" of the directory view mouse menu runs, skips loading the thumbnails of the current directory.
+</p>
+<p class="para">
+A skipped tab (directory) shows only the file names.  It cannot be used while no thumbnails are being created.
 </p>
 </dd>
-<dt><span class="term"><a name="remove_from_list"></a>Remove from List</span></dt>
+<dt><span class="term"><a name="stop"></a><span class="toolnum">7</span> Stop creating thumbnails</span></dt>
 <dd>
 <p class="para">
-<span class="emphasis"><i>This command works only in collection tabs.</i></span>
-</p>
-<p class="para">
-Removes the files from the list.  The files themselves are not deleted.
+Stops "Load Thumbnails Recursively" of the directory view mouse menu completely.  It cannot be used while no thumbnails are being created.
 </p>
 </dd>
-<dt><span class="term"><a name="print_mouse_menu"></a>Print...</span></dt>
+<dt><span class="term"><a name="thumbnail_size"></a><span class="toolnum">8</span> Thumbnail Size</span></dt>
 <dd>
 <p class="para">
-Prints the selected images.  The same as <a href="03.html#print" title="">[File | Print...]</a>.
+Changes the thumbnail size.
+</p>
+<p class="para">
+Enter a value here and press Enter, then use "Reload Cache" or "Update All Thumbnails"; the thumbnails are then made in the new size.
+</p>
+<p class="para">
+To apply it with a shortcut key instead of the menu, press ESC to move the focus out of the size field first; otherwise the key is typed into the field.
+</p>
+<p class="para">
+The change applies only to the tab that was active.
+</p>
+<p class="para">
+For how the cache is reloaded, see "<a href="gimv_tips.html#gimv_tips_07" title="">The difference between Refresh List, Reload Cache and Update All Thumbnails</a>" in the Tips.
 </p>
 </dd>
-<dt><span class="term"><a name="file_property"></a>Properties...</span></dt>
+<dt><span class="term"><a name="location_entry"></a><span class="toolnum">9</span> Directory field</span></dt>
 <dd>
 <p class="para">
-Shows the properties of the file.  The permissions and the owner of the file can be changed.  The name and the type can be selected and copied; long ones are shown cut (the whole in the tooltip).  "Copy" next to the name puts the full path on the clipboard.
+Shows the path of the active tab.
+</p>
+<p class="para">
+When a directory that has no tab yet is entered here, a new tab is opened only if the directory contains images.  Tab completion can be used here.
 </p>
 </dd>
-<dt><span class="term"><a name="copy_path"></a>Copy Path</span></dt>
+<dt><span class="term"><a name="display_mode"></a><span class="toolnum">10</span> Display mode of the thumbnail view</span></dt>
 <dd>
 <p class="para">
-Puts the full paths of the images selected on the clipboard (one a line).
-</p>
-</dd>
-<dt><span class="term"><a name="scan_exif"></a>Show EXIF Data...</span></dt>
-<dd>
-<p class="para">
-Exists when built with EXIF support.  Shows the EXIF data of the image.  Built with gexiv2 (Exiv2), the EXIF data of the formats other than JPEG (TIFF, raw files, PNG, WebP, HEIF, ...) too (without it, JPEG only, and the item is not there for the other formats).
-</p>
-</dd>
-<dt><span class="term"><a name="scan_exif_data"></a>Edit Comment...</span></dt>
-<dd>
-<p class="para">
-Edits the comment of the image selected (<a href="02.html#02-09">2.9</a>).
-</p>
-</dd>
-<dt><span class="term"><a name="open_folder_mouse_menu"></a>Open the Folder</span></dt>
-<dd>
-<p class="para">
-Opens the folder of the image in the thumbnail window, with the image selected. Useful in tabs with images of many folders (the results of the index or of a search).
-</p>
-</dd>
-<dt><span class="term"><a name="find_same_mouse_menu"></a>Find the Same Files</span></dt>
-<dd>
-<p class="para">
-Looks for the same files as the images selected among all the indexed images and opens the result window of the duplicates (<a href="03.html#find_duplicates_index">Find Duplicates in the Index</a>).
-</p>
-</dd>
-<dt><span class="term"><a name="edit_tags_mouse_menu"></a>Edit Tags...</span></dt>
-<dd>
-<p class="para">
-Only with the image index. Edits the tags of the images selected (<a href="02.html#index_tags">2.2</a>).
-</p>
-</dd>
-<dt><span class="term"><a name="bookmark_mouse_menu"></a>Bookmark...</span></dt>
-<dd>
-<p class="para">
-Bookmarks the selected images and shows a field for a note (<a href="02.html#02-08">2.8</a>).
-</p>
-</dd>
-<dt><span class="term"><a name="file_operation_mouse_menu"></a>Rename... / Copy Files To... / Move Files To... / Link Files To... / Remove Files...</span></dt>
-<dd>
-<p class="para">
-The same as the items of the <a href="03.html#03-02" title="3.2. Edit">[Edit]</a> menu.
-</p>
-</dd>
-<dt><span class="term"><a name="save_smaller"></a>Save Smaller...</span></dt>
-<dd>
-<p class="para">
-Saves the selected images smaller, as new files.  The original files are not changed.  Useful to make photos take less space.
+Changes the display mode of the active tab.  The setting applies only to the active tab.  These six can be chosen.  The pictures below show the thumbnail view of an enlarged window.
 </p>
 <p class="para">
-You can choose which of the height, the width or the longer side to keep at or below how many pixels (800 px of the height by default), the quality of JPEG and WebP, and what to add to the names ("_resized" by default: big_resized.jpg for big.jpg, in the same folder).  When a file of the same name is already there, -1, -2, ... is added to the name; nothing is overwritten.  The EXIF orientation is applied to the pixels.
+<b>Album</b>: the thumbnails are arranged in rows with the file name below each one.
 </p>
+<div class="figure"><img src="images/mode_album.png" width="598" height="418" alt="Album">
+<p class="caption">Album</p></div>
+
 <p class="para">
-You can also choose whether to keep the shooting information (EXIF etc.), whether to leave out the location (GPS) then, and whether to copy the comments and tags.  Images already smaller than the size are copied as they are.  Images in formats gdk-pixbuf cannot write are saved as JPEG.
+<b>Album2</b>: small thumbnails with the file names, arranged from top to bottom.
 </p>
+<div class="figure"><img src="images/mode_album2.png" width="598" height="418" alt="Album2">
+<p class="caption">Album2</p></div>
+
 <p class="para">
-The size and the file size of the first image after saving are estimated in the dialog.  Saving runs in the background, so you can keep working; [Stop] stops the rest.  When it is done, [Show the Saved Image] chooses the image saved.
+<b>Album3</b>: the file name, size and modification time beside each thumbnail, arranged from top to bottom and continued in the next column.
 </p>
-</dd>
-<dt><span class="term"><a name="join_images"></a>Join Images...</span></dt>
-<dd>
+<div class="figure"><img src="images/mode_album3.png" width="598" height="418" alt="Album3">
+<p class="caption">Album3</p></div>
+
 <p class="para">
-Joins the two or more selected images into one, saved as a new file.  The images are not changed.
+<b>Detail</b>: a table of the file name, image size, size, type and so on.  The columns are chosen in [Preferences | Thumbnail Window | Thumbnail View | Detail View] (<a href="07.html#07-03-02-3" title="7.3.2.3. Detail View">section 7.3.2.3</a>).
 </p>
-<div class="itemizedlist"><ul type="disc">
-<li><p class="para">Images: the order they are joined in; ↑ ↓ move the image chosen.</p></li>
-<li><p class="para">Arrange: one below another, side by side, in a grid (with the number of columns).</p></li>
-<li><p class="para">Size: the width (the height side by side) made the one of the smallest, of the largest, or not changed (then centered, white around).</p></li>
-<li><p class="para">Look for overlaps: for the pieces of one photo that overlap where they meet, the end of an image and the start of the next most alike are found and put over each other (a little different JPEG too).  A plain part (white) is not taken as an overlap.</p></li>
-<li><p class="para">Seam, Overlap: the overlap (px) of each seam can be put right with the slider or the number; "Seam" chooses which (1 and 2, 2 and 3, ...).  Beside it, (found: n px) is the overlap found, or (none found).</p></li>
-<li><p class="para">How the seam is shown: in the whole image above, the seams are red dashed lines (the one chosen darker).  Below, the seam chosen is shown near its own size: one below another, the end of the image before above and the start of the next below.  Two pairs of red triangles at the sides: the first (upper, left) is where the next image begins, the second (lower, right) where the one before ends; between them they overlap (one pair with no overlap).  The next image is shown from the first pair on, so they match when the picture goes on there without a step.</p></li>
-<li><p class="para">As the difference: the band where they overlap (between the triangles) is shown as the difference of the two images: black when they match, the outlines of things bright when they do not.  Changing the number one by one to find where the band is darkest is the easy way to match them.</p></li>
-<li><p class="para">When no overlap is found: where they overlap only in a plain part (a sky, a white background), it may not be found (it looks the same anywhere).  Then put the overlap in by hand, by something seen in both images (an edge, letters).</p></li>
-<li><p class="para">The quality (JPEG, WebP; 90 by default), keeping the information (EXIF, ...) of the first file, copying the comment and the tags given by hand of the first one.</p></li>
-</ul></div>
+<div class="figure"><img src="images/mode_detail.png" width="598" height="418" alt="Detail">
+<p class="caption">Detail</p></div>
+
 <p class="para">
-Saved next to the first image as "name_join.jpg" (in its format; JPEG when gdk-pixbuf cannot write it), never over another file (-1, -2, ... is added).  The EXIF orientation is applied first.  The images are read, the overlaps found and the image saved in threads.  [Show the Saved Image] then chooses it in the thumbnail window.
+<b>Detail + Icon</b>: "Detail" with a small thumbnail at the start of each row.
 </p>
+<div class="figure"><img src="images/mode_detail_icon.png" width="598" height="418" alt="Detail + Icon">
+<p class="caption">Detail + Icon</p></div>
+
+<p class="para">
+<b>Detail + Thumbnail</b>: "Detail" with a thumbnail at the start of each row.
+</p>
+<div class="figure"><img src="images/mode_detail_thumb.png" width="598" height="418" alt="Detail + Thumbnail">
+<p class="caption">Detail + Thumbnail</p></div>
+
 </dd>
 </dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="05-02"></a>5.2. Tab</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_tab.png" width="101" height="69" alt="The mouse menu of the tabs (one tab)">
-<p class="caption">The mouse menu of the tabs (one tab)</p></div>
+<a name="05-02"></a>5.2. Directory View</h3></div></div>
+<div class="figure"><img src="images/toolbar_dirview.png" width="200" height="61" alt="The toolbar of the directory view">
+<p class="caption">The toolbar of the directory view (the numbers match the items below)</p></div>
+<div class="variablelist"><dl>
+<dt><span class="term"><a name="home"></a><span class="toolnum">1</span> Home</span></dt>
+<dd>
 <p class="para">
-Right-clicking the tabs shows the list of the tabs.  It can be used to move to any tab.
+Moves the cursor of the directory view to the home directory of the user and closes all trees.  The thumbnail view is not affected.
+</p>
+</dd>
+<dt><span class="term"><a name="directory_up"></a><span class="toolnum">2</span> Up</span></dt>
+<dd>
+<p class="para">
+Moves the top directory one level up.
 </p>
 <p class="para">
-It is useful when many tabs were created, for example by reading directories recursively.
+This is useful after <a href="06.html#mouse_directory_go_to_here" title="">Go Here</a> of the mouse menu.
 </p>
+</dd>
+<dt><span class="term"><a name="directory_toolbar_reload"></a><span class="toolnum">3</span> Refresh</span></dt>
+<dd>
+<p class="para">
+Refreshes the directory view.
+</p>
+<p class="para">
+Used mainly to show directories created or deleted from the command line.
+</p>
+</dd>
+<dt><span class="term"><a name="directory_toolbar_show_dot_files"></a><span class="toolnum">4</span> Show/Hide dotfiles</span></dt>
+<dd>
+<p class="para">
+Shows or hides the dot directories in the directory view.
+</p>
+</dd>
+</dl></div>
 </div>
 <div class="sect2">
 <div class="titlepage"><div><h3 class="title">
-<a name="05-03"></a>5.3. Directory View</h3></div></div>
+<a name="05-03"></a>5.3. Image Window</h3></div></div>
+<div class="figure"><img src="images/toolbar_imagewin.png" width="716" height="68" alt="The toolbar of the image window">
+<p class="caption">The toolbar of the image window (default settings; the numbers match the items below)</p></div>
 <p class="para">
-Besides the tab of the directories, the directory view has the Date, Tag and People tabs of the image index (<a href="02.html#02-02">2.2</a>, <a href="02.html#02-03">2.3</a>) and the Bookmarks tab (<a href="02.html#02-08">2.8</a>), chosen with the icons at its top.  Each has its own right button menu.
+Zooming (enlarging and reducing) and fitting the image window and image view are affected by <a href="07.html#Auto_resize_to_image_size" title="">Auto resize to image size</a> in [Preferences | Image Window]: depending on it, the image window is resized automatically or not.
 </p>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-01"></a>5.3.1. The directory tab</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_dirview.png" width="287" height="382" alt="Right button menu of the directory tab">
-<p class="caption">Right button menu of the directory tab</p></div>
 <p class="para">
-Only one directory can be selected in the directory view, so the commands always apply to the directory under the mouse cursor.
+When <a href="07.html#Keep_aspect_rario" title="">Keep aspect ratio</a> is set, the aspect ratio of the image view is kept when it is enlarged or reduced.
 </p>
 <div class="variablelist"><dl>
-<dt><span class="term"><a name="mouse_directory_load_thumbnail"></a>Load Thumbnails</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_open"></a><span class="toolnum">1</span> Open File</span></dt>
 <dd>
 <p class="para">
-Reads the directory under the cursor and shows it in the thumbnail view.  The first time, a new tab is created; when it was already read, its tab becomes active.
+The same as <a href="04.html#load_file" title="">[File | Open...]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_load_thumbnail_recursively"></a>Load Thumbnails Recursively</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_prefs"></a><span class="toolnum">2</span> Preferences</span></dt>
 <dd>
 <p class="para">
-Reads the directory under the cursor and everything below it.  A tab is created for each directory.
+The same as <a href="04.html#options" title="">[Edit | Options...]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_load_thumbnail_one_tab"></a>Load Thumbnails Recursively in One Tab</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_prev"></a><span class="toolnum">3</span> Previous Image</span></dt>
 <dd>
 <p class="para">
-Reads the directory under the cursor and everything below it, and shows all images in one tab.
+The same as <a href="04.html#go_previous" title="">[Go | Previous]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_edit_tags"></a>Edit Tags with the Folders in It...</span></dt>
+<dt><span class="term"><a name="imagewin_toolbar_next"></a><span class="toolnum">4</span> Next Image</span></dt>
 <dd>
 <p class="para">
-Edits the tags of all the images in the directory under the cursor and in the directories below it (<a href="02.html#index_tags">2</a>).
+The same as <a href="04.html#go_next" title="">[Go | Next]</a>.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_find_duplicates"></a>Find Duplicates with the Folders in It...</span></dt>
+<dt><span class="term"><a name="no_zoom"></a><span class="toolnum">5</span> No Zoom</span></dt>
 <dd>
 <p class="para">
-Looks for the images in the directory under the cursor and in the directories below it that have the same files, also in other folders (<a href="03.html#find_duplicates_index">Find Duplicates in the Index</a>).
+Shows the image view in the original size of the image (100%).
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_go_to_here"></a>Go Here</span></dt>
+<dt><span class="term"><a name="zoom_in"></a><span class="toolnum">6</span> Zoom in</span></dt>
 <dd>
 <p class="para">
-Makes the directory under the cursor the top of the directory view.
+Increases the scale of the image view by 5%.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_refresh_tree"></a>Refresh Tree</span></dt>
+<dt><span class="term"><a name="zoom_out"></a><span class="toolnum">7</span> Zoom out</span></dt>
 <dd>
 <p class="para">
-Refreshes the directory view.  Used to show directories created, moved or deleted from the command line.
+Decreases the scale of the image view by 5%.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_property"></a>Properties...</span></dt>
+<dt><span class="term"><a name="fit"></a><span class="toolnum">8</span> Zoom to fit</span></dt>
 <dd>
 <p class="para">
-Shows the properties of the directory.  The permissions and the owner can be changed.
+Enlarges or reduces the image view to the size of the image window.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_new"></a>Make Directory...</span></dt>
+<dt><span class="term"><a name="x_scale"></a><span class="toolnum">9</span> X Scale / Y Scale</span></dt>
 <dd>
 <p class="para">
-Creates a new directory in the directory under the cursor.
+Sets the scale (%) of the image view.
+</p>
+<p class="para">
+When the aspect ratio is kept, only the X scale is shown.  Otherwise the Y scale is shown to its right, and the X and Y scales can be set separately.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_name_edit"></a>Rename Directory...</span></dt>
+<dt><span class="term"><a name="zoom"></a><span class="toolnum">10</span> Zoom</span></dt>
 <dd>
 <p class="para">
-Renames the directory under the cursor.
+Zooms (enlarges or reduces) the image view to the values entered in the scale fields.
 </p>
 </dd>
-<dt><span class="term"><a name="mouse_directory_delete"></a>Delete Directory...</span></dt>
+<dt><span class="term"><a name="rotate_image"></a><span class="toolnum">11</span> Rotate the image</span></dt>
 <dd>
 <p class="para">
-Deletes the directory under the cursor after a confirmation dialog.
+Chooses the orientation of the image: 0, 90 degrees clockwise, 180 or 90 degrees counterclockwise.
+</p>
+</dd>
+<dt><span class="term"><a name="fit_window_to_image"></a><span class="toolnum">12</span> Fit Window Size to Image</span></dt>
+<dd>
+<p class="para">
+Resizes the image window to the size of the image view.  The same as <a href="04.html#Fit_to_Image" title="">[View | Fit to Image]</a>.
+</p>
+</dd>
+<dt><span class="term"><a name="full_screen_toolbar"></a><span class="toolnum">13</span> Fullscreen</span></dt>
+<dd>
+<p class="para">
+Shows the image fullscreen.
+</p>
+<p class="para">
+Pressing the button again returns to the window.
 </p>
 </dd>
 </dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-02"></a>5.3.2. The Date tab</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_index_date.png" width="133" height="60" alt="Right button menu of the Date tab">
-<p class="caption">Right button menu of the Date tab</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term"><a name="mouse_index_open"></a>Open</span></dt>
-<dd><p class="para">
-Shows the images of the row (a year, a month, a day) in the result tab of the thumbnail view, as a click on the text of the row (<a href="02.html#index_open">2.2</a>).
-</p></dd>
-<dt><span class="term"><a name="mouse_index_open_new_tab"></a>Open in New Tab</span></dt>
-<dd><p class="para">
-Shows them in a new tab instead of the result tab.  A click with the middle button does the same.
-</p></dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-03"></a>5.3.3. The Tag tab</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_index_tag.png" width="264" height="120" alt="Right button menu of the Tag tab">
-<p class="caption">Right button menu of the Tag tab</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term">Open, Open in New Tab</span></dt>
-<dd><p class="para">
-As in the Date tab (<a href="#05-03-02">5.3.2</a>).
-</p></dd>
-<dt><span class="term"><a name="mouse_index_rename"></a>Rename... (F2)</span></dt>
-<dd><p class="para">
-Renames a tag added by hand (<a href="02.html#index_rename">2.2</a>); not the tags the index makes (folders, cameras, shapes, ...).
-</p></dd>
-<dt><span class="term"><a name="mouse_index_no_folder_tag"></a>Do Not Make This Folder Name a Tag</span></dt>
-<dd><p class="para">
-On the automatic tag of a folder name: adds the folder name to "Folder Names Not Made Tags" of [Preferences | Index | Automatic Tags], and the tag goes (<a href="02.html#index_auto_tags">2.2</a>).  Not while the preferences window is open.
-</p></dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-04"></a>5.3.4. The People tab</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_index_person.png" width="136" height="120" alt="Right button menu of the People tab">
-<p class="caption">Right button menu of the People tab</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term">Open, Open in New Tab</span></dt>
-<dd><p class="para">
-As in the Date tab (<a href="#05-03-02">5.3.2</a>).
-</p></dd>
-<dt><span class="term"><a name="mouse_index_faces"></a>Show the Faces...</span></dt>
-<dd><p class="para">
-Opens the faces of the person (or of the unnamed group, of the name guessed) in the faces window, where they can be named or a wrong face taken out (<a href="02.html#faces_window">2.3</a>).
-</p></dd>
-<dt><span class="term"><a name="mouse_index_rename_person"></a>Rename... (F2)</span></dt>
-<dd><p class="para">
-Renames a tag of people (<a href="02.html#person_tags">2.3</a>); the names of the people are changed in the faces window.
-</p></dd>
-</dl></div>
-</div>
-<div class="sect3">
-<div class="titlepage"><div><h4 class="title">
-<a name="05-03-05"></a>5.3.5. The Bookmarks tab</h4></div></div>
-<div class="figure"><img class="popup" src="images/popup_bookmark.png" width="133" height="60" alt="Right button menu of the Bookmarks tab">
-<p class="caption">Right button menu of the Bookmarks tab</p></div>
-<div class="variablelist"><dl>
-<dt><span class="term">Open, Open in New Tab</span></dt>
-<dd><p class="para">
-Show the bookmarked images of the row (all, a month, with a note, without a note), as in the Date tab (<a href="#05-03-02">5.3.2</a>).
-</p></dd>
-</dl></div>
-</div>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="05-04"></a>5.4. Preview</h3></div></div>
-<p class="para">
-The mouse menu of the preview has Zoom, Rotate, Ignore Alpha Channel, Checkerboard Behind Transparency, Movie, View Modes, Show Scrollbar [Shift + S], Create Thumbnail [Shift + T], Memory Buffer [Ctrl + B], Save Image As... and Print....  Each item is the same as the item in the menus of the image window (<a href="03.html#03-01" title="3.1. File">3.1</a> to <a href="03.html#03-03" title="3.3. View">3.3</a>, <a href="03.html#03-08" title="3.8. Movie">3.8</a>).
-</p>
-</div>
-<div class="sect2">
-<div class="titlepage"><div><h3 class="title">
-<a name="05-05"></a>5.5. Image View</h3></div></div>
-<div class="figure"><img class="popup" src="images/popup_imageview.png" width="284" height="549" alt="The mouse menu of the image view in the image window">
-<p class="caption">The mouse menu of the image view in the image window</p></div>
-<p class="para">
-The mouse menu of the image view in the image window is the same as the [View] menu of the image window (<a href="03.html#03-03" title="3.3. View">3.3</a>).
-</p>
-<p class="para">
-The GTK 4 port adds these items (also in the right button menu of the preview):
-</p>
-<div class="itemizedlist"><ul>
-<li><p class="para">Rotate - Flip Horizontally (X) : turns the image over left and right; remembered for each image, as the rotation.</p></li>
-<li><p class="para">Copy the Image to the Clipboard (Shift+Ctrl+C) : copies the image shown to the clipboard.</p></li>
-<li><p class="para">Crop Image... (C) : crops the image shown and saves the part as a new file (<a href="03.html#crop">3.2</a>).</p></li>
-<li><p class="para">Edit Faces (People) (P) : opens the faces panel, to name the faces in the image (<a href="02.html#face_panel">2.3</a>). Only with face recognition.</p></li>
-<li><p class="para">Open the Folder : opens the folder of the image in the thumbnail window.</p></li>
-<li><p class="para">Edit Tags... : edits the tags of the image shown (<a href="02.html#index_tags">2.2</a>). Only with the image index.</p></li>
-<li><p class="para">Bookmark... : bookmarks the image shown (<a href="02.html#02-08">2.8</a>).</p></li>
-</ul></div>
 </div>
 </div>
 <div class="navfooter">
@@ -385,9 +303,9 @@ The GTK 4 port adds these items (also in the right button menu of the preview):
 </td>
 </tr>
 <tr>
-<td width="40%" align="left">4. Toolbar&#160;</td>
+<td width="40%" align="left">4. Menu Bar&#160;</td>
 <td width="20%" align="center"><a accesskey="u" href="index.html">Up</a></td>
-<td width="40%" align="right">&#160;6. Preferences</td>
+<td width="40%" align="right">&#160;6. Mouse Menus</td>
 </tr>
 </table>
 </div>
