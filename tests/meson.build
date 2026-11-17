@@ -38,6 +38,14 @@ test('fileutil',
     dependencies : [glib_dep]),
   kwargs : test_kwargs)
 
+# src/charset.c (GLib only): file names not in the charset of the system
+test('charset',
+  executable('test-charset', 'test_charset.c',
+    objects : gimv_exe.extract_objects('charset.c', 'japanese.c'),
+    include_directories : test_inc,
+    dependencies : [glib_dep]),
+  kwargs : test_kwargs)
+
 # src/gimv_bookmark.c (GLib only)
 test('bookmark',
   executable('test-bookmark', 'test_bookmark.c',

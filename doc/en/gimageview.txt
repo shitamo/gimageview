@@ -3621,6 +3621,10 @@ How duplicates are found
     brought the same message back again and again while the thumbnails were
     made).
 
+ ・ File names not in the charset of the system (UTF-8), such as Shift_JIS
+    names of the MS-DOS days, are shown as Shift_JIS, and renaming such a file
+    no longer crashes; the new name is in UTF-8.
+
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the
     memory buffer, the thumbnail size, the custom layout rewritten).

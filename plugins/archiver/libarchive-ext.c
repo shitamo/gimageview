@@ -146,6 +146,14 @@ g_module_check_init (GModule *module)
  *   reading
  *
  ******************************************************************************/
+static const char *
+la_error (struct archive *a)
+{
+   const char *e = archive_error_string (a);
+   return e ? e : "not an archive libarchive can read";
+}
+
+
 static struct archive *
 open_archive (const char *filename)
 {
@@ -154,7 +162,7 @@ open_archive (const char *filename)
    archive_read_support_filter_all (a);
    archive_read_support_format_all (a);
    if (archive_read_open_filename (a, filename, 64 * 1024) != ARCHIVE_OK) {
-      g_warning ("libarchive: %s: %s", filename, archive_error_string (a));
+      g_warning ("libarchive: %s: %s", filename, la_error (a));
       archive_read_free (a);
       return NULL;
    }
@@ -274,7 +282,7 @@ fr_command_libarchive_list (FRCommand *comm)
       g_free (name);
    }
    if (ret != ARCHIVE_EOF) {
-      g_warning ("libarchive: %s: %s", comm->filename, archive_error_string (a));
+      g_warning ("libarchive: %s: %s", comm->filename, la_error (a));
       success = comm->file_list != NULL;   /* show what could be read */
    }
 
@@ -383,7 +391,7 @@ extract_entry (struct archive *a, const gchar *path)
       if (!ok) break;
    }
    if (ret != ARCHIVE_EOF && ret != ARCHIVE_OK) {
-      g_warning ("libarchive: %s", archive_error_string (a));
+      g_warning ("libarchive: %s", la_error (a));
       ok = FALSE;
    }
 
@@ -467,7 +475,7 @@ fr_command_libarchive_extract (FRCommand *comm,
       if (wanted && g_hash_table_size (wanted) == 0) break;
    }
    if (ret != ARCHIVE_EOF && ret != ARCHIVE_OK && ret != ARCHIVE_WARN) {
-      g_warning ("libarchive: %s: %s", comm->filename, archive_error_string (a));
+      g_warning ("libarchive: %s: %s", comm->filename, la_error (a));
       success = FALSE;
    }
 

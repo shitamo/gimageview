@@ -3647,6 +3647,7 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
                                                conf.charset_auto_detect_fn,
                                                conf.charset_filename_mode);
 
+      if (!src_file_internal) return;
       tmpstr = rename_dialog (src_file_internal, GTK_WINDOW (tv->tw));
       g_free (src_file_internal);
       src_file_internal = NULL;
@@ -3655,6 +3656,7 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
 
       dest_file = charset_internal_to_locale (tmpstr);
       g_free (tmpstr);
+      if (!dest_file) return;
    }
 
    if (!strcmp (src_file, dest_file)) goto ERROR0;

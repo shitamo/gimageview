@@ -33,6 +33,8 @@ Version-0.2.27+gtk4 (GTK 4 版)
 	  で読むようにした．7z，tar.xz，tar.zst にも対応．古い zip・lha の
 	  Shift_JIS のファイル名も変換して表示する．libarchive が読めない
 	  LHarc 1.x の -lh1- 形式は gimv が展開する
+	* システムの文字コード (UTF-8) にないファイル名 (MS-DOS 時代の
+	  Shift_JIS の名前) を Shift_JIS として表示する
 	* ボタンにデスクトップのアイコンテーマのアイコンを使うようにした (設定 >
 	  一般 > 外観)．アイコンセット (gimvrc の iconset=，~/.gimv/icons/<名前>)
 	  に PNG・SVG も使える

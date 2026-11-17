@@ -252,13 +252,12 @@ charset_get_internal (void)
  *  any code -> internal converter
  *
  ******************************************************************************/
-gchar *
-charset_to_internal (const gchar *src,
-                     const gchar *src_codeset,
-                     CharsetAutoDetectFn func,
-                     CharsetToInternalTypes type)
+static gchar *
+to_internal (const gchar *src,
+             const gchar *src_codeset,
+             CharsetAutoDetectFn func,
+             CharsetToInternalTypes type)
 {
-   g_return_val_if_fail (src, NULL);
 
    switch (type) {
    case CHARSET_TO_INTERNAL_NEVER:
@@ -277,6 +276,30 @@ charset_to_internal (const gchar *src,
    }
 
    return g_strdup (src);
+}
+
+
+/* always text that can be shown (not NULL): what is not in the charset
+   given (such as a file name of the MS-DOS days in a UTF-8 system) is taken
+   as Shift_JIS (CP932) when it can be, else its bad bytes are replaced */
+gchar *
+charset_to_internal (const gchar *src,
+                     const gchar *src_codeset,
+                     CharsetAutoDetectFn func,
+                     CharsetToInternalTypes type)
+{
+   gchar *text;
+
+   g_return_val_if_fail (src, NULL);
+
+   text = to_internal (src, src_codeset, func, type);
+   if (text && g_utf8_validate (text, -1, NULL)) return text;
+   g_free (text);
+
+   if (g_utf8_validate (src, -1, NULL)) return g_strdup (src);
+   text = g_convert (src, -1, "UTF-8", "CP932", NULL, NULL, NULL);
+   if (text) return text;
+   return g_utf8_make_valid (src, -1);
 }
 
 
