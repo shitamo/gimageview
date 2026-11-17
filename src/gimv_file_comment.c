@@ -94,6 +94,30 @@ add (GPtrArray *list, const gchar *name, const gchar *data, gsize len)
 
 
 /******************************************************************************
+ *  MAKI01 (.mki, before MAG): the machine 4 bytes, then 20 bytes of the
+ *  user (often " by NAME r1.00") up to 0x1a; no comment
+ ******************************************************************************/
+static void
+read_maki1 (FILE *f, GPtrArray *list)
+{
+   guchar head[8 + 4 + 20];
+   gsize start = 12, end;
+   gint i;
+
+   if (fread (head, 1, sizeof (head), f) != sizeof (head)) return;
+   if (memcmp (head, "MAKI01A ", 8) && memcmp (head, "MAKI01B ", 8)) return;
+
+   for (end = start; end < sizeof (head) && head[end] != 0x1a && head[end]; end++);
+   while (start < end && head[start] == ' ') start++;
+   add (list, _("User Name"), (gchar *) head + start, end - start);
+
+   for (i = 0; i < 4; i++)
+      if (!g_ascii_isprint (head[8 + i])) return;
+   add (list, _("Machine"), (gchar *) head + 8, 4);
+}
+
+
+/******************************************************************************
  *  MAG (MAKI02): machine 4 bytes, user name 18, 2 more, the comment up to
  *  0x1a (EOF) and the header starting with 0
  ******************************************************************************/
@@ -340,6 +364,8 @@ gimv_file_comment_read (const gchar *filename)
       rewind (f);
       if (!memcmp (magic, "MAKI02  ", 8))
          read_mag (f, list);
+      else if (!memcmp (magic, "MAKI01A ", 8) || !memcmp (magic, "MAKI01B ", 8))
+         read_maki1 (f, list);
       else if (!memcmp (magic, "\x89PNG", 4))
          read_png (f, list);
       else if (magic[0] == 0xff && magic[1] == 0xd8)

@@ -418,8 +418,8 @@ Seeing and editing
 
 The "Data" tab
      ・ The "Data" tab of the preview and of the comment window shows the
-        comments written in the image file itself (JPEG, PNG, GIF, MAG) in
-        italics (shown only).
+        comments written in the image file itself (JPEG, PNG, GIF, MAG, MAKI,
+        AK5/MSL) in italics (shown only).
 
      ・ For a song or a movie, the information in the file (title, artist,
         album, track, genre, length, the formats of the sound and the picture,
@@ -3628,6 +3628,9 @@ How duplicates are found
  ・ LZH archives with Shift_JIS names are read (libarchive could not convert
     the names and failed on the archive). A loader for MAKI01 (.mki, the
     format before MAG; PC-9801, 640 x 400 in 16 colours).
+
+ ・ The user name and the machine in the header of a MAKI01 file are shown as
+    comments of the file in the "Data" tab.
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

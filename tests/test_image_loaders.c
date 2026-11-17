@@ -23,6 +23,7 @@
 
 #include "gimv_test.h"
 #include "gimv_test_core.h"
+#include "gimv_file_comment.h"
 
 #include "gimv_anim.h"
 #include "gimv_image.h"
@@ -759,6 +760,29 @@ test_maki (void)
    check_maki (TRUE);
    /* MAG is another loader's */
    g_assert_null (LOAD_LIT ("mki", "MAKI02  "));
+}
+
+/* the machine and the user of the header as file comments */
+static void
+test_maki_comment (void)
+{
+   GByteArray *a = make_maki (FALSE);
+   gchar *path;
+   GPtrArray *list;
+   /* " by " and a name in Shift_JIS (優＆魅衣), ended by 0x1a */
+   const guchar user[20] = " by \x97\x44\x81\x95\x96\xa3\x88\xdf r1.00\x1a";
+
+   memcpy (a->data + 8, "PCVA", 4);
+   memcpy (a->data + 12, user, 20);
+   path = write_file ("mki", a->data, a->len);
+   list = gimv_file_comment_read (path);
+   g_assert_cmpuint (list->len, ==, 2);
+   g_assert_cmpstr (((GimvFileComment *) list->pdata[0])->text, ==, "by 優＆魅衣 r1.00");
+   g_assert_cmpstr (((GimvFileComment *) list->pdata[1])->text, ==, "PCVA");
+   g_ptr_array_unref (list);
+   g_unlink (path);
+   g_free (path);
+   g_byte_array_unref (a);
 }
 
 static void
@@ -1886,6 +1910,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/pi/broken", test_pi_broken);
    g_test_add_func ("/image-loader/maki", test_maki);
    g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
+   g_test_add_func ("/image-loader/maki/comment", test_maki_comment);
    g_test_add_func ("/image-loader/mag", test_mag);
    g_test_add_func ("/image-loader/mag/odd-width", test_mag_odd_width);
    g_test_add_func ("/image-loader/mag/broken-header", test_mag_broken_header);
