@@ -1379,10 +1379,25 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
 
       /* the comments written in the file, after the data (in italics:
        * shown only, not saved with the data) */
-      if (info && !gimv_image_info_is_in_archive (info)) {
-         GPtrArray *list = gimv_file_comment_read (gimv_image_info_get_path (info));
+      if (info) {
+         GPtrArray *list;
          GListModel *model = gimv_list_view_get_model (cv->comment_clist);
+         gchar *path;
          guint i;
+
+         /* a file in an archive: read from where it was extracted to (for
+            the preview); it is not extracted only for this */
+         if (gimv_image_info_is_in_archive (info)) {
+            path = gimv_image_info_get_temp_file_path (info);
+            if (path && !g_file_test (path, G_FILE_TEST_IS_REGULAR)) {
+               g_free (path);
+               path = NULL;
+            }
+         } else {
+            path = g_strdup (gimv_image_info_get_path (info));
+         }
+         list = gimv_file_comment_read (path);
+         g_free (path);
 
          for (i = 0; i < list->len; i++) {
             GimvFileComment *c = g_ptr_array_index (list, i);

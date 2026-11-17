@@ -419,7 +419,8 @@ Seeing and editing
 The "Data" tab
      ・ The "Data" tab of the preview and of the comment window shows the
         comments written in the image file itself (JPEG, PNG, GIF, MAG, MAKI,
-        AK5/MSL) in italics (shown only).
+        AK5/MSL) in italics (shown only); for an image in an archive they are
+        read from the file extracted for the preview.
 
      ・ For a song or a movie, the information in the file (title, artist,
         album, track, genre, length, the formats of the sound and the picture,
@@ -3631,6 +3632,9 @@ How duplicates are found
 
  ・ The user name and the machine in the header of a MAKI01 file are shown as
     comments of the file in the "Data" tab.
+
+ ・ The comments in the file (MAG, MAKI, ...) are shown in the "Data" tab for
+    an image in an archive too (read from the file extracted for the preview).
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the
