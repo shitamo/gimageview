@@ -122,7 +122,7 @@ GImageView has following features:
 
 * **Supports archive files** using libarchive (no external programs). Archives are expanded as virtual directories:
 
-  * zip (cbz), rar (cbr), 7z (cb7), lha (lzh), tar (.tar.gz, .tar.bz2, .tar.xz, .tar.zst, ...), cab, iso
+  * zip (cbz), rar (cbr), 7z (cb7), lha (lzh; also the -lh1- method of LHarc 1.x), tar (.tar.gz, .tar.bz2, .tar.xz, .tar.zst, ...), cab, iso
 
 * **Supports various thumbnail cache types** (all read and write):
 

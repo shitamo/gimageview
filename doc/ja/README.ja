@@ -112,8 +112,8 @@ GImage Viewは，以下のような特徴を持っています．
  o libarchive を使用して，アーカイブファイルを開く事ができます (外部コマンドは
    使いません)．アーカイブは仮想ディレクトリとして展開されます．
 
-    zip (cbz)，rar (cbr)，7z (cb7)，lha (lzh)，tar (.tar.gz，.tar.bz2，
-    .tar.xz，.tar.zst など)，cab，iso
+    zip (cbz)，rar (cbr)，7z (cb7)，lha (lzh．LHarc 1.x の -lh1- 形式も)，
+    tar (.tar.gz，.tar.bz2，.tar.xz，.tar.zst など)，cab，iso
 
  o 多数のサムネイルキャッシュ形式に対応 (いずれも読み書き対応)
 

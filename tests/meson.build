@@ -62,6 +62,14 @@ test('dupl',
     dependencies : [glib_dep, gio_dep, pixbuf_dep, m_dep]),
   kwargs : test_kwargs)
 
+# plugins/archiver/lha-lh1.c: the -lh1- method of old LZH archives (GLib only)
+test('lha',
+  executable('test-lha', 'test_lha.c', '../plugins/archiver/lha-lh1.c',
+    c_args : ['-DGIMV_LH1_ENCODER'],
+    include_directories : test_inc + [include_directories('../plugins/archiver')],
+    dependencies : [glib_dep]),
+  kwargs : test_kwargs)
+
 # src/gimv_exif.c (libexif, gexiv2): the EXIF data of every format
 if exif_dep.found() and gexiv2_dep.found()
   test('exif',

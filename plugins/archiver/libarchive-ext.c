@@ -32,6 +32,9 @@
  * "done" when the process finishes; list and extract do their work right
  * away and queue "true", so the callers see the usual asynchronous "done"
  * (they wait for it in a nested main loop).
+ *
+ * libarchive does not unpack the -lh1- method of LHarc 1.x (common in old
+ * LZH archives); those members are unpacked by lha-lh1.c.
  */
 
 #include "config.h"
@@ -54,6 +57,7 @@
 #include "fr-command.h"
 #include "gimv_image_info.h"
 #include "gimv_plugin.h"
+#include "lha-lh1.h"
 
 
 #define FR_COMMAND_LIBARCHIVE_TYPE  fr_command_libarchive_get_type ()
@@ -292,6 +296,58 @@ make_parent_dirs (const gchar *path)
 }
 
 
+/* data written to path (by way of a temporary name) */
+static gboolean
+write_file (const gchar *path, const guchar *data, gsize len)
+{
+   gchar *tmp;
+   gboolean ok;
+
+   if (!make_parent_dirs (path)) return FALSE;
+   tmp = g_strconcat (path, ".part", NULL);
+   ok = g_file_set_contents (tmp, (const gchar *) data, len, NULL)
+        && g_rename (tmp, path) == 0;
+   if (!ok) g_unlink (tmp);
+   g_free (tmp);
+   return ok;
+}
+
+
+/* the LHA member whose header is at offset, if libarchive cannot unpack
+   it: TRUE when done here (ok: unpacked and written) */
+static gboolean
+extract_lha_member (GMappedFile *map, la_int64_t offset, const gchar *path,
+                    gboolean *ok)
+{
+   const guchar *buf;
+   gsize len;
+   GimvLhaMember m;
+   guchar *out;
+
+   if (!map || offset < 0) return FALSE;
+   buf = (const guchar *) g_mapped_file_get_contents (map);
+   len = g_mapped_file_get_length (map);
+   if (!gimv_lha_member (buf, len, offset, &m)) return FALSE;
+   if (strcmp (m.method, "-lh1-")) return FALSE;
+
+   *ok = FALSE;
+   if (m.original > 512 * 1024 * 1024) {
+      g_warning ("lha: %s: too large", path);
+      return TRUE;
+   }
+   out = g_try_malloc (MAX (m.original, 1));
+   if (!out) return TRUE;
+   if (!gimv_lh1_decode (buf + m.data, m.packed, out, m.original))
+      g_warning ("lha: %s: the packed data ends early", path);
+   else if (m.has_crc && gimv_lha_crc16 (out, m.original) != m.crc)
+      g_warning ("lha: %s: CRC error", path);
+   else
+      *ok = write_file (path, out, m.original);
+   g_free (out);
+   return TRUE;
+}
+
+
 static gboolean
 extract_entry (struct archive *a, const gchar *path)
 {
@@ -351,6 +407,7 @@ fr_command_libarchive_extract (FRCommand *comm,
    struct archive *a;
    struct archive_entry *entry;
    GHashTable *wanted = NULL;
+   GMappedFile *map = NULL;
    GList *node;
    gboolean success = TRUE;
    int ret;
@@ -372,6 +429,7 @@ fr_command_libarchive_extract (FRCommand *comm,
    {
       gchar *name = entry_name (a, entry), *path;
       struct stat st;
+      gboolean ok;
 
       if (!name) continue;
       if (wanted && !g_hash_table_contains (wanted, name)) {
@@ -392,6 +450,12 @@ fr_command_libarchive_extract (FRCommand *comm,
               || (skip_older && st.st_mtime >= archive_entry_mtime (entry))))
       {
          /* keep the existing file */
+      } else if (archive_format (a) == ARCHIVE_FORMAT_LHA
+                 && (map || (map = g_mapped_file_new (comm->filename, FALSE, NULL)))
+                 && extract_lha_member (map, archive_read_header_position (a),
+                                        path, &ok))
+      {
+         if (!ok) success = FALSE;
       } else if (!extract_entry (a, path)) {
          success = FALSE;
       }
@@ -408,6 +472,7 @@ fr_command_libarchive_extract (FRCommand *comm,
    }
 
    if (wanted) g_hash_table_destroy (wanted);
+   if (map) g_mapped_file_unref (map);
    archive_read_free (a);
 
    /* fr_archive_extract () starts the process */

@@ -735,6 +735,7 @@ gimv_image_info_extract_archive (GimvImageInfo *info)
    GList *filelist = NULL;
    gchar *temp_dir;
    gchar *filename, *temp_file, buf[MAX_PATH_LEN];
+   GHashTable *failed;
 
    g_return_val_if_fail (info, FALSE);
    g_return_val_if_fail (archive_table, FALSE);
@@ -752,6 +753,12 @@ gimv_image_info_extract_archive (GimvImageInfo *info)
                temp_dir, filename);
    temp_file = buf;
 
+   /* a member that could not be extracted is not tried again (each try
+      would tell the error again: a thumbnail view asks many times) */
+   failed = g_object_get_data (G_OBJECT (archive), "gimv-failed-members");
+   if (failed && g_hash_table_contains (failed, filename))
+      return FALSE;
+
    if (!file_exists (temp_file) && !archive->process->running) {
       ensure_dir_exists (temp_dir);
       filelist = g_list_append (filelist, filename);
@@ -761,6 +768,15 @@ gimv_image_info_extract_archive (GimvImageInfo *info)
 
       gimv_main ();   /* will be quited by callback function
                         of archive (see fileload.c) */
+
+      if (!file_exists (temp_file)) {
+         if (!failed) {
+            failed = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+            g_object_set_data_full (G_OBJECT (archive), "gimv-failed-members",
+                                    failed, (GDestroyNotify) g_hash_table_destroy);
+         }
+         g_hash_table_add (failed, g_strdup (filename));
+      }
    }
 
    if (file_exists (temp_file)) {

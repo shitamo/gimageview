@@ -577,8 +577,13 @@ cb_archive_action_performed (FRArchive *archive,
                                  _("Processing the archive file was\n"
                                    "canceled by the user."),
                                  window);
+      } else if (g_object_get_data (G_OBJECT (archive), "gimv-error-shown")) {
+         /* told once for an archive */
+         g_print (_("An error occurred while processing the archive file.\n"));
       } else {
          g_print (_("An error occurred while processing the archive file.\n"));
+         g_object_set_data (G_OBJECT (archive), "gimv-error-shown",
+                            GINT_TO_POINTER (1));
          gtkutil_message_dialog (_("Error!"),
                                  _("An error occurred while processing\n"
                                    "the archive file."),

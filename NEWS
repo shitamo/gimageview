@@ -27,7 +27,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  mode for movies is set.
 	* Archives are read with libarchive instead of running lha, unzip, rar
 	  and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS file
-	  names in old zip/lha archives are converted.
+	  names in old zip/lha archives are converted.  The -lh1- method of
+	  LHarc 1.x, which libarchive does not read, is unpacked by gimv.
 	* Buttons use the icons of the desktop icon theme (Preferences >
 	  Common > Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/<name>)
 	  may contain PNG and SVG files.

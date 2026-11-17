@@ -31,7 +31,8 @@ Version-0.2.27+gtk4 (GTK 4 版)
 	  いなければ，これが使われる
 	* アーカイブを lha，unzip，rar，tar などの外部コマンドではなく libarchive
 	  で読むようにした．7z，tar.xz，tar.zst にも対応．古い zip・lha の
-	  Shift_JIS のファイル名も変換して表示する
+	  Shift_JIS のファイル名も変換して表示する．libarchive が読めない
+	  LHarc 1.x の -lh1- 形式は gimv が展開する
 	* ボタンにデスクトップのアイコンテーマのアイコンを使うようにした (設定 >
 	  一般 > 外観)．アイコンセット (gimvrc の iconset=，~/.gimv/icons/<名前>)
 	  に PNG・SVG も使える
