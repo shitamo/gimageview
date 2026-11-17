@@ -174,8 +174,8 @@ GImageView has the following features.
 
      □ JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (gimv's own loaders)
 
-     □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, AK5/MSL (gimv's own
-       loaders; added in the GTK 4 version)
+     □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, AK5/MSL (gimv's
+       own loaders; added in the GTK 4 version)
 
      □ SVG (librsvg), MNG (libmng), WMF (libwmf)
 
@@ -3612,6 +3612,8 @@ How duplicates are found
     only made larger (twice or more: predicted from the small one by a fitted
     enlarging) shows "Looks like an enlarged copy" and is not the one kept; it
     is looked for in a thread after the groups are shown.
+
+ ・ A loader for the Pi format (PC-9801, X68000; 16 and 256 colours).
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

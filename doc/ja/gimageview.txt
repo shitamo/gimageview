@@ -171,8 +171,8 @@ GImageView は、以下のような特徴を持っています。
 
      □ JPEG、PNG、BMP、PCX、TGA、MAG、XBM、XCF、xvpics (gimv独自のローダ)
 
-     □ PNM (PBM・PGM・PPM)、XPM、Sun raster、WBMP、ZIM、AK5/MSL (gimv独自のロー
-       ダ。GTK 4 版で追加)
+     □ PNM (PBM・PGM・PPM)、XPM、Sun raster、WBMP、ZIM、Pi、AK5/MSL (gimv独自
+       のローダ。GTK 4 版で追加)
 
      □ SVG (librsvg)、MNG (libmng)、WMF (libwmf)
 
@@ -3492,6 +3492,8 @@ GImageView のサムネイルウィンドウ単体で起動したい
     以上。拡大のフィルタを当てはめて小さい画像から予測できるか)、「拡大したコ
     ピーらしい」と表示して残す候補から外す。グループを表示したあと別スレッドで
     調べる
+
+ ・ Pi 形式 (PC-9801，X68000 の 16 色・256 色) の読み込みプラグインを追加
 
  ・ マニュアルの Tips を今の動作に合わせた (当てはまらなくなったイメージウィン
     ドウのバー・ウィンドウサイズの項目を削除、メモリバッファ・サムネイルサイズ・

@@ -408,6 +408,255 @@ test_zim_broken (void)
 
 
 /******************************************************************************
+ *  Pi
+ ******************************************************************************/
+
+/* an encoder as the format says: copies where they fit, new colours
+ * otherwise; the decoder has to give the picture back */
+
+typedef struct {
+   GByteArray *a;
+   guint8      cur;
+   guint       n;
+} PiBits;
+
+static void
+pi_bit (PiBits *b, guint v)
+{
+   b->cur = (b->cur << 1) | (v & 1);
+   if (++b->n == 8) {
+      g_byte_array_append (b->a, &b->cur, 1);
+      b->cur = 0;
+      b->n = 0;
+   }
+}
+
+static void
+pi_bits (PiBits *b, guint v, guint n)
+{
+   while (n--) pi_bit (b, v >> n);
+}
+
+static void
+pi_flush (PiBits *b)
+{
+   while (b->n) pi_bit (b, 0);
+}
+
+static void
+pi_put_color (PiBits *b, guint8 *table, guint ncolors, guint planes, guint prev, guint c)
+{
+   guint8 *list = table + prev * ncolors;
+   guint idx = 0, k;
+
+   while (list[idx] != c) idx++;
+   if (idx < 2) {
+      pi_bit (b, 1); pi_bit (b, idx);
+   } else if (idx < 4) {
+      pi_bit (b, 0); pi_bit (b, 0); pi_bit (b, idx - 2);
+   } else {
+      pi_bit (b, 0); pi_bit (b, 1);
+      for (k = 0; (4u << (k + 1)) <= idx; k++) pi_bit (b, 1);
+      if (k < planes - 3) pi_bit (b, 0);
+      pi_bits (b, idx - (4u << k), k + 2);
+   }
+   memmove (list + 1, list, idx);
+   list[0] = c;
+}
+
+static void
+pi_put_length (PiBits *b, guint n)
+{
+   guint k = 0;
+   if (n == 1) { pi_bit (b, 0); return; }
+   while ((2u << k) <= n) k++;
+   pi_bits (b, (1u << (k + 1)) - 2, k + 1);    /* k ones, a zero */
+   pi_bits (b, n - (1u << k), k);
+}
+
+/* the colour index of the test picture: stripes, steps and noise */
+static guint
+pi_index (guint x, guint y, guint ncolors)
+{
+   if (y < 3) return (x / 4) % ncolors;                  /* copies to the left */
+   if (y < 6) return ((x + y) / 2) % ncolors;            /* diagonal copies */
+   return (x * 7 + y * 13 + (x * y) % 5) % ncolors;      /* new colours */
+}
+
+static GByteArray *
+make_pi (guint w, guint h, guint planes, gboolean palette)
+{
+   guint ncolors = 1u << planes, i, j, x, y;
+   GByteArray *a = g_byte_array_new ();
+   guint8 *table = g_malloc (ncolors * ncolors), *pix;
+   gsize at, end;
+   gint prev = -1;
+   PiBits b = { a, 0, 0 };
+   static const guint8 head[] = { 'P', 'i', 'T', 'e', 's', 't', 0x1a, 0x00 };
+
+   g_byte_array_append (a, head, sizeof (head));
+   {
+      guint8 h2[] = { palette ? 0x00 : 0x80, 1, 1, planes, 'T', 'E', 'S', 'T', 0, 3, 'x', 'y', 'z',
+                      w >> 8, w & 255, h >> 8, h & 255 };
+      g_byte_array_append (a, h2, sizeof (h2));
+   }
+   if (palette)
+      for (i = 0; i < ncolors; i++) {
+         guint8 rgb[3] = { i * 16 % 256, 255 - i, (i * 40) % 256 };
+         g_byte_array_append (a, rgb, 3);
+      }
+
+   for (i = 0; i < ncolors; i++)
+      for (j = 0; j < ncolors; j++) table[i * ncolors + j] = (i - j) & (ncolors - 1);
+
+   pix = g_malloc ((gsize) w * (h + 2));
+   for (y = 0; y < h; y++)
+      for (x = 0; x < w; x++) pix[(gsize) (y + 2) * w + x] = pi_index (x, y, ncolors);
+   for (x = 0; x < w * 2; x++) pix[x] = pix[2 * w + (x & 1)];
+   pi_put_color (&b, table, ncolors, planes, 0, pix[0]);
+   pi_put_color (&b, table, ncolors, planes, pix[0], pix[1]);
+
+   at = (gsize) w * 2;
+   end = (gsize) w * (h + 2);
+   while (at < end) {
+      gint place, best = -1;
+      gsize best_n = 0;
+      for (place = 0; place < 5; place++) {
+         gsize from, n = 0;
+         if (place == prev) continue;
+         switch (place) {
+         case 0:  from = pix[at - 1] == pix[at - 2] ? 2 : 4; break;
+         case 1:  from = w; break;
+         case 2:  from = 2 * w; break;
+         case 3:  from = w - 1; break;
+         default: from = w + 1; break;
+         }
+         if (from > at) continue;
+         while (at + 2 * n + 1 < end && pix[at + 2 * n] == pix[at + 2 * n - from]
+                && pix[at + 2 * n + 1] == pix[at + 2 * n + 1 - from])
+            n++;
+         if (n > best_n) { best_n = n; best = place; }
+      }
+      if (best >= 0) {
+         if (best < 3) pi_bits (&b, best, 2);
+         else pi_bits (&b, best == 3 ? 6 : 7, 3);
+         pi_put_length (&b, best_n);
+         at += 2 * best_n;
+         prev = best;
+      } else {
+         /* new colours: the place of before again (a copy is always
+          * found after new colours: the place of before is -1 then) */
+         g_assert_cmpint (prev, >=, 0);
+         if (prev < 3) pi_bits (&b, prev, 2);
+         else pi_bits (&b, prev == 3 ? 6 : 7, 3);
+         for (;;) {
+            pi_put_color (&b, table, ncolors, planes, pix[at - 1], pix[at]);
+            pi_put_color (&b, table, ncolors, planes, pix[at], pix[at + 1]);
+            at += 2;
+            if (at >= end) break;
+            /* go on while no copy fits */
+            {
+               gboolean fits = FALSE;
+               for (place = 0; place < 5 && !fits; place++) {
+                  gsize from;
+                  switch (place) {
+                  case 0:  from = pix[at - 1] == pix[at - 2] ? 2 : 4; break;
+                  case 1:  from = w; break;
+                  case 2:  from = 2 * w; break;
+                  case 3:  from = w - 1; break;
+                  default: from = w + 1; break;
+                  }
+                  fits = from <= at && pix[at] == pix[at - from]
+                         && pix[at + 1] == pix[at + 1 - from];
+               }
+               pi_bit (&b, !fits);
+               if (fits) break;
+            }
+         }
+         prev = -1;
+      }
+   }
+   pi_flush (&b);
+   g_free (pix);
+   g_free (table);
+   return a;
+}
+
+static guint32
+pi_rgb (guint c, guint planes, gboolean palette)
+{
+   if (palette) {
+      guint8 r = c * 16 % 256, g = 255 - c, bl = (c * 40) % 256;
+      return (r << 16) | (g << 8) | bl;
+   }
+   if (planes == 4) {
+      guint on = (c & 8) ? 255 : 153;
+      return (((c & 2) ? on : 0) << 16) | (((c & 4) ? on : 0) << 8) | ((c & 1) ? on : 0);
+   }
+   return (c << 16) | (c << 8) | c;
+}
+
+static void
+check_pi (guint w, guint h, guint planes, gboolean palette)
+{
+   GByteArray *a = make_pi (w, h, planes, palette);
+   GimvImage *image = load_array ("pi", a);
+   guint x, y;
+
+   assert_size (image, w, h);
+   for (y = 0; y < h; y++)
+      for (x = 0; x < w; x++)
+         assert_pixel (image, x, y, pi_rgb (pi_index (x, y, 1u << planes), planes, palette));
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+}
+
+static void
+test_pi (void)
+{
+   GimvImage *image;
+
+   /* 16 colours, the palette in the high 4 bits ... */
+   check_pi (32, 10, 4, TRUE);
+   /* ... no palette: the PC-9801 colours */
+   check_pi (32, 10, 4, FALSE);
+   /* 256 colours */
+   check_pi (64, 12, 8, TRUE);
+   check_pi (40, 9, 8, FALSE);
+
+   /* not a Pi */
+   image = LOAD_LIT ("pi", "PI\x1a\x00");
+   g_assert_null (image);
+}
+
+static void
+pi_broken (void)
+{
+   GByteArray *a = make_pi (32, 10, 4, TRUE);
+   const gsize head = 8 + 4 + 4;
+   const Patch patches[] = {
+      { "3 bits a pixel",     8 + 3, 1, 3, FALSE, MUST_FAIL },
+      { "extra data 65535",   head, 2, 0xffff, TRUE, MUST_FAIL },
+      { "65535 x 65535",      head + 2 + 3, 4, 0xffffffff, TRUE, MUST_FAIL },
+      { "width 0",            head + 2 + 3, 2, 0, TRUE, MUST_FAIL },
+      { "width 1",            head + 2 + 3, 2, 1, TRUE, NO_CRASH },
+   };
+
+   /* the picture is read as far as it goes: only a cut header fails */
+   check_truncated ("pi", a, head + 2 + 3 + 4 + 48, FALSE);
+   check_patches ("pi", a, patches, G_N_ELEMENTS (patches));
+   check_fuzz ("pi", a, 8, 300);
+   g_byte_array_unref (a);
+}
+
+static void
+test_pi_broken (void)
+{
+   IN_SUBPROCESS (pi_broken ());
+}
+
+
+/******************************************************************************
  *  MAG (MAKI02)
  ******************************************************************************/
 
@@ -1485,6 +1734,7 @@ main (int argc, char *argv[])
    home = gimv_test_core_init ();
    img_dir = g_build_filename (home, "images", NULL);
    gimv_test_core_load_plugin ("image_loader", "gimv_zim_loader");
+   gimv_test_core_load_plugin ("image_loader", "gimv_pi_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_mag_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_ras_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_wbmp_loader");
@@ -1495,6 +1745,8 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/zim", test_zim);
    g_test_add_func ("/image-loader/zim/compressed", test_zim_compressed);
    g_test_add_func ("/image-loader/zim/broken", test_zim_broken);
+   g_test_add_func ("/image-loader/pi", test_pi);
+   g_test_add_func ("/image-loader/pi/broken", test_pi_broken);
    g_test_add_func ("/image-loader/mag", test_mag);
    g_test_add_func ("/image-loader/mag/odd-width", test_mag_odd_width);
    g_test_add_func ("/image-loader/mag/broken-header", test_mag_broken_header);

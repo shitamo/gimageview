@@ -3668,6 +3668,18 @@ msgstr "Imlib1 画像ローダ"
 msgid "MAG Image Loader"
 msgstr "MAG画像ローダ"
 
+#: plugins/image_loader/pi.c
+msgid "Pi Image Loader"
+msgstr "Pi画像ローダ"
+
+#: plugins/image_loader/pi.c
+msgid "Pi images (PC-9801, X68000)"
+msgstr "Pi 形式の画像 (PC-9801，X68000)"
+
+#: plugins/image_loader/pi.c
+msgid "The Pi image format"
+msgstr "Pi 画像形式"
+
 #: plugins/image_loader/mng.c:134
 msgid "MNG Image Loader"
 msgstr "MNG画像ローダ"

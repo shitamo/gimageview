@@ -4,7 +4,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* Removed the support for Susie plugins.
 	* Removed lib/dllloader.
 	* The system libexif and GLib replace the bundled libexif and MD5 code.
-	* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801) and AK5/MSL (MASL,
+	* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801),
+	  Pi (PC-9801, X68000; 16 and 256 colours) and AK5/MSL (MASL,
 	  PC-9801; an .msl is played by its scenario, with its PCM
 	  sound through GStreamer); formats of the
 	  installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...) are
