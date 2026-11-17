@@ -1234,8 +1234,9 @@ Zoom
     image view is enlarged or reduced.
 
 Rotate
-    Image window only. Rotates the image view: Rotate 90 Degrees Clockwise
-    [R], Rotate 90 Degrees Counterclockwise [E], Rotate 180 Degrees [D].
+    Image window only. Rotates the image shown (the image file is not
+    changed): Rotate 90 Degrees Clockwise [R], Rotate 90 Degrees
+    Counterclockwise [E], Rotate 180 Degrees [D].
 
 Ignore Alpha Channel
     Image window only. Shows the image without its transparency.
