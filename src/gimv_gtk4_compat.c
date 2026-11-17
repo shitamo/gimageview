@@ -2450,83 +2450,79 @@ gimv_cairo_set_source_color_name (cairo_t *cr, const gchar *spec)
 }
 
 
-/*
- *  Look up a color defined with @define-color by the theme (the replacement
- *  of the deprecated gtk_style_context_lookup_color ()): the color is
- *  resolved by the CSS machinery on a private, never shown "probe" widget
- *  whose CSS class sets "color: @<name>", and read back with
- *  gtk_widget_get_color ().  A name the theme does not define resolves to
- *  the same value as a probe for a name nobody defines, which is how a
- *  failed lookup is detected.
- */
-#define COLOR_PROBE_UNDEFINED "gimv_undefined_color_probe"
+static struct {
+   const gchar *name;
+   GtkWidget *label;
+} color_probes[] = {
+   /* A missing name computes to the same color as this first probe. */
+   { "gimv_undefined_color_probe", NULL },
+   { "theme_bg_color", NULL },
+   { "window_bg_color", NULL },
+   { "theme_base_color", NULL },
+   { "view_bg_color", NULL },
+   { "theme_selected_bg_color", NULL },
+   { "accent_bg_color", NULL },
+   { "theme_selected_fg_color", NULL },
+   { "accent_fg_color", NULL },
+};
 
-static GtkWidget *
-color_probe_get (const gchar *name)
+
+void
+gimv_theme_colors_init (void)
 {
-   static GHashTable *probes = NULL;
-   GtkWidget *probe;
-   GdkDisplay *display;
+   GdkDisplay *display = gdk_display_get_default ();
+   GtkCssProvider *provider;
+   GString *css;
+   guint i;
 
-   if (!probes)
-      probes = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                      g_free, g_object_unref);
+   if (!display || color_probes[0].label) return;
 
-   probe = g_hash_table_lookup (probes, name);
-   if (!probe) {
-      GtkCssProvider *provider;
-      gchar *css_class, *css;
+   /* Install the probe rules before any windows are shown. Adding a provider
+      from a draw callback can invalidate a style GTK is still using. */
+   css = g_string_new (NULL);
+   for (i = 0; i < G_N_ELEMENTS (color_probes); i++) {
+      gchar *css_class = g_strdup_printf ("gimv-color-probe-%u", i);
 
-      display = gdk_display_get_default ();
-      if (!display) return NULL;
-
-      css_class = g_strdup_printf ("gimv-color-probe-%s", name);
-      css = g_strdup_printf (".%s { color: @%s; }", css_class, name);
-      provider = gtk_css_provider_new ();
-      gtk_css_provider_load_from_string (provider, css);
-      gtk_style_context_add_provider_for_display (
-         display, GTK_STYLE_PROVIDER (provider),
-         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-      g_object_unref (provider);
-
-      probe = gtk_label_new (NULL);
-      gtk_widget_add_css_class (probe, css_class);
-      g_object_ref_sink (probe);
-      g_hash_table_insert (probes, g_strdup (name), probe);
-
-      g_free (css);
+      color_probes[i].label = g_object_ref_sink (gtk_label_new (NULL));
+      gtk_widget_add_css_class (color_probes[i].label, css_class);
+      g_string_append_printf (css, ".%s { color: @%s; }\n",
+                              css_class, color_probes[i].name);
       g_free (css_class);
    }
 
-   return probe;
+   provider = gtk_css_provider_new ();
+   gtk_css_provider_load_from_string (provider, css->str);
+   gtk_style_context_add_provider_for_display (
+      display, GTK_STYLE_PROVIDER (provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+   g_object_unref (provider);
+   g_string_free (css, TRUE);
 }
 
 
 gboolean
 gimv_widget_lookup_color (GtkWidget *widget, const gchar *name, GdkRGBA *color)
 {
-   GtkWidget *probe, *undefined;
-   GdkRGBA undefined_color;
+   GdkRGBA resolved, undefined;
+   guint i;
 
    g_return_val_if_fail (name && *name, FALSE);
    g_return_val_if_fail (color, FALSE);
 
-   probe     = color_probe_get (name);
-   undefined = color_probe_get (COLOR_PROBE_UNDEFINED);
-   if (!probe || !undefined) return FALSE;
+   if (!widget || !color_probes[0].label) return FALSE;
 
-   gtk_widget_get_color (probe, color);
-   gtk_widget_get_color (undefined, &undefined_color);
+   for (i = 1; i < G_N_ELEMENTS (color_probes); i++) {
+      if (strcmp (color_probes[i].name, name)) continue;
 
-   return !gdk_rgba_equal (color, &undefined_color);
-}
+      /* Read the current CSS color so theme changes are reflected. */
+      gtk_widget_get_color (color_probes[i].label, &resolved);
+      gtk_widget_get_color (color_probes[0].label, &undefined);
+      if (gdk_rgba_equal (&resolved, &undefined)) return FALSE;
 
+      *color = resolved;
+      return TRUE;
+   }
 
-static gboolean
-lookup_color (GtkWidget *widget, const gchar *name, GdkRGBA *color)
-{
-   if (!widget) return FALSE;
-   return gimv_widget_lookup_color (widget, name, color);
+   return FALSE;
 }
 
 
@@ -2545,8 +2541,8 @@ void
 gimv_widget_get_selected_bg_color (GtkWidget *widget, GdkRGBA *color)
 {
    g_return_if_fail (color);
-   if (!lookup_color (widget, "theme_selected_bg_color", color)
-       && !lookup_color (widget, "accent_bg_color", color))
+   if (!gimv_widget_lookup_color (widget, "theme_selected_bg_color", color)
+       && !gimv_widget_lookup_color (widget, "accent_bg_color", color))
       gdk_rgba_parse (color, "#ccccff");
 }
 
@@ -2555,8 +2551,8 @@ void
 gimv_widget_get_base_color (GtkWidget *widget, GdkRGBA *color)
 {
    g_return_if_fail (color);
-   if (!lookup_color (widget, "theme_base_color", color)
-       && !lookup_color (widget, "view_bg_color", color))
+   if (!gimv_widget_lookup_color (widget, "theme_base_color", color)
+       && !gimv_widget_lookup_color (widget, "view_bg_color", color))
       gdk_rgba_parse (color, "white");
 }
 

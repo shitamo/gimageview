@@ -455,7 +455,9 @@ void       gimv_cairo_draw_pixbuf       (cairo_t     *cr,
                                          gdouble      y);
 void       gimv_cairo_set_source_color_name (cairo_t *cr,
                                          const gchar *spec);
-/* a color the theme defines with @define-color (FALSE if it is undefined) */
+/* Install the CSS probes after gtk_init() and before showing any windows. */
+void       gimv_theme_colors_init       (void);
+/* Look up an @define-color name used by gimv. */
 gboolean   gimv_widget_lookup_color     (GtkWidget   *widget,
                                          const gchar *name,
                                          GdkRGBA     *color);

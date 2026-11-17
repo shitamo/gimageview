@@ -148,6 +148,7 @@ gimageview_init (gint *argc, gchar *argv[])
 
    /* light / dark colors (GTK4 port) */
    gimv_color_scheme_apply ();
+   gimv_theme_colors_init ();
 
    /* key bindings of the menus (GTK2: gtk_accel_map_load ()) */
    g_snprintf (buf, MAX_PATH_LEN, "%s/%s/%s", g_getenv("HOME"),
