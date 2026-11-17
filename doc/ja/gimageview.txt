@@ -171,8 +171,8 @@ GImageView は、以下のような特徴を持っています。
 
      □ JPEG、PNG、BMP、PCX、TGA、MAG、XBM、XCF、xvpics (gimv独自のローダ)
 
-     □ PNM (PBM・PGM・PPM)、XPM、Sun raster、WBMP、ZIM、Pi、AK5/MSL (gimv独自
-       のローダ。GTK 4 版で追加)
+     □ PNM (PBM・PGM・PPM)、XPM、Sun raster、WBMP、ZIM、Pi、MAKI (.mki)、AK5/
+       MSL (gimv独自のローダ。GTK 4 版で追加)
 
      □ SVG (librsvg)、MNG (libmng)、WMF (libwmf)
 
@@ -3503,6 +3503,10 @@ GImageView のサムネイルウィンドウ単体で起動したい
  ・ システムの文字コード (UTF-8) にないファイル名 (MS-DOS 時代の Shift_JIS の
     名前など) を Shift_JIS として表示し、そういうファイルの「ファイル名変更」
     で落ちないようにした。名前を変えると UTF-8 の名前になる
+
+ ・ 中のファイル名が Shift_JIS の LZH を開けるようにした (libarchive が名前を
+    変換できずに書庫を読めなかった)。MAKI01 (.mki、MAG の前の形式、PC-9801 の
+    640×400・16 色) の読み込みプラグインを追加
 
  ・ マニュアルの Tips を今の動作に合わせた (当てはまらなくなったイメージウィン
     ドウのバー・ウィンドウサイズの項目を削除、メモリバッファ・サムネイルサイズ・

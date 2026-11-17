@@ -28,7 +28,7 @@ Main additions (see `NEWS` for all changes):
 
 * Archives are read with libarchive (no external programs).
 
-* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801), Pi (PC-9801, X68000) and AK5/MSL (MASL, PC-9801; .msl animations played by their scenarios); WebP, AVIF, HEIF, JPEG XL and other formats are read when their gdk-pixbuf loaders are installed.
+* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801), Pi (PC-9801, X68000), MAKI01 (.mki) and AK5/MSL (MASL, PC-9801; .msl animations played by their scenarios); WebP, AVIF, HEIF, JPEG XL and other formats are read when their gdk-pixbuf loaders are installed.
 
 * Printing, setting an image as the desktop wallpaper, copying an image to the clipboard, and remembering the rotation and flip of each image.
 
@@ -91,7 +91,7 @@ GImageView has following features:
 
   * JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (own loaders)
 
-  * PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, AK5/MSL (own loaders, GTK 4 port)
+  * PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, MAKI (.mki), AK5/MSL (own loaders, GTK 4 port)
 
   * SVG (librsvg is required)
 

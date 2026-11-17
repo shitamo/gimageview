@@ -5,7 +5,7 @@ Version-0.2.27+gtk4 (GTK 4 版)
 	* lib/dllloader を削除
 	* 同梱の libexif と MD5 計算を，システムの libexif と GLib に置き換え
 	* PNM，XPM，Sun raster，WBMP，ZIM (KID98)，Pi (PC-9801，X68000．16 色と
-	  256 色)，AK5/MSL (MASL．.msl は
+	  256 色)，MAKI01 (.mki．MAG の前の形式)，AK5/MSL (MASL．.msl は
 	  シナリオどおりに再生，PCM の音は GStreamer で) の読み込みプラグインを追加
 	* インストールされている gdk-pixbuf の読み込み部品の形式 (WebP，AVIF，
 	  HEIF，JPEG XL など) に対応．読み込めない形式は一覧に表示しない
@@ -32,7 +32,8 @@ Version-0.2.27+gtk4 (GTK 4 版)
 	* アーカイブを lha，unzip，rar，tar などの外部コマンドではなく libarchive
 	  で読むようにした．7z，tar.xz，tar.zst にも対応．古い zip・lha の
 	  Shift_JIS のファイル名も変換して表示する．libarchive が読めない
-	  LHarc 1.x の -lh1- 形式は gimv が展開する
+	  LHarc 1.x の -lh1- 形式は gimv が展開する．中のファイル名が
+	  Shift_JIS の LZH も読める
 	* システムの文字コード (UTF-8) にないファイル名 (MS-DOS 時代の
 	  Shift_JIS の名前) を Shift_JIS として表示する
 	* ボタンにデスクトップのアイコンテーマのアイコンを使うようにした (設定 >

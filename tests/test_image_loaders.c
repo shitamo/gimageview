@@ -657,6 +657,142 @@ test_pi_broken (void)
 
 
 /******************************************************************************
+ *  MAKI01 (the format before MAG)
+ ******************************************************************************/
+
+/* a 640x400 picture: shapes (bytes that repeat 2 or 4 lines below, which
+   MAKI leaves out) and noise */
+static guint
+maki_index (guint x, guint y)
+{
+   if (y < 100) return 0;
+   if (y < 200) return ((x / 40) + (y / 25)) & 15;
+   if (y < 300) return (x * 7 + y * 3) & 15;
+   return (x * x + y * 13) % 16;
+}
+
+static guint32
+maki_rgb (guint c)
+{
+   /* the palette is G, R, B; 16 levels in the high nibble */
+   guint8 g = (c * 16) | c, r = ((15 - c) * 16) | (15 - c), b = ((c * 5) & 15) * 17;
+   return (r << 16) | (g << 8) | b;
+}
+
+static GByteArray *
+make_maki (gboolean b_type)
+{
+   GByteArray *a = g_byte_array_new ();
+   guchar head[96] = { 0 }, flag_a[1000] = { 0 };
+   guchar *pic = g_malloc0 (320 * 400);
+   GByteArray *flag_b = g_byte_array_new (), *pix = g_byte_array_new ();
+   guint x, y, i, dist = b_type ? 4 : 2;
+
+   for (y = 0; y < 400; y++)
+      for (x = 0; x < 320; x++)
+         pic[y * 320 + x] = (maki_index (x * 2, y) << 4) | maki_index (x * 2 + 1, y);
+
+   for (i = 0; i < 8000; i++) {
+      guint bx = i % 80, by = i / 80, bits = 0, k;
+      for (k = 0; k < 16; k++) {
+         guint xx = bx * 4 + k % 4, yy = by * 4 + k / 4;
+         guchar above = yy >= dist ? pic[(yy - dist) * 320 + xx] : 0;
+         if (pic[yy * 320 + xx] != above) bits |= 0x8000 >> k;
+      }
+      if (bits) {
+         guchar be[2] = { bits >> 8, bits & 0xff };
+         flag_a[i / 8] |= 0x80 >> (i % 8);
+         g_byte_array_append (flag_b, be, 2);
+      }
+   }
+   /* the pixel bytes in the order of the picture */
+   for (y = 0; y < 400; y++)
+      for (x = 0; x < 320; x++) {
+         guchar above = y >= dist ? pic[(y - dist) * 320 + x] : 0;
+         if (pic[y * 320 + x] != above) {
+            guchar v = pic[y * 320 + x] ^ above;
+            g_byte_array_append (pix, &v, 1);
+         }
+      }
+
+   memcpy (head, b_type ? "MAKI01B " : "MAKI01A ", 8);
+   memcpy (head + 8, "PC98 test user     ", 19);
+   head[32] = flag_b->len >> 8; head[33] = flag_b->len & 0xff;
+   head[34] = pix->len / 2 >> 8; head[35] = pix->len / 2 & 0xff;
+   head[36] = (pix->len - pix->len / 2) >> 8; head[37] = (pix->len - pix->len / 2) & 0xff;
+   head[44] = 0x02; head[45] = 0x80; head[46] = 0x01; head[47] = 0x90;
+   for (i = 0; i < 16; i++) {
+      head[48 + i * 3]     = i << 4;          /* G */
+      head[48 + i * 3 + 1] = (15 - i) << 4;   /* R */
+      head[48 + i * 3 + 2] = ((i * 5) & 15) << 4 | 0x0f;   /* B, low bits ignored */
+   }
+   g_byte_array_append (a, head, 96);
+   g_byte_array_append (a, flag_a, 1000);
+   g_byte_array_append (a, flag_b->data, flag_b->len);
+   g_byte_array_append (a, pix->data, pix->len);
+
+   g_byte_array_unref (flag_b);
+   g_byte_array_unref (pix);
+   g_free (pic);
+   return a;
+}
+
+static void
+check_maki (gboolean b_type)
+{
+   GByteArray *a = make_maki (b_type);
+   GimvImage *image = load_array ("mki", a);
+   guint x, y;
+
+   assert_size (image, 640, 400);
+   for (y = 0; y < 400; y += 3)
+      for (x = 0; x < 640; x++)
+         assert_pixel (image, x, y, maki_rgb (maki_index (x, y)));
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+}
+
+static void
+test_maki (void)
+{
+   check_maki (FALSE);
+   check_maki (TRUE);
+   /* MAG is another loader's */
+   g_assert_null (LOAD_LIT ("mki", "MAKI02  "));
+}
+
+static void
+maki_broken (void)
+{
+   GByteArray *a = make_maki (FALSE);
+   const Patch patches[] = {
+      { "width 320",       44, 2, 320, TRUE, MUST_FAIL },
+      { "flag B 65535",    32, 2, 0xffff, TRUE, NO_CRASH },
+   };
+
+   gsize len;
+
+   /* cut: no image without the flags A, the part read after them (every
+      cut of the header, then some of the rest: each is a 640x400 load) */
+   for (len = 0; len < a->len; len += len < 1200 ? 1 : 397) {
+      GimvImage *image = load_bytes ("mki", a->data, len, FALSE);
+      if (len < 1096) g_assert_null (image);
+      else assert_size (image, 640, 400);
+      if (image) gimv_image_unref (image);
+   }
+   check_patches ("mki", a, patches, G_N_ELEMENTS (patches));
+   check_fuzz ("mki", a, 8, 30);
+   g_byte_array_unref (a);
+}
+
+static void
+test_maki_broken (void)
+{
+   IN_SUBPROCESS (maki_broken ());
+}
+
+
+/******************************************************************************
  *  MAG (MAKI02)
  ******************************************************************************/
 
@@ -1735,6 +1871,7 @@ main (int argc, char *argv[])
    img_dir = g_build_filename (home, "images", NULL);
    gimv_test_core_load_plugin ("image_loader", "gimv_zim_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_pi_loader");
+   gimv_test_core_load_plugin ("image_loader", "gimv_maki_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_mag_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_ras_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_wbmp_loader");
@@ -1747,6 +1884,8 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/zim/broken", test_zim_broken);
    g_test_add_func ("/image-loader/pi", test_pi);
    g_test_add_func ("/image-loader/pi/broken", test_pi_broken);
+   g_test_add_func ("/image-loader/maki", test_maki);
+   g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
    g_test_add_func ("/image-loader/mag", test_mag);
    g_test_add_func ("/image-loader/mag/odd-width", test_mag_odd_width);
    g_test_add_func ("/image-loader/mag/broken-header", test_mag_broken_header);
