@@ -155,12 +155,14 @@ la_error (struct archive *a)
 
 
 static struct archive *
-open_archive (const char *filename)
+open_with (const char *filename, gboolean sjis)
 {
    struct archive *a = archive_read_new ();
 
    archive_read_support_filter_all (a);
    archive_read_support_format_all (a);
+   if (sjis)
+      archive_read_set_format_option (a, "lha", "hdrcharset", "CP932");
    if (archive_read_open_filename (a, filename, 64 * 1024) != ARCHIVE_OK) {
       g_warning ("libarchive: %s: %s", filename, la_error (a));
       archive_read_free (a);
@@ -168,6 +170,37 @@ open_archive (const char *filename)
    }
 
    return a;
+}
+
+
+/* an LHA archive with Shift_JIS names (MS-DOS days): libarchive takes the
+   names as in the charset of the system and fails on them (with no
+   message) unless it is told */
+static gboolean
+lha_needs_sjis (const char *filename)
+{
+   struct archive *a = open_with (filename, FALSE);
+   struct archive_entry *entry;
+   gboolean sjis = FALSE;
+   int ret;
+
+   if (!a) return FALSE;
+   while ((ret = archive_read_next_header (a, &entry)) == ARCHIVE_OK
+          || ret == ARCHIVE_WARN)
+   {
+      if (archive_format (a) != ARCHIVE_FORMAT_LHA) break;
+   }
+   if (ret == ARCHIVE_FATAL && archive_format (a) == ARCHIVE_FORMAT_LHA)
+      sjis = TRUE;
+   archive_read_free (a);
+   return sjis;
+}
+
+
+static struct archive *
+open_archive (const char *filename)
+{
+   return open_with (filename, lha_needs_sjis (filename));
 }
 
 
