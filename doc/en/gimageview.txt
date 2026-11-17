@@ -1,0 +1,4527 @@
+GImageView User's Manual
+========================
+
+Abstract
+
+GImageView User's Manual for GImageView version 0.2.27+gtk4 (GTK 4 version)
+
+Table of Contents
+
+1. Introduction
+    1.1. What Is This?
+    1.2. Features
+    1.3. System Requirements
+    1.4. Getting GImageView
+    1.5. Installation
+
+2. Usage
+    2.1. Command Line
+    2.2. Thumbnails
+    2.3. Lists
+    2.4. Comments (data, note and tags)
+    2.5. Bookmarks
+    2.6. Image index (dates and tags)
+    2.7. Faces and people
+    2.8. Searching images
+    2.9. Other features
+
+3. What Do You Want to Do?
+    3.1. Getting the index ready
+    3.2. Tagging and arranging tags
+    3.3. Finding images
+    3.4. People
+    3.5. Keeping images in order
+    3.6. Making it yours
+
+4. Menu Bar
+    4.1. File
+    4.2. Edit
+    4.3. View
+    4.4. Tab
+    4.5. Action
+    4.6. Tools
+    4.7. Go
+    4.8. Movie
+    4.9. Help
+
+5. Toolbar
+    5.1. Thumbnail Window
+    5.2. Directory View
+    5.3. Image Window
+
+6. Mouse Menus
+    6.1. Tab
+    6.2. Thumbnail View
+    6.3. Directory View
+        6.3.1. The directory tab
+        6.3.2. The Date tab
+        6.3.3. The Tag tab
+        6.3.4. The People tab
+        6.3.5. The Bookmarks tab
+
+    6.4. Preview
+    6.5. Image View
+
+7. Preferences
+    7.1. Common
+    7.2. Image Window
+    7.3. Thumbnail Window
+    7.4. Movie and Audio
+    7.5. Slideshow
+    7.6. Thumbnail Cache
+    7.7. Comment
+    7.8. Index
+    7.9. Search
+    7.10. Drag and Drop
+    7.11. External Program
+    7.12. Plugin
+
+8. Default Key Bindings
+    8.1. Common
+    8.2. Thumbnail Window
+    8.3. Thumbnail Window / Thumbnail View
+    8.4. Thumbnail Window / Preview
+    8.5. Image Window
+    8.6. Mouse
+    8.7. Keys added in the GTK 4 port
+
+9. GImageView FAQ
+    9.1. Getting, Installing and Starting
+    9.2. Operation and Settings
+    9.3. Thumbnail Window
+    9.4. Tabs
+    9.5. Directory View
+    9.6. Thumbnail View
+    9.7. Image View
+
+10. Tips
+11. GImageView History
+12. ToDo
+13. About This Document
+    13.1. Disclaimer
+    13.2. Closing Remarks
+    13.3. Copyright notice
+    13.4. GNU General Public License
+
+------------------------------------------------------------------------------
+
+1. Introduction
+===============
+
+1.1. What Is This?
+
+GImageView is an image viewer that runs on the X Window System, under
+development to break through the hopeless situation of viewing huge numbers of
+images (and movies).
+
+This version (0.2.27+gtk4) is a port of GImageView 0.2.27 to GTK 4. It has
+been tested on the X Window System (X11). On Wayland, embedded movie playback
+with the MPlayer and xine plugins is not possible.
+
+It is basically an image viewer, but since version 0.1.1 it also implements
+simple file operations by drag and drop (image management functions). Since
+0.2.3 it also supports movie playback using xine or MPlayer (the GTK 4 version
+also supports GStreamer). The susie plugin, which was supported experimentally
+in 0.2.3, has been removed in the GTK 4 version.
+
+1.2. Features
+
+GImageView has the following features.
+
+ ・ Opening multiple directories at the same time, switching thumbnail views
+    with tabs
+
+ ・ Recursive loading of any directory; the root can be set
+
+ ・ Low memory usage
+
+ ・ Designed with careful consideration for use from the command line
+
+ ・ Simple and flexible interface
+
+ ・ Image management functions
+
+ ・ Full slideshow support
+
+ ・ Rich list view (supports multiple sort orders)
+
+ ・ Image index: images by the date taken, by tags and automatic tags (folder
+    name, camera, shape), searches by several conditions, saved searches (2.6,
+    2.8)
+
+ ・ Face recognition: images by the people in them, naming the faces (2.7)
+
+ ・ File operations by drag and drop
+
+ ・ Support for many thumbnail cache formats (all read and write)
+
+     □ The freedesktop.org Thumbnail Managing Standard (~/.cache/thumbnails,
+       shared with other programs)
+
+     □ GImageView (its own format, ~/.gimv/thumbnail)
+
+     □ Nautilus, Nautilus-2.0
+
+     □ Konqueror (also the old format)
+
+     □ GQview
+
+     □ Electric Eyes (Picview)
+
+     □ .xvpics
+
+ ・ Supported image formats
+
+     □ JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (gimv's own loaders)
+
+     □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, AK5/MSL (gimv's own
+       loaders; added in the GTK 4 version)
+
+     □ SVG (librsvg), MNG (libmng), WMF (libwmf)
+
+     □ Formats that gdk-pixbuf can read, such as GIF, TIFF and ICO
+
+     □ WebP, AVIF, HEIF, JPEG XL, etc. (when the corresponding gdk-pixbuf
+       loaders are installed)
+
+     □ Animated GIF, MNG
+
+    Files in formats for which no loader is available are not shown in the
+    thumbnail list. The supported formats can be checked in "Plugin Info" in
+    [Help | About].
+
+ ・ Supported archive formats
+
+     □ LZH
+
+     □ ZIP (CBZ)
+
+     □ TAR (tar.gz, tar.bz2, tar.xz, tar.zst, etc.)
+
+     □ RAR (CBR)
+
+     □ 7z (CB7)
+
+    Archives are expanded as virtual directories. In the GTK 4 version,
+    archives are read with libarchive (external commands such as lha and unzip
+    are not used).
+
+ ・ Supported movie formats
+
+     □ MPEG, AVI, QuickTime, WMV/ASF, MP4, Matroska (mkv), WebM, FLV, Ogg,
+       MPEG-TS, 3GP, etc.
+
+     □ MP3, WAV, Ogg, FLAC, AAC, etc. (audio)
+
+    Playing movies and audio requires one of GStreamer, MPlayer or xine-lib.
+    The formats that can actually be played depend on what each of them
+    supports. For GStreamer, this depends on the installed plugins
+    (gstreamer1.0-plugins-good, -bad, -ugly, gstreamer1.0-libav, etc.).
+
+1.3. System Requirements
+
+The following are required to compile and run this program.
+
+ ・ GTK 4.12 or later : https://www.gtk.org/
+
+ ・ GLib 2.72 or later, gdk-pixbuf 2.0
+
+ ・ Meson and Ninja (build time only)
+
+ ・ X Window System (X11) (the environment it has been tested on). On Wayland,
+    embedded movie playback with the MPlayer and xine plugins is not possible.
+
+In addition, the following libraries and programs, if present, extend the
+functionality.
+
+ ・ libarchive : Archives (zip, rar, 7z, lha, tar, etc.) can be opened.
+
+ ・ libjpeg : JPEG images are loaded faster.
+
+ ・ libexif : EXIF information can be displayed, and images (and thumbnails)
+    can be rotated automatically according to the EXIF orientation
+    information. Thumbnails of JPEG files are made faster from their embedded
+    (EXIF) thumbnails.
+
+ ・ gexiv2 (Exiv2) : with libexif, the EXIF information of the formats other
+    than JPEG (TIFF, raw files, PNG, WebP, HEIF/AVIF, JPEG XL, ...) is
+    displayed and used for the automatic rotation too. The index reads the
+    date, the camera and the keywords (EXIF, XMP, IPTC) of these formats too.
+
+ ・ SQLite 3.22 or later : the image index (dates, tags, search) can be used.
+
+ ・ OpenCV 4.8 or later (and a C++ compiler) : faces can be found in the
+    index. The model files (OpenCV YuNet and SFace) are needed too.
+
+ ・ librsvg (2.52 or later) : SVG images can be displayed.
+
+ ・ libmng : MNG animations can be played.
+
+ ・ libwmf : WMF images can be displayed.
+
+ ・ GStreamer 1.16 or later, xine-lib 1.2 or later, or MPlayer : Movie and
+    audio files can be played.
+
+ ・ Additional gdk-pixbuf loaders (webp-pixbuf-loader, libavif-gdk-pixbuf,
+    heif-gdk-pixbuf, libjxl-gdk-pixbuf, etc.) : WebP, AVIF, HEIF, JPEG XL,
+    etc. can be displayed.
+
+The GTK 4 version has been tested on Debian (sid, GTK 4.24).
+
+1.4. Getting GImageView
+
+The original GImageView (up to 0.2.27) was published at the following
+location. It is no longer updated.
+
+ ・ https://github.com/ashie/gimageview
+
+The GTK 4 version is a port based on 0.2.27.
+
+1.5. Installation
+
+The GTK 4 version is built with Meson. In the top directory of the source, do
+the following.
+
+  $ meson setup _build --prefix=/usr/local
+  $ ninja -C _build
+  $ sudo ninja -C _build install
+
+Each feature is enabled automatically if the library is present. To specify
+them explicitly, add options like the following to meson setup. See
+meson_options.txt for the list of options.
+
+  $ meson setup _build -Dgstreamer=enabled -Dxine=enabled -Dsvg=enabled -Dexif=enabled -Dmplayer=true
+
+On Debian, you can also build a package and install it.
+
+  $ dpkg-buildpackage -us -uc -b
+  $ sudo apt install ../gimageview_*.deb
+
+The configuration files (~/.gimv) of the GTK+ 2 version can be used as they
+are. However, ~/.gimv/gtkrc is no longer used; instead, the appearance is
+changed with ~/.gimv/gtk.css.
+
+2. Usage
+========
+
+2.1. Command Line
+
+Typing a command like the following lets you view image files.
+
+  $ gimv [image files...]
+
+Also, if you specify a directory name with the "-d" option as follows, all
+image files in the directory are opened as thumbnails in the thumbnail window.
+
+  $ gimv -d [directory]
+
+If you specify image file names and directory names mixed together as follows,
+image files are opened in the image window and directories in the thumbnail
+window.
+
+  $ gimv -d hoge01.jpg ~/ ~/images images/hoge02.jpg\
+    /usr/share/pixmaps/ hogehoge.png ......
+
+With the "-t" option, everything can be opened in the thumbnail window.
+
+The other command line options are as follows.
+
+  $ gimv -h
+
+  Copyright (C) 2001 Takuro Ashie
+  Usage: gimv [OPTION...] [Image Files...]
+
+    -d, --directory          Scan a directory at startup
+    -R, --recursive          Scan directories recursively (use with "-d")
+    -D, --scan-dot           Read dotfiles when scanning directories (use with "-d")
+    -e, --ignore-ext         Ignore file name extension
+    -s, --scale=SCALE        Image scale in the image window [%]
+    -b, --buffer=ON/OFF      Keep the original image in memory
+    -M, --menubar            Show the menubar in the image window
+    -T, --toolbar            Show the toolbar in the image window
+    -I, --imagewin           Open an empty image window at startup
+    -w, --thumbwin           Open the thumbnail window at startup
+    -i, --imageview          Open all images in the image window
+    -t, --thumbview          Open all images in the thumbnail window
+    -S, --slideshow          Open the image files in a slideshow
+    -W, --wait=TIME          Slideshow interval (use with "-S") [sec]
+    -v, --version            Print version information
+    -h, --help               Show this message
+
+To open a directory from the GUI, double-click it in the directory view, or
+type its path in the directory entry of the thumbnail window toolbar and press
+Enter (a new tab is opened only if the directory has images). You can also
+select directories in the file open dialog and press "Thumbnails of the
+selected files".
+
+2.2. Thumbnails
+
+ ・ Thumbnails can be read and written in the format of the freedesktop.org
+    Thumbnail Managing Standard (~/.cache/thumbnails), shared with other
+    programs ([Preferences | Thumbnail Cache]).
+
+ ・ The thumbnails of the images GdkPixbuf reads (JPEG, PNG, ...) are made in
+    worker threads, so the window can be used while they are made. A JPEG's
+    embedded (EXIF) thumbnail is used when it is big enough ("Making
+    thumbnails" in [Preferences | Thumbnail Cache]).
+
+ ・ Thumbnails are turned and flipped by the EXIF orientation, and kept so in
+    the cache. When an image was turned or flipped in an image view (and that
+    is remembered), its thumbnail is shown so (not kept in the cache).
+
+2.3. Lists
+
+Searching a list (Ctrl+F)
+    Ctrl+F in a list (the directory view, the detail view, the Data tab, the
+    lists of the preferences, ...) opens a search entry at its top. Type a
+    name shown in the list (a file, a folder, a tag, ...): the first one
+    beginning with it (else having it) is selected. Up and Down go to the one
+    before and the next, Enter closes it on the one found, Escape closes it
+    (and so do 5 seconds without typing). In the index tabs, the names inside
+    the closed branches are looked at too. In the album modes of the thumbnail
+    view too, Ctrl+F finds a thumbnail by its file name (chosen and scrolled
+    to; Enter opens it). Elsewhere Ctrl+F is [File | Open...].
+
+Status bar
+    At the left, the full path of the focused image; in the middle, its
+    position ("12 / 33") and its file size. With several images selected,
+    their number and their total size ("5 selected 812 kB"). At the right end,
+    the state of the index and the notices.
+
+2.4. Comments (data, note and tags)
+
+GImageView keeps the notes of each image (subject, date, location, ...) and
+its tags in a separate text file, the comment file, without changing the image
+file. "Comment" in this manual means what is in that file.
+
+Comment files
+    One file for each image, under ~/.gimv/comment, named the full path of the
+    image with ".txt" (/home/user/Pictures/cat.jpg: ~/.gimv/comment/home/user/
+    Pictures/cat.jpg.txt). In it are lines "key: value" (the data), then free
+    text (the note). The character set is chosen in [Preferences | Comment].
+    An image without a comment has no file.
+
+What is kept in it
+    The values of the "Data" tab (subject, date, location, ...: more keys can
+    be added in [Preferences | Comment]), the text of the "Note" tab, the tags
+    added by hand with "Edit Tags..." (the X-IMG-Tags line), the names given
+    to the faces (the tags "person/NAME") and the rotation and flip of each
+    image (not shown in the comment editor). The automatic tags of the index
+    and the comments, EXIF and keywords inside the image files are not written
+    in it.
+
+Seeing and editing
+    The comment window is opened from the right button menu of the thumbnails
+    or [Edit | Edit Comment...] of the image window. The "Data" tab of the
+    preview shows the same. The detail view ("Subject" and "Comment" columns)
+    and the tooltips of the album view can show it too.
+
+The "Data" tab
+     ・ The "Data" tab of the preview and of the comment window shows the
+        comments written in the image file itself (JPEG, PNG, GIF, MAG) in
+        italics (shown only).
+
+     ・ For a song or a movie, the information in the file (title, artist,
+        album, track, genre, length, the formats of the sound and the picture,
+        ...) is shown in the "Data" tab too, in italics (shown only; the
+        GStreamer plugin).
+
+     ・ In the "Data" tab, choose a "Key", type the "Value" and press Enter or
+        "Save" (the value is free text; a date in "Date" is the date of the
+        image for the index).
+
+     ・ "Remove Item" of the "Data" tab (Delete in the list) removes the item
+        selected, kept by "Save". "Delete Comment..." below deletes, after
+        asking, the data and the note of the image; the tags (X-IMG-Tags) are
+        kept. The row of the tags is only shown: the tags are edited with
+        "Edit Tags...".
+
+Moving images, the index
+    Images moved, copied or renamed by GImageView take their comment files
+    with them. Images moved by other programs and lost can be given their
+    comments back in [Tools | Missing Images...]. The comment files are apart
+    from the database of the index: the tags and names are kept when the index
+    is made again.
+
+2.5. Bookmarks
+
+Images can be bookmarked to look at them again later, in the indexed
+directories or not. The bookmarks are kept in ~/.gimv/bookmarks (apart from
+the index database: making the index again keeps them).
+
+Bookmarking
+    Select images in the thumbnail view (one or more) and choose [Edit |
+    Bookmark...] or "Bookmark..." in the right button menu; in the image
+    window [Edit | Bookmark...], in the preview "Bookmark..." in the right
+    button menu. The images are bookmarked at once, and a field for a note
+    comes up. It can be closed with Escape without writing anything (a note
+    can be written later). Enter, or a click elsewhere, keeps the note
+    written. Chosen on a bookmarked image, it changes the note, or "Remove"
+    takes the bookmark off.
+
+Key
+    No key is given by default. One can be given in [Edit | Keyboard
+    Shortcuts...]. With lines like these in ~/.gimv/keyaccelrc (Ctrl+K here; a
+    line starting with ";" does nothing), the key bookmarks from the next
+    start.
+
+      (gtk_accel_path "<ThumbWinMainMenu>/Edit/Bookmark..." "<Control>k")
+      (gtk_accel_path "<ImageWinMainMenu>/Edit/Bookmark..." "<Control>k")
+      (gtk_accel_path "<ThumbWinPreviewPop>/Bookmark..." "<Control>k")
+
+Bookmarks tab
+    The "Bookmarks" tab (a star) next to the directory view lists the
+    bookmarks by the day they were added (Today, Yesterday, This Week, then by
+    month), and "All", "With a Note", "Without a Note", with their numbers. A
+    click on a row opens them in the result tab, the newest first (the file
+    names only, as the index tabs). Choosing a sort in the menu sorts them so.
+
+The notes
+    The tooltip of the thumbnail of a bookmarked image starts with "★ the
+    note" ("★ Bookmarked" without a note).
+
+Moved and missing images
+    An image renamed or moved with GImageView keeps its bookmark. In the
+    indexed directories, the bookmarks also follow images and folders moved or
+    renamed by other programs. Other images not found any more are counted in
+    "Not Found" of the tab.
+
+2.6. Image index (dates and tags)
+
+When "Directories to index" are given in [Preferences | Index], an indexer
+process (gimv-indexer) looks at the images below them while GImageView runs,
+and keeps their dates and tags in a database (~/.local/share/gimageview/
+index.db). The indexer runs at a low priority, and also takes in files added,
+moved and deleted while GImageView runs. Its progress is shown at the right
+end of the status bar ("Index: ..."). This needs a build with SQLite.
+
+With an index, the side notebook of the thumbnail window (where the directory
+view is) gets the "Date" and "Tag" tabs (and "People" when faces can be
+found).
+
+Date tab
+    The images by the date they were taken, in years, months and days, newest
+    first, with their numbers. The date is the date written in the "Date" of
+    the comment ("2025-04-01", "2025/4/1 10:15", "2025年4月1日 10時15分", ...;
+    for images of SNS, whose EXIF is removed and whose names are not dates),
+    else the EXIF date (built with gexiv2, the XMP date too), else a date in
+    the file name, else the modification time.
+
+Tag tab
+    The tags put by hand at the top, then "Names of People" and the groups of
+    the tags put automatically (in blue: Folders, Cameras, Shape, Tags of
+    People). The keywords other programs put are shown with the tags put by
+    hand, one row for a name (a click opens the images with either; renaming
+    and merging are for the tags put by hand, the keywords are changed in the
+    program that put them).
+
+    A "/" in a tag makes a tree: "Travel/Kyoto/Temple" is shown as "Temple"
+    below "Kyoto" below "Travel" (the hierarchical keywords of other programs
+    too). A parent counts the images of the tags below it too, and a click on
+    it opens them all; a parent is shown even when it is not put on an image
+    itself. Renaming (F2) edits the whole name ("Travel/Kyoto"), and the tags
+    below a parent renamed change with it ("Travel" to "Trips" makes "Trips/
+    Kyoto"); changing what is before a "/" moves a tag below another parent. A
+    tag put by hand can be dragged in the tag tab and dropped on another tag,
+    to choose "Move Below "Travel" (Travel/Cat)" or "Merge Into "Travel"" (the
+    tags below it go with it); dropped on the "Tag" row or below the rows, it
+    can be moved to the top. Merging, or a tag of the same name where it goes,
+    is asked about first. Automatic tags, tags that are only keywords and the
+    names of people cannot be dragged. A tag given in the search window takes
+    the images of the tags below it too.
+
+Opening
+    A click on the text of a row shows its images in the result tab of the
+    thumbnail view (one tab, whose contents are replaced). The middle button,
+    or "Open in New Tab" of the right button menu, opens a new tab. Moving
+    with the arrow keys opens nothing; Enter does. A result tab shows the file
+    names only; the full path is in the tooltip and the status bar. "Open the
+    Folder" of the right button menu opens the folder of the image. With tens
+    of thousands of images, only the thumbnails near the part shown are made.
+
+Tagging
+    "Edit Tags..." of the right button menu of the thumbnail view, or [Edit |
+    Edit Tags...], tags the images selected (one or more); in the image window
+    [Edit | Edit Tags...] or the right button menu of the image, in the
+    preview "Edit Tags..." in the right button menu, tags the image shown. A
+    tag typed in the entry at the top is put on with Enter (several separated
+    by commas; a tag may have "/" in it, like "travel/Kyoto"). The tags on the
+    images are shown below it, × takes one away. "Tags in Use" at the bottom
+    lists the tags most used first, narrowed by what is typed; a click puts
+    one on. The parents of a tag with levels are dimmed, like "travel/Kyoto".
+    A click on a parent in a row of "Tags in Use" ("travel") makes the entry
+    "travel/" and leaves only the tags below "travel" in the list: type the
+    name of the child after it, or pick one. When what is typed has "/" in it,
+    only the tags beginning with it are listed. With several images, a tag
+    only some of them have is shown as "Kyoto 2/5": a click puts it on all of
+    them, × takes it away from all of them (left alone, it stays as it is on
+    each). Enter with nothing typed is OK.
+
+    "Edit Tags with the Folders in It..." of the right button menu of a folder
+    in the directory view edits the tags of all the images in the folder and
+    in the folders in it (without opening or selecting them). The images are
+    looked for in the background, their number shown when it takes a while (it
+    can be cancelled). The dialog is the same. With many images the writing
+    shows its progress, and "Stop" stops it: the images done so far are
+    changed, the others are as they were. Every image is checked before
+    anything is written, so nothing is written when the tags of one would be
+    too long.
+
+    They are written in the "X-IMG-Tags:" line of the comment files (~/.gimv/
+    comment, 2.4), so they are kept when the index is made again. The names of
+    the people given to the faces (the tags "person/NAME") are not among the
+    tags: they are shown under "People" and kept as they are (names are given
+    in the faces window or the faces panel). The "Tags:" row of the "Data" tab
+    (comment window and preview) shows the tags of the image; a click opens
+    the images with the tag. A tag with levels is shown part by part, like
+    "travel / Kyoto / temple": a click on a parent part (dimmed) opens the
+    images with it and with the tags below it.
+
+Renaming and merging tags
+    Select a tag put by hand (or a tag of people) in the Tag tab and press F2,
+    or choose "Rename... (F2)" in the right button menu. When the new name is
+    there already, you are asked whether to merge them. The comment files are
+    rewritten in the background. Ctrl+C copies the name of a row.
+
+Automatic tags
+    The index tags the images with their folder name, their camera (EXIF),
+    their shape (portrait, landscape, square) and the keywords other programs
+    put ([Preferences | Index | Automatic Tags]). The keywords are read from
+    the XMP in the image (dc:subject), the IPTC keywords, and the sidecar
+    files next to the image ("name.jpg.xmp" of digiKam, darktable, ... and
+    "name.xmp" of Lightroom, ...). When there are only keywords with levels
+    ("Season|Spring"), the last part is used. A sidecar file written again
+    makes the index read the keywords of its image again. A keyword with the
+    name of a tag put by hand is shown and looked for as that tag (the Tag
+    tab, the Data tab, the search window, "Tags in Use" of Edit Tags). Built
+    with gexiv2 (Exiv2), the date, the camera and the keywords are read from
+    every format Exiv2 knows (JPEG, HEIF, PNG, WebP, TIFF, raw files, ...);
+    without it, the EXIF of JPEG only and the XMP of JPEG, PNG, WebP and TIFF
+    only. Folder names of numbers only and DCIM are not made tags. Other
+    folder names can be added to "Folder Names Not Made Tags" ("*" and "?" can
+    be used), or with "Do Not Make This Folder Name a Tag" in the right button
+    menu of a folder in the Tag tab (not while the preferences window is
+    open). The automatic tags are kept in the index only, not in the comment
+    files.
+
+New images and notices
+    New images in the indexed directories are notified on the desktop (the
+    time to gather them, the interval and the folders not to notify are in
+    [Preferences | Index | New Images]). The "Notices" button of the status
+    bar shows the number of new images since the last time, and asks things
+    such as whether to move the comments of images another program moved.
+
+Missing images
+    Images with comments (tags) that went missing are listed in a log for each
+    start (~/.local/share/gimageview/missing-*.log). In [Tools | Missing
+    Images...] their comments can be put on where the image went, put on
+    another image, deleted, or the lines removed from the log.
+
+2.7. Faces and people
+
+gimv-faces looks for faces in the images of the "Folders to find faces in" of
+[Preferences | Index | Faces] (which must be in the index), and puts faces
+that look alike in groups. It runs after the rest of the index, slowly. This
+needs a build with OpenCV 4.8 or later, and the model files (OpenCV YuNet and
+SFace, about 40 MB) in ~/.local/share/gimageview/models (their names and where
+to get them: [Preferences | Index | Faces]; the preferences page shows them
+too).
+
+People tab
+    The people named (grouped by their tags), the guesses ("name?"), the
+    unnamed groups, the other faces and the ignored faces. A click opens the
+    images of the person; "Show the Faces..." of the right button menu opens
+    the faces window (the right button menu: 6.3.4).
+
+Faces window
+    The people (also the unnamed groups and the guesses) are listed at the
+    left with a face and their name, and the faces of the one selected at the
+    right. Select faces (Ctrl+A: all of them) and choose "Name...", "Right",
+    "Not This Person", "Remove the Name" or "Ignore". A double click opens the
+    image. The buttons of the heading rename the person (merging two people of
+    the same name), copy the name, edit the tags of the person and delete the
+    person. The faces can be sorted oldest first, newest first, or least like
+    the person first (to find the faces put there by mistake).
+
+Faces panel
+    "Edit Faces (People)" (P) in the right button menu of an image view shows
+    the faces of the image at its right, where they can be named too. Press
+    "+" and drag over the image to add a face that was not found (a small
+    face, for example). The right button menu of a face copies it to the
+    clipboard.
+
+Names and the comment files
+    The names given to the faces are written in the comment files of the
+    images too, as the tags "person/NAME"; when the index is made again, the
+    names are given back to the faces from them. The "Names of People" group
+    of the Tag tab shows these tags.
+
+Tags of people
+    Tags put on people (the group they belong to, for example), with "Tags of
+    the Person..." in the faces window. They are kept in the index only, and
+    used by the "Tags of People" group of the Tag tab and the groups of the
+    People tab. Renaming one renames it for everyone who has it.
+
+    As the tags put by hand, they make a tree by "/": "Family/Parents" is a
+    tag below "Family". The "Tags of People" group of the Tag tab, the People
+    tab and the search window show them as a tree; a parent (shown even when
+    no person has it itself) counts the images of the people of the tags below
+    it too, and choosing a parent shows those people as well. The Data tab
+    shows "People: Family / Parents" part by part, a parent part opening the
+    images of the parent. Renaming a parent renames the tags below it. In the
+    Tag tab a tag of people can be dragged onto another tag of people, to move
+    it below that tag or to merge it into it (onto the "Tags of People" row:
+    to the top). The "Tags of the Person..." dialog dims the parents, and a
+    click on a parent of a tag other people have types "Family/" in the entry,
+    leaving only the tags below it in the list.
+
+2.8. Searching images
+
+[Tools | Search Images...] finds images of the index by several conditions.
+
+ ・ A click on a tag of the list below (names of people and automatic tags
+    too) adds it as a condition, shown as a chip at the top. Typing in the
+    entry narrows the list; Enter adds the first tag. The images must have all
+    the chips (and). A click on a chip turns it into "excluded" (red): the
+    images with that tag are left out. × removes a chip.
+
+ ・ "Taken from ... to" limits the date taken (a year or a month alone can be
+    given).
+
+ ・ With conditions, the list below shows the tags of the images found, by
+    kind and with their numbers: a click narrows the search further, and the
+    "exclude" button of a row leaves those images out.
+
+ ・ Tags with "/", like "Travel/Kyoto", make a tree as in the Tag tab. A
+    parent counts the images of the tags below it too (a parent is shown even
+    when it is not put on an image itself), and its ▸ shows the tags below it.
+    A click on a parent narrows the search to the images with it or a tag
+    below it. With a parent as a condition, the tags below it ("Travel/Kyoto")
+    come to the top level of the list, to narrow further. Typing shows the
+    tags whose last part ("Temple") has the text, with their parents open
+    (with "/" typed, the whole name is looked at).
+
+ ・ The images found are shown in a tab of the thumbnail window.
+
+ ・ "Keep..." keeps the conditions under a name, to be chosen again in the
+    list at the top (~/.gimv/searches); the trash button deletes one.
+
+2.9. Other features
+
+ ・ "Copy the Image to the Clipboard" (Shift+Ctrl+C) in the right button menu
+    of an image view copies the image shown, to be pasted in other programs.
+
+ ・ "Flip Horizontally" (X) and the rotation of an image view are remembered
+    for each image and restored when it is opened again ("Remember the
+    rotation and flip of each image" in [Preferences | Image Window | Image]).
+
+ ・ "Open the Folder" in the right button menus of the thumbnail view and the
+    image view opens the folder of the image.
+
+3. What Do You Want to Do?
+==========================
+
+This chapter finds the way to do things from what you want to do. Each gives
+the outline only; see the links for more. The index and face features need a
+build with them.
+
+3.1. Getting the index ready
+
+I want to find my images by date and tag
+    Add the folders of your pictures to "Directories to index" in [Preferences
+    | Index]. The index is made while GImageView runs, and the "Date" and
+    "Tag" tabs appear next to the directory view. The progress is shown at the
+    right end of the status bar. This needs a build with SQLite.
+
+    See 2.6. Image index, [Preferences | Index].
+
+I want to find my images by the people in them
+    Give the "Folders to find faces in" in [Preferences | Index | Faces] and
+    put the model files in place. Faces are looked for after the index, and
+    the "People" tab shows the faces that look alike in groups. This needs a
+    build with OpenCV.
+
+    See 2.7. Faces and people, [Preferences | Index | Faces].
+
+3.2. Tagging and arranging tags
+
+I want to tag several images at once
+    Select the images in the thumbnail view: Ctrl+click adds one (or takes it
+    away again), Shift+click selects all between, and a drag starting where
+    there is no image selects the images in the rectangle; Ctrl+A selects all.
+    Then choose "Edit Tags..." in the right button menu or [Edit | Edit
+    Tags...], type a tag and press Enter; Enter with nothing typed is OK. The
+    number selected is shown in the status bar ("5 selected").
+
+    See Tagging, Select All.
+
+I want to tag all the images of a folder (and the folders in it)
+    Right-click the folder in the directory view and choose "Edit Tags with
+    the Folders in It...". The folder need not be opened, nor the images
+    selected. With many images the progress is shown, and "Stop" stops it.
+
+    See Tagging, the right button menu of the directory view.
+
+I want to take a tag off several images
+    Select the images and open "Edit Tags...": a tag put on some of them only
+    is shown as "Kyoto 2/5". × takes it off all of them, a click puts it on
+    all of them; left alone, each image keeps what it has.
+
+    See Tagging.
+
+I want to rename a tag, or merge two tags
+    Select the tag in the Tag tab and press F2, or choose "Rename..." in the
+    right button menu. Giving a name that is there already asks whether to
+    merge them. A tag dragged onto another one in the Tag tab can be merged
+    too.
+
+    See Renaming and merging tags.
+
+I want to arrange tags in a tree ("Travel/Kyoto")
+    A "/" in the name of a tag makes a tree. Drag a tag in the Tag tab onto
+    the tag to be its parent and choose to move it below that tag. A click on
+    a parent opens the images of the tags below it too.
+
+    See Tag tab.
+
+3.3. Finding images
+
+I want to see the images with a tag
+    Click the text of the row in the Tag tab: the images are shown in the
+    result tab. The middle button opens a new tab. A tag in the "Data" tab of
+    the comment window or the preview opens them too.
+
+    See Opening.
+
+I want to find images by the day they were taken
+    Open the year, month and day in the Date tab and click it. For an image
+    whose date is not known (an image of SNS, for example), a date written in
+    the "Date" of the "Data" tab is used as its date.
+
+    See Date tab, 2.9. Other features.
+
+I want to combine conditions ("Kyoto" without "Cat", for example)
+    [Tools | Search Images...] combines tags, people and the dates taken. A
+    click on a tag adds it as a condition, and a click on the chip of a
+    condition turns it into "excluded". Conditions used often can be kept
+    under a name with "Keep...".
+
+    See 2.8. Searching images.
+
+I want to open the folder of an image found
+    "Open the Folder" in the right button menu of the thumbnail view or the
+    image view. A result tab shows the file names only; the full path is in
+    the tooltip and the status bar.
+
+    See Opening.
+
+3.4. People
+
+I want the images of one person
+    Click the person (or an unnamed group) in the People tab. "Show the
+    Faces..." of the right button menu opens the faces window to look at the
+    faces.
+
+    See People tab.
+
+I want to name faces, or take wrong faces away
+    Select faces in the faces window (Ctrl+A: all of them) and choose
+    "Name...", "Not This Person", ... Sorting them "least like the person
+    first" brings the wrong faces to the top. For one image, "Edit Faces
+    (People)" (P) in the right button menu of the image view names them too.
+
+    See Faces window, Faces panel.
+
+I want to add a face that was not found
+    Show the faces panel with "Edit Faces (People)" (P) in the right button
+    menu of the image view, press "+" and drag over the face in the image.
+
+    See Faces panel.
+
+3.5. Keeping images in order
+
+I want to find duplicate images and clear them away
+    The same files in different folders: [Tools | Find Duplicates in the
+    Index...] looks among all the indexed images (below a folder: the right
+    button menu of the directory view; the same files as an image: "Find the
+    Same Files" of the thumbnail view). Other sizes and similar pictures: open
+    the images in a tab and choose [Tools | Find Duplicates...]. Check "Keep"
+    and "Delete" and move them to the trash group by group (they can be
+    restored from the trash), or all at once with "Move All Marked to
+    Trash...". To keep the file names, "Trash and Leave Links" in the
+    confirmation leaves a link to the image kept under each name.
+
+    See Find Duplicates in the Index..., Find Duplicates....
+
+I want to put the tags and comments of a moved image back
+    Images moved with GImageView take their tags and comments with them.
+    Images moved by other programs and not found any more are listed in [Tools
+    | Missing Images...], where their comments can be put on where they went.
+
+    See Missing images.
+
+I want to mark images to look at them again later
+    Select the images and choose "Bookmark..." in the right button menu; a
+    note can be written. The "Bookmarks" tab (a star) next to the directory
+    view opens them by the day they were bookmarked.
+
+    See 2.5. Bookmarks.
+
+I want to add a note to a bookmark later
+    Click "Without a Note" in the Bookmarks tab (the star): the images without
+    a note are shown in the result tab. Select one and choose "Bookmark..." of
+    the right button menu (or [Edit | Bookmark...]) again: the field of the
+    note comes. Write it and press Enter (what is written is kept too when the
+    field is closed by a click elsewhere or Escape). A note there already is
+    in the field, to be written again.
+
+    With several images selected, the note written goes to all of them (their
+    notes before are replaced; closed with nothing written, each keeps its
+    own).
+
+    See 2.5. Bookmarks, 6.3.5. The Bookmarks tab.
+
+I want to save an image in another format (HEIC as JPEG, ...)
+    [File | Save Image...] (Ctrl+S) of the image window, or "Save Image..." in
+    the right button menu of the preview, saves it in the format and quality
+    chosen.
+
+    See Save Image....
+
+I want to make photos smaller to save space
+    Select the images in the thumbnails and choose "Save Smaller..." in the
+    right button menu. It saves them shrunk, for example to 800 px of height
+    or less, as new files (the originals stay as they are). It can also leave
+    out the location information.
+
+    See Save Smaller....
+
+I want to join some images into one (a photo taken in pieces, ...)
+    Select them in the thumbnails and choose "Join Images..." in the right
+    button menu: they are put one below another, side by side or in a grid and
+    saved as a new file. When they are pieces of one photo that overlap, the
+    overlaps are found and can be put right by hand.
+
+    See Join Images....
+
+I want to take off the background around a scanned image
+    Show the image and press C (or "Crop Image..." in the right button menu),
+    then "Detect the Edges" chooses what is inside the background around it (a
+    border of one color, white, black, ...). Put the frame right by hand if
+    needed and press Enter: it is saved as "name_crop.jpg" (the image stays as
+    it is). Any part can be cropped by dragging the frame too.
+
+    See Crop Image....
+
+3.6. Making it yours
+
+I want to change the keyboard shortcuts
+    [Edit | Keyboard Shortcuts...]: click the key of a row and press the new
+    key. The entry at the top narrows the list by name or key.
+
+    See Keyboard Shortcuts....
+
+I want to find a name in a long list
+    Press Ctrl+F in the directory view, the Tag tab, the detail view, ... and
+    type the name.
+
+    See Searching a list.
+
+4. Menu Bar
+===========
+
+This section describes the items of the menu bar. Both the thumbnail window
+and the image window have a menu bar; they are described together here. Items
+that exist in only one of the windows are marked "Thumbnail window only" or
+"Image window only". The keys in [ ] after an item are its default shortcut
+keys.
+
+4.1. File
+
+Open... [Ctrl + F]
+    Shows the file open dialog.
+
+    "Open selected files" creates a new image window and shows the images.
+
+    "Thumbnails of the selected files" creates a new collection tab and shows
+    the files there as thumbnails (a collection). Selected folders
+    (directories) are opened in a new tab each (as with a double click in the
+    directory view). If files and folders are selected together, the files go
+    to the collection tab and each folder to its own tab.
+
+New Image Window [Ctrl + I]
+    Creates a new, empty image window.
+
+New Window [Ctrl + W]
+    Thumbnail window only. Creates a new thumbnail window.
+
+New Thumbnail Window [Ctrl + W]
+    Image window only. Creates a new thumbnail window.
+
+New Tab [Ctrl + T]
+    Thumbnail window only. Creates a new, empty tab.
+
+Memory Buffer [Ctrl + B]
+    Image window only. Keeps the image shown in the memory buffer. For details
+    see "Making the image view draw faster" in the Tips.
+
+Save Image... [Ctrl + S]
+    Image window only. Saves the image shown to another file in the format
+    chosen (a HEIC as a JPEG, ...). "Save Image As..." of the mouse menu of
+    the preview in the thumbnail window does the same.
+
+     ・ Save to: at first the folder and the name of the image, with the
+        extension of the format ("_2" is added to the name when it would be
+        the image itself). "Browse..." chooses it in a file dialog. When the
+        file is there already, it asks before overwriting it.
+
+     ・ Format: those of JPEG, PNG, WebP, AVIF, TIFF, BMP and PNM that can be
+        saved (WebP, AVIF, ... when gdk-pixbuf can write them).
+
+     ・ Quality: of JPEG, WebP and AVIF (1 to 100, 90 by default).
+
+     ・ Keep the information of the file (EXIF, XMP, IPTC): when built with
+        gexiv2 (Exiv2). The information of the file is copied to the new file
+        (JPEG, PNG, WebP, TIFF). The image is saved turned as it is shown, so
+        the orientation of the information is put to normal, and the thumbnail
+        of the EXIF is left out.
+
+    The image is saved in its full size, turned (rotated, mirrored) as it is
+    shown. It is written in another thread. A thumbnail window showing the
+    folder saved to is refreshed. The format and the quality chosen are
+    remembered until gimv quits.
+
+Print... [Ctrl + P]
+    In the thumbnail window, prints the images selected in the thumbnail view,
+    one image per page. When no image is selected and the preview shows an
+    image, that image is printed.
+
+    In the image window, prints the image shown, in the orientation it is
+    rotated to.
+
+Close Tab [Q]
+    Thumbnail window only. Closes the active tab.
+
+Close Window [Ctrl + Q] / Close [Q]
+    "Close Window" of the thumbnail window closes the thumbnail window; image
+    windows that are open stay open. "Close" of the image window closes that
+    image window.
+
+Quit [Ctrl + C]
+    Closes all windows of GImageView.
+
+    All thumbnail windows and image windows are closed.
+
+4.2. Edit
+
+Select All [Ctrl + A]
+    Thumbnail window only. Selects all files of the active tab.
+
+Unselect All [Ctrl + N]
+    Thumbnail window only. Unselects the files of the active tab.
+
+    GImageView keeps the selection of each tab. "Unselect All" does not
+    unselect the files of tabs that are not active.
+
+Refresh List [Shift + Ctrl + R]
+    Thumbnail window only. Refreshes the list of the active tab.
+
+Reload Cache [Shift + R]
+    Thumbnail window only. Reloads the cache of the active tab.
+
+Update All Thumbnails [Ctrl + R]
+    Thumbnail window only. Creates the thumbnails of the active tab again. The
+    part on screen is made first and the rest in the background, keeping the
+    scroll position. The progress (n/N) is shown while it runs, and the stop
+    button in the toolbar stops it.
+
+    For the differences between "Refresh List", "Reload Cache" and "Update All
+    Thumbnails", see "The difference between Refresh List, Reload Cache and
+    Update All Thumbnails" in the Tips.
+
+Rename... [Shift + E]
+    Thumbnail window only. Renames the image (file) selected in the thumbnail
+    view.
+
+    The name without the extension is edited; the extension (.jpg, ...) stays
+    (without it the file is no longer shown as an image). "Change the
+    extension too" edits the whole name; a new name without the extension of
+    an image is then asked about, and [Rename without It] renames it so.
+
+    It cannot be used when more than one file is selected.
+
+Copy Files To... [Shift + C]
+    Thumbnail window only. Copies the selected images (files) to another
+    directory.
+
+    Tab completion can be used in the dialog that selects the directory.
+
+Move Files To... [Shift + M]
+    Thumbnail window only. Moves the selected images (files) to another
+    directory.
+
+    Tab completion can be used in the dialog that selects the directory.
+
+Link Files To... [Shift + L]
+    Thumbnail window only. Creates symbolic links to the selected images
+    (files). Specify the directory to create the links in.
+
+Remove Files... [Delete]
+    Thumbnail window only. Deletes the selected images (files).
+
+    This cannot be undone. Answer the confirmation dialog carefully.
+
+Edit Comment...
+    Image window only. Edits the comment of the image shown (the data,
+    subject, date, ..., and the note, kept in a comment file apart from the
+    image file: 2.4).
+
+Show EXIF Data...
+    Image window only. Shows the EXIF data of the image shown; built with
+    gexiv2 (Exiv2), of the formats other than JPEG too.
+
+Create Thumbnail [Shift + T]
+    Image window only. Creates the thumbnail of the image shown, in the format
+    of "Cache type for saving" in [Preferences | Thumbnail Cache].
+
+Crop Image... [C]
+    Image window only. Crops the image shown and saves the part as a new file;
+    the image is not changed. "Crop Image..." in the right button menu of the
+    image view and of the preview is the same.
+
+    A frame of the part (the whole image at first) is shown on the image, and
+    a bar above it; outside the frame the image is darker.
+
+     ・ Dragged inside, the frame moves; dragged at a side or a corner (the
+        white squares), its size changes; dragged outside it (or anywhere
+        while it is the whole image), a new frame is drawn. Dragging outside
+        the image scrolls as before.
+
+     ・ Detect the Edges: the frame takes what is inside the border of the
+        color of the edges of the image: for a small thing scanned on a sheet
+        of A4 or taken on a black cloth: one color (white, black, ...) around
+        it. The shadows of the edges of the scanner and dust are left out, a
+        small margin is kept. The result is the frame, to be put right by hand
+        before saving.
+
+     ・ Settings (≡): the color tolerance (40 by default: larger for a noisy
+        scan, smaller for a pale thing), the margin (px, 8 by default), the
+        quality (JPEG, WebP; 90 by default), keeping the information of the
+        file (EXIF, ...), copying the comment and the tags given by hand.
+
+     ・ Ratio: free, the one of the image, 1:1, 4:3, 3:2, 16:9; standing or
+        lying as the frame does.
+
+     ・ The size of the frame is shown in pixels of the image.
+
+     ・ Save [Enter]: saved next to the image as "name_crop.jpg" (in the
+        format of the image; JPEG when gdk-pixbuf cannot write it, PNG with
+        transparency). When the name is taken, -1, -2, ... is added: nothing
+        is overwritten. A "Show" button then chooses the new image in the
+        thumbnail window.
+
+     ・ Stop [Esc]: stops cropping; going to another image or turning it stops
+        it too.
+
+    The image is cropped in its full size, turned as it is shown (rotation,
+    flip). It is read, its edges found and the part saved in threads.
+
+Edit Tags...
+    Only with the image index. Edits the tags of the selected images (in the
+    image window, the image shown) (2.6). No key by default.
+
+Bookmark...
+    Bookmarks the selected images (in the image window, the image shown) and
+    shows a field for a note (2.5). No key by default.
+
+Options... [Ctrl + O]
+    Shows the preferences dialog.
+
+    See 7 for the settings.
+
+Keyboard Shortcuts...
+    Shows the keys of the menu items of the thumbnail window (with the
+    preview) and the image window, and the other keys (the right button menu,
+    completing a path, the navigator, the display modes of the thumbnail
+    window), to change them. Click the key of a row and press the new key:
+    Escape leaves it as it was, Backspace leaves the item without a key. When
+    the key is the key of another item of the same window, you are asked
+    whether to take it away from that item. The undo button of a row, or
+    "Reset All to Defaults...", brings back the default. A key changed works
+    at once (the keys of the display modes from the next start) and is written
+    in ~/.gimv/keyaccelrc or ~/.gimv/keyconf. The entry at the top narrows the
+    rows by a part of the name or of the key ("ctrl+t").
+
+4.3. View
+
+Sort File List
+    Thumbnail window only. Sorts the thumbnail view in the order chosen.
+
+    The order applies to the active tab and to all tabs opened afterwards.
+
+    Like the selection, GImageView keeps the order of each tab, so tabs that
+    are not open keep their order. These orders can be chosen:
+
+     ・ by Name
+
+     ・ by Access Time
+
+     ・ by Date Taken (the date of the image index: the "Date" of the comment,
+        EXIF, a date in the file name, the modification time, in this order;
+        the modification time for an image outside the index. "Reverse Order"
+        puts the newest first)
+
+     ・ by Change Time
+
+     ・ by Size
+
+     ・ by Type
+
+     ・ by Image Width
+
+     ・ by Image Height
+
+     ・ by Image Area
+
+    "Reverse Order", "Case Insensitive" and "Mix Directories and Files" can be
+    set as well.
+
+Layout
+    Thumbnail window only. Changes the layout of the views (directory,
+    thumbnail and preview) of the thumbnail window: Layout 0 to 4 (Ctrl + 0 to
+    4) or Custom. For the custom layout, see "About the custom layout" in the
+    Tips.
+
+    In the GTK 4 version the layouts are shown as a row of buttons with
+    pictures of the arrangement. In the pictures, D is the directory view, T
+    the thumbnail view and P the preview. The tooltip of a button shows the
+    name and the shortcut key (Ctrl + 0 to 4). The picture of Custom shows the
+    current custom layout.
+
+Layout | Window Composition
+    Thumbnail window only. Chooses the arrangement of the views (directory,
+    thumbnail and preview) of the thumbnail window from the prepared
+    compositions.
+
+    In the GTK 4 version the compositions are shown as buttons with pictures
+    of the arrangement. The tooltip of a button shows its name.
+
+Slideshow [Ctrl + S]
+    Thumbnail window only. Starts a slideshow of the active tab.
+
+    The slideshow is set up in 7.5.
+
+Slideshow Options
+    Thumbnail window only. The order and the files of the slideshow.
+
+     ・ Start from the First / Start from the Selected / Random Order: the
+        order.
+
+     ・ Selected Only: shows only the selected images.
+
+     ・ Images and Movies / Images Only / Movies Only: the kinds of files
+        shown.
+
+Zoom
+    Image window only. Zooms (enlarges or reduces) the image view and sets
+    "Keep Aspect Ratio".
+
+    There are Zoom In [S], Zoom Out [A], Fit to Window [W], Fit Width [Shift +
+    W], Fit Height [Shift + H], Keep Aspect Ratio [Shift + A], and 10% to 200%
+    [1 to 9]. For other scales use the toolbar.
+
+    When "Keep Aspect Ratio" is checked, the aspect ratio is kept when the
+    image view is enlarged or reduced.
+
+Rotate
+    Image window only. Rotates the image view: Rotate 90 Degrees Clockwise
+    [R], Rotate 90 Degrees Counterclockwise [E], Rotate 180 Degrees [D].
+
+Ignore Alpha Channel
+    Image window only. Shows the image without its transparency.
+
+Checkerboard Behind Transparency
+    Image window only. The background of images with transparency is shown as
+    a gray checkerboard. The initial state follows Show a checkerboard behind
+    transparent parts of images in [Preferences | Image Window].
+
+Directory View [Shift + D]
+    Thumbnail window only. Shows or hides the directory view.
+
+Preview [Shift + P]
+    Thumbnail window only. Shows or hides the preview.
+
+Menubar [M]
+    Shows or hides the menu bar.
+
+Toolbar [N]
+    Shows or hides the toolbar.
+
+DirView Toolbar [Shift + N]
+    Thumbnail window only. Shows or hides the toolbar of the directory view.
+
+Slideshow Player [Shift + N]
+    Image window only. Shows or hides the toolbar for controlling slideshows.
+
+Statusbar [V]
+    Shows or hides the status bar.
+
+Scrollbar [Shift + S]
+    Image window only. Shows or hides the scroll bars.
+
+Tab [B]
+    Thumbnail window only. Shows or hides the tabs of the thumbnail view.
+
+Tab (Preview) [Shift + Z]
+    Thumbnail window only. Shows or hides the tabs of the preview.
+
+Player
+    How the toolbar for playing movies and audio is shown: "Show", "Hide" or
+    "Auto". "Auto" shows it only while a movie or audio file is shown.
+
+View Modes
+    Image window only. Switches the way of showing (image display, the movie
+    and audio plugins).
+
+Fit to Image [I]
+    Image window only. Resizes the image window to the size of the image view
+    (the size of the image shown). This is the same as [Fit Window Size to
+    Image] of the toolbar.
+
+    The scale of the image view (the size of the image shown) does not change;
+    the image window is resized.
+
+Maximize [F]
+    Maximizes the window or restores it.
+
+Fullscreen [Shift + F]
+    Image window only. Turns fullscreen on or off.
+
+4.4. Tab
+
+This menu exists only in the thumbnail window.
+
+Tab Position
+    Changes the position of the tabs: Top, Bottom, Left or Right.
+
+First Page [K]
+    Makes the first (leftmost) tab active.
+
+Last Page [J]
+    Makes the last (rightmost) tab active.
+
+Next Page [L]
+    Makes the next tab (one to the right) active.
+
+Previous Page [H]
+    Makes the previous tab (one to the left) active.
+
+Move Tab Forward [Shift + F]
+    Moves the active tab one place to the left.
+
+Move Tab Backward [Shift + B]
+    Moves the active tab one place to the right.
+
+Detach Tab [Ctrl + D]
+    Detaches the active tab into a new thumbnail window.
+
+4.5. Action
+
+This menu exists only in the thumbnail window.
+
+Focus
+    Moves the keyboard focus to the Directory View [Shift + Alt + D], the
+    Thumbnail View [Shift + Alt + T], the Preview [Shift + Alt + P] or the
+    Location Entry (the directory field of the toolbar) [Shift + Alt + L].
+
+4.6. Tools
+
+This menu exists only in the thumbnail window.
+
+Clear All Caches
+    Deletes all thumbnail caches of the format of "Cache type for saving" in
+    [Preferences | Thumbnail Cache].
+
+Missing Images...
+    Opens the list of the images with comments (tags) that went missing, whose
+    comments can be put on where they went or on another image, or deleted
+    (2.6). Only with the image index.
+
+Search Images...
+    Opens the window to find images of the index by tags, people and a period
+    (2.8). Only with the image index.
+
+Find Duplicates...
+    Looks for the duplicate images among all the images of the active tab (the
+    selection does not matter) and opens the result window. One search sorts
+    them into three kinds:
+
+     ・ Identical: the same files (the same bytes).
+
+     ・ Other Sizes: the same picture in other sizes (pixels): the same shape,
+        none of the same size. Copies are included.
+
+     ・ Similar: other similar pictures (edited, saved again, other shots).
+        How similar is set by "Accuracy" in [Preferences | Search].
+
+    On the left are the groups: the kind, the number of images, and how many
+    are to delete (and their size). The images of the group selected are side
+    by side on the right to compare: the size, the file size, the format, the
+    date taken, how alike the first, the folder, and whether it has a comment.
+    A click on a picture shows it in the thumbnail window (what it does is set
+    in [Preferences | Search]).
+
+    Each image is marked "Keep" or "Delete". In the Identical and Other Sizes
+    groups the one with the most pixels (then the largest file, the oldest) is
+    kept and the others are to delete; in the Similar groups all are kept.
+    "Move to Trash..." at the top right moves the images to delete of the
+    group shown, and only those, to the trash after asking (they can be put
+    back from the trash): a group at a time, to be careful. The question names
+    the files and says so when all of the group are to delete (then "Cancel"
+    is the default) or some have comments. Then the next group is shown. With
+    more than one group, "Move All Marked to Trash..." at the bottom moves
+    those of all the groups at once (the groups with every image to delete are
+    left out).
+
+    Before they are moved, the images to delete are compared with the image
+    kept again (Identical groups): a file changed since is not moved. When
+    some of them have comments (tags) or bookmarks, "Move Them to the Kept
+    Ones and Trash" can be chosen: a comment moves to the image kept when it
+    has none, else its tags are added to those of it (a comment of tags only
+    is then deleted); a bookmark moves when the image kept has none. With
+    "Move to Trash Only" the comment files stay.
+
+    When the file names mean something, "Trash and Leave Links" (Identical
+    groups only) moves each file to the trash and puts a link to the image
+    kept under its name: a hard link on the same file system (no space used,
+    not broken when the image kept is moved), else a symbolic link (the
+    absolute path of the image kept). The comments, tags and bookmarks stay
+    with the name. When the link cannot be made, the file is not moved either.
+
+    The window reads the pictures itself: the images the thumbnail view has
+    not loaded are shown too. It can be used while it searches: the Identical
+    groups come first, all of them at the end. The images in archives are not
+    compared. How they are found and sorted: see "How duplicates are found".
+
+Find Duplicates in the Index...
+    Looks for the same files (Identical) among all the indexed images and
+    opens the same result window: the same files in different folders are
+    found too. The index has looked for them before, so nothing is read and
+    they are shown at once. This needs "Look for the same files" in
+    [Preferences | Index].
+
+    The index reads only the images of the same size (bytes) as another one,
+    after the rest: the first 64 KB are compared, and the whole files only
+    when those are the same. The images of the same name and size (saved again
+    in another folder) come first, so those are found at once. With many
+    images the first time may take hours; meanwhile the status bar says
+    "Index: same files n%", and the window shows what is found so far. Hard
+    links to one file count as one. Other sizes and similar pictures are not
+    looked for here (Find Duplicates on the images of a tab does that).
+
+    Below a folder only: "Find Duplicates with the Folders in It..." of the
+    directory view; the same files as an image: "Find the Same Files" of the
+    thumbnail view.
+
+Set as Wallpaper
+    Makes the selected image the wallpaper of the desktop. "This Desktop" uses
+    the command for the running desktop (environment variable
+    XDG_CURRENT_DESKTOP). Below it are items for each desktop: Xfce, GNOME,
+    KDE Plasma and others.
+
+    Images other than JPEG and PNG, and images in archives, are converted to
+    PNG in ~/.gimv/wallpaper/ and that file becomes the wallpaper. The items
+    and commands can be changed with wallpaper_menu in ~/.gimv/gimvrc.
+
+4.7. Go
+
+This menu exists only in the image window.
+
+Next [L]
+    Shows the next image.
+
+Previous [H]
+    Shows the previous image.
+
+First [K]
+    Shows the first image.
+
+Last [J]
+    Shows the last image.
+
+4.8. Movie
+
+This menu exists only in the image window. It can be used while a movie or
+audio file is shown.
+
+A song (m4a, mp3, flac, ogg, ...) with album art in it shows the art while it
+plays, and the art is its thumbnail (the GStreamer plugin). The art is shown
+at its own size (smaller only when the place is smaller), and the zoom of
+images (zoom in, zoom out, the percentages, fit to window) changes its size. A
+song without album art shows a black screen as before and has no thumbnail.
+
+Play / Stop / Pause / Forward / Reverse
+    Controls the playback of movies and audio.
+
+Continuous Play
+    When playback ends, the next file is opened and played. The initial state
+    follows continuous play in [Preferences | Movie and Audio].
+
+Eject
+    Can be used while the Xine plugin shows the file. While stopped, it lets
+    you choose an input plugin of xine, and the list of what that plugin can
+    play (MRLs) is shown instead.
+
+Volume / Mute
+    At the right end of the control bar under the movie (not in the menu). The
+    speaker button turns the sound off and on, and the slider next to it sets
+    the volume (the mouse wheel too). Moving the slider while the sound is off
+    turns it on again. The volume and the mute are the same for all the
+    windows and are kept after quitting. With the GStreamer and the MPlayer
+    plugins (with MPlayer it is mplayer's own volume, not the sound card's).
+
+4.9. Help
+
+Manual
+    Shows the manual.
+
+Document
+    Shows the documents that come with GImageView.
+
+About
+    Shows the version, license, authors and developers of GImageView.
+
+5. Toolbar
+==========
+
+This section describes the buttons of the toolbars. The numbers in the toolbar
+pictures match the numbers of the items. For buttons that have the same
+function in the menu bar, see also the menu items (section 4).
+
+The item names follow the tooltips shown when the pointer is on a button.
+
+5.1. Thumbnail Window
+
+1 Open File
+    The same as [File | Open...].
+
+2 Preferences
+    The same as [Edit | Options...].
+
+3 Go to previous page
+    Makes the previous tab (one to the left) active. The same as [Tab |
+    Previous Page].
+
+4 Go to next page
+    Makes the next tab (one to the right) active. The same as [Tab | Next
+    Page].
+
+5 Reload Cache
+    The same as [Edit | Reload Cache].
+
+6 Skip creating the current thumbnail table
+    While "Load Thumbnails Recursively" of the directory view mouse menu runs,
+    skips loading the thumbnails of the current directory.
+
+    A skipped tab (directory) shows only the file names. It cannot be used
+    while no thumbnails are being created.
+
+7 Stop creating thumbnails
+    Stops "Load Thumbnails Recursively" of the directory view mouse menu
+    completely. It cannot be used while no thumbnails are being created.
+
+8 Thumbnail Size
+    Changes the thumbnail size.
+
+    Enter a value here and press Enter, then use "Reload Cache" or "Update All
+    Thumbnails"; the thumbnails are then made in the new size.
+
+    To apply it with a shortcut key instead of the menu, press ESC to move the
+    focus out of the size field first; otherwise the key is typed into the
+    field.
+
+    The change applies only to the tab that was active.
+
+    For how the cache is reloaded, see "The difference between Refresh List,
+    Reload Cache and Update All Thumbnails" in the Tips.
+
+9 Directory field
+    Shows the path of the active tab.
+
+    When a directory that has no tab yet is entered here, a new tab is opened
+    only if the directory contains images. Tab completion can be used here.
+
+10 Display mode of the thumbnail view
+    Changes the display mode of the active tab. The setting applies only to
+    the active tab. These six can be chosen. The pictures below show the
+    thumbnail view of an enlarged window.
+
+    Album: the thumbnails are arranged in rows with the file name below each
+    one.
+
+    Album2: small thumbnails with the file names, arranged from top to bottom.
+
+    Album3: the file name, size and modification time beside each thumbnail,
+    arranged from top to bottom and continued in the next column.
+
+    Detail: a table of the file name, image size, size, type and so on. The
+    columns are chosen in [Preferences | Thumbnail Window | Thumbnail View |
+    Detail View] (section 7.3.2.3).
+
+    Detail + Icon: "Detail" with a small thumbnail at the start of each row.
+
+    Detail + Thumbnail: "Detail" with a thumbnail at the start of each row.
+
+5.2. Directory View
+
+1 Home
+    Moves the cursor of the directory view to the home directory of the user
+    and closes all trees. The thumbnail view is not affected.
+
+2 Up
+    Moves the top directory one level up.
+
+    This is useful after Go Here of the mouse menu.
+
+3 Refresh
+    Refreshes the directory view.
+
+    Used mainly to show directories created or deleted from the command line.
+
+4 Show/Hide dotfiles
+    Shows or hides the dot directories in the directory view.
+
+5.3. Image Window
+
+Zooming (enlarging and reducing) and fitting the image window and image view
+are affected by Auto resize to image size in [Preferences | Image Window]:
+depending on it, the image window is resized automatically or not.
+
+When Keep aspect ratio is set, the aspect ratio of the image view is kept when
+it is enlarged or reduced.
+
+1 Open File
+    The same as [File | Open...].
+
+2 Preferences
+    The same as [Edit | Options...].
+
+3 Previous Image
+    The same as [Go | Previous].
+
+4 Next Image
+    The same as [Go | Next].
+
+5 No Zoom
+    Shows the image view in the original size of the image (100%).
+
+6 Zoom in
+    Increases the scale of the image view by 5%.
+
+7 Zoom out
+    Decreases the scale of the image view by 5%.
+
+8 Zoom to fit
+    Enlarges or reduces the image view to the size of the image window.
+
+9 X Scale / Y Scale
+    Sets the scale (%) of the image view.
+
+    When the aspect ratio is kept, only the X scale is shown. Otherwise the Y
+    scale is shown to its right, and the X and Y scales can be set separately.
+
+10 Zoom
+    Zooms (enlarges or reduces) the image view to the values entered in the
+    scale fields.
+
+11 Rotate the image
+    Chooses the orientation of the image: 0, 90 degrees clockwise, 180 or 90
+    degrees counterclockwise.
+
+12 Fit Window Size to Image
+    Resizes the image window to the size of the image view. The same as [View
+    | Fit to Image].
+
+13 Fullscreen
+    Shows the image fullscreen.
+
+    Pressing the button again returns to the window.
+
+6. Mouse Menus
+==============
+
+This section describes the menus shown with a mouse button (mouse menus). With
+the default settings they are shown by pressing the right button. The
+assignment can be changed on the "Mouse Buttons" pages of the preferences
+(section 7). For items that are also in the menu bar, see also section 4.
+
+6.1. Tab
+
+Right-clicking the tabs shows the list of the tabs. It can be used to move to
+any tab.
+
+It is useful when many tabs were created, for example by reading directories
+recursively.
+
+6.2. Thumbnail View
+
+The mouse menu of the thumbnail view. When several files are selected, it
+applies to all selected images.
+
+Open
+    Exists only when the menu is shown on a directory or an archive. Opens the
+    thumbnails of that directory or archive.
+
+Open in New Window
+    Opens the selected images, each in a new image window. When several are
+    selected, that many image windows are created.
+
+Open in Shared Window
+    Opens the image in the shared image window. When there is no shared image
+    window yet, it is created; otherwise it is reused. This command cannot be
+    used when more than one file is selected.
+
+Open in External Program
+    Passes the selected files to a registered external program. For the list
+    of external programs see 7.11.
+
+Scripts
+    Passes the selected files to a registered script. For the settings of
+    scripts see 7.11.1.
+
+Update Thumbnail
+    Creates the thumbnails of the selected images again.
+
+Remove from List
+    This command works only in collection tabs.
+
+    Removes the files from the list. The files themselves are not deleted.
+
+Print...
+    Prints the selected images. The same as [File | Print...].
+
+Properties...
+    Shows the properties of the file. The permissions and the owner of the
+    file can be changed. The name and the type can be selected and copied;
+    long ones are shown cut (the whole in the tooltip). "Copy" next to the
+    name puts the full path on the clipboard.
+
+Copy Path
+    Puts the full paths of the images selected on the clipboard (one a line).
+
+Show EXIF Data...
+    Exists when built with EXIF support. Shows the EXIF data of the image.
+    Built with gexiv2 (Exiv2), the EXIF data of the formats other than JPEG
+    (TIFF, raw files, PNG, WebP, HEIF, ...) too (without it, JPEG only, and
+    the item is not there for the other formats).
+
+Edit Comment...
+    Edits the comment of the image selected (2.4).
+
+Open the Folder
+    Opens the folder of the image in the thumbnail window, with the image
+    selected. Useful in tabs with images of many folders (the results of the
+    index or of a search).
+
+Find the Same Files
+    Looks for the same files as the images selected among all the indexed
+    images and opens the result window of the duplicates (Find Duplicates in
+    the Index).
+
+Edit Tags...
+    Only with the image index. Edits the tags of the images selected (2.6).
+
+Bookmark...
+    Bookmarks the selected images and shows a field for a note (2.5).
+
+Rename... / Copy Files To... / Move Files To... / Link Files To... / Remove
+Files...
+    The same as the items of the [Edit] menu.
+
+Save Smaller...
+    Saves the selected images smaller, as new files. The original files are
+    not changed. Useful to make photos take less space.
+
+    You can choose which of the height, the width or the longer side to keep
+    at or below how many pixels (800 px of the height by default), the quality
+    of JPEG and WebP, and what to add to the names ("_resized" by default:
+    big_resized.jpg for big.jpg, in the same folder). When a file of the same
+    name is already there, -1, -2, ... is added to the name; nothing is
+    overwritten. The EXIF orientation is applied to the pixels.
+
+    You can also choose whether to keep the shooting information (EXIF etc.),
+    whether to leave out the location (GPS) then, and whether to copy the
+    comments and tags. Images already smaller than the size are copied as they
+    are. Images in formats gdk-pixbuf cannot write are saved as JPEG.
+
+    The size and the file size of the first image after saving are estimated
+    in the dialog. Saving runs in the background, so you can keep working;
+    [Stop] stops the rest. When it is done, [Show the Saved Image] chooses the
+    image saved.
+
+Join Images...
+    Joins the two or more selected images into one, saved as a new file. The
+    images are not changed.
+
+     ・ Images: the order they are joined in; ↑ ↓ move the image chosen.
+
+     ・ Arrange: one below another, side by side, in a grid (with the number
+        of columns).
+
+     ・ Size: the width (the height side by side) made the one of the
+        smallest, of the largest, or not changed (then centered, white
+        around).
+
+     ・ Look for overlaps: for the pieces of one photo that overlap where they
+        meet, the end of an image and the start of the next most alike are
+        found and put over each other (a little different JPEG too). A plain
+        part (white) is not taken as an overlap.
+
+     ・ Seam, Overlap: the overlap (px) of each seam can be put right with the
+        slider or the number; "Seam" chooses which (1 and 2, 2 and 3, ...).
+        Beside it, (found: n px) is the overlap found, or (none found).
+
+     ・ How the seam is shown: in the whole image above, the seams are red
+        dashed lines (the one chosen darker). Below, the seam chosen is shown
+        near its own size: one below another, the end of the image before
+        above and the start of the next below. Two pairs of red triangles at
+        the sides: the first (upper, left) is where the next image begins, the
+        second (lower, right) where the one before ends; between them they
+        overlap (one pair with no overlap). The next image is shown from the
+        first pair on, so they match when the picture goes on there without a
+        step.
+
+     ・ As the difference: the band where they overlap (between the triangles)
+        is shown as the difference of the two images: black when they match,
+        the outlines of things bright when they do not. Changing the number
+        one by one to find where the band is darkest is the easy way to match
+        them.
+
+     ・ When no overlap is found: where they overlap only in a plain part (a
+        sky, a white background), it may not be found (it looks the same
+        anywhere). Then put the overlap in by hand, by something seen in both
+        images (an edge, letters).
+
+     ・ The quality (JPEG, WebP; 90 by default), keeping the information
+        (EXIF, ...) of the first file, copying the comment and the tags given
+        by hand of the first one.
+
+    Saved next to the first image as "name_join.jpg" (in its format; JPEG when
+    gdk-pixbuf cannot write it), never over another file (-1, -2, ... is
+    added). The EXIF orientation is applied first. The images are read, the
+    overlaps found and the image saved in threads. [Show the Saved Image] then
+    chooses it in the thumbnail window.
+
+6.3. Directory View
+
+Besides the tab of the directories, the directory view has the Date, Tag and
+People tabs of the image index (2.6, 2.7) and the Bookmarks tab (2.5), chosen
+with the icons at its top. Each has its own right button menu.
+
+6.3.1. The directory tab
+
+Only one directory can be selected in the directory view, so the commands
+always apply to the directory under the mouse cursor.
+
+Load Thumbnails
+    Reads the directory under the cursor and shows it in the thumbnail view.
+    The first time, a new tab is created; when it was already read, its tab
+    becomes active.
+
+Load Thumbnails Recursively
+    Reads the directory under the cursor and everything below it. A tab is
+    created for each directory.
+
+Load Thumbnails Recursively in One Tab
+    Reads the directory under the cursor and everything below it, and shows
+    all images in one tab.
+
+Edit Tags with the Folders in It...
+    Edits the tags of all the images in the directory under the cursor and in
+    the directories below it (2).
+
+Find Duplicates with the Folders in It...
+    Looks for the images in the directory under the cursor and in the
+    directories below it that have the same files, also in other folders (Find
+    Duplicates in the Index).
+
+Go Here
+    Makes the directory under the cursor the top of the directory view.
+
+Refresh Tree
+    Refreshes the directory view. Used to show directories created, moved or
+    deleted from the command line.
+
+Properties...
+    Shows the properties of the directory. The permissions and the owner can
+    be changed.
+
+Make Directory...
+    Creates a new directory in the directory under the cursor.
+
+Rename Directory...
+    Renames the directory under the cursor.
+
+Delete Directory...
+    Deletes the directory under the cursor after a confirmation dialog.
+
+6.3.2. The Date tab
+
+Open
+    Shows the images of the row (a year, a month, a day) in the result tab of
+    the thumbnail view, as a click on the text of the row (2.6).
+
+Open in New Tab
+    Shows them in a new tab instead of the result tab. A click with the middle
+    button does the same.
+
+6.3.3. The Tag tab
+
+Open, Open in New Tab
+    As in the Date tab (6.3.2).
+
+Rename... (F2)
+    Renames a tag added by hand (2.6); not the tags the index makes (folders,
+    cameras, shapes, ...).
+
+Do Not Make This Folder Name a Tag
+    On the automatic tag of a folder name: adds the folder name to "Folder
+    Names Not Made Tags" of [Preferences | Index | Automatic Tags], and the
+    tag goes (2.6). Not while the preferences window is open.
+
+6.3.4. The People tab
+
+Open, Open in New Tab
+    As in the Date tab (6.3.2).
+
+Show the Faces...
+    Opens the faces of the person (or of the unnamed group, of the name
+    guessed) in the faces window, where they can be named or a wrong face
+    taken out (2.7).
+
+Rename... (F2)
+    Renames a tag of people (2.7); the names of the people are changed in the
+    faces window.
+
+6.3.5. The Bookmarks tab
+
+Open, Open in New Tab
+    Show the bookmarked images of the row (all, a month, with a note, without
+    a note), as in the Date tab (6.3.2).
+
+6.4. Preview
+
+The mouse menu of the preview has Zoom, Rotate, Ignore Alpha Channel,
+Checkerboard Behind Transparency, Movie, View Modes, Show Scrollbar [Shift +
+S], Create Thumbnail [Shift + T], Memory Buffer [Ctrl + B], Save Image As...
+and Print.... Each item is the same as the item in the menus of the image
+window (4.1 to 4.3, 4.8).
+
+6.5. Image View
+
+The mouse menu of the image view in the image window is the same as the [View]
+menu of the image window (4.3).
+
+The GTK 4 port adds these items (also in the right button menu of the
+preview):
+
+ ・ Rotate - Flip Horizontally (X) : turns the image over left and right;
+    remembered for each image, as the rotation.
+
+ ・ Copy the Image to the Clipboard (Shift+Ctrl+C) : copies the image shown to
+    the clipboard.
+
+ ・ Crop Image... (C) : crops the image shown and saves the part as a new file
+    (4.2).
+
+ ・ Edit Faces (People) (P) : opens the faces panel, to name the faces in the
+    image (2.7). Only with face recognition.
+
+ ・ Open the Folder : opens the folder of the image in the thumbnail window.
+
+ ・ Edit Tags... : edits the tags of the image shown (2.6). Only with the
+    image index.
+
+ ・ Bookmark... : bookmarks the image shown (2.5).
+
+7. Preferences
+==============
+
+This section describes the items of the preferences dialog.
+
+7.1. Common
+
+File Open Window
+    The window a file is opened in when it is given on the command line or
+    chosen with "OK" in the file open dialog.
+
+    Where nothing like "Open in ... window" is specified, this setting decides
+    the window.
+
+Directory Open Window
+    The window a directory given on the command line is opened in.
+
+Archive Open Window
+    The window an archive given on the command line is opened in.
+
+Scan directories recursively
+    Directories given on the command line are always read recursively.
+
+    This is the same as the command line option -dR.
+
+Follow symbolic links / Do not follow symbolic links
+    Whether directories that symbolic links point to are read when reading
+    recursively.
+
+Interpolation type for scaling
+    The interpolation used when an image is scaled. One of these four:
+
+     ・ Nearest: nearest neighbor. The fastest, but the result is coarse.
+
+     ・ Tiles: like Nearest when enlarging; averages the pixels when reducing.
+
+     ・ Bilinear: bilinear interpolation. A good balance of speed and quality.
+
+     ・ Hyperbolic: the best quality, but slow.
+
+Color scheme
+    The colors of the windows. One of these three; the change is used at once
+    (Apply or OK). This item was added in the GTK 4 version (Desktop theme by
+    default).
+
+     ・ Desktop theme: the theme chosen on the desktop (gtk-theme-name of GTK;
+        on X11 the XSETTINGS value Net/ThemeName). GTK 4 cannot read themes
+        without a gtk-4.0 directory (themes for GTK 2/3) and shows the light
+        Adwaita instead. If the name of such a theme contains "dark"
+        (Greybird-dark, for example), the dark Adwaita is used.
+
+     ・ Light: light colors. If the name of the theme ends with "-dark", the
+        theme of the name without it is used, or Adwaita if GTK 4 cannot read
+        that theme.
+
+     ・ Dark: dark colors. If the theme has no dark version (gtk-dark.css),
+        the dark Adwaita is used.
+
+    If the environment variable GTK_THEME is set, GTK uses that theme and this
+    item has no effect. The icons of GImageView drawn only with black lines
+    (Zoom, Show/Hide dotfiles, ...) are drawn with light lines in dark colors.
+
+Use icons of the desktop icon theme for buttons
+    Toolbar and other buttons use icons of the desktop icon theme (Adwaita,
+    Papirus, ...). Buttons with no matching icon in the theme, and the icons
+    of the directory tree, use the icons of GImageView. Windows opened after
+    the change use it. This item was added in the GTK 4 version (on by
+    default).
+
+    To use your own icons, put files named after the icons (back.png,
+    zoom_in.svg, refresh.xpm, ...; PNG, SVG and XPM can be used) in ~/.gimv/
+    icons/<name>/ and write that name as iconset= in ~/.gimv/gimvrc. These
+    icons take precedence over the icons of the theme.
+
+Always show the scrollbars
+    Shows the scrollbars of the lists and other views all the time. Off: as
+    GTK 4 does by default, they are shown over the contents only while the
+    pointer is near them. Added in the GTK 4 port (on by default).
+
+Open thumbnail window
+    Whether a thumbnail window is always opened when GImageView starts.
+
+Ignore directories
+    Directories given as arguments are ignored.
+
+No warning
+    Suppresses the warning messages shown when started from the command line.
+
+Show splash window
+    Whether the splash window (logo image) is shown at startup. This item was
+    added in the GTK 4 version.
+
+7.1.1. Filtering
+
+File type
+    The list of file name extensions and their file types (MIME types). Files
+    with an extension whose status is "Disable" are not read.
+
+    Enter an extension and a file type in the fields below the list and press
+    "Add" to register a new pair. A registered pair can be selected and
+    changed ("Change") or deleted ("Delete"). Checking "Disable" disables the
+    extension. "System defined" pairs cannot be deleted.
+
+Read dotfiles
+    Whether image files and directories whose names begin with "." are opened.
+    The directory view has its own setting (7.3.3) and does not follow this
+    one.
+
+Ignore file name extension
+    Files are not distinguished by their extensions; all files are candidates
+    for reading.
+
+7.1.2. Character Set
+
+Locale character set
+    The character set of the locale, used for the comments of images.
+
+Internal character set
+    The character set GImageView uses internally.
+
+Language for auto detecting
+    The language GImageView detects automatically.
+
+Character set of file names
+    The character set used, for example, to display file names. Choose from
+    "Never convert", "Locale", "Auto detect" and "Any"; with "Any", enter the
+    character set in the field to the right.
+
+7.2. Image Window
+
+Save window state on exit
+    The window size, the visibility of the bars and so on are saved on exit
+    and used at the next start. When this is off, "Initial window size" and
+    the "Show/Hide" items set the initial state.
+
+Initial window size
+    The size (width and height) of a new image window.
+
+Auto resize to image size
+    A new image window is resized to the size of the image automatically.
+
+    In detail: the image window is first created with the "Initial window
+    size" above; then, when this option is on, it is resized to the size of
+    the image. Since this takes two steps, it takes more time.
+
+Open each file in separate window
+    A new image window is created for each file: as many image windows as
+    files opened. These windows are never shared.
+
+Raise the window when opening an image in the shared window
+    The shared image window is raised when an image is opened with "Open in
+    Shared Window" of the thumbnail mouse menu.
+
+Menubar / Toolbar / Slideshow player / Statusbar / Scrollbar
+    Whether each bar is shown in a new image window. It can be set when Save
+    window state on exit in [Preferences | Image Window] is off.
+
+    The scroll bars are shown only in the directions in which the image does
+    not fit in the window. When this item is off, they are not shown even
+    then.
+
+Player toolbar
+    How the toolbar for playing movies and audio is shown: "Show", "Hide", or
+    "Auto", which shows it only while a movie or audio file is shown.
+
+Specify the background color
+    When checked, the background of images is painted with the color chosen
+    with "Choose Color".
+
+Show a checkerboard behind transparent parts of images
+    The background of images with transparency is shown as a gray
+    checkerboard. This item was added in the GTK 4 version (on by default).
+
+Specify the background color in fullscreen
+    When checked, the background in fullscreen is painted with the color
+    chosen with "Choose Color".
+
+7.2.1. Image
+
+Settings for showing images in the image window.
+
+Zoom
+    The size an image is shown in. One of:
+
+     ・ Default image scale: the "Default Image Scale" below.
+
+     ・ Do not change: the scale of the image shown before.
+
+     ・ Fit image to window: enlarges or reduces the image to the size of the
+        window.
+
+     ・ Fit image to window (zoom out only): reduces only images larger than
+        the window (default).
+
+     ・ Fit image to width / Fit image to height: fits the width or the height
+        to the window.
+
+Rotation
+    The orientation an image is shown in. Besides 0, 90 degrees
+    counterclockwise, 180 and 90 degrees clockwise, "Do not change" (the
+    orientation of the image shown before) can be chosen. When built with EXIF
+    support, "Automatic EXIF" can be chosen too.
+
+Remember the rotation of each image (saved with its comment)
+    When an image is rotated, its orientation is saved where its comment is
+    kept, and the image is shown in that orientation the next time it is
+    opened. This item was added in the GTK 4 version (on by default).
+
+Keep aspect ratio
+    The aspect ratio (the ratio of width and height) is kept when an image is
+    enlarged or reduced.
+
+Default Image Scale
+    The default scale of images. It can be set when "Zoom" is "Default image
+    scale" or "Do not change".
+
+Keep the original image in memory
+    The image shown is kept in memory. For the effect, see "Making the image
+    view draw faster" in the Tips.
+
+7.2.2. Mouse Buttons
+
+Assigns functions to the mouse buttons. For each button (left, middle, right,
+wheel up and down, double click of the left button, and the side buttons
+"back" (button 8) and "forward" (button 9)), choose on the tabs of the
+modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it
+runs when the button is pressed or released. Buttons 8 and 9 do nothing by
+default.
+
+7.3. Thumbnail Window
+
+Save window state on exit
+    The window size, the layout, the visibility of each part and so on are
+    saved on exit and used at the next start. When this is off, "width",
+    "height", "Default Layout" and the "Show/Hide" items set the initial
+    state.
+
+width / height
+    The size of a new thumbnail window.
+
+Default Layout
+    The arrangement of the views (directory, thumbnail and preview) in the
+    thumbnail window: Layout0 to Layout4, or Custom. These are the same as
+    View | Layout of the menu.
+
+Show/Hide
+    Whether the directory view, the preview, the preview tab, the menu bar,
+    the toolbar, the status bar and the tabs are shown in a new thumbnail
+    window.
+
+Player toolbar
+    How the toolbar for movies and audio in the preview is shown. "Auto" shows
+    it only while a movie or audio file is shown.
+
+Raise window when opening thumbnails
+    Whether the window is raised when the thumbnails have been loaded.
+
+    This applies also to "Load Thumbnails Recursively": the thumbnail window
+    is raised each time the thumbnails of a directory have been loaded.
+
+Toolbar Style
+    Whether the toolbar buttons show an icon, text, or both.
+
+Show detail of loading progress
+    While thumbnails are loaded, the progress bar shows "loaded/total files"
+    and the name of the file being loaded.
+
+7.3.1. Tab
+
+Tab Position
+    The position of the tabs of the window.
+
+    This item takes effect only when "Save window state on exit" in
+    [Preferences | Thumbnail Window] is off.
+
+Move to new tab automatically
+    A new tab becomes the active tab.
+
+Show close button
+    A close button is shown at the right end of the current tab. Any tab is
+    also closed by a click on it with the middle button (whatever this
+    setting).
+
+Show full path
+    Tabs show the full path of the directory (archive). Off by default: they
+    show only the name of the directory (archive file). Either way the whole
+    path is shown when the mouse is on the tab.
+    When many tabs share a narrow place, the current tab keeps a width its
+    name can be read in and the others are shortened to a few characters; the
+    arrows at the ends of the tabs scroll them when they do not fit.
+
+Open a new tab even if the directory has no images
+    A tab is opened also for a directory that has no images.
+
+7.3.2. Thumbnail View
+
+Show/Hide
+    Whether directories and archives are shown in the thumbnail view.
+
+Default display mode
+    The default display mode of the thumbnail window. It can be set when Save
+    window state on exit in [Preferences | Thumbnail Window] is off.
+
+Thumbnail Size
+    The default thumbnail size. It can be set when Save window state on exit
+    in [Preferences | Thumbnail Window] is off.
+
+7.3.2.1. Mouse Buttons
+
+Assigns functions to the mouse buttons. For each button (left, middle, right,
+wheel up and down, double click of the left button, and the side buttons
+"back" (button 8) and "forward" (button 9)), choose on the tabs of the
+modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it
+runs when the button is pressed or released. Buttons 8 and 9 do nothing by
+default.
+
+7.3.2.2. Album
+
+Settings for the display modes "Album", "Album2" and "Album3". For pictures of
+the display modes, see the display mode of the thumbnail view in section 5.1.
+
+Row spacing
+    The space between rows of thumbnails.
+
+Column spacing
+    The space between columns of thumbnails.
+
+7.3.2.3. Detail View
+
+The columns shown in the display modes "Detail", "Detail + Icon" and "Detail +
+Thumbnail". The items in "Displayed columns" on the right are shown. "Add" and
+"Delete" move items, "Up" and "Down" change their order. "Show column title"
+shows or hides the column titles.
+
+The GTK 4 version adds the "Subject" and "Comment" (first line of the note)
+columns of the comments. To show them, move them to the right pane. When a
+comment is saved or deleted, the list shown is updated at once. In the album
+view, the subject and the note of an image with a comment are shown as a
+tooltip when the mouse is over it.
+
+The "Date taken" column shows the date of the image index (the "Date" of the
+comment, EXIF, a date in the file name, the modification time, in this order);
+the modification time for an image outside the index. A click on its title
+sorts by it, another click reverses the order (newest first), as [View | Sort
+File List | by Date Taken].
+
+The title of the column the list is sorted by has an arrow (up for ascending,
+down for reversed), also when it was sorted from the menu. A click on the
+title of "Image size" sorts by the area. The titles of the columns with no
+sort (Cache type, User, Subject, ...) cannot be clicked.
+
+7.3.3. Directory View
+
+Show toolbar
+    The toolbar of the directory view is shown.
+
+Show dotfiles
+    Dotfiles (directories beginning with ".") and "." and ".." are shown in
+    the directory view.
+
+Show the "." directory even when dotfiles are hidden
+    The "." directory is shown in the directory view even when "Show dotfiles"
+    is off.
+
+Show the ".." directory even when dotfiles are hidden
+    The ".." directory is shown in the directory view even when "Show
+    dotfiles" is off.
+
+7.3.3.1. Mouse Buttons
+
+Assigns functions to the mouse buttons. For each button (left, middle, right,
+wheel up and down, double click of the left button, and the side buttons
+"back" (button 8) and "forward" (button 9)), choose on the tabs of the
+modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it
+runs when the button is pressed or released. Buttons 8 and 9 do nothing by
+default.
+
+7.3.4. Preview
+
+Settings for showing images in the preview. "Zoom", "Rotation", "Keep aspect
+ratio", "Default Image Scale" and "Keep the original image in memory" mean the
+same as the items of the image window (7.2.1).
+
+Show scrollbar
+    The scroll bars are shown. It can be set when Save window state on exit in
+    [Preferences | Thumbnail Window] is off. They are shown only in the
+    directions in which the image does not fit.
+
+7.3.4.1. Mouse Buttons
+
+Assigns functions to the mouse buttons. For each button (left, middle, right,
+wheel up and down, double click of the left button, and the side buttons
+"back" (button 8) and "forward" (button 9)), choose on the tabs of the
+modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it
+runs when the button is pressed or released. Buttons 8 and 9 do nothing by
+default.
+
+7.4. Movie and Audio
+
+Default view mode for movie and audio
+    The plugin that plays movie and audio files (GStreamer, MPlayer or Xine,
+    those that are built in).
+
+Play the next file when a movie or audio file ends (continuous play)
+    When playback ends, the next file is opened and played. This item was
+    added in the GTK 4 version (off by default).
+
+Ignore mouse actions for next/previous image, zoom, rotation and scrolling
+while a movie or audio file is playing
+    Prevents mistakes during playback. A popup menu assigned to a mouse button
+    can still be used. This item was added in the GTK 4 version (off by
+    default).
+
+The pages "GStreamer", "MPlayer" and "Xine" below it set whether the plugin
+makes thumbnails of movies and the position used for them (stream position).
+The MPlayer and Xine pages also set the drivers. A page is shown for each
+built-in plugin.
+
+7.5. Slideshow
+
+Image change interval
+    The time each image is shown in a slideshow.
+
+Repeat slideshow
+    A slideshow normally ends after all images of the thumbnail view; with
+    this option it starts over.
+
+Image (Zoom / Rotation / Keep aspect ratio / Default Image Scale)
+    Settings for showing images in a slideshow. The items mean the same as
+    those of the image window (7.2.1).
+
+Background
+    When "Use specified color" is checked, the background of the slideshow is
+    painted with the color chosen with "Choose Color".
+
+7.6. Thumbnail Cache
+
+The file formats of the thumbnail cache for reading and writing.
+
+Cache reading
+    Caches of the formats in "Cache type to use" on the right are searched
+    from the top and read. "Add" and "Delete" move items, "Up" and "Down"
+    change their order.
+
+Cache writing
+    The format of the cache saved when a thumbnail is made. "Preferences"
+    changes the settings of the chosen format.
+
+freedesktop.org
+    A cache type added in the GTK 4 port: thumbnails of the freedesktop.org
+    Thumbnail Managing Standard in ~/.cache/thumbnails, shared with other
+    programs (Nautilus, Thunar, ...). A thumbnail older than its image is not
+    used. Thumbnails are kept turned by the EXIF orientation.
+
+Making thumbnails
+    "Use the thumbnail embedded in a JPEG (EXIF) when it is big enough": the
+    thumbnail of a JPEG is made fast from the start of the file. Off: always
+    made from the image itself (right also for an image edited by a program
+    that left its old thumbnail). Added in the GTK 4 port (on by default).
+
+7.7. Comment
+
+The keys of the comments (2.4) and the character set of the comment files.
+
+Key Name Definition
+    The list of the items (keys) of comments. Keys whose "Status" is disabled
+    are not used. For keys with "Auto" enabled, the value is set from the
+    image file automatically. Keys with "Display" enabled are shown in the
+    comment editor. The fields below the list create, add, change and delete
+    keys.
+
+Character set
+    The character set of the comment files.
+
+7.8. Index
+
+The image index (2.6) and face recognition (2.7). Only in a build with SQLite.
+Changes take effect after "Apply" or "OK", with the indexer started again.
+
+Index
+    "Index images by date" and "Directories to index": the images below these
+    directories are indexed. With "Look for the same files" on, the images of
+    the same size as another one are read after the rest, to find the same
+    files (Find Duplicates in the Index). The first time may take hours; it
+    goes on at the next start when GImageView is quit in the middle.
+
+Index | New Images
+    Whether new images are notified on the desktop, how long they are gathered
+    into one notification, the interval between two notifications, how long
+    one is shown, and the folders not to notify. Where the notifications
+    appear is set in the desktop's notification settings.
+
+Index | Automatic Tags
+    The kinds of automatic tags (folder name, camera, shape, the keywords of
+    other programs) and the folder names not made tags ("*" matches any
+    letters, "?" one; capitals and small letters are the same). Turning the
+    camera, the shape or the keywords on reads every image again, which takes
+    long with many images.
+
+Index | Faces
+    The folders to find faces in (inside the directories to index), and where
+    the model files are. When they are not found, where to put them and where
+    to get them (URLs) are shown. Only with face recognition.
+
+    The model files are these two, put in ~/.local/share/gimageview/models
+    (with these names; the quantized "_int8" and "_int8bq" ones next to them
+    are not used):
+
+     ・ face_detection_yunet_2023mar.onnx (finding faces, about 230 KB)
+
+     ・ face_recognition_sface_2021dec.onnx (comparing faces, about 39 MB)
+
+    They come from the OpenCV Zoo:
+
+     ・ GitHub (the URLs shown on the preferences page):
+        https://github.com/opencv/opencv_zoo/raw/main/models/
+        face_detection_yunet/face_detection_yunet_2023mar.onnx
+        https://github.com/opencv/opencv_zoo/raw/main/models/
+        face_recognition_sface/face_recognition_sface_2021dec.onnx
+
+     ・ Hugging Face (when GitHub does not give them; the README on GitHub
+        says the OpenCV Zoo moved there):
+        https://huggingface.co/opencv/face_detection_yunet/resolve/main/
+        face_detection_yunet_2023mar.onnx
+        https://huggingface.co/opencv/face_recognition_sface/resolve/main/
+        face_recognition_sface_2021dec.onnx
+
+    GImageView checks what is in the model files (SHA-256): a broken download,
+    or another file (another version) of the same name, is not used; then this
+    page and the tooltip of the status bar tell which file to download again
+    and its URL. The index records the model the features of the faces were
+    made with: when a new version of GImageView has another model, the
+    features are made again at the place of each face found (the faces, their
+    names and "not this person" stay; the status bar shows how far it is; the
+    faces of an image that cannot be read any more are looked for again when
+    it can be).
+
+Index | Missing Images
+    How many logs of the images with comments (tags) that went missing are
+    kept (0: none).
+
+7.9. Search
+
+Accuracy
+    How alike the pictures [Tools | Find Duplicates...] calls similar must be.
+    The default is 0.97: pictures that match 97% or more are similar. See "How
+    duplicates are found" for details.
+
+Behavior when selecting a thumbnail in the result window
+    What happens when a picture is clicked in the result window of the
+    duplicates: selecting the same thumbnail in the thumbnail view, showing
+    the image in the preview, in a new window, or in the shared window - each
+    can be turned on or off.
+
+7.10. Drag and Drop
+
+Enable DnD to external processes (experimental)
+    Enables drag and drop to other processes.
+
+Enable DnD from external processes (experimental)
+    Enables drag and drop from other processes.
+
+Always refresh list when DnD ends
+    The list is always refreshed when a drag and drop ends.
+
+7.11. External Program
+
+The external programs GImageView uses.
+
+"Image Viewer/Editor" is the list of programs shown in "Open in External
+Program" of the mouse menu. Enter a program name and a command to add, change
+or delete an entry; "Up" and "Down" change the order. When "Dialog" is
+checked, a dialog is shown before the program runs.
+
+"Web Browser" opens the HTML documents and the manual of the Help menu. %s is
+replaced with the path of the document. The default of the GTK 4 version is
+xdg-open %s (the default browser of the desktop). If the old default mozilla %s
+is saved, it is replaced with xdg-open %s automatically.
+
+When "Use internal viewer" of "Text Viewer" is on, text documents are shown in
+the viewer built into GImageView. It detects UTF-8, EUC-JP, Shift_JIS and ISO-
+2022-JP documents automatically.
+
+7.11.1. Scripts
+
+The directories of the scripts GImageView uses. When "Use default script
+search directories" is off, the directories can be specified. "Show dialog
+before executing script" sets whether a dialog is shown before a script runs.
+
+7.12. Plugin
+
+The directories GImageView searches for plugins. When "Use default plugin
+search directories" is off, the directories can be specified.
+
+The pages below it, "Image Loader", "Image Saver", "IO Stream", "Archiver",
+"Thumbnail", "Image View" and "Thumbnail View", list the plugins that are
+loaded.
+
+8. Default Key Bindings
+=======================
+
+8.1. Common
+
+    B : Tab ON/OFF
+
+    F : Maximize
+
+    M : Menubar ON/OFF
+
+    N : Toolbar ON/OFF
+
+    V : Statusbar ON/OFF
+
+    Ctrl + C : Quit GImageView entirely
+
+    Ctrl + F : File open dialog (in a list with the focus: search the list)
+
+    Ctrl + I : New Image Window
+
+    Ctrl + O : Options
+
+    Ctrl + P : Print
+
+    Ctrl + Q : Close Window
+
+    Ctrl + T : New Tab
+
+    Ctrl + W : New Window
+
+    Shift + S : Scrollbar ON/OFF
+
+    Shift + F10 : Popup menu
+
+8.2. Thumbnail Window
+
+    H : Previous Page (tab)
+
+    J : Last Page (tab)
+
+    K : First Page (tab)
+
+    L : Next Page (tab)
+
+    Q : Close Tab
+
+    Shift + Ctrl + R : Refresh List
+
+    Alt + 1-6 : Display mode of the thumbnail view (Album, Album2, Album3,
+    Detail, Detail + Icon, Detail + Thumbnail)
+
+    Ctrl + 0 : Layout 0
+
+    Ctrl + 1 : Layout 1
+
+    Ctrl + 2 : Layout 2
+
+    Ctrl + 3 : Layout 3
+
+    Ctrl + 4 : Layout 4
+
+    Ctrl + A : Select All
+
+    Ctrl + D : Detach Tab
+
+    Ctrl + N : Unselect All
+
+    Ctrl + Q : Close Window
+
+    Ctrl + R : Update All Thumbnails
+
+    Ctrl + S : Slideshow
+
+    Ctrl + T : New Tab
+
+    Shift + C : Copy Files To...
+
+    Shift + B : Move Tab Backward
+
+    Shift + D : Directory View ON/OFF
+
+    Shift + E : Rename...
+
+    Shift + F : Move Tab Forward
+
+    Shift + L : Link Files To...
+
+    Shift + M : Move Files To...
+
+    Shift + N : DirView Toolbar ON/OFF
+
+    Shift + P : Preview ON/OFF
+
+    Shift + R : Reload Cache
+
+    Shift + Z : Tab (Preview) ON/OFF
+
+8.3. Thumbnail Window / Thumbnail View
+
+    Cursor keys : Move the cursor
+
+    Space : Select/unselect the file
+
+    Enter : Select only that file and open the image
+
+    Shift + Enter : Select that file and open the image
+
+    Delete : Remove the selected files
+
+However, the file selection behavior may differ slightly depending on the
+mode.
+
+8.4. Thumbnail Window / Preview
+
+    1 : 10%
+
+    2 : 25%
+
+    3 : 50%
+
+    4 : 75%
+
+    5 : 100%
+
+    6 : 125%
+
+    7 : 150%
+
+    8 : 175%
+
+    9 : 200%
+
+    A : Zoom Out (5%)
+
+    D : Rotate 180 Degrees
+
+    E : Rotate 90 Degrees Counterclockwise
+
+    R : Rotate 90 Degrees Clockwise
+
+    S : Zoom In (5%)
+
+    W : Fit to Window
+
+    Ctrl + B : Memory Buffer
+
+    Shift + A : Keep Aspect Ratio
+
+    Shift + H : Fit Height
+
+    Shift + W : Fit Width
+
+    Shift + T : Create Thumbnail
+
+    Page Up : Previous image
+
+    Page Down, Space : Next image
+
+    Home : First image
+
+    End : Last image
+
+    Cursor keys : Move the image
+
+Zoom and rotation also work in the navigation window.
+
+8.5. Image Window
+
+    1 : 10%
+
+    2 : 25%
+
+    3 : 50%
+
+    4 : 75%
+
+    5 : 100%
+
+    6 : 125%
+
+    7 : 150%
+
+    8 : 175%
+
+    9 : 200%
+
+    A : Zoom Out (5%)
+
+    D : Rotate 180 Degrees
+
+    E : Rotate 90 Degrees Counterclockwise
+
+    H : Previous image
+
+    I : Fit to Image
+
+    J : Last image
+
+    K : First image
+
+    L : Next image
+
+    Q : Close Window
+
+    R : Rotate 90 Degrees Clockwise
+
+    S : Zoom In (5%)
+
+    W : Fit to Window
+
+    Ctrl + B : Memory Buffer
+
+    Shift + A : Keep Aspect Ratio
+
+    Shift + H : Fit Height
+
+    Shift + W : Fit Width
+
+    Shift + F : Fullscreen
+
+    Shift + N : Slideshow Player ON/OFF
+
+    Shift + T : Create Thumbnail
+
+    Page Up : Previous image
+
+    Page Down, Space : Next image
+
+    Home : First image
+
+    End : Last image
+
+    Cursor keys : Move the image
+
+Zoom and rotation also work in the navigation window.
+
+8.6. Mouse
+
+8.6.1. Thumbnail View
+
+    Button 1 (left click) : Open (Auto select window)
+
+    Ctrl + Button 1 (Ctrl + left click) : none
+
+    Shift + Button 1 (Shift + left click) : Selects everything up to the
+    clicked image at once. It cannot unselect. Use Unselect All (Ctrl+N).
+
+    Alt + Button 1 (Alt + left click) : none
+
+    Button 2 (middle click) : Open (Auto & Force)
+
+    Ctrl + Button 2 (Ctrl + middle click) : none
+
+    Shift + Button 2 (Shift + middle click) : none
+
+    Alt + Button 2 (Alt + middle click) : none
+
+    Button 3 (right click) : Popup menu
+
+    Ctrl + Button 3 (Ctrl + right click) : none
+
+    Shift + Button 3 (Shift + right click) : none
+
+    Alt + Button 3 (Alt + right click) : none
+
+    Button 1 double click (left double click) : Open (Auto & Force)
+
+    Ctrl + Button 1 double click (Ctrl + left double click) : none
+
+    Shift + Button 1 double click (Shift + left double click) : none
+
+    Alt + Button 1 double click (Alt + left double click) : none
+
+    Button 4 (wheel up) : none
+
+    Ctrl + Button 4 (Ctrl + wheel up) : none
+
+    Shift + Button 4 (Shift + wheel up) : none
+
+    Alt + Button 4 (Alt + wheel up) : none
+
+    Button 5 (wheel down) : none
+
+    Ctrl + Button 5 (Ctrl + wheel down) : none
+
+    Shift + Button 5 (Shift + wheel down) : none
+
+    Alt + Button 5 (Alt + wheel down) : none
+
+    Button 8 (side button "back") : none
+
+    Button 9 (side button "forward") : none
+
+8.6.2. Directory View
+
+    Button 1 (left click) : Select the directory
+
+    Button 1 (on [+]) (left click) : Expand the directory tree
+
+    Button 2 (middle click) : Load thumbnails
+
+    Button 3 (right click) : Popup menu
+
+    Button 1 double click (left double click) : Load thumbnails
+
+    Button 8 (side button "back") : none
+
+    Button 9 (side button "forward") : none
+
+8.6.3. Preview
+
+    Button 1 (left click) : Next image
+
+    Ctrl + Button 1 (Ctrl + left click) : none
+
+    Shift + Button 1 (Shift + left click) : Previous image
+
+    Alt + Button 1 (Alt + left click) : none
+
+    Button 2 (middle click) : Open in new window
+
+    Ctrl + Button 2 (Ctrl + middle click) : none
+
+    Shift + Button 2 (Shift + middle click) : none
+
+    Alt + Button 2 (Alt + middle click) : none
+
+    Button 3 (right click) : Popup menu
+
+    Ctrl + Button 3 (Ctrl + right click) : none
+
+    Shift + Button 3 (Shift + right click) : none
+
+    Alt + Button 3 (Alt + right click) : none
+
+    Button 1 double click (left double click) : none
+
+    Ctrl + Button 1 double click (Ctrl + left double click) : none
+
+    Shift + Button 1 double click (Shift + left double click) : none
+
+    Alt + Button 1 double click (Alt + left double click) : none
+
+    Button 4 (wheel up) : Previous image
+
+    Ctrl + Button 4 (Ctrl + wheel up) : none
+
+    Shift + Button 4 (Shift + wheel up) : none
+
+    Alt + Button 4 (Alt + wheel up) : none
+
+    Button 5 (wheel down) : Next image
+
+    Ctrl + Button 5 (Ctrl + wheel down) : none
+
+    Shift + Button 5 (Shift + wheel down) : none
+
+    Alt + Button 5 (Alt + wheel down) : none
+
+    Button 8 (side button "back") : none
+
+    Button 9 (side button "forward") : none
+
+When the image shown in the preview is changed, the selection in the thumbnail
+view moves along with it. This applies to any thumbnail display type.
+
+8.6.4. Image View
+
+    Button 1 (left click) : Next image
+
+    Ctrl + Button 1 (Ctrl + left click) : none
+
+    Shift + Button 1 (Shift + left click) : Previous image
+
+    Alt + Button 1 (Alt + left click) : none
+
+    Button 2 (middle click) : Previous image
+
+    Ctrl + Button 2 (Ctrl + middle click) : none
+
+    Shift + Button 2 (Shift + middle click) : none
+
+    Alt + Button 2 (Alt + middle click) : none
+
+    Button 3 (right click) : Popup menu
+
+    Ctrl + Button 3 (Ctrl + right click) : none
+
+    Shift + Button 3 (Shift + right click) : none
+
+    Alt + Button 3 (Alt + right click) : none
+
+    Button 1 double click (left double click) : none
+
+    Ctrl + Button 1 double click (Ctrl + left double click) : none
+
+    Shift + Button 1 double click (Shift + left double click) : none
+
+    Alt + Button 1 double click (Alt + left double click) : none
+
+    Button 4 (wheel up) : Previous image
+
+    Ctrl + Button 4 (Ctrl + wheel up) : none
+
+    Shift + Button 4 (Shift + wheel up) : none
+
+    Alt + Button 4 (Alt + wheel up) : none
+
+    Button 5 (wheel down) : Next image
+
+    Ctrl + Button 5 (Ctrl + wheel down) : none
+
+    Shift + Button 5 (Shift + wheel down) : none
+
+    Alt + Button 5 (Alt + wheel down) : none
+
+    Button 8 (side button "back") : none
+
+    Button 9 (side button "forward") : none
+
+8.7. Keys added in the GTK 4 port
+
+Lists (the directory view, the detail view, the Data tab, the lists of the
+preferences, ...)
+
+    Ctrl + F : search the list (Up and Down: the one before and the next,
+    Enter: done, Escape: close)
+
+The index tabs (Date, Tag, People)
+
+    Enter : open the images of the date, tag or person selected
+
+    F2 : rename the tag
+
+    Ctrl + C : copy the name selected
+
+    Ctrl + F : search by name (also inside the closed branches)
+
+Image views (image window, preview)
+
+    X : flip horizontally
+
+    Shift + Ctrl + C : copy the image to the clipboard
+
+    P : edit faces (the faces panel)
+
+The faces window
+
+    Ctrl + A : select all the faces
+
+9. GImageView FAQ
+=================
+
+9.1. Getting, Installing and Starting
+
+There is no configure
+    The GTK 4 version is built with Meson, not with configure (autoconf /
+    automake). For the procedure, see Installation.
+
+I want to start the GImageView thumbnail window alone
+      $ gimv -w
+
+    Start it like this. If [Edit | Options] - [Common | Startup | Open
+    thumbnail window] is checked, the -w argument is not needed.
+
+      $ gimv
+
+    alone starts it. After that, it works normally when you open some
+    directory or file.
+
+    When registering it in a launcher, specifying just gimv is OK.
+
+9.2. Operation and Settings
+
+I want to change the defined key bindings
+    Use [Edit | Keyboard Shortcuts...]. Click the key of a row and press the
+    new key: it works at once and is kept (4).
+
+    The files can also be edited. ~/.gimv/keyconf has the keys of the right
+    button menu, completion, the navigator and the display modes; it takes
+    effect from the next start.
+
+    Menu shortcut keys can be changed in ~/.gimv/keyaccelrc. A line for every
+    menu item is written out on exit, so remove the ";" at the beginning of
+    the line you want to change and rewrite the key. For example, to make
+    [File | Open] (Ctrl + F by default) of the thumbnail window F3, do the
+    following. It takes effect from the next start.
+
+      (gtk_accel_path "<ThumbWinMainMenu>/File/Open..." "F3")
+
+    If you change the key bindings, only you know how it will behave. Please
+    do this at your own risk.
+
+9.3. Thumbnail Window
+
+What is shown in the status bar?
+    From the left: the full path of the focused image ("~" for the home
+    directory), its position in the tab ("10 / 16") and its file size. With
+    several images selected, their number and their total size ("5 selected
+    812 kB"). At the right end, the state of the image index ("Index: 28
+    images" and so on; the details are in the tooltip) and the "Notices"
+    button (2.3).
+
+Where are the numbers of files, the total size and the tab number of the older
+versions?
+    In the GTK 4 version, the status bar shows only the image in hand; the
+    numbers of files, the total sizes and the tab numbers of all the tabs
+    ("**/** files", "**/** kB", "**/** page") are no longer shown. The number
+    of images in the tab is the second number of the position ("10 / 16"). A
+    right click on the tabs shows the list of the open tabs.
+
+How do I use the input entry on the right of the toolbar?
+    Try specifying various absolute paths. The directory tree (if you are
+    showing it...) should do something interesting.
+
+    It is very hard to explain, but this is where you specify a new (or
+    existing) tab in a command-line-like way. Even when the directory view is
+    not shown, you can open a new tab or move to an existing tab without
+    relying on the file open dialog.
+
+    In this input entry, completion with the TAB key works. Press TAB freely,
+    as you would in bash, tcsh or zsh. If there is only one candidate, it is
+    completed automatically. If there are many candidates, they are listed
+    below the input entry. In this input entry, the shorthand "~/" for the
+    user's home directory is ignored. Always specify an absolute path.
+
+    Also, individual files cannot be specified here. Input completion does not
+    work for them either. If you want to open a single image in a separate
+    window, first show that directory as thumbnails, and open it from there by
+    middle-button click, left double-click or similar.
+
+    When the focus has moved to the input entry, use one of the following
+    methods to move the focus back (to enable keyboard shortcuts).
+
+     1. In the directory view, left-click some directory to "select" it.
+
+     2. In the thumbnail view, click (select / unselect) some image.
+
+     3. Click a tab to move to another tab.
+
+     4. Left-click (or Shift + left-click) in the preview window to change the
+        display.
+
+     5. Press the Esc key.
+
+    Moving the focus from GImageView to another window (for example rxvt) does
+    not switch the focus within GImageView. Note that the focus does not leave
+    the input entry unless you do one of the operations described above.
+
+9.4. Tabs
+
+How do I show a list of the currently open tabs?
+    Right-click on the tab area. A list of the currently open tabs is shown.
+    You can also move to any tab.
+
+Stopping the full path display on tabs
+    Uncheck "Show full path" in [Preferences | Thumbnail Window | Tab]. Only
+    the directory name will be shown on the tab. The full path of a tab is
+    then shown in its tooltip.
+
+What is a collection tab?
+    You can make one from [File | New Collection]. Or select images in any tab
+    and drag and drop them somewhere suitable.
+
+    The DnD menu appeared, right?
+
+    There, choose [Open in New Tab]. The dragged image (all of them, if there
+    are several) is opened in a new tab (named Collection).
+
+    To add new images to a collection tab you made, there are the following
+    methods.
+
+     1. DnD onto the tab of the collection tab
+
+     2. DnD onto the thumbnail view in the collection tab (in this case, from
+        another application or from a second or later gimv)
+
+     3. With the collection page open, select files from the file open dialog
+        (the button at the left end of the toolbar), and use "Thumbnails of
+        the selected files"
+
+    For DnD onto a collection page, the DnD menu is not shown and the files
+    are added immediately.
+
+    After collecting, move or copy them to any directory. The collected images
+    are treated as one group. Rather than Ctrl-clicking the images one by one,
+    gathering them in a collection tab first and then doing file operations on
+    them should make organizing images more efficient.
+
+9.5. Directory View
+
+How to show in the tree a directory added from the console
+    Do [Refresh Tree] on the parent directory of the added directory in the
+    tree view, and it is shown. If you use [Make Directory...] from the right-
+    click menu of the tree view, it is shown immediately, so adding
+    directories this way is easier.
+
+About "Load Thumbnails Recursively" in the right-click menu of the directory
+view
+    Loads everything under that directory recursively.
+
+    That is, it expands everything under that directory and makes a thumbnail
+    tab for each directory. It is very convenient when you want to expand only
+    a certain place. The tree is also expanded properly.
+
+    If you load recursively from a high-level directory (such as directly
+    under ~/) and the directory loading does not stop, stop it with the stop
+    button in the toolbar, or skip that directory with the skip button.
+
+What are "." and ".." in the directory view?
+    Here is an example.
+
+      /home/~
+          + cg
+             + .
+             + ..
+             + desktop
+             + favorite
+             |    + .   (1)
+             |    + ..  (2)
+             |    + web
+             |    + download
+             + tmp
+
+    Suppose it looks like this. If you double-click "." at (1),
+
+      /home/~
+         + web
+         + download
+
+    that directory becomes the root directory. This means the same as [Go
+    Here] in the right-click menu of the directory view.
+
+    And if you double-click ".." at (2),
+
+      /home/~
+         + desktop
+         + favorite
+         |    + web
+         |    + dl
+         + tmp
+
+    its parent directory becomes the root.
+
+How to make the tree expand automatically and the view scroll up and down
+automatically during DnD from a tab window to the directory view
+    These settings ([Auto scroll] and [Enable auto expand directory tree])
+    exist only in the GTK+ 1.2 version, and not in the GTK+ 2 version and
+    later (including the GTK 4 version). If the destination directory is
+    collapsed, expand it beforehand.
+
+9.6. Thumbnail View
+
+Fixing the list view mode at startup and for new tabs
+    You can specify it in [Preferences | Thumbnail Window | Thumbnail View |
+    Default display mode]. However, for this to take effect, "Save window
+    state on exit" must be unchecked (not saved).
+
+The thumbnails look strangely bad
+    A thumbnail cache of a different size may have been loaded. For now, run
+    Update Thumbnail.
+
+Selecting / unselecting all images at once
+    It is in the [Edit] menu. It is not in the mouse menu. Shortcuts are
+    assigned (Ctrl + A [N]), so if you use it often, it is better to use
+    those.
+
+Clicking (toggling) a thumbnail does not change its color
+    The color of a selection depends on the current gtk theme. The color
+    probably does not change because of the color settings of the theme. Try
+    another theme.
+
+9.7. Image View
+
+About external commands
+    Leaves the display of images in a separate window to another program.
+
+    Set the external programs in [Preferences | External Program]. You can
+    also register your own scripts and so on.
+
+10. Tips
+========
+
+Making drawing in the image view faster
+    Check [Preferences | Image Window | Image | Keep the original image in
+    memory]. For the image windows open only, [File | Memory Buffer] (Ctrl +
+    B) turns it on and off.
+
+    When an image has been shown, GImageView drops the original image (the
+    pixels read). So when the zoom is changed or the image is rotated or
+    flipped, the original image is read from the file again. Kept in memory,
+    it is not read again, which is faster the larger the image is.
+
+    When an image is opened first, it is read from the file whatever the
+    setting, so this option does not matter there. Keeping the original image
+    uses width × height × 3 or 4 bytes of memory more per image (about 40 MB
+    for a photo of 12 megapixels). For this reason the default setting is OFF.
+    Animations, movies and audio are kept whatever the setting.
+
+Changing the thumbnail size temporarily
+    Change the thumbnail size in the toolbar (press Enter when typing a
+    number), then use [Edit | Reload Cache] (Shift + R) or [Edit | Update All
+    Thumbnails] (Ctrl + R) to apply it.
+
+    If you use "Reload Cache", the cached images are enlarged (or reduced) to
+    the new thumbnail size and displayed. Reducing is fine, but when
+    enlarging, the dots become coarse. To avoid this, use "Update All
+    Thumbnails". The cache is recreated at the new size, so the dots do not
+    become coarse.
+
+    The thumbnail size belongs to each tab: switching tabs shows the size of
+    that tab. A new window or an empty tab goes back to [Preferences |
+    Thumbnail Window | Thumbnail View | Thumbnail Size]. With "Save window
+    state on exit" in [Preferences | Thumbnail Window] on (the default), the
+    value in the toolbar at exit is saved there and is the size from then on.
+
+Differences between [Refresh List], [Reload Cache] and [Update All Thumbnails]
+    Refresh List (Shift + Ctrl + R)
+        Updates only the differences between the information on disk and in
+        memory. It only updates the file list and does not resize the
+        thumbnails.
+
+    Reload Cache (Shift + R)
+        Discards all information and reads all information from disk again. At
+        this time, if a cache exists it is read from the cache, and if not,
+        the thumbnail is created from the original image. If a cache exists,
+        only the thumbnail is resized.
+
+        Because it is a resize and not a re-creation, if the saved cache is
+        smaller than the specified size, the thumbnail is simply enlarged and
+        the image looks bad.
+
+    Update All Thumbnails (Ctrl + R)
+        Discards all information and reads all information from disk again.
+        All thumbnails are re-created from the original images. When the
+        displayed thumbnail size has been changed, this is probably the best
+        one to use. The part on screen is made first and the rest in the
+        background, keeping the scroll position. The progress (n/N) is shown
+        while it runs, and the stop button in the toolbar stops it.
+
+About custom layouts
+    [View | Layout] places the views of the thumbnail window (directory view,
+    thumbnail view, preview) as Layout 0 to 4 (Ctrl + 0 to 4). Layout 0 is the
+    default. These layouts are fixed and cannot be changed.
+
+    For other arrangements there is "Custom". The layout becomes "Custom" by
+    itself with these:
+
+     ・ [View | Layout | Window Composition] chooses how the window is split
+        (the panes horizontal or vertical, and how they are put together).
+
+     ・ Dragging a view and dropping it on another one swaps the two. The
+        parts to drag are the tabs of the thumbnail view, the toolbar of the
+        directory view and the tabs of the preview (Preview, Data, Note).
+
+    The custom layout is saved as these six items of ~/.gimv/gimvrc, which can
+    also be edited by hand while gimv is not running:
+
+     ・ thumbwin_pane1_horizontal (whether pane1 is split horizontally or
+        vertically)
+
+     ・ thumbwin_pane2_horizontal (the same for pane2)
+
+     ・ thumbwin_pane2_attach_1 (whether pane2 is attached to child1 or child2
+        of pane1)
+
+     ・ thumbwin_widget[0] (the widget attached to the other side of pane1: 1
+        is the directory view, 2 the thumbnails, 3 the preview)
+
+     ・ thumbwin_widget[1] (child1 of pane2)
+
+     ・ thumbwin_widget[2] (child2 of pane2)
+
+    Layouts 0 to 4 are these six values set in advance.
+
+How duplicates are found
+    [Tools | Find Duplicates...] goes through the images of the active tab in
+    the steps below and sorts what it finds into three kinds of groups:
+    Identical, Other Sizes and Similar. It searches in another thread: the
+    window can be used meanwhile.
+
+     1. The same files: the md5 is computed only for the files of the same
+        size (in bytes); the same md5 means the same bytes. A file whose size
+        no other has is not read.
+
+     2. The pictures read small: one of each set of the same files is read
+        small (about 128 dots), turned as its EXIF orientation says, squeezed
+        into a 32x32 frame whatever its shape, and the R/G/B means of each
+        part are taken (some programs call it a "fingerprint"). The thumbnails
+        are not used: the images the thumbnail view has not loaded yet are
+        compared too.
+
+     3. The pictures compared: the R/G/B differences of two fingerprints are
+        averaged (0 to 1.0); 1.0 minus that is how alike they are. At or above
+        the value of the preferences they match. Images whose total brightness
+        is too far apart cannot match and are not compared.
+
+     4. The kinds: a group of the same files only is Identical. When the
+        images that match all have the same shape and no two of them have the
+        same size, it is Other Sizes (copies included); else Similar. Images
+        of the same size but other bytes (saved again, edited) are Similar.
+
+    How alike they must be is "Accuracy" in [Preferences | Search] (0.97 by
+    default: 97% or more alike match). A lower value puts more images in
+    Similar.
+
+    In the Identical and Other Sizes groups the one with the most pixels (then
+    the largest file, the oldest, the shortest path) is marked Keep and the
+    others Delete. The Similar groups may be other shots: all are marked Keep.
+    Which to keep is for a person to check and decide. "Move to Trash..."
+    moves those to delete of the group shown, "Move All Marked to Trash..."
+    those of all the groups at once; they are compared with the image kept
+    again first.
+
+    Because of how it works, it may not do what one expects in these cases.
+
+     1. Images whose color balance or brightness has changed as a whole match
+        less (every part differs evenly).
+
+     2. Images with a part (top/bottom/right/left) cut off match less (parts
+        that do not correspond are compared). Rotated or mirrored images do
+        not match.
+
+     3. A copy only blown up has more pixels and is marked Keep.
+
+     4. Images gimv shows but gdk-pixbuf cannot read are looked at for
+        Identical only. The images in archives are not compared.
+
+    To find the same files across folders, not only in the active tab, use
+    [Tools | Find Duplicates in the Index...] (the index looks for them in the
+    background): see "Find Duplicates in the Index...".
+
+11. GImageView History
+======================
+
+2026-11-06: Version 0.2.27+gtk4 (GTK 4 version), changes since 2026-09-26
+
+ ・ Bookmarks of images (~/.gimv/bookmarks), in the index or not: [Edit |
+    Bookmark...] and the right button menus (no key by default, one can be
+    given in ~/.gimv/keyaccelrc), an optional note, the "Bookmarks" tab (by
+    the day added, with or without a note), the note in the tooltip; they
+    follow the images moved or renamed.
+
+ ・ Edit Tags: an entry with the tags below it (x takes one away), the tags in
+    use to click, the names of people kept; also in [Edit | Edit Tags...] and
+    the right button menus of the preview and the image window.
+
+ ・ The tags of the Data tab and of Edit Tags laid out as words (no wide
+    gaps). A row of the Data tab with a key not edited there (X-IMG-Tags, ...)
+    shows its own key and is only shown. A line break in a tag or a value (a
+    pasted text) becomes a space.
+
+ ・ The "Date" of the comment is the date of the image (before EXIF; for
+    images of SNS).
+
+ ・ "Date taken" column of the detail view and View > Sort File List > by Date
+    Taken (the date of the index; Reverse Order for the newest first).
+
+ ・ After a sort (or a change of the display mode) the thumbnails made first
+    are the ones now at the top.
+
+ ・ Data tab: a value typed is kept by "Save" without Enter.
+
+ ・ Properties: long names and types cut (the dialog stays on the screen),
+    selectable; "Copy" for the full path. "Copy Path" in the right button menu
+    of the thumbnails.
+
+ ・ Keywords mangled as UTF-8 read as Shift_JIS (Windows Photo Gallery) put
+    right, or left out.
+
+ ・ The keywords of other programs (XMP, IPTC, the sidecar files "x.jpg.xmp"
+    and "x.xmp") in the index: kept apart, shown and looked for as the tags
+    put by hand of the same name.
+
+ ・ With gexiv2 (Exiv2) the index reads EXIF, XMP and IPTC of HEIF, PNG, WebP,
+    TIFF, raw files, ... (the date, the camera, the keywords).
+
+ ・ With gexiv2 the EXIF of the formats other than JPEG too: Show EXIF Data...
+    shows it, images and thumbnails are turned by its orientation.
+
+ ・ "Scan EXIF Data..." is now "Show EXIF Data...".
+
+ ・ Tools > Find Duplicates... rewritten: one search sorts them into
+    Identical, Other Sizes and Similar; the groups on the left, their images
+    side by side on the right to compare, each to keep or to delete (suggested
+    for the identical and resized), and "Move to Trash..." for the group shown
+    (a group at a time). It searches in a thread and reads the pictures
+    itself.
+
+ ・ File > Save Image... [Ctrl+S]: saves the image shown as JPEG, PNG, WebP,
+    AVIF, TIFF, BMP or PNM (a HEIC as a JPEG, ...), keeping its EXIF and XMP
+    with gexiv2. New gdk-pixbuf image saver plugin.
+
+ ・ Tags are a tree by "/" in the tag tab ("Travel/Kyoto" below "Travel"): a
+    parent opens the images of the tags below it too; renaming a parent
+    renames the tags below it.
+
+ ・ The Data tab shows a tag with levels part by part, a parent part opens the
+    tags below it; in Edit Tags a parent in "Tags in Use" types "Travel/" to
+    pick from the tags below it.
+
+ ・ A tag dragged onto another in the tag tab moves below it or merges into
+    it.
+
+ ・ The tags of the search window make a tree, a parent counting the tags
+    below it.
+
+ ・ [Edit | Keyboard Shortcuts...] to change the keys without editing the
+    files.
+
+ ・ The tags of people are a tree by "/" too (tag tab, people tab, search,
+    data tab).
+
+ ・ Edit the tags of a folder and the folders below it, from the directory
+    view.
+
+ ・ Manual: a new chapter "What Do You Want to Do?" (9) finds the way from
+    what you want to do.
+
+ ・ The same files in different folders: the index looks for them in the
+    background ([Tools | Find Duplicates in the Index...]); all the groups to
+    the trash at once, checked again first, the comments and bookmarks to the
+    image kept, or links to it left in the places of the copies.
+
+ ・ Update All Thumbnails works like loading: the thumbnails on the screen
+    first (the scroll position is kept), the rest in the background without
+    keeping them in memory; the progress (n/N) is shown and the stop button
+    stops it. The preference "GUI redraw interval while loading" (and its tip)
+    is gone.
+
+ ・ Detail view: the title of the column sorted by shows the arrow (it was
+    lost with every sort); "Image size" sorts by the area; columns with no
+    sort are not clickable.
+
+ ・ The thumbnail size in the toolbar can be typed in; Enter takes it and
+    gives the keys back to the window (Shift+R, Ctrl+R).
+
+ ・ The editing keys of a text field (Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z,
+    ...) go to the text field the focus is in, not to the menu keys of the
+    window (Ctrl+A selected all the thumbnails while the location or the
+    thumbnail size was edited).
+
+ ・ Detail view: Ctrl+A (Select All) works with the focus in the list (the
+    list took the key and did nothing).
+
+ ・ Detail view: no "cb_sorter_changed: assertion" message on quit after
+    sorting.
+
+ ・ Open the Folder: the image chosen is shown also when the folder was not
+    open yet (the top of the folder was shown).
+
+ ・ Detail view: switching tabs (or closing one) keeps where the list of the
+    tab was scrolled to (it went to the top).
+
+ ・ Detail view: switching tabs puts the cursor (of the cursor keys) back on
+    the image it was on if that is on screen, on the first image on screen
+    otherwise (it was on the first image of the list).
+
+ ・ Tabs of the thumbnails in a narrow place: the current tab keeps a width
+    its name can be read in, the others a few characters (all were "..."); the
+    close button on the current tab only, the middle button closes any tab;
+    the current tab is lighter. "Show full path" is off by default (the full
+    path is in the tooltip either way).
+
+ ・ Movie player: a mute button and a volume slider at the right end of the
+    control bar (GStreamer, MPlayer); the same for all the windows, kept after
+    quitting.
+
+ ・ Songs (m4a, mp3, flac, ogg, ...): the album art is shown while the song
+    plays and is its thumbnail (GStreamer).
+
+ ・ The "Data" tab shows the information of a song or a movie (title, artist,
+    album, album artist, composer, track, disc, date, genre, comment, length,
+    the formats of the sound and the picture; GStreamer, read in a thread;
+    shown only).
+
+ ・ The album art is shown at its own size (it was stretched, coarse), smaller
+    only when the place is smaller; the zoom of images changes its size.
+
+ ・ The seek bar of movies goes to the end (it stopped at 99 %: the time at
+    the end was short of the length, e.g. 03:11 / 03:13).
+
+ ・ Text viewer (plain text documents): a horizontal scroll bar for long lines
+    (they could be read only by moving the cursor).
+
+ ・ "Save Smaller..." in the right button menu of the thumbnails: saves the
+    selected images smaller (800 px of height or less by default) as new
+    files; what to add to the names ("_resized" by default: big_resized.jpg),
+    the quality, keeping the shooting information, leaving out the location
+    and copying the comments can be chosen. Saved in a thread, nothing is
+    overwritten.
+
+ ・ "Crop Image..." (C, [Edit] of the image window and the right button menus
+    of the image): a frame on the image moved, resized or drawn anew, the
+    ratio, "Detect the Edges" (what is inside the border of the color of the
+    edges; the shadows of the scanner left out, a small margin), Enter saves
+    name_crop.jpg next to the image (never over another file), Esc stops.
+    Read, detected and saved in threads.
+
+ ・ "Join Images..." in the right button menu of the thumbnails: the selected
+    images one below another, side by side or in a grid, the width (height)
+    made the one of the smallest, of the largest or not changed, saved as
+    name_join.jpg next to the first one (never over another file). The
+    overlaps of the pieces of one photo are looked for (a little different
+    JPEG too) and can be put right for each seam, shown near its size (red
+    triangles at both ends of the overlap, with a note on reading it), also as
+    the difference. Read, detected and saved in threads.
+
+ ・ "Open the Folder" and "Show the Saved Image": the image chosen is shown in
+    the preview too (it was only selected).
+
+ ・ Rename: only the name without the extension is edited, the extension stays
+    (without it the file was no longer shown). "Change the extension too"
+    edits the whole name; losing the extension of an image is asked about.
+
+ ・ Detail view: the widths of the columns as the user left them stay after a
+    rename, a sort or a refresh, in the other tabs and the next time (they
+    went back to the defaults).
+
+ ・ The album modes of the thumbnail view: Ctrl+F finds a file by its name, as
+    in the detail view (it was [File | Open...] of the menu).
+
+ ・ Switching to the detail mode no longer warns "Trying to measure
+    GtkColumnViewCellWidget ... for width of 1" for each row (the column of
+    the images is hidden, not 1 px wide).
+
+ ・ Manual: the pictures taken again from the screens of now (the thumbnail
+    window, the six display modes, the menus of the thumbnail window, [Edit]
+    of the image window, the right button menus of the thumbnail view and the
+    directory view, Edit Tags, 23 pages of the preferences).
+
+ ・ Faces: the model files are checked (SHA-256): a broken download or another
+    version of the same name is not used, and the preferences page and the
+    status bar tell which file to download again and its URL. The index
+    records the model the features of the faces were made with; with another
+    one (a new version), the features are made again at the place of each face
+    found, the faces and their names kept. "meson test faces" runs the models
+    when they are there.
+
+ ・ Manual: the Tips are brought up to date (the tips about the bars and the
+    window size of the image window that no longer apply are removed; the
+    memory buffer, the thumbnail size, the custom layout rewritten).
+
+ ・ Context menus open to the right of the pointer (no scroll bars).
+
+ ・ Data tab: "Remove Item" for the item selected; "Delete Comment..." asks
+    first and keeps the tags. The index follows a comment saved or deleted at
+    once.
+
+ ・ Slide show: the images after the first one are drawn again.
+
+ ・ Corrected spelling and wording of the English messages and menus (Faild ->
+    Failed, Buttton, Thumnail, Tool -> Tools, ...); old key bindings in ~/.gimv/
+    keyaccelrc for renamed menu items are migrated. po/gimageview.pot
+    regenerated (tools/po-update.py).
+
+ ・ Dialog buttons (OK, Cancel, Apply, ...) are translated again.
+
+ ・ Help > Document shows the (Japanese) documents in other locales too.
+
+ ・ View > Layout and Window Composition show pictures of the layouts (a row
+    of icon buttons; name and shortcut in the tooltip).
+
+ ・ New GStreamer movie plugin: plays movies and audio in the image view (the
+    formats depend on the installed GStreamer plugins) and makes movie
+    thumbnails. It is the default player when no default view mode for movies
+    is set.
+
+ ・ Archives are read with libarchive instead of running lha, unzip, rar and
+    tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS file names in old
+    zip/lha archives are converted.
+
+ ・ Buttons use the icons of the desktop icon theme (Preferences > Common >
+    Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/<name>) may
+    contain PNG and SVG files.
+
+ ・ Tools > Set as Wallpaper sets the selected image as the desktop wallpaper
+    (Xfce, GNOME, KDE Plasma, MATE, Cinnamon, LXDE/LXQt, feh; "This Desktop"
+    picks the running one). Other formats and images in archives are converted
+    to PNG in ~/.gimv/wallpaper.
+
+ ・ The movie player shows the elapsed and the total time; a click on a
+    playing movie no longer moves on to the next file.
+
+ ・ Top-down BMP and CMYK JPEG files are loaded.
+
+ ・ Printing (GTK print dialog): File > Print... (Ctrl+P) in the image window
+    and the thumbnail window (selected images, one per page), and Print... in
+    the popup menus. The "Image" tab of the print dialog chooses fit to the
+    page or a resolution in dpi, turning the image to the page orientation,
+    and printing the file name.
+
+ ・ Movie seek bar: pointing at it shows the frame and the time there
+    (GStreamer player; the time only for audio).
+
+ ・ Transparent images are shown over a checkerboard (View > Checkerboard
+    Behind Transparency, also in the popup menu and in Preferences > Image
+    Window > Background); off blends them with the background colour as
+    before.
+
+ ・ Preferences > Movie and Audio: continuous play on/off.
+
+ ・ Preferences > Movie and Audio: optionally ignore mouse actions for next/
+    previous image, zoom, rotation and scrolling while a movie or audio file
+    plays (off by default: the mouse settings apply).
+
+ ・ Thumbnail view: directory names end with "/" in all view modes.
+
+ ・ Movies and audio files in archives can be played (they are extracted
+    first; before, the player reported "Resource not found").
+
+ ・ Detail view: the image size is read from the file header (formats of gdk-
+    pixbuf, and JPEG) instead of "Unknown" until the image was loaded; it is
+    also updated when an image is opened. The sizes are read in the background
+    after the list is shown.
+
+ ・ The rotation of each image is remembered (kept in its comment file under
+    ~/.gimv/comment, hidden in the comment editor) and restored when it is
+    opened again; Preferences > Image Window > Image.
+
+ ・ The HTML manual (Japanese) has screenshots, and its descriptions of the
+    menus, toolbars, mouse menus, preferences and key bindings were changed to
+    match this version.
+
+ ・ Mouse button preferences: the side buttons "back" (button 8) and "forward"
+    (button 9) can be assigned (nothing by default).
+
+ ・ English manual (HTML) and English plain text documents in the Help menu;
+    they are shown for every language that has no documents of its own (only
+    Japanese has).
+
+ ・ Color scheme (Preferences > Common > Appearance): the desktop theme, light
+    or dark. With the desktop theme, a dark theme that GTK 4 cannot read (no
+    gtk-4.0 directory, e.g. Greybird-dark) is shown with the dark Adwaita.
+    Icons of GImageView drawn only with black lines are drawn with light lines
+    in dark colors.
+
+ ・ File open dialog: "Thumbnails of the selected files" also opens the
+    selected folders, each in a tab of its own.
+
+ ・ Image index (SQLite): gimv-indexer keeps the dates and tags of the images
+    of the directories given in Preferences > Index, in the background. The
+    "Date" and "Tag" tabs of the side notebook open them in a result tab; tags
+    are edited from the thumbnail view and kept in the comment files, renamed
+    and merged with F2; automatic tags (folder, camera, shape); desktop
+    notices of new images; Tools > Missing Images... for the comments of
+    images that went missing.
+
+ ・ Faces and people (OpenCV 4.8, YuNet and SFace models): gimv-faces finds
+    faces and groups them; the "People" tab, the faces window (naming,
+    guesses, unnamed groups, tags of people) and the faces panel of the image
+    view (P), where a face can also be added by hand. The names are kept in
+    the comment files as "person/NAME" tags.
+
+ ・ Tools > Search Images...: images of the index by tags and names (and,
+    not), by the date taken, narrowed by the tags of the images found;
+    searches can be kept by name.
+
+ ・ Thumbnails: the freedesktop.org cache (~/.cache/thumbnails) is read and
+    written; thumbnails are made in worker threads, from the EXIF thumbnail of
+    a JPEG when it is big enough; they are turned and flipped by the EXIF
+    orientation and by the rotation and flip the user gave the image.
+
+ ・ Lists: Ctrl+F searches the rows (directory view, detail view, Data tab,
+    preferences, index tabs, ...).
+
+ ・ Status bar: the path, position and size of the focused image, or the
+    number and total size of the images selected.
+
+ ・ Data tab: the comments written in the image file itself (JPEG, PNG, GIF,
+    MAG) are shown in italics, and the tags of the image.
+
+ ・ Image view: Copy the Image to the Clipboard (Shift+Ctrl+C), Flip
+    Horizontally (X, remembered with the rotation), Open the Folder.
+
+ ・ Scrollbars are always shown (a preference, on by default).
+
+ ・ GtkTreeView and the other API deprecated in GTK 4.10 are no longer used
+    (GtkListView / GtkColumnView); GTK 4.12 and GLib 2.72 are required.
+
+2026-09-26: Version 0.2.27+gtk4 (GTK 4 version)
+
+ ・ Ported to GTK 4, built with Meson
+
+ ・ Removed the support for Susie plugins
+
+ ・ Removed lib/dllloader
+
+ ・ The system libexif and GLib replace the bundled libexif and MD5 code
+
+ ・ New loaders for PNM, XPM, Sun raster, WBMP, ZIM (KID98) and AK5/MSL (MASL)
+
+ ・ Formats of the installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...)
+    are recognized, and formats nothing can read are not listed
+
+ ・ Supports new movie formats (mp4, mkv, webm, flv, etc.)
+
+ ・ The scrollbars of the image view are shown only when the image does not
+    fit
+
+ ・ Added "Show splash window" to the preferences
+
+ ・ "Plugin Info" in Help is split by type and shows descriptions and
+    extensions
+
+ ・ Converted the help documents to UTF-8; the built-in text viewer detects
+    the character encoding automatically
+
+ ・ Changed the default web browser to xdg-open
+
+ ・ Comments on the thumbnail view ("Subject" and "Comment" columns in the
+    detail view, a tooltip in the album view)
+
+ ・ Comment editor window: Close button (Esc also closes it)
+
+2002-11-04: Version 0.2.7
+
+ ・ Fixed a problem where, in file operations, cache files and comment files
+    were moved/copied/linked even when the file operation was cancelled or
+    failed
+
+ ・ Changed back to deleting the original file when moving a file to a
+    different file system
+
+ ・ Fixed a problem where key accelerators were not disabled in the file name
+    entry in rename mode (when using Gtk+2)
+
+ ・ Fixed a problem where character encodings were not converted correctly in
+    rename mode (when using Gtk+2)
+
+ ・ Fixed a problem where moving the focus between thumbnails did not work
+    correctly in the thumbnail view (when using Gtk+2)
+
+2002-11-02: Version 0.2.6
+
+ ・ Improved Gtk+-2.0 support (mainly support for GtkTreeView, and many other
+    bug fixes)
+
+ ・ Added a new sort menu
+
+ ・ Fixed a problem where recursive loading with directories shown in the
+    thumbnail view caused an infinite loop
+
+ ・ Added a "Clear cache" menu to the thumbnail window
+
+ ・ Fixed a problem where the ZAlbum widget did not take multibyte strings
+    into account.
+
+ ・ Fixed a problem where the character encoding conversion of file names in
+    comment data was wrong.
+
+ ・ Code cleanup
+
+ ・ Other minor fixes
+
+2002-09-22: Version 0.2.5
+
+ ・ Improved the speed of creating thumbnails
+
+ ・ Changed the default thumbnail display mode to "Thumbnail 2"
+
+ ・ Directories whose thumbnails have been loaded are now highlighted
+
+ ・ The image size can now be shown in "Detail" mode
+
+ ・ Added mouse button settings for the directory view
+
+ ・ The background color of the image window can now be set
+
+ ・ Fixed compile errors (Thanks! Mr. Shitamori & Mr. Ezura)
+
+ ・ Other minor fixes
+
+2002-09-02: Version 0.2.4
+
+ ・ Changed the behavior of "Fullscreen"
+
+ ・ Changed the installation directory of the documents
+
+ ・ Fixed configure/compile errors
+
+ ・ Supports Nautilus-2.0 thumbnails
+
+ ・ Improved compatibility of XV thumbnails with other programs
+
+ ・ Improved Gtk+-2.0 support
+
+ ・ Many other bug fixes
+
+2002-07-01: Version 0.2.3
+
+ ・ Added support for animated GIF (when using gdk-pixbuf)
+
+ ・ Added MNG/JNG support (requires libmng)
+
+ ・ Experimental support for compressed files (gzip, bz2). To use this
+    feature, add "gz" and "bz2" to Preferences->Common->Filtering
+
+ ・ Added a French catalog file (Thanks! Guillaume Libersat)
+
+ ・ When loading thumbnails, thumbnails inside the visible area are now loaded
+    first
+
+ ・ Other bug fixes
+
+2002-05-31: Version 0.2.2
+
+ ・ Added SVG support (requires librsvg)
+
+ ・ Added experimental movie file support (requires xine-lib)
+
+ ・ Added experimental Susie plugin support (Broken)
+
+ ・ Improved Gtk+-2.0 support
+
+ ・ Added a desktop file
+
+ ・ Other minor improvements
+
+2002-05-08: Version 0.2.1
+
+ ・ In "Thumbnail 2" mode, improved the response when selecting a range by
+    mouse drag, and made it accelerate according to the amount of mouse
+    movement
+
+ ・ Added "List 2" mode (uses the same ZAlbum widget as "Thumbnail 2")
+
+ ・ ${datadir}/gimageview/gtkrc is now read
+
+ ・ The style of the tab label is now changed while loading
+
+ ・ Fixed a crash when closing an image window right after opening it
+
+ ・ Fixed a crash when closing the similar image search result window after
+    changing the thumbnail size
+
+ ・ Fixed a typo in the spec file, pointed out by ns
+
+2002-04-25: Version 0.2.0
+
+ ・ Comments can now be added to images
+
+ ・ Supports XCF
+
+ ・ The window composition can now be changed almost freely
+
+ ・ The preferences window now has a tree structure
+
+ ・ A splash image is now shown at startup
+
+ ・ Brought back the scrollbars of the image view / added the navigation
+    window
+
+ ・ Added "Thumbnail 2" mode
+
+ ・ Added the similar image search feature
+
+ ・ Image saving and thumbnail related features are now plugins
+
+ ・ Provisional support for archive files
+
+ ・ Provisional support for EXIF
+
+ ・ Many other minor fixes
+
+2002-02-18: Version 0.1.9
+
+ ・ Fixed a problem where the location entry could not be operated while
+    loading thumbnails, pointed out by jissama
+
+ ・ Fixed a bug where switching images in the image view while loading
+    thumbnails sometimes made it impossible to open files afterwards, pointed
+    out by jissama
+
+2002-02-09: Version 0.1.8
+
+ ・ Supports the MAG and TGA formats
+
+ ・ Semi-original implementation of the image loader for the Windows Bitmap
+    format
+
+ ・ Fixed a fatal bug in the PCX loader
+
+ ・ Fixed a bug where long command line options with values were not
+    recognized correctly (Thanks! Kazuki Iwamoto)
+
+ ・ Fixed minor memory leaks and other bugs
+
+2002-01-02: Version 0.1.7
+
+ ・ Fixed a problem where files could not be dropped onto a collection tab
+
+ ・ Fixed a problem where opening a collection tab from the main menu made it
+    impossible to operate
+
+ ・ Fixed a crash at the end of DnD in the directory view
+
+ ・ Added an option to ignore links when getting directories recursively
+
+2001-12-24: Version 0.1.6
+
+ ・ The thumbnail window is now opened when no arguments are given
+
+ ・ Fixed a problem where loading sometimes could not be cancelled
+
+ ・ Reviewed the default settings
+
+ ・ Opening files by single-clicking a thumbnail
+
+ ・ Supports moving to the next/previous image in the image window
+
+ ・ Other fixes/bug fixes
+
+2001-12-08: Version 0.1.5
+
+ ・ Fixed a problem where KDE-2.2 format thumbnails were not enabled
+
+ ・ Fixed a serious memory leak
+
+ ・ Other minor fixes
+
+2001-12-08: Version 0.1.5
+
+ ・ Fixed a problem where KDE-2.2 format thumbnails were not enabled
+
+ ・ Fixed a serious memory leak
+
+ ・ Other minor fixes
+
+2001-11-28: Version 0.1.4
+
+ ・ Provisional support for KDE-2.2 format thumbnails (Thanks!! TAM)
+
+ ・ Supports dropping tabs onto the thumbnail view area
+
+ ・ Changed the position of the location entry
+
+ ・ Fixed a bug where the cache loading setting could not be disabled
+
+ ・ Fixed a problem where files could not be moved/copied to a directory that
+    is the target of a symbolic link
+
+ ・ Fixed bugs around the location entry
+
+ ・ Other bug fixes
+
+2001-11-07: Version 0.1.3
+
+ ・ Fixed a problem where the scrollbar sometimes could not be dragged,
+    depending on the environment
+
+ ・ Fixed a buffer overflow in "Detail" mode
+
+2001-11-05: Version 0.1.2
+
+ ・ Added an icon list view to the thumbnail window
+
+ ・ The layout of the thumbnail window can now be changed
+
+ ・ Along with the change above, changed the pane widget (borrowed from
+    gThumb)
+
+ ・ Added a "Tab" category to the main menu of the thumbnail window
+
+ ・ Moving tabs by DnD, dropping files onto tabs
+
+ ・ Added a location entry to the thumbnail window
+
+ ・ (Temporarily) removed the close button of the thumbnail window
+
+ ・ Text documents can now be shown from the Help menu
+
+ ・ External commands can now be run
+
+ ・ Changed/added mouse button assignments
+
+ ・ ~/.gimv/gtkrc is now read
+
+ ・ Reviewed the internal management of image information
+
+ ・ Reviewed the internal management of icons (supports switching icon sets;
+    setting via the GUI is not implemented yet)
+
+ ・ Fixed fatal bugs
+
+ ・ Many other fixes
+
+2001-10-05: Version 0.1.1
+
+ ・ File operations by DnD
+
+ ・ Other basic file/directory operation features
+
+ ・ The top directory of the directory view can now be changed
+
+ ・ Added a toolbar to the directory view
+
+ ・ Fixed a bug where refreshing the directory tree collapsed the expanded
+    tree
+
+ ・ Added "Refresh List" to the thumbnail window
+
+ ・ Selection information is now synchronized across all display modes
+
+ ・ Added "Cache type" to the "Detail" display
+
+ ・ All functions bound to the middle mouse button were changed to left
+    double-click
+
+ ・ Fixed a Segmentation fault when closing a tab right after switching tabs
+
+ ・ Fixed a Segmentation fault when closing the dialog before opening has
+    finished, when opening files from the file dialog
+
+ ・ The size used when saving GImageView format thumbnails can now be changed
+
+ ・ It can now be switched whether the tab name shows the full path or only
+    the directory name
+
+ ・ Short command line options can now be given together, like "-wdR"
+
+ ・ Fixed a problem where the thumbnail display mode switched by itself
+
+ ・ Fixed a problem where updates of the file list were sometimes not
+    reflected in thumbnail table mode
+
+ ・ Many other fixes/changes/bug fixes
+
+2001-09-02: Version 0.1.0
+
+ ・ Added a directory tree display to the thumbnail window
+
+ ・ Added a preview display to the thumbnail window
+
+ ・ Added a "Detail" display to the thumbnail window
+
+ ・ The state of the thumbnail window is now saved on exit
+
+ ・ When an already open directory is specified, it now moves to that tab
+
+ ・ Added close buttons to tabs
+
+ ・ Added a popup menu to tabs
+
+ ・ Tabs can now be moved (within the same window)
+
+ ・ Thumbnails can now be removed from the list in collection mode.
+
+ ・ Removed the scrollbars of the image window
+
+ ・ Slightly improved the image display method of the image view
+
+ ・ Fixed a bug where the image was not shown when the window was resized
+
+ ・ Fixed a problem with reading .xvpics when using gdk-pibuf
+
+ ・ Many other bug fixes
+
+2001-08-02: Version 0.0.3
+
+ ・ Minor bug fixes
+
+2001-07-28: Version 0.0.2
+
+ ・ Supports gdk-pixbuf
+
+ ・ Shortcut key settings (~/.gimv/keyconf). A GUI will come sometime
+
+ ・ Cleaned up the cache handling a little.
+
+ ・ Other bug fixes
+
+2001-07-01: Version 0.0.1
+
+ ・ First release
+
+12. ToDo
+========
+
+ ・ Support for various image formats, plugin architecture (plugins planned
+    for 0.3.0)
+
+ ・ Full support for archive files (adding files, DnD, etc.)
+
+ ・ Native tar support (low priority)
+
+ ・ Full support for transparent images
+
+ ・ Improved movie support
+
+ ・ Imlib2 support
+
+ ・ Other minor GUI improvements
+
+ ・ Image management functions
+
+ ・ Simple image editing functions
+
+ ・ http/ftp support (undecided)
+
+ ・ Database support (undecided)
+
+13. About This Document
+=======================
+
+13.1. Disclaimer
+
+The authors of GImageView take no responsibility for anything that results
+from the use of this program.
+
+Please use it at your own risk.
+
+13.2. Closing Remarks
+
+This document is distributed together with GImageView itself.
+
+13.3. Copyright notice
+
+This document is based on the one written by Nyan2, modified for the GTK4
+version.
+
+The copyright of this document belongs to Nyan2.
+
+Copyright (C) 2001 Nyan2 <t-nyan2@nifty.com>, All rights reserved.
+
+------------------------------
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02111-1307, USA.
+
+13.4. GNU General Public License
+
+              GNU GENERAL PUBLIC LICENSE
+                 Version 2, June 1991
+
+   Copyright (C) 1989, 1991 Free Software Foundation, Inc.
+   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+   Everyone is permitted to copy and distribute verbatim copies
+   of this license document, but changing it is not allowed.
+
+                  Preamble
+
+    The licenses for most software are designed to take away your
+  freedom to share and change it.  By contrast, the GNU General Public
+  License is intended to guarantee your freedom to share and change free
+  software--to make sure the software is free for all its users.  This
+  General Public License applies to most of the Free Software
+  Foundation's software and to any other program whose authors commit to
+  using it.  (Some other Free Software Foundation software is covered by
+  the GNU Library General Public License instead.)  You can apply it to
+  your programs, too.
+
+    When we speak of free software, we are referring to freedom, not
+  price.  Our General Public Licenses are designed to make sure that you
+  have the freedom to distribute copies of free software (and charge for
+  this service if you wish), that you receive source code or can get it
+  if you want it, that you can change the software or use pieces of it
+  in new free programs; and that you know you can do these things.
+
+    To protect your rights, we need to make restrictions that forbid
+  anyone to deny you these rights or to ask you to surrender the rights.
+  These restrictions translate to certain responsibilities for you if you
+  distribute copies of the software, or if you modify it.
+
+    For example, if you distribute copies of such a program, whether
+  gratis or for a fee, you must give the recipients all the rights that
+  you have.  You must make sure that they, too, receive or can get the
+  source code.  And you must show them these terms so they know their
+  rights.
+
+    We protect your rights with two steps: (1) copyright the software, and
+  (2) offer you this license which gives you legal permission to copy,
+  distribute and/or modify the software.
+
+    Also, for each author's protection and ours, we want to make certain
+  that everyone understands that there is no warranty for this free
+  software.  If the software is modified by someone else and passed on, we
+  want its recipients to know that what they have is not the original, so
+  that any problems introduced by others will not reflect on the original
+  authors' reputations.
+
+    Finally, any free program is threatened constantly by software
+  patents.  We wish to avoid the danger that redistributors of a free
+  program will individually obtain patent licenses, in effect making the
+  program proprietary.  To prevent this, we have made it clear that any
+  patent must be licensed for everyone's free use or not licensed at all.
+
+    The precise terms and conditions for copying, distribution and
+  modification follow.
+
+              GNU GENERAL PUBLIC LICENSE
+     TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+    0. This License applies to any program or other work which contains
+  a notice placed by the copyright holder saying it may be distributed
+  under the terms of this General Public License.  The "Program", below,
+  refers to any such program or work, and a "work based on the Program"
+  means either the Program or any derivative work under copyright law:
+  that is to say, a work containing the Program or a portion of it,
+  either verbatim or with modifications and/or translated into another
+  language.  (Hereinafter, translation is included without limitation in
+  the term "modification".)  Each licensee is addressed as "you".
+
+  Activities other than copying, distribution and modification are not
+  covered by this License; they are outside its scope.  The act of
+  running the Program is not restricted, and the output from the Program
+  is covered only if its contents constitute a work based on the
+  Program (independent of having been made by running the Program).
+  Whether that is true depends on what the Program does.
+
+    1. You may copy and distribute verbatim copies of the Program's
+  source code as you receive it, in any medium, provided that you
+  conspicuously and appropriately publish on each copy an appropriate
+  copyright notice and disclaimer of warranty; keep intact all the
+  notices that refer to this License and to the absence of any warranty;
+  and give any other recipients of the Program a copy of this License
+  along with the Program.
+
+  You may charge a fee for the physical act of transferring a copy, and
+  you may at your option offer warranty protection in exchange for a fee.
+
+    2. You may modify your copy or copies of the Program or any portion
+  of it, thus forming a work based on the Program, and copy and
+  distribute such modifications or work under the terms of Section 1
+  above, provided that you also meet all of these conditions:
+
+      a) You must cause the modified files to carry prominent notices
+      stating that you changed the files and the date of any change.
+
+      b) You must cause any work that you distribute or publish, that in
+      whole or in part contains or is derived from the Program or any
+      part thereof, to be licensed as a whole at no charge to all third
+      parties under the terms of this License.
+
+      c) If the modified program normally reads commands interactively
+      when run, you must cause it, when started running for such
+      interactive use in the most ordinary way, to print or display an
+      announcement including an appropriate copyright notice and a
+      notice that there is no warranty (or else, saying that you provide
+      a warranty) and that users may redistribute the program under
+      these conditions, and telling the user how to view a copy of this
+      License.  (Exception: if the Program itself is interactive but
+      does not normally print such an announcement, your work based on
+      the Program is not required to print an announcement.)
+
+  These requirements apply to the modified work as a whole.  If
+  identifiable sections of that work are not derived from the Program,
+  and can be reasonably considered independent and separate works in
+  themselves, then this License, and its terms, do not apply to those
+  sections when you distribute them as separate works.  But when you
+  distribute the same sections as part of a whole which is a work based
+  on the Program, the distribution of the whole must be on the terms of
+  this License, whose permissions for other licensees extend to the
+  entire whole, and thus to each and every part regardless of who wrote it.
+
+  Thus, it is not the intent of this section to claim rights or contest
+  your rights to work written entirely by you; rather, the intent is to
+  exercise the right to control the distribution of derivative or
+  collective works based on the Program.
+
+  In addition, mere aggregation of another work not based on the Program
+  with the Program (or with a work based on the Program) on a volume of
+  a storage or distribution medium does not bring the other work under
+  the scope of this License.
+
+    3. You may copy and distribute the Program (or a work based on it,
+  under Section 2) in object code or executable form under the terms of
+  Sections 1 and 2 above provided that you also do one of the following:
+
+      a) Accompany it with the complete corresponding machine-readable
+      source code, which must be distributed under the terms of Sections
+      1 and 2 above on a medium customarily used for software interchange; or,
+
+      b) Accompany it with a written offer, valid for at least three
+      years, to give any third party, for a charge no more than your
+      cost of physically performing source distribution, a complete
+      machine-readable copy of the corresponding source code, to be
+      distributed under the terms of Sections 1 and 2 above on a medium
+      customarily used for software interchange; or,
+
+      c) Accompany it with the information you received as to the offer
+      to distribute corresponding source code.  (This alternative is
+      allowed only for noncommercial distribution and only if you
+      received the program in object code or executable form with such
+      an offer, in accord with Subsection b above.)
+
+  The source code for a work means the preferred form of the work for
+  making modifications to it.  For an executable work, complete source
+  code means all the source code for all modules it contains, plus any
+  associated interface definition files, plus the scripts used to
+  control compilation and installation of the executable.  However, as a
+  special exception, the source code distributed need not include
+  anything that is normally distributed (in either source or binary
+  form) with the major components (compiler, kernel, and so on) of the
+  operating system on which the executable runs, unless that component
+  itself accompanies the executable.
+
+  If distribution of executable or object code is made by offering
+  access to copy from a designated place, then offering equivalent
+  access to copy the source code from the same place counts as
+  distribution of the source code, even though third parties are not
+  compelled to copy the source along with the object code.
+
+    4. You may not copy, modify, sublicense, or distribute the Program
+  except as expressly provided under this License.  Any attempt
+  otherwise to copy, modify, sublicense or distribute the Program is
+  void, and will automatically terminate your rights under this License.
+  However, parties who have received copies, or rights, from you under
+  this License will not have their licenses terminated so long as such
+  parties remain in full compliance.
+
+    5. You are not required to accept this License, since you have not
+  signed it.  However, nothing else grants you permission to modify or
+  distribute the Program or its derivative works.  These actions are
+  prohibited by law if you do not accept this License.  Therefore, by
+  modifying or distributing the Program (or any work based on the
+  Program), you indicate your acceptance of this License to do so, and
+  all its terms and conditions for copying, distributing or modifying
+  the Program or works based on it.
+
+    6. Each time you redistribute the Program (or any work based on the
+  Program), the recipient automatically receives a license from the
+  original licensor to copy, distribute or modify the Program subject to
+  these terms and conditions.  You may not impose any further
+  restrictions on the recipients' exercise of the rights granted herein.
+  You are not responsible for enforcing compliance by third parties to
+  this License.
+
+    7. If, as a consequence of a court judgment or allegation of patent
+  infringement or for any other reason (not limited to patent issues),
+  conditions are imposed on you (whether by court order, agreement or
+  otherwise) that contradict the conditions of this License, they do not
+  excuse you from the conditions of this License.  If you cannot
+  distribute so as to satisfy simultaneously your obligations under this
+  License and any other pertinent obligations, then as a consequence you
+  may not distribute the Program at all.  For example, if a patent
+  license would not permit royalty-free redistribution of the Program by
+  all those who receive copies directly or indirectly through you, then
+  the only way you could satisfy both it and this License would be to
+  refrain entirely from distribution of the Program.
+
+  If any portion of this section is held invalid or unenforceable under
+  any particular circumstance, the balance of the section is intended to
+  apply and the section as a whole is intended to apply in other
+  circumstances.
+
+  It is not the purpose of this section to induce you to infringe any
+  patents or other property right claims or to contest validity of any
+  such claims; this section has the sole purpose of protecting the
+  integrity of the free software distribution system, which is
+  implemented by public license practices.  Many people have made
+  generous contributions to the wide range of software distributed
+  through that system in reliance on consistent application of that
+  system; it is up to the author/donor to decide if he or she is willing
+  to distribute software through any other system and a licensee cannot
+  impose that choice.
+
+  This section is intended to make thoroughly clear what is believed to
+  be a consequence of the rest of this License.
+
+    8. If the distribution and/or use of the Program is restricted in
+  certain countries either by patents or by copyrighted interfaces, the
+  original copyright holder who places the Program under this License
+  may add an explicit geographical distribution limitation excluding
+  those countries, so that distribution is permitted only in or among
+  countries not thus excluded.  In such case, this License incorporates
+  the limitation as if written in the body of this License.
+
+    9. The Free Software Foundation may publish revised and/or new versions
+  of the General Public License from time to time.  Such new versions will
+  be similar in spirit to the present version, but may differ in detail to
+  address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the Program
+  specifies a version number of this License which applies to it and "any
+  later version", you have the option of following the terms and conditions
+  either of that version or of any later version published by the Free
+  Software Foundation.  If the Program does not specify a version number of
+  this License, you may choose any version ever published by the Free Software
+  Foundation.
+
+    10. If you wish to incorporate parts of the Program into other free
+  programs whose distribution conditions are different, write to the author
+  to ask for permission.  For software which is copyrighted by the Free
+  Software Foundation, write to the Free Software Foundation; we sometimes
+  make exceptions for this.  Our decision will be guided by the two goals
+  of preserving the free status of all derivatives of our free software and
+  of promoting the sharing and reuse of software generally.
+
+                  NO WARRANTY
+
+    11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
+  FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN
+  OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
+  PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED
+  OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS
+  TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE
+  PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,
+  REPAIR OR CORRECTION.
+
+    12. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+  WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
+  REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+  INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING
+  OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED
+  TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY
+  YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
+  PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGES.
+
+               END OF TERMS AND CONDITIONS
+
+      Appendix: How to Apply These Terms to Your New Programs
+
+    If you develop a new program, and you want it to be of the greatest
+  possible use to the public, the best way to achieve this is to make it
+  free software which everyone can redistribute and change under these terms.
+
+    To do so, attach the following notices to the program.  It is safest
+  to attach them to the start of each source file to most effectively
+  convey the exclusion of warranty; and each file should have at least
+  the "copyright" line and a pointer to where the full notice is found.
+
+      <one line to give the program's name and a brief idea of what it does.>
+      Copyright (C) 19yy  <name of author>
+
+      This program is free software; you can redistribute it and/or modify
+      it under the terms of the GNU General Public License as published by
+      the Free Software Foundation; either version 2 of the License, or
+      (at your option) any later version.
+
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU General Public License for more details.
+
+      You should have received a copy of the GNU General Public License
+      along with this program; if not, write to the Free Software
+      Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+  Also add information on how to contact you by electronic and paper mail.
+
+  If the program is interactive, make it output a short notice like this
+  when it starts in an interactive mode:
+
+      Gnomovision version 69, Copyright (C) 19yy name of author
+      Gnomovision comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+      This is free software, and you are welcome to redistribute it
+      under certain conditions; type `show c' for details.
+
+  The hypothetical commands `show w' and `show c' should show the appropriate
+  parts of the General Public License.  Of course, the commands you use may
+  be called something other than `show w' and `show c'; they could even be
+  mouse-clicks or menu items--whatever suits your program.
+
+  You should also get your employer (if you work as a programmer) or your
+  school, if any, to sign a "copyright disclaimer" for the program, if
+  necessary.  Here is a sample; alter the names:
+
+    Yoyodyne, Inc., hereby disclaims all copyright interest in the program
+    `Gnomovision' (which makes passes at compilers) written by James Hacker.
+
+    <signature of Ty Coon>, 1 April 1989
+    Ty Coon, President of Vice
+
+  This General Public License does not permit incorporating your program into
+  proprietary programs.  If your program is a subroutine library, you may
+  consider it more useful to permit linking proprietary applications with the
+  library.  If this is what you want to do, use the GNU Library General
+  Public License instead of this License.

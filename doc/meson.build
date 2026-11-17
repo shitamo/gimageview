@@ -171,5 +171,5 @@ install_data(files('en/images/imagewin.png',
                    'en/images/save_dialog.png'),
              install_dir : gimv_helpdir / 'html' / 'en' / 'images')
 install_data(files('../README.md', '../INSTALL', '../NEWS', '../COPYING', '../ChangeLog',
-                   '../TODO'),
+                   '../TODO', 'en/gimageview.txt'),
              install_dir : gimv_helpdir / 'text' / 'en')

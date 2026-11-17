@@ -205,3 +205,19 @@ Susie plugin support.
   DetailView:       Detailed list view.
   ListView:         Icon list view.
   ThumbTable:       Old thumbnail view.
+
+
+
+###############################################################################
+#                                                                             #
+#                               Documents                                     #
+#                                                                             #
+###############################################################################
+
+
+  The manual is doc/<lang>/*.html.  doc/<lang>/gimageview.txt, shown in
+  [Help | Document | Plain Text], is made from it: after changing the
+  HTML, make it again with
+
+      tools/doc-text.py doc/ja > doc/ja/gimageview.txt
+      tools/doc-text.py doc/en > doc/en/gimageview.txt
