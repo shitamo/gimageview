@@ -3636,6 +3636,10 @@ How duplicates are found
  ・ The comments in the file (MAG, MAKI, ...) are shown in the "Data" tab for
     an image in an archive too (read from the file extracted for the preview).
 
+ ・ Fixed a crash on GTK 4.14 (Wayland) while drawing the thumbnail window
+    when started without arguments: the CSS probes for the theme colors are
+    registered at startup (PR #1 by Takuro Ashie).
+
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the
     memory buffer, the thumbnail size, the custom layout rewritten).
