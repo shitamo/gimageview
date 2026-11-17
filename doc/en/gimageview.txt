@@ -1237,7 +1237,9 @@ Zoom
 Rotate
     Image window only. Rotates the image shown (the image file is not
     changed): Rotate 90 Degrees Clockwise [R], Rotate 90 Degrees
-    Counterclockwise [E], Rotate 180 Degrees [D].
+    Counterclockwise [E], Rotate 180 Degrees [D], and Flip Horizontally [X].
+    The rotation and the flip are remembered for each image and shown again
+    when it is opened (Remember the rotation and flip of each image).
 
 Ignore Alpha Channel
     Image window only. Shows the image without its transparency.
@@ -2147,10 +2149,10 @@ Rotation
     orientation of the image shown before) can be chosen. When built with EXIF
     support, "Automatic EXIF" can be chosen too.
 
-Remember the rotation of each image (saved with its comment)
-    When an image is rotated, its orientation is saved where its comment is
-    kept, and the image is shown in that orientation the next time it is
-    opened. This item was added in the GTK 4 version (on by default).
+Remember the rotation and flip of each image (saved with its comment)
+    When an image is rotated or flipped, its orientation is saved where its
+    comment is kept, and the image is shown in that orientation the next time
+    it is opened. This item was added in the GTK 4 version (on by default).
 
 Keep aspect ratio
     The aspect ratio (the ratio of width and height) is kept when an image is
