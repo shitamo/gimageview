@@ -39,6 +39,9 @@ typedef struct {
    guint8   *sig;             /* GIMV_DUPL_SIG_SIZE: 32 x 32 RGB means */
    gint64    sig_sum;
    gint      index;           /* in the scan */
+
+   /* set after the scan (gimv_enlarged.c) */
+   gboolean  enlarged;        /* a smaller member only made larger */
 } GimvDuplItem;
 
 typedef struct {
@@ -90,6 +93,11 @@ guint         gimv_dupl_scan_n_items    (GimvDuplScan *scan);
  * array for the caller, of groups the caller frees */
 GPtrArray    *gimv_dupl_scan_same_groups (GimvDuplScan *scan);
 void          gimv_dupl_group_free      (GimvDuplGroup *group);
+/* the members marked enlarged put after the others (the one to keep is
+ * then the first of the rest), the likeness to the first made again;
+ * after gimv_dupl_scan_run (), where the scan is used */
+void          gimv_dupl_scan_order_group (GimvDuplScan  *scan,
+                                         GimvDuplGroup *group);
 
 /* the signature of a picture: 32 x 32 RGB means (for the tests) */
 void          gimv_dupl_sig_fill        (guint8        sig[GIMV_DUPL_SIG_SIZE],

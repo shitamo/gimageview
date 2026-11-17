@@ -1375,15 +1375,18 @@ Find Duplicates...
 
     Each image is marked "Keep" or "Delete". In the Identical and Other Sizes
     groups the one with the most pixels (then the largest file, the oldest) is
-    kept and the others are to delete; in the Similar groups all are kept.
-    "Move to Trash..." at the top right moves the images to delete of the
-    group shown, and only those, to the trash after asking (they can be put
-    back from the trash): a group at a time, to be careful. The question names
-    the files and says so when all of the group are to delete (then "Cancel"
-    is the default) or some have comments. Then the next group is shown. With
-    more than one group, "Move All Marked to Trash..." at the bottom moves
-    those of all the groups at once (the groups with every image to delete are
-    left out).
+    kept and the others are to delete, but in an Other Sizes group a copy
+    found to be a smaller one only made larger shows "Looks like an enlarged
+    copy" and is not the one kept (it is looked for in a thread after the
+    groups are shown, and each group is ordered again when done; Keep and
+    Delete chosen by hand stay); in the Similar groups all are kept. "Move to
+    Trash..." at the top right moves the images to delete of the group shown,
+    and only those, to the trash after asking (they can be put back from the
+    trash): a group at a time, to be careful. The question names the files and
+    says so when all of the group are to delete (then "Cancel" is the default)
+    or some have comments. Then the next group is shown. With more than one
+    group, "Move All Marked to Trash..." at the bottom moves those of all the
+    groups at once (the groups with every image to delete are left out).
 
     Before they are moved, the images to delete are compared with the image
     kept again (Identical groups): a file changed since is not moved. When
@@ -3353,11 +3356,14 @@ How duplicates are found
 
     In the Identical and Other Sizes groups the one with the most pixels (then
     the largest file, the oldest, the shortest path) is marked Keep and the
-    others Delete. The Similar groups may be other shots: all are marked Keep.
-    Which to keep is for a person to check and decide. "Move to Trash..."
-    moves those to delete of the group shown, "Move All Marked to Trash..."
-    those of all the groups at once; they are compared with the image kept
-    again first.
+    others Delete. In an Other Sizes group, an image twice as large or more is
+    checked for being a smaller one only made larger: then it shows "Looks
+    like an enlarged copy" and is not the one kept (see "How an enlarged copy
+    is told" below). The Similar groups may be other shots: all are marked
+    Keep. Which to keep is for a person to check and decide. "Move to
+    Trash..." moves those to delete of the group shown, "Move All Marked to
+    Trash..." those of all the groups at once; they are compared with the
+    image kept again first.
 
     Because of how it works, it may not do what one expects in these cases.
 
@@ -3368,10 +3374,28 @@ How duplicates are found
         that do not correspond are compared). Rotated or mirrored images do
         not match.
 
-     3. A copy only blown up has more pixels and is marked Keep.
+     3. A copy only blown up is not told when it is less than twice as large,
+        when the picture has little detail, or when it is a JPEG saved at a
+        low quality (about 70 or less): it has more pixels and is marked Keep.
+        One blown up by AI (waifu2x, ...) has detail made up and may not be
+        told.
 
      4. Images gimv shows but gdk-pixbuf cannot read are looked at for
         Identical only. The images in archives are not compared.
+
+    How an enlarged copy is told: an ordinary enlarging (nearest, bilinear,
+    bicubic, Lanczos, of any program) makes each pixel of the large image a
+    weighted sum of the pixels around its place in the small one. The best
+    weights to predict the large image from the small one are fitted on half
+    of the pixels, and the error of the prediction is measured on the other
+    half: an enlarged copy is predicted down to about its JPEG noise, a
+    picture really larger keeps the detail the small one does not have. The
+    error is compared with the error of predicting the small image from itself
+    made smaller by as much (photographs have alike detail at all scales:
+    about the same for a real one, less than 0.35 times for an enlarged copy).
+    With the test pictures, about nine in ten of the copies enlarged twice
+    were told, and no real one was taken for a copy; it takes about 0.2
+    seconds a pair (12 million pixels).
 
     To find the same files across folders, not only in the active tab, use
     [Tools | Find Duplicates in the Index...] (the index looks for them in the
@@ -3583,6 +3607,11 @@ How duplicates are found
     one (a new version), the features are made again at the place of each face
     found, the faces and their names kept. "meson test faces" runs the models
     when they are there.
+
+ ・ Duplicate images: in an Other Sizes group, a copy that is a smaller one
+    only made larger (twice or more: predicted from the small one by a fitted
+    enlarging) shows "Looks like an enlarged copy" and is not the one kept; it
+    is looked for in a thread after the groups are shown.
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

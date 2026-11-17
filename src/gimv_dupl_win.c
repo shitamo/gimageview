@@ -41,6 +41,7 @@
 #include "gimv_bookmark.h"
 #include "gimv_comment.h"
 #include "gimv_dupl_scan.h"
+#include "gimv_enlarged.h"
 #include "gimv_icon_stock.h"
 #include "gimv_image_info.h"
 #include "gimv_image_win.h"
@@ -95,6 +96,9 @@ struct GimvDuplWinPriv_Tag
                                   indexed images, or a folder) */
    GPtrArray     *groups;      /* GimvDuplGroup *: shown */
    gboolean       groups_owned;/* ... freed here (the first ones) */
+   gboolean       checking;    /* looking for enlarged copies (priv->cancel
+                                  stops it) */
+   gchar         *done_text;   /* of the scan, shown again after it */
 
    /* the marks: path -> GINT_TO_POINTER (1 keep, 2 delete) set by hand;
     * otherwise the suggestion of the group */
@@ -958,6 +962,13 @@ card_new (GimvDuplWin *sw, GimvDuplGroup *group, guint i)
    card_label (box, text, FALSE);
    g_free (text);
 
+   if (item->enlarged) {
+      label = card_label (box, _("Looks like an enlarged copy"), FALSE);
+      gtk_widget_add_css_class (label, "accent");
+      gtk_widget_set_tooltip_text (label, _("It has no more detail than a smaller one "
+                                            "of the group: only made larger"));
+   }
+
    if (i == 0)
       text = g_strdup (group->suggested ? _("Suggested to keep") : "");
    else if (sim >= 1.0)
@@ -1373,6 +1384,8 @@ scan_job_free (gpointer data)
 }
 
 
+static void enlarged_start (GimvDuplWin *sw);
+
 static void
 scan_done (GObject *source, GAsyncResult *res, gpointer data)
 {
@@ -1425,9 +1438,251 @@ scan_done (GObject *source, GAsyncResult *res, gpointer data)
    }
    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (priv->progress), ok ? 1.0 : 0.0);
    gtk_progress_bar_set_text (GTK_PROGRESS_BAR (priv->progress), text);
-   g_free (text);
+   g_free (priv->done_text);
+   priv->done_text = text;
    gtk_widget_set_visible (priv->empty_label, n == 0);
    update_summary (sw);
+   if (ok) enlarged_start (sw);
+}
+
+
+/******************************************************************************
+ *   enlarged copies: in the groups of other sizes, a larger image that is
+ *   only a smaller one made larger is not the one to keep (gimv_enlarged.c).
+ *   After the groups are shown, in a thread; each group is ordered again
+ *   when it is done (the marks set by hand stay).
+ ******************************************************************************/
+
+/* the larger images compared with at most so many smaller ones */
+#define ENLARGED_TRIES 3
+
+typedef struct {
+   gint       index;           /* in priv->groups */
+   gchar    **paths;           /* the members, the largest first */
+   gint      *w, *h;
+   goffset   *size;
+   guint      n;
+} CheckGroup;
+
+typedef struct {
+   Shared      *shared;
+   GPtrArray   *groups;        /* CheckGroup * */
+} CheckJob;
+
+typedef struct {
+   Shared      *shared;
+   gint         index;         /* -1: the end */
+   GPtrArray   *enlarged;      /* gchar *: the paths found */
+   guint        done, total;
+   gboolean     ok;
+} CheckMsg;
+
+
+static void
+check_group_free (gpointer data)
+{
+   CheckGroup *g = data;
+   g_strfreev (g->paths);
+   g_free (g->w);
+   g_free (g->h);
+   g_free (g->size);
+   g_free (g);
+}
+
+
+static void
+check_job_free (gpointer data)
+{
+   CheckJob *job = data;
+   shared_unref (job->shared);
+   g_ptr_array_unref (job->groups);
+   g_free (job);
+}
+
+
+static gboolean
+idle_check (gpointer data)
+{
+   CheckMsg *msg = data;
+   GimvDuplWin *sw = msg->shared->sw;
+
+   if (sw && msg->index >= 0 && sw->priv->groups
+       && msg->index < (gint) sw->priv->groups->len)
+   {
+      GimvDuplWinPriv *priv = sw->priv;
+      GimvDuplGroup *group = g_ptr_array_index (priv->groups, msg->index);
+      gboolean any = FALSE;
+      guint i, k;
+
+      for (i = 0; i < group->members->len; i++) {
+         GimvDuplItem *item = g_ptr_array_index (group->members, i);
+         for (k = 0; k < msg->enlarged->len; k++)
+            if (!strcmp (item->path, g_ptr_array_index (msg->enlarged, k))) {
+               item->enlarged = any = TRUE;
+               break;
+            }
+      }
+      if (any && priv->scan) {
+         gimv_dupl_scan_order_group (priv->scan, group);
+         refresh_rows (sw);
+         if (priv->current == msg->index) show_group (sw, msg->index);
+      }
+   }
+   if (sw) {
+      GimvDuplWinPriv *priv = sw->priv;
+      if (msg->index < 0) {
+         priv->checking = FALSE;
+         gtk_widget_set_sensitive (priv->stop_button, FALSE);
+         gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (priv->progress), 1.0);
+         gtk_progress_bar_set_text (GTK_PROGRESS_BAR (priv->progress), priv->done_text);
+      } else if (msg->total > 0) {
+         gchar *text = g_strdup_printf (_("Looking for enlarged copies: %u of %u groups"),
+                                        msg->done, msg->total);
+         gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (priv->progress),
+                                        (gdouble) msg->done / msg->total);
+         gtk_progress_bar_set_text (GTK_PROGRESS_BAR (priv->progress), text);
+         g_free (text);
+      }
+   }
+   shared_unref (msg->shared);
+   if (msg->enlarged) g_ptr_array_unref (msg->enlarged);
+   g_free (msg);
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+check_post (CheckJob *job, gint index, GPtrArray *enlarged, guint done, guint total)
+{
+   CheckMsg *msg = g_new0 (CheckMsg, 1);
+   msg->shared = shared_ref (job->shared);
+   msg->index = index;
+   msg->enlarged = enlarged;
+   msg->done = done;
+   msg->total = total;
+   g_idle_add (idle_check, msg);
+}
+
+
+static void
+check_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   CheckJob *job = data;
+   guint gi;
+
+   for (gi = 0; gi < job->groups->len && !g_cancellable_is_cancelled (cancel); gi++) {
+      CheckGroup *g = g_ptr_array_index (job->groups, gi);
+      GPtrArray *found = g_ptr_array_new_with_free_func (g_free);
+      /* the copies of one file (same size in pixels and bytes) once */
+      GHashTable *seen = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+      guint j, i;
+
+      for (j = 0; j < g->n && !g_cancellable_is_cancelled (cancel); j++) {
+         gchar *key = g_strdup_printf ("%dx%d:%" G_GINT64_FORMAT, g->w[j], g->h[j],
+                                       (gint64) g->size[j]);
+         gpointer was;
+         gboolean enlarged = FALSE;
+         gint tries = 0;
+
+         if (g_hash_table_lookup_extended (seen, key, NULL, &was)) {
+            enlarged = GPOINTER_TO_INT (was);
+            g_free (key);
+         } else {
+            /* the smaller ones from the largest down (an enlarged copy of
+             * a middle one has more than the smallest) */
+            for (i = j + 1; i < g->n && tries < ENLARGED_TRIES && !enlarged; i++) {
+               gdouble f = MIN ((gdouble) g->w[j] / MAX (g->w[i], 1),
+                                (gdouble) g->h[j] / MAX (g->h[i], 1));
+               gdouble sc;
+               if (f < GIMV_ENLARGED_MIN_FACTOR) continue;
+               tries++;
+               sc = gimv_enlarged_score_files (g->paths[i], g->paths[j], cancel);
+               enlarged = sc >= 0 && sc < GIMV_ENLARGED_LIMIT;
+            }
+            g_hash_table_insert (seen, key, GINT_TO_POINTER (enlarged));
+         }
+         if (enlarged) g_ptr_array_add (found, g_strdup (g->paths[j]));
+      }
+      g_hash_table_destroy (seen);
+      check_post (job, g->index, found, gi + 1, job->groups->len);
+   }
+   check_post (job, -1, NULL, 0, 0);
+   g_task_return_boolean (task, TRUE);
+}
+
+
+static gint
+cmp_pixels_desc (gconstpointer pa, gconstpointer pb)
+{
+   const GimvDuplItem *a = *(GimvDuplItem * const *) pa;
+   const GimvDuplItem *b = *(GimvDuplItem * const *) pb;
+   gint64 na = (gint64) a->width * a->height, nb = (gint64) b->width * b->height;
+   return na == nb ? 0 : (na > nb ? -1 : 1);
+}
+
+
+static void
+enlarged_start (GimvDuplWin *sw)
+{
+   GimvDuplWinPriv *priv = sw->priv;
+   CheckJob *job;
+   GTask *task;
+   guint i, k;
+
+   if (!priv->groups || !priv->scan) return;
+
+   job = g_new0 (CheckJob, 1);
+   job->groups = g_ptr_array_new_with_free_func (check_group_free);
+   for (i = 0; i < priv->groups->len; i++) {
+      GimvDuplGroup *group = g_ptr_array_index (priv->groups, i);
+      GPtrArray *m;
+      CheckGroup *g;
+      GimvDuplItem *big, *small;
+
+      if (group->kind != GIMV_DUPL_RESIZED || !group->suggested) continue;
+      m = g_ptr_array_copy (group->members, NULL, NULL);
+      g_ptr_array_sort (m, cmp_pixels_desc);
+      big = g_ptr_array_index (m, 0);
+      small = g_ptr_array_index (m, m->len - 1);
+      if (small->width <= 0 || small->height <= 0
+          || MIN ((gdouble) big->width / small->width, (gdouble) big->height / small->height)
+             < GIMV_ENLARGED_MIN_FACTOR)
+      {
+         g_ptr_array_unref (m);
+         continue;
+      }
+      g = g_new0 (CheckGroup, 1);
+      g->index = i;
+      g->n = m->len;
+      g->paths = g_new0 (gchar *, m->len + 1);
+      g->w = g_new (gint, m->len);
+      g->h = g_new (gint, m->len);
+      g->size = g_new (goffset, m->len);
+      for (k = 0; k < m->len; k++) {
+         GimvDuplItem *item = g_ptr_array_index (m, k);
+         g->paths[k] = g_strdup (item->path);
+         g->w[k] = item->width;
+         g->h[k] = item->height;
+         g->size[k] = item->size;
+      }
+      g_ptr_array_add (job->groups, g);
+      g_ptr_array_unref (m);
+   }
+   if (job->groups->len == 0) {
+      g_ptr_array_unref (job->groups);
+      g_free (job);
+      return;
+   }
+
+   job->shared = shared_ref (priv->shared);
+   g_clear_object (&priv->cancel);
+   priv->cancel = g_cancellable_new ();
+   priv->checking = TRUE;
+   gtk_widget_set_sensitive (priv->stop_button, TRUE);
+   task = g_task_new (NULL, priv->cancel, NULL, NULL);
+   g_task_set_task_data (task, job, check_job_free);
+   g_task_run_in_thread (task, check_thread);
+   g_object_unref (task);
 }
 
 
@@ -2160,6 +2415,7 @@ gimv_dupl_win_dispose (GObject *object)
       if (priv->groups && priv->groups_owned) g_ptr_array_unref (priv->groups);
       priv->groups = NULL;
       g_clear_object (&priv->cancel);
+      g_clear_pointer (&priv->done_text, g_free);
       g_clear_pointer (&priv->marks, g_hash_table_destroy);
       g_clear_pointer (&priv->removed, g_hash_table_destroy);
       g_clear_pointer (&priv->textures, g_hash_table_destroy);

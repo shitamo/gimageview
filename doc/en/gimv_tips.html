@@ -114,7 +114,7 @@ Layouts 0 to 4 are these six values set in advance.
 How alike they must be is &quot;Accuracy&quot; in [Preferences | Search] (0.97 by default: 97% or more alike match).  A lower value puts more images in Similar.
 </p>
 <p class="para">
-In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest, the shortest path) is marked Keep and the others Delete.  The Similar groups may be other shots: all are marked Keep.  Which to keep is for a person to check and decide.  &quot;Move to Trash...&quot; moves those to delete of the group shown, &quot;Move All Marked to Trash...&quot; those of all the groups at once; they are compared with the image kept again first.
+In the Identical and Other Sizes groups the one with the most pixels (then the largest file, the oldest, the shortest path) is marked Keep and the others Delete.  In an Other Sizes group, an image twice as large or more is checked for being a smaller one only made larger: then it shows "Looks like an enlarged copy" and is not the one kept (see "How an enlarged copy is told" below).  The Similar groups may be other shots: all are marked Keep.  Which to keep is for a person to check and decide.  &quot;Move to Trash...&quot; moves those to delete of the group shown, &quot;Move All Marked to Trash...&quot; those of all the groups at once; they are compared with the image kept again first.
 </p>
 <p class="para">
 Because of how it works, it may not do what one expects in these cases.
@@ -122,9 +122,12 @@ Because of how it works, it may not do what one expects in these cases.
 <div class="orderedlist"><ol type="1">
 <li><p class="para">Images whose color balance or brightness has changed as a whole match less (every part differs evenly).</p></li>
 <li><p class="para">Images with a part (top/bottom/right/left) cut off match less (parts that do not correspond are compared).  Rotated or mirrored images do not match.</p></li>
-<li><p class="para">A copy only blown up has more pixels and is marked Keep.</p></li>
+<li><p class="para">A copy only blown up is not told when it is less than twice as large, when the picture has little detail, or when it is a JPEG saved at a low quality (about 70 or less): it has more pixels and is marked Keep.  One blown up by AI (waifu2x, ...) has detail made up and may not be told.</p></li>
 <li><p class="para">Images gimv shows but gdk-pixbuf cannot read are looked at for Identical only.  The images in archives are not compared.</p></li>
 </ol></div>
+<p class="para">
+How an enlarged copy is told: an ordinary enlarging (nearest, bilinear, bicubic, Lanczos, of any program) makes each pixel of the large image a weighted sum of the pixels around its place in the small one.  The best weights to predict the large image from the small one are fitted on half of the pixels, and the error of the prediction is measured on the other half: an enlarged copy is predicted down to about its JPEG noise, a picture really larger keeps the detail the small one does not have.  The error is compared with the error of predicting the small image from itself made smaller by as much (photographs have alike detail at all scales: about the same for a real one, less than 0.35 times for an enlarged copy).  With the test pictures, about nine in ten of the copies enlarged twice were told, and no real one was taken for a copy; it takes about 0.2 seconds a pair (12 million pixels).
+</p>
 <p class="para">
 To find the same files across folders, not only in the active tab, use <span class="emphasis"><i>[Tools | Find Duplicates in the Index...]</i></span> (the index looks for them in the background): see &quot;<a href="04.html#find_duplicates_index" title="">Find Duplicates in the Index...</a>&quot;.
 </p>

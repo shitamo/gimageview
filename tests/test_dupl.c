@@ -19,7 +19,10 @@
 #include <string.h>
 #include <glib/gstdio.h>
 
+#include <math.h>
+
 #include "gimv_dupl_scan.h"
+#include "gimv_enlarged.h"
 
 static gchar *dir;
 
@@ -370,6 +373,158 @@ test_sig (void)
 }
 
 
+/******************************************************************************
+ *   enlarged copies (gimv_enlarged.c)
+ ******************************************************************************/
+
+static gdouble
+hash2 (gint x, gint y, gint o)
+{
+   guint32 h = x * 374761393u + y * 668265263u + o * 2246822519u;
+   h = (h ^ (h >> 13)) * 1274126177u;
+   return ((h ^ (h >> 16)) & 0xffff) / 65535.0;
+}
+
+
+static gdouble
+value_noise (gdouble x, gdouble y, gint o)
+{
+   gint xi = (gint) floor (x), yi = (gint) floor (y);
+   gdouble fx = x - xi, fy = y - yi;
+   gdouble a = hash2 (xi, yi, o), b = hash2 (xi + 1, yi, o);
+   gdouble c = hash2 (xi, yi + 1, o), d = hash2 (xi + 1, yi + 1, o);
+
+   fx = fx * fx * (3 - 2 * fx);
+   fy = fy * fy * (3 - 2 * fy);
+   return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy;
+}
+
+
+/* a picture with detail at every scale, as photographs have */
+static GdkPixbuf *
+detailed (gint w, gint h)
+{
+   GdkPixbuf *px = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, w, h);
+   guchar *pix = gdk_pixbuf_get_pixels (px);
+   gint rs = gdk_pixbuf_get_rowstride (px), x, y, o;
+
+   for (y = 0; y < h; y++)
+      for (x = 0; x < w; x++) {
+         gdouble v = 0, amp = 1, sum = 0;
+         guchar *p = pix + y * rs + x * 3;
+         for (o = 0; o < 8; o++) {
+            gdouble sc = 4.0 * (1 << o) / w;
+            v += amp * value_noise (x * sc, y * sc, o);
+            sum += amp;
+            amp *= 0.8;
+         }
+         v /= sum;
+         /* and sharp edges: squares of every size */
+         for (o = 1; o < 7; o++) {
+            gint cell = w >> o;
+            if (cell < 2) break;
+            if (hash2 (x / cell, y / cell, 100 + o) > 0.85) v = 1 - v;
+         }
+         p[0] = 255 * v;
+         p[1] = 255 * (0.3 + 0.5 * v);
+         p[2] = 255 * (1 - v);
+      }
+   return px;
+}
+
+
+static void
+test_enlarged_score (void)
+{
+   GdkPixbuf *large = detailed (768, 512);
+   GdkPixbuf *small = gdk_pixbuf_scale_simple (large, 384, 256, GDK_INTERP_HYPER);
+   GdkPixbuf *small15 = gdk_pixbuf_scale_simple (large, 512, 341, GDK_INTERP_HYPER);
+   GdkPixbuf *flat = picture (PAT_HGRAD, 768, 512, FALSE);
+   GdkPixbuf *flat_small = gdk_pixbuf_scale_simple (flat, 384, 256, GDK_INTERP_HYPER);
+   GdkInterpType how[] = { GDK_INTERP_NEAREST, GDK_INTERP_BILINEAR, GDK_INTERP_HYPER };
+   guint i;
+
+   /* really larger */
+   g_assert_cmpfloat (gimv_enlarged_score (small, large), >, GIMV_ENLARGED_LIMIT);
+   /* only made larger, in any way */
+   for (i = 0; i < G_N_ELEMENTS (how); i++) {
+      GdkPixbuf *enlarged = gdk_pixbuf_scale_simple (small, 768, 512, how[i]);
+      gdouble sc = gimv_enlarged_score (small, enlarged);
+      g_assert_cmpfloat (sc, >=, 0);
+      g_assert_cmpfloat (sc, <, GIMV_ENLARGED_LIMIT);
+      g_object_unref (enlarged);
+   }
+   /* not told: not twice as large, no detail */
+   g_assert_cmpfloat (gimv_enlarged_score (small15, large), <, 0);
+   g_assert_cmpfloat (gimv_enlarged_score (flat_small, flat), <, 0);
+
+   g_object_unref (large);
+   g_object_unref (small);
+   g_object_unref (small15);
+   g_object_unref (flat);
+   g_object_unref (flat_small);
+}
+
+
+/* JPEG files: the original kept, its enlarged copy put after it */
+static void
+test_enlarged_files (void)
+{
+   GdkPixbuf *large = detailed (768, 512);
+   GdkPixbuf *small = gdk_pixbuf_scale_simple (large, 384, 256, GDK_INTERP_HYPER);
+   gchar *ps, *pe, *pl;
+   GimvDuplScan *scan = gimv_dupl_scan_new (0.95);
+   GPtrArray *groups;
+   GimvDuplGroup *g;
+   GimvDuplItem *item;
+   GError *error = NULL;
+
+   /* the small file, and a copy of it (as read) made larger, saved as PNG
+    * (a JPEG of low quality adds noise that may hide it) */
+   ps = g_build_filename (dir, "e_small.jpg", NULL);
+   g_assert_true (gdk_pixbuf_save (small, ps, "jpeg", &error, "quality", "92", NULL));
+   pe = g_build_filename (dir, "e_big.png", NULL);
+   {
+      GdkPixbuf *read = gdk_pixbuf_new_from_file (ps, &error);
+      GdkPixbuf *e = gdk_pixbuf_scale_simple (read, 768, 512, GDK_INTERP_BILINEAR);
+      g_assert_true (gdk_pixbuf_save (e, pe, "png", &error, NULL));
+      g_object_unref (e);
+      g_object_unref (read);
+   }
+   pl = g_build_filename (dir, "e_large.jpg", NULL);
+   g_assert_true (gdk_pixbuf_save (large, pl, "jpeg", &error, "quality", "92", NULL));
+   g_assert_no_error (error);
+
+   g_assert_cmpfloat (gimv_enlarged_score_files (ps, pe, NULL), <, GIMV_ENLARGED_LIMIT);
+   g_assert_cmpfloat (gimv_enlarged_score_files (ps, pe, NULL), >=, 0);
+   g_assert_cmpfloat (gimv_enlarged_score_files (ps, pl, NULL), >, GIMV_ENLARGED_LIMIT);
+
+   /* a group of the small one and its enlarged copy: the copy (more pixels)
+    * comes first; marked enlarged, the small one is the one to keep */
+   add (scan, ps);
+   add (scan, pe);
+   g_assert_true (gimv_dupl_scan_run (scan, NULL, NULL, NULL));
+   groups = gimv_dupl_scan_get_groups (scan);
+   g_assert_cmpuint (groups->len, ==, 1);
+   g = g_ptr_array_index (groups, 0);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_RESIZED);
+   g_assert_cmpstr (base (g, 0), ==, "e_big.png");
+   item = g_ptr_array_index (g->members, 0);
+   item->enlarged = TRUE;
+   gimv_dupl_scan_order_group (scan, g);
+   g_assert_cmpstr (base (g, 0), ==, "e_small.jpg");
+   g_assert_cmpstr (base (g, 1), ==, "e_big.png");
+   g_assert_cmpfloat (g_array_index (g->sim, gfloat, 0), ==, 1.0);
+   g_assert_cmpfloat (g_array_index (g->sim, gfloat, 1), >, 0.9);
+   gimv_dupl_scan_free (scan);
+
+   g_unlink (ps); g_unlink (pe); g_unlink (pl);
+   g_free (ps); g_free (pe); g_free (pl);
+   g_object_unref (large);
+   g_object_unref (small);
+}
+
+
 int
 main (int argc, char *argv[])
 {
@@ -385,6 +540,8 @@ main (int argc, char *argv[])
    g_test_add_func ("/dupl/empty", test_empty);
    g_test_add_func ("/dupl/known-keys", test_known_keys);
    g_test_add_func ("/dupl/sig", test_sig);
+   g_test_add_func ("/dupl/enlarged-score", test_enlarged_score);
+   g_test_add_func ("/dupl/enlarged-files", test_enlarged_files);
    r = g_test_run ();
    g_rmdir (dir);
    g_free (dir);

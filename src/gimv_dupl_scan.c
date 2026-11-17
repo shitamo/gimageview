@@ -633,6 +633,43 @@ gimv_dupl_scan_run (GimvDuplScan *scan, GCancellable *cancel,
 }
 
 
+static gint
+cmp_keep_enlarged (gconstpointer pa, gconstpointer pb)
+{
+   const GimvDuplItem *a = *(GimvDuplItem * const *) pa;
+   const GimvDuplItem *b = *(GimvDuplItem * const *) pb;
+
+   if (a->enlarged != b->enlarged) return a->enlarged ? 1 : -1;
+   return cmp_keep (pa, pb);
+}
+
+
+void
+gimv_dupl_scan_order_group (GimvDuplScan *scan, GimvDuplGroup *group)
+{
+   GimvDuplItem *keep;
+   const guint8 *keep_sig;
+   gint keep_unit;
+   guint i;
+
+   g_return_if_fail (scan && scan->same_parent && group);
+
+   g_ptr_array_sort (group->members, cmp_keep_enlarged);
+   keep = g_ptr_array_index (group->members, 0);
+   keep_unit = uf_find (scan->same_parent, keep->index);
+   keep_sig = ITEM (scan, keep_unit)->sig;
+   g_array_set_size (group->sim, 0);
+   for (i = 0; i < group->members->len; i++) {
+      GimvDuplItem *item = g_ptr_array_index (group->members, i);
+      gint unit = uf_find (scan->same_parent, item->index);
+      gfloat sim = unit == keep_unit ? 1.0
+         : (keep_sig && ITEM (scan, unit)->sig
+            ? gimv_dupl_sig_compare (ITEM (scan, unit)->sig, keep_sig) : 0.0);
+      g_array_append_val (group->sim, sim);
+   }
+}
+
+
 GPtrArray *
 gimv_dupl_scan_get_groups (GimvDuplScan *scan)
 {

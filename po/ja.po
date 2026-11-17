@@ -7499,3 +7499,13 @@ msgstr "モデルファイル %s の中身が想定と違います (ダウンロ
 
 msgid "The model file %s in %s is not the one expected (a broken download, or another version): faces are not looked for. Download it again:\n%s"
 msgstr "%2$s のモデルファイル %1$s の中身が想定と違います (ダウンロードが壊れているか、別の版です)。顔は探しません。入手し直してください:\n%3$s"
+
+msgid "Looks like an enlarged copy"
+msgstr "拡大したコピーらしい"
+
+msgid "It has no more detail than a smaller one of the group: only made larger"
+msgstr "グループの小さい画像より細かいところがありません (拡大しただけ)"
+
+#, c-format
+msgid "Looking for enlarged copies: %u of %u groups"
+msgstr "拡大したコピーを調べています: %2$u グループ中 %1$u"

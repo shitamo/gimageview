@@ -160,6 +160,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  version), the features are made again at the place of each face,
 	  the faces and their names kept.  "meson test faces" runs the models
 	  when they are there.
+	* Duplicate images: in an Other Sizes group, a copy that is a smaller
+	  one only made larger (twice or more; predicted from the small one by
+	  a fitted enlarging) shows "Looks like an enlarged copy" and is not
+	  the one kept; looked for in a thread after the groups are shown.
 	* Manual: the Tips are brought up to date (tips about the bars and the
 	  window size of the image window that no longer apply are removed;
 	  the memory buffer, the thumbnail size, the custom layout).
