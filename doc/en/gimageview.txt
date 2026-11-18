@@ -192,7 +192,9 @@ GImageView has the following features.
 
  ・ Supported archive formats
 
-     □ LZH (also the -lh1- method of LHarc 1.x)
+     □ LZH (with liblhasa also the old methods (-lh1-, -lh4-, -lzs-, -lz5-,
+       -pm1-, ...) and self-extracting archives (MS-DOS, X68000, ...); without
+       it -lh1- of LHarc 1.x too)
 
      □ ZIP (CBZ)
 
@@ -235,6 +237,9 @@ In addition, the following libraries and programs, if present, extend the
 functionality.
 
  ・ libarchive : Archives (zip, rar, 7z, lha, tar, etc.) can be opened.
+
+ ・ liblhasa : Old LHA (lzh) archives are read with all their methods, and
+    self-extracting archives are opened (used with libarchive).
 
  ・ libjpeg : JPEG images are loaded faster.
 
@@ -3679,6 +3684,11 @@ How duplicates are found
     their tooltip and the status bar tell the charset and the bytes of the
     name. [Edit | File Names to UTF-8...] renames the names of a folder not in
     UTF-8 to UTF-8, checked first (nothing is overwritten).
+
+ ・ With liblhasa, LZH archives are read with it: the old methods libarchive
+    does not unpack (-lh1-, -lh4-, -lzs-, -lz5-, -pm1-, ...) and self-
+    extracting archives (MS-DOS, X68000, ...) too. The files extracted are
+    checked by their length and CRC.
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

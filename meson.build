@@ -51,6 +51,9 @@ gst_app_dep   = dependency('gstreamer-app-1.0', version : '>= 1.16', required : 
 gst_pbutils_dep = dependency('gstreamer-pbutils-1.0', version : '>= 1.16', required : get_option('gstreamer'))
 have_gst = gst_dep.found() and gst_video_dep.found() and gst_app_dep.found() and gst_pbutils_dep.found()
 libarchive_dep = dependency('libarchive', version : '>= 3.3', required : get_option('libarchive'))
+# LHA (.lzh) with all the old methods (-lh1- -lh4- -lzs- -lz5- -pm?-, ...) and
+# self-extracting archives; without it libarchive (and -lh1- of gimv) reads them
+lhasa_dep = dependency('liblhasa', required : get_option('lhasa'))
 sqlite_dep = dependency('sqlite3', version : '>= 3.22', required : get_option('index'))
 # face recognition (gimv-faces): C++ and OpenCV >= 4.8 (FaceDetectorYN and
 # FaceRecognizerSF came in 4.5.4, but the current YuNet model needs 4.8)

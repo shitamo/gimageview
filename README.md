@@ -122,7 +122,7 @@ GImageView has following features:
 
 * **Supports archive files** using libarchive (no external programs). Archives are expanded as virtual directories:
 
-  * zip (cbz), rar (cbr), 7z (cb7), lha (lzh; also the -lh1- method of LHarc 1.x), tar (.tar.gz, .tar.bz2, .tar.xz, .tar.zst, ...), cab, iso
+  * zip (cbz), rar (cbr), 7z (cb7), lha (lzh; with liblhasa all the old methods and self-extracting archives, else -lh1- of LHarc 1.x too), tar (.tar.gz, .tar.bz2, .tar.xz, .tar.zst, ...), cab, iso
 
 * **Supports various thumbnail cache types** (all read and write):
 
@@ -160,6 +160,8 @@ You need following environment/libraries to build GImageView:
 Following libraries and programs are optional. They extend the functionality when present:
 
 * **libarchive 3.3 or later:** archives (zip, rar, 7z, lha, tar, ...) can be opened.
+
+* **liblhasa:** old LHA (lzh) archives are read with all their methods (-lh1-, -lh4-, -lzs-, -lz5-, -pm1-, ...; libarchive unpacks -lh5- to -lh7- only) and self-extracting archives (MS-DOS, X68000, ...) are opened.
 
 * **libjpeg:** JPEG images are loaded faster.
 

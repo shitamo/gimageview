@@ -59,6 +59,9 @@
 #include "gimv_image_info.h"
 #include "gimv_plugin.h"
 #include "lha-lh1.h"
+#ifdef HAVE_LHASA
+#  include <lhasa.h>
+#endif
 #include "prefs.h"
 
 
@@ -233,6 +236,54 @@ name_from_bytes (const gchar *bytes, gchar **note)
 }
 
 
+/* a name of the archive made safe (freed and NULL if it cannot be):
+   "/" separators, no leading "/" or "./", nothing outside the extraction
+   directory; LHA (lha): MS-DOS names in upper case shown in lower case */
+static gchar *
+clean_name (gchar *name, gboolean lha)
+{
+   gchar **parts, *p;
+   gboolean upper = FALSE, lower = FALSE;
+   guint i;
+
+   /* DOS style separators, leading "./" or "/" */
+   g_strdelimit (name, "\\", '/');
+   p = name;
+   while (*p == '/' || (p[0] == '.' && p[1] == '/'))
+      p += (*p == '/') ? 1 : 2;
+   if (p != name) memmove (name, p, strlen (p) + 1);
+
+   /* nothing may be written outside the extraction directory */
+   parts = g_strsplit (name, "/", -1);
+   for (i = 0; parts[i]; i++) {
+      if (!strcmp (parts[i], "..")) {
+         g_strfreev (parts);
+         g_free (name);
+         return NULL;
+      }
+   }
+   g_strfreev (parts);
+   if (!*name) {
+      g_free (name);
+      return NULL;
+   }
+
+   /* LHA: MS-DOS names are upper case; show them in lower case like lha
+      (lhasa, LHa for UNIX) does when it extracts */
+   if (lha) {
+      for (p = name; *p; p++) {
+         if (g_ascii_isupper (*p)) upper = TRUE;
+         if (g_ascii_islower (*p)) lower = TRUE;
+      }
+      if (upper && !lower) {
+         for (p = name; *p; p++) *p = g_ascii_tolower (*p);
+      }
+   }
+
+   return name;
+}
+
+
 /* the name of a file in the archive in UTF-8, NULL for other entries or
    names that would be written outside the extraction directory.  Names not
    in UTF-8 (Shift_JIS of DOS era archives, EUC-JP, ...) are guessed, and
@@ -242,9 +293,7 @@ entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1,
             gchar **note)
 {
    const char *raw;
-   gchar *name = NULL, **parts, *p;
-   gboolean upper = FALSE, lower = FALSE;
-   guint i;
+   gchar *name = NULL;
 
    if (archive_entry_filetype (entry) != AE_IFREG) return NULL;
 
@@ -273,43 +322,39 @@ entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1,
    }
    if (!name) return NULL;
 
-   /* DOS style separators, leading "./" or "/" */
-   g_strdelimit (name, "\\", '/');
-   p = name;
-   while (*p == '/' || (p[0] == '.' && p[1] == '/'))
-      p += (*p == '/') ? 1 : 2;
-   if (p != name) memmove (name, p, strlen (p) + 1);
+   return clean_name (name, archive_format (a) == ARCHIVE_FORMAT_LHA);
+}
 
-   /* nothing may be written outside the extraction directory */
-   parts = g_strsplit (name, "/", -1);
-   for (i = 0; parts[i]; i++) {
-      if (!strcmp (parts[i], "..")) {
-         g_strfreev (parts);
-         g_free (name);
-         g_clear_pointer (note, g_free);
-         return NULL;
-      }
-   }
-   g_strfreev (parts);
-   if (!*name) {
-      g_free (name);
-      g_clear_pointer (note, g_free);
-      return NULL;
-   }
 
-   /* LHA: MS-DOS names are upper case; show them in lower case like lha
-      (lhasa, LHa for UNIX) does when it extracts */
-   if (archive_format (a) == ARCHIVE_FORMAT_LHA) {
-      for (p = name; *p; p++) {
-         if (g_ascii_isupper (*p)) upper = TRUE;
-         if (g_ascii_islower (*p)) lower = TRUE;
-      }
-      if (upper && !lower) {
-         for (p = name; *p; p++) *p = g_ascii_tolower (*p);
-      }
-   }
+/* names not in UTF-8: how they were read, shown with them (note is taken) */
+static void
+record_note (FRCommand *comm, const gchar *name, gchar *note)
+{
+   GHashTable *notes;
 
-   return name;
+   if (!note) return;
+   notes = g_object_get_data (G_OBJECT (comm->archive), GIMV_ARCHIVE_NAME_NOTES);
+   if (!notes) {
+      notes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+      g_object_set_data_full (G_OBJECT (comm->archive), GIMV_ARCHIVE_NAME_NOTES,
+                              notes, (GDestroyNotify) g_hash_table_destroy);
+   }
+   g_hash_table_replace (notes, g_strdup (name), note);
+}
+
+
+/* where a file of the archive is extracted to */
+static gchar *
+output_path (const gchar *dest_dir, const gchar *name, gboolean junk_paths)
+{
+   gchar *base, *path;
+
+   if (!junk_paths)
+      return g_build_filename (dest_dir ? dest_dir : ".", name, NULL);
+   base = g_path_get_basename (name);
+   path = g_build_filename (dest_dir ? dest_dir : ".", base, NULL);
+   g_free (base);
+   return path;
 }
 
 
@@ -322,6 +367,191 @@ queue_result (FRCommand *comm, gboolean success)
 }
 
 
+#ifdef HAVE_LHASA
+/******************************************************************************
+ *
+ *   LHA with liblhasa: all the methods of the old days (-lh1- -lh4-
+ *   -lzs- -lz5- -pm1- ...; libarchive unpacks -lh5- to -lh7- only) and
+ *   self-extracting archives (MS-DOS, X68000, ...)
+ *
+ ******************************************************************************/
+static gboolean make_parent_dirs (const gchar *path);
+
+
+static gboolean
+lhasa_wanted (const gchar *filename)
+{
+   const gchar *ext = strrchr (filename, '.');
+
+   return ext && (!g_ascii_strcasecmp (ext, ".lzh") || !g_ascii_strcasecmp (ext, ".lha")
+                  || !g_ascii_strcasecmp (ext, ".lzs"));
+}
+
+
+/* the name of a file of the archive (NULL: a directory, an unsafe name) */
+static gchar *
+lhasa_name (LHAFileHeader *h, gchar **note)
+{
+   gchar *raw, *name;
+
+   *note = NULL;
+   if (!h->filename || !strcmp (h->compress_method, LHA_COMPRESS_TYPE_DIR)
+       || h->symlink_target)
+      return NULL;
+   raw = g_strconcat (h->path ? h->path : "", h->filename, NULL);
+   name = clean_name (name_from_bytes (raw, note), TRUE);
+   g_free (raw);
+   if (!name) g_clear_pointer (note, g_free);
+   return name;
+}
+
+
+static LHAReader *
+lhasa_open (const gchar *filename, LHAInputStream **stream)
+{
+   *stream = lha_input_stream_from ((char *) filename);
+   if (!*stream) return NULL;
+   return lha_reader_new (*stream);
+}
+
+
+static void
+lhasa_close (LHAReader *reader, LHAInputStream *stream)
+{
+   if (reader) lha_reader_free (reader);
+   if (stream) lha_input_stream_free (stream);
+}
+
+
+/* FALSE: not an LHA archive liblhasa reads (libarchive is tried) */
+static gboolean
+lhasa_list (FRCommand *comm)
+{
+   LHAInputStream *stream;
+   LHAReader *reader = lhasa_open (comm->filename, &stream);
+   LHAFileHeader *h;
+   guint headers = 0;
+
+   if (!reader) {
+      lhasa_close (NULL, stream);
+      return FALSE;
+   }
+   while ((h = lha_reader_next_file (reader))) {
+      gchar *note, *name;
+      GimvImageInfo *info;
+      struct stat st;
+
+      headers++;
+      name = lhasa_name (h, &note);
+      if (!name) continue;
+      record_note (comm, name, note);
+
+      memset (&st, 0, sizeof (st));
+      st.st_mode  = S_IFREG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+      st.st_size  = h->length;
+      st.st_mtime = h->timestamp;
+      info = gimv_image_info_get_with_archive (name, FR_ARCHIVE (comm->archive), &st);
+      if (info)
+         comm->file_list = g_list_prepend (comm->file_list, info);
+      g_free (name);
+   }
+   lhasa_close (reader, stream);
+   return headers > 0;
+}
+
+
+/* the file of the archive now unpacked to path (by way of a temporary
+   name), its length and CRC checked */
+static gboolean
+lhasa_extract_file (LHAReader *reader, LHAFileHeader *h, const gchar *path)
+{
+   gchar *tmp;
+   guchar buf[64 * 1024];
+   guint16 crc = 0;
+   gsize total = 0, n;
+   gboolean ok = TRUE;
+   FILE *f;
+
+   if (!make_parent_dirs (path)) return FALSE;
+   tmp = g_strconcat (path, ".part", NULL);
+   f = g_fopen (tmp, "wb");
+   if (!f) {
+      g_free (tmp);
+      return FALSE;
+   }
+   while ((n = lha_reader_read (reader, buf, sizeof (buf))) > 0) {
+      crc = gimv_lha_crc16_update (crc, buf, n);
+      total += n;
+      if (fwrite (buf, 1, n, f) != n) {
+         ok = FALSE;
+         break;
+      }
+   }
+   if (fclose (f) != 0) ok = FALSE;
+   if (ok && total != h->length) {
+      g_warning ("lha: %s: the data ends early", path);
+      ok = FALSE;
+   } else if (ok && crc != h->crc) {
+      g_warning ("lha: %s: CRC error", path);
+      ok = FALSE;
+   }
+   if (ok && g_rename (tmp, path) != 0) ok = FALSE;
+   if (!ok) g_unlink (tmp);
+   g_free (tmp);
+   return ok;
+}
+
+
+/* FALSE: not an LHA archive liblhasa reads (libarchive is tried) */
+static gboolean
+lhasa_extract (FRCommand *comm, GHashTable *wanted, const gchar *dest_dir,
+               gboolean overwrite, gboolean skip_older, gboolean junk_paths,
+               gboolean *success)
+{
+   LHAInputStream *stream;
+   LHAReader *reader = lhasa_open (comm->filename, &stream);
+   LHAFileHeader *h;
+   guint headers = 0;
+
+   if (!reader) {
+      lhasa_close (NULL, stream);
+      return FALSE;
+   }
+   *success = TRUE;
+   while ((h = lha_reader_next_file (reader))) {
+      gchar *note, *name, *path;
+      struct stat st;
+
+      headers++;
+      name = lhasa_name (h, &note);
+      g_free (note);
+      if (!name) continue;
+      if (wanted && !g_hash_table_contains (wanted, name)) {
+         g_free (name);
+         continue;
+      }
+
+      path = output_path (dest_dir, name, junk_paths);
+      if (g_stat (path, &st) == 0
+          && (!overwrite || (skip_older && st.st_mtime >= (time_t) h->timestamp)))
+      {
+         /* keep the existing file */
+      } else if (!lhasa_extract_file (reader, h, path)) {
+         *success = FALSE;
+      }
+
+      if (wanted) g_hash_table_remove (wanted, name);
+      g_free (path);
+      g_free (name);
+      if (wanted && g_hash_table_size (wanted) == 0) break;
+   }
+   lhasa_close (reader, stream);
+   if (!headers) return FALSE;
+   return TRUE;
+}
+#endif /* HAVE_LHASA */
+
+
 static void
 fr_command_libarchive_list (FRCommand *comm)
 {
@@ -331,6 +561,14 @@ fr_command_libarchive_list (FRCommand *comm)
    int ret;
 
    fr_process_clear (comm->process);
+
+#ifdef HAVE_LHASA
+   if (lhasa_wanted (comm->filename) && lhasa_list (comm)) {
+      queue_result (comm, TRUE);
+      fr_process_start (comm->process, FALSE);
+      return;
+   }
+#endif
 
    a = open_archive (comm->filename, &latin1);
    if (!a) {
@@ -346,18 +584,11 @@ fr_command_libarchive_list (FRCommand *comm)
       GimvImageInfo *info;
       struct stat st;
 
-      if (!name) continue;
-      /* names not in UTF-8: how they were read, shown with them */
-      if (note) {
-         GHashTable *notes = g_object_get_data (G_OBJECT (comm->archive),
-                                                GIMV_ARCHIVE_NAME_NOTES);
-         if (!notes) {
-            notes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-            g_object_set_data_full (G_OBJECT (comm->archive), GIMV_ARCHIVE_NAME_NOTES,
-                                    notes, (GDestroyNotify) g_hash_table_destroy);
-         }
-         g_hash_table_replace (notes, g_strdup (name), note);
+      if (!name) {
+         g_free (note);
+         continue;
       }
+      record_note (comm, name, note);
 
       memset (&st, 0, sizeof (st));
       st.st_mode  = S_IFREG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
@@ -508,16 +739,28 @@ fr_command_libarchive_extract (FRCommand *comm,
    gboolean success = TRUE, latin1;
    int ret;
 
-   a = open_archive (comm->filename, &latin1);
-   if (!a) {
-      queue_result (comm, FALSE);
-      return;
-   }
-
    if (file_list) {
       wanted = g_hash_table_new (g_str_hash, g_str_equal);
       for (node = file_list; node; node = g_list_next (node))
          if (node->data) g_hash_table_add (wanted, node->data);
+   }
+
+#ifdef HAVE_LHASA
+   if (lhasa_wanted (comm->filename)
+       && lhasa_extract (comm, wanted, dest_dir, overwrite, skip_older, junk_paths,
+                         &success))
+   {
+      if (wanted) g_hash_table_destroy (wanted);
+      queue_result (comm, success);
+      return;
+   }
+#endif
+
+   a = open_archive (comm->filename, &latin1);
+   if (!a) {
+      if (wanted) g_hash_table_destroy (wanted);
+      queue_result (comm, FALSE);
+      return;
    }
 
    while ((ret = archive_read_next_header (a, &entry)) == ARCHIVE_OK
@@ -535,13 +778,7 @@ fr_command_libarchive_extract (FRCommand *comm,
          continue;
       }
 
-      if (junk_paths) {
-         gchar *base = g_path_get_basename (name);
-         path = g_build_filename (dest_dir ? dest_dir : ".", base, NULL);
-         g_free (base);
-      } else {
-         path = g_build_filename (dest_dir ? dest_dir : ".", name, NULL);
-      }
+      path = output_path (dest_dir, name, junk_paths);
 
       if (g_stat (path, &st) == 0
           && (!overwrite

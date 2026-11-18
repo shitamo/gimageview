@@ -16,6 +16,7 @@ Build-Depends:
  libgstreamer1.0-dev,
  libgtk-4-dev (>= 4.12),
  libjpeg-dev,
+ liblhasa-dev,
  libmng-dev,
  libopencv-dev (>= 4.8),
  libpng-dev,

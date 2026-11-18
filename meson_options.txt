@@ -6,6 +6,7 @@ option('mng', type : 'feature', value : 'auto', description : 'MNG loader plugin
 option('svg', type : 'feature', value : 'auto', description : 'SVG loader plugin (librsvg)')
 option('wmf', type : 'feature', value : 'auto', description : 'WMF loader plugin (libwmf)')
 option('mplayer', type : 'boolean', value : true, description : 'MPlayer movie plugin (runs the mplayer program)')
+option('lhasa', type : 'feature', value : 'auto', description : 'old LHA archives (all methods, self-extracting) with liblhasa')
 option('libarchive', type : 'feature', value : 'auto', description : 'archive support (zip, rar, 7z, lha, tar, ...) with libarchive')
 option('gstreamer', type : 'feature', value : 'auto', description : 'GStreamer movie plugin (GStreamer >= 1.16)')
 option('xine', type : 'feature', value : 'auto', description : 'xine movie plugin (libxine >= 1.2)')

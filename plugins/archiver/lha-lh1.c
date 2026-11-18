@@ -119,9 +119,9 @@ gimv_lha_member (const guchar *buf, gsize len, gsize off, GimvLhaMember *m)
 
 
 guint16
-gimv_lha_crc16 (const guchar *buf, gsize len)
+gimv_lha_crc16_update (guint16 crc16, const guchar *buf, gsize len)
 {
-   guint crc = 0;
+   guint crc = crc16;
    gsize i;
    gint k;
 
@@ -131,6 +131,13 @@ gimv_lha_crc16 (const guchar *buf, gsize len)
          crc = (crc & 1) ? (crc >> 1) ^ 0xa001 : crc >> 1;
    }
    return crc;
+}
+
+
+guint16
+gimv_lha_crc16 (const guchar *buf, gsize len)
+{
+   return gimv_lha_crc16_update (0, buf, len);
 }
 
 

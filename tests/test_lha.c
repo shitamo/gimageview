@@ -88,6 +88,9 @@ test_crc (void)
 {
    g_assert_cmpuint (gimv_lha_crc16 ((const guchar *) "123456789", 9), ==, 0xbb3d);
    g_assert_cmpuint (gimv_lha_crc16 (NULL, 0), ==, 0);
+   /* in parts as in one */
+   g_assert_cmpuint (gimv_lha_crc16_update (gimv_lha_crc16 ((const guchar *) "1234", 4),
+                                            (const guchar *) "56789", 5), ==, 0xbb3d);
 }
 
 

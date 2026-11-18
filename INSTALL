@@ -16,6 +16,8 @@ Requirements
 Optional, each enables a feature when found:
 
  * libarchive     archives (zip, rar, 7z, lha, tar, ...)
+ * liblhasa       old LHA archives: all the methods (-lh1- -lh4- -lzs- -lz5-
+                  -pm1- ...) and self-extracting archives (with libarchive)
  * libjpeg        faster JPEG loading
  * libexif        EXIF viewer and EXIF orientation
  * librsvg        SVG
@@ -56,6 +58,7 @@ change them later with meson configure _build -Doption=value.
     svg      (auto)   SVG loader plugin
     wmf      (auto)   WMF loader plugin
     libarchive (auto) archive plugin
+    lhasa    (auto)   old LHA archives in the archive plugin (liblhasa)
     gstreamer (auto)  GStreamer movie plugin
     mplayer  (true)   MPlayer movie plugin
     xine     (auto)   xine movie plugin

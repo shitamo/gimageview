@@ -33,7 +33,9 @@ Version-0.2.27+gtk4 (GTK 4 版)
 	  で読むようにした．7z，tar.xz，tar.zst にも対応．古い zip・lha の
 	  Shift_JIS・EUC-JP のファイル名も変換して表示する．libarchive が読めない
 	  LHarc 1.x の -lh1- 形式は gimv が展開する．中のファイル名が
-	  UTF-8 でない LZH も読める
+	  UTF-8 でない LZH も読める．liblhasa があれば，LZH を古い圧縮方式
+	  (-lh4-，-lzs-，-lz5-，-pm1- など) と自己解凍形式 (MS-DOS，X68000
+	  など) も含めて読める
 	* システムの文字コード (UTF-8) にないファイル名 (MS-DOS 時代の
 	  Shift_JIS，UNIX の EUC-JP) を日本語の環境では判別して表示する．
 	  読めないバイトは %XX で表示する．推定した名前は斜体で表示し，

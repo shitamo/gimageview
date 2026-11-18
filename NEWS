@@ -30,7 +30,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS and
 	  EUC-JP file names in old zip/lha archives are converted.  The -lh1- method of
 	  LHarc 1.x, which libarchive does not read, is unpacked by gimv, and
-	  LZH archives with names not in UTF-8 are read.
+	  LZH archives with names not in UTF-8 are read.  With liblhasa, LZH
+	  archives are read with all the old methods (-lh4-, -lzs-, -lz5-,
+	  -pm1-, ...) and self-extracting ones (MS-DOS, X68000, ...) too.
 	* File names not in the charset of the system (Shift_JIS names of the
 	  MS-DOS days, EUC-JP of UNIX) are guessed in a Japanese environment;
 	  bytes that cannot be read are shown as %XX.  Guessed names are in

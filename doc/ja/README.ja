@@ -112,7 +112,7 @@ GImage Viewは，以下のような特徴を持っています．
  o libarchive を使用して，アーカイブファイルを開く事ができます (外部コマンドは
    使いません)．アーカイブは仮想ディレクトリとして展開されます．
 
-    zip (cbz)，rar (cbr)，7z (cb7)，lha (lzh．LHarc 1.x の -lh1- 形式も)，
+    zip (cbz)，rar (cbr)，7z (cb7)，lha (lzh．liblhasa があれば古い圧縮方式と自己解凍形式も)，
     tar (.tar.gz，.tar.bz2，.tar.xz，.tar.zst など)，cab，iso
 
  o 多数のサムネイルキャッシュ形式に対応 (いずれも読み書き対応)
@@ -157,6 +157,9 @@ GImage Viewは，以下のような特徴を持っています．
 次のライブラリやコマンドはオプションです．ある場合，機能を拡張できます．
 
  * libarchive 3.3 以降 : 書庫 (zip，rar，7z，lha，tar など) を開く事ができます．
+ * liblhasa : 古い LHA (lzh) の書庫をすべての圧縮方式 (-lh1-，-lh4-，-lzs-，
+   -lz5-，-pm1- など．libarchive は -lh5-〜-lh7- だけ) で読み，自己解凍形式
+   (MS-DOS，X68000 など) の書庫も開けます (libarchive と一緒に使います)．
  * libjpeg : JPEG を高速に読み込みます．
  * libpng : PNG の読み込みプラグインと保存プラグインを使えます．
  * libexif : EXIF 情報の表示と，EXIF の向き情報による画像とサムネイルの自動

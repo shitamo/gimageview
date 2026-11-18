@@ -35,8 +35,11 @@ gboolean  gimv_lha_member  (const guchar  *buf,
                             gsize          offset,
                             GimvLhaMember *m);
 
-/* the CRC-16 of LHA */
+/* the CRC-16 of LHA; _update (): of more bytes after crc */
 guint16   gimv_lha_crc16   (const guchar  *buf,
+                            gsize          len);
+guint16   gimv_lha_crc16_update (guint16   crc,
+                            const guchar  *buf,
                             gsize          len);
 
 /* in (in_len bytes, -lh1-) unpacked to out (out_len bytes); FALSE if in

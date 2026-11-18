@@ -2,7 +2,8 @@
 # the external programs and parsed their output).
 if libarchive_dep.found()
   gimv_plugins += shared_module('gimv_libarchive_extarc', 'libarchive-ext.c', 'lha-lh1.c',
-    dependencies : common_deps + [libarchive_dep],
+    dependencies : common_deps + [libarchive_dep, lhasa_dep],
+    c_args : lhasa_dep.found() ? ['-DHAVE_LHASA'] : [],
     install_dir : plugindir / 'archiver',
     kwargs : plugin_kwargs)
 endif

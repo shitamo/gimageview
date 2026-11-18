@@ -88,7 +88,7 @@ GImageView has the following features.
 <li>
 <p class="para">Supported archive formats
    <div class="itemizedlist"><ul>
-<li><p class="para">LZH (also the -lh1- method of LHarc 1.x)</p></li>
+<li><p class="para">LZH (with liblhasa also the old methods (-lh1-, -lh4-, -lzs-, -lz5-, -pm1-, ...) and self-extracting archives (MS-DOS, X68000, ...); without it -lh1- of LHarc 1.x too)</p></li>
 <li><p class="para">ZIP (CBZ)</p></li>
 <li><p class="para">TAR (tar.gz, tar.bz2, tar.xz, tar.zst, etc.)</p></li>
 <li><p class="para">RAR (CBR)</p></li>
@@ -128,6 +128,7 @@ In addition, the following libraries and programs, if present, extend the functi
 
 <div class="itemizedlist"><ul>
 <li><p class="para">libarchive : Archives (zip, rar, 7z, lha, tar, etc.) can be opened.</p></li>
+<li><p class="para">liblhasa : Old LHA (lzh) archives are read with all their methods, and self-extracting archives are opened (used with libarchive).</p></li>
 <li><p class="para">libjpeg : JPEG images are loaded faster.</p></li>
 <li><p class="para">libexif : EXIF information can be displayed, and images (and thumbnails) can be rotated automatically according to the EXIF orientation information. Thumbnails of JPEG files are made faster from their embedded (EXIF) thumbnails.</p></li>
 <li><p class="para">gexiv2 (Exiv2) : with libexif, the EXIF information of the formats other than JPEG (TIFF, raw files, PNG, WebP, HEIF/AVIF, JPEG XL, ...) is displayed and used for the automatic rotation too.  The index reads the date, the camera and the keywords (EXIF, XMP, IPTC) of these formats too.</p></li>

@@ -88,7 +88,7 @@ GImageView は、以下のような特徴を持っています。
 <li>
 <p class="para">対応書庫(アーカイブ)形式
    <div class="itemizedlist"><ul>
-<li><p class="para">LZH (LHarc 1.x の -lh1- 形式も)</p></li>
+<li><p class="para">LZH (liblhasa があれば、古い圧縮方式 (-lh1-・-lh4-・-lzs-・-lz5-・-pm1- など) と自己解凍形式 (MS-DOS・X68000 など) も。なければ LHarc 1.x の -lh1- も)</p></li>
 <li><p class="para">ZIP (CBZ)</p></li>
 <li><p class="para">TAR (tar.gz、tar.bz2、tar.xz、tar.zst など)</p></li>
 <li><p class="para">RAR (CBR)</p></li>
@@ -128,6 +128,7 @@ GImageView は、以下のような特徴を持っています。
 
 <div class="itemizedlist"><ul>
 <li><p class="para">libarchive : 書庫 (zip、rar、7z、lha、tar など) を開く事ができます。</p></li>
+<li><p class="para">liblhasa : 古い LHA (lzh) の書庫をすべての圧縮方式で読み、自己解凍形式の書庫も開けます (libarchive と一緒に使います)。</p></li>
 <li><p class="para">libjpeg : JPEG を高速に読み込みます。</p></li>
 <li><p class="para">libexif : EXIF 情報の表示と、EXIF の向き情報による自動回転 (サムネイルも) ができます。JPEG の縮小画像 (EXIF) でサムネイルを速く作れます。</p></li>
 <li><p class="para">gexiv2 (Exiv2) : libexif と合わせて、JPEG 以外 (TIFF・RAW・PNG・WebP・HEIF/AVIF・JPEG XL など) の EXIF も表示・自動回転に使えます。索引は撮影日時・カメラ・キーワード (EXIF・XMP・IPTC) をこれらの形式からも読みます。</p></li>
