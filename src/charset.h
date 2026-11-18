@@ -97,23 +97,39 @@ CharsetAutoDetectFn charset_get_auto_detect_func (CharsetAutoDetectType type);
  *                                try (the auto detect is Japanese, or the
  *                                language is)
  *   charset_guess_to_utf8 ():    UTF-8 as it is; else (japanese) the
- *                                Japanese charset they decode in best;
- *                                else NULL
- *   charset_escape_bytes ():     the bytes that cannot be shown as %XX (as
- *                                in URLs): "%8A%BF%8E%9A.jpg"
+ *                                Japanese charset they decode in best
+ *                                (*charset: its name, may be NULL); else
+ *                                NULL
+ *   charset_escape_bytes ():     the bytes that cannot be shown (0x80 and
+ *                                more, controls but line breaks) as %XX,
+ *                                as in URLs: "%8A%BF%8E%9A.jpg"
  *   charset_to_display ():       the guess, else the escaped bytes; never
  *                                NULL.  For showing only: the file is still
  *                                opened or renamed by its own bytes. */
 gboolean  charset_japanese_likely      (CharsetAutoDetectFn func);
 gchar    *charset_guess_to_utf8        (const gchar *src,
                                         gssize       len,
-                                        gboolean     japanese);
+                                        gboolean     japanese,
+                                        const gchar **charset);
 gchar    *charset_escape_bytes         (const gchar *src,
                                         gssize       len);
 gchar    *charset_to_display           (const gchar *src,
                                         gssize       len,
                                         gboolean     japanese);
 
+/* how charset_to_internal_full () got its text */
+typedef enum {
+   CHARSET_NAME_PLAIN,     /* by the settings (or UTF-8) */
+   CHARSET_NAME_GUESSED,   /* not by them: guessed (*guessed: the charset) */
+   CHARSET_NAME_ESCAPED    /* not readable: the bytes as %XX */
+} CharsetNameKind;
+
+gchar    *charset_to_internal_full     (const gchar *src,
+                                        const gchar *src_codeset,
+                                        CharsetAutoDetectFn func,
+                                        CharsetToInternalTypes type,
+                                        CharsetNameKind *kind,
+                                        const gchar **guessed);
 gchar    *charset_to_internal          (const gchar *src,
                                         const gchar *src_codeset,
                                         CharsetAutoDetectFn func,

@@ -328,7 +328,7 @@ plausibility (const gchar *utf8)
 
 
 gchar *
-japanese_guess_to_utf8 (const gchar *src, gssize len)
+japanese_guess_to_utf8 (const gchar *src, gssize len, const gchar **charset)
 {
    /* CP932: Shift_JIS as the PC-9801 and Windows wrote it */
    const gchar *candidates[] = { "CP932", CHARSET_EUC_JP, CHARSET_JIS };
@@ -337,6 +337,7 @@ japanese_guess_to_utf8 (const gchar *src, gssize len)
    gint best_score = G_MININT;
    guint i;
 
+   if (charset) *charset = NULL;
    g_return_val_if_fail (src, NULL);
    if (len < 0) len = strlen (src);
 
@@ -370,6 +371,8 @@ japanese_guess_to_utf8 (const gchar *src, gssize len)
          g_free (best);
          best = text;
          best_score = score;
+         /* the name people know it by */
+         if (charset) *charset = !strcmp (cs, "CP932") ? "Shift_JIS" : cs;
       } else {
          g_free (text);
       }

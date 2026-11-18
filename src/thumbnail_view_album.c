@@ -502,6 +502,9 @@ thumbalbum_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
    g_free (label);
 
    gimv_zalbum_set_cell_data (GIMV_ZALBUM (tv_data->album), idx, thumb);
+   /* a name read in a charset guessed (the tooltip tells) */
+   if (gimv_image_info_get_name_note (thumb->info, NULL))
+      gimv_zalbum_set_italic (GIMV_ZALBUM (tv_data->album), idx, TRUE);
 
    thumbalbum_set_selection (tv, thumb, thumb->selected);
 
@@ -770,6 +773,17 @@ cb_album_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
       if (bookmark) {
          g_string_append (text, bookmark);
          g_free (bookmark);
+      }
+   }
+
+   /* a name not in UTF-8: how it was read */
+   {
+      gchar *note = NULL;
+      gimv_image_info_get_name_note (thumb->info, &note);
+      if (note) {
+         if (text->len) g_string_append (text, "\n\n");
+         g_string_append (text, note);
+         g_free (note);
       }
    }
 

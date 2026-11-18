@@ -56,11 +56,11 @@ to_utf8 (const gchar *data, gsize len, TextCharset charset)
       text = g_convert (data, len, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
       break;
    case TEXT_JAPANESE:
-      text = charset_guess_to_utf8 (data, len, TRUE);
+      text = charset_guess_to_utf8 (data, len, TRUE, NULL);
       break;
    case TEXT_UNKNOWN:
       text = charset_guess_to_utf8 (data, len,
-                                    charset_japanese_likely (conf.charset_auto_detect_fn));
+                                    charset_japanese_likely (conf.charset_auto_detect_fn), NULL);
       break;
    case TEXT_UTF8:
       break;

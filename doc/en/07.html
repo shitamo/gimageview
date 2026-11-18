@@ -199,6 +199,9 @@ The character set used, for example, to display file names.  Choose from "Never 
 <p class="para">
 Names this setting cannot convert (in a UTF-8 system, names given in Shift_JIS in the MS-DOS days or in EUC-JP on UNIX) are shown, when the language for auto detecting or the language of the system (LANG and so on) is Japanese, as the one of Shift_JIS, EUC-JP and ISO-2022-JP they read best in.  Bytes of a name that cannot be read are shown as <code>%XX</code> (hexadecimal) as in URLs, for example <code>caf%E9.jpg</code>.  Only the display changes: the file is still opened by its own name.  The names of files in archives and the comments written in image files are shown in the same way.
 </p>
+<p class="para">
+Names shown in a charset guessed are in <span class="emphasis"><i>italics</i></span> in the lists (the details and album views).  The tooltip of such a name tells the charset guessed and the bytes of the name, and the status bar tells "⚠ The file name is not in UTF-8" when it is selected.  [Edit | File Names to UTF-8...] (<a href="04.html#names_to_utf8">4.2</a>) renames them to UTF-8.
+</p>
 </dd>
 </dl></div>
 </div>

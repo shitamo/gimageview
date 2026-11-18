@@ -112,6 +112,16 @@ gboolean        gimv_image_info_is_dir               (GimvImageInfo *info);
    with "/" after directories */
 gchar          *gimv_image_info_get_display_name     (GimvImageInfo *info,
                                                       const gchar   *filename);
+/* the name of an archive's data: the names of its files not in UTF-8 (see
+   libarchive-ext.c) */
+#define GIMV_ARCHIVE_NAME_NOTES "gimv-name-notes"
+/* the name of info when it is not in UTF-8 (nor in the charset set for
+   file names): TRUE if it was read in a charset guessed (shown in italics),
+   *note (may be NULL): what to tell about it, for a tooltip and the status
+   bar ("The name is not in UTF-8 ...", the bytes as %XX); NULL and FALSE
+   for names as they are */
+gboolean        gimv_image_info_get_name_note        (GimvImageInfo *info,
+                                                      gchar        **note);
 /* a file on the disk for programs that read it themselves (movie players):
    archive members are extracted first.  NULL if that failed; g_free () */
 gchar          *gimv_image_info_get_local_path       (GimvImageInfo *info);

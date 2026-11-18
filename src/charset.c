@@ -294,13 +294,18 @@ charset_japanese_likely (CharsetAutoDetectFn func)
 
 
 gchar *
-charset_guess_to_utf8 (const gchar *src, gssize len, gboolean japanese)
+charset_guess_to_utf8 (const gchar *src, gssize len, gboolean japanese,
+                       const gchar **charset)
 {
+   if (charset) *charset = NULL;
    g_return_val_if_fail (src, NULL);
    if (len < 0) len = strlen (src);
 
-   if (g_utf8_validate (src, len, NULL)) return g_strndup (src, len);
-   if (japanese) return japanese_guess_to_utf8 (src, len);
+   if (g_utf8_validate (src, len, NULL)) {
+      if (charset) *charset = CHARSET_UTF8;
+      return g_strndup (src, len);
+   }
+   if (japanese) return japanese_guess_to_utf8 (src, len, charset);
    return NULL;
 }
 
@@ -338,7 +343,7 @@ charset_to_display (const gchar *src, gssize len, gboolean japanese)
 
    g_return_val_if_fail (src, NULL);
 
-   text = charset_guess_to_utf8 (src, len, japanese);
+   text = charset_guess_to_utf8 (src, len, japanese, NULL);
    if (text) return text;
    return charset_escape_bytes (src, len);
 }
@@ -353,15 +358,37 @@ charset_to_internal (const gchar *src,
                      CharsetAutoDetectFn func,
                      CharsetToInternalTypes type)
 {
-   gchar *text;
+   return charset_to_internal_full (src, src_codeset, func, type, NULL, NULL);
+}
 
+
+gchar *
+charset_to_internal_full (const gchar *src,
+                          const gchar *src_codeset,
+                          CharsetAutoDetectFn func,
+                          CharsetToInternalTypes type,
+                          CharsetNameKind *kind,
+                          const gchar **guessed)
+{
+   gchar *text;
+   const gchar *cs = NULL;
+
+   if (kind) *kind = CHARSET_NAME_PLAIN;
+   if (guessed) *guessed = NULL;
    g_return_val_if_fail (src, NULL);
 
    text = to_internal (src, src_codeset, func, type);
    if (text && g_utf8_validate (text, -1, NULL)) return text;
    g_free (text);
 
-   return charset_to_display (src, -1, charset_japanese_likely (func));
+   text = charset_guess_to_utf8 (src, -1, charset_japanese_likely (func), &cs);
+   if (text) {
+      if (kind) *kind = CHARSET_NAME_GUESSED;
+      if (guessed) *guessed = cs;
+      return text;
+   }
+   if (kind) *kind = CHARSET_NAME_ESCAPED;
+   return charset_escape_bytes (src, -1);
 }
 
 

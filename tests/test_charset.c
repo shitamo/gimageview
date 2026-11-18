@@ -22,7 +22,7 @@ static const gchar utf8_name[] = "ﾏｼﾞﾝｶﾞｰ.LZH";
 static void
 check_guess (const gchar *bytes, const gchar *expected)
 {
-   gchar *s = charset_guess_to_utf8 (bytes, -1, TRUE);
+   gchar *s = charset_guess_to_utf8 (bytes, -1, TRUE, NULL);
    g_assert_cmpstr (s, ==, expected);
    g_free (s);
 }
@@ -65,9 +65,9 @@ test_guess (void)
    /* UTF-8 as it is */
    check_guess ("日本語.jpg", "日本語.jpg");
    /* neither */
-   g_assert_null (charset_guess_to_utf8 ("caf\xe9", -1, TRUE));
+   g_assert_null (charset_guess_to_utf8 ("caf\xe9", -1, TRUE, NULL));
    /* not Japanese: no guess */
-   g_assert_null (charset_guess_to_utf8 (sjis_name, -1, FALSE));
+   g_assert_null (charset_guess_to_utf8 (sjis_name, -1, FALSE, NULL));
 }
 
 
@@ -100,6 +100,33 @@ test_escape (void)
 
 
 static void
+test_kind (void)
+{
+   CharsetAutoDetectFn ja = charset_get_auto_detect_func (CHARSET_AUTODETECT_JAPANESE);
+   CharsetNameKind kind;
+   const gchar *cs;
+   gchar *s;
+
+   s = charset_to_internal_full ("a.jpg", NULL, ja, CHARSET_TO_INTERNAL_LOCALE, &kind, &cs);
+   g_assert_cmpint (kind, ==, CHARSET_NAME_PLAIN);
+   g_assert_null (cs);
+   g_free (s);
+   s = charset_to_internal_full (sjis_name, NULL, ja, CHARSET_TO_INTERNAL_LOCALE, &kind, &cs);
+   g_assert_cmpint (kind, ==, CHARSET_NAME_GUESSED);
+   g_assert_cmpstr (cs, ==, "Shift_JIS");
+   g_free (s);
+   s = charset_to_internal_full ("\xa4\xa2.jpg", NULL, ja, CHARSET_TO_INTERNAL_LOCALE, &kind, &cs);
+   g_assert_cmpint (kind, ==, CHARSET_NAME_GUESSED);
+   g_assert_cmpstr (cs, ==, "EUC-JP");
+   g_free (s);
+   s = charset_to_internal_full (sjis_name, NULL, NULL, CHARSET_TO_INTERNAL_LOCALE, &kind, &cs);
+   g_assert_cmpint (kind, ==, CHARSET_NAME_ESCAPED);
+   g_assert_cmpstr (s, ==, "%CF%BC%DE%DD%B6%DE%B0.LZH");
+   g_free (s);
+}
+
+
+static void
 test_utf8_kept (void)
 {
    gchar *s = charset_to_internal ("日本語.jpg", NULL, NULL, CHARSET_TO_INTERNAL_LOCALE);
@@ -120,6 +147,7 @@ main (int argc, char **argv)
    g_test_add_func ("/charset/not-utf8", test_not_utf8);
    g_test_add_func ("/charset/guess", test_guess);
    g_test_add_func ("/charset/escape", test_escape);
+   g_test_add_func ("/charset/kind", test_kind);
    g_test_add_func ("/charset/utf8-kept", test_utf8_kept);
 
    return g_test_run ();

@@ -796,8 +796,9 @@ pixmap_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer dat
 
 /* text columns */
 typedef struct {
-   gint   column;
-   gfloat xalign;
+   gint     column;
+   gfloat   xalign;
+   gboolean name;      /* the file names: in italics when not in UTF-8 */
 } TextCell;
 
 
@@ -821,8 +822,21 @@ text_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
 {
    TextCell *tc = data;
    const gchar *text = gimv_row_peek_string (row, tc->column);
+   PangoAttrList *attrs = NULL;
 
    gtk_label_set_text (GTK_LABEL (cell), text ? text : "");
+   if (tc->name) {
+      GimvThumb *thumb = gimv_row_peek_pointer (row, COLUMN_THUMB_DATA);
+      /* a name read in a charset guessed (see the tooltip) */
+      if (GIMV_IS_THUMB (thumb) && thumb->info
+          && gimv_image_info_get_name_note (thumb->info, NULL))
+      {
+         attrs = pango_attr_list_new ();
+         pango_attr_list_insert (attrs, pango_attr_style_new (PANGO_STYLE_ITALIC));
+      }
+   }
+   gtk_label_set_attributes (GTK_LABEL (cell), attrs);
+   if (attrs) pango_attr_list_unref (attrs);
 }
 
 
@@ -943,6 +957,8 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
       GimvSortItem item;
 
       tc->column = i;
+      tc->name = detailview_columns[idx].title
+                 && !strcmp (detailview_columns[idx].title, "Name");
       switch (detailview_columns[idx].justification) {
       case GTK_JUSTIFY_CENTER:
          tc->xalign = 0.5;
@@ -1444,7 +1460,7 @@ cb_treeview_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
    GimvRow *row = NULL;
    GimvThumb *thumb;
    const gchar *file;
-   gchar *text = NULL, *bookmark;
+   gchar *text = NULL, *bookmark, *note = NULL;
    gboolean name_only;
 
    if (keyboard || !GIMV_IS_THUMB_VIEW (tv)) return FALSE;
@@ -1457,7 +1473,9 @@ cb_treeview_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
    /* the full path where only the names are shown, the bookmark */
    name_only = g_object_get_data (G_OBJECT (tv), "gimv-name-only") != NULL;
    bookmark = gimv_bookmark_tooltip (file);
-   if (!name_only && !bookmark) return FALSE;
+   /* a name not in UTF-8: how it was read */
+   gimv_image_info_get_name_note (thumb->info, &note);
+   if (!name_only && !bookmark && !note) return FALSE;
    if (name_only)
       text = charset_to_internal (file, conf.charset_filename,
                                   conf.charset_auto_detect_fn,
@@ -1468,9 +1486,15 @@ cb_treeview_query_tooltip (GtkWidget *widget, gint x, gint y, gboolean keyboard,
       g_free (text);
       text = t;
    }
+   if (note) {
+      gchar *t = text ? g_strconcat (text, "\n\n", note, NULL) : g_strdup (note);
+      g_free (text);
+      text = t;
+   }
    gtk_tooltip_set_text (tooltip, text);
    g_free (text);
    g_free (bookmark);
+   g_free (note);
    return TRUE;
 }
 

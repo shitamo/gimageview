@@ -89,6 +89,7 @@
 <li><p class="para">The comments in the file (MAG, MAKI, ...) are shown in the "Data" tab for an image in an archive too (read from the file extracted for the preview).</p></li>
 <li><p class="para">Fixed a crash on GTK 4.14 (Wayland) while drawing the thumbnail window when started without arguments: the CSS probes for the theme colors are registered at startup (PR #1 by Takuro Ashie).</p></li>
 <li><p class="para">File names that are not UTF-8, names in archives and comments in files are no longer taken as Shift_JIS.  In a Japanese environment they are shown as the one of Shift_JIS, EUC-JP and ISO-2022-JP they read best in; bytes that cannot be read are shown as %XX.</p></li>
+<li><p class="para">File names shown in a charset guessed are in italics in the lists, and their tooltip and the status bar tell the charset and the bytes of the name.  [Edit | File Names to UTF-8...] renames the names of a folder not in UTF-8 to UTF-8, checked first (nothing is overwritten).</p></li>
 <li><p class="para">Manual: the Tips are brought up to date (the tips about the bars and the window size of the image window that no longer apply are removed; the memory buffer, the thumbnail size, the custom layout rewritten).</p></li>
 <li><p class="para">Context menus open to the right of the pointer (no scroll bars).</p></li>
 <li><p class="para">Data tab: "Remove Item" for the item selected; "Delete Comment..." asks first and keeps the tags.  The index follows a comment saved or deleted at once.</p></li>

@@ -185,6 +185,15 @@ The name without the extension is edited; the extension (.jpg, ...) stays (witho
 It cannot be used when more than one file is selected.
 </p>
 </dd>
+<dt><span class="term"><a name="names_to_utf8"></a>File Names to UTF-8...</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>Folder tabs of the thumbnail window only</i></span>.  Renames the files whose names are not in UTF-8 (given in Shift_JIS in the MS-DOS days or in EUC-JP on UNIX; in the list they are shown in italics or as <code>%XX</code>, <a href="07.html#Character_set_of_file_name">7.1.2</a>) to UTF-8, all at once.
+</p>
+<p class="para">
+For each file the bytes of its name now, the charset (the one guessed; Shift_JIS, EUC-JP, ISO-2022-JP or ISO-8859-1 can be chosen) and the new name are shown.  Check the new names and press [Rename N Files].  A file whose new name is taken already, that would get the name of another file or that cannot be read in the charset is not renamed (nothing is overwritten).  The thumbnail cache, the comment and the bookmark go with the file.
+</p>
+</dd>
 <dt><span class="term"><a name="copy_file_to"></a>Copy Files To... [Shift + C]</span></dt>
 <dd>
 <p class="para">

@@ -24,6 +24,9 @@
 #include "gimv_test.h"
 #include "gimv_test_core.h"
 #include "gimv_file_comment.h"
+#include "gimv_image_info.h"
+#include "charset.h"
+#include "prefs.h"
 
 #include "gimv_anim.h"
 #include "gimv_image.h"
@@ -796,6 +799,54 @@ test_maki_comment (void)
    }
    g_byte_array_unref (a);
 }
+
+/* a file name not in UTF-8: guessed (italics, a note) or not readable */
+static void
+test_name_note (void)
+{
+   GByteArray *a = make_maki (FALSE);
+   gchar *dir = g_dir_make_tmp ("gimv-names-XXXXXX", NULL);
+   gchar *path = g_strconcat (dir, "/\x8a\xbf\x8e\x9a.mki", NULL);   /* 漢字 */
+   gchar *plain = g_strconcat (dir, "/plain.mki", NULL);
+   CharsetAutoDetectFn saved = conf.charset_auto_detect_fn;
+   GimvImageInfo *info;
+   gchar *note = NULL;
+
+   g_assert_true (g_file_set_contents (path, (gchar *) a->data, a->len, NULL));
+   g_assert_true (g_file_set_contents (plain, (gchar *) a->data, a->len, NULL));
+
+   conf.charset_auto_detect_fn = charset_get_auto_detect_func (CHARSET_AUTODETECT_JAPANESE);
+   info = gimv_image_info_get (path);
+   g_assert_true (gimv_image_info_get_name_note (info, &note));
+   g_assert_nonnull (strstr (note, "Shift_JIS"));
+   g_assert_nonnull (strstr (note, "%8A%BF%8E%9A.mki"));
+   g_clear_pointer (&note, g_free);
+   gimv_image_info_unref (info);
+
+   /* not Japanese: not readable, not in italics, still a note */
+   conf.charset_auto_detect_fn = NULL;
+   info = gimv_image_info_get (path);
+   g_assert_false (gimv_image_info_get_name_note (info, &note));
+   g_assert_nonnull (note);
+   g_assert_nonnull (strstr (note, "%8A%BF%8E%9A.mki"));
+   g_clear_pointer (&note, g_free);
+   gimv_image_info_unref (info);
+
+   info = gimv_image_info_get (plain);
+   g_assert_false (gimv_image_info_get_name_note (info, &note));
+   g_assert_null (note);
+   gimv_image_info_unref (info);
+
+   conf.charset_auto_detect_fn = saved;
+   g_unlink (path);
+   g_unlink (plain);
+   g_rmdir (dir);
+   g_free (path);
+   g_free (plain);
+   g_free (dir);
+   g_byte_array_unref (a);
+}
+
 
 static void
 maki_broken (void)
@@ -1923,6 +1974,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/maki", test_maki);
    g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
    g_test_add_func ("/image-loader/maki/comment", test_maki_comment);
+   g_test_add_func ("/image-loader/name-note", test_name_note);
    g_test_add_func ("/image-loader/mag", test_mag);
    g_test_add_func ("/image-loader/mag/odd-width", test_mag_odd_width);
    g_test_add_func ("/image-loader/mag/broken-header", test_mag_broken_header);

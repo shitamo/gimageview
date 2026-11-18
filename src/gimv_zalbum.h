@@ -56,6 +56,7 @@ typedef struct _GimvZAlbumColumnInfo  GimvZAlbumColumnInfo;
 enum
 {
    GIMV_ZALBUM_CELL_SELECTED = 1 << 1,
+   GIMV_ZALBUM_CELL_ITALIC   = 1 << 2,   /* the label in italics */
 };
 
 typedef enum
@@ -116,6 +117,10 @@ void       gimv_zalbum_set_min_pixmap_size       (GimvZAlbum       *album,
 void       gimv_zalbum_set_min_cell_size         (GimvZAlbum       *album,
                                                   guint             width,
                                                   guint             height);
+/* the label of a cell in italics (a file name not in UTF-8) */
+void       gimv_zalbum_set_italic                (GimvZAlbum       *album,
+                                                  guint             idx,
+                                                  gboolean          italic);
 void       gimv_zalbum_set_pixmap                (GimvZAlbum       *album,
                                                   guint             idx,
                                                   GdkTexture        *pixmap,

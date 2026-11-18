@@ -255,6 +255,9 @@ static void cb_missing_images       (GimvThumbWin  *tw,
                                      guint          action,
                                      GimvMenuItem     *widget);
 #endif
+static void cb_names_utf8           (GimvThumbWin  *tw,
+                                     guint          action,
+                                     GimvMenuItem  *menuitem);
 static void cb_file_operate         (GimvThumbWin  *tw,
                                      guint          action,
                                      GimvMenuItem     *menuitem);
@@ -460,6 +463,7 @@ GimvMenuEntry gimv_thumb_win_menu_items[] =
    {N_("/_Edit/Clear cache for _this tab"), NULL,     cb_clear_cache,   CLEAR_CACHE_TAB, NULL},
    */
    {N_("/_Edit/R_ename..."),            "<shift>E",   cb_file_operate,  FILE_RENAME, NULL},
+   {N_("/_Edit/File Names to _UTF-8..."), NULL,       cb_names_utf8,    0,           NULL},
    {N_("/_Edit/Co_py Files To..."),     "<shift>C",   cb_file_operate,  FILE_COPY,   NULL},
    {N_("/_Edit/_Move Files To..."),     "<shift>M",   cb_file_operate,  FILE_MOVE,   NULL},
    {N_("/_Edit/_Link Files To..."),     "<shift>L",   cb_file_operate,  FILE_LINK,   NULL},
@@ -3112,6 +3116,14 @@ cb_clear_cache (GimvThumbWin *tw, CacheClearType type, GimvMenuItem *widget)
 
 
 static void
+cb_names_utf8 (GimvThumbWin *tw, guint action, GimvMenuItem *menuitem)
+{
+   GimvThumbView *tv = gimv_thumb_win_find_thumbtable (tw, GIMV_THUMB_WIN_CURRENT_PAGE);
+   if (tv) gimv_thumb_view_names_to_utf8 (tv);
+}
+
+
+static void
 cb_file_operate (GimvThumbWin *tw, guint action, GimvMenuItem *menuitem)
 {
    GimvThumbView  *tv;
@@ -4644,6 +4656,19 @@ gimv_thumb_win_show_file_path (GimvThumbWin *tw, GimvThumbView *tv)
    text = charset_to_internal (tilde, conf.charset_filename,
                                conf.charset_auto_detect_fn,
                                conf.charset_filename_mode);
+   /* a name not in UTF-8: how it was read (the first line of the note) */
+   {
+      gchar *note = NULL, *nl;
+      gimv_image_info_get_name_note (thumb->info, &note);
+      if (note) {
+         gchar *t;
+         if ((nl = strchr (note, '\n'))) *nl = '\0';
+         t = g_strconcat (text, "    \u26a0 ", note, NULL);
+         g_free (text);
+         text = t;
+         g_free (note);
+      }
+   }
    gimv_statusbar_push (tw->status_bar1, STATUS_FILE_PATH, text);
    g_free (text);
    g_free (tilde);

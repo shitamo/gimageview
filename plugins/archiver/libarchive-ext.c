@@ -210,12 +210,36 @@ open_archive (const char *filename, gboolean *latin1)
 }
 
 
+/* a name not in UTF-8: guessed, else as %XX (see charset_to_display ());
+   *note: "charset\tthe bytes as %XX" (no charset when not readable), for
+   gimv_image_info_get_name_note () */
+static gchar *
+name_from_bytes (const gchar *bytes, gchar **note)
+{
+   const gchar *cs = NULL;
+   gchar *name, *escaped;
+
+   name = charset_guess_to_utf8 (bytes, -1,
+                                 charset_japanese_likely (conf.charset_auto_detect_fn), &cs);
+   if (g_utf8_validate (bytes, -1, NULL)) return name;
+   escaped = charset_escape_bytes (bytes, -1);
+   if (!name) {
+      name = g_strdup (escaped);
+      cs = "";
+   }
+   *note = g_strdup_printf ("%s\t%s", cs ? cs : "", escaped);
+   g_free (escaped);
+   return name;
+}
+
+
 /* the name of a file in the archive in UTF-8, NULL for other entries or
    names that would be written outside the extraction directory.  Names not
    in UTF-8 (Shift_JIS of DOS era archives, EUC-JP, ...) are guessed, and
    shown as %XX where they cannot be (see charset_to_display ()). */
 static gchar *
-entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1)
+entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1,
+            gchar **note)
 {
    const char *raw;
    gchar *name = NULL, **parts, *p;
@@ -231,8 +255,7 @@ entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1)
       if (!raw) return NULL;
       bytes = g_convert (raw, -1, "ISO-8859-1", "UTF-8", NULL, NULL, NULL);
       if (bytes) {
-         name = charset_to_display (bytes, -1,
-                                    charset_japanese_likely (conf.charset_auto_detect_fn));
+         name = name_from_bytes (bytes, note);
          g_free (bytes);
       } else {
          /* not from the header (a level 2 Unicode name) */
@@ -245,8 +268,7 @@ entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1)
       } else {
          raw = archive_entry_pathname (entry);
          if (!raw) return NULL;
-         name = charset_to_display (raw, -1,
-                                    charset_japanese_likely (conf.charset_auto_detect_fn));
+         name = name_from_bytes (raw, note);
       }
    }
    if (!name) return NULL;
@@ -264,12 +286,14 @@ entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1)
       if (!strcmp (parts[i], "..")) {
          g_strfreev (parts);
          g_free (name);
+         g_clear_pointer (note, g_free);
          return NULL;
       }
    }
    g_strfreev (parts);
    if (!*name) {
       g_free (name);
+      g_clear_pointer (note, g_free);
       return NULL;
    }
 
@@ -318,11 +342,22 @@ fr_command_libarchive_list (FRCommand *comm)
    while ((ret = archive_read_next_header (a, &entry)) == ARCHIVE_OK
           || ret == ARCHIVE_WARN)
    {
-      gchar *name = entry_name (a, entry, latin1);
+      gchar *note = NULL, *name = entry_name (a, entry, latin1, &note);
       GimvImageInfo *info;
       struct stat st;
 
       if (!name) continue;
+      /* names not in UTF-8: how they were read, shown with them */
+      if (note) {
+         GHashTable *notes = g_object_get_data (G_OBJECT (comm->archive),
+                                                GIMV_ARCHIVE_NAME_NOTES);
+         if (!notes) {
+            notes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+            g_object_set_data_full (G_OBJECT (comm->archive), GIMV_ARCHIVE_NAME_NOTES,
+                                    notes, (GDestroyNotify) g_hash_table_destroy);
+         }
+         g_hash_table_replace (notes, g_strdup (name), note);
+      }
 
       memset (&st, 0, sizeof (st));
       st.st_mode  = S_IFREG | S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
@@ -488,9 +523,11 @@ fr_command_libarchive_extract (FRCommand *comm,
    while ((ret = archive_read_next_header (a, &entry)) == ARCHIVE_OK
           || ret == ARCHIVE_WARN)
    {
-      gchar *name = entry_name (a, entry, latin1), *path;
+      gchar *note = NULL, *name = entry_name (a, entry, latin1, &note), *path;
       struct stat st;
       gboolean ok;
+
+      g_free (note);
 
       if (!name) continue;
       if (wanted && !g_hash_table_contains (wanted, name)) {

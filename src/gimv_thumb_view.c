@@ -176,6 +176,9 @@ static void   cb_print                 (GimvThumbView  *tv,
 static void   cb_file_operate          (GimvThumbView  *tv,
                                         FileOperateType type,
                                         GimvMenuItem      *widget);
+static void   cb_names_utf8            (GimvThumbView  *tv,
+                                        guint           action,
+                                        GimvMenuItem   *menuitem);
 static void   cb_rename_file           (GimvThumbView  *tv,
                                         guint           action,
                                         GimvMenuItem      *menuitem);
@@ -268,6 +271,7 @@ static GimvMenuEntry thumb_button_popup_items [] =
    {N_("/Boo_kmark..."),              NULL,  cb_bookmark,      0,           NULL},
    {N_("/---"),                       NULL,  NULL,             0,           "<Separator>"},
    {N_("/Re_name..."),                NULL,  cb_rename_file,   0,           NULL},
+   {N_("/File Names to _UTF-8..."),   NULL,  cb_names_utf8,    0,           NULL},
    {N_("/_Copy Files To..."),         NULL,  cb_file_operate,  FILE_COPY,   NULL},
    {N_("/_Move Files To..."),         NULL,  cb_file_operate,  FILE_MOVE,   NULL},
    {N_("/_Link Files To..."),         NULL,  cb_file_operate,  FILE_LINK,   NULL},
@@ -1076,6 +1080,13 @@ cb_file_operate (GimvThumbView *tv, FileOperateType type, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv));
    gimv_thumb_view_file_operate (tv, type);
+}
+
+
+static void
+cb_names_utf8 (GimvThumbView *tv, guint action, GimvMenuItem *menuitem)
+{
+   gimv_thumb_view_names_to_utf8 (tv);
 }
 
 
@@ -3291,10 +3302,18 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
       gimv_menu_item_set_sensitive (menuitem, FALSE);
       menuitem = gimv_menu_get_item (ifactory, "/Rename...");
       gimv_menu_item_set_sensitive (menuitem, FALSE);
+      menuitem = gimv_menu_get_item (ifactory, "/File Names to UTF-8...");
+      gimv_menu_item_set_sensitive (menuitem, FALSE);
       menuitem = gimv_menu_get_item (ifactory, "/Remove Files...");
       gimv_menu_item_set_sensitive (menuitem, FALSE);
    }
    g_free (dirname);
+
+   /* the files of one folder */
+   if (tv->mode != GIMV_THUMB_VIEW_MODE_DIR) {
+      menuitem = gimv_menu_get_item (ifactory, "/File Names to UTF-8...");
+      gimv_menu_item_set_sensitive (menuitem, FALSE);
+   }
 
    if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE || g_list_length (thumblist) < 2) {
       menuitem = gimv_menu_get_item (ifactory, "/Join Images...");
@@ -3612,15 +3631,49 @@ rename_dialog (const gchar *name, GtkWindow *parent)
 
 
 void
+gimv_thumb_view_rename_extras (GimvThumb *thumb, const gchar *dest_path)
+{
+   const gchar *src_path, *cache_type;
+   gchar *src_cache_path, *dest_cache_path, *src_comment, *dest_comment;
+
+   g_return_if_fail (GIMV_IS_THUMB (thumb) && thumb->info && dest_path);
+   src_path = gimv_image_info_get_path (thumb->info);
+
+   /* rename cache */
+   cache_type = gimv_thumb_get_cache_type (thumb);
+   if (cache_type) {
+      src_cache_path = gimv_thumb_cache_get_path (src_path, cache_type);
+      dest_cache_path = gimv_thumb_cache_get_path (dest_path, cache_type);
+      if (rename (src_cache_path, dest_cache_path) < 0)
+         g_print (_("Failed to rename cache file: %s\n"), dest_path);
+      g_free (src_cache_path);
+      g_free (dest_cache_path);
+   }
+
+   /* rename comment */
+   src_comment = gimv_comment_find_file (src_path);
+   if (src_comment) {
+      dest_comment = gimv_comment_get_path (dest_path);
+      if (rename (src_comment, dest_comment) < 0)
+         g_print (_("Failed to rename comment file: %s\n"), dest_comment);
+      g_free (src_comment);
+      g_free (dest_comment);
+   }
+
+   /* the bookmark goes with it */
+   if (!g_file_test (src_path, G_FILE_TEST_EXISTS)
+       && g_file_test (dest_path, G_FILE_TEST_EXISTS))
+      gimv_bookmark_move (src_path, dest_path);
+}
+
+
+void
 gimv_thumb_view_rename_file (GimvThumbView *tv)
 {
    GimvThumb *thumb;
-   const gchar *cache_type;
    GList *thumblist;
    const gchar *src_file;
    gchar *dest_file, *dest_path;
-   gchar *src_cache_path, *dest_cache_path;
-   gchar *src_comment, *dest_comment;
    gchar message[BUF_SIZE], *dirname;
    ConfirmType confirm;
    gboolean exist;
@@ -3708,34 +3761,7 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
                               GTK_WINDOW (tv->tw));
    }
 
-   /* rename cache */
-   cache_type = gimv_thumb_get_cache_type (thumb);
-   if (cache_type) {
-      src_cache_path 
-         = gimv_thumb_cache_get_path (gimv_image_info_get_path (thumb->info),
-                                      cache_type);
-      dest_cache_path
-         = gimv_thumb_cache_get_path (dest_path, cache_type);
-      if (rename (src_cache_path, dest_cache_path) < 0)
-         g_print (_("Failed to rename cache file: %s\n"), dest_path);
-      g_free (src_cache_path);
-      g_free (dest_cache_path);
-   }
-
-   /* rename comment */
-   src_comment = gimv_comment_find_file (gimv_image_info_get_path (thumb->info));
-   if (src_comment) {
-      dest_comment = gimv_comment_get_path (dest_path);
-      if (rename (src_comment, dest_comment) < 0)
-         g_print (_("Failed to rename comment file: %s\n"), dest_comment);
-      g_free (src_comment);
-      g_free (dest_comment);      
-   }
-
-   /* the bookmark goes with it */
-   if (!g_file_test (gimv_image_info_get_path (thumb->info), G_FILE_TEST_EXISTS)
-       && g_file_test (dest_path, G_FILE_TEST_EXISTS))
-      gimv_bookmark_move (gimv_image_info_get_path (thumb->info), dest_path);
+   gimv_thumb_view_rename_extras (thumb, dest_path);
 
    gimv_thumb_view_refresh_list (tv);
 

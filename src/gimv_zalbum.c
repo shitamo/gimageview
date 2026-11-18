@@ -653,6 +653,12 @@ gimv_zalbum_draw_string (GtkWidget *widget, cairo_t *cr, GimvZAlbumCell *cell,
    if (!string || !*string) return;
 
    layout = gtk_widget_create_pango_layout (widget, "(NULL)");
+   if (cell && (cell->flags & GIMV_ZALBUM_CELL_ITALIC)) {
+      PangoAttrList *attrs = pango_attr_list_new ();
+      pango_attr_list_insert (attrs, pango_attr_style_new (PANGO_STYLE_ITALIC));
+      pango_layout_set_attributes (layout, attrs);
+      pango_attr_list_unref (attrs);
+   }
    pango_layout_get_pixel_size (layout, &width, &height);
    str_height = height;
    pango_layout_set_text (layout, string, -1);
@@ -834,6 +840,21 @@ gimv_zalbum_update_max_cell_size (GimvZAlbum *album, GimvZAlbumCell *cell)
       = MAX (MAX(album->max_cell_width,  cell_width), album->max_pix_width);
    album->max_cell_height
       = MAX (MAX(album->max_cell_height, cell_height), album->max_pix_height);
+}
+
+
+void
+gimv_zalbum_set_italic (GimvZAlbum *album, guint idx, gboolean italic)
+{
+   GimvZAlbumCell *cell;
+
+   g_return_if_fail (GIMV_IS_ZALBUM (album));
+
+   cell = GIMV_ZLIST_CELL_FROM_INDEX (album, idx);
+   g_return_if_fail (cell);
+   if (italic) cell->flags |= GIMV_ZALBUM_CELL_ITALIC;
+   else        cell->flags &= ~GIMV_ZALBUM_CELL_ITALIC;
+   gtk_widget_queue_draw (GTK_WIDGET (album));
 }
 
 

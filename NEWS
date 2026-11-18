@@ -33,7 +33,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  LZH archives with names not in UTF-8 are read.
 	* File names not in the charset of the system (Shift_JIS names of the
 	  MS-DOS days, EUC-JP of UNIX) are guessed in a Japanese environment;
-	  bytes that cannot be read are shown as %XX.
+	  bytes that cannot be read are shown as %XX.  Guessed names are in
+	  italics, and [Edit | File Names to UTF-8...] renames them to UTF-8.
 	* Buttons use the icons of the desktop icon theme (Preferences >
 	  Common > Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/<name>)
 	  may contain PNG and SVG files.

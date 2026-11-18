@@ -30,9 +30,11 @@ const gchar *japanese_locale_charset (const gchar *locale);
 const gchar *japanese_detect_charset (const gchar *str);
 /* bytes in a Japanese charset of the old days (Shift_JIS, EUC-JP,
    ISO-2022-JP) to UTF-8: the one they decode in that looks most like
-   Japanese; NULL if none */
+   Japanese; NULL if none.  *charset (may be NULL): its name, as
+   "Shift_JIS" */
 gchar       *japanese_guess_to_utf8  (const gchar *src,
-                                      gssize       len);
+                                      gssize       len,
+                                      const gchar **charset);
 gchar       *japanese_conv           (const gchar *src,
 				      const gchar *src_codeset,
 				      const gchar *dest_codeset);

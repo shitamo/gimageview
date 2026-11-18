@@ -1052,6 +1052,20 @@ Rename... [Shift + E]
 
     It cannot be used when more than one file is selected.
 
+File Names to UTF-8...
+    Folder tabs of the thumbnail window only. Renames the files whose names
+    are not in UTF-8 (given in Shift_JIS in the MS-DOS days or in EUC-JP on
+    UNIX; in the list they are shown in italics or as %XX, 7.1.2) to UTF-8,
+    all at once.
+
+    For each file the bytes of its name now, the charset (the one guessed;
+    Shift_JIS, EUC-JP, ISO-2022-JP or ISO-8859-1 can be chosen) and the new
+    name are shown. Check the new names and press [Rename N Files]. A file
+    whose new name is taken already, that would get the name of another file
+    or that cannot be read in the charset is not renamed (nothing is
+    overwritten). The thumbnail cache, the comment and the bookmark go with
+    the file.
+
 Copy Files To... [Shift + C]
     Thumbnail window only. Copies the selected images (files) to another
     directory.
@@ -1740,8 +1754,8 @@ Edit Tags...
 Bookmark...
     Bookmarks the selected images and shows a field for a note (2.5).
 
-Rename... / Copy Files To... / Move Files To... / Link Files To... / Remove
-Files...
+Rename... / File Names to UTF-8... / Copy Files To... / Move Files To... /
+Link Files To... / Remove Files...
     The same as the items of the [Edit] menu.
 
 Save Smaller...
@@ -2087,6 +2101,12 @@ Character set of file names
     changes: the file is still opened by its own name. The names of files in
     archives and the comments written in image files are shown in the same
     way.
+
+    Names shown in a charset guessed are in italics in the lists (the details
+    and album views). The tooltip of such a name tells the charset guessed and
+    the bytes of the name, and the status bar tells "⚠ The file name is not in
+    UTF-8" when it is selected. [Edit | File Names to UTF-8...] (4.2) renames
+    them to UTF-8.
 
 7.2. Image Window
 
@@ -3654,6 +3674,11 @@ How duplicates are found
     no longer taken as Shift_JIS. In a Japanese environment they are shown as
     the one of Shift_JIS, EUC-JP and ISO-2022-JP they read best in; bytes that
     cannot be read are shown as %XX.
+
+ ・ File names shown in a charset guessed are in italics in the lists, and
+    their tooltip and the status bar tell the charset and the bytes of the
+    name. [Edit | File Names to UTF-8...] renames the names of a folder not in
+    UTF-8 to UTF-8, checked first (nothing is overwritten).
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

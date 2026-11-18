@@ -185,6 +185,15 @@ GImageView は、タブごとに選択(非選択)状態を保持しています�
 なお、画像(ファイル)が複数選択されている場合には、実行できません。
 </p>
 </dd>
+<dt><span class="term"><a name="names_to_utf8"></a>ファイル名を UTF-8 に変換</span></dt>
+<dd>
+<p class="para">
+<span class="emphasis"><i>サムネイルウィンドウのフォルダのタブのみ</i></span>。名前が UTF-8 でないファイル (MS-DOS 時代の Shift_JIS や UNIX の EUC-JP で付けられた名前。一覧では斜体か <code>%XX</code> で表示されます。<a href="07.html#Character_set_of_file_name">7.1.2</a>) の名前を、まとめて UTF-8 に変えます。
+</p>
+<p class="para">
+ファイルごとに、今の名前のバイト列、文字コード (推定したもの。Shift_JIS・EUC-JP・ISO-2022-JP・ISO-8859-1 から選び直せます) と新しい名前を表示します。新しい名前を確かめて [N 個のファイルの名前を変える] を押します。新しい名前のファイルがすでにあるもの、ほかのファイルと同じ名前になるもの、その文字コードで読めないものは変換しません (上書きはしません)。サムネイルのキャッシュ、コメント、ブックマークも一緒に移ります。
+</p>
+</dd>
 <dt><span class="term"><a name="copy_file_to"></a>ディレクトリへコピー [Shift + C]</span></dt>
 <dd>
 <p class="para">

@@ -29,6 +29,7 @@
 #include "gimv_bookmark.h"
 #include "gimageview.h"
 
+#include "charset.h"
 #include "fileutil.h"
 #include "fr-archive.h"
 #include "gfileutil.h"
@@ -484,6 +485,63 @@ gimv_image_info_get_display_name (GimvImageInfo *info, const gchar *filename)
    }
 
    return name;
+}
+
+
+static gchar *
+name_note_text (const gchar *charset, const gchar *bytes)
+{
+   if (charset && *charset)
+      return g_strdup_printf (_("The file name is not in UTF-8: shown as %s (guessed).\n"
+                                "Its bytes: %s"), charset, bytes);
+   return g_strdup_printf (_("The file name is not in UTF-8 and could not be read: "
+                             "its bytes are shown as %%XX.\n"
+                             "Its bytes: %s"), bytes);
+}
+
+
+gboolean
+gimv_image_info_get_name_note (GimvImageInfo *info, gchar **note)
+{
+   const gchar *path;
+   gboolean guessed = FALSE;
+
+   if (note) *note = NULL;
+   g_return_val_if_fail (info, FALSE);
+   path = gimv_image_info_get_path (info);
+   if (!path) return FALSE;
+
+   if (gimv_image_info_is_in_archive (info)) {
+      FRArchive *archive = gimv_image_info_get_archive (info);
+      GHashTable *notes = archive ? g_object_get_data (G_OBJECT (archive),
+                                                       GIMV_ARCHIVE_NAME_NOTES) : NULL;
+      const gchar *value = notes ? g_hash_table_lookup (notes, path) : NULL;
+      const gchar *tab;
+
+      if (!value || !(tab = strchr (value, '\t'))) return FALSE;
+      guessed = tab > value;
+      if (note) {
+         gchar *cs = g_strndup (value, tab - value);
+         *note = name_note_text (cs, tab + 1);
+         g_free (cs);
+      }
+   } else {
+      const gchar *base = fileutil_basename (path);
+      CharsetNameKind kind;
+      const gchar *cs;
+      gchar *text = charset_to_internal_full (base, conf.charset_filename,
+                                              conf.charset_auto_detect_fn,
+                                              conf.charset_filename_mode, &kind, &cs);
+      g_free (text);
+      if (kind == CHARSET_NAME_PLAIN) return FALSE;
+      guessed = kind == CHARSET_NAME_GUESSED;
+      if (note) {
+         gchar *bytes = charset_escape_bytes (base, -1);
+         *note = name_note_text (guessed ? cs : NULL, bytes);
+         g_free (bytes);
+      }
+   }
+   return guessed;
 }
 
 

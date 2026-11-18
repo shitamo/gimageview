@@ -310,6 +310,12 @@ void           gimv_thumb_view_popup_menu         (GimvThumbView    *tv,
 void           gimv_thumb_view_file_operate       (GimvThumbView    *tv,
                                                    FileOperateType   type);
 void           gimv_thumb_view_rename_file        (GimvThumbView    *tv);
+/* after the file of thumb was renamed to dest_path: its thumbnail cache,
+   comment file and bookmark follow */
+void           gimv_thumb_view_rename_extras      (GimvThumb        *thumb,
+                                                   const gchar      *dest_path);
+/* the names of the files of tv not in UTF-8 renamed to UTF-8 (a dialog) */
+void           gimv_thumb_view_names_to_utf8      (GimvThumbView    *tv);
 gboolean       gimv_thumb_view_delete_files       (GimvThumbView    *tv);
 
 /* for plugin loader */

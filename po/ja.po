@@ -7533,3 +7533,96 @@ msgstr "グループの小さい画像より細かいところがありません
 #, c-format
 msgid "Looking for enlarged copies: %u of %u groups"
 msgstr "拡大したコピーを調べています: %2$u グループ中 %1$u"
+
+#: src/gimv_image_info.c
+#, c-format
+msgid ""
+"The file name is not in UTF-8: shown as %s (guessed).\n"
+"Its bytes: %s"
+msgstr ""
+"ファイル名が UTF-8 ではありません: %s と推定して表示しています。\n"
+"もとのバイト列: %s"
+
+#: src/gimv_image_info.c
+#, c-format
+msgid ""
+"The file name is not in UTF-8 and could not be read: its bytes are shown "
+"as %%XX.\n"
+"Its bytes: %s"
+msgstr ""
+"ファイル名が UTF-8 ではなく、文字コードも判りません: 読めないバイトを %%XX "
+"で表示しています。\n"
+"もとのバイト列: %s"
+
+#: src/gimv_thumb_view.c
+msgid "/File Names to _UTF-8..."
+msgstr "/ファイル名を UTF-8 に変換(_U)..."
+
+#: src/gimv_thumb_win.c
+msgid "/_Edit/File Names to _UTF-8..."
+msgstr "/編集(_E)/ファイル名を UTF-8 に変換(_U)..."
+
+#: src/gimv_names_utf8.c
+msgid "Not readable in this charset"
+msgstr "この文字コードでは読めません"
+
+#: src/gimv_names_utf8.c
+msgid "A file of this name is there"
+msgstr "同じ名前のファイルがあります"
+
+#: src/gimv_names_utf8.c
+msgid "Another file gets this name"
+msgstr "ほかのファイルと同じ名前になります"
+
+#: src/gimv_names_utf8.c
+#, c-format
+msgid "_Rename %u File"
+msgid_plural "_Rename %u Files"
+msgstr[0] "%u 個のファイルの名前を変える(_R)"
+
+#: src/gimv_names_utf8.c
+#, c-format
+msgid ""
+"These files could not be renamed:\n"
+"\n"
+"%s"
+msgstr ""
+"次のファイルの名前を変えられませんでした:\n"
+"\n"
+"%s"
+
+#: src/gimv_names_utf8.c
+msgid "File Names to UTF-8"
+msgstr "ファイル名を UTF-8 に変換"
+
+#: src/gimv_names_utf8.c
+msgid "File names can be renamed in a folder only."
+msgstr "ファイル名を変換できるのはフォルダのタブだけです。"
+
+#: src/gimv_names_utf8.c
+msgid "All the file names here are in UTF-8."
+msgstr "このフォルダのファイル名はすべて UTF-8 です。"
+
+#: src/gimv_names_utf8.c
+msgid ""
+"The names of these files are not in UTF-8: in the list they are shown in "
+"italics in the charset guessed, or as %XX when they could not be read.  "
+"Check the new names and choose the charset where they are wrong.  A file "
+"whose new name is taken already is not renamed."
+msgstr ""
+"次のファイルの名前は UTF-8 ではありません。一覧では、推定した文字コードで"
+"斜体で表示するか、読めないものは %XX で表示しています。新しい名前を確かめ、"
+"違っているものは文字コードを選び直してください。新しい名前のファイルがすでに"
+"あるものは変換しません。"
+
+#: src/gimv_names_utf8.c
+msgid "Name now (bytes)"
+msgstr "今の名前 (バイト列)"
+
+#: src/gimv_names_utf8.c
+msgid "New name"
+msgstr "新しい名前"
+
+#: src/gimv_names_utf8.c
+msgid "Charset"
+msgstr "文字コード"
