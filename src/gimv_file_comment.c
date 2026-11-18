@@ -15,7 +15,9 @@
 #include <string.h>
 
 #include "gimageview.h"
+#include "charset.h"
 #include "gimv_file_comment.h"
+#include "prefs.h"
 
 /* a comment longer than this is cut (the rest is not shown anyway) */
 #define MAX_COMMENT   (64 * 1024)
@@ -30,22 +32,40 @@ file_comment_free (GimvFileComment *c)
 }
 
 
-/* bytes of an unknown charset -> UTF-8: UTF-8 as it is, else Shift_JIS
- * (CP932: the MAG files and the Japanese software of their time), else
- * Latin-1 (what PNG text is meant to be) */
+/* the charset of the text in a file */
+typedef enum {
+   TEXT_UNKNOWN,     /* guessed (the Japanese charsets if the language is) */
+   TEXT_JAPANESE,    /* the Japanese formats of the old days (MAG, MAKI,
+                        AK5/MSL): UTF-8, Shift_JIS, EUC-JP, ... guessed */
+   TEXT_LATIN1,      /* PNG tEXt: Latin-1 by the specification */
+   TEXT_UTF8         /* PNG iTXt: UTF-8 by the specification */
+} TextCharset;
+
+
+/* bytes -> UTF-8; what cannot be read is shown as %XX */
 static gchar *
-to_utf8 (const gchar *data, gsize len)
+to_utf8 (const gchar *data, gsize len, TextCharset charset)
 {
-   gchar *text;
+   gchar *text = NULL;
 
    if (g_utf8_validate (data, len, NULL))
       return g_strndup (data, len);
-   text = g_convert (data, len, "UTF-8", "CP932", NULL, NULL, NULL);
-   if (!text)
-      text = g_convert (data, len, "UTF-8", "SHIFT_JIS", NULL, NULL, NULL);
-   if (!text)
+
+   switch (charset) {
+   case TEXT_LATIN1:
       text = g_convert (data, len, "UTF-8", "ISO-8859-1", NULL, NULL, NULL);
-   return text;
+      break;
+   case TEXT_JAPANESE:
+      text = charset_guess_to_utf8 (data, len, TRUE);
+      break;
+   case TEXT_UNKNOWN:
+      text = charset_guess_to_utf8 (data, len,
+                                    charset_japanese_likely (conf.charset_auto_detect_fn));
+      break;
+   case TEXT_UTF8:
+      break;
+   }
+   return text ? text : charset_escape_bytes (data, len);
 }
 
 
@@ -77,14 +97,15 @@ tidy (gchar *text)
 
 
 static void
-add (GPtrArray *list, const gchar *name, const gchar *data, gsize len)
+add (GPtrArray *list, const gchar *name, const gchar *data, gsize len,
+     TextCharset charset)
 {
    GimvFileComment *c;
    gchar *text;
 
    if (len > MAX_COMMENT) len = MAX_COMMENT;
    len = strnlen (data, len);
-   text = tidy (to_utf8 (data, len));
+   text = tidy (to_utf8 (data, len, charset));
    if (!text) return;
    c = g_new0 (GimvFileComment, 1);
    c->name = g_strdup (name);
@@ -109,11 +130,11 @@ read_maki1 (FILE *f, GPtrArray *list)
 
    for (end = start; end < sizeof (head) && head[end] != 0x1a && head[end]; end++);
    while (start < end && head[start] == ' ') start++;
-   add (list, _("User Name"), (gchar *) head + start, end - start);
+   add (list, _("User Name"), (gchar *) head + start, end - start, TEXT_JAPANESE);
 
    for (i = 0; i < 4; i++)
       if (!g_ascii_isprint (head[8 + i])) return;
-   add (list, _("Machine"), (gchar *) head + 8, 4);
+   add (list, _("Machine"), (gchar *) head + 8, 4, TEXT_JAPANESE);
 }
 
 
@@ -136,7 +157,7 @@ read_mag (FILE *f, GPtrArray *list)
           && comment->len < MAX_COMMENT)
       g_string_append_c (comment, ch);
 
-   add (list, _("Comment"), comment->str, comment->len);
+   add (list, _("Comment"), comment->str, comment->len, TEXT_JAPANESE);
    /* the machine and the user name: by the format 4 bytes of ASCII and 18
     * bytes, then 2 unused (spaces); but some write the name over all the 24
     * (Shift_JIS from the first byte, its last letter in the unused bytes):
@@ -149,16 +170,16 @@ read_mag (FILE *f, GPtrArray *list)
       for (i = 0; i < 4; i++)
          if (head[8 + i] && !g_ascii_isprint (head[8 + i])) ascii = FALSE;
       if (ascii) {
-         add (list, _("User Name"), (gchar *) head + 12, 18 + 2);
-         add (list, _("Machine"), (gchar *) head + 8, 4);
+         add (list, _("User Name"), (gchar *) head + 12, 18 + 2, TEXT_JAPANESE);
+         add (list, _("Machine"), (gchar *) head + 8, 4, TEXT_JAPANESE);
       } else {
          /* a binary machine code (not Shift_JIS text): the name as given */
          gchar *sjis = g_convert ((gchar *) head + 8, 4 + 18 + 2, "UTF-8", "CP932",
                                   NULL, NULL, NULL);
          if (sjis)
-            add (list, _("User Name"), (gchar *) head + 8, 4 + 18 + 2);
+            add (list, _("User Name"), (gchar *) head + 8, 4 + 18 + 2, TEXT_JAPANESE);
          else
-            add (list, _("User Name"), (gchar *) head + 12, 18 + 2);
+            add (list, _("User Name"), (gchar *) head + 12, 18 + 2, TEXT_JAPANESE);
          g_free (sjis);
       }
    }
@@ -209,7 +230,7 @@ read_png (FILE *f, GPtrArray *list)
                   body = p;
                   blen = end - p;
                }
-               add (list, key, body, blen);
+               add (list, key, body, blen, itext ? TEXT_UTF8 : TEXT_LATIN1);
             }
          }
          g_free (data);
@@ -248,7 +269,7 @@ read_jpeg (FILE *f, GPtrArray *list)
       if (marker == 0xfe && len > 0) {
          gchar *data = g_malloc (len);
          if (fread (data, 1, len, f) != len) { g_free (data); return; }
-         add (list, _("Comment"), data, len);
+         add (list, _("Comment"), data, len, TEXT_UNKNOWN);
          g_free (data);
       } else if (fseek (f, len, SEEK_CUR)) {
          return;
@@ -295,7 +316,7 @@ read_gif (FILE *f, GPtrArray *list)
          if (label == 0xfe) {
             GString *s = g_string_new (NULL);
             gboolean ok = skip_sub_blocks (f, s);
-            add (list, _("Comment"), s->str, s->len);
+            add (list, _("Comment"), s->str, s->len, TEXT_UNKNOWN);
             g_string_free (s, TRUE);
             if (!ok) return;
          } else if (label == EOF || !skip_sub_blocks (f, NULL)) {
@@ -327,7 +348,7 @@ read_ak5_head (FILE *f, GPtrArray *list)
 
    if (fread (head, 1, sizeof (head), f) != sizeof (head)) return;
    if (memcmp (head, "AK5\0", 4)) return;
-   add (list, _("User Name"), (gchar *) head + 8, 32);
+   add (list, _("User Name"), (gchar *) head + 8, 32, TEXT_JAPANESE);
 }
 
 

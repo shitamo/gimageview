@@ -91,6 +91,29 @@ CharsetAutoDetectFn charset_get_auto_detect_func (CharsetAutoDetectType type);
 /* wrapper for all converter */
 /* src_codeset can be NULL if type is not CHARSET_TO_INTERNAL_ANY */
 /* func can be NULL if type is not CHARSET_TO_INTERNAL_AUTO */
+/* Bytes in a charset not known (a file name of the MS-DOS days in a UTF-8
+ * system, a comment in an old image):
+ *   charset_japanese_likely ():  whether the Japanese charsets are worth a
+ *                                try (the auto detect is Japanese, or the
+ *                                language is)
+ *   charset_guess_to_utf8 ():    UTF-8 as it is; else (japanese) the
+ *                                Japanese charset they decode in best;
+ *                                else NULL
+ *   charset_escape_bytes ():     the bytes that cannot be shown as %XX (as
+ *                                in URLs): "%8A%BF%8E%9A.jpg"
+ *   charset_to_display ():       the guess, else the escaped bytes; never
+ *                                NULL.  For showing only: the file is still
+ *                                opened or renamed by its own bytes. */
+gboolean  charset_japanese_likely      (CharsetAutoDetectFn func);
+gchar    *charset_guess_to_utf8        (const gchar *src,
+                                        gssize       len,
+                                        gboolean     japanese);
+gchar    *charset_escape_bytes         (const gchar *src,
+                                        gssize       len);
+gchar    *charset_to_display           (const gchar *src,
+                                        gssize       len,
+                                        gboolean     japanese);
+
 gchar    *charset_to_internal          (const gchar *src,
                                         const gchar *src_codeset,
                                         CharsetAutoDetectFn func,

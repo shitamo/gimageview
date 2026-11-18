@@ -281,3 +281,98 @@ japanese_detect_charset (const gchar *str)
 
 
 
+
+
+/******************************************************************************
+ *
+ *  guessing the charset of bytes that are not UTF-8 (file names, comments)
+ *
+ ******************************************************************************/
+/* how much a decoded text looks like Japanese: kana count most, common
+   kanji (JIS level 1) more than rare ones, symbols and controls less */
+static gint
+plausibility (const gchar *utf8)
+{
+   const gchar *p;
+   gint score = 0;
+
+   for (p = utf8; *p; p = g_utf8_next_char (p)) {
+      gunichar c = g_utf8_get_char (p);
+
+      if (c < 0x80) {
+         score += g_ascii_iscntrl (c) && c != '\n' && c != '\r' && c != '\t' ? -2 : 1;
+      } else if ((c >= 0x3041 && c <= 0x3096) || (c >= 0x30a1 && c <= 0x30fa)
+                 || c == 0x30fc)
+      {
+         score += 3;                      /* hiragana, katakana */
+      } else if (c >= 0xff66 && c <= 0xff9f) {
+         score += 1;                      /* half width katakana */
+      } else if (c >= 0xff61 && c <= 0xff65) {
+         /* half width punctuation: nothing */
+      } else if ((c >= 0x3000 && c <= 0x303f) || (c >= 0xff01 && c <= 0xff5e)) {
+         score += 1;                      /* punctuation, full width letters */
+      } else if (c >= 0x4e00 && c <= 0x9fff) {
+         /* kanji: JIS level 1 (EUC-JP 0xb0a1 .. 0xcfd3) or not */
+         gchar buf[8], *euc;
+         gint n = g_unichar_to_utf8 (c, buf);
+         euc = g_convert (buf, n, CHARSET_EUC_JP, CHARSET_UTF8, NULL, NULL, NULL);
+         if (euc && (guchar) euc[0] >= 0xb0 && (guchar) euc[0] <= 0xcf)
+            score += 2;
+         g_free (euc);
+      } else {
+         score -= 1;
+      }
+   }
+   return score;
+}
+
+
+gchar *
+japanese_guess_to_utf8 (const gchar *src, gssize len)
+{
+   /* CP932: Shift_JIS as the PC-9801 and Windows wrote it */
+   const gchar *candidates[] = { "CP932", CHARSET_EUC_JP, CHARSET_JIS };
+   const gchar *first = NULL;
+   gchar *copy, *best = NULL;
+   gint best_score = G_MININT;
+   guint i;
+
+   g_return_val_if_fail (src, NULL);
+   if (len < 0) len = strlen (src);
+
+   /* the detector's guess is tried first (it wins ties) */
+   copy = g_strndup (src, len);
+   if (*copy) {
+      switch (detect_kanji ((const guchar *) copy)) {
+      case KC_EUC:  first = CHARSET_EUC_JP; break;
+      case KC_JIS:  first = CHARSET_JIS; break;
+      default:      first = "CP932"; break;
+      }
+   }
+   g_free (copy);
+   if (!first) return NULL;
+
+   for (i = 0; i <= G_N_ELEMENTS (candidates); i++) {
+      const gchar *cs = i == 0 ? first : candidates[i - 1];
+      gchar *text;
+      gsize written;
+      gint score;
+
+      if (i > 0 && !strcmp (cs, first)) continue;
+      text = g_convert (src, len, CHARSET_UTF8, cs, NULL, &written, NULL);
+      /* all of it, no NUL inside */
+      if (!text || strlen (text) != written) {
+         g_free (text);
+         continue;
+      }
+      score = plausibility (text);
+      if (score > best_score) {
+         g_free (best);
+         best = text;
+         best_score = score;
+      } else {
+         g_free (text);
+      }
+   }
+   return best;
+}

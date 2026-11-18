@@ -196,6 +196,9 @@ The language GImageView detects automatically.
 <p class="para">
 The character set used, for example, to display file names.  Choose from "Never convert", "Locale", "Auto detect" and "Any"; with "Any", enter the character set in the field to the right.
 </p>
+<p class="para">
+Names this setting cannot convert (in a UTF-8 system, names given in Shift_JIS in the MS-DOS days or in EUC-JP on UNIX) are shown, when the language for auto detecting or the language of the system (LANG and so on) is Japanese, as the one of Shift_JIS, EUC-JP and ISO-2022-JP they read best in.  Bytes of a name that cannot be read are shown as <code>%XX</code> (hexadecimal) as in URLs, for example <code>caf%E9.jpg</code>.  Only the display changes: the file is still opened by its own name.  The names of files in archives and the comments written in image files are shown in the same way.
+</p>
 </dd>
 </dl></div>
 </div>

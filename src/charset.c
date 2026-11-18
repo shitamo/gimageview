@@ -279,9 +279,74 @@ to_internal (const gchar *src,
 }
 
 
+/******************************************************************************
+ *
+ *  bytes in a charset not known (file names of the old days, comments)
+ *
+ ******************************************************************************/
+gboolean
+charset_japanese_likely (CharsetAutoDetectFn func)
+{
+   const gchar *lang = get_lang ();
+
+   return func == japanese_detect_charset || !g_ascii_strncasecmp (lang, "ja", 2);
+}
+
+
+gchar *
+charset_guess_to_utf8 (const gchar *src, gssize len, gboolean japanese)
+{
+   g_return_val_if_fail (src, NULL);
+   if (len < 0) len = strlen (src);
+
+   if (g_utf8_validate (src, len, NULL)) return g_strndup (src, len);
+   if (japanese) return japanese_guess_to_utf8 (src, len);
+   return NULL;
+}
+
+
+gchar *
+charset_escape_bytes (const gchar *src, gssize len)
+{
+   GString *s;
+   gssize i;
+   gboolean after_high = FALSE;
+
+   g_return_val_if_fail (src, NULL);
+   if (len < 0) len = strlen (src);
+
+   s = g_string_sized_new (len * 3);
+   for (i = 0; i < len; i++) {
+      guchar c = src[i];
+      /* a backslash after a byte of 0x80 or more may be the second byte
+         of a Shift_JIS character, not a separator of a DOS path */
+      if (c >= 0x80 || c == 0x7f || (c < 0x20 && c != '\n' && c != '\r' && c != '\t')
+          || (c == '\\' && after_high))
+         g_string_append_printf (s, "%%%02X", c);
+      else
+         g_string_append_c (s, c);
+      after_high = c >= 0x80;
+   }
+   return g_string_free (s, FALSE);
+}
+
+
+gchar *
+charset_to_display (const gchar *src, gssize len, gboolean japanese)
+{
+   gchar *text;
+
+   g_return_val_if_fail (src, NULL);
+
+   text = charset_guess_to_utf8 (src, len, japanese);
+   if (text) return text;
+   return charset_escape_bytes (src, len);
+}
+
+
 /* always text that can be shown (not NULL): what is not in the charset
-   given (such as a file name of the MS-DOS days in a UTF-8 system) is taken
-   as Shift_JIS (CP932) when it can be, else its bad bytes are replaced */
+   given (such as a file name of the MS-DOS days in a UTF-8 system) is
+   guessed (see charset_to_display ()) */
 gchar *
 charset_to_internal (const gchar *src,
                      const gchar *src_codeset,
@@ -296,10 +361,7 @@ charset_to_internal (const gchar *src,
    if (text && g_utf8_validate (text, -1, NULL)) return text;
    g_free (text);
 
-   if (g_utf8_validate (src, -1, NULL)) return g_strdup (src);
-   text = g_convert (src, -1, "UTF-8", "CP932", NULL, NULL, NULL);
-   if (text) return text;
-   return g_utf8_make_valid (src, -1);
+   return charset_to_display (src, -1, charset_japanese_likely (func));
 }
 
 

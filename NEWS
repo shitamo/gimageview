@@ -27,12 +27,13 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  movie thumbnails.  It is the default player when no default view
 	  mode for movies is set.
 	* Archives are read with libarchive instead of running lha, unzip, rar
-	  and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS file
-	  names in old zip/lha archives are converted.  The -lh1- method of
+	  and tar; 7z, tar.xz and tar.zst are supported too, Shift_JIS and
+	  EUC-JP file names in old zip/lha archives are converted.  The -lh1- method of
 	  LHarc 1.x, which libarchive does not read, is unpacked by gimv, and
-	  LZH archives with Shift_JIS names are read.
+	  LZH archives with names not in UTF-8 are read.
 	* File names not in the charset of the system (Shift_JIS names of the
-	  MS-DOS days in UTF-8) are shown as Shift_JIS.
+	  MS-DOS days, EUC-JP of UNIX) are guessed in a Japanese environment;
+	  bytes that cannot be read are shown as %XX.
 	* Buttons use the icons of the desktop icon theme (Preferences >
 	  Common > Appearance); icon sets (iconset= in gimvrc, ~/.gimv/icons/<name>)
 	  may contain PNG and SVG files.

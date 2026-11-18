@@ -782,6 +782,18 @@ test_maki_comment (void)
    g_ptr_array_unref (list);
    g_unlink (path);
    g_free (path);
+
+   /* EUC-JP (written by a UNIX tool) */
+   {
+      const guchar euc[20] = " by \xc6\xfc\xcb\xdc\xb8\xec r1.00\x1a";
+      memcpy (a->data + 12, euc, 20);
+      path = write_file ("mki", a->data, a->len);
+      list = gimv_file_comment_read (path);
+      g_assert_cmpstr (((GimvFileComment *) list->pdata[0])->text, ==, "by 日本語 r1.00");
+      g_ptr_array_unref (list);
+      g_unlink (path);
+      g_free (path);
+   }
    g_byte_array_unref (a);
 }
 

@@ -24,8 +24,15 @@
 #ifndef __JAPANESE_H__
 #define __JAPANESE_H__
 
+#include <glib.h>
+
 const gchar *japanese_locale_charset (const gchar *locale);
 const gchar *japanese_detect_charset (const gchar *str);
+/* bytes in a Japanese charset of the old days (Shift_JIS, EUC-JP,
+   ISO-2022-JP) to UTF-8: the one they decode in that looks most like
+   Japanese; NULL if none */
+gchar       *japanese_guess_to_utf8  (const gchar *src,
+                                      gssize       len);
 gchar       *japanese_conv           (const gchar *src,
 				      const gchar *src_codeset,
 				      const gchar *dest_codeset);

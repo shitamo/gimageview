@@ -2078,6 +2078,16 @@ Character set of file names
     "Never convert", "Locale", "Auto detect" and "Any"; with "Any", enter the
     character set in the field to the right.
 
+    Names this setting cannot convert (in a UTF-8 system, names given in
+    Shift_JIS in the MS-DOS days or in EUC-JP on UNIX) are shown, when the
+    language for auto detecting or the language of the system (LANG and so on)
+    is Japanese, as the one of Shift_JIS, EUC-JP and ISO-2022-JP they read
+    best in. Bytes of a name that cannot be read are shown as %XX
+    (hexadecimal) as in URLs, for example caf%E9.jpg. Only the display
+    changes: the file is still opened by its own name. The names of files in
+    archives and the comments written in image files are shown in the same
+    way.
+
 7.2. Image Window
 
 Save window state on exit
@@ -3639,6 +3649,11 @@ How duplicates are found
  ・ Fixed a crash on GTK 4.14 (Wayland) while drawing the thumbnail window
     when started without arguments: the CSS probes for the theme colors are
     registered at startup (PR #1 by Takuro Ashie).
+
+ ・ File names that are not UTF-8, names in archives and comments in files are
+    no longer taken as Shift_JIS. In a Japanese environment they are shown as
+    the one of Shift_JIS, EUC-JP and ISO-2022-JP they read best in; bytes that
+    cannot be read are shown as %XX.
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

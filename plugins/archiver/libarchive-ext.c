@@ -52,12 +52,14 @@
 
 #include "gimageview.h"
 
+#include "charset.h"
 #include "fileutil.h"
 #include "fr-archive.h"
 #include "fr-command.h"
 #include "gimv_image_info.h"
 #include "gimv_plugin.h"
 #include "lha-lh1.h"
+#include "prefs.h"
 
 
 #define FR_COMMAND_LIBARCHIVE_TYPE  fr_command_libarchive_get_type ()
@@ -155,14 +157,14 @@ la_error (struct archive *a)
 
 
 static struct archive *
-open_with (const char *filename, gboolean sjis)
+open_with (const char *filename, gboolean latin1)
 {
    struct archive *a = archive_read_new ();
 
    archive_read_support_filter_all (a);
    archive_read_support_format_all (a);
-   if (sjis)
-      archive_read_set_format_option (a, "lha", "hdrcharset", "CP932");
+   if (latin1)
+      archive_read_set_format_option (a, "lha", "hdrcharset", "ISO-8859-1");
    if (archive_read_open_filename (a, filename, 64 * 1024) != ARCHIVE_OK) {
       g_warning ("libarchive: %s: %s", filename, la_error (a));
       archive_read_free (a);
@@ -173,15 +175,17 @@ open_with (const char *filename, gboolean sjis)
 }
 
 
-/* an LHA archive with Shift_JIS names (MS-DOS days): libarchive takes the
-   names as in the charset of the system and fails on them (with no
-   message) unless it is told */
+/* an LHA archive whose names are not in the charset of the system (the
+   MS-DOS days: Shift_JIS, or EUC-JP of UNIX): libarchive fails on them
+   (with no message) unless it is told their charset.  It is told
+   Latin-1, which takes any byte, and entry_name () gets the bytes back
+   and guesses their charset itself. */
 static gboolean
-lha_needs_sjis (const char *filename)
+lha_needs_raw_names (const char *filename)
 {
    struct archive *a = open_with (filename, FALSE);
    struct archive_entry *entry;
-   gboolean sjis = FALSE;
+   gboolean raw = FALSE;
    int ret;
 
    if (!a) return FALSE;
@@ -191,23 +195,27 @@ lha_needs_sjis (const char *filename)
       if (archive_format (a) != ARCHIVE_FORMAT_LHA) break;
    }
    if (ret == ARCHIVE_FATAL && archive_format (a) == ARCHIVE_FORMAT_LHA)
-      sjis = TRUE;
+      raw = TRUE;
    archive_read_free (a);
-   return sjis;
+   return raw;
 }
 
 
+/* *latin1: the names are Latin-1 for their bytes (see above) */
 static struct archive *
-open_archive (const char *filename)
+open_archive (const char *filename, gboolean *latin1)
 {
-   return open_with (filename, lha_needs_sjis (filename));
+   *latin1 = lha_needs_raw_names (filename);
+   return open_with (filename, *latin1);
 }
 
 
-/* the name of an entry as gimv shows and extracts it (UTF-8, relative),
-   or NULL for entries to skip (directories, links, unsafe paths) */
+/* the name of a file in the archive in UTF-8, NULL for other entries or
+   names that would be written outside the extraction directory.  Names not
+   in UTF-8 (Shift_JIS of DOS era archives, EUC-JP, ...) are guessed, and
+   shown as %XX where they cannot be (see charset_to_display ()). */
 static gchar *
-entry_name (struct archive *a, struct archive_entry *entry)
+entry_name (struct archive *a, struct archive_entry *entry, gboolean latin1)
 {
    const char *raw;
    gchar *name = NULL, **parts, *p;
@@ -216,20 +224,32 @@ entry_name (struct archive *a, struct archive_entry *entry)
 
    if (archive_entry_filetype (entry) != AE_IFREG) return NULL;
 
-   raw = archive_entry_pathname_utf8 (entry);
-   if (raw && g_utf8_validate (raw, -1, NULL)) {
-      name = g_strdup (raw);
-   } else {
+   if (latin1) {
+      /* the bytes of the header back from their Latin-1 */
+      gchar *bytes;
       raw = archive_entry_pathname (entry);
       if (!raw) return NULL;
-      /* DOS era Japanese archives (lha, zip) have Shift_JIS names */
-      if (g_utf8_validate (raw, -1, NULL))
+      bytes = g_convert (raw, -1, "ISO-8859-1", "UTF-8", NULL, NULL, NULL);
+      if (bytes) {
+         name = charset_to_display (bytes, -1,
+                                    charset_japanese_likely (conf.charset_auto_detect_fn));
+         g_free (bytes);
+      } else {
+         /* not from the header (a level 2 Unicode name) */
          name = g_strdup (raw);
-      else
-         name = g_convert (raw, -1, "UTF-8", "CP932", NULL, NULL, NULL);
-      if (!name)
-         name = g_utf8_make_valid (raw, -1);
+      }
+   } else {
+      raw = archive_entry_pathname_utf8 (entry);
+      if (raw && g_utf8_validate (raw, -1, NULL)) {
+         name = g_strdup (raw);
+      } else {
+         raw = archive_entry_pathname (entry);
+         if (!raw) return NULL;
+         name = charset_to_display (raw, -1,
+                                    charset_japanese_likely (conf.charset_auto_detect_fn));
+      }
    }
+   if (!name) return NULL;
 
    /* DOS style separators, leading "./" or "/" */
    g_strdelimit (name, "\\", '/');
@@ -283,12 +303,12 @@ fr_command_libarchive_list (FRCommand *comm)
 {
    struct archive *a;
    struct archive_entry *entry;
-   gboolean success = TRUE;
+   gboolean success = TRUE, latin1;
    int ret;
 
    fr_process_clear (comm->process);
 
-   a = open_archive (comm->filename);
+   a = open_archive (comm->filename, &latin1);
    if (!a) {
       queue_result (comm, FALSE);
       fr_process_start (comm->process, FALSE);
@@ -298,7 +318,7 @@ fr_command_libarchive_list (FRCommand *comm)
    while ((ret = archive_read_next_header (a, &entry)) == ARCHIVE_OK
           || ret == ARCHIVE_WARN)
    {
-      gchar *name = entry_name (a, entry);
+      gchar *name = entry_name (a, entry, latin1);
       GimvImageInfo *info;
       struct stat st;
 
@@ -450,10 +470,10 @@ fr_command_libarchive_extract (FRCommand *comm,
    GHashTable *wanted = NULL;
    GMappedFile *map = NULL;
    GList *node;
-   gboolean success = TRUE;
+   gboolean success = TRUE, latin1;
    int ret;
 
-   a = open_archive (comm->filename);
+   a = open_archive (comm->filename, &latin1);
    if (!a) {
       queue_result (comm, FALSE);
       return;
@@ -468,7 +488,7 @@ fr_command_libarchive_extract (FRCommand *comm,
    while ((ret = archive_read_next_header (a, &entry)) == ARCHIVE_OK
           || ret == ARCHIVE_WARN)
    {
-      gchar *name = entry_name (a, entry), *path;
+      gchar *name = entry_name (a, entry, latin1), *path;
       struct stat st;
       gboolean ok;
 
