@@ -604,3 +604,52 @@ fileutil_extension_is (const char *filename, const char *ext)
 
    return !g_ascii_strcasecmp (filename + len1 - len2, ext);
 }
+
+
+int
+fileutil_name_compare (const char *a, const char *b, int numeric, int ignore_case)
+{
+   const unsigned char *p = (const unsigned char *) a;
+   const unsigned char *q = (const unsigned char *) b;
+   int zeros = 0;          /* "1" before "01": when all else is the same */
+
+   g_return_val_if_fail (a && b, 0);
+
+   while (*p && *q) {
+      if (numeric && g_ascii_isdigit (*p) && g_ascii_isdigit (*q)) {
+         const unsigned char *p0 = p, *q0 = q, *ps, *qs;
+         size_t lp, lq;
+
+         while (*p == '0') p++;
+         while (*q == '0') q++;
+         ps = p;
+         qs = q;
+         while (g_ascii_isdigit (*p)) p++;
+         while (g_ascii_isdigit (*q)) q++;
+         lp = p - ps;
+         lq = q - qs;
+         if (lp != lq)
+            return lp < lq ? -1 : 1;
+         if (lp) {
+            int c = memcmp (ps, qs, lp);
+            if (c) return c < 0 ? -1 : 1;
+         }
+         if (!zeros && (ps - p0) != (qs - q0))
+            zeros = (ps - p0) < (qs - q0) ? -1 : 1;
+         continue;
+      } else {
+         int cp = ignore_case ? g_ascii_tolower (*p) : *p;
+         int cq = ignore_case ? g_ascii_tolower (*q) : *q;
+         if (cp != cq)
+            return cp < cq ? -1 : 1;
+         p++;
+         q++;
+      }
+   }
+   if (*p || *q)
+      return *p ? 1 : -1;
+   if (zeros)
+      return zeros;
+   /* the same but for the case */
+   return ignore_case ? strcmp (a, b) : 0;
+}

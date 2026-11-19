@@ -1213,8 +1213,13 @@ Sort File List
 
      ・ by Image Area
 
-    "Reverse Order", "Case Insensitive" and "Mix Directories and Files" can be
-    set as well.
+    "Reverse Order", "Case Insensitive", "Mix Directories and Files" and
+    "Numbers by Value" can be set as well.
+
+    With "Numbers by Value" (on by default) the numbers in names are compared
+    as numbers, not as characters: 0p.jpg, 1.jpg, 2.jpg, 10.jpg, and not
+    10.jpg before 2.jpg or 0p.jpg after 09.jpg. Of the same value the one with
+    fewer zeros comes first (1.jpg, 01.jpg).
 
 Layout
     Thumbnail window only. Changes the layout of the views (directory,
@@ -3734,6 +3739,12 @@ How duplicates are found
     ([Two Pages] of the right button menu, T): right to left (manga, the
     default) or left to right, the first page alone, shift by one page (O), a
     wide page alone. A click goes on or back by the side clicked.
+
+ ・ Sort by name puts the numbers in names in the order of their value:
+    0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg
+    before 2.jpg). [View | Sort File List | Numbers by Value] turns it off.
+    Clicking a column title of the detail view no longer resets "Case
+    Insensitive" and "Mix Directories and Files".
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

@@ -337,6 +337,42 @@ test_mkdirs_long (void)
 }
 
 
+static int
+sign (int v)
+{
+   return v < 0 ? -1 : v > 0;
+}
+
+
+static void
+test_name_compare (void)
+{
+   /* in order, the numbers by their value */
+   const char *order[] = { "0p.jpg", "1.jpg", "01.jpg", "02.jpg", "09.jpg", "09p.jpg",
+                           "10.jpg", "a2b", "a10", "a10b", "dir/2/x", "dir/10/x", NULL };
+   guint i, j;
+
+   for (i = 0; order[i]; i++)
+      for (j = 0; order[j]; j++)
+         g_assert_cmpint (sign (fileutil_name_compare (order[i], order[j], TRUE, FALSE)),
+                          ==, i < j ? -1 : i > j);
+
+   /* as strcmp () when not numeric */
+   g_assert_cmpint (fileutil_name_compare ("0p.jpg", "01.jpg", FALSE, FALSE), >, 0);
+   g_assert_cmpint (fileutil_name_compare ("10", "9", FALSE, FALSE), <, 0);
+   g_assert_cmpint (fileutil_name_compare ("abc", "abc", TRUE, FALSE), ==, 0);
+   g_assert_cmpint (fileutil_name_compare ("abc", "abcd", TRUE, FALSE), <, 0);
+   /* the case */
+   g_assert_cmpint (fileutil_name_compare ("B2", "a10", TRUE, TRUE), >, 0);
+   g_assert_cmpint (fileutil_name_compare ("B2", "a10", TRUE, FALSE), <, 0);
+   g_assert_cmpint (fileutil_name_compare ("b10", "B9", TRUE, TRUE), >, 0);
+   g_assert_cmpint (fileutil_name_compare ("ABC", "abc", TRUE, TRUE), <, 0);
+   /* long runs of digits */
+   g_assert_cmpint (fileutil_name_compare ("x99999999999999999999999", "x100000000000000000000000",
+                                           TRUE, FALSE), <, 0);
+}
+
+
 int
 main (int argc, char *argv[])
 {
@@ -352,6 +388,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/fileutil/home2tilde-long", test_home2tilde_long);
    g_test_add_func ("/fileutil/basename", test_basename);
    g_test_add_func ("/fileutil/extension", test_extension);
+   g_test_add_func ("/fileutil/name-compare", test_name_compare);
    g_test_add_func ("/fileutil/file-tests", test_file_tests);
    g_test_add_func ("/fileutil/mkdirs-long", test_mkdirs_long);
 

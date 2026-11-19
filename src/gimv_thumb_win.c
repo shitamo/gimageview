@@ -598,6 +598,7 @@ GimvMenuEntry gimv_thumb_win_sort_items [] =
    {N_("/---"),                    NULL, NULL,              0,                "<Separator>"},
    {N_("/Case _Insensitive"),      NULL, cb_sort_flag,      GIMV_SORT_CASE_INSENSITIVE, "<CheckItem>"},
    {N_("/Mix _Directories and Files"), NULL, cb_sort_flag,      GIMV_SORT_DIR_INSENSITIVE,  "<CheckItem>"},
+   {N_("/_Numbers by Value"),      NULL, cb_sort_flag,      GIMV_SORT_NUMERIC,          "<CheckItem>"},
    {NULL, NULL, NULL, 0, NULL},
 };
 
@@ -683,6 +684,8 @@ gimv_thumb_win_init (GimvThumbWin *tw)
       tw->sortflags |= GIMV_SORT_CASE_INSENSITIVE;
    if (conf.thumbwin_sort_ignore_dir)
       tw->sortflags |= GIMV_SORT_DIR_INSENSITIVE;
+   if (conf.thumbwin_sort_numeric)
+      tw->sortflags |= GIMV_SORT_NUMERIC;
    tw->changing_layout = FALSE;
 
    tw->priv = g_new0 (GimvThumbWinPriv, 1);
@@ -2044,6 +2047,7 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
    tw->menuitem.sort_rev    = gimv_menu_get_item (ifactory, "/Reverse Order");
    tw->menuitem.sort_case   = gimv_menu_get_item (ifactory, "/Case Insensitive");
    tw->menuitem.sort_dir    = gimv_menu_get_item (ifactory, "/Mix Directories and Files");
+   tw->menuitem.sort_num    = gimv_menu_get_item (ifactory, "/Numbers by Value");
 
    /* GTK4: submenus of the menu bar are GtkPopoverMenus created by
       GtkPopoverMenuBar, connect "show"/"hide" to them */
@@ -2134,6 +2138,7 @@ create_gimv_thumb_win_menus (GimvThumbWin *tw)
    gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.sort_rev), tw->sortflags & GIMV_SORT_REVERSE);
    gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.sort_case), tw->sortflags & GIMV_SORT_CASE_INSENSITIVE);
    gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.sort_dir), tw->sortflags & GIMV_SORT_DIR_INSENSITIVE);
+   gimv_menu_item_set_active (GIMV_MENU_ITEM (tw->menuitem.sort_num), tw->sortflags & GIMV_SORT_NUMERIC);
 }
 
 
@@ -4804,6 +4809,8 @@ gimv_thumb_win_set_sensitive (GimvThumbWin *tw, GimvThumbwinStatus status)
    /* as the other sort items */
    if (tw->menuitem.sort_date)
       gimv_menu_item_set_sensitive (tw->menuitem.sort_date, gimv_thumb_win_status[status][12]);
+   if (tw->menuitem.sort_num)
+      gimv_menu_item_set_sensitive (tw->menuitem.sort_num, gimv_thumb_win_status[status][15]);
 
    /*
     *  GTK2 made the File/Edit/View menus insensitive, which also disabled
@@ -5414,13 +5421,19 @@ gimv_thumb_win_sort_thumbnail (GimvThumbWin *tw,
    bool1 = flags & GIMV_SORT_CASE_INSENSITIVE;
    bool2 = tw->sortflags & GIMV_SORT_CASE_INSENSITIVE;
    if (bool1 != bool2)
-      gimv_menu_item_set_active (GIMV_MENU_ITEM (toggle), flags & GIMV_SORT_REVERSE);
+      gimv_menu_item_set_active (GIMV_MENU_ITEM (toggle), flags & GIMV_SORT_CASE_INSENSITIVE);
 
    toggle = tw->menuitem.sort_dir;
    bool1 = flags & GIMV_SORT_DIR_INSENSITIVE;
    bool2 = tw->sortflags & GIMV_SORT_DIR_INSENSITIVE;
    if (bool1 != bool2)
-      gimv_menu_item_set_active (GIMV_MENU_ITEM (toggle), flags & GIMV_SORT_REVERSE);
+      gimv_menu_item_set_active (GIMV_MENU_ITEM (toggle), flags & GIMV_SORT_DIR_INSENSITIVE);
+
+   toggle = tw->menuitem.sort_num;
+   bool1 = flags & GIMV_SORT_NUMERIC;
+   bool2 = tw->sortflags & GIMV_SORT_NUMERIC;
+   if (toggle && bool1 != bool2)
+      gimv_menu_item_set_active (GIMV_MENU_ITEM (toggle), flags & GIMV_SORT_NUMERIC);
 }
 
 
@@ -5662,6 +5675,7 @@ gimv_thumb_win_save_state (GimvThumbWin *tw)
    conf.thumbwin_sort_reverse     = tw->sortflags & GIMV_SORT_REVERSE;
    conf.thumbwin_sort_ignore_case = tw->sortflags & GIMV_SORT_CASE_INSENSITIVE;
    conf.thumbwin_sort_ignore_dir  = tw->sortflags & GIMV_SORT_DIR_INSENSITIVE;
+   conf.thumbwin_sort_numeric     = tw->sortflags & GIMV_SORT_NUMERIC;
 
    if (!gimv_prefs_win_is_opened ())
       g_free (conf.thumbwin_disp_mode);

@@ -1541,10 +1541,9 @@ comp_func_spel (gconstpointer data1, gconstpointer data2)
               && gimv_image_info_is_dir (thumb2->info)) {
       comp = 1;
    } else {
-      if (flags & GIMV_SORT_CASE_INSENSITIVE)
-         comp = g_ascii_strcasecmp ((gchar *) filename1, (gchar *) filename2);
-      else
-         comp = strcmp ((gchar *) filename1, (gchar *) filename2);
+      comp = fileutil_name_compare (filename1, filename2,
+                                    flags & GIMV_SORT_NUMERIC,
+                                    flags & GIMV_SORT_CASE_INSENSITIVE);
    }
 
    return comp;

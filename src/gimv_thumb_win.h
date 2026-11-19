@@ -77,7 +77,8 @@ typedef enum {
 typedef enum {
    GIMV_SORT_REVERSE          = 1 << 0,
    GIMV_SORT_CASE_INSENSITIVE = 1 << 1,
-   GIMV_SORT_DIR_INSENSITIVE  = 1 << 2
+   GIMV_SORT_DIR_INSENSITIVE  = 1 << 2,
+   GIMV_SORT_NUMERIC          = 1 << 3   /* "2" before "10" */
 } GimvSortFlag;
 
 
@@ -182,7 +183,7 @@ struct GimvThumbWin_Tag
       GimvMenuItem *sort_size;
       GimvMenuItem *sort_type;
       GimvMenuItem *sort_width, *sort_height, *sort_area, *sort_date;
-      GimvMenuItem *sort_rev, *sort_case, *sort_dir;
+      GimvMenuItem *sort_rev, *sort_case, *sort_dir, *sort_num;
    } menuitem;
 
    struct    /* buttons in toolbar */

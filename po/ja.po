@@ -1896,6 +1896,10 @@ msgstr "/大文字小文字を区別しない(_I)"
 msgid "/Mix _Directories and Files"
 msgstr "/ディレクトリを区別しない(_D)"
 
+#: src/gimv_thumb_win.c:601
+msgid "/_Numbers by Value"
+msgstr "/数字を数の大きさで並べる(_N)"
+
 #: src/gimv_thumb_win.c:654
 msgid " -Thumbnail Window-"
 msgstr "- サムネイルウィンドウ -"

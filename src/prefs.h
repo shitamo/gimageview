@@ -221,6 +221,7 @@ typedef struct _Config {
    gboolean   thumbwin_sort_reverse;
    gboolean   thumbwin_sort_ignore_case;
    gboolean   thumbwin_sort_ignore_dir;
+   gboolean   thumbwin_sort_numeric;
 
    gboolean   thumbview_show_dir;
    gboolean   thumbview_show_archive;

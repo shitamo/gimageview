@@ -250,6 +250,7 @@ static ConfParam param_thumbview [] = {
    {"thumbwin_sort_reverse",    D_ENUM,   "FALSE", &conf.thumbwin_sort_reverse},
    {"thumbwin_sort_ignore_case",D_ENUM,   "FALSE", &conf.thumbwin_sort_ignore_case},
    {"thumbwin_sort_ignore_dir", D_ENUM,   "FALSE", &conf.thumbwin_sort_ignore_dir},
+   {"thumbwin_sort_numeric",    D_BOOL,   "TRUE",  &conf.thumbwin_sort_numeric},
 
    {"thumbview_show_dir",       D_BOOL,   "FALSE", &conf.thumbview_show_dir},
    {"thumbview_show_archive",   D_BOOL,   "TRUE",  &conf.thumbview_show_archive},

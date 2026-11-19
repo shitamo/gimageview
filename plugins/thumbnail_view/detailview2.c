@@ -716,12 +716,10 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
 
    current_item = gimv_thumb_win_get_sort_type (tw, &current_flag);
 
-   if (current_item == sort_item) {
-      if (current_flag & GIMV_SORT_REVERSE)
-         sort_flag &= ~GIMV_SORT_REVERSE;
-      else
-         sort_flag |= GIMV_SORT_REVERSE;
-   }
+   /* the other flags (the case, the numbers ...) as they are */
+   sort_flag = current_flag & ~GIMV_SORT_REVERSE;
+   if (current_item == sort_item && !(current_flag & GIMV_SORT_REVERSE))
+      sort_flag |= GIMV_SORT_REVERSE;
 
    gimv_thumb_win_sort_thumbnail (tw, sort_item, sort_flag,
                                   GIMV_THUMB_WIN_CURRENT_PAGE);

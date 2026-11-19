@@ -223,6 +223,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* Two pages: the preview and the image window show two pages side by
 	  side ([Two Pages] of the right button menu, T; right to left or left
 	  to right, the first page alone, shift by one page with O).
+	* Sort by name: numbers in names by their value (0p.jpg, 1.jpg,
+	  2.jpg, 10.jpg), [View | Sort File List | Numbers by Value] to turn it
+	  off.  Clicking a column title of the detail view keeps the other
+	  sort options.
 	* Bookmarks of images (~/.gimv/bookmarks), in the index or not:
 	  [Edit | Bookmark...] and the right button menus (no key by default,
 	  one can be given in ~/.gimv/keyaccelrc), an optional note, the

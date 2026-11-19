@@ -68,5 +68,12 @@ const char *fileutil_basename (const char *path);
 char *fileutil_get_extention (const char *path);
 int   fileutil_extension_is  (const char *filename,
                               const char *ext);
+/* names in order, as strcmp () but runs of digits by their value when
+   numeric ("0p" < "01" < "2" < "10"), ASCII letters without case when
+   ignore_case */
+int   fileutil_name_compare  (const char *a,
+                              const char *b,
+                              int         numeric,
+                              int         ignore_case);
 
 #endif /* __FILEUTIL_H__ */
