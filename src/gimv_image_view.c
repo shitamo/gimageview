@@ -4815,6 +4815,46 @@ gimv_image_view_get_shown_size (GimvImageView *iv, gint *width, gint *height)
 }
 
 
+/* the size of all the pages of the layout of iv, in pixels of the file,
+   from the size of the current page (half of it if it is wide: a spread
+   scanned as one), whether all are shown now or not (the cover alone) */
+void
+gimv_image_view_get_spread_full_size (GimvImageView *iv, gint *width, gint *height)
+{
+   GimvPageLayout *l;
+   gint pw = 0, ph = 0;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   l = spread_layout (iv);
+   if (iv->info) {
+      pw = iv->info->width;
+      ph = iv->info->height;
+      if (pw > ph) pw = pw / 2;
+   }
+   if (width)  *width  = pw * l->cols;
+   if (height) *height = ph * l->rows;
+}
+
+
+/* fitted to the frame again when it gets another size (the window is
+   being resized for it) */
+void
+gimv_image_view_fit_when_resized (GimvImageView *iv)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   switch (iv->priv->default_zoom) {
+   case 2: iv->priv->fit_to_frame = GIMV_IMAGE_VIEW_ZOOM_FIT; break;
+   case 3: iv->priv->fit_to_frame = GIMV_IMAGE_VIEW_ZOOM_FIT_ZOOM_OUT_ONLY; break;
+   case 4: iv->priv->fit_to_frame = GIMV_IMAGE_VIEW_ZOOM_FIT_WIDTH; break;
+   case 5: iv->priv->fit_to_frame = GIMV_IMAGE_VIEW_ZOOM_FIT_HEIGHT; break;
+   default: return;
+   }
+   iv->priv->fit_pending = TRUE;
+}
+
+
 gboolean
 gimv_image_view_get_image_size (GimvImageView   *iv,
                                 gint        *width,

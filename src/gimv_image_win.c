@@ -119,6 +119,8 @@ struct GimvImageWinPriv_Tag
    const gchar     *spread_icon_name;
    GtkWidget       *spread_label;
    gulong           spread_toggled_id;
+   gchar           *spread_size_key;  /* the window was sized for the pages
+                                         of this layout and folder */
 };
 
 
@@ -135,7 +137,8 @@ static GtkWidget *create_toolbar                    (GimvImageWin  *iw,
 static GtkWidget *create_player_toolbar             (GimvImageWin  *iw,
                                                      GtkWidget     *container);
 
-static void     gimv_image_win_set_win_size         (GimvImageWin  *iw);
+static void     gimv_image_win_set_win_size         (GimvImageWin  *iw,
+                                                     gboolean       force);
 static void     gimv_image_win_set_window_title     (GimvImageWin  *iw);
 static void     gimv_image_win_set_statusbar_info   (GimvImageWin  *iw);
 
@@ -705,6 +708,7 @@ gimv_image_win_dispose (GObject *object)
          gimv_image_win_save_state (iw);
 
       g_free (iw->priv->fs_bg_color);
+      g_free (iw->priv->spread_size_key);
       iw->priv->fs_bg_color = NULL;
 
       g_free (iw->priv);
@@ -1289,8 +1293,26 @@ create_player_toolbar (GimvImageWin *iw, GtkWidget *container)
 }
 
 
+/* pages side by side: the window is sized for all the pages of the layout
+   (the cover alone too), and only when two pages are turned on, the
+   layout is changed or another folder is shown, not at each page; a
+   key of those */
+static gchar *
+spread_size_key (GimvImageWin *iw)
+{
+   const gchar *path = iw->iv->info ? gimv_image_info_get_path (iw->iv->info) : NULL;
+   gchar *dir = path ? g_path_get_dirname (path) : g_strdup ("");
+   gchar *key = g_strdup_printf ("%d %s", gimv_image_view_get_page_layout (iw->iv), dir);
+
+   g_free (dir);
+   return key;
+}
+
+
+/* force: [Fit to Image] (always), else as the image changed (with "Auto
+   resize to image size") */
 static void
-gimv_image_win_set_win_size (GimvImageWin *iw)
+gimv_image_win_set_win_size (GimvImageWin *iw, gboolean force)
 {
    gint x_size, y_size, width, height;
    gfloat x_scale, y_scale, tmp;
@@ -1307,8 +1329,44 @@ gimv_image_win_set_win_size (GimvImageWin *iw)
    if (x_scale < 0.001 || y_scale < 0.001) return;
 
    rotate = gimv_image_view_get_orientation (iw->iv);
-   /* pages side by side: all of them */
-   gimv_image_view_get_shown_size (iw->iv, &width, &height);
+
+   if (gimv_image_view_get_spread (iw->iv)) {
+      gchar *key = spread_size_key (iw);
+      gint default_zoom = 0;
+
+      if (!force && !g_strcmp0 (key, iw->priv->spread_size_key)) {
+         g_free (key);
+         return;
+      }
+      g_free (iw->priv->spread_size_key);
+      iw->priv->spread_size_key = key;
+
+      gimv_image_view_get_spread_full_size (iw->iv, &width, &height);
+      g_object_get (G_OBJECT (iw->iv), "default_zoom", &default_zoom, NULL);
+      /* fitted by default: the window keeps the size of the settings
+         (gimv_image_win_change_image ()), the pages are fitted to it */
+      if (default_zoom >= 2 && !force) return;
+      if (default_zoom >= 2 && width > 0 && height > 0) {
+         /* fitted: all the pages as large as they go in the frame now,
+            the window to them, the pages fitted to it */
+         gint fw, fh;
+         gfloat s;
+
+         gimv_image_view_get_image_frame_size (iw->iv, &fw, &fh);
+         if (rotate == 1 || rotate == 3) {
+            gint t = fw; fw = fh; fh = t;
+         }
+         if (fw > 1 && fh > 1) {
+            s = MIN ((gfloat) fw / width, (gfloat) fh / height) * 100.0;
+            x_scale = y_scale = s;
+         }
+         gimv_image_view_fit_when_resized (iw->iv);
+      }
+   } else {
+      g_free (iw->priv->spread_size_key);
+      iw->priv->spread_size_key = NULL;
+      gimv_image_view_get_shown_size (iw->iv, &width, &height);
+   }
    if (!(rotate == 0 || rotate == 2)) {
       gint w = width;
       tmp = x_scale;
@@ -1710,7 +1768,7 @@ cb_fit_to_image (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_WIN(iw));
 
-   gimv_image_win_set_win_size (iw);
+   gimv_image_win_set_win_size (iw, TRUE);
 }
 
 
@@ -1948,7 +2006,7 @@ static void
 cb_toolbar_fit_window (GtkWidget *widget, GimvImageWin *iw)
 {
    g_return_if_fail (iw);
-   gimv_image_win_set_win_size (iw);
+   gimv_image_win_set_win_size (iw, TRUE);
 }
 
 
@@ -2268,7 +2326,7 @@ cb_rendered (GimvImageView *iv, GimvImageWin *iw)
 
    /* resize window */
    if (!(iw->priv->flags & GimvImageWinMaximizeFlag) && conf.imgwin_fit_to_image)
-      gimv_image_win_set_win_size (iw);
+      gimv_image_win_set_win_size (iw, FALSE);
 
    g_object_get (G_OBJECT (iw->iv),
                    "x_scale",     &x_scale,
