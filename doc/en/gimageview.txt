@@ -922,6 +922,15 @@ I want to take off the background around a scanned image
 
 3.6. Making it yours
 
+I want to read a comic two pages at a time
+    Open the folder or the archive (zip, cbz, rar, lzh, ...), choose the first
+    page and turn on [Two Pages | Two Pages] of the right button menu of the
+    preview, or press T. Turn the pages with a click (the left half on, the
+    right half back) or Space. When the pages do not pair, O shifts them by
+    one.
+
+    See Two Pages.
+
 I want to change the keyboard shortcuts
     [Edit | Keyboard Shortcuts...]: click the key of a row and press the new
     key. The entry at the top narrows the list by name or key.
@@ -1302,6 +1311,33 @@ Tab (Preview) [Shift + Z]
 Player
     How the toolbar for playing movies and audio is shown: "Show", "Hide" or
     "Auto". "Auto" shows it only while a movie or audio file is shown.
+
+Two Pages
+    Shows two pages side by side like a book or a comic (the preview and the
+    image window; in the preview from the right button menu). It is turned on
+    by hand: no folder or archive starts it by itself.
+
+     ・ Two Pages [T] : Turns the two pages on and off. The image chosen and
+        the next image of the list are shown.
+
+     ・ Right to Left (Manga) : On (the default), the image chosen is on the
+        right and the next one on its left. Off, left to right.
+
+     ・ First Page Alone : On (the default), the first image of the list (the
+        cover) is shown alone.
+
+     ・ Shift One Page [O] : Goes on by one page, to pair the pages the other
+        way, for a book whose spreads do not match.
+
+    The next image (a click, Space, Page Down) shows the next two pages, the
+    previous image (Page Up) the two before. A click of the left button goes
+    by the side clicked: in a book from right to left the left half goes on
+    and the right half back (left to right, the other way). The two pages are
+    shown at the same height without a gap. A wide image (a spread scanned as
+    one) is shown alone.
+
+    While two pages are shown, Create Thumbnail, Crop and Edit Faces cannot be
+    used (it is not the image of a page).
 
 View Modes
     Image window only. Switches the way of showing (image display, the movie
@@ -1937,10 +1973,10 @@ Open, Open in New Tab
 6.4. Preview
 
 The mouse menu of the preview has Zoom, Rotate, Ignore Alpha Channel,
-Checkerboard Behind Transparency, Movie, View Modes, Show Scrollbar [Shift +
-S], Create Thumbnail [Shift + T], Memory Buffer [Ctrl + B], Save Image As...
-and Print.... Each item is the same as the item in the menus of the image
-window (4.1 to 4.3, 4.8).
+Checkerboard Behind Transparency, Movie, Two Pages, View Modes, Show Scrollbar
+[Shift + S], Create Thumbnail [Shift + T], Memory Buffer [Ctrl + B], Save
+Image As... and Print.... Each item is the same as the item in the menus of
+the image window (4.1 to 4.3, 4.8).
 
 6.5. Image View
 
@@ -3030,6 +3066,10 @@ Image views (image window, preview)
 
     P : edit faces (the faces panel)
 
+    T : two pages on and off
+
+    O : shift the two pages by one page
+
 The faces window
 
     Ctrl + A : select all the faces
@@ -3689,6 +3729,11 @@ How duplicates are found
     does not unpack (-lh1-, -lh4-, -lzs-, -lz5-, -pm1-, ...) and self-
     extracting archives (MS-DOS, X68000, ...) too. The files extracted are
     checked by their length and CRC.
+
+ ・ Two pages: the preview and the image window show two pages side by side
+    ([Two Pages] of the right button menu, T): right to left (manga, the
+    default) or left to right, the first page alone, shift by one page (O), a
+    wide page alone. A click goes on or back by the side clicked.
 
  ・ Manual: the Tips are brought up to date (the tips about the bars and the
     window size of the image window that no longer apply are removed; the

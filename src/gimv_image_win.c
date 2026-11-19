@@ -363,6 +363,7 @@ GimvMenuEntry gimv_image_win_view_items [] =
    {N_("/Edit Ta_gs..."),  NULL,       cb_edit_tags,         0,  NULL},
 #endif
    {N_("/Boo_kmark..."),   NULL,       cb_bookmark,          0,  NULL},
+   {N_("/T_wo Pages"),     NULL,       NULL,                 0,  "<Branch>"},
    {N_("/---"),           NULL,        NULL,                 0,  "<Separator>"},
    {N_("/_Menubar"),     "M",         cb_toggle_menubar,    0,  "<ToggleItem>"},
    {N_("/_Toolbar"),     "N",         cb_toggle_toolbar,    0,  "<ToggleItem>"},
@@ -777,6 +778,9 @@ create_imageview_menus (GimvImageWin *iw)
    menu_set_submenu (iw->view_menu, "/Rotate",     rotate_menu);
    menu_set_submenu (iw->menubar,   "/Movie",      movie_menu);
    menu_set_submenu (iw->view_menu, "/View Modes", vmode_menu);
+   menu_set_submenu (iw->view_menu, "/Two Pages",
+                     gimv_image_view_create_spread_menu (GTK_WIDGET (iw), iw->iv,
+                                                         "<ImageWinTwoPagesSubMenu>"));
 
    /* popup menu */
    gimv_image_view_set_menu_ptr (iw->iv, &iw->iv->imageview_popup,
@@ -1413,6 +1417,8 @@ static void
 cb_edit_faces (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
 #ifdef ENABLE_INDEX
+   /* two pages: the faces are those of the page */
+   if (iw->iv && gimv_image_view_spread_shown (iw->iv) == 2) return;
    if (iw->iv && gimv_face_panel_has (iw->iv))
       gimv_face_panel_set_visible (iw->iv, !gimv_face_panel_get_visible (iw->iv));
 #endif
@@ -2197,6 +2203,13 @@ gimv_image_view_button_action (GimvImageView *iv, GimvEventButton *event, gint n
    }
 
    gimv_image_view_get_view_position (iv, &mx, &my);
+
+   /* two pages: the side of the book clicked (the left button) */
+   if ((abs (num) == MOUSE_PRESS_NEXT || abs (num) == MOUSE_PRESS_PREV)
+       && event && event->button == 1 && gimv_image_view_spread_click (iv, event->x))
+   {
+      return TRUE;
+   }
 
    switch (abs (num)) {
    case MOUSE_PRESS_NEXT:

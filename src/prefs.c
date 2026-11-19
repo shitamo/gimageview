@@ -168,6 +168,8 @@ static ConfParam param_imageview [] = {
    {"imgview_remember_rotation",  D_BOOL,   "TRUE",    &conf.imgview_remember_rotation},
    {"imgview_keep_aspect",        D_BOOL,   "TRUE",    &conf.imgview_keep_aspect},
    {"imgview_alpha_checker",      D_BOOL,   "TRUE",    &conf.imgview_alpha_checker},
+   {"imgview_spread_rtl",         D_BOOL,   "TRUE",    &conf.imgview_spread_rtl},
+   {"imgview_spread_first_alone", D_BOOL,   "TRUE",    &conf.imgview_spread_first_alone},
    {"imgview_scale",              D_FLOAT,  "100.0",   &conf.imgview_scale},
    {"imgview_buffer",             D_BOOL,   "FALSE",   &conf.imgview_buffer},
    {"imgview_scrollbar",          D_BOOL,   "TRUE",    &conf.imgview_scrollbar},

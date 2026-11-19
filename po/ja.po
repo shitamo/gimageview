@@ -7626,3 +7626,23 @@ msgstr "新しい名前"
 #: src/gimv_names_utf8.c
 msgid "Charset"
 msgstr "文字コード"
+
+#: src/gimv_image_view.c src/gimv_image_win.c
+msgid "/T_wo Pages"
+msgstr "/見開き(_W)"
+
+#: src/gimv_image_view.c
+msgid "/_Two Pages"
+msgstr "/見開き(_T)"
+
+#: src/gimv_image_view.c
+msgid "/_Right to Left (Manga)"
+msgstr "/右から左へ (漫画)(_R)"
+
+#: src/gimv_image_view.c
+msgid "/_First Page Alone"
+msgstr "/1 ページ目は単独(_F)"
+
+#: src/gimv_image_view.c
+msgid "/_Shift One Page"
+msgstr "/1 ページずらす(_S)"

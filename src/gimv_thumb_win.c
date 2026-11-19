@@ -2656,6 +2656,13 @@ image_preview_action (GimvImageView *iv, GimvEventButton *event, gint num)
 
    gimv_image_view_get_view_position (iv, &mx, &my);
 
+   /* two pages: the side of the book clicked (the left button) */
+   if ((abs (num) == PREVIEW_NEXT || abs (num) == PREVIEW_PREV)
+       && event && event->button == 1 && gimv_image_view_spread_click (iv, event->x))
+   {
+      return TRUE;
+   }
+
    switch (abs (num)) {
    case PREVIEW_NEXT:
       gimv_image_view_next (iv);

@@ -220,6 +220,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  GIF, MAG) are shown in italics, and the tags of the image.
 	* Image view: Copy the Image to the Clipboard (Shift+Ctrl+C), Flip
 	  Horizontally (X, remembered with the rotation), Open the Folder.
+	* Two pages: the preview and the image window show two pages side by
+	  side ([Two Pages] of the right button menu, T; right to left or left
+	  to right, the first page alone, shift by one page with O).
 	* Bookmarks of images (~/.gimv/bookmarks), in the index or not:
 	  [Edit | Bookmark...] and the right button menus (no key by default,
 	  one can be given in ~/.gimv/keyaccelrc), an optional note, the

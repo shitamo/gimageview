@@ -137,6 +137,7 @@ struct GimvImageView_Tag
    GtkWidget       *rotate_menu;
    GtkWidget       *movie_menu;
    GtkWidget       *view_modes_menu;
+   GtkWidget       *spread_menu;
    GdkCursor       *cursor;
    GtkAdjustment   *hadj, *vadj;
 
@@ -239,6 +240,14 @@ GtkWidget *gimv_image_view_create_popup_menu      (GtkWidget      *window,
 GtkWidget *gimv_image_view_create_movie_menu      (GtkWidget      *window,
                                                    GimvImageView  *iv,
                                                    const gchar    *path);
+/* two pages (a spread of a book), turned on by hand */
+GtkWidget *gimv_image_view_create_spread_menu (GtkWidget     *window,
+                                              GimvImageView *iv,
+                                              const gchar   *path);
+gboolean   gimv_image_view_get_spread         (GimvImageView *iv);
+gint       gimv_image_view_spread_shown       (GimvImageView *iv);
+gboolean   gimv_image_view_spread_click       (GimvImageView *iv,
+                                              gdouble        x);
 GtkWidget *gimv_image_view_create_view_modes_menu (GtkWidget      *window,
                                                    GimvImageView  *iv,
                                                    const gchar    *path);

@@ -143,6 +143,8 @@ typedef struct _Config {
    gboolean   imgview_keep_aspect;
    gint       imgview_default_zoom;
    gboolean   imgview_alpha_checker;   /* checkerboard behind transparency */
+   gboolean   imgview_spread_rtl;          /* two pages: right to left (manga) */
+   gboolean   imgview_spread_first_alone;  /* two pages: the first page alone */
    gboolean   imgview_movie_lock_mouse; /* no next/prev/zoom clicks while playing */
    gint       imgview_default_rotation;
    gboolean   imgview_remember_rotation;   /* keep each image's rotation */
