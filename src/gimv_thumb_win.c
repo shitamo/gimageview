@@ -808,8 +808,13 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gtk_widget_set_name (tw->priv->spread_label, "SpreadStatus");
    gtk_widget_set_tooltip_text (tw->priv->spread_label,
                                 _("The preview shows two pages (the right button menu: Two Pages, T)"));
-   gtk_widget_set_margin_start (tw->priv->spread_label, 4);
-   gtk_widget_set_margin_end (tw->priv->spread_label, 4);
+   /* as the status bars beside it (gimv_statusbar_new ()): the same
+      height, so that a row made lower cuts their margins, not the text */
+   gtk_widget_set_margin_start (tw->priv->spread_label, 6);
+   gtk_widget_set_margin_end (tw->priv->spread_label, 6);
+   gtk_widget_set_margin_top (tw->priv->spread_label, 3);
+   gtk_widget_set_margin_bottom (tw->priv->spread_label, 3);
+   gtk_label_set_single_line_mode (GTK_LABEL (tw->priv->spread_label), TRUE);
    gimv_box_pack_start (GTK_BOX (hbox), tw->priv->spread_label, FALSE, FALSE, 0);
    gtk_widget_set_visible (tw->priv->spread_label, FALSE);
 
@@ -820,6 +825,8 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gtk_widget_set_tooltip_text (tw->index_label, gimv_index_get_status_tooltip ());
    gtk_widget_set_margin_start (tw->index_label, 4);
    gtk_widget_set_margin_end (tw->index_label, 4);
+   gtk_widget_set_margin_top (tw->index_label, 3);
+   gtk_widget_set_margin_bottom (tw->index_label, 3);
    gimv_box_pack_start (GTK_BOX (hbox), tw->index_label, FALSE, FALSE, 0);
    gtk_widget_set_visible (tw->index_label,
                            gimv_index_get_state () != GIMV_INDEX_STATE_OFF);

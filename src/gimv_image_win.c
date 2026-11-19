@@ -631,8 +631,13 @@ gimv_image_win_init (GimvImageWin *iw)
 
    iw->priv->spread_label = gtk_label_new (NULL);
    gtk_widget_set_name (iw->priv->spread_label, "SpreadStatus");
-   gtk_widget_set_margin_start (iw->priv->spread_label, 4);
-   gtk_widget_set_margin_end (iw->priv->spread_label, 4);
+   /* as the status bars beside it (gimv_statusbar_new ()): the same
+      height, so that a row made lower cuts their margins, not the text */
+   gtk_widget_set_margin_start (iw->priv->spread_label, 6);
+   gtk_widget_set_margin_end (iw->priv->spread_label, 6);
+   gtk_widget_set_margin_top (iw->priv->spread_label, 3);
+   gtk_widget_set_margin_bottom (iw->priv->spread_label, 3);
+   gtk_label_set_single_line_mode (GTK_LABEL (iw->priv->spread_label), TRUE);
    gimv_box_pack_start (GTK_BOX (hbox), iw->priv->spread_label, FALSE, FALSE, 0);
    gtk_widget_set_visible (iw->priv->spread_label, FALSE);
 
