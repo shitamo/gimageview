@@ -933,13 +933,35 @@ cb_toolbar_spread_menu (GtkWidget *arrow, GimvImageWin *iw)
 }
 
 
+/* the label of two pages: its text, at the width of the widest text of
+   the book (see gimv_image_view_spread_status_widest ()) */
+static void
+spread_label_update (GtkWidget *label, GimvImageView *iv)
+{
+   gchar *text = gimv_image_view_spread_status (iv);
+   gchar *widest = gimv_image_view_spread_status_widest (iv);
+   gint w = -1;
+
+   if (widest) {
+      PangoLayout *layout = gtk_widget_create_pango_layout (label, widest);
+      gint b = 0;
+      pango_layout_get_pixel_size (layout, &w, &b);
+      g_object_unref (layout);
+      g_free (widest);
+   }
+   gtk_widget_set_size_request (label, w, -1);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_label_set_text (GTK_LABEL (label), text ? text : "");
+   gtk_widget_set_visible (label, text != NULL);
+   g_free (text);
+}
+
+
 /* on or off (also by the menu, T), which pages: the button and the
    status bar */
 static void
 cb_spread_changed (GimvImageView *iv, GimvImageWin *iw)
 {
-   gchar *text;
-
    if (!g_list_find (ImageWinList, iw)) return;
    if (iw->priv->spread_button) {
       g_signal_handler_block (iw->priv->spread_button, iw->priv->spread_toggled_id);
@@ -947,12 +969,8 @@ cb_spread_changed (GimvImageView *iv, GimvImageWin *iw)
                                     gimv_image_view_get_spread (iv));
       g_signal_handler_unblock (iw->priv->spread_button, iw->priv->spread_toggled_id);
    }
-   if (iw->priv->spread_label) {
-      text = gimv_image_view_spread_status (iv);
-      gtk_label_set_text (GTK_LABEL (iw->priv->spread_label), text ? text : "");
-      gtk_widget_set_visible (iw->priv->spread_label, text != NULL);
-      g_free (text);
-   }
+   if (iw->priv->spread_label)
+      spread_label_update (iw->priv->spread_label, iv);
 }
 
 static GtkWidget *

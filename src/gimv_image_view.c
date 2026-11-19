@@ -5751,6 +5751,38 @@ gimv_image_view_spread_status (GimvImageView *iv)
 }
 
 
+/* the widest of those texts for the book (the numbers as the last page):
+   the label keeps that width, so that it does not move nor push the
+   status bars beside it when the page numbers get longer.  g_free () it */
+gchar *
+gimv_image_view_spread_status_widest (GimvImageView *iv)
+{
+   GimvImageViewImageList *list;
+   gint total = 0;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), NULL);
+   if (!iv->priv->spread) return NULL;
+   list = iv->priv->image_list;
+   if (list) spread_page_number (iv, NULL, &total);
+   if (!total)
+      return g_strdup (_("Two Pages"));
+   /* 8 is about the widest digit */
+   {
+      gint n = 8, t = total;
+      gchar *a, *b;
+      while (t >= 10) { n = n * 10 + 8; t /= 10; }
+      a = g_strdup_printf (_("Two Pages %d-%d / %d"), n, n, n);
+      b = g_strdup_printf (_("Two Pages %d alone / %d"), n, n);
+      if (g_utf8_strlen (a, -1) >= g_utf8_strlen (b, -1)) {
+         g_free (b);
+         return a;
+      }
+      g_free (a);
+      return b;
+   }
+}
+
+
 static void
 cb_spread_rtl (GimvImageView *iv, guint action, GimvMenuItem *widget)
 {

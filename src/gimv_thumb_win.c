@@ -2750,20 +2750,37 @@ image_preview_action (GimvImageView *iv, GimvEventButton *event, gint num)
 
 
 
+/* the label of two pages: its text, at the width of the widest text of
+   the book (see gimv_image_view_spread_status_widest ()) */
+static void
+spread_label_update (GtkWidget *label, GimvImageView *iv)
+{
+   gchar *text = gimv_image_view_spread_status (iv);
+   gchar *widest = gimv_image_view_spread_status_widest (iv);
+   gint w = -1;
+
+   if (widest) {
+      PangoLayout *layout = gtk_widget_create_pango_layout (label, widest);
+      gint b = 0;
+      pango_layout_get_pixel_size (layout, &w, &b);
+      g_object_unref (layout);
+      g_free (widest);
+   }
+   gtk_widget_set_size_request (label, w, -1);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_label_set_text (GTK_LABEL (label), text ? text : "");
+   gtk_widget_set_visible (label, text != NULL);
+   g_free (text);
+}
+
+
 /* the preview: two pages or not, which, in the status bar */
 static void
 cb_preview_spread_changed (GimvImageView *iv, GimvThumbWin *tw)
 {
-   GtkWidget *label;
-   gchar *text;
-
    if (!g_list_find (ThumbWinList, tw) || !tw->priv) return;
-   label = tw->priv->spread_label;
-   if (!label) return;
-   text = gimv_image_view_spread_status (iv);
-   gtk_label_set_text (GTK_LABEL (label), text ? text : "");
-   gtk_widget_set_visible (label, text != NULL);
-   g_free (text);
+   if (tw->priv->spread_label)
+      spread_label_update (tw->priv->spread_label, iv);
 }
 
 static gint

@@ -248,6 +248,7 @@ gboolean   gimv_image_view_get_spread         (GimvImageView *iv);
 void       gimv_image_view_set_spread         (GimvImageView *iv,
                                               gboolean       on);
 gchar     *gimv_image_view_spread_status      (GimvImageView *iv);
+gchar     *gimv_image_view_spread_status_widest (GimvImageView *iv);
 gint       gimv_image_view_spread_shown       (GimvImageView *iv);
 gboolean   gimv_image_view_spread_click       (GimvImageView *iv,
                                               gdouble        x);
