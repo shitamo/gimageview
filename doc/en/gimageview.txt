@@ -1344,6 +1344,11 @@ Two Pages
     While two pages are shown, Create Thumbnail, Crop and Edit Faces cannot be
     used (it is not the image of a page).
 
+    With two pages on, the status bar shows "Two Pages 2-3 / 8" (pages 2 and 3
+    of 8) or "Two Pages 6 alone / 8" (page 6 shown alone) on its right; for
+    the preview, the status bar of the thumbnail window. In the image window
+    the Two Pages button of the toolbar turns it on and off too.
+
 View Modes
     Image window only. Switches the way of showing (image display, the movie
     and audio plugins).
@@ -1700,15 +1705,24 @@ is enlarged or reduced.
     Zooms (enlarges or reduces) the image to the scale entered in the scale
     fields.
 
-11 Rotate the image
+11 Two Pages
+    Turns two pages on and off (on while it is pressed in), as [View | Two
+    Pages | Two Pages] and T. The arrow on its right opens the menu of two
+    pages (Right to Left, First Page Alone, Shift One Page).
+
+    With two pages on, the status bar shows the pages on its right: "Two Pages
+    2-3 / 8" is pages 2 and 3 of 8 side by side, "Two Pages 6 alone / 8" page
+    6 shown alone (the cover, a wide page, the last page).
+
+12 Rotate the image
     Chooses the orientation of the image: 0, 90 degrees clockwise, 180 or 90
     degrees counterclockwise.
 
-12 Fit Window Size to Image
+13 Fit Window Size to Image
     Resizes the image window to the size of the image shown. The same as [View
     | Fit to Image].
 
-13 Fullscreen
+14 Fullscreen
     Shows the image fullscreen.
 
     Pressing the button again returns to the window.
@@ -3739,6 +3753,10 @@ How duplicates are found
     ([Two Pages] of the right button menu, T): right to left (manga, the
     default) or left to right, the first page alone, shift by one page (O), a
     wide page alone. A click goes on or back by the side clicked.
+
+ ・ With two pages on, the status bar tells the pages shown ("Two Pages 2-3 /
+    8", "Two Pages 6 alone / 8"). The toolbar of the image window has a Two
+    Pages button (the arrow on its right: the menu of two pages).
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

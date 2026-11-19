@@ -111,6 +111,11 @@ struct GimvImageWinPriv_Tag
 
    guint            slideshow_interval;  /* [msec] */
    gint             slideshow_timer_id;
+
+   /* two pages: the button of the toolbar, the status bar */
+   GtkWidget       *spread_button;
+   GtkWidget       *spread_label;
+   gulong           spread_toggled_id;
 };
 
 
@@ -243,6 +248,8 @@ static void     cb_toolbar_keep_aspect      (GtkWidget    *widget,
                                              GimvImageWin *iw);
 static void     cb_toolbar_fit_window       (GtkWidget    *widget,
                                              GimvImageWin *iw);
+static void     cb_spread_changed           (GimvImageView *iv,
+                                             GimvImageWin  *iw);
 static void     cb_toolbar_fullscreen       (GtkWidget    *widget,
                                              GimvImageWin *iw);
 static gboolean cb_scale_spinner_key_press  (GtkWidget      *widget, 
@@ -581,6 +588,8 @@ gimv_image_win_init (GimvImageWin *iw)
                        G_CALLBACK (cb_toggle_aspect), iw);
    g_signal_connect (G_OBJECT (iw->iv), "image_pressed",
                        G_CALLBACK (cb_imageview_pressed), iw);
+   g_signal_connect (G_OBJECT (iw->iv), "spread_changed",
+                       G_CALLBACK (cb_spread_changed), iw);
    g_signal_connect (G_OBJECT (iw->iv), "image_clicked",
                        G_CALLBACK (cb_imageview_clicked), iw);
    gimv_event_connect (GTK_WIDGET (iw->iv->draw_area), GIMV_EVENT_KEY_PRESS, G_CALLBACK (cb_draw_area_key_press), iw);
@@ -619,6 +628,13 @@ gimv_image_win_init (GimvImageWin *iw)
    gimv_widget_set_size(iw->status_bar2, 50, -1);
    gimv_box_pack_start (GTK_BOX (hbox), iw->status_bar2, TRUE, TRUE, 0);
    gtk_widget_set_visible (iw->status_bar2, TRUE);
+
+   iw->priv->spread_label = gtk_label_new (NULL);
+   gtk_widget_set_name (iw->priv->spread_label, "SpreadStatus");
+   gtk_widget_set_margin_start (iw->priv->spread_label, 4);
+   gtk_widget_set_margin_end (iw->priv->spread_label, 4);
+   gimv_box_pack_start (GTK_BOX (hbox), iw->priv->spread_label, FALSE, FALSE, 0);
+   gtk_widget_set_visible (iw->priv->spread_label, FALSE);
 
    iw->progressbar = gtk_progress_bar_new ();
    gtk_widget_set_name (iw->progressbar, "ProgressBar");
@@ -891,6 +907,49 @@ toolbar_append_widget (GtkWidget *toolbar,
 }
 
 
+
+/* two pages: the button of the toolbar */
+static void
+cb_toolbar_spread (GtkToggleButton *button, GimvImageWin *iw)
+{
+   g_return_if_fail (iw && iw->iv);
+   gimv_image_view_set_spread (iw->iv, gtk_toggle_button_get_active (button));
+}
+
+
+/* the other settings: the menu of [View | Two Pages] under the arrow */
+static void
+cb_toolbar_spread_menu (GtkWidget *arrow, GimvImageWin *iw)
+{
+   g_return_if_fail (iw && iw->iv);
+   if (iw->iv->spread_menu)
+      gimv_menu_popup (iw->iv->spread_menu, arrow, 0,
+                       gtk_widget_get_height (arrow));
+}
+
+
+/* on or off (also by the menu, T), which pages: the button and the
+   status bar */
+static void
+cb_spread_changed (GimvImageView *iv, GimvImageWin *iw)
+{
+   gchar *text;
+
+   if (!g_list_find (ImageWinList, iw)) return;
+   if (iw->priv->spread_button) {
+      g_signal_handler_block (iw->priv->spread_button, iw->priv->spread_toggled_id);
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (iw->priv->spread_button),
+                                    gimv_image_view_get_spread (iv));
+      g_signal_handler_unblock (iw->priv->spread_button, iw->priv->spread_toggled_id);
+   }
+   if (iw->priv->spread_label) {
+      text = gimv_image_view_spread_status (iv);
+      gtk_label_set_text (GTK_LABEL (iw->priv->spread_label), text ? text : "");
+      gtk_widget_set_visible (iw->priv->spread_label, text != NULL);
+      g_free (text);
+   }
+}
+
 static GtkWidget *
 create_toolbar (GimvImageWin *iw, GtkWidget *container)
 {
@@ -1023,6 +1082,43 @@ create_toolbar (GimvImageWin *iw, GtkWidget *container)
                                  iconw,
                                  G_CALLBACK (cb_toolbar_zoom),
                                  iw);
+
+   toolbar_append_space (toolbar);
+
+   /* two pages: on/off, and the other settings from the arrow */
+   {
+      /* the arrow in a box: the toolbar style (text only ...) is not for it */
+      GtkWidget *box = gimv_hbox_new (FALSE, 0), *vbox, *label, *arrow;
+
+      button = gtk_toggle_button_new ();
+      gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
+      gtk_widget_set_focus_on_click (button, FALSE);
+      vbox = gimv_vbox_new (FALSE, 0);
+      gtk_button_set_child (GTK_BUTTON (button), vbox);
+      iconw = gimv_icon_stock_get_widget ("spread");
+      if (iconw)
+         gimv_box_pack_start (GTK_BOX (vbox), iconw, TRUE, TRUE, 0);
+      label = gtk_label_new (_("Two Pages"));
+      gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
+      gtk_widget_set_tooltip_text (button, _("Two Pages (T)"));
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button),
+                                    gimv_image_view_get_spread (iw->iv));
+      iw->priv->spread_toggled_id
+         = g_signal_connect (button, "toggled",
+                             G_CALLBACK (cb_toolbar_spread), iw);
+      gimv_box_pack_start (GTK_BOX (toolbar), button, FALSE, FALSE, 0);
+      iw->priv->spread_button = button;
+
+      arrow = gtk_button_new_from_icon_name ("pan-down-symbolic");
+      gtk_button_set_has_frame (GTK_BUTTON (arrow), FALSE);
+      gtk_widget_set_focus_on_click (arrow, FALSE);
+      gtk_widget_set_tooltip_text (arrow, _("Two Pages: Settings"));
+      g_signal_connect (arrow, "clicked",
+                        G_CALLBACK (cb_toolbar_spread_menu), iw);
+      gimv_box_pack_start (GTK_BOX (box), arrow, FALSE, FALSE, 0);
+
+      gimv_box_pack_start (GTK_BOX (toolbar), box, FALSE, FALSE, 0);
+   }
 
    toolbar_append_space (toolbar);
 

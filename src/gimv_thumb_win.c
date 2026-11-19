@@ -174,6 +174,9 @@ struct GimvThumbWinPriv_Tag {
       the state gimv_thumb_win_set_sensitive () wants for their sub menus */
    gboolean          file_menu_sensitive;
    gboolean          edit_menu_sensitive;
+
+   /* the status bar: two pages in the preview, and which */
+   GtkWidget        *spread_label;
 };
 
 
@@ -800,6 +803,15 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gimv_widget_set_size(tw->status_bar2, 150, -1);
    gimv_box_pack_start (GTK_BOX (hbox), tw->status_bar2, TRUE, TRUE, 0);
    gtk_widget_set_visible (tw->status_bar2, TRUE);
+
+   tw->priv->spread_label = gtk_label_new (NULL);
+   gtk_widget_set_name (tw->priv->spread_label, "SpreadStatus");
+   gtk_widget_set_tooltip_text (tw->priv->spread_label,
+                                _("The preview shows two pages (the right button menu: Two Pages, T)"));
+   gtk_widget_set_margin_start (tw->priv->spread_label, 4);
+   gtk_widget_set_margin_end (tw->priv->spread_label, 4);
+   gimv_box_pack_start (GTK_BOX (hbox), tw->priv->spread_label, FALSE, FALSE, 0);
+   gtk_widget_set_visible (tw->priv->spread_label, FALSE);
 
 #ifdef ENABLE_INDEX
    tw->index_label = gtk_label_new (gimv_index_get_status_text ());
@@ -2730,6 +2742,23 @@ image_preview_action (GimvImageView *iv, GimvEventButton *event, gint num)
 }
 
 
+
+/* the preview: two pages or not, which, in the status bar */
+static void
+cb_preview_spread_changed (GimvImageView *iv, GimvThumbWin *tw)
+{
+   GtkWidget *label;
+   gchar *text;
+
+   if (!g_list_find (ThumbWinList, tw) || !tw->priv) return;
+   label = tw->priv->spread_label;
+   if (!label) return;
+   text = gimv_image_view_spread_status (iv);
+   gtk_label_set_text (GTK_LABEL (label), text ? text : "");
+   gtk_widget_set_visible (label, text != NULL);
+   g_free (text);
+}
+
 static gint
 cb_image_preview_pressed (GimvImageView *iv, GimvEventButton *event, gpointer data)
 {
@@ -2817,6 +2846,8 @@ image_preview_new (GimvThumbWin *tw)
                        G_CALLBACK (cb_image_preview_pressed), tw);
    g_signal_connect (G_OBJECT (tw->iv), "image_clicked",
                        G_CALLBACK (cb_image_preview_clicked), tw);
+   g_signal_connect (G_OBJECT (tw->iv), "spread_changed",
+                       G_CALLBACK (cb_preview_spread_changed), tw);
 
    /* override prefs */
    gimv_image_view_set_player_visible (tw->iv, tw->player_visible);
@@ -5487,6 +5518,9 @@ gimv_thumb_win_change_layout (GimvThumbWin *tw, gint layout)
    if (tw->iv) {
       tw->iv = NULL;
       tw->preview = NULL;
+      /* a new preview: one page */
+      if (tw->priv->spread_label)
+         gtk_widget_set_visible (tw->priv->spread_label, FALSE);
    }
    if (tw->dv) {
       tw->dv = NULL;

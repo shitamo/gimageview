@@ -222,7 +222,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  Horizontally (X, remembered with the rotation), Open the Folder.
 	* Two pages: the preview and the image window show two pages side by
 	  side ([Two Pages] of the right button menu, T; right to left or left
-	  to right, the first page alone, shift by one page with O).
+	  to right, the first page alone, shift by one page with O).  The
+	  status bar tells the pages shown ("Two Pages 2-3 / 8"); the image
+	  window has a Two Pages button, with its menu under the arrow.
 	* Sort by name: numbers in names by their value (0p.jpg, 1.jpg,
 	  2.jpg, 10.jpg), [View | Sort File List | Numbers by Value] to turn it
 	  off.  Clicking a column title of the detail view keeps the other

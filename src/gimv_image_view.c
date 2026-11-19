@@ -83,6 +83,7 @@ typedef enum {
    IMAGE_PRESSED_SIGNAL,
    IMAGE_RELEASED_SIGNAL,
    IMAGE_CLICKED_SIGNAL,
+   SPREAD_CHANGED_SIGNAL,
 
    LAST_SIGNAL
 } GimvImageViewSignalType;
@@ -804,6 +805,15 @@ gimv_image_view_class_init (GimvImageViewClass *klass)
                       NULL, NULL,
                       g_cclosure_marshal_generic,
                       G_TYPE_BOOLEAN, 1, G_TYPE_POINTER);
+
+   /* two pages turned on or off, or other pages shown */
+   gimv_image_view_signals[SPREAD_CHANGED_SIGNAL]
+      = g_signal_new ("spread_changed",
+                      G_TYPE_FROM_CLASS (klass),
+                      G_SIGNAL_RUN_LAST,
+                      0, NULL, NULL,
+                      g_cclosure_marshal_VOID__VOID,
+                      G_TYPE_NONE, 0);
 
    klass->image_changed     = gimv_image_view_image_changed;
    klass->load_start        = NULL;
@@ -4463,6 +4473,8 @@ ERROR:
    iv->priv->loader_progress_update_signal_id = 0;
    iv->priv->loader_load_end_signal_id        = 0;
 
+   if (iv->priv->spread)
+      g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
    g_signal_emit (G_OBJECT (iv),
                   gimv_image_view_signals[LOAD_END_SIGNAL], 0,
                   iv->info, FALSE);
@@ -5677,11 +5689,65 @@ spread_reload (GimvImageView *iv)
 static void
 cb_spread (GimvImageView *iv, guint action, GimvMenuItem *widget)
 {
-   gboolean on = gimv_menu_item_get_active (GIMV_MENU_ITEM (widget));
+   gimv_image_view_set_spread (iv, gimv_menu_item_get_active (GIMV_MENU_ITEM (widget)));
+}
 
+
+/* two pages on or off (the menu, the T key, a button of the window) */
+void
+gimv_image_view_set_spread (GimvImageView *iv, gboolean on)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   on = on != FALSE;
    if (on == iv->priv->spread) return;
    iv->priv->spread = on;
+   if (iv->spread_menu)
+      menu_check_item_set_active (iv->spread_menu, "/Two Pages", on);
    spread_reload (iv);
+   g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
+}
+
+
+/* the pages of the list (those that are images), and where node is in
+   them (from 1); 0: not one of them */
+static gint
+spread_page_number (GimvImageView *iv, GList *node, gint *total)
+{
+   GimvImageViewImageList *list = iv->priv->image_list;
+   GList *n;
+   gint i = 0, at = 0;
+
+   *total = 0;
+   if (!list) return 0;
+   for (n = list->list; n; n = g_list_next (n)) {
+      if (!spread_is_page (n)) continue;
+      i++;
+      if (n == node) at = i;
+   }
+   *total = i;
+   return at;
+}
+
+
+/* for the status bar: "Two Pages 2-3 / 8" (in the order they are read),
+   "Two Pages 6 alone / 8"; NULL: two pages are off.  g_free () it */
+gchar *
+gimv_image_view_spread_status (GimvImageView *iv)
+{
+   GimvImageViewImageList *list;
+   gint at, total;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), NULL);
+   if (!iv->priv->spread) return NULL;
+
+   list = iv->priv->image_list;
+   at = list ? spread_page_number (iv, list->current, &total) : 0;
+   if (!at)
+      return g_strdup (_("Two Pages"));
+   if (iv->priv->spread_shown == 2)
+      return g_strdup_printf (_("Two Pages %d-%d / %d"), at, at + 1, total);
+   return g_strdup_printf (_("Two Pages %d alone / %d"), at, total);
 }
 
 

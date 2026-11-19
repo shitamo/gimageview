@@ -67,6 +67,7 @@
 #endif
 #include "pixmaps/resize.xpm"
 #include "pixmaps/fullscreen.xpm"
+#include "pixmaps/spread.xpm"
 #include "pixmaps/nav_button.xpm"
 
 /* player */
@@ -133,6 +134,7 @@ static GimvIconStockEntry default_icons [] = {
 #endif
    {"resize",            resize_xpm},
    {"fullscreen",        fullscreen_xpm},
+   {"spread",            spread_xpm},
    {"nav-button",        nav_button_xpm},
 
    {"play",              play_xpm},
@@ -189,6 +191,7 @@ static const struct {
    {"zoom_out",      "zoom-out"},
    {"zoom_fit",      "zoom-fit-best"},
    {"fullscreen",    "view-fullscreen"},
+   {"spread",        "view-dual"},
    {"refresh",       "view-refresh"},
    {"small_refresh", "view-refresh"},
    {"skip",          "go-jump"},
