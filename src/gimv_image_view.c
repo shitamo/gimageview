@@ -4803,6 +4803,18 @@ gimv_image_view_zoom_image (GimvImageView *iv, GimvImageViewZoomType zoom,
 }
 
 
+/* the size of what is shown, in pixels of the file: that of the image, or
+   of all the pages side by side (before zoom and rotation) */
+void
+gimv_image_view_get_shown_size (GimvImageView *iv, gint *width, gint *height)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   if (width)  *width  = iv->info ? shown_width (iv) : 0;
+   if (height) *height = iv->info ? shown_height (iv) : 0;
+}
+
+
 gboolean
 gimv_image_view_get_image_size (GimvImageView   *iv,
                                 gint        *width,

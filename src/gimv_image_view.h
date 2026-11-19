@@ -250,6 +250,9 @@ void       gimv_image_view_set_spread         (GimvImageView *iv,
 gchar     *gimv_image_view_spread_status      (GimvImageView *iv);
 gchar     *gimv_image_view_spread_status_widest (GimvImageView *iv);
 gint       gimv_image_view_spread_shown       (GimvImageView *iv);
+void       gimv_image_view_get_shown_size     (GimvImageView *iv,
+                                              gint          *width,
+                                              gint          *height);
 /* the layouts of pages side by side (GimvPageLayout, gimv_page_layout.h):
    the list (changed in place, then _changed ()), that of a view */
 GPtrArray   *gimv_image_view_page_layouts       (void);

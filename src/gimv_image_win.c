@@ -1307,15 +1307,15 @@ gimv_image_win_set_win_size (GimvImageWin *iw)
    if (x_scale < 0.001 || y_scale < 0.001) return;
 
    rotate = gimv_image_view_get_orientation (iw->iv);
-   if (rotate == 0 || rotate == 2) {
-      width =  iw->iv->info->width;
-      height = iw->iv->info->height;
-   } else {
+   /* pages side by side: all of them */
+   gimv_image_view_get_shown_size (iw->iv, &width, &height);
+   if (!(rotate == 0 || rotate == 2)) {
+      gint w = width;
       tmp = x_scale;
       x_scale = y_scale;
       y_scale = tmp;
-      width  = iw->iv->info->height;
-      height = iw->iv->info->width;
+      width  = height;
+      height = w;
    }
 
    x_size = width  * x_scale / 100.0 + 0.5;
