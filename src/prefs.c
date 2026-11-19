@@ -170,6 +170,8 @@ static ConfParam param_imageview [] = {
    {"imgview_alpha_checker",      D_BOOL,   "TRUE",    &conf.imgview_alpha_checker},
    {"imgview_spread_rtl",         D_BOOL,   "TRUE",    &conf.imgview_spread_rtl},
    {"imgview_spread_first_alone", D_BOOL,   "TRUE",    &conf.imgview_spread_first_alone},
+   {"imgview_page_layouts",       D_STRING, "",        &conf.imgview_page_layouts},
+   {"imgview_page_layout",        D_INT,    "0",       &conf.imgview_page_layout},
    {"imgview_scale",              D_FLOAT,  "100.0",   &conf.imgview_scale},
    {"imgview_buffer",             D_BOOL,   "FALSE",   &conf.imgview_buffer},
    {"imgview_scrollbar",          D_BOOL,   "TRUE",    &conf.imgview_scrollbar},

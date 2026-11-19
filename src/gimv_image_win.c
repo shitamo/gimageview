@@ -35,6 +35,7 @@
 #include "gimv_icon_stock.h"
 #include "gimv_image_view.h"
 #include "gimv_image_win.h"
+#include "gimv_page_layout.h"
 #ifdef ENABLE_INDEX
 #include "gimv_face_panel.h"
 #include "gimv_crop.h"
@@ -114,6 +115,8 @@ struct GimvImageWinPriv_Tag
 
    /* two pages: the button of the toolbar, the status bar */
    GtkWidget       *spread_button;
+   GtkWidget       *spread_icon;      /* in spread_button, as the layout */
+   const gchar     *spread_icon_name;
    GtkWidget       *spread_label;
    gulong           spread_toggled_id;
 };
@@ -964,6 +967,31 @@ cb_spread_changed (GimvImageView *iv, GimvImageWin *iw)
 {
    if (!g_list_find (ImageWinList, iw)) return;
    if (iw->priv->spread_button) {
+      GPtrArray *layouts = gimv_image_view_page_layouts ();
+      GimvPageLayout *l = g_ptr_array_index (layouts, gimv_image_view_get_page_layout (iv));
+      const gchar *icon = gimv_image_view_page_layout_icon (iv);
+      gchar *tip;
+
+      /* the icon of the layout */
+      if (g_strcmp0 (icon, iw->priv->spread_icon_name) && iw->priv->spread_icon) {
+         GtkWidget *vbox = gtk_widget_get_parent (iw->priv->spread_icon);
+         GtkWidget *w = gimv_icon_stock_get_widget (icon);
+         if (w && vbox) {
+            gtk_box_remove (GTK_BOX (vbox), iw->priv->spread_icon);
+            gtk_box_prepend (GTK_BOX (vbox), w);
+            iw->priv->spread_icon = w;
+            iw->priv->spread_icon_name = icon;
+            if (iw->toolbar)
+               gtkutil_toolbar_set_style (iw->toolbar,
+                                          GPOINTER_TO_INT (g_object_get_data (G_OBJECT (iw->toolbar),
+                                                                              "gimv-toolbar-style")));
+         }
+      }
+      /* TRANSLATORS: the name of the layout of pages */
+      tip = g_strdup_printf (_("Two Pages: %s (T)"), l->name);
+      gtk_widget_set_tooltip_text (iw->priv->spread_button, tip);
+      g_free (tip);
+
       g_signal_handler_block (iw->priv->spread_button, iw->priv->spread_toggled_id);
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (iw->priv->spread_button),
                                     gimv_image_view_get_spread (iv));
@@ -1118,12 +1146,13 @@ create_toolbar (GimvImageWin *iw, GtkWidget *container)
       gtk_widget_set_focus_on_click (button, FALSE);
       vbox = gimv_vbox_new (FALSE, 0);
       gtk_button_set_child (GTK_BUTTON (button), vbox);
-      iconw = gimv_icon_stock_get_widget ("spread");
+      iw->priv->spread_icon_name = gimv_image_view_page_layout_icon (iw->iv);
+      iconw = gimv_icon_stock_get_widget (iw->priv->spread_icon_name);
       if (iconw)
          gimv_box_pack_start (GTK_BOX (vbox), iconw, TRUE, TRUE, 0);
+      iw->priv->spread_icon = iconw;
       label = gtk_label_new (_("Two Pages"));
       gimv_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
-      gtk_widget_set_tooltip_text (button, _("Two Pages (T)"));
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button),
                                     gimv_image_view_get_spread (iw->iv));
       iw->priv->spread_toggled_id
@@ -1131,6 +1160,13 @@ create_toolbar (GimvImageWin *iw, GtkWidget *container)
                              G_CALLBACK (cb_toolbar_spread), iw);
       gimv_box_pack_start (GTK_BOX (toolbar), button, FALSE, FALSE, 0);
       iw->priv->spread_button = button;
+      {
+         GimvPageLayout *l = g_ptr_array_index (gimv_image_view_page_layouts (),
+                                                gimv_image_view_get_page_layout (iw->iv));
+         gchar *tip = g_strdup_printf (_("Two Pages: %s (T)"), l->name);
+         gtk_widget_set_tooltip_text (button, tip);
+         g_free (tip);
+      }
 
       arrow = gtk_button_new_from_icon_name ("pan-down-symbolic");
       gtk_button_set_has_frame (GTK_BUTTON (arrow), FALSE);
@@ -1537,7 +1573,7 @@ cb_edit_faces (GimvImageWin *iw, guint action, GimvMenuItem *widget)
 {
 #ifdef ENABLE_INDEX
    /* two pages: the faces are those of the page */
-   if (iw->iv && gimv_image_view_spread_shown (iw->iv) == 2) return;
+   if (iw->iv && gimv_image_view_spread_shown (iw->iv) >= 2) return;
    if (iw->iv && gimv_face_panel_has (iw->iv))
       gimv_face_panel_set_visible (iw->iv, !gimv_face_panel_get_visible (iw->iv));
 #endif

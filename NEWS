@@ -225,6 +225,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  to right, the first page alone, shift by one page with O).  The
 	  status bar tells the pages shown ("Two Pages 2-3 / 8"); the image
 	  window has a Two Pages button, with its menu under the arrow.
+	  Layouts of pages: pages side by side x rows (up to 4 x 3), right to
+	  left, the first page alone, under a name; Two Pages (2 x 1) and Four
+	  Pages (2 x 2) at first, [Two Pages | Edit Layouts...] for more.
 	* Sort by name: numbers in names by their value (0p.jpg, 1.jpg,
 	  2.jpg, 10.jpg), [View | Sort File List | Numbers by Value] to turn it
 	  off.  Clicking a column title of the detail view keeps the other

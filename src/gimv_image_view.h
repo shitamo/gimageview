@@ -250,6 +250,14 @@ void       gimv_image_view_set_spread         (GimvImageView *iv,
 gchar     *gimv_image_view_spread_status      (GimvImageView *iv);
 gchar     *gimv_image_view_spread_status_widest (GimvImageView *iv);
 gint       gimv_image_view_spread_shown       (GimvImageView *iv);
+/* the layouts of pages side by side (GimvPageLayout, gimv_page_layout.h):
+   the list (changed in place, then _changed ()), that of a view */
+GPtrArray   *gimv_image_view_page_layouts       (void);
+void         gimv_image_view_page_layouts_changed (gboolean reload);
+gint         gimv_image_view_get_page_layout    (GimvImageView *iv);
+void         gimv_image_view_set_page_layout    (GimvImageView *iv,
+                                                gint           n);
+const gchar *gimv_image_view_page_layout_icon   (GimvImageView *iv);
 gboolean   gimv_image_view_spread_click       (GimvImageView *iv,
                                               gdouble        x);
 GtkWidget *gimv_image_view_create_view_modes_menu (GtkWidget      *window,

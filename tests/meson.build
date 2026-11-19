@@ -46,6 +46,14 @@ test('charset',
     dependencies : [glib_dep]),
   kwargs : test_kwargs)
 
+# src/gimv_page_layout.c (GLib only): the layouts of pages side by side
+test('page-layout',
+  executable('test-page-layout', 'test_page_layout.c',
+    objects : gimv_exe.extract_objects('gimv_page_layout.c'),
+    include_directories : test_inc,
+    dependencies : [glib_dep]),
+  kwargs : test_kwargs)
+
 # src/gimv_bookmark.c (GLib only)
 test('bookmark',
   executable('test-bookmark', 'test_bookmark.c',

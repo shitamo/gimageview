@@ -49,6 +49,8 @@
 #include "gimv_print.h"
 #include "gimv_save_dialog.h"
 #include "prefs.h"
+#include "gimv_page_layout.h"
+#include "gimv_page_layout_dialog.h"
 #include "gimv_thumb_cache.h"
 #ifdef ENABLE_INDEX
 #include "gimv_face_panel.h"
@@ -187,9 +189,13 @@ struct GimvImageViewPrivate_Tag
    /* two pages (a spread of a book): the page of the list after the
       image shown beside it (gimv_image_view_spread.c below) */
    gboolean         spread;           /* turned on (by hand) */
-   gint             spread_shown;     /* pages shown now: 1 or 2 */
+   gint             spread_shown;     /* pages shown now: 1 alone */
    gdouble          spread_wide;      /* the width shown / that of the page
                                          (iv->info): 1.0 alone */
+   gdouble          spread_high;      /* the height shown / that of the page */
+   gint             spread_layout;    /* gimv_image_view_page_layouts () */
+   gconstpointer    spread_layout_ptr;/* that one (found again in the list
+                                         when it is changed) */
 
    /* information about image dragging */
    guint            button;
@@ -255,6 +261,11 @@ static void cb_spread_rtl                  (GimvImageView   *iv,
 static void cb_spread_alone                (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem    *widget);
+static void cb_spread_edit                 (GimvImageView   *iv,
+                                            guint            action,
+                                            GimvMenuItem    *widget);
+static void spread_menu_update             (GimvImageView   *iv);
+static GimvPageLayout *spread_layout       (GimvImageView   *iv);
 static void cb_spread_shift                (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem    *widget);
@@ -413,9 +424,12 @@ GimvMenuEntry gimv_image_view_spread_items [] =
 {
    {N_("/_Two Pages"),             "T",  cb_spread,       0, "<ToggleItem>"},
    {N_("/---"),                    NULL, NULL,            0, "<Separator>"},
+   {N_("/Page _Layout"),           NULL, NULL,            0, "<Branch>"},
    {N_("/_Right to Left (Manga)"), NULL, cb_spread_rtl,   0, "<ToggleItem>"},
    {N_("/_First Page Alone"),      NULL, cb_spread_alone, 0, "<ToggleItem>"},
    {N_("/_Shift One Page"),        "O",  cb_spread_shift, 0, NULL},
+   {N_("/---"),                    NULL, NULL,            0, "<Separator>"},
+   {N_("/_Edit Layouts..."),       NULL, cb_spread_edit,  0, NULL},
    {NULL, NULL, NULL, 0, NULL},
 };
 
@@ -878,6 +892,11 @@ gimv_image_view_init (GimvImageView *iv)
    iv->priv->alpha_checker    = conf.imgview_alpha_checker;
 
    iv->priv->buffer           = conf.imgview_buffer;
+   iv->priv->spread_shown     = 1;
+   iv->priv->spread_wide      = 1.0;
+   iv->priv->spread_high      = 1.0;
+   iv->priv->spread_layout    = conf.imgview_page_layout;
+   spread_layout (iv);
 
    iv->priv->show_scrollbar   = conf.imgview_scrollbar;
    iv->priv->continuance_play = conf.imgview_movie_continuance;
@@ -1189,7 +1208,7 @@ cb_crop (GimvImageView *iv, guint action, GimvMenuItem *widget)
 {
    g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
    /* two pages: not the image of the page */
-   if (gimv_image_view_spread_shown (iv) == 2) return;
+   if (gimv_image_view_spread_shown (iv) >= 2) return;
    gimv_crop_start (iv);
 }
 
@@ -1254,7 +1273,7 @@ cb_edit_faces (GimvImageView *iv, guint action, GimvMenuItem *widget)
 {
 #ifdef ENABLE_INDEX
    /* two pages: the faces are those of the page */
-   if (gimv_image_view_spread_shown (iv) == 2) return;
+   if (gimv_image_view_spread_shown (iv) >= 2) return;
    if (gimv_face_panel_has (iv))
       gimv_face_panel_set_visible (iv, !gimv_face_panel_get_visible (iv));
 #endif
@@ -2025,9 +2044,19 @@ cb_nav_button_drag_end (GtkGestureDrag *gesture,
 static gint
 shown_width (GimvImageView *iv)
 {
-   if (iv->priv->spread_shown == 2 && iv->priv->spread_wide > 1.0)
+   if (iv->priv->spread_shown >= 2 && iv->priv->spread_wide > 1.0)
       return (gint) (iv->info->width * iv->priv->spread_wide + 0.5);
    return iv->info->width;
+}
+
+
+/* the height of it (pages in rows: all of them) */
+static gint
+shown_height (GimvImageView *iv)
+{
+   if (iv->priv->spread_shown >= 2 && iv->priv->spread_high > 1.0)
+      return (gint) (iv->info->height * iv->priv->spread_high + 0.5);
+   return iv->info->height;
 }
 
 
@@ -2050,9 +2079,9 @@ gimv_image_view_calc_image_size (GimvImageView *iv)
 
    if (iv->priv->rotate == 0 || iv->priv->rotate == 2) {
       orig_width  = shown_width (iv);
-      orig_height = iv->info->height;
+      orig_height = shown_height (iv);
    } else {
-      orig_width  = iv->info->height;
+      orig_width  = shown_height (iv);
       orig_height = shown_width (iv);
    }
 
@@ -2423,6 +2452,7 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
    /* two pages: known when it is loaded */
    iv->priv->spread_shown = 1;
    iv->priv->spread_wide = 1.0;
+   iv->priv->spread_high = 1.0;
 
    /* the marks of a face and of a crop are of the image before */
    gimv_crop_stop (iv);
@@ -3168,7 +3198,7 @@ gimv_image_view_create_thumbnail (GimvImageView *iv)
    if (!iv->info) return;
    if (iv->info->flags & GIMV_IMAGE_INFO_MRL_FLAG) return;   /* Dose it need? */
    /* two pages: not the thumbnail of the page */
-   if (iv->priv->spread && iv->priv->spread_shown == 2) return;
+   if (iv->priv->spread && iv->priv->spread_shown >= 2) return;
    if (gimv_thumb_cache_write_disabled ()) return;           /* not kept */
 
    if (!iv->draw_area_funcs) return;
@@ -3771,8 +3801,7 @@ gimv_image_view_create_spread_menu (GtkWidget *window,
    g_free (subpath);
    gimv_image_view_set_menu_ptr (iv, &iv->spread_menu, menu);
    menu_check_item_set_active (menu, "/Two Pages", iv->priv->spread);
-   menu_check_item_set_active (menu, "/Right to Left (Manga)", conf.imgview_spread_rtl);
-   menu_check_item_set_active (menu, "/First Page Alone", conf.imgview_spread_first_alone);
+   spread_menu_update (iv);
 
    return menu;
 }
@@ -3876,7 +3905,7 @@ gimv_image_view_popup_menu (GimvImageView *iv, GimvEventButton *event)
             "/Create Thumbnail", "/Crop Image...", "/Edit Faces (People)",
          };
          guint i;
-         gboolean two = iv->priv->spread && iv->priv->spread_shown == 2;
+         gboolean two = iv->priv->spread && iv->priv->spread_shown >= 2;
          for (i = 0; i < G_N_ELEMENTS (page_only); i++) {
             item = gimv_menu_find_item (iv->imageview_popup, page_only[i]);
             if (item && two) gimv_menu_item_set_sensitive (item, FALSE);
@@ -4454,6 +4483,7 @@ cb_loader_load_end (GimvImageLoader *loader, GimvImageView *iv)
    /* two pages: the page beside it */
    iv->priv->spread_shown = 1;
    iv->priv->spread_wide = 1.0;
+   iv->priv->spread_high = 1.0;
    if (iv->priv->spread && iv->image)
       spread_compose (iv);
 
@@ -4499,7 +4529,7 @@ gimv_image_view_need_load (GimvImageView *iv)
    }
 
    if ( width == shown_width (iv)
-       &&  height == iv->info->height)
+       &&  height == shown_height (iv))
    {
       /* full scale image was already loaded */
       return FALSE;
@@ -4823,7 +4853,7 @@ gimv_image_view_get_request_size (GimvImageView *iv,
 
    } else if (iv->priv->width > MIN_IMAGE_WIDTH && iv->priv->height > MIN_IMAGE_HEIGHT) {
       *width_ret  = shown_width (iv) * iv->priv->x_scale / 100.0;
-      *height_ret = iv->info->height * iv->priv->y_scale / 100.0;
+      *height_ret = shown_height (iv) * iv->priv->y_scale / 100.0;
       return;
    } else {
       /*
@@ -5480,17 +5510,133 @@ gimv_image_view_playable_get_position (GimvImageView *iv)
 
 /*****************************************************************************
  *
- *   two pages (a spread of a book)
+ *   pages side by side (two pages, a spread of a book; or more)
  *
  *   Turned on by hand ([Two Pages] of the menu, T).  The image of the list
- *   is shown with the next page beside it: to its left from right to left
- *   (manga, the default), else to its right.  The first page of the list
- *   (the cover) is shown alone if so set, and so is a page wider than high
- *   (a spread scanned as one).  The next two pages come by the next image
- *   (a click, Space), the two before by the previous one; [Shift One Page]
- *   (O) moves by one, for a book whose pages pair the other way.
+ *   is shown with the pages after it in the layout of the view (columns
+ *   and rows, gimv_page_layout.c): to its left from right to left (manga),
+ *   else to its right, the rows under each other.  The first page of the
+ *   list (the cover) is shown alone if the layout says so, and so is a page
+ *   wider than high (a spread scanned as one): the pages before it end
+ *   there.  The next pages come by the next image (a click, Space), the
+ *   ones before by the previous image; [Shift One Page] (O) moves by one,
+ *   for a book whose pages pair the other way.
+ *
+ *   The layouts are those of conf.imgview_page_layouts (named; edited by
+ *   [Edit Layouts...]), each view showing one of them (the last chosen,
+ *   conf.imgview_page_layout, for a new view).
  *
  *****************************************************************************/
+static GPtrArray *page_layouts = NULL;
+static gconstpointer conf_layout_ptr = NULL;   /* conf.imgview_page_layout */
+
+
+/* the layouts there are (made from the settings the first time) */
+GPtrArray *
+gimv_image_view_page_layouts (void)
+{
+   if (page_layouts) return page_layouts;
+
+   page_layouts = gimv_page_layouts_parse (conf.imgview_page_layouts);
+   if (page_layouts->len == 0) {
+      /* the defaults, in the language of the user; those of the two pages
+         before there were layouts */
+      g_ptr_array_add (page_layouts,
+                       gimv_page_layout_new (_("Two Pages"), 2, 1,
+                                             conf.imgview_spread_rtl,
+                                             conf.imgview_spread_first_alone));
+      g_ptr_array_add (page_layouts,
+                       gimv_page_layout_new (_("Four Pages"), 2, 2,
+                                             conf.imgview_spread_rtl,
+                                             conf.imgview_spread_first_alone));
+   }
+   if (conf.imgview_page_layout < 0 || conf.imgview_page_layout >= (gint) page_layouts->len)
+      conf.imgview_page_layout = 0;
+   conf_layout_ptr = g_ptr_array_index (page_layouts, conf.imgview_page_layout);
+   return page_layouts;
+}
+
+
+static GimvPageLayout *
+spread_layout (GimvImageView *iv)
+{
+   GPtrArray *a = gimv_image_view_page_layouts ();
+
+   if (iv->priv->spread_layout < 0 || (guint) iv->priv->spread_layout >= a->len)
+      iv->priv->spread_layout = 0;
+   iv->priv->spread_layout_ptr = g_ptr_array_index (a, iv->priv->spread_layout);
+   return g_ptr_array_index (a, iv->priv->spread_layout);
+}
+
+
+gint
+gimv_image_view_get_page_layout (GimvImageView *iv)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), 0);
+   spread_layout (iv);
+   return iv->priv->spread_layout;
+}
+
+
+static void spread_reload (GimvImageView *iv);
+
+
+/* layout n of the list for iv (and the next new views) */
+void
+gimv_image_view_set_page_layout (GimvImageView *iv, gint n)
+{
+   GPtrArray *a = gimv_image_view_page_layouts ();
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   if (n < 0 || (guint) n >= a->len) return;
+
+   conf.imgview_page_layout = n;
+   conf_layout_ptr = g_ptr_array_index (a, n);
+   if (n == iv->priv->spread_layout) return;
+   iv->priv->spread_layout = n;
+   spread_menu_update (iv);
+   if (iv->priv->spread) spread_reload (iv);
+   g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
+}
+
+
+/* the list of layouts was changed (gimv_page_layout_dialog.c, the menu):
+   kept in the settings, the menus made again, each view with the layout
+   it had (the first one if it was removed), shown again if reload */
+void
+gimv_image_view_page_layouts_changed (gboolean reload)
+{
+   GPtrArray *a = gimv_image_view_page_layouts ();
+   GList *node;
+
+   g_free (conf.imgview_page_layouts);
+   conf.imgview_page_layouts = gimv_page_layouts_to_string (a);
+   /* the one for new views as the views: where it went, or the first */
+   {
+      guint i;
+      conf.imgview_page_layout = 0;
+      for (i = 0; i < a->len; i++)
+         if (g_ptr_array_index (a, i) == conf_layout_ptr)
+            conf.imgview_page_layout = i;
+   }
+   conf_layout_ptr = g_ptr_array_index (a, conf.imgview_page_layout);
+
+   for (node = GimvImageViewList; node; node = g_list_next (node)) {
+      GimvImageView *iv = node->data;
+      guint i;
+
+      iv->priv->spread_layout = 0;
+      for (i = 0; i < a->len; i++)
+         if (g_ptr_array_index (a, i) == iv->priv->spread_layout_ptr)
+            iv->priv->spread_layout = i;
+      spread_layout (iv);
+      spread_menu_update (iv);
+      if (reload && iv->priv->spread) spread_reload (iv);
+      g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
+   }
+}
+
+
 static GimvImageInfo *
 spread_info (gpointer data)
 {
@@ -5541,18 +5687,25 @@ spread_prev_page (GList *node)
 }
 
 
-/* the page shown beside the current one (NULL: alone) */
-static GList *
-spread_partner (GimvImageView *iv)
+/* the pages shown with the current one, after it (pages[], at most max;
+   the number) */
+static gint
+spread_others (GimvImageView *iv, GList **pages, gint max)
 {
-   GList *cur;
+   GimvPageLayout *l = spread_layout (iv);
+   GList *cur, *node;
+   gint n = 0;
 
-   if (!iv->priv->spread || !iv->priv->image_list) return NULL;
+   if (!iv->priv->spread || !iv->priv->image_list) return 0;
    cur = iv->priv->image_list->current;
-   if (!cur || !spread_is_page (cur)) return NULL;
+   if (!cur || !spread_is_page (cur) || spread_is_wide (cur)) return 0;
    /* the cover */
-   if (conf.imgview_spread_first_alone && !spread_prev_page (cur)) return NULL;
-   return spread_next_page (cur);
+   if (l->first_alone && !spread_prev_page (cur)) return 0;
+   for (node = spread_next_page (cur); node && n < max; node = spread_next_page (node)) {
+      if (spread_is_wide (node)) break;
+      pages[n++] = node;
+   }
+   return n;
 }
 
 
@@ -5574,89 +5727,122 @@ spread_load (GimvImageInfo *info)
 }
 
 
-/* the page beside iv->image put into it, both of the same height; FALSE:
-   it is shown alone */
+#define SPREAD_MAX_PAGES (GIMV_PAGE_LAYOUT_MAX_COLS * GIMV_PAGE_LAYOUT_MAX_ROWS)
+
+/* the pages after iv->image put into it in the layout, all of its height;
+   FALSE: it is shown alone */
 static gboolean
 spread_compose (GimvImageView *iv)
 {
-   GList *partner = spread_partner (iv);
-   GimvImage *other, *both;
-   GdkPixbuf *a, *b, *pb;
-   gint ha, wa, wb, hb, w2;
-   gboolean alpha, rtl = conf.imgview_spread_rtl;
+   GimvPageLayout *l = spread_layout (iv);
+   GList *others[SPREAD_MAX_PAGES];
+   GimvImage *images[SPREAD_MAX_PAGES], *all;
+   GdkPixbuf *a, *pb;
+   gint widths[SPREAD_MAX_PAGES], x[SPREAD_MAX_PAGES], y[SPREAD_MAX_PAGES];
+   gint n_others, n, i, wa, ha, tw, th;
+   gboolean alpha;
 
-   if (!partner || GIMV_IS_ANIM (iv->image) || !GDK_IS_PIXBUF (iv->image->image))
+   if (GIMV_IS_ANIM (iv->image) || !GDK_IS_PIXBUF (iv->image->image))
       return FALSE;
+   n_others = spread_others (iv, others, l->cols * l->rows - 1);
+   if (!n_others) return FALSE;
    a = iv->image->image;
    wa = gdk_pixbuf_get_width (a);
    ha = gdk_pixbuf_get_height (a);
    /* a spread already */
-   if (wa > ha) return FALSE;
+   if (wa > ha || ha <= 0) return FALSE;
 
-   other = spread_load (spread_info (partner->data));
-   if (!other) return FALSE;
-   if (!g_list_find (GimvImageViewList, iv) || !GDK_IS_PIXBUF (other->image)
-       || !iv->image || iv->image->image != a)
-   {
-      gimv_image_unref (other);
-      return FALSE;
-   }
-   b = other->image;
-   wb = gdk_pixbuf_get_width (b);
-   hb = gdk_pixbuf_get_height (b);
-   if (wb > hb || hb <= 0) {
-      gimv_image_unref (other);
-      return FALSE;
-   }
+   images[0] = iv->image;
+   widths[0] = wa;
+   alpha = gdk_pixbuf_get_has_alpha (a);
+   for (n = 1; n <= n_others; n++) {
+      GimvImage *image = spread_load (spread_info (others[n - 1]->data));
+      gint w, h;
 
-   /* the other page to the height of this one (as it was loaded) */
-   w2 = MAX (1, (gint) ((gdouble) wb * ha / hb + 0.5));
-   alpha = gdk_pixbuf_get_has_alpha (a) || gdk_pixbuf_get_has_alpha (b);
-   pb = gdk_pixbuf_new (GDK_COLORSPACE_RGB, alpha, 8, wa + w2, ha);
+      if (!g_list_find (GimvImageViewList, iv) || !iv->image || iv->image->image != a) {
+         if (image) gimv_image_unref (image);
+         for (i = 1; i < n; i++) gimv_image_unref (images[i]);
+         return FALSE;
+      }
+      /* the pages end before one not read or wider than high */
+      if (!image) break;
+      if (!GDK_IS_PIXBUF (image->image)) {
+         gimv_image_unref (image);
+         break;
+      }
+      w = gdk_pixbuf_get_width (image->image);
+      h = gdk_pixbuf_get_height (image->image);
+      if (w > h || h <= 0) {
+         gimv_image_unref (image);
+         break;
+      }
+      images[n] = image;
+      /* to the height of the first one (as it was loaded) */
+      widths[n] = MAX (1, (gint) ((gdouble) w * ha / h + 0.5));
+      alpha = alpha || gdk_pixbuf_get_has_alpha (image->image);
+   }
+   if (n < 2) return FALSE;
+
+   gimv_page_layout_place (l->cols, l->rtl, n, widths, ha, x, y, &tw, &th);
+   pb = gdk_pixbuf_new (GDK_COLORSPACE_RGB, alpha, 8, tw, th);
    if (!pb) {
-      gimv_image_unref (other);
+      for (i = 1; i < n; i++) gimv_image_unref (images[i]);
       return FALSE;
    }
    gdk_pixbuf_fill (pb, alpha ? 0x00000000 : 0xffffffff);
-   /* this page right of the other from right to left */
-   gdk_pixbuf_composite (a, pb, rtl ? w2 : 0, 0, wa, ha,
-                         rtl ? w2 : 0, 0, 1.0, 1.0, GDK_INTERP_NEAREST, 255);
-   gdk_pixbuf_composite (b, pb, rtl ? 0 : wa, 0, w2, ha,
-                         rtl ? 0 : wa, 0, (gdouble) w2 / wb, (gdouble) ha / hb,
-                         GDK_INTERP_BILINEAR, 255);
-   gimv_image_unref (other);
+   for (i = 0; i < n; i++) {
+      GdkPixbuf *p = images[i]->image;
+      gint w = gdk_pixbuf_get_width (p), h = gdk_pixbuf_get_height (p);
 
-   both = gimv_image_new ();
-   both->image = pb;
+      gdk_pixbuf_composite (p, pb, x[i], y[i], widths[i], ha,
+                            x[i], y[i], (gdouble) widths[i] / w, (gdouble) ha / h,
+                            i ? GDK_INTERP_BILINEAR : GDK_INTERP_NEAREST, 255);
+      if (i) gimv_image_unref (images[i]);
+   }
+
+   all = gimv_image_new ();
+   all->image = pb;
    gimv_image_unref (iv->image);
-   iv->image = both;
-   iv->priv->spread_shown = 2;
-   iv->priv->spread_wide = (gdouble) (wa + w2) / wa;
+   iv->image = all;
+   iv->priv->spread_shown = n;
+   iv->priv->spread_wide = (gdouble) tw / wa;
+   iv->priv->spread_high = (gdouble) th / ha;
    return TRUE;
 }
 
 
-/* the next or previous two pages; FALSE: not two pages (as one image) */
+/* the next or previous pages; FALSE: not side by side (as one image) */
 static gboolean
 spread_go (GimvImageView *iv, gboolean next)
 {
    GimvImageViewImageList *list = iv->priv->image_list;
+   GimvPageLayout *l = spread_layout (iv);
    GList *cur, *target = NULL;
+   gint i, max = l->cols * l->rows;
 
    if (!iv->priv->spread || !list || !list->nth_fn) return FALSE;
    cur = list->current;
    if (!cur || !spread_is_page (cur)) return FALSE;
 
    if (next) {
-      target = spread_next_page (cur);
-      if (target && iv->priv->spread_shown == 2)
+      /* after the pages shown */
+      target = cur;
+      for (i = 0; target && i < MAX (1, iv->priv->spread_shown); i++)
          target = spread_next_page (target);
    } else {
-      /* the two before (the first page alone when it is the one before; a
-         wide page, when its size is known, alone) */
-      GList *before = spread_prev_page (cur), *before2 = spread_prev_page (before);
-      target = before2 && !spread_is_wide (before) && !spread_is_wide (before2)
-         ? before2 : before;
+      /* back by as many as are shown together, not past a wide page (as
+         far as known) nor the cover alone: those come alone */
+      GList *node = spread_prev_page (cur);
+      for (i = 0; node && i < max; i++) {
+         gboolean alone = spread_is_wide (node)
+            || (l->first_alone && !spread_prev_page (node));
+         if (alone) {
+            if (i == 0) target = node;
+            break;
+         }
+         target = node;
+         node = spread_prev_page (node);
+      }
    }
    /* the end of the book: stay */
    if (!target) return TRUE;
@@ -5709,6 +5895,158 @@ gimv_image_view_set_spread (GimvImageView *iv, gboolean on)
 }
 
 
+/* a setting of the layout of the view changed by its menu */
+static void
+spread_layout_changed (GimvImageView *iv)
+{
+   gimv_image_view_page_layouts_changed (TRUE);
+}
+
+
+static void
+cb_spread_rtl (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   GimvPageLayout *l = spread_layout (iv);
+   gboolean on = gimv_menu_item_get_active (GIMV_MENU_ITEM (widget));
+
+   if (on == l->rtl) return;
+   l->rtl = on;
+   spread_layout_changed (iv);
+}
+
+
+static void
+cb_spread_alone (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   GimvPageLayout *l = spread_layout (iv);
+   gboolean on = gimv_menu_item_get_active (GIMV_MENU_ITEM (widget));
+
+   if (on == l->first_alone) return;
+   l->first_alone = on;
+   spread_layout_changed (iv);
+}
+
+
+static void
+cb_spread_shift (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   GimvImageViewImageList *list = iv->priv->image_list;
+   GList *target;
+
+   if (!list || !list->nth_fn || !list->current) return;
+   target = spread_next_page (list->current);
+   if (!target) return;
+   list->current = list->nth_fn (iv, list->owner, list->list,
+                                 g_list_position (list->list, target),
+                                 list->list_fn_user_data);
+}
+
+
+static void
+cb_spread_edit (GimvImageView *iv, guint action, GimvMenuItem *widget)
+{
+   GtkRoot *root = iv ? gtk_widget_get_root (GTK_WIDGET (iv)) : NULL;
+
+   gimv_page_layout_dialog_open (GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL, iv);
+}
+
+
+static void
+cb_spread_layout_item (GimvMenuItem *item, gpointer data)
+{
+   GimvImageView *iv = data;
+
+   if (!gimv_menu_item_get_active (item)) return;
+   if (!g_list_find (GimvImageViewList, iv)) return;
+   gimv_image_view_set_page_layout (iv, GPOINTER_TO_INT (g_object_get_data (G_OBJECT (item),
+                                                                          "gimv-layout")));
+}
+
+
+/* the layouts to choose from (radio items) */
+static GtkWidget *
+spread_layouts_menu (GimvImageView *iv)
+{
+   GtkWidget *menu = gimv_menu_new (NULL);
+   GPtrArray *a = gimv_image_view_page_layouts ();
+   GimvMenuItem *group = NULL;
+   guint i;
+
+   for (i = 0; i < a->len; i++) {
+      GimvPageLayout *l = g_ptr_array_index (a, i);
+      gchar *label = g_strdup_printf ("%s (%d × %d)", l->name, l->cols, l->rows);
+      GimvMenuItem *item;
+
+      item = gimv_menu_append_radio_item (menu, group, label,
+                                          cb_spread_layout_item, iv);
+      if (!group) group = item;
+      g_object_set_data (G_OBJECT (item), "gimv-layout", GINT_TO_POINTER (i));
+      if ((gint) i == iv->priv->spread_layout)
+         gimv_menu_item_set_active (item, TRUE);
+      g_free (label);
+   }
+   return menu;
+}
+
+
+/* the menu of iv as its layout: the layouts, the checks */
+static void
+spread_menu_update (GimvImageView *iv)
+{
+   GimvPageLayout *l = spread_layout (iv);
+   GtkWidget *menu = iv->spread_menu, *sub;
+   GPtrArray *a = gimv_image_view_page_layouts ();
+   GString *sig = g_string_new (NULL);
+   guint i;
+
+   if (!menu) {
+      g_string_free (sig, TRUE);
+      return;
+   }
+   /* made again only when the layouts are others: GtkPopoverMenu does
+      not like its menu changed while it is open (this may be called from
+      the menu itself) */
+   for (i = 0; i < a->len; i++) {
+      GimvPageLayout *li = g_ptr_array_index (a, i);
+      g_string_append_printf (sig, "%s;%d;%d\n", li->name, li->cols, li->rows);
+   }
+   sub = menu_get_submenu (menu, "/Page Layout");
+   if (!sub || g_strcmp0 (g_object_get_data (G_OBJECT (sub), "gimv-layouts"), sig->str)) {
+      sub = spread_layouts_menu (iv);
+      g_object_set_data_full (G_OBJECT (sub), "gimv-layouts", g_strdup (sig->str), g_free);
+      menu_set_submenu (menu, "/Page Layout", sub);
+   } else {
+      GList *items = gimv_menu_get_items (sub), *node;
+      for (node = items; node; node = g_list_next (node)) {
+         gint n = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (node->data), "gimv-layout"));
+         if (n == iv->priv->spread_layout && !gimv_menu_item_get_active (node->data))
+            gimv_menu_item_set_active (node->data, TRUE);
+      }
+      g_list_free (items);
+   }
+   g_string_free (sig, TRUE);
+   menu_check_item_set_active (menu, "/Right to Left (Manga)", l->rtl);
+   menu_check_item_set_active (menu, "/First Page Alone", l->first_alone);
+}
+
+
+gboolean
+gimv_image_view_get_spread (GimvImageView *iv)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+   return iv->priv->spread;
+}
+
+
+/* the pages shown now: 1 when alone or not side by side */
+gint
+gimv_image_view_spread_shown (GimvImageView *iv)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), 1);
+   return iv->priv->spread ? iv->priv->spread_shown : 1;
+}
+
+
 /* the pages of the list (those that are images), and where node is in
    them (from 1); 0: not one of them */
 static gint
@@ -5730,24 +6068,30 @@ spread_page_number (GimvImageView *iv, GList *node, gint *total)
 }
 
 
-/* for the status bar: "Two Pages 2-3 / 8" (in the order they are read),
-   "Two Pages 6 alone / 8"; NULL: two pages are off.  g_free () it */
+/* for the status bar: "Two Pages 2-3 / 8" (the name of the layout, the
+   pages shown), "Two Pages 6 alone / 8"; NULL: off.  g_free () it */
 gchar *
 gimv_image_view_spread_status (GimvImageView *iv)
 {
    GimvImageViewImageList *list;
+   GimvPageLayout *l;
    gint at, total;
 
    g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), NULL);
    if (!iv->priv->spread) return NULL;
 
+   l = spread_layout (iv);
    list = iv->priv->image_list;
    at = list ? spread_page_number (iv, list->current, &total) : 0;
    if (!at)
-      return g_strdup (_("Two Pages"));
-   if (iv->priv->spread_shown == 2)
-      return g_strdup_printf (_("Two Pages %d-%d / %d"), at, at + 1, total);
-   return g_strdup_printf (_("Two Pages %d alone / %d"), at, total);
+      return g_strdup (l->name);
+   if (iv->priv->spread_shown >= 2)
+      /* TRANSLATORS: the name of the layout, the first and last pages
+         shown, all the pages */
+      return g_strdup_printf (_("%s %d-%d / %d"), l->name,
+                              at, at + iv->priv->spread_shown - 1, total);
+   /* TRANSLATORS: the name of the layout, the page, all the pages */
+   return g_strdup_printf (_("%s %d alone / %d"), l->name, at, total);
 }
 
 
@@ -5757,82 +6101,46 @@ gimv_image_view_spread_status (GimvImageView *iv)
 gchar *
 gimv_image_view_spread_status_widest (GimvImageView *iv)
 {
-   GimvImageViewImageList *list;
-   gint total = 0;
+   GimvPageLayout *l;
+   gint total = 0, n = 8, t;
+   gchar *a, *b;
 
    g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), NULL);
    if (!iv->priv->spread) return NULL;
-   list = iv->priv->image_list;
-   if (list) spread_page_number (iv, NULL, &total);
+   l = spread_layout (iv);
+   if (iv->priv->image_list) spread_page_number (iv, NULL, &total);
    if (!total)
-      return g_strdup (_("Two Pages"));
+      return g_strdup (l->name);
    /* 8 is about the widest digit */
-   {
-      gint n = 8, t = total;
-      gchar *a, *b;
-      while (t >= 10) { n = n * 10 + 8; t /= 10; }
-      a = g_strdup_printf (_("Two Pages %d-%d / %d"), n, n, n);
-      b = g_strdup_printf (_("Two Pages %d alone / %d"), n, n);
-      if (g_utf8_strlen (a, -1) >= g_utf8_strlen (b, -1)) {
-         g_free (b);
-         return a;
-      }
-      g_free (a);
-      return b;
+   for (t = total; t >= 10; t /= 10) n = n * 10 + 8;
+   a = g_strdup_printf (_("%s %d-%d / %d"), l->name, n, n, n);
+   b = g_strdup_printf (_("%s %d alone / %d"), l->name, n, n);
+   if (g_utf8_strlen (a, -1) >= g_utf8_strlen (b, -1)) {
+      g_free (b);
+      return a;
    }
+   g_free (a);
+   return b;
 }
 
 
-static void
-cb_spread_rtl (GimvImageView *iv, guint action, GimvMenuItem *widget)
+/* the gimv icon for the layout of iv (the toolbar button): pages side by
+   side, or in rows */
+const gchar *
+gimv_image_view_page_layout_icon (GimvImageView *iv)
 {
-   conf.imgview_spread_rtl = gimv_menu_item_get_active (GIMV_MENU_ITEM (widget));
-   if (iv->priv->spread) spread_reload (iv);
+   GimvPageLayout *l;
+
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), "spread");
+   l = spread_layout (iv);
+   if (l->rows > 1) return "spread_grid";
+   return "spread";
 }
 
 
-static void
-cb_spread_alone (GimvImageView *iv, guint action, GimvMenuItem *widget)
-{
-   conf.imgview_spread_first_alone = gimv_menu_item_get_active (GIMV_MENU_ITEM (widget));
-   if (iv->priv->spread) spread_reload (iv);
-}
-
-
-static void
-cb_spread_shift (GimvImageView *iv, guint action, GimvMenuItem *widget)
-{
-   GimvImageViewImageList *list = iv->priv->image_list;
-   GList *target;
-
-   if (!list || !list->nth_fn || !list->current) return;
-   target = spread_next_page (list->current);
-   if (!target) return;
-   list->current = list->nth_fn (iv, list->owner, list->list,
-                                 g_list_position (list->list, target),
-                                 list->list_fn_user_data);
-}
-
-
-gboolean
-gimv_image_view_get_spread (GimvImageView *iv)
-{
-   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
-   return iv->priv->spread;
-}
-
-
-gint
-gimv_image_view_spread_shown (GimvImageView *iv)
-{
-   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), 1);
-   return iv->priv->spread ? iv->priv->spread_shown : 1;
-}
-
-
-/* a click on the image with two pages: on the side the book goes on, the
-   next pages; on the other side the previous ones (left: next from right
-   to left).  FALSE: not two pages, as before */
+/* a click on the image with pages side by side: on the side the book goes
+   on, the next pages; on the other side the previous ones (left: next
+   from right to left).  FALSE: not side by side, as before */
 gboolean
 gimv_image_view_spread_click (GimvImageView *iv, gdouble x)
 {
@@ -5842,7 +6150,7 @@ gimv_image_view_spread_click (GimvImageView *iv, gdouble x)
    if (!iv->priv->spread || !iv->draw_area) return FALSE;
    width = gtk_widget_get_width (iv->draw_area);
    if (width <= 0) return FALSE;
-   if ((x < width / 2.0) == (conf.imgview_spread_rtl != FALSE))
+   if ((x < width / 2.0) == (spread_layout (iv)->rtl != FALSE))
       gimv_image_view_next (iv);
    else
       gimv_image_view_prev (iv);
