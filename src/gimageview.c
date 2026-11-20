@@ -45,6 +45,7 @@
 #include "gimv_thumb_cache.h"
 #include "gimv_thumb_win.h"
 #include "prefs.h"
+#include "gimv_books.h"
 #ifdef ENABLE_INDEX
 #include "gimv_index.h"
 #endif
@@ -193,6 +194,7 @@ gimv_quit (void)
 
    /* save config to disk */
    prefs_save_config ();
+   gimv_books_save ();
    {
       gchar buf[MAX_PATH_LEN];
       g_snprintf (buf, MAX_PATH_LEN, "%s/%s/%s", g_getenv("HOME"),

@@ -1357,6 +1357,14 @@ Two Pages
     While pages are shown side by side, Create Thumbnail, Crop and Edit Faces
     cannot be used (it is not the image of a page).
 
+    A book (a folder or an archive) read with pages side by side is remembered
+    with its last page and layout (~/.gimv/books, the 1000 most recent): when
+    a tab of it is opened again, that page is chosen and shown in the preview
+    with pages side by side (going on from there). Turning them off in the
+    book forgets it. While pages are side by side, the pages of the next turn
+    are read beforehand in a thread (the formats of GdkPixbuf; the images in
+    an archive are extracted first).
+
     With "Auto resize to image size" of the image window, the window is sized
     for all the pages of the layout (four pages for 2 × 2), the cover shown
     alone too, and only when pages side by side are turned on, the layout is
@@ -2385,7 +2393,20 @@ Open a new tab even if the directory has no images
 7.3.2. Thumbnail View
 
 Show/Hide
-    Whether directories and archives are shown in the thumbnail view.
+    Whether directories and archives are shown in the thumbnail view (by
+    default directories off, archives on).
+
+    The thumbnails of the directories and archives shown are their covers: the
+    first image in them (by name, the numbers by value). The covers are looked
+    for in a thread, only for those on the screen, and kept in the thumbnail
+    cache when one is written. Of a zip, cbz, LHA or uncompressed tar the list
+    of the members gives the first image by name. A rar, 7z or compressed tar
+    cannot be listed without unpacking it (it may be solid): it is read from
+    the start, the first by name of the images gone over is the cover, and
+    after 3 seconds or 256 MB unpacked the cover is the best so far (of a big
+    solid archive, one of its first images). One with no cover found keeps its
+    icon and is not looked at again in that run. ".." (the parent) keeps its
+    icon.
 
 Default display mode
     The default display mode of the thumbnail window. It can be set when Save
@@ -3846,6 +3867,19 @@ How duplicates are found
     kinds, the last three folded at first. Same Pixels and Saved Again show
     the one suggested to keep and why, without marking any to delete. The
     cards show the JPEG quality and how each differs from the first.
+
+ ・ A book (folder, archive) read with pages side by side is remembered with
+    its last page and layout (~/.gimv/books); opening its tab again shows that
+    page in the preview with pages side by side. Turning them off in the book
+    forgets it. While pages are side by side, those of the next turn are read
+    beforehand in a thread. An image chosen for the preview gets its list
+    before it is read (the pages paired with it could be off).
+
+ ・ The folders and archives of the thumbnail view show their covers (the
+    first image in them by name), looked for in threads for those on the
+    screen only and kept in the cache: of zip, cbz, LHA and tar from the list
+    of members, of rar, 7z and compressed tar read from the start within 3
+    seconds and 256 MB unpacked. One with none keeps its icon.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

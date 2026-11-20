@@ -486,6 +486,9 @@ The next image (a click, Space, Page Down) shows the next pages, the previous im
 While pages are shown side by side, Create Thumbnail, Crop and Edit Faces cannot be used (it is not the image of a page).
 </p>
 <p class="para">
+A book (a folder or an archive) read with pages side by side is remembered with its last page and layout (~/.gimv/books, the 1000 most recent): when a tab of it is opened again, that page is chosen and shown in the preview with pages side by side (going on from there).  Turning them off in the book forgets it.  While pages are side by side, the pages of the next turn are read beforehand in a thread (the formats of GdkPixbuf; the images in an archive are extracted first).
+</p>
+<p class="para">
 With "Auto resize to image size" of the image window, the window is sized for all the pages of the layout (four pages for 2 &#215; 2), the cover shown alone too, and only when pages side by side are turned on, the layout is changed or another folder is shown: turning pages does not change the size of the window ([View | Fit to Image] sizes it again at any time).
 </p>
 <p class="para">

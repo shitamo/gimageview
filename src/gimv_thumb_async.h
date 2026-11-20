@@ -28,8 +28,12 @@
 typedef void (*GimvThumbAsyncFunc) (GimvThumb *thumb, gboolean made, gboolean cancelled,
                                     gpointer view);
 
-/* the image can be read in a worker thread */
+/* the image can be read in a worker thread (a folder, an archive: its
+ * cover, the first image) */
 gboolean gimv_thumb_async_can       (GimvThumb          *thumb);
+/* a folder or an archive whose cover can be looked for (not found before
+ * in this run) */
+gboolean gimv_thumb_async_cover_can (GimvThumb          *thumb);
 /* started (TRUE; also when it was waiting, cancelled: wanted again), done
  * later with func (view: a GObject, held weakly; the func is not called
  * when it has gone) */

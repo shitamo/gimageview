@@ -44,6 +44,7 @@
 #  include "gimv_exif.h"
 #endif
 
+#include "gimv_cover.h"
 #include "gimv_image.h"
 #include "gimv_image_info.h"
 #include "prefs.h"
@@ -62,6 +63,10 @@ typedef struct {
    GWeakRef            view;
    gint                cancel;     /* atomic */
 
+   /* the cover of a book (a folder, an archive): its first image */
+   gboolean            cover;
+   gboolean            archive;
+
    /* made in the thread */
    GdkPixbuf          *pixbuf;
    gint                orig_w, orig_h;
@@ -69,6 +74,7 @@ typedef struct {
 
 static GThreadPool *pool = NULL;
 static GHashTable  *pixbuf_exts = NULL;   /* the extensions GdkPixbuf reads */
+static GHashTable  *no_cover = NULL;      /* the books with no cover (this run) */
 static guint        n_pending = 0;
 
 
@@ -275,6 +281,10 @@ idle_done (gpointer data)
    n_pending--;
    g_object_set_data (G_OBJECT (thumb), PENDING_KEY, NULL);
 
+   if (job->cover && !job->pixbuf && !g_atomic_int_get (&job->cancel)) {
+      if (!no_cover) no_cover = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+      g_hash_table_add (no_cover, g_strdup (job->path));
+   }
    if (!g_atomic_int_get (&job->cancel) && thumb->info
        && !GIMV_OBJECT (thumb)->destroyed && job->pixbuf)
    {
@@ -292,11 +302,78 @@ idle_done (gpointer data)
 }
 
 
+static gchar *lower_ext (const gchar *path);
+
+
+static gboolean
+name_is_image (const gchar *name)
+{
+   gchar *ext = lower_ext (name);
+   gboolean ok = ext && (is_jpeg (ext) || g_hash_table_contains (pixbuf_exts, ext));
+   g_free (ext);
+   return ok;
+}
+
+
+/* the cover of a book: the first image of a folder (read as an image
+ * file), or of an archive (from memory); the size of the book is not
+ * that of the cover: orig_w, orig_h stay 0 */
+static void
+make_cover (Job *job)
+{
+   if (!job->archive) {
+      gchar *first = gimv_cover_of_dir (job->path, name_is_image);
+      if (first) {
+         gchar *book = job->path;
+         job->path = first;
+         g_free (job->ext);
+         job->ext = lower_ext (first);
+#ifdef ENABLE_JPEG
+         if (is_jpeg (job->ext)) make_jpeg (job);
+#endif
+         if (!job->pixbuf)
+            job->pixbuf = gdk_pixbuf_new_from_file_at_scale (first, job->size, job->size,
+                                                             TRUE, NULL);
+         if (job->pixbuf) {
+            GdkPixbuf *turned = gimv_thumb_pixbuf_orient (
+               job->pixbuf, gdk_pixbuf_get_option (job->pixbuf, "orientation")
+                            ? 1 : gimv_thumb_file_orientation (first));
+            g_object_unref (job->pixbuf);
+            job->pixbuf = turned;
+         }
+         job->path = book;
+         g_free (first);
+      }
+   } else {
+      guchar *data;
+      gsize len;
+      gchar *name;
+      if (gimv_cover_of_archive (job->path, name_is_image, &data, &len, &name)) {
+         GInputStream *in = g_memory_input_stream_new_from_data (data, len, g_free);
+         GdkPixbuf *px = gdk_pixbuf_new_from_stream_at_scale (in, job->size, job->size,
+                                                              TRUE, NULL, NULL);
+         if (px) {
+            job->pixbuf = gimv_thumb_pixbuf_orient (px, 1);
+            g_object_unref (px);
+         }
+         g_object_unref (in);
+         g_free (name);
+      }
+   }
+   job->orig_w = job->orig_h = 0;
+}
+
+
 static void
 thread_make (gpointer data, gpointer user_data)
 {
    Job *job = data;
 
+   if (job->cover) {
+      if (!g_atomic_int_get (&job->cancel)) make_cover (job);
+      g_idle_add (idle_done, job);
+      return;
+   }
    if (!g_atomic_int_get (&job->cancel)) {
 #ifdef ENABLE_JPEG
       if (is_jpeg (job->ext))
@@ -359,6 +436,29 @@ lower_ext (const gchar *path)
  *  public
  ******************************************************************************/
 
+/* a folder or an archive whose cover can be looked for */
+gboolean
+gimv_thumb_async_cover_can (GimvThumb *thumb)
+{
+   GimvImageInfo *info;
+   const gchar *path;
+
+   g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
+   init ();
+   info = thumb->info;
+   if (!info || gimv_image_info_is_in_archive (info)) return FALSE;
+   path = gimv_image_info_get_path (info);
+   if (!path || path[0] != '/') return FALSE;
+   if (no_cover && g_hash_table_contains (no_cover, path)) return FALSE;
+   if (gimv_image_info_is_dir (info)) {
+      const gchar *base = strrchr (path, '/');
+      /* not the parent ("..") nor "." */
+      return base && strcmp (base, "/..") && strcmp (base, "/.");
+   }
+   return gimv_image_info_is_archive (info) && gimv_cover_archive_ext (path);
+}
+
+
 gboolean
 gimv_thumb_async_can (GimvThumb *thumb)
 {
@@ -369,8 +469,10 @@ gimv_thumb_async_can (GimvThumb *thumb)
 
    g_return_val_if_fail (GIMV_IS_THUMB (thumb), FALSE);
    info = thumb->info;
-   if (!info || gimv_image_info_is_dir (info) || gimv_image_info_is_archive (info)
-       || gimv_image_info_is_in_archive (info) || gimv_image_info_is_movie (info)
+   if (!info) return FALSE;
+   if (gimv_image_info_is_dir (info) || gimv_image_info_is_archive (info))
+      return gimv_thumb_async_cover_can (thumb);
+   if (gimv_image_info_is_in_archive (info) || gimv_image_info_is_movie (info)
        || gimv_image_info_is_audio (info))
       return FALSE;
    path = gimv_image_info_get_path (info);
@@ -406,6 +508,8 @@ gimv_thumb_async_load (GimvThumb *thumb, gint thumb_size, ThumbLoadType type,
    job->size = thumb_size;
    job->type = type;
    job->use_exif = conf.thumbnail_use_exif;
+   job->cover = gimv_image_info_is_dir (thumb->info) || gimv_image_info_is_archive (thumb->info);
+   job->archive = gimv_image_info_is_archive (thumb->info);
    job->func = func;
    g_weak_ref_init (&job->view, view);
    g_object_set_data (G_OBJECT (thumb), PENDING_KEY, job);

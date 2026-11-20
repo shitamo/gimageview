@@ -34,6 +34,7 @@
 #include "gimv_image.h"
 #include "gimv_image_info.h"
 #include "gimv_image_loader.h"
+#include "gimv_thumb_async.h"
 #include "prefs.h"
 #include "gimv_thumb.h"
 #include "gimv_orient.h"
@@ -569,6 +570,16 @@ gimv_thumb_load_quick (GimvThumb *thumb, gint thumb_size, ThumbLoadType type)
 
    gimv_thumb_unload (thumb);
 
+   /* a folder, an archive: its cover made before, or made in a thread
+      (gimv_thumb_async.c); its icon if it has none */
+   if (gimv_image_info_is_dir (thumb->info) || gimv_image_info_is_archive (thumb->info)) {
+      if (type != CREATE_THUMB && gimv_thumb_async_cover_can (thumb)) {
+         load_thumbnail_cache (thumb, thumb_size);
+         if (thumb->thumbnail) return TRUE;
+      }
+      if (gimv_thumb_async_cover_can (thumb)) return FALSE;
+   }
+
    /* if the file is directory */
    if (gimv_image_info_is_dir (thumb->info)) {
       GimvIcon *icon = gimv_icon_stock_get_icon ("folder48");
@@ -614,6 +625,14 @@ gimv_thumb_load (GimvThumb    *thumb,
    if (thumb->icon_mask) {
       g_object_unref (thumb->icon_mask);
       thumb->icon_mask = NULL;
+   }
+
+   /* a folder, an archive: its cover made before */
+   if ((gimv_image_info_is_dir (thumb->info) || gimv_image_info_is_archive (thumb->info))
+       && type != CREATE_THUMB && gimv_thumb_async_cover_can (thumb))
+   {
+      load_thumbnail_cache (thumb, thumb_size);
+      if (thumb->thumbnail) return TRUE;
    }
 
    /* if the file is directory */

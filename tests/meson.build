@@ -46,6 +46,24 @@ test('charset',
     dependencies : [glib_dep]),
   kwargs : test_kwargs)
 
+# src/gimv_books.c (GLib only): where the books were left
+test('books',
+  executable('test-books', 'test_books.c',
+    objects : gimv_exe.extract_objects('gimv_books.c'),
+    include_directories : test_inc,
+    dependencies : [glib_dep]),
+  kwargs : test_kwargs)
+
+# src/gimv_cover.c: the covers of the books (folders, archives)
+if libarchive_dep.found()
+  test('cover',
+    executable('test-cover', 'test_cover.c',
+      objects : gimv_exe.extract_objects('gimv_cover.c', 'fileutil.c'),
+      include_directories : test_inc,
+      dependencies : [glib_dep, libarchive_dep]),
+    kwargs : test_kwargs)
+endif
+
 # src/gimv_page_layout.c (GLib only): the layouts of pages side by side
 test('page-layout',
   executable('test-page-layout', 'test_page_layout.c',
@@ -102,13 +120,13 @@ gimv_test_core = static_library('gimv-test-core', gimv_main_source,
   objects : gimv_exe.extract_objects(gimv_sources),
   c_args : ['-Dmain=gimv_test_unused_main'],
   include_directories : [top_inc, src_inc, index_inc],
-  dependencies : common_deps + [exif_dep, gexiv2_dep, sqlite_dep, jpeg_dep])
+  dependencies : common_deps + [exif_dep, gexiv2_dep, sqlite_dep, jpeg_dep, libarchive_dep])
 
 core_test_kwargs = {
   'link_whole' : gimv_test_core,
   'export_dynamic' : true,
   'include_directories' : test_inc,
-  'dependencies' : common_deps + [exif_dep, gexiv2_dep, sqlite_dep, jpeg_dep],
+  'dependencies' : common_deps + [exif_dep, gexiv2_dep, sqlite_dep, jpeg_dep, libarchive_dep],
 }
 
 test('image-loaders',

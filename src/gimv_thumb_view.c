@@ -49,6 +49,7 @@
 #include "gimv_thumb_cache.h"
 #include "gimv_bookmark_edit.h"
 #include "gimv_thumb_view.h"
+#include "gimv_books.h"
 #ifdef ENABLE_INDEX
 #include "gimv_index_tags.h"
 #endif
@@ -118,6 +119,8 @@ struct GimvThumbViewPriv_Tag
     * view first (by the window), then the rest in the background, which
     * are not kept (the cache is written) */
    GHashTable          *recreate;      /* GimvThumb still to make again */
+   gchar               *resumed;       /* the book gone on with (once a tab) */
+   gint                 resume_waits;
    gchar               *anchor;        /* after a reload, the image to show
                                           again where the view was (path) */
    gint64               anchor_until;  /* given up then (monotonic) */
@@ -3081,6 +3084,7 @@ gimv_thumb_view_open_image (GimvThumbView *tv, GimvThumb *thumb, gint type)
    GList *current, *node;
    const gchar *image_name, *ext;
    gchar *filename, *tmpstr;
+   gboolean listed = FALSE;
 
    g_return_if_fail (GIMV_IS_THUMB_VIEW (tv) && thumb);
 
@@ -3134,6 +3138,13 @@ gimv_thumb_view_open_image (GimvThumbView *tv, GimvThumb *thumb, gint type)
    {
       iv = tw->iv;
       gimv_comment_view_change_file (tw->cv, thumb->info);
+      /* the list first: pages side by side are those after it */
+      if (g_list_find (gimv_image_view_get_list (), iv)) {
+         gimv_image_view_set_list (iv, tv->thumblist, g_list_find (tv->thumblist, thumb),
+                                   (gpointer) tv, next_image, prev_image, nth_image,
+                                   remove_list, iw);
+         listed = TRUE;
+      }
       gimv_image_view_change_image (iv, thumb->info);
 
    } else if (gimv_image_win_get_shared_window() &&
@@ -3158,13 +3169,14 @@ gimv_thumb_view_open_image (GimvThumbView *tv, GimvThumb *thumb, gint type)
 
    if (iv && g_list_find (gimv_image_view_get_list(), iv)) {
       current = g_list_find (tv->thumblist, thumb);
-      gimv_image_view_set_list (iv, tv->thumblist, current,
-                                (gpointer) tv,
-                                next_image,
-                                prev_image,
-                                nth_image,
-                                remove_list,
-                                iw);
+      if (!listed)
+         gimv_image_view_set_list (iv, tv->thumblist, current,
+                                   (gpointer) tv,
+                                   next_image,
+                                   prev_image,
+                                   nth_image,
+                                   remove_list,
+                                   iw);
       g_signal_connect (G_OBJECT (iv), "thumbnail_created",
                           G_CALLBACK (cb_imageview_thumbnail_created), tv);
       node = g_list_find (tv->priv->related_image_view, iv);
@@ -5103,6 +5115,70 @@ gimv_thumb_view_set_widget (GimvThumbView *tv, GimvThumbWin *tw,
 }
 
 
+/* the page a book was left at chosen, and shown in the preview with pages
+ * side by side as they were (when the tab is the one shown) */
+static gboolean
+idle_resume_book (gpointer data)
+{
+   GimvThumbView *tv = data;
+   const gchar *path;
+   gchar *page = NULL, *layout = NULL, *want;
+   GList *node;
+
+   if (!g_list_find (GimvThumbViewList, tv) || !tv->priv) return G_SOURCE_REMOVE;
+   path = gimv_thumb_view_get_path (tv);
+   if (!path || !gimv_books_get (path, &page, &layout)) return G_SOURCE_REMOVE;
+   /* after the first thumbnails (their loading is not to be held up by
+      the preview reading the pages) */
+   if (++tv->priv->resume_waits < 25
+       && (tv->progress || gimv_thumb_async_n_pending () > 0
+           || tv->priv->window_idle || tv->priv->window_timeout
+       || tv->tw->status == GIMV_THUMB_WIN_STATUS_LOADING
+       || tv->tw->status == GIMV_THUMB_WIN_STATUS_LOADING_BG))
+   {
+      /* (5 s at most) */
+      g_free (page);
+      g_free (layout);
+      g_timeout_add (200, idle_resume_book, tv);
+      return G_SOURCE_REMOVE;
+   }
+
+   /* the path of the page as the thumbnails have it */
+   if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE)
+      want = g_strdup (page);
+   else
+      want = g_build_filename (path, page, NULL);
+
+   for (node = tv->thumblist; node; node = g_list_next (node)) {
+      GimvThumb *t = node->data;
+      GimvThumbWin *tw = tv->tw;
+      gint current, this;
+
+      if (!t || !t->info || g_strcmp0 (gimv_image_info_get_path (t->info), want)) continue;
+
+      gimv_thumb_view_set_selection_all (tv, FALSE);
+      gimv_thumb_view_set_selection (t, TRUE);
+      gimv_thumb_view_set_focus (tv, t);
+      gimv_thumb_view_set_anchor_whole (tv, gimv_image_info_get_path (t->info));
+
+      current = gtk_notebook_get_current_page (GTK_NOTEBOOK (tw->notebook));
+      this = gtk_notebook_page_num (GTK_NOTEBOOK (tw->notebook), tv->container);
+      if (tw->show_preview && tw->iv && current == this) {
+         gimv_image_view_resume_spread (tw->iv, layout);
+         gimv_thumb_view_open_image (tv, t, GIMV_THUMB_VIEW_OPEN_IMAGE_PREVIEW);
+      }
+      /* the thumbnails near it (their loading may have stopped for the
+         preview reading the page) */
+      if (g_list_find (GimvThumbViewList, tv) && tv->priv) window_request (tv, 200);
+      break;
+   }
+   g_free (want);
+   g_free (page);
+   g_free (layout);
+   return G_SOURCE_REMOVE;
+}
+
+
 void
 gimv_thumb_view_reload (GimvThumbView *tv, FilesLoader *files, GimvThumbViewMode mode)
 {
@@ -5233,6 +5309,18 @@ gimv_thumb_view_reload (GimvThumbView *tv, FilesLoader *files, GimvThumbViewMode
    }
 
    gimv_thumb_win_set_tab_label_state (tv->container, GIMV_TAB_STATE_NORMAL);
+
+   /* a book read with pages side by side: on from where it was left (once
+      for the tab, not when it is loaded again) */
+   if ((tv->mode == GIMV_THUMB_VIEW_MODE_DIR || tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE)
+       && gimv_thumb_view_get_path (tv)
+       && g_strcmp0 (tv->priv->resumed, gimv_thumb_view_get_path (tv)))
+   {
+      g_free (tv->priv->resumed);
+      tv->priv->resumed = g_strdup (gimv_thumb_view_get_path (tv));
+      tv->priv->resume_waits = 0;
+      g_idle_add (idle_resume_book, tv);
+   }
 }
 
 
@@ -5264,6 +5352,7 @@ gimv_thumb_view_destroy (GimvObject *object)
       g_free (tv->priv->dirname);
       tv->priv->dirname = NULL;
       g_clear_pointer (&tv->priv->anchor, g_free);
+      g_clear_pointer (&tv->priv->resumed, g_free);
 
       /* remove archive */
       if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE && tv->priv->archive) {

@@ -50,6 +50,8 @@
 #include "gimv_save_dialog.h"
 #include "prefs.h"
 #include "gimv_page_layout.h"
+#include "gimv_books.h"
+#include "fr-archive.h"
 #include "gimv_page_layout_dialog.h"
 #include "gimv_thumb_cache.h"
 #ifdef ENABLE_INDEX
@@ -266,6 +268,8 @@ static void cb_spread_edit                 (GimvImageView   *iv,
                                             GimvMenuItem    *widget);
 static void spread_menu_update             (GimvImageView   *iv);
 static GimvPageLayout *spread_layout       (GimvImageView   *iv);
+static void spread_remember                (GimvImageView   *iv);
+static void spread_prefetch                (GimvImageView   *iv);
 static void cb_spread_shift                (GimvImageView   *iv,
                                             guint            action,
                                             GimvMenuItem    *widget);
@@ -4503,8 +4507,11 @@ ERROR:
    iv->priv->loader_progress_update_signal_id = 0;
    iv->priv->loader_load_end_signal_id        = 0;
 
-   if (iv->priv->spread)
+   if (iv->priv->spread) {
+      spread_remember (iv);
+      spread_prefetch (iv);
       g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
+   }
    g_signal_emit (G_OBJECT (iv),
                   gimv_image_view_signals[LOAD_END_SIGNAL], 0,
                   iv->info, FALSE);
@@ -5689,6 +5696,40 @@ gimv_image_view_page_layouts_changed (gboolean reload)
 }
 
 
+/* the book of info (a folder or an archive) and its page in it; FALSE: no
+   book (an image of no folder).  g_free () them */
+static gboolean
+spread_book_of (GimvImageInfo *info, gchar **book, gchar **page)
+{
+   *book = *page = NULL;
+   if (!info || !info->filename) return FALSE;
+   if (gimv_image_info_is_in_archive (info)) {
+      FRArchive *arc = gimv_image_info_get_archive (info);
+      if (!arc || !arc->filename) return FALSE;
+      *book = g_strdup (arc->filename);
+      *page = g_strdup (info->filename);
+      return TRUE;
+   }
+   if (!g_path_is_absolute (info->filename)) return FALSE;
+   gimv_books_split (info->filename, book, page);
+   return TRUE;
+}
+
+
+/* the page shown kept for the book (pages side by side) */
+static void
+spread_remember (GimvImageView *iv)
+{
+   gchar *book, *page;
+
+   if (!iv->priv->spread || !iv->priv->image_list) return;
+   if (!spread_book_of (iv->info, &book, &page)) return;
+   gimv_books_set (book, page, spread_layout (iv)->name);
+   g_free (book);
+   g_free (page);
+}
+
+
 static GimvImageInfo *
 spread_info (gpointer data)
 {
@@ -5761,19 +5802,175 @@ spread_others (GimvImageView *iv, GList **pages, gint max)
 }
 
 
-/* the image of a page, whole */
+/*
+ * The pages next read before they are wanted (prefetch): once pages side
+ * by side are shown, those of the next turn are decoded by a thread
+ * (GdkPixbuf only: the loaders of gimv stay in the main thread), the
+ * members of an archive extracted first in the main thread, one at an
+ * idle time.  spread_load () takes them from there.  Only those of the
+ * last turn are kept.
+ */
+typedef struct {
+   gchar *path;
+   guint  serial;
+   GdkPixbuf *pixbuf;
+} PrefetchJob;
+
+static GThreadPool *prefetch_pool    = NULL;
+static GHashTable  *prefetch_cache   = NULL;   /* path -> GdkPixbuf */
+static GHashTable  *prefetch_pending = NULL;   /* path -> TRUE */
+static GQueue       prefetch_queue   = G_QUEUE_INIT;   /* GimvImageInfo * */
+static guint        prefetch_serial  = 0;
+static guint        prefetch_idle_id = 0;
+
+
+static gboolean
+idle_prefetch_done (gpointer data)
+{
+   PrefetchJob *job = data;
+
+   if (prefetch_pending) g_hash_table_remove (prefetch_pending, job->path);
+   /* still of the pages wanted */
+   if (job->pixbuf && job->serial == prefetch_serial && prefetch_cache)
+      g_hash_table_replace (prefetch_cache, g_strdup (job->path), g_object_ref (job->pixbuf));
+   g_clear_object (&job->pixbuf);
+   g_free (job->path);
+   g_free (job);
+   return G_SOURCE_REMOVE;
+}
+
+
+static void
+prefetch_thread (gpointer data, gpointer user_data)
+{
+   PrefetchJob *job = data;
+
+   if (job->serial == g_atomic_int_get (&prefetch_serial))
+      job->pixbuf = gdk_pixbuf_new_from_file (job->path, NULL);
+   g_idle_add (idle_prefetch_done, job);
+}
+
+
+/* the path of the file of a page (an archive member extracted) */
+static gchar *
+page_path (GimvImageInfo *info)
+{
+   if (gimv_image_info_is_in_archive (info))
+      return gimv_image_info_get_temp_file (info);
+   return g_strdup (gimv_image_info_get_path (info));
+}
+
+
+/* one page of the queue at a time: extracted if need be, given to the
+   thread if GdkPixbuf reads it */
+static gboolean
+idle_prefetch_next (gpointer data)
+{
+   GimvImageInfo *info = g_queue_pop_head (&prefetch_queue);
+   gchar *path;
+
+   if (!info) {
+      prefetch_idle_id = 0;
+      return G_SOURCE_REMOVE;
+   }
+   path = page_path (info);
+   gimv_image_info_unref (info);
+   if (path && !g_hash_table_contains (prefetch_cache, path)
+       && !g_hash_table_contains (prefetch_pending, path)
+       && gdk_pixbuf_get_file_info (path, NULL, NULL))
+   {
+      PrefetchJob *job = g_new0 (PrefetchJob, 1);
+      job->path = g_strdup (path);
+      job->serial = prefetch_serial;
+      g_hash_table_insert (prefetch_pending, g_strdup (path), GINT_TO_POINTER (1));
+      g_thread_pool_push (prefetch_pool, job, NULL);
+   }
+   g_free (path);
+   return G_SOURCE_CONTINUE;
+}
+
+
+static gboolean spread_is_page (GList *node);
+static GList   *spread_next_page (GList *node);
+static GimvImageInfo *spread_info (gpointer data);
+
+
+/* the pages after those shown, as many as the layout holds */
+static void
+spread_prefetch (GimvImageView *iv)
+{
+   GimvImageViewImageList *list = iv->priv->image_list;
+   GimvPageLayout *l;
+   GHashTable *keep;
+   GHashTableIter it;
+   gpointer key;
+   GList *node;
+   gint i, n;
+
+   if (!iv->priv->spread || !list || !list->current) return;
+   if (!prefetch_pool) {
+      prefetch_pool = g_thread_pool_new (prefetch_thread, NULL, 2, FALSE, NULL);
+      prefetch_cache = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+      prefetch_pending = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   }
+   l = spread_layout (iv);
+   n = l->cols * l->rows;
+
+   /* the turn before is not wanted any more */
+   g_atomic_int_inc (&prefetch_serial);
+   while (!g_queue_is_empty (&prefetch_queue))
+      gimv_image_info_unref (g_queue_pop_head (&prefetch_queue));
+
+   /* past those shown */
+   node = list->current;
+   for (i = 0; node && i < MAX (1, iv->priv->spread_shown); i++)
+      node = spread_next_page (node);
+   keep = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+   for (i = 0; node && i < n; i++, node = spread_next_page (node)) {
+      GimvImageInfo *info = spread_info (node->data);
+      if (!info) continue;
+      g_queue_push_tail (&prefetch_queue, gimv_image_info_ref (info));
+      if (!gimv_image_info_is_in_archive (info))
+         g_hash_table_add (keep, g_strdup (gimv_image_info_get_path (info)));
+   }
+   /* those shown now stay too (the way back) */
+   for (i = 0, node = list->current; node && i < MAX (1, iv->priv->spread_shown);
+        i++, node = spread_next_page (node))
+   {
+      GimvImageInfo *info = spread_info (node->data);
+      if (info && !gimv_image_info_is_in_archive (info))
+         g_hash_table_add (keep, g_strdup (gimv_image_info_get_path (info)));
+   }
+   /* (archive members are kept by their temp paths: those are cleared
+      with the next turn of another archive) */
+   g_hash_table_iter_init (&it, prefetch_cache);
+   while (g_hash_table_iter_next (&it, &key, NULL))
+      if (!g_hash_table_contains (keep, key) && g_hash_table_size (prefetch_cache) > (guint) n * 2)
+         g_hash_table_iter_remove (&it);
+   g_hash_table_unref (keep);
+
+   if (!prefetch_idle_id)
+      prefetch_idle_id = g_idle_add_full (G_PRIORITY_LOW, idle_prefetch_next, NULL, NULL);
+}
+
+
+/* the image of a page, whole (read before if it was) */
 static GimvImage *
 spread_load (GimvImageInfo *info)
 {
    GimvImage *image;
    gchar *path;
+   GdkPixbuf *pixbuf;
 
-   if (gimv_image_info_is_in_archive (info))
-      path = gimv_image_info_get_temp_file (info);
-   else
-      path = g_strdup (gimv_image_info_get_path (info));
+   path = page_path (info);
    if (!path) return NULL;
-   image = gimv_image_load_file (path, FALSE);
+   pixbuf = prefetch_cache ? g_hash_table_lookup (prefetch_cache, path) : NULL;
+   if (pixbuf) {
+      image = gimv_image_new ();
+      image->image = g_object_ref (pixbuf);
+   } else {
+      image = gimv_image_load_file (path, FALSE);
+   }
    g_free (path);
    return image;
 }
@@ -5942,7 +6139,41 @@ gimv_image_view_set_spread (GimvImageView *iv, gboolean on)
    iv->priv->spread = on;
    if (iv->spread_menu)
       menu_check_item_set_active (iv->spread_menu, "/Two Pages", on);
+   /* turned off in a book: no going on from there */
+   if (!on) {
+      gchar *book, *page;
+      if (spread_book_of (iv->info, &book, &page)) gimv_books_forget (book);
+      g_free (book);
+      g_free (page);
+   }
    spread_reload (iv);
+   g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
+}
+
+
+/* pages side by side turned on in the layout named (if there is one),
+   for the image shown next: what is shown now is not shown again (a book
+   opened where it was left) */
+void
+gimv_image_view_resume_spread (GimvImageView *iv, const gchar *layout)
+{
+   GPtrArray *a = gimv_image_view_page_layouts ();
+   guint i;
+
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+
+   for (i = 0; layout && i < a->len; i++)
+      if (!g_strcmp0 (((GimvPageLayout *) g_ptr_array_index (a, i))->name, layout)) {
+         iv->priv->spread_layout = i;
+         spread_layout (iv);
+         break;
+      }
+   spread_menu_update (iv);
+   if (!iv->priv->spread) {
+      iv->priv->spread = TRUE;
+      if (iv->spread_menu)
+         menu_check_item_set_active (iv->spread_menu, "/Two Pages", TRUE);
+   }
    g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
 }
 
