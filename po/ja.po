@@ -7750,3 +7750,130 @@ msgstr "見開きの設定"
 #: src/gimv_page_layout_dialog.c
 msgid "_Add"
 msgstr "追加(_A)"
+
+#: src/gimv_dupl_win.c
+msgid "Same Pixels"
+msgstr "同じピクセル"
+
+#: src/gimv_dupl_win.c
+msgid "Saved Again"
+msgstr "保存し直し"
+
+#: src/gimv_dupl_win.c
+msgid "Brightness, Colours"
+msgstr "明るさ・色違い"
+
+#: src/gimv_dupl_win.c
+msgid "Partly Different"
+msgstr "一部が違う"
+
+#: src/gimv_dupl_win.c
+msgid "Alike, Other Pictures"
+msgstr "似ている別の画像"
+
+#: src/gimv_dupl_win.c
+msgid "Identical (the same files)"
+msgstr "完全に同じ (同じファイル)"
+
+#: src/gimv_dupl_win.c
+msgid "Other sizes"
+msgstr "大きさ違い"
+
+#: src/gimv_dupl_win.c
+msgid "Same pixels (other metadata)"
+msgstr "同じピクセル (メタデータ違い)"
+
+#: src/gimv_dupl_win.c
+msgid "Saved again (quality, format)"
+msgstr "保存し直し (画質・形式違い)"
+
+#: src/gimv_dupl_win.c
+msgid "Brightness, colours"
+msgstr "明るさ・色違い"
+
+#: src/gimv_dupl_win.c
+msgid "Partly different (difference pictures, writing)"
+msgstr "一部が違う (差分・書き込み)"
+
+#: src/gimv_dupl_win.c
+msgid "Alike, other pictures"
+msgstr "似ている別の画像"
+
+#: src/gimv_dupl_win.c
+msgid "The same pixels: only the metadata (or the format) differs.  None is marked: choose what to delete."
+msgstr "ピクセルは同じで、メタデータ (または形式) だけが違います。削除の印は付けていません。削除するものを選んでください。"
+
+#: src/gimv_dupl_win.c
+msgid "The same picture saved again: another quality, format or size.  None is marked: choose what to delete."
+msgstr "同じ絵を保存し直したものです (画質・形式・大きさ違い)。削除の印は付けていません。削除するものを選んでください。"
+
+#: src/gimv_dupl_win.c
+msgid "The same picture, the whole of it a little brighter, darker or of other colours.  None is chosen to keep."
+msgstr "同じ絵で、全体が少し明るい・暗い・色が違うものです。残すものは選んでいません。"
+
+#: src/gimv_dupl_win.c
+msgid "A part differs: a difference picture (another face, clothes), writing, a mark.  Usually kept as other pictures."
+msgstr "一部だけ違います: 差分 (表情・服など)、書き込み、印など。ふつうは別の画像として残します。"
+
+#: src/gimv_dupl_win.c
+msgid "Alike, but other pictures: pages, shots one after another.  None is chosen to keep."
+msgstr "似ていますが別の画像です (続きのページ、連続した写真など)。残すものは選んでいません。"
+
+#: src/gimv_dupl_win.c
+msgid "The same pixels as the first"
+msgstr "先頭と同じピクセル"
+
+#: src/gimv_dupl_win.c
+msgid "Saved again"
+msgstr "保存し直し"
+
+#: src/gimv_dupl_win.c
+msgid "Another size"
+msgstr "大きさ違い"
+
+#: src/gimv_dupl_win.c
+msgid "Brightness or colours differ"
+msgstr "明るさ・色が違う"
+
+#: src/gimv_dupl_win.c
+msgid "A part differs"
+msgstr "一部が違う"
+
+#: src/gimv_dupl_win.c
+msgid "Another picture"
+msgstr "別の画像"
+
+#: src/gimv_dupl_win.c
+msgid "Looking at how the similar ones differ (%u/%u)"
+msgstr "似ている画像の違いを調べています (%u/%u)"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Suggested to keep: %s (the largest file: the most metadata)."
+msgstr "残すおすすめ: %s (ファイルがいちばん大きい: メタデータが多い)。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Suggested to keep: %s (it keeps the pixels; the JPEG ones are likely saved from it)."
+msgstr "残すおすすめ: %s (ピクセルをそのまま保つ形式。JPEG のほうはこれから保存し直したものと思われます)。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Suggested to keep: %s (JPEG quality %d; the others %d at most)."
+msgstr "残すおすすめ: %s (JPEG の画質 %d。他は高くても %d)。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "Suggested to keep: %s (the most pixels)."
+msgstr "残すおすすめ: %s (画素数がいちばん多い)。"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "%s · quality %d"
+msgstr "%s · 画質 %d"
+
+#: src/gimv_dupl_win.c
+#, c-format
+msgid "<b>%s</b>  %u group"
+msgid_plural "<b>%s</b>  %u groups"
+msgstr[0] "<b>%s</b>  %u 組"

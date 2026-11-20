@@ -40,6 +40,7 @@
 
 #include "gimv_bookmark.h"
 #include "gimv_comment.h"
+#include "gimv_dupl_classify.h"
 #include "gimv_dupl_scan.h"
 #include "gimv_enlarged.h"
 #include "gimv_icon_stock.h"
@@ -114,7 +115,11 @@ struct GimvDuplWinPriv_Tag
    GThreadPool   *pool;
 
    /* widgets */
-   GListStore    *group_store; /* GimvDuplEntry */
+   /* the list: a heading of each kind (to fold), its groups under it */
+   GListStore    *section_store;            /* GimvDuplEntry: the headings */
+   GListStore    *kind_stores[GIMV_DUPL_N_KINDS]; /* ... the groups */
+   GtkTreeListModel *tree;
+   gboolean       expanded[GIMV_DUPL_N_KINDS];
    GtkWidget     *group_view;
    GtkWidget     *head_label;
    GtkWidget     *kind_label;
@@ -147,7 +152,8 @@ G_DECLARE_FINAL_TYPE (GimvDuplEntry, gimv_dupl_entry, GIMV, DUPL_ENTRY, GObject)
 struct _GimvDuplEntry
 {
    GObject parent;
-   gint    index;
+   gint    index;     /* of the group; -1: the heading of a kind */
+   gint    kind;
 };
 
 G_DEFINE_TYPE (GimvDuplEntry, gimv_dupl_entry, G_TYPE_OBJECT)
@@ -156,10 +162,11 @@ static void gimv_dupl_entry_class_init (GimvDuplEntryClass *klass) { }
 static void gimv_dupl_entry_init (GimvDuplEntry *entry) { }
 
 static GimvDuplEntry *
-entry_new (gint index)
+entry_new (gint index, gint kind)
 {
    GimvDuplEntry *entry = g_object_new (GIMV_TYPE_DUPL_ENTRY, NULL);
    entry->index = index;
+   entry->kind  = kind;
    return entry;
 }
 
@@ -172,9 +179,29 @@ static const gchar *
 kind_label (GimvDuplKind kind)
 {
    switch (kind) {
-   case GIMV_DUPL_SAME:    return _("Identical");
-   case GIMV_DUPL_RESIZED: return _("Other Sizes");
-   default:                return _("Similar");
+   case GIMV_DUPL_SAME:     return _("Identical");
+   case GIMV_DUPL_RESIZED:  return _("Other Sizes");
+   case GIMV_DUPL_PIXELS:   return _("Same Pixels");
+   case GIMV_DUPL_RESAVED:  return _("Saved Again");
+   case GIMV_DUPL_ADJUSTED: return _("Brightness, Colours");
+   case GIMV_DUPL_PARTLY:   return _("Partly Different");
+   default:                 return _("Alike, Other Pictures");
+   }
+}
+
+
+/* the headings of the kinds in the list */
+static const gchar *
+kind_heading (GimvDuplKind kind)
+{
+   switch (kind) {
+   case GIMV_DUPL_SAME:     return _("Identical (the same files)");
+   case GIMV_DUPL_RESIZED:  return _("Other sizes");
+   case GIMV_DUPL_PIXELS:   return _("Same pixels (other metadata)");
+   case GIMV_DUPL_RESAVED:  return _("Saved again (quality, format)");
+   case GIMV_DUPL_ADJUSTED: return _("Brightness, colours");
+   case GIMV_DUPL_PARTLY:   return _("Partly different (difference pictures, writing)");
+   default:                 return _("Alike, other pictures");
    }
 }
 
@@ -187,10 +214,76 @@ kind_text (GimvDuplKind kind)
       return _("The same files (the same bytes).");
    case GIMV_DUPL_RESIZED:
       return _("The same picture in other sizes (and its copies).");
+   case GIMV_DUPL_PIXELS:
+      return _("The same pixels: only the metadata (or the format) differs.  "
+               "None is marked: choose what to delete.");
+   case GIMV_DUPL_RESAVED:
+      return _("The same picture saved again: another quality, format or size.  "
+               "None is marked: choose what to delete.");
+   case GIMV_DUPL_ADJUSTED:
+      return _("The same picture, the whole of it a little brighter, darker or of "
+               "other colours.  None is chosen to keep.");
+   case GIMV_DUPL_PARTLY:
+      return _("A part differs: a difference picture (another face, clothes), "
+               "writing, a mark.  Usually kept as other pictures.");
    default:
-      return _("Similar pictures: edited, saved again, or other shots.  "
+      return _("Alike, but other pictures: pages, shots one after another.  "
                "None is chosen to keep.");
    }
+}
+
+
+/* why the first is suggested (shown only); NULL: none.  g_free () it */
+static gchar *
+reason_text (GimvDuplGroup *group)
+{
+   GimvDuplItem *first = g_ptr_array_index (group->members, 0);
+   gchar *name = g_filename_display_basename (first->path), *text = NULL;
+
+   switch (group->reason) {
+   case GIMV_DUPL_REASON_METADATA:
+      text = g_strdup_printf (_("Suggested to keep: %s (the largest file: the most "
+                                "metadata)."), name);
+      break;
+   case GIMV_DUPL_REASON_LOSSLESS:
+      text = g_strdup_printf (_("Suggested to keep: %s (it keeps the pixels; the JPEG "
+                                "ones are likely saved from it)."), name);
+      break;
+   case GIMV_DUPL_REASON_QUALITY:
+      text = g_strdup_printf (_("Suggested to keep: %s (JPEG quality %d; the others "
+                                "%d at most)."), name, group->q_keep, group->q_other);
+      break;
+   case GIMV_DUPL_REASON_PIXELS:
+      text = g_strdup_printf (_("Suggested to keep: %s (the most pixels)."), name);
+      break;
+   default:
+      break;
+   }
+   g_free (name);
+   return text;
+}
+
+
+/* how a member differs from the first (the classified kinds) */
+static const gchar *
+rel_text (gint rel)
+{
+   switch (rel) {
+   case GIMV_DUPL_REL_PIXELS:   return _("The same pixels as the first");
+   case GIMV_DUPL_REL_RESAVED:  return _("Saved again");
+   case GIMV_DUPL_REL_RESIZED:  return _("Another size");
+   case GIMV_DUPL_REL_ADJUSTED: return _("Brightness or colours differ");
+   case GIMV_DUPL_REL_PARTLY:   return _("A part differs");
+   default:                     return _("Another picture");
+   }
+}
+
+
+/* open in the list at first */
+static gboolean
+kind_open (GimvDuplKind kind)
+{
+   return kind <= GIMV_DUPL_RESAVED;
 }
 
 
@@ -689,10 +782,47 @@ group_row_setup (void)
 }
 
 
+/* a row: under a GtkTreeExpander, the heading of a kind or a group */
 static void
 cb_row_setup (GtkSignalListItemFactory *f, GtkListItem *item, gpointer data)
 {
-   gtk_list_item_set_child (item, group_row_setup ());
+   GtkWidget *expander = gtk_tree_expander_new ();
+   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+   GtkWidget *heading = gtk_label_new (NULL);
+
+   gtk_label_set_xalign (GTK_LABEL (heading), 0.0);
+   gtk_label_set_ellipsize (GTK_LABEL (heading), PANGO_ELLIPSIZE_END);
+   gtk_widget_set_margin_top (heading, 6);
+   gtk_widget_set_margin_bottom (heading, 6);
+   gtk_box_append (GTK_BOX (box), heading);
+   gtk_box_append (GTK_BOX (box), group_row_setup ());
+   gtk_tree_expander_set_child (GTK_TREE_EXPANDER (expander), box);
+   gtk_list_item_set_child (item, expander);
+}
+
+
+static GimvDuplEntry *
+row_entry (gpointer row)
+{
+   gpointer item;
+
+   if (!GTK_IS_TREE_LIST_ROW (row)) return NULL;
+   item = gtk_tree_list_row_get_item (row);
+   /* the model keeps it: no reference here */
+   if (item) g_object_unref (item);
+   return item;
+}
+
+
+/* the parts of a row */
+static GtkWidget *
+row_box (GtkWidget *expander, GtkWidget **heading)
+{
+   GtkWidget *box = gtk_tree_expander_get_child (GTK_TREE_EXPANDER (expander));
+   GtkWidget *h = gtk_widget_get_first_child (box);
+
+   if (heading) *heading = h;
+   return gtk_widget_get_next_sibling (h);
 }
 
 
@@ -742,24 +872,51 @@ group_row_fill (GimvDuplWin *sw, GtkWidget *box, gint index)
 
 
 static void
+heading_fill (GimvDuplWin *sw, GtkWidget *heading, gint kind)
+{
+   guint n = g_list_model_get_n_items (G_LIST_MODEL (sw->priv->kind_stores[kind]));
+   gchar *markup = g_markup_printf_escaped (ngettext ("<b>%s</b>  %u group",
+                                                      "<b>%s</b>  %u groups", n),
+                                            kind_label (kind), n);
+   gchar *tip = g_strdup_printf ("%s\n%s", kind_heading (kind), kind_text (kind));
+   gtk_label_set_markup (GTK_LABEL (heading), markup);
+   gtk_widget_set_tooltip_text (heading, tip);
+   g_free (markup);
+   g_free (tip);
+}
+
+
+static void
 cb_row_bind (GtkSignalListItemFactory *f, GtkListItem *item, GimvDuplWin *sw)
 {
-   GimvDuplEntry *entry = gtk_list_item_get_item (item);
-   GtkWidget *box = gtk_list_item_get_child (item);
+   GtkTreeListRow *row = gtk_list_item_get_item (item);
+   GimvDuplEntry *entry = row_entry (row);
+   GtkWidget *expander = gtk_list_item_get_child (item);
+   GtkWidget *heading, *box = row_box (expander, &heading);
 
-   g_object_set_data (G_OBJECT (entry), "gimv-dupl-row", box);
-   group_row_fill (sw, box, entry->index);
+   gtk_tree_expander_set_list_row (GTK_TREE_EXPANDER (expander), row);
+   if (!entry) return;
+   gtk_widget_set_visible (heading, entry->index < 0);
+   gtk_widget_set_visible (box, entry->index >= 0);
+   if (entry->index < 0) {
+      heading_fill (sw, heading, entry->kind);
+   } else {
+      g_object_set_data (G_OBJECT (entry), "gimv-dupl-row", box);
+      group_row_fill (sw, box, entry->index);
+   }
 }
 
 
 static void
 cb_row_unbind (GtkSignalListItemFactory *f, GtkListItem *item, GimvDuplWin *sw)
 {
-   GimvDuplEntry *entry = gtk_list_item_get_item (item);
+   GimvDuplEntry *entry = row_entry (gtk_list_item_get_item (item));
+   GtkWidget *expander = gtk_list_item_get_child (item);
 
    if (entry && g_object_get_data (G_OBJECT (entry), "gimv-dupl-row")
-                == gtk_list_item_get_child (item))
+                == row_box (expander, NULL))
       g_object_set_data (G_OBJECT (entry), "gimv-dupl-row", NULL);
+   gtk_tree_expander_set_list_row (GTK_TREE_EXPANDER (expander), NULL);
 }
 
 
@@ -767,15 +924,42 @@ cb_row_unbind (GtkSignalListItemFactory *f, GtkListItem *item, GimvDuplWin *sw)
 static void
 refresh_rows (GimvDuplWin *sw)
 {
-   GListModel *model = G_LIST_MODEL (sw->priv->group_store);
-   guint i, n = g_list_model_get_n_items (model);
+   guint k, i, n;
 
-   for (i = 0; i < n; i++) {
-      GimvDuplEntry *entry = g_list_model_get_item (model, i);
-      GtkWidget *box = g_object_get_data (G_OBJECT (entry), "gimv-dupl-row");
-      if (box) group_row_fill (sw, box, entry->index);
-      g_object_unref (entry);
+   for (k = 0; k < GIMV_DUPL_N_KINDS; k++) {
+      GListModel *model = G_LIST_MODEL (sw->priv->kind_stores[k]);
+      n = g_list_model_get_n_items (model);
+      for (i = 0; i < n; i++) {
+         GimvDuplEntry *entry = g_list_model_get_item (model, i);
+         GtkWidget *box = g_object_get_data (G_OBJECT (entry), "gimv-dupl-row");
+         if (box) group_row_fill (sw, box, entry->index);
+         g_object_unref (entry);
+      }
    }
+}
+
+
+/* the groups in the list */
+static guint
+n_listed (GimvDuplWin *sw)
+{
+   guint k, n = 0;
+
+   for (k = 0; k < GIMV_DUPL_N_KINDS; k++)
+      n += g_list_model_get_n_items (G_LIST_MODEL (sw->priv->kind_stores[k]));
+   return n;
+}
+
+
+/* the children of a heading (GtkTreeListModel) */
+static GListModel *
+tree_children (gpointer item, gpointer data)
+{
+   GimvDuplWin *sw = data;
+   GimvDuplEntry *entry = item;
+
+   if (entry->index >= 0 || !sw->priv) return NULL;
+   return G_LIST_MODEL (g_object_ref (sw->priv->kind_stores[entry->kind]));
 }
 
 
@@ -953,6 +1137,11 @@ card_new (GimvDuplWin *sw, GimvDuplGroup *group, guint i)
       gchar *up = ext && !strchr (ext, '/') ? g_ascii_strup (ext + 1, -1) : g_strdup ("");
       text = *up ? g_strdup_printf ("%s · %s", size, up) : g_strdup (size);
       g_free (up);
+      if (item->quality > 0) {
+         gchar *t = g_strdup_printf (_("%s · quality %d"), text, item->quality);
+         g_free (text);
+         text = t;
+      }
    }
    card_label (box, text, FALSE);
    g_free (text);
@@ -970,7 +1159,12 @@ card_new (GimvDuplWin *sw, GimvDuplGroup *group, guint i)
    }
 
    if (i == 0)
-      text = g_strdup (group->suggested ? _("Suggested to keep") : "");
+      text = g_strdup (group->suggested || group->reason ? _("Suggested to keep") : "");
+   else if (group->rel && g_array_index (group->rel, gint, i) >= 0)
+      /* the classified kinds: how it differs */
+      text = g_strdup (rel_text (g_array_index (group->rel, gint, i)));
+   else if (group->rel)
+      text = g_strdup (_("The same file as the first"));
    else if (sim >= 1.0)
       text = g_strdup (_("The same file as the first"));
    else
@@ -1050,7 +1244,14 @@ show_group (GimvDuplWin *sw, gint index)
       gtk_label_set_markup (GTK_LABEL (priv->head_label), markup);
       g_free (markup);
    }
-   gtk_label_set_text (GTK_LABEL (priv->kind_label), kind_text (group->kind));
+   {
+      gchar *reason = reason_text (group);
+      gchar *text = reason ? g_strdup_printf ("%s\n%s", kind_text (group->kind), reason)
+                           : g_strdup (kind_text (group->kind));
+      gtk_label_set_text (GTK_LABEL (priv->kind_label), text);
+      g_free (text);
+      g_free (reason);
+   }
 
    {
       guint shown = 0, left = n_left (sw, group);
@@ -1074,51 +1275,153 @@ show_group (GimvDuplWin *sw, gint index)
 }
 
 
+/* a heading chosen: what the kind is */
+static void
+show_heading (GimvDuplWin *sw, gint kind)
+{
+   GimvDuplWinPriv *priv = sw->priv;
+   gchar *markup;
+
+   show_group (sw, -1);
+   markup = g_markup_printf_escaped ("<b>%s</b>", kind_heading (kind));
+   gtk_label_set_markup (GTK_LABEL (priv->head_label), markup);
+   g_free (markup);
+   gtk_label_set_text (GTK_LABEL (priv->kind_label), kind_text (kind));
+}
+
+
 static void
 cb_group_selected (GtkSelectionModel *model, guint position, guint n_items,
                    GimvDuplWin *sw)
 {
    GimvDuplEntry *entry
-      = gtk_single_selection_get_selected_item (GTK_SINGLE_SELECTION (model));
+      = row_entry (gtk_single_selection_get_selected_item (GTK_SINGLE_SELECTION (model)));
 
-   show_group (sw, entry ? entry->index : -1);
+   if (entry && entry->index < 0)
+      show_heading (sw, entry->kind);
+   else
+      show_group (sw, entry ? entry->index : -1);
 }
 
 
-/* the groups of priv->groups into the list (the ones with two left);
- * the selection stays on the group of the path shown before */
+/* a heading activated (a double click, Enter): opened or folded */
+static void
+cb_row_activate (GtkListView *view, guint position, GimvDuplWin *sw)
+{
+   GtkTreeListRow *row = g_list_model_get_item (G_LIST_MODEL (sw->priv->tree), position);
+   GimvDuplEntry *entry = row_entry (row);
+
+   if (entry && entry->index < 0)
+      gtk_tree_list_row_set_expanded (row, !gtk_tree_list_row_get_expanded (row));
+   if (row) g_object_unref (row);
+}
+
+
+/* where the group is in the list (as it is folded); GTK_INVALID_LIST_POSITION */
+static guint
+group_position (GimvDuplWin *sw, gint index)
+{
+   GListModel *model = G_LIST_MODEL (sw->priv->tree);
+   guint i, n = g_list_model_get_n_items (model);
+
+   for (i = 0; i < n; i++) {
+      GtkTreeListRow *row = g_list_model_get_item (model, i);
+      GimvDuplEntry *entry = row_entry (row);
+      g_object_unref (row);
+      if (entry && entry->index == index) return i;
+   }
+   return GTK_INVALID_LIST_POSITION;
+}
+
+
+/* the first group at position or after it (else before it) */
+static guint
+group_near (GimvDuplWin *sw, guint position)
+{
+   GListModel *model = G_LIST_MODEL (sw->priv->tree);
+   guint n = g_list_model_get_n_items (model), i;
+
+   for (i = position; i < n; i++) {
+      GtkTreeListRow *row = g_list_model_get_item (model, i);
+      GimvDuplEntry *entry = row_entry (row);
+      g_object_unref (row);
+      if (entry && entry->index >= 0) return i;
+   }
+   for (i = MIN (position, n); i-- > 0;) {
+      GtkTreeListRow *row = g_list_model_get_item (model, i);
+      GimvDuplEntry *entry = row_entry (row);
+      g_object_unref (row);
+      if (entry && entry->index >= 0) return i;
+   }
+   return GTK_INVALID_LIST_POSITION;
+}
+
+
+/* the groups of priv->groups into the list (the ones with two left), under
+ * the headings of their kinds, folded as they were; the selection stays on
+ * the group of the path shown before */
 static void
 fill_groups (GimvDuplWin *sw)
 {
    GimvDuplWinPriv *priv = sw->priv;
    GtkSelectionModel *sel = gtk_list_view_get_model (GTK_LIST_VIEW (priv->group_view));
    gchar *was = NULL;
-   guint i, select = GTK_INVALID_LIST_POSITION, n = 0;
+   gint was_group = -1;
+   guint i, k, select, n = 0;
 
    if (priv->current >= 0 && priv->groups && priv->current < (gint) priv->groups->len) {
       GimvDuplGroup *g = g_ptr_array_index (priv->groups, priv->current);
       was = g_strdup (((GimvDuplItem *) g_ptr_array_index (g->members, 0))->path);
    }
 
+   /* folded as they were */
+   for (i = 0; i < g_list_model_get_n_items (G_LIST_MODEL (priv->section_store)); i++) {
+      GtkTreeListRow *row = gtk_tree_list_model_get_child_row (priv->tree, i);
+      GimvDuplEntry *entry = row_entry (row);
+      if (entry) priv->expanded[entry->kind] = gtk_tree_list_row_get_expanded (row);
+      if (row) g_object_unref (row);
+   }
+
    g_signal_handlers_block_by_func (sel, cb_group_selected, sw);
-   g_list_store_remove_all (priv->group_store);
+   for (k = 0; k < GIMV_DUPL_N_KINDS; k++)
+      g_list_store_remove_all (priv->kind_stores[k]);
+   g_list_store_remove_all (priv->section_store);
+
    for (i = 0; priv->groups && i < priv->groups->len; i++) {
       GimvDuplGroup *group = g_ptr_array_index (priv->groups, i);
       GimvDuplEntry *entry;
-      guint k;
 
       if (n_left (sw, group) < 2) continue;
-      entry = entry_new (i);
-      g_list_store_append (priv->group_store, entry);
+      entry = entry_new (i, group->kind);
+      g_list_store_append (priv->kind_stores[group->kind], entry);
       g_object_unref (entry);
-      if (was && select == GTK_INVALID_LIST_POSITION)
-         for (k = 0; k < group->members->len; k++)
-            if (!strcmp (((GimvDuplItem *) g_ptr_array_index (group->members, k))->path, was))
-               select = n;
+      if (was && was_group < 0) {
+         guint m;
+         for (m = 0; m < group->members->len; m++)
+            if (!strcmp (((GimvDuplItem *) g_ptr_array_index (group->members, m))->path, was))
+               was_group = i;
+      }
       n++;
    }
    g_free (was);
-   if (n > 0 && select == GTK_INVALID_LIST_POSITION) select = 0;
+
+   for (k = 0; k < GIMV_DUPL_N_KINDS; k++) {
+      GimvDuplEntry *heading;
+      if (g_list_model_get_n_items (G_LIST_MODEL (priv->kind_stores[k])) == 0) continue;
+      heading = entry_new (-1, k);
+      g_list_store_append (priv->section_store, heading);
+      g_object_unref (heading);
+   }
+   for (i = 0; i < g_list_model_get_n_items (G_LIST_MODEL (priv->section_store)); i++) {
+      GtkTreeListRow *row = gtk_tree_list_model_get_child_row (priv->tree, i);
+      GimvDuplEntry *entry = row_entry (row);
+      if (entry) gtk_tree_list_row_set_expanded (row, priv->expanded[entry->kind]);
+      if (row) g_object_unref (row);
+   }
+
+   /* the group shown before, else the first in an open kind */
+   select = was_group >= 0 ? group_position (sw, was_group) : GTK_INVALID_LIST_POSITION;
+   if (select == GTK_INVALID_LIST_POSITION && n > 0) select = group_near (sw, 0);
    gtk_single_selection_set_selected (GTK_SINGLE_SELECTION (sel), select);
    g_signal_handlers_unblock_by_func (sel, cb_group_selected, sw);
 
@@ -1175,6 +1478,10 @@ idle_progress (gpointer data)
          break;
       case GIMV_DUPL_PHASE_COMPARE:
          text = g_strdup_printf (_("Comparing the images (%u/%u)"), msg->done, msg->total);
+         break;
+      case GIMV_DUPL_PHASE_CLASSIFY:
+         text = g_strdup_printf (_("Looking at how the similar ones differ (%u/%u)"),
+                                 msg->done, msg->total);
          break;
       default:
          break;
@@ -1403,7 +1710,7 @@ scan_done (GObject *source, GAsyncResult *res, gpointer data)
    gtk_widget_set_sensitive (priv->stop_button, FALSE);
    set_groups (sw, gimv_dupl_scan_get_groups (priv->scan), FALSE);
 
-   n = g_list_model_get_n_items (G_LIST_MODEL (priv->group_store));
+   n = n_listed (sw);
    text = ok ? g_strdup_printf (_("Done: %u groups"), n)
              : g_strdup_printf (_("Stopped: %u groups"), n);
 #ifdef ENABLE_INDEX
@@ -2124,12 +2431,12 @@ trash_done (GObject *source, GAsyncResult *res, gpointer data)
    if (!job->all_groups) {
       GtkSingleSelection *sel = GTK_SINGLE_SELECTION
          (gtk_list_view_get_model (GTK_LIST_VIEW (sw->priv->group_view)));
-      guint n = g_list_model_get_n_items (G_LIST_MODEL (sw->priv->group_store));
-      if (n > 0 && gtk_single_selection_get_selected (sel) != MIN (job->position, n - 1)
-          && job->done->len > 0) {
-         gtk_single_selection_set_selected (sel, MIN (job->position, n - 1));
+      guint pos = group_near (sw, job->position);
+      if (pos != GTK_INVALID_LIST_POSITION
+          && gtk_single_selection_get_selected (sel) != pos && job->done->len > 0) {
+         gtk_single_selection_set_selected (sel, pos);
          gtk_list_view_scroll_to (GTK_LIST_VIEW (sw->priv->group_view),
-                                  MIN (job->position, n - 1), GTK_LIST_SCROLL_FOCUS, NULL);
+                                  pos, GTK_LIST_SCROLL_FOCUS, NULL);
       }
    }
 
@@ -2434,7 +2741,13 @@ gimv_dupl_win_dispose (GObject *object)
       if (priv->pool) g_thread_pool_free (priv->pool, FALSE, FALSE);
       priv->pool = NULL;
       g_clear_pointer (&priv->pending, g_hash_table_destroy);
-      g_clear_object (&priv->group_store);
+      {
+         guint k;
+         for (k = 0; k < GIMV_DUPL_N_KINDS; k++)
+            g_clear_object (&priv->kind_stores[k]);
+      }
+      g_clear_object (&priv->tree);
+      g_clear_object (&priv->section_store);
       g_free (priv);
       sw->priv = NULL;
    }
@@ -2500,8 +2813,17 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    gtk_box_append (GTK_BOX (vbox), paned);
 
    /* the groups */
-   priv->group_store = g_list_store_new (GIMV_TYPE_DUPL_ENTRY);
-   sel = gtk_single_selection_new (G_LIST_MODEL (g_object_ref (priv->group_store)));
+   {
+      guint k;
+      for (k = 0; k < GIMV_DUPL_N_KINDS; k++) {
+         priv->kind_stores[k] = g_list_store_new (GIMV_TYPE_DUPL_ENTRY);
+         priv->expanded[k] = kind_open (k);
+      }
+   }
+   priv->section_store = g_list_store_new (GIMV_TYPE_DUPL_ENTRY);
+   priv->tree = gtk_tree_list_model_new (G_LIST_MODEL (g_object_ref (priv->section_store)),
+                                         FALSE, FALSE, tree_children, sw, NULL);
+   sel = gtk_single_selection_new (G_LIST_MODEL (g_object_ref (priv->tree)));
    gtk_single_selection_set_autoselect (sel, FALSE);
    gtk_single_selection_set_can_unselect (sel, FALSE);
    g_signal_connect (sel, "selection-changed", G_CALLBACK (cb_group_selected), sw);
@@ -2510,6 +2832,7 @@ gimv_dupl_win_init (GimvDuplWin *sw)
    g_signal_connect (factory, "bind", G_CALLBACK (cb_row_bind), sw);
    g_signal_connect (factory, "unbind", G_CALLBACK (cb_row_unbind), sw);
    priv->group_view = gtk_list_view_new (GTK_SELECTION_MODEL (sel), factory);
+   g_signal_connect (priv->group_view, "activate", G_CALLBACK (cb_row_activate), sw);
    scrolled = gtk_scrolled_window_new ();
    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
                                    GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);

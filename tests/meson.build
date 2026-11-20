@@ -73,7 +73,7 @@ test('orient',
 # src/gimv_dupl_scan.c, gimv_enlarged.c: the duplicate images (GLib, gdk-pixbuf)
 test('dupl',
   executable('test-dupl', 'test_dupl.c',
-    objects : gimv_exe.extract_objects('gimv_dupl_scan.c', 'gimv_enlarged.c'),
+    objects : gimv_exe.extract_objects('gimv_dupl_scan.c', 'gimv_dupl_classify.c', 'gimv_enlarged.c'),
     include_directories : test_inc,
     dependencies : [glib_dep, gio_dep, pixbuf_dep, m_dep]),
   kwargs : test_kwargs)

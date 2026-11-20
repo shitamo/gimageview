@@ -17,11 +17,32 @@
 #include <gio/gio.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
+/* in the order they are shown; the similar pictures (alike, the same
+   size, not the same bytes) are looked at again at the end of the scan
+   (gimv_dupl_classify.c) and sorted into the kinds from _PIXELS on */
 typedef enum {
    GIMV_DUPL_SAME,      /* the same bytes */
    GIMV_DUPL_RESIZED,   /* the same picture, other sizes (and copies) */
-   GIMV_DUPL_SIMILAR    /* alike: edited, saved again, ... */
+   GIMV_DUPL_PIXELS,    /* the same pixels: only the metadata (or the
+                           format) differs */
+   GIMV_DUPL_RESAVED,   /* the same picture saved again: other quality,
+                           format (or size) */
+   GIMV_DUPL_ADJUSTED,  /* the whole brighter, darker, other colours */
+   GIMV_DUPL_PARTLY,    /* a part changed: a difference picture, writing */
+   GIMV_DUPL_SIMILAR,   /* alike, but other pictures (pages, shots) */
+   GIMV_DUPL_N_KINDS
 } GimvDuplKind;
+
+/* why members[0] is the one to keep (shown only: nothing is marked) */
+typedef enum {
+   GIMV_DUPL_REASON_NONE,
+   GIMV_DUPL_REASON_METADATA,   /* the same pixels: the largest file (the
+                                   most metadata), then the oldest */
+   GIMV_DUPL_REASON_LOSSLESS,   /* not JPEG, the others JPEG: likely saved
+                                   from it */
+   GIMV_DUPL_REASON_QUALITY,    /* the highest JPEG quality */
+   GIMV_DUPL_REASON_PIXELS      /* the most pixels */
+} GimvDuplReason;
 
 #define GIMV_DUPL_SIG_SIZE (32 * 32 * 3)
 
@@ -42,6 +63,11 @@ typedef struct {
 
    /* set after the scan (gimv_enlarged.c) */
    gboolean  enlarged;        /* a smaller member only made larger */
+
+   /* of the similar ones (gimv_dupl_classify.c) */
+   gint      quality;         /* JPEG quality 1 .. 100; -1: not JPEG; 0:
+                                 not known */
+   gboolean  lossless;        /* a format that keeps the pixels (PNG ...) */
 } GimvDuplItem;
 
 typedef struct {
@@ -50,12 +76,20 @@ typedef struct {
    GArray       *sim;         /* gfloat: of each member to members[0] */
    gboolean      suggested;   /* members[0] is the one to keep, the others
                                  to delete (the same, resized) */
+   GimvDuplReason reason;     /* members[0] is suggested to keep, shown
+                                 only (the same pixels, saved again) */
+   gint          q_keep, q_other;  /* _REASON_QUALITY: the JPEG qualities
+                                 of members[0] and the best of the others */
+   GArray       *rel;         /* GimvDuplRelation of each member to
+                                 members[0] (-1: copies of the same file);
+                                 NULL: not looked at */
 } GimvDuplGroup;
 
 typedef enum {
    GIMV_DUPL_PHASE_SAME,      /* comparing the files of the same size */
    GIMV_DUPL_PHASE_READ,      /* reading the images (small) */
    GIMV_DUPL_PHASE_COMPARE,   /* comparing the pictures */
+   GIMV_DUPL_PHASE_CLASSIFY,  /* the similar ones: how they differ */
    GIMV_DUPL_PHASE_DONE
 } GimvDuplPhase;
 

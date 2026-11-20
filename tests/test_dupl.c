@@ -20,7 +20,9 @@
 #include <glib/gstdio.h>
 
 #include <math.h>
+#include <stdlib.h>
 
+#include "gimv_dupl_classify.h"
 #include "gimv_dupl_scan.h"
 #include "gimv_enlarged.h"
 
@@ -222,10 +224,13 @@ test_kinds (void)
    g_assert_cmpfloat (g_array_index (g->sim, gfloat, 2), >, 0.95);
    g_assert_cmpfloat (g_array_index (g->sim, gfloat, 2), <, 1.0);
 
+   /* the edit: a part changed */
    g = g_ptr_array_index (groups, 2);
-   g_assert_cmpint (g->kind, ==, GIMV_DUPL_SIMILAR);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_PARTLY);
    g_assert_false (g->suggested);
+   g_assert_cmpint (g->reason, ==, GIMV_DUPL_REASON_NONE);
    g_assert_cmpuint (g->members->len, ==, 2);
+   g_assert_cmpint (g_array_index (g->rel, gint, 1), ==, GIMV_DUPL_REL_PARTLY);
 
    g_assert_null (group_of (groups, "rings.png"));
    g_assert_null (group_of (groups, "diag.jpg"));
@@ -235,8 +240,8 @@ test_kinds (void)
 }
 
 
-/* a picture saved again in the same size (re-compressed): similar, not
- * the same picture resized */
+/* a picture saved again in the same size (re-compressed): not the same
+ * picture resized, but saved again; the PNG suggested (shown only) */
 static void
 test_same_size_not_resized (void)
 {
@@ -253,8 +258,14 @@ test_same_size_not_resized (void)
    g_assert_cmpuint (groups->len, ==, 1);
    g = g_ptr_array_index (groups, 0);
    g_assert_cmpuint (g->members->len, ==, 3);
-   g_assert_cmpint (g->kind, ==, GIMV_DUPL_SIMILAR);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_RESAVED);
    g_assert_false (g->suggested);
+   g_assert_cmpint (g->reason, ==, GIMV_DUPL_REASON_LOSSLESS);
+   g_assert_cmpstr (base (g, 0), ==, "r.png");
+   g_assert_cmpstr (base (g, 1), ==, "r_half.png");
+   g_assert_cmpint (g_array_index (g->rel, gint, 1), ==, GIMV_DUPL_REL_RESIZED);
+   g_assert_cmpstr (base (g, 2), ==, "r.jpg");
+   g_assert_cmpint (g_array_index (g->rel, gint, 2), ==, GIMV_DUPL_REL_RESAVED);
    gimv_dupl_scan_free (scan);
    g_unlink (a); g_unlink (b); g_unlink (c);
    g_free (a); g_free (b); g_free (c);
@@ -433,6 +444,188 @@ detailed (gint w, gint h)
 }
 
 
+static gchar *
+save_jpeg (const gchar *name, GdkPixbuf *px, const gchar *quality)
+{
+   gchar *path = g_build_filename (dir, name, NULL);
+   GError *error = NULL;
+
+   g_assert_true (gdk_pixbuf_save (px, path, "jpeg", &error, "quality", quality, NULL));
+   g_assert_no_error (error);
+   return path;
+}
+
+
+/* the pixels changed: brighter by d, or a block of side s at x, y */
+static GdkPixbuf *
+changed (GdkPixbuf *src, gint d, gint x0, gint y0, gint side)
+{
+   GdkPixbuf *px = gdk_pixbuf_copy (src);
+   guchar *pix = gdk_pixbuf_get_pixels (px);
+   gint rs = gdk_pixbuf_get_rowstride (px), w = gdk_pixbuf_get_width (px);
+   gint h = gdk_pixbuf_get_height (px), x, y;
+
+   for (y = 0; y < h; y++)
+      for (x = 0; x < w; x++) {
+         guchar *p = pix + y * rs + x * 3;
+         gint c;
+         for (c = 0; c < 3; c++) p[c] = CLAMP (p[c] + d, 0, 255);
+         if (side && x >= x0 && x < x0 + side && y >= y0 && y < y0 + side)
+            p[0] = 255, p[1] = p[2] = 0;
+      }
+   return px;
+}
+
+
+static void
+test_jpeg_quality (void)
+{
+   GdkPixbuf *px = detailed (64, 48);
+   const gchar *qs[] = { "100", "92", "85", "60", "30", NULL };
+   guint i;
+
+   for (i = 0; qs[i]; i++) {
+      gchar *path = save_jpeg ("q.jpg", px, qs[i]);
+      g_assert_cmpint (gimv_dupl_jpeg_quality (path), ==, atoi (qs[i]));
+      g_unlink (path);
+      g_free (path);
+   }
+   /* not a JPEG, cut short */
+   g_assert_cmpint (gimv_dupl_jpeg_quality_of ((const guchar *) "\x89PNG", 4), ==, -1);
+   g_assert_cmpint (gimv_dupl_jpeg_quality_of ((const guchar *) "\xff\xd8\xff\xdb\x00", 5), ==, -1);
+   g_assert_cmpint (gimv_dupl_jpeg_quality ("/nonexistent"), ==, -1);
+   g_object_unref (px);
+}
+
+
+static void
+test_classify_diff (void)
+{
+   GdkPixbuf *a = detailed (320, 240), *b;
+   GimvDuplDiff d;
+
+   g_assert_true (gimv_dupl_diff (a, a, 16, &d));
+   g_assert_cmpfloat (d.mean, ==, 0.0);
+   g_assert_cmpint (gimv_dupl_classify_full (&d, FALSE), ==, GIMV_DUPL_REL_PIXELS);
+
+   b = changed (a, 12, 0, 0, 0);
+   g_assert_true (gimv_dupl_diff (a, b, 16, &d));
+   g_assert_cmpfloat (d.shift, >, 10.0);
+   g_assert_cmpint (gimv_dupl_classify_full (&d, FALSE), ==, GIMV_DUPL_REL_ADJUSTED);
+   g_assert_cmpint (gimv_dupl_compare_small (a, b), ==, GIMV_DUPL_REL_RESAVED);
+   g_object_unref (b);
+
+   /* a part: 24 x 24 of 320 x 240 */
+   b = changed (a, 0, 100, 100, 24);
+   g_assert_true (gimv_dupl_diff (a, b, 16, &d));
+   g_assert_cmpint (gimv_dupl_classify_full (&d, FALSE), ==, GIMV_DUPL_REL_PARTLY);
+   g_assert_cmpint (gimv_dupl_compare_small (a, b), ==, GIMV_DUPL_REL_PARTLY);
+   g_object_unref (b);
+
+   /* another picture; another shape */
+   b = picture (PAT_RINGS, 320, 240, FALSE);
+   g_assert_cmpint (gimv_dupl_compare_small (a, b), ==, GIMV_DUPL_REL_DIFFERENT);
+   g_object_unref (b);
+   b = detailed (240, 240);
+   g_assert_cmpint (gimv_dupl_compare_small (a, b), ==, GIMV_DUPL_REL_DIFFERENT);
+   g_assert_false (gimv_dupl_diff (a, b, 16, &d));
+   g_object_unref (b);
+   g_object_unref (a);
+}
+
+
+/* the similar ones sorted: the same pixels, saved again (qualities),
+ * adjusted, other pictures */
+static void
+test_classify_files (void)
+{
+   GimvDuplScan *scan = gimv_dupl_scan_new (0.95);
+   GdkPixbuf *px = detailed (240, 180);
+   gchar *p[12];
+   GPtrArray *groups;
+   GimvDuplGroup *g;
+   gint n = 0, i;
+   GError *error = NULL;
+
+   /* the same pixels, other metadata (the larger file first) */
+   p[n++] = save ("px1.png", gdk_pixbuf_copy (px), 0);
+   p[n] = g_build_filename (dir, "px2.png", NULL);
+   g_assert_true (gdk_pixbuf_save (px, p[n], "png", &error,
+                                   "tEXt::Comment", "some metadata, more of it", NULL));
+   g_assert_no_error (error);
+   n++;
+   for (i = 0; i < n; i++) add (scan, p[i]);
+   g_assert_true (gimv_dupl_scan_run (scan, NULL, NULL, NULL));
+   groups = gimv_dupl_scan_get_groups (scan);
+   g_assert_cmpuint (groups->len, ==, 1);
+   g = g_ptr_array_index (groups, 0);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_PIXELS);
+   g_assert_cmpint (g->reason, ==, GIMV_DUPL_REASON_METADATA);
+   g_assert_cmpstr (base (g, 0), ==, "px2.png");
+   g_assert_cmpint (g_array_index (g->rel, gint, 0), ==, -1);
+   g_assert_cmpint (g_array_index (g->rel, gint, 1), ==, GIMV_DUPL_REL_PIXELS);
+   gimv_dupl_scan_free (scan);
+   for (i = 0; i < n; i++) { g_unlink (p[i]); g_free (p[i]); }
+
+   /* two JPEG qualities: the higher suggested */
+   scan = gimv_dupl_scan_new (0.95);
+   n = 0;
+   p[n++] = save_jpeg ("j70.jpg", px, "70");
+   p[n++] = save_jpeg ("j95.jpg", px, "95");
+   for (i = 0; i < n; i++) add (scan, p[i]);
+   g_assert_true (gimv_dupl_scan_run (scan, NULL, NULL, NULL));
+   groups = gimv_dupl_scan_get_groups (scan);
+   g_assert_cmpuint (groups->len, ==, 1);
+   g = g_ptr_array_index (groups, 0);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_RESAVED);
+   g_assert_cmpint (g->reason, ==, GIMV_DUPL_REASON_QUALITY);
+   g_assert_cmpstr (base (g, 0), ==, "j95.jpg");
+   g_assert_cmpint (g->q_keep, ==, 95);
+   g_assert_cmpint (g->q_other, ==, 70);
+   g_assert_cmpint (((GimvDuplItem *) g_ptr_array_index (g->members, 1))->quality, ==, 70);
+   gimv_dupl_scan_free (scan);
+   for (i = 0; i < n; i++) { g_unlink (p[i]); g_free (p[i]); }
+
+   /* brighter: adjusted, nothing suggested */
+   scan = gimv_dupl_scan_new (0.95);
+   n = 0;
+   p[n++] = save ("b0.png", gdk_pixbuf_copy (px), 0);
+   p[n++] = save ("b1.png", changed (px, 6, 0, 0, 0), 0);
+   for (i = 0; i < n; i++) add (scan, p[i]);
+   g_assert_true (gimv_dupl_scan_run (scan, NULL, NULL, NULL));
+   groups = gimv_dupl_scan_get_groups (scan);
+   g_assert_cmpuint (groups->len, ==, 1);
+   g = g_ptr_array_index (groups, 0);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_ADJUSTED);
+   g_assert_cmpint (g->reason, ==, GIMV_DUPL_REASON_NONE);
+   gimv_dupl_scan_free (scan);
+   for (i = 0; i < n; i++) { g_unlink (p[i]); g_free (p[i]); }
+
+   /* a picture, its copy saved again, and a part changed: the same
+    * picture a group of its own, the changed one with the first of it */
+   scan = gimv_dupl_scan_new (0.95);
+   n = 0;
+   p[n++] = save ("m.png", gdk_pixbuf_copy (px), 0);
+   p[n++] = save_jpeg ("m.jpg", px, "90");
+   p[n++] = save ("m_mark.png", changed (px, 0, 30, 30, 20), 0);
+   for (i = 0; i < n; i++) add (scan, p[i]);
+   g_assert_true (gimv_dupl_scan_run (scan, NULL, NULL, NULL));
+   groups = gimv_dupl_scan_get_groups (scan);
+   g_assert_cmpuint (groups->len, ==, 2);
+   g = g_ptr_array_index (groups, 0);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_RESAVED);
+   g_assert_cmpuint (g->members->len, ==, 2);
+   g_assert_cmpstr (base (g, 0), ==, "m.png");
+   g = g_ptr_array_index (groups, 1);
+   g_assert_cmpint (g->kind, ==, GIMV_DUPL_PARTLY);
+   g_assert_cmpuint (g->members->len, ==, 2);
+   gimv_dupl_scan_free (scan);
+   for (i = 0; i < n; i++) { g_unlink (p[i]); g_free (p[i]); }
+
+   g_object_unref (px);
+}
+
+
 static void
 test_enlarged_score (void)
 {
@@ -540,6 +733,9 @@ main (int argc, char *argv[])
    g_test_add_func ("/dupl/empty", test_empty);
    g_test_add_func ("/dupl/known-keys", test_known_keys);
    g_test_add_func ("/dupl/sig", test_sig);
+   g_test_add_func ("/dupl/jpeg-quality", test_jpeg_quality);
+   g_test_add_func ("/dupl/classify-diff", test_classify_diff);
+   g_test_add_func ("/dupl/classify-files", test_classify_files);
    g_test_add_func ("/dupl/enlarged-score", test_enlarged_score);
    g_test_add_func ("/dupl/enlarged-files", test_enlarged_files);
    r = g_test_run ();

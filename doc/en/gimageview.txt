@@ -1442,21 +1442,41 @@ Search Images...
 Find Duplicates...
     Looks for the duplicate images among all the images of the active tab (the
     selection does not matter) and opens the result window. One search sorts
-    them into three kinds:
+    them into these kinds:
 
      ・ Identical: the same files (the same bytes).
 
      ・ Other Sizes: the same picture in other sizes (pixels): the same shape,
         none of the same size. Copies are included.
 
-     ・ Similar: other similar pictures (edited, saved again, other shots).
-        How similar is set by "Accuracy" in [Preferences | Search].
+     ・ Same Pixels: the very same pixels, only the metadata (date taken,
+        comments) or the format differs.
 
-    On the left are the groups: the kind, the number of images, and how many
-    are to delete (and their size). The images of the group selected are side
-    by side on the right to compare: the size, the file size, the format, the
-    date taken, how alike the first, the folder, and whether it has a comment.
-    A click on a picture shows it in the thumbnail window (what it does is set
+     ・ Saved Again: the same picture saved again in another quality, format
+        or size (only the noise of JPEG differs).
+
+     ・ Brightness, Colours: the same picture, the whole of it a little
+        brighter, darker or of other colours.
+
+     ・ Partly Different: a part differs (another face or clothes of a
+        difference picture, writing, a mark).
+
+     ・ Alike, Other Pictures: alike but other pictures (pages one after
+        another, shots one after another).
+
+    How similar is set by "Accuracy" in [Preferences | Search]. The ones alike
+    of the same size are compared again at the end, small and at full size,
+    and sorted from Same Pixels to Alike, Other Pictures (in a thread).
+
+    On the left are the groups, under a heading of each kind that opens and
+    folds with its arrow (or a double click). At first Identical, Other Sizes,
+    Same Pixels and Saved Again are open, and Brightness, Colours, Partly
+    Different and Alike, Other Pictures folded (they are usually not deleted).
+    Each group shows the kind, the number of images, and how many are to
+    delete (and their size). The images of the group selected are side by side
+    on the right to compare: the size, the file size, the format, the date
+    taken, how alike the first, the folder, and whether it has a comment. A
+    click on a picture shows it in the thumbnail window (what it does is set
     in [Preferences | Search]).
 
     Each image is marked "Keep" or "Delete". In the Identical and Other Sizes
@@ -1465,14 +1485,21 @@ Find Duplicates...
     found to be a smaller one only made larger shows "Looks like an enlarged
     copy" and is not the one kept (it is looked for in a thread after the
     groups are shown, and each group is ordered again when done; Keep and
-    Delete chosen by hand stay); in the Similar groups all are kept. "Move to
-    Trash..." at the top right moves the images to delete of the group shown,
-    and only those, to the trash after asking (they can be put back from the
-    trash): a group at a time, to be careful. The question names the files and
-    says so when all of the group are to delete (then "Cancel" is the default)
-    or some have comments. Then the next group is shown. With more than one
-    group, "Move All Marked to Trash..." at the bottom moves those of all the
-    groups at once (the groups with every image to delete are left out).
+    Delete chosen by hand stay); in the Same Pixels and Saved Again groups the
+    one that seems best to keep comes first with "Suggested to keep" and why
+    (the same pixels: the largest file, with the most metadata; saved again: a
+    format keeping the pixels such as PNG, the most pixels, the highest JPEG
+    quality), shown only: nothing is marked to delete. The cards show the JPEG
+    quality and how each differs from the first (saved again, another size,
+    brightness or colours, a part, another picture). In the groups of the
+    other kinds all are kept. "Move to Trash..." at the top right moves the
+    images to delete of the group shown, and only those, to the trash after
+    asking (they can be put back from the trash): a group at a time, to be
+    careful. The question names the files and says so when all of the group
+    are to delete (then "Cancel" is the default) or some have comments. Then
+    the next group is shown. With more than one group, "Move All Marked to
+    Trash..." at the bottom moves those of all the groups at once (the groups
+    with every image to delete are left out).
 
     Before they are moved, the images to delete are compared with the image
     kept again (Identical groups): a file changed since is not moved. When
@@ -3441,9 +3468,10 @@ About custom layouts
 
 How duplicates are found
     [Tools | Find Duplicates...] goes through the images of the active tab in
-    the steps below and sorts what it finds into three kinds of groups:
-    Identical, Other Sizes and Similar. It searches in another thread: the
-    window can be used meanwhile.
+    the steps below and sorts what it finds into kinds of groups: Identical,
+    Other Sizes, and the kinds of the similar ones (Same Pixels, Saved Again,
+    Brightness, Colours, Partly Different, Alike, Other Pictures). It searches
+    in another thread: the window can be used meanwhile.
 
      1. The same files: the md5 is computed only for the files of the same
         size (in bytes); the same md5 means the same bytes. A file whose size
@@ -3463,23 +3491,42 @@ How duplicates are found
 
      4. The kinds: a group of the same files only is Identical. When the
         images that match all have the same shape and no two of them have the
-        same size, it is Other Sizes (copies included); else Similar. Images
-        of the same size but other bytes (saved again, edited) are Similar.
+        same size, it is Other Sizes (copies included); else they are similar
+        ones.
+
+     5. How the similar ones differ: the images of a similar group are
+        compared about 256 dots small (the mean differences of parts 8 dots
+        square): small all over is the same picture, a few parts (under 5%)
+        far off is Partly Different, else Alike, Other Pictures. A shift of
+        the brightness or colours of the whole is taken out first. The same
+        picture is compared at full size with the first (the one that seems
+        best to keep): no difference is Same Pixels, the means of the colours
+        shifted Brightness, Colours, about the noise of JPEG Saved Again. A
+        small difference seen only at full size (a signature) is Partly
+        Different. When there are sets of the same picture, each is a group of
+        its own, and their firsts make the groups of Partly Different and
+        Alike, Other Pictures. The limits follow a survey of 2.4 million
+        pictures.
 
     How alike they must be is "Accuracy" in [Preferences | Search] (0.97 by
-    default: 97% or more alike match). A lower value puts more images in
-    Similar.
+    default: 97% or more alike match). A lower value puts more images among
+    the similar ones.
 
     In the Identical and Other Sizes groups the one with the most pixels (then
     the largest file, the oldest, the shortest path) is marked Keep and the
     others Delete. In an Other Sizes group, an image twice as large or more is
     checked for being a smaller one only made larger: then it shows "Looks
     like an enlarged copy" and is not the one kept (see "How an enlarged copy
-    is told" below). The Similar groups may be other shots: all are marked
-    Keep. Which to keep is for a person to check and decide. "Move to
-    Trash..." moves those to delete of the group shown, "Move All Marked to
-    Trash..." those of all the groups at once; they are compared with the
-    image kept again first.
+    is told" below). In the Same Pixels and Saved Again groups the one that
+    seems best to keep (the most metadata, a format keeping the pixels such as
+    PNG, the most pixels, the highest JPEG quality) comes first with
+    "Suggested to keep" and why, but nothing is marked Delete. The JPEG
+    quality is guessed from which quality of libjpeg the quantization table of
+    the file is nearest to. The groups of the other kinds may be other
+    pictures: all are marked Keep. Which to keep is for a person to check and
+    decide. "Move to Trash..." moves those to delete of the group shown, "Move
+    All Marked to Trash..." those of all the groups at once; they are compared
+    with the image kept again first.
 
     Because of how it works, it may not do what one expects in these cases.
 
@@ -3790,6 +3837,15 @@ How duplicates are found
     side, the window is sized for all the pages of the layout (the cover alone
     too), when they are turned on, the layout is changed or another folder is
     shown, not at each page. Before, it took the size of one page.
+
+ ・ [Tools | Find Duplicates]: the similar ones are compared again, small and
+    at full size, and sorted into Same Pixels, Saved Again, Brightness,
+    Colours, Partly Different and Alike, Other Pictures (a survey of 2.4
+    million pictures found a fifth of the similar ones of the same size to be
+    the same picture). The list of the groups folds under headings of their
+    kinds, the last three folded at first. Same Pixels and Saved Again show
+    the one suggested to keep and why, without marking any to delete. The
+    cards show the JPEG quality and how each differs from the first.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

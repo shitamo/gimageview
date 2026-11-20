@@ -87,6 +87,14 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	  comments (tags) and bookmarks of the deleted ones can go to the
 	  image kept; or "Trash and Leave Links" keeps the names, as links to
 	  the image kept (hard links, symbolic links across file systems).
+	* Find Duplicates: the similar ones are compared again (small, then
+	  at full size) and sorted into Same Pixels, Saved Again, Brightness,
+	  Colours, Partly Different and Alike, Other Pictures; the groups
+	  are listed under headings of their kinds that fold (the last three
+	  folded at first).  Same Pixels and Saved Again show the one
+	  suggested to keep and why (the most metadata, PNG over JPEG, the
+	  most pixels, the highest JPEG quality, guessed from its tables),
+	  without marking any to delete.
 	* The indexer keeps a file moved away and replaced at once (in the
 	  same batch of events) instead of dropping it.
 	* Update All Thumbnails works like loading: the thumbnails on the
