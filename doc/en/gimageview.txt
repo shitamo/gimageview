@@ -511,7 +511,10 @@ Date tab
     the comment ("2025-04-01", "2025/4/1 10:15", "2025年4月1日 10時15分", ...;
     for images of SNS, whose EXIF is removed and whose names are not dates),
     else the EXIF date (built with gexiv2, the XMP date too), else a date in
-    the file name, else the modification time.
+    the file name, else the modification time. A click on a row opens the
+    images of the day (month, year) in the result tab, newest first. Choosing
+    a sort in [View | Sort File List] sorts them so (the one already chosen
+    too).
 
 Tag tab
     The tags put by hand at the top, then "Names of People" and the groups of
@@ -3899,6 +3902,9 @@ How duplicates are found
     little of the text drawn before was seen left in some environments). The
     empty progress bar (a line at the top of the row, like a shadow) is not
     drawn.
+
+ ・ The images of a date are opened newest first (a sort chosen in [Sort File
+    List] sorts them so; the one already chosen too).
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

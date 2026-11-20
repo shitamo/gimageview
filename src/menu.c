@@ -547,7 +547,13 @@ cb_action_activate (GSimpleAction *action, GVariant *parameter, gpointer data)
       for (node = item->radio->members; node; node = g_list_next (node)) {
          GimvMenuItem *member = node->data;
          if (member->target && !strcmp (member->target, target)) {
-            gimv_menu_item_set_active (member, TRUE);
+            /* the active one chosen again: its callback all the same, as
+               GTK2 ("activate"; e.g. a sort chosen again for a tab in the
+               order it was given, the bookmarks and the dates) */
+            if (member->active && item->radio->active == member)
+               item_invoke (member);
+            else
+               gimv_menu_item_set_active (member, TRUE);
             break;
          }
       }

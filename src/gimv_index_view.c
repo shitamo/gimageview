@@ -736,7 +736,7 @@ thread_list_files (GTask *task, gpointer source, gpointer data, GCancellable *ca
             "ORDER BY f.date, f.name";
    else
       sql = "SELECT d.path, f.name, f.size, f.mtime FROM files f JOIN dirs d ON d.id = f.dir_id "
-            "WHERE f.date >= ?1 AND f.date < ?1 || '~' ORDER BY f.date, f.name";
+            "WHERE f.date >= ?1 AND f.date < ?1 || '~' ORDER BY f.date DESC, f.name";
 
    fl->stats = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
    if (db && sqlite3_prepare_v2 (db, sql, -1, &st, NULL) == SQLITE_OK)
@@ -1466,9 +1466,11 @@ open_files (IndexView *iv, OpenRequest *req, FileList *fl)
          set_result_tab (iv, tv);
    }
    g_object_set_data (G_OBJECT (tv), NAME_ONLY_KEY, GINT_TO_POINTER (TRUE));
-   /* bookmarks: newest first (the others: the sort of the window) */
+   /* bookmarks and dates: newest first, until a sort is chosen in the
+      menu (the others: the sort of the window) */
    g_object_set_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER,
-                      GINT_TO_POINTER (req->type == GIMV_INDEX_TAB_BOOKMARK));
+                      GINT_TO_POINTER (req->type == GIMV_INDEX_TAB_BOOKMARK
+                                       || req->type == GIMV_INDEX_TAB_DATE));
    /* tens of thousands of images: keep only the thumbnails near the
     * visible part */
    gimv_thumb_view_set_windowed (tv, TRUE);
