@@ -174,8 +174,8 @@ GImageView has the following features.
 
      □ JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (gimv's own loaders)
 
-     □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, MAKI (.mki), AK5/
-       MSL (gimv's own loaders; added in the GTK 4 version)
+     □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, PIC, MAKI (.mki),
+       AK5/MSL (gimv's own loaders; added in the GTK 4 version)
 
      □ SVG (librsvg), MNG (libmng), WMF (libwmf)
 
@@ -3907,6 +3907,9 @@ How duplicates are found
  ・ The images of a date are opened newest first, with the arrow on "Date
     taken" of the detail view (a sort chosen in [Sort File List] or a title of
     the detail view sorts them so; the one already chosen too).
+
+ ・ A loader for the PIC format of the X68000 (.pic: 65536, 32768, 16 and 256
+    colours; also those saved on the FM TOWNS and the PC-88VA).
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

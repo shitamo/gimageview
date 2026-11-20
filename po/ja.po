@@ -3696,6 +3696,18 @@ msgstr "Pi 形式の画像 (PC-9801，X68000)"
 msgid "The Pi image format"
 msgstr "Pi 画像形式"
 
+#: plugins/image_loader/pic.c
+msgid "PIC Image Loader"
+msgstr "PIC画像ローダ"
+
+#: plugins/image_loader/pic.c
+msgid "PIC images (X68000, FM TOWNS, PC-88VA)"
+msgstr "PIC 形式の画像 (X68000，FM TOWNS，PC-88VA)"
+
+#: plugins/image_loader/pic.c
+msgid "The PIC image format (X68000)"
+msgstr "PIC 画像形式 (X68000)"
+
 #: plugins/image_loader/mng.c:134
 msgid "MNG Image Loader"
 msgstr "MNG画像ローダ"

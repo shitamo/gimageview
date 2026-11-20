@@ -661,6 +661,260 @@ test_pi_broken (void)
 
 
 /******************************************************************************
+ *  PIC (X68000)
+ ******************************************************************************/
+
+/* an encoder as the format says: a run for each change of colour, the
+ * colours kept in the 128 last used, and chains down the edges (a change
+ * of the same colour below, a pixel or two aside) */
+
+static void
+pic_put_length (PiBits *b, gsize n)
+{
+   guint k = 1;
+
+   while (n > (2u << k) - 2) k++;
+   pi_bits (b, (1u << k) - 2, k);                  /* k - 1 ones, a zero */
+   pi_bits (b, n - ((1u << k) - 1), k);
+}
+
+/* the test picture as values of the machine: shapes with straight and
+ * slanted edges (chains), a colour seen again (the cache), noise */
+static guint
+pic_value (guint x, guint y, guint depth)
+{
+   guint v;
+
+   if (x >= 3 + y / 2 && x < 12 + y / 3) v = 0x1235;
+   else if (y >= 6 && x % 7 == 0) v = 0xf00f;
+   else v = ((x / 5) * 0x0841 + y * 0x2108 + (x * y % 3)) & 0xffff;
+   if (depth == 15) v &= 0xfffe;                   /* no I bit */
+   if (depth <= 8) v %= 1u << depth;               /* in the palette */
+   return v;
+}
+
+static guint
+pic_palette (guint i)
+{
+   return (i * 0x0843 + 0x1001) & 0xffff;
+}
+
+static guint32
+pic_x68k_rgb (guint c)
+{
+   guint r = (c >> 6) & 31, g = c >> 11, bl = (c >> 1) & 31, i = c & 1;
+   r = r << 3 | i << 2 | r >> 3;
+   g = g << 3 | i << 2 | g >> 3;
+   bl = bl << 3 | i << 2 | bl >> 3;
+   return r << 16 | g << 8 | bl;
+}
+
+static guint32
+pic_va_rgb (guint c)
+{
+   guint g = c >> 10, r = (c >> 5) & 31, bl = c & 31;
+   return (r << 3 | r >> 2) << 16 | (g << 2 | g >> 4) << 8 | (bl << 3 | bl >> 2);
+}
+
+static guint32
+pic_va_byte_rgb (guint c)
+{
+   guint g = c >> 5, r = (c >> 2) & 7, bl = c & 3;
+   return (r * 0x49 >> 1) << 16 | (g * 0x49 >> 1) << 8 | bl * 0x55;
+}
+
+static GByteArray *
+make_pic (guint w, guint h, guint machine, guint depth)
+{
+   GByteArray *a = g_byte_array_new ();
+   PiBits b = { a, 0, 0 };
+   guint32 value[128];
+   guint8 prev[128], next[128], head = 0;
+   gsize total = (gsize) w * h, i, last = 0, k;
+   guint *v = g_new (guint, total);
+   gboolean *marked = g_new0 (gboolean, total);
+   static const guint8 top[] = { 'P', 'I', 'C', 'T', 'e', 's', 't', 0x1a, 'x', 0x00 };
+
+   g_byte_array_append (a, top, sizeof (top));
+   {
+      guint8 h2[] = { machine >> 8, machine & 255, depth >> 8, depth & 255,
+                      w >> 8, w & 255, h >> 8, h & 255 };
+      g_byte_array_append (a, h2, sizeof (h2));
+   }
+   if (machine == 0x1f || machine == 2) {
+      static const guint8 extra[6] = { 1, 2, 3, 4, 5, 6 };
+      g_byte_array_append (a, extra, 6);
+   }
+   if (depth <= 8)
+      for (i = 0; i < (1u << depth); i++) {
+         guint8 c[2] = { pic_palette (i) >> 8, pic_palette (i) & 255 };
+         g_byte_array_append (a, c, 2);
+      }
+   for (i = 0; i < total; i++) v[i] = pic_value (i % w, i / w, depth);
+   for (k = 0; k < 128; k++) {
+      value[k] = 0;
+      prev[k] = (k + 1) & 127;
+      next[k] = (k - 1) & 127;
+   }
+
+   for (i = 0; ; ) {
+      guint c = v[i];
+      gsize p, steps[64];
+      guint nsteps = 0;
+
+      pic_put_length (&b, i == 0 ? 1 : i - last);
+      if (depth <= 8) {
+         pi_bits (&b, c, depth);
+      } else {
+         for (k = 0; k < 128 && value[k] != c; k++) ;
+         if (k < 128) {
+            /* the slot becomes the most recently used */
+            pi_bit (&b, 1);
+            pi_bits (&b, k, 7);
+            if (k != head) {
+               guint8 pr = prev[k], nx = next[k], tail;
+               next[pr] = nx;
+               prev[nx] = pr;
+               tail = prev[head];
+               next[tail] = k;
+               prev[k] = tail;
+               prev[head] = k;
+               next[k] = head;
+               head = k;
+            }
+         } else {
+            pi_bit (&b, 0);
+            pi_bits (&b, depth == 15 ? c >> 1 : c, depth);
+            head = prev[head];
+            value[head] = c;
+         }
+      }
+      last = i;
+      if (i + 1 >= total) break;
+
+      /* a chain down the changes to this colour */
+      for (p = i; nsteps < G_N_ELEMENTS (steps); ) {
+         static const gint aside[] = { 0, -1, 1, -2, 2 };
+         gssize q = -1;
+         for (k = 0; k < 5; k++) {
+            q = (gssize) p + w + aside[k];
+            if (q > (gssize) p && (gsize) q < total
+                && v[q] == c && v[q - 1] != c && !marked[q])
+               break;
+         }
+         if (k == 5) break;
+         marked[q] = TRUE;
+         steps[nsteps++] = k;
+         p = q;
+      }
+      pi_bit (&b, nsteps > 0);
+      if (nsteps > 0) {
+         for (k = 0; k < nsteps; k++) {
+            switch (steps[k]) {
+            case 0:  pi_bits (&b, 2, 2); break;
+            case 1:  pi_bits (&b, 1, 2); break;
+            case 2:  pi_bits (&b, 3, 2); break;
+            case 3:  pi_bits (&b, 2, 4); break;     /* 001 0 */
+            default: pi_bits (&b, 3, 4); break;     /* 001 1 */
+            }
+         }
+         pi_bits (&b, 0, 3);                        /* 000: the end */
+      }
+
+      for (i++; i < total && (v[i] == v[i - 1] || marked[i]); i++) ;
+      if (i >= total) {
+         pic_put_length (&b, total - last);
+         break;
+      }
+   }
+   pi_flush (&b);
+   g_free (v);
+   g_free (marked);
+   return a;
+}
+
+static guint32
+pic_expected (guint x, guint y, guint w, guint machine, guint depth)
+{
+   if (machine == 0x21) {
+      gsize o = (gsize) y * w + x;          /* the pixel: two of a value */
+      guint c = pic_value ((o / 2) % w, (o / 2) / w, depth);
+      return pic_va_byte_rgb (o & 1 ? c >> 8 : c & 0xff);
+   }
+   if (machine == 0x11) return pic_va_rgb (pic_value (x, y, depth));
+   if (depth <= 8) return pic_x68k_rgb (pic_palette (pic_value (x, y, depth)));
+   return pic_x68k_rgb (pic_value (x, y, depth));
+}
+
+static void
+check_pic (guint w, guint h, guint machine, guint depth)
+{
+   GByteArray *a = make_pic (w, h, machine, depth);
+   GimvImage *image = load_array ("pic", a);
+   guint x, y, oh = machine == 0x21 ? h * 2 : h;
+
+   assert_size (image, w, oh);
+   for (y = 0; y < oh; y++)
+      for (x = 0; x < w; x++)
+         assert_pixel (image, x, y, pic_expected (x, y, w, machine, depth));
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+}
+
+static void
+test_pic (void)
+{
+   GimvImage *image;
+
+   /* the X68000: 65536 colours, 32768 (no I bit), extended header */
+   check_pic (40, 24, 0x00, 16);
+   check_pic (33, 17, 0x00, 15);
+   check_pic (24, 10, 0x1f, 16);
+   /* palettes */
+   check_pic (30, 12, 0x00, 8);
+   check_pic (30, 12, 0x00, 4);
+   /* FM TOWNS (X68000 colours) */
+   check_pic (20, 9, 0x02, 15);
+   check_pic (20, 9, 0xc2, 15);
+   /* PC-88VA: G6R5B5, and two GGGRRRBB pixels a value */
+   check_pic (36, 14, 0x11, 16);
+   check_pic (10, 6, 0x21, 16);
+
+   /* not a PIC */
+   image = LOAD_LIT ("pic", "PIX\x1a\x00");
+   g_assert_null (image);
+}
+
+static void
+pic_broken (void)
+{
+   GByteArray *a = make_pic (40, 24, 0x00, 16);
+   const gsize head = 10;
+   const Patch patches[] = {
+      { "the machine 0x99", head, 2, 0x99, TRUE, MUST_FAIL },
+      { "12 bits",          head + 2, 2, 12, TRUE, MUST_FAIL },
+      { "VA, 15 bits",      head, 4, 0x0011000f, TRUE, MUST_FAIL },
+      { "65535 x 65535",    head + 4, 4, 0xffffffff, TRUE, MUST_FAIL },
+      { "width 0",          head + 4, 2, 0, TRUE, MUST_FAIL },
+      { "width 1",          head + 4, 2, 1, TRUE, NO_CRASH },
+      { "height 1000",      head + 6, 2, 1000, TRUE, NO_CRASH },
+   };
+
+   /* the picture is read as far as it goes: only a cut header fails */
+   check_truncated ("pic", a, head + 8, FALSE);
+   check_patches ("pic", a, patches, G_N_ELEMENTS (patches));
+   check_fuzz ("pic", a, 8, 300);
+   g_byte_array_unref (a);
+}
+
+static void
+test_pic_broken (void)
+{
+   IN_SUBPROCESS (pic_broken ());
+}
+
+
+/******************************************************************************
  *  MAKI01 (the format before MAG)
  ******************************************************************************/
 
@@ -1958,6 +2212,7 @@ main (int argc, char *argv[])
    img_dir = g_build_filename (home, "images", NULL);
    gimv_test_core_load_plugin ("image_loader", "gimv_zim_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_pi_loader");
+   gimv_test_core_load_plugin ("image_loader", "gimv_pic_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_maki_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_mag_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_ras_loader");
@@ -1971,6 +2226,8 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/zim/broken", test_zim_broken);
    g_test_add_func ("/image-loader/pi", test_pi);
    g_test_add_func ("/image-loader/pi/broken", test_pi_broken);
+   g_test_add_func ("/image-loader/pic", test_pic);
+   g_test_add_func ("/image-loader/pic/broken", test_pic_broken);
    g_test_add_func ("/image-loader/maki", test_maki);
    g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
    g_test_add_func ("/image-loader/maki/comment", test_maki_comment);
