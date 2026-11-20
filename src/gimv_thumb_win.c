@@ -804,20 +804,6 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gimv_box_pack_start (GTK_BOX (hbox), tw->status_bar2, TRUE, TRUE, 0);
    gtk_widget_set_visible (tw->status_bar2, TRUE);
 
-   tw->priv->spread_label = gtk_label_new (NULL);
-   gtk_widget_set_name (tw->priv->spread_label, "SpreadStatus");
-   gtk_widget_set_tooltip_text (tw->priv->spread_label,
-                                _("The preview shows two pages (the right button menu: Two Pages, T)"));
-   /* as the status bars beside it (gimv_statusbar_new ()): the same
-      height, so that a row made lower cuts their margins, not the text */
-   gtk_widget_set_margin_start (tw->priv->spread_label, 6);
-   gtk_widget_set_margin_end (tw->priv->spread_label, 6);
-   gtk_widget_set_margin_top (tw->priv->spread_label, 3);
-   gtk_widget_set_margin_bottom (tw->priv->spread_label, 3);
-   gtk_label_set_single_line_mode (GTK_LABEL (tw->priv->spread_label), TRUE);
-   gimv_box_pack_start (GTK_BOX (hbox), tw->priv->spread_label, FALSE, FALSE, 0);
-   gtk_widget_set_visible (tw->priv->spread_label, FALSE);
-
 #ifdef ENABLE_INDEX
    tw->index_label = gtk_label_new (gimv_index_get_status_text ());
    gtk_widget_set_name (tw->index_label, "IndexStatus");
@@ -835,8 +821,29 @@ gimv_thumb_win_init (GimvThumbWin *tw)
    gimv_box_pack_start (GTK_BOX (hbox), tw->notice_button, FALSE, FALSE, 0);
 #endif
 
+   tw->priv->spread_label = gtk_label_new (NULL);
+   gtk_widget_set_name (tw->priv->spread_label, "SpreadStatus");
+   gtk_widget_set_tooltip_text (tw->priv->spread_label,
+                                _("The preview shows two pages (the right button menu: Two Pages, T)"));
+   /* as the status bars beside it (gimv_statusbar_new ()): the same
+      height, so that a row made lower cuts their margins, not the text */
+   gtk_widget_set_margin_start (tw->priv->spread_label, 6);
+   gtk_widget_set_margin_end (tw->priv->spread_label, 6);
+   gtk_widget_set_margin_top (tw->priv->spread_label, 3);
+   gtk_widget_set_margin_bottom (tw->priv->spread_label, 3);
+   gtk_label_set_single_line_mode (GTK_LABEL (tw->priv->spread_label), TRUE);
+   /* next to the progress bar (of a fixed width): not moved by the texts
+      of the index or its notices before it (moved, a little of the text
+      drawn before was seen left in some environments) */
+   gimv_box_pack_start (GTK_BOX (hbox), tw->priv->spread_label, FALSE, FALSE, 0);
+   gtk_widget_set_visible (tw->priv->spread_label, FALSE);
+
    tw->progressbar = gtk_progress_bar_new();
    gtk_widget_set_name (tw->progressbar, "ProgressBar");
+   /* in the middle of the row; its trough not drawn (see gimv.css: an
+      empty one at the top of the row looked like a shadow) */
+   gtk_widget_set_valign (tw->progressbar, GTK_ALIGN_CENTER);
+   gtk_widget_add_css_class (tw->progressbar, "gimv-status-progress");
    gimv_box_pack_end (GTK_BOX (hbox), tw->progressbar, FALSE, FALSE, 0);
    gtk_widget_set_visible (tw->progressbar, TRUE);
 

@@ -241,6 +241,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* The status bar: the label of two pages at the right (not moved by
+	  the index status before it); the empty progress bar not drawn.
 	* Pages side by side are for the tab (the book) they were turned on in
 	  only: images of other tabs, dates or tags are shown alone.
 	* Fixed a crash closing the tab of an archive with the same name twice

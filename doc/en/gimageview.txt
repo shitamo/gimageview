@@ -3894,6 +3894,12 @@ How duplicates are found
     alone, and opening one in the tab of the book again shows them side by
     side again. Closing the tab turns them off (the book is still remembered).
 
+ ・ The label of two pages of the status bar is next to the progress bar (at
+    the right): not moved by the count of the index or its notices (moved, a
+    little of the text drawn before was seen left in some environments). The
+    empty progress bar (a line at the top of the row, like a shadow) is not
+    drawn.
+
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg
     before 2.jpg). [View | Sort File List | Numbers by Value] turns it off.
