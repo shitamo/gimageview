@@ -198,13 +198,24 @@ gimv_image_info_get_with_archive (const gchar *filename,
    g_snprintf (buf, MAX_PATH_LEN, "%s/%s", archive->filename, filename);
 
    info = g_hash_table_lookup (gimv_image_info_table, buf);
-   if (!info) {
-      info = gimv_image_info_new (filename);
-      g_hash_table_insert (gimv_image_info_table, g_strdup (buf), info);
-      g_hash_table_insert (archive_table, info, archive);
+   if (info && g_hash_table_lookup (archive_table, info) == archive) {
+      /* the same name twice in the archive: each entry of the list of the
+         command holds a reference (unref_with_archive () each) */
+      info->ref_count++;
    } else {
-      /* FIXME!! update if needed */
-      /* gimv_image_info_ref (info); */
+      /* new, or of an archive object of the same file opened before and
+         still held (the preview, the pages read first): that one stays
+         its archive's, this one is the new archive's (before, the old
+         info was given without a reference: freed twice, a crash when a
+         tab of the archive was closed) */
+      gpointer orig_key = NULL, old = NULL;
+
+      info = gimv_image_info_new (filename);
+      if (g_hash_table_lookup_extended (gimv_image_info_table, buf, &orig_key, &old))
+         g_hash_table_insert (gimv_image_info_table, orig_key, info);
+      else
+         g_hash_table_insert (gimv_image_info_table, g_strdup (buf), info);
+      g_hash_table_insert (archive_table, info, archive);
    }
 
    if (st)
@@ -253,11 +264,13 @@ gimv_image_info_finalize (GimvImageInfo *info)
                                                  (gpointer) &value);
          g_hash_table_remove (archive_table, info);
       }
-      if (success) {
+      /* only if the name is still this one's (not that of a newer info of
+         the archive opened again) */
+      if (success && value == info) {
          g_hash_table_remove (gimv_image_info_table, buf);
          g_free (orig_key);
       }
-   } else {
+   } else if (g_hash_table_lookup (gimv_image_info_table, info->filename) == info) {
       g_hash_table_remove (gimv_image_info_table, info->filename);
    }
 

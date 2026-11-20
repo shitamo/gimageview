@@ -237,7 +237,9 @@ fr_command_list (FRCommand *comm)
    g_return_if_fail (IS_FR_COMMAND (comm));
 
    if (comm->file_list != NULL) {
-      g_list_foreach (comm->file_list, (GFunc) gimv_image_info_unref, NULL);
+      /* as fr_command_destroy (): the list holds no reference of the
+         archive */
+      g_list_foreach (comm->file_list, (GFunc) gimv_image_info_unref_with_archive, NULL);
       g_list_free (comm->file_list);
       comm->file_list = NULL;
    }
