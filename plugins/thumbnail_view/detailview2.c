@@ -714,7 +714,15 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
    sort_item = column_sort_item (idx);
    if (sort_item == GIMV_SORT_NONE) return;
 
-   current_item = gimv_thumb_win_get_sort_type (tw, &current_flag);
+   /* as the arrow shows (the order a tab was given: the dates) */
+   {
+      gint f = 0;
+      GimvSortFlag win_flag;
+      current_item = gimv_thumb_view_get_sort (tv, &f);
+      gimv_thumb_win_get_sort_type (tw, &win_flag);
+      /* the other flags: the window's */
+      current_flag = (f & GIMV_SORT_REVERSE) | (win_flag & ~GIMV_SORT_REVERSE);
+   }
 
    /* the other flags (the case, the numbers ...) as they are */
    sort_flag = current_flag & ~GIMV_SORT_REVERSE;
@@ -924,9 +932,13 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
 
    widths_load ();
 
-   /* a tab that keeps the order it was given is not sorted */
-   if (tv->tw && !g_object_get_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER))
-      current = gimv_thumb_win_get_sort_type (tv->tw, &flags);
+   /* a tab that keeps the order it was given: its arrow if that is a
+      sort (the dates), else none */
+   {
+      gint f = 0;
+      current = gimv_thumb_view_get_sort (tv, &f);
+      flags = f;
+   }
 
    /* pixmap column */
    if (!strcmp (DETAIL_ICON_LABEL, dest_mode))

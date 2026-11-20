@@ -170,6 +170,14 @@ GType        gimv_thumb_view_get_type           (void);
 /* object data: when set, the thumbnails stay in the order they were given
  * in (not sorted) */
 #define GIMV_THUMB_VIEW_KEEP_ORDER "gimv-keep-order"
+/* its value when the order given is a sort (the dates: by the date
+ * taken, reversed), for the arrow of the detail view; else 1 */
+#define GIMV_THUMB_VIEW_KEEP_ORDER_BY(item, flags) \
+   GINT_TO_POINTER (0x10000 | ((item) << 8) | ((flags) & 0xff))
+/* the sort of a tab: its order given if it is a sort, else the window's;
+ * GIMV_SORT_NONE: an order given (the bookmarks) */
+gint           gimv_thumb_view_get_sort          (GimvThumbView    *tv,
+                                                  gint             *flags);
 
 /* the selected images bookmarked (the popover for the note) */
 void           gimv_thumb_view_bookmark_selection (GimvThumbView    *tv);

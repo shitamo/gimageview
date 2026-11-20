@@ -241,8 +241,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
-	* The images of a date are opened newest first (a sort chosen in the
-	  menu sorts them so; the one already chosen too).
+	* The images of a date are opened newest first, with the arrow of the
+	  date taken in the detail view (a sort chosen in the menu or a title
+	  of the detail view sorts them so; the one already chosen too).
 	* The status bar: the label of two pages at the right (not moved by
 	  the index status before it); the empty progress bar not drawn.
 	* Pages side by side are for the tab (the book) they were turned on in

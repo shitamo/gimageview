@@ -5470,6 +5470,19 @@ gimv_thumb_win_sort_thumbnail (GimvThumbWin *tw,
 
    if (!sort_item) return;
 
+   /* the sort of the window already: a tab in the order it was given
+      (the bookmarks, the dates) is sorted by it all the same */
+   if (gimv_menu_item_get_active (GIMV_MENU_ITEM (sort_item))
+       && flags == tw->sortflags)
+   {
+      GimvThumbView *tv = gimv_thumb_win_find_thumbtable (tw, page);
+      if (tv && g_object_get_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER)) {
+         g_object_set_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER, NULL);
+         gimv_thumb_view_set_widget (tv, tv->tw, tv->container, tv->summary_mode);
+      }
+      return;
+   }
+
    if (!gimv_menu_item_get_active (GIMV_MENU_ITEM (sort_item)))
       gimv_menu_item_set_active (GIMV_MENU_ITEM (sort_item), TRUE);
 

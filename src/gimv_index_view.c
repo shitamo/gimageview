@@ -1469,8 +1469,9 @@ open_files (IndexView *iv, OpenRequest *req, FileList *fl)
    /* bookmarks and dates: newest first, until a sort is chosen in the
       menu (the others: the sort of the window) */
    g_object_set_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER,
-                      GINT_TO_POINTER (req->type == GIMV_INDEX_TAB_BOOKMARK
-                                       || req->type == GIMV_INDEX_TAB_DATE));
+                      req->type == GIMV_INDEX_TAB_DATE
+                      ? GIMV_THUMB_VIEW_KEEP_ORDER_BY (GIMV_SORT_DATE, GIMV_SORT_REVERSE)
+                      : GINT_TO_POINTER (req->type == GIMV_INDEX_TAB_BOOKMARK));
    /* tens of thousands of images: keep only the thumbnails near the
     * visible part */
    gimv_thumb_view_set_windowed (tv, TRUE);

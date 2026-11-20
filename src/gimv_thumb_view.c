@@ -4186,6 +4186,29 @@ gimv_thumb_view_find_opened_archive (const gchar *path)
 }
 
 
+gint
+gimv_thumb_view_get_sort (GimvThumbView *tv, gint *flags)
+{
+   gint keep;
+   GimvSortFlag f = 0;
+   GimvSortItem item;
+
+   *flags = 0;
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), GIMV_SORT_NONE);
+
+   keep = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (tv), GIMV_THUMB_VIEW_KEEP_ORDER));
+   if (keep & 0x10000) {
+      *flags = keep & 0xff;
+      return (keep >> 8) & 0xff;
+   }
+   if (keep) return GIMV_SORT_NONE;
+   if (!tv->tw) return GIMV_SORT_NONE;
+   item = gimv_thumb_win_get_sort_type (tv->tw, &f);
+   *flags = f;
+   return item;
+}
+
+
 void
 gimv_thumb_view_sort_data (GimvThumbView *tv)
 {
