@@ -914,6 +914,46 @@ test_pic_broken (void)
 }
 
 
+/* the pixels shown as on the machine: the X68000 (512 dots wide) 4/3
+ * wide, the PC-9801 1.2 high, the others as they are */
+static void
+test_dot_aspect (void)
+{
+   GByteArray *a;
+   GimvImage *image;
+
+   g_setenv ("GIMV_LOADER_DOT_ASPECT", "1", TRUE);
+
+   a = make_pic (30, 12, 0x00, 16);                 /* X68000 */
+   image = load_array ("pic", a);
+   assert_size (image, 40, 12);
+   /* stretched, not changed: a flat part keeps its colour */
+   assert_pixel (image, 0, 0, pic_expected (0, 0, 30, 0x00, 16));
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+
+   a = make_pic (36, 10, 0x11, 16);                 /* PC-88VA */
+   image = load_array ("pic", a);
+   assert_size (image, 36, 12);
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+
+   a = make_pic (20, 9, 0xc2, 15);                  /* FM TOWNS */
+   image = load_array ("pic", a);
+   assert_size (image, 20, 9);
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+
+   a = make_pi (32, 10, 4, TRUE);                   /* "TEST": a PC-9801 */
+   image = load_array ("pi", a);
+   assert_size (image, 32, 12);
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+
+   g_setenv ("GIMV_LOADER_DOT_ASPECT", "0", TRUE);
+}
+
+
 /******************************************************************************
  *  MAKI01 (the format before MAG)
  ******************************************************************************/
@@ -2207,6 +2247,9 @@ main (int argc, char *argv[])
    gint ret;
 
    g_test_init (&argc, &argv, NULL);
+   /* the decoders give their pixels as they are (the shape of the pixels
+      of the machines: /image-loader/dot-aspect) */
+   g_setenv ("GIMV_LOADER_DOT_ASPECT", "0", TRUE);
 
    home = gimv_test_core_init ();
    img_dir = g_build_filename (home, "images", NULL);
@@ -2228,6 +2271,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/pi/broken", test_pi_broken);
    g_test_add_func ("/image-loader/pic", test_pic);
    g_test_add_func ("/image-loader/pic/broken", test_pic_broken);
+   g_test_add_func ("/image-loader/dot-aspect", test_dot_aspect);
    g_test_add_func ("/image-loader/maki", test_maki);
    g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
    g_test_add_func ("/image-loader/maki/comment", test_maki_comment);

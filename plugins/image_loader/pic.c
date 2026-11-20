@@ -410,6 +410,12 @@ pic_load (GimvImageLoader *loader, gpointer data)
 
    g_free (pix);
    g_byte_array_free (file, TRUE);
+   /* the pixels as on the machine: the X68000 512 dots wide 4/3 wide
+      (65536 colours are only in those modes), the PC-88VA 1.2 high */
+   if ((machine == PIC_X68K || machine == PIC_X68K_EXT) && out_w <= 512)
+      return gimv_loader_image_with_aspect (dest, out_w, out_h, 4, 3, 1, 1);
+   if (machine == PIC_VA)
+      return gimv_loader_image_with_aspect (dest, out_w, out_h, 1, 1, 6, 5);
    return gimv_image_create_from_data (dest, out_w, out_h, FALSE);
 
 ERROR:

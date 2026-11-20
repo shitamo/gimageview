@@ -37,6 +37,7 @@
 
 #include "mag.h"
 #include "gimv_plugin.h"
+#include "loader_utils.h"
 
 #define LINE200  0x01
 #define COLOR8   0x02
@@ -106,7 +107,7 @@ mag_load (GimvImageLoader *loader, gpointer data)
    GimvIO *gio;
    GimvImage *image = NULL;
    mag_info minfo;
-   guchar buffer[32], comment[BUF_SIZE], colormap[256][3], *dest;
+   guchar buffer[32], comment[BUF_SIZE], colormap[256][3], *dest, machine[4];
    guint i;
    guint bytes_read;
    GimvIOStatus status;
@@ -130,6 +131,7 @@ mag_load (GimvImageLoader *loader, gpointer data)
          unused:        2byte */
       return NULL;
    }
+   memcpy (machine, buffer, 4);
 
    i = 0;
    do {                                        /* comment: unlimited */
@@ -192,10 +194,14 @@ mag_load (GimvImageLoader *loader, gpointer data)
 
    dest = mag_decode_image (loader, &minfo, colormap);
 
-   if (dest)
-      image = gimv_image_create_from_data (dest,
-                                           minfo.width, minfo.height,
-                                           FALSE);
+   if (dest) {
+      /* the pixels as on the machine; the 200 lines mode: twice as high */
+      gint wn, wd, hn, hd;
+      gimv_loader_dot_aspect_of (machine, minfo.width, &wn, &wd, &hn, &hd);
+      if (minfo.screen & LINE200) hn *= 2;
+      image = gimv_loader_image_with_aspect (dest, minfo.width, minfo.height,
+                                             wn, wd, hn, hd);
+   }
 
    return image;
 }

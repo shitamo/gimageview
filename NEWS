@@ -241,6 +241,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* MAG, ZIM, Pi, PIC and MAKI images are shown with the pixels of their
+	  machine (the PC-9801 1.2 high, the X68000 512 dots wide 4/3 wide).
 	* The images of a date are opened newest first, with the arrow of the
 	  date taken in the detail view (a sort chosen in the menu or a title
 	  of the detail view sorts them so; the one already chosen too).

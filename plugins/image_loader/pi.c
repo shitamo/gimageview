@@ -184,6 +184,7 @@ pi_load (GimvImageLoader *loader, gpointer data)
    const guchar *buf;
    gsize len, pos;
    guint mode, planes, ncolors, width, height, i, j;
+   guchar machine[4] = { 0, 0, 0, 0 };
    guchar pal[256][3];
    guchar *table = NULL, *pix = NULL, *dest = NULL;
    gsize total, at, end;
@@ -211,6 +212,7 @@ pi_load (GimvImageLoader *loader, gpointer data)
    if (pos + 10 > len) goto ERROR;
    mode   = buf[pos];
    planes = buf[pos + 3];
+   memcpy (machine, buf + pos + 4, 4);
    pos += 4 + 4;                                  /* aspect, planes, machine */
    pos += 2 + ((buf[pos] << 8) | buf[pos + 1]);   /* the extra data */
    if (pos + 4 > len) goto ERROR;
@@ -319,7 +321,12 @@ pi_load (GimvImageLoader *loader, gpointer data)
    g_free (table);
    g_free (pix);
    g_byte_array_free (file, TRUE);
-   return gimv_image_create_from_data (dest, width, height, FALSE);
+   {
+      /* the aspect of the header is 0:0 in the files seen: by the machine */
+      gint wn, wd, hn, hd;
+      gimv_loader_dot_aspect_of (machine, width, &wn, &wd, &hn, &hd);
+      return gimv_loader_image_with_aspect (dest, width, height, wn, wd, hn, hd);
+   }
 
 ERROR:
    g_free (table);

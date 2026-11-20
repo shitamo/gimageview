@@ -178,7 +178,8 @@ maki_load (GimvImageLoader *loader, gpointer data)
 
    g_free (have);
    g_byte_array_free (file, TRUE);
-   return gimv_image_create_from_data (dest, WIDTH, HEIGHT, FALSE);
+   /* the PC-9801: 640 x 400 at 4:3, the pixels 1.2 high */
+   return gimv_loader_image_with_aspect (dest, WIDTH, HEIGHT, 1, 1, 6, 5);
 
 ERROR:
    g_free (have);

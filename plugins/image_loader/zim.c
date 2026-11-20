@@ -284,7 +284,8 @@ zim_load (GimvImageLoader *loader, gpointer data)
    g_free (line);
    g_byte_array_free (file, TRUE);
 
-   return gimv_image_create_from_data (dest, width, height, FALSE);
+   /* the PC-9801: the pixels 1.2 high */
+   return gimv_loader_image_with_aspect (dest, width, height, 1, 1, 6, 5);
 
 ERROR:
    g_free (line);
