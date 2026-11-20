@@ -175,12 +175,12 @@ GImageView has the following features.
      □ JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (gimv's own loaders)
 
      □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, PIC, MAKI (.mki),
-       MB (PC-8801), AK5/MSL (gimv's own loaders; added in the GTK 4 version.
-       MAG, ZIM, Pi, PIC, MAKI and MB are shown with the pixels of the screen
-       of their machine: those of the PC-9801 and the like 1.2 high, of the
-       512 dots wide screens of the X68000 4/3 wide, of the 200 lines mode of
-       MAG and of MB twice as high again. The image size is the size
-       stretched)
+       MB (PC-8801), MB2 (PC-9801), AK5/MSL (gimv's own loaders; added in the
+       GTK 4 version. MAG, ZIM, Pi, PIC, MAKI, MB and MB2 are shown with the
+       pixels of the screen of their machine: those of the PC-9801 and the
+       like 1.2 high, of the 512 dots wide screens of the X68000 4/3 wide, of
+       the 200 lines mode of MAG and MB2 and of MB twice as high again. The
+       image size is the size stretched)
 
      □ SVG (librsvg), MNG (libmng), WMF (libwmf)
 
@@ -429,8 +429,8 @@ Seeing and editing
 The "Data" tab
      ・ The "Data" tab of the preview and of the comment window shows the
         comments written in the image file itself (JPEG, PNG, GIF, MAG, MAKI,
-        AK5/MSL) in italics (shown only); for an image in an archive they are
-        read from the file extracted for the preview.
+        MB2, AK5/MSL) in italics (shown only); for an image in an archive they
+        are read from the file extracted for the preview.
 
      ・ For a song or a movie, the information in the file (title, artist,
         album, track, genre, length, the formats of the sound and the picture,
@@ -3921,8 +3921,9 @@ How duplicates are found
     512 dots wide screens of the X68000 4/3 wide, the 200 lines mode of MAG
     twice as high again).
 
- ・ A loader for the MB format of the PC-8801 (.mb, 640x200 in 8 colours; not
-    MB2).
+ ・ A loader for the MB format of the PC-8801 (.mb, 640x200 in 8 colours) and
+    the MB2 format of the PC-9801 (.mb2, 16 colours, 400 lines; its comment in
+    the "Data" tab).
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

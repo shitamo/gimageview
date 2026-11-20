@@ -372,6 +372,28 @@ read_msl (FILE *f, GPtrArray *list)
 }
 
 
+/******************************************************************************
+ *  MB2 (PC-9801): u16 flags (0x0800: a comment), u16 the length of the
+ *  comment (big endian), the comment; no header to tell it by (.mb2)
+ ******************************************************************************/
+static void
+read_mb2 (FILE *f, GPtrArray *list)
+{
+   guchar head[4];
+   guint flags, n;
+   gchar *text;
+
+   if (fread (head, 1, 4, f) != 4) return;
+   flags = head[0] | (head[1] << 8);
+   if ((flags & 0x07ff) || !(flags & 0x0800)) return;
+   n = MIN ((guint) ((head[2] << 8) | head[3]), MAX_COMMENT);
+   text = g_malloc (n + 1);
+   n = fread (text, 1, n, f);
+   add (list, _("Comment"), text, n, TEXT_JAPANESE);
+   g_free (text);
+}
+
+
 GPtrArray *
 gimv_file_comment_read (const gchar *filename)
 {
@@ -397,6 +419,8 @@ gimv_file_comment_read (const gchar *filename)
          read_ak5_head (f, list);
       else if (!memcmp (magic, "MSL\0", 4))
          read_msl (f, list);
+      else if (g_str_has_suffix (filename, ".mb2") || g_str_has_suffix (filename, ".MB2"))
+         read_mb2 (f, list);
    }
    fclose (f);
    return list;

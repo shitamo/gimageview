@@ -1095,6 +1095,239 @@ test_mb_broken (void)
 }
 
 
+/******************************************************************************
+ *  MB2 (PC-9801)
+ ******************************************************************************/
+
+/* an encoder for what the decoder must give back: boxes of units of 1, 2
+ * (as 3 bits: the size of a unit is 1, 3, 4 or 8) and 8 bits, a mask
+ * made of runs down a column (a count of 0: 256) and along it, repeats
+ * and bytes, and the bytes of the plane where the mask is 0 */
+
+static guint
+mb2_next_place (const guchar *given, guint at, guint count, gboolean down)
+{
+   for (;;) {
+      if (++at >= count) return count;
+      if (down) {
+         at += 9;
+         if (at >= count) at = at + 1 - count;
+      }
+      if (!given[at]) return at;
+   }
+}
+
+static void
+mb2_plane (PiBits *b, guint lines, guint seed, guint8 *expect)
+{
+   guint size = 80 * lines, count = size / 8, at, i, y, x;
+   guint8 *mask = g_malloc (count), *given = g_malloc0 (count);
+
+   /* the boxes: a unit of 1 bit (1: 0xff), of 2 bits as 3 (0b010 again
+      and again from the highest: 0x49 ...), of 8 bits, two units by line */
+   memset (expect, 0, size);
+   pi_bits (b, 2 * 80 + 4, 15);  pi_bits (b, 20 * 80 + 30, 15);
+   pi_bits (b, 0, 2);  pi_bits (b, 0, 2);  pi_bits (b, 1, 1);
+   for (y = 2; y <= 20; y++)
+      for (x = 4; x <= 30; x++) expect[y * 80 + x] = 0xff;
+   pi_bits (b, 30 * 80 + 40, 15);  pi_bits (b, 40 * 80 + 50, 15);
+   pi_bits (b, 1, 2);  pi_bits (b, 0, 2);  pi_bits (b, 2, 3);
+   for (y = 30; y <= 40; y++)
+      for (x = 40; x <= 50; x++) expect[y * 80 + x] = 0x49;
+   pi_bits (b, 50 * 80 + 10, 15);  pi_bits (b, 60 * 80 + 79, 15);
+   pi_bits (b, 3, 2);  pi_bits (b, 1, 2);
+   pi_bits (b, 0x12 + seed, 8); pi_bits (b, 0x34, 8); pi_bits (b, 0x56, 8);
+   for (y = 50; y <= 60; y++)
+      for (x = 10; x <= 79; x++)
+         expect[y * 80 + x] = (y - 50) % 3 == 0 ? 0x12 + seed : (y - 50) % 3 == 1 ? 0x34 : 0x56;
+   pi_bits (b, 0x7fff, 15);
+
+   /* the mask: column 0 none of the boxes (a run down it: 256, then the
+      rest), the boxes kept on the first lines, bytes elsewhere */
+   for (i = 0; i < count; i++) {
+      guint line = i / 10;
+      mask[i] = i % 10 == 0 ? 0 : line < 70 ? 0xff : (guint8) (i * 37 + seed);
+   }
+   at = 0;
+   {
+      guint left = count / 10;               /* the column */
+      while (left > 0) {
+         guint n = left >= 256 ? 256 : MIN (left, 63);
+         pi_bit (b, 1);  pi_bit (b, 0);  pi_bits (b, n == 256 ? 0 : n, 6);
+         pi_bits (b, 0, 8);
+         for (i = 0; i < n; i++) {
+            given[at] = 1;
+            at = mb2_next_place (given, at, count, TRUE);
+         }
+         left -= n;
+      }
+   }
+   while (at < count) {
+      /* along: a repeat where the bytes are alike, else bytes */
+      guint n = 0, p = at, k;
+      gboolean same = TRUE;
+      guint places[63];
+      while (n < 63 && p < count) {
+         places[n++] = p;
+         p = mb2_next_place (given, p, count, FALSE);
+      }
+      for (k = 1; k < n; k++)
+         if (mask[places[k]] != mask[places[0]]) same = FALSE;
+      pi_bit (b, 0);  pi_bit (b, !same);  pi_bits (b, n, 6);
+      if (same) pi_bits (b, mask[places[0]], 8);
+      for (k = 0; k < n; k++) {
+         if (!same) pi_bits (b, mask[places[k]], 8);
+         given[places[k]] = 1;
+      }
+      at = p;
+      if (at < count && given[at]) at = mb2_next_place (given, at, count, FALSE);
+   }
+
+   /* the bytes */
+   for (i = 0; i < size; i++)
+      if (!((mask[i / 8] >> (i % 8)) & 1)) {
+         expect[i] = (guint8) (i * 11 + seed * 3 + i / 80);
+         pi_bits (b, expect[i], 8);
+      }
+   g_free (mask);
+   g_free (given);
+}
+
+typedef struct {
+   guint   lines, nplanes;
+   guint8  plane[4][32000];
+   guint8  pal[16][3];
+   gboolean palette;
+} Mb2Picture;
+
+static GByteArray *
+make_mb2 (Mb2Picture *pic, guint flags)
+{
+   GByteArray *a = g_byte_array_new ();
+   PiBits b = { a, 0, 0 };
+   guint i;
+   guint8 f[2] = { flags & 255, flags >> 8 };
+   static const char comment[] = "TEST\r\n\x83\x65\x83\x58\x83\x67";   /* テスト */
+
+   g_byte_array_append (a, f, 2);
+   if (flags & 0x0800) {
+      guint8 n[2] = { 0, sizeof (comment) - 1 };
+      g_byte_array_append (a, n, 2);
+      g_byte_array_append (a, (const guint8 *) comment, sizeof (comment) - 1);
+   }
+   pic->lines = (flags & 0x2000) ? 400 : 200;
+   pic->nplanes = (flags & 0xc000) == 0 ? 1 : (flags & 0xc000) == 0x4000 ? 3 : 4;
+   pic->palette = (flags & 0xc000) == 0x8000 && (flags & 0x1000);
+   for (i = 0; i < 16; i++) {
+      pic->pal[i][0] = (i * 5) & 15;
+      pic->pal[i][1] = (i * 3 + 1) & 15;
+      pic->pal[i][2] = 15 - i;
+      if (pic->palette) {
+         pi_bits (&b, pic->pal[i][1], 4);
+         pi_bits (&b, pic->pal[i][0], 4);
+         pi_bits (&b, pic->pal[i][2], 4);
+      }
+   }
+   for (i = 0; i < pic->nplanes; i++)
+      mb2_plane (&b, pic->lines, i, pic->plane[i]);
+   pi_flush (&b);
+   return a;
+}
+
+static guint32
+mb2_rgb (Mb2Picture *pic, guint x, guint y)
+{
+   guint at = y * 80 + x / 8, shift = 7 - x % 8, c = 0, i;
+
+   for (i = 0; i < pic->nplanes; i++) c |= ((pic->plane[i][at] >> shift) & 1) << i;
+   if (pic->nplanes == 1) return c ? 0xffffff : 0;
+   if (pic->nplanes == 3)
+      return ((c & 2) ? 0xff0000 : 0) | ((c & 4) ? 0x00ff00 : 0) | ((c & 1) ? 0x0000ff : 0);
+   if (pic->palette)
+      return (pic->pal[c][0] * 17) << 16 | (pic->pal[c][1] * 17) << 8 | pic->pal[c][2] * 17;
+   {
+      static const guint32 standard[16] = {
+         0x000000, 0x0000ff, 0xff0000, 0xff00ff, 0x00ff00, 0x00ffff, 0xffff00, 0xffffff,
+         0x777777, 0x0000aa, 0xaa0000, 0xaa00aa, 0x00aa00, 0x00aaaa, 0xaaaa00, 0xaaaaaa,
+      };
+      return standard[c];
+   }
+}
+
+static void
+check_mb2 (guint flags)
+{
+   Mb2Picture *pic = g_new0 (Mb2Picture, 1);
+   GByteArray *a = make_mb2 (pic, flags);
+   GimvImage *image = load_array ("mb2", a);
+   guint x, y;
+
+   assert_size (image, 640, pic->lines);
+   for (y = 0; y < pic->lines; y++)
+      for (x = 0; x < 640; x++)
+         assert_pixel (image, x, y, mb2_rgb (pic, x, y));
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+   g_free (pic);
+}
+
+static void
+test_mb2 (void)
+{
+   GimvImage *image;
+
+   check_mb2 (0x8000 | 0x2000 | 0x1000 | 0x0800);   /* 16 colours, 400 lines, a palette, a comment */
+   check_mb2 (0xc000 | 0x2000);                     /* 16 colours, the standard ones */
+   check_mb2 (0x4000);                              /* 8 colours, 200 lines */
+   check_mb2 (0x0000 | 0x0800);                     /* one plane */
+
+   /* flags it does not know */
+   image = LOAD_LIT ("mb2", "\x01\x80\0\0\0\0\0\0");
+   g_assert_null (image);
+}
+
+static void
+test_mb2_comment (void)
+{
+   Mb2Picture *pic = g_new0 (Mb2Picture, 1);
+   GByteArray *a = make_mb2 (pic, 0x8000 | 0x2000 | 0x0800);
+   gchar *path = write_file ("mb2", a->data, a->len);
+   GPtrArray *list = gimv_file_comment_read (path);
+   GimvFileComment *c;
+
+   g_assert_cmpuint (list->len, ==, 1);
+   c = g_ptr_array_index (list, 0);
+   g_assert_true (strstr (c->text, "テスト") != NULL);
+   g_ptr_array_unref (list);
+   g_unlink (path);
+   g_free (path);
+   g_byte_array_unref (a);
+   g_free (pic);
+}
+
+static void
+mb2_broken (void)
+{
+   Mb2Picture *pic = g_new0 (Mb2Picture, 1);
+   GByteArray *a = make_mb2 (pic, 0x8000 | 0x2000 | 0x1000 | 0x0800);
+   gsize cut;
+
+   for (cut = 0; cut < a->len; cut += cut < 64 ? 1 : 1997) {
+      GimvImage *image = load_bytes ("mb2", a->data, cut, FALSE);
+      g_assert_null (image);
+   }
+   check_fuzz ("mb2", a, 2, 100);
+   g_byte_array_unref (a);
+   g_free (pic);
+}
+
+static void
+test_mb2_broken (void)
+{
+   IN_SUBPROCESS (mb2_broken ());
+}
+
+
 /* the pixels shown as on the machine: the X68000 (512 dots wide) 4/3
  * wide, the PC-9801 1.2 high, the others as they are */
 static void
@@ -2456,6 +2689,9 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/dot-aspect", test_dot_aspect);
    g_test_add_func ("/image-loader/mb", test_mb);
    g_test_add_func ("/image-loader/mb/broken", test_mb_broken);
+   g_test_add_func ("/image-loader/mb2", test_mb2);
+   g_test_add_func ("/image-loader/mb2/comment", test_mb2_comment);
+   g_test_add_func ("/image-loader/mb2/broken", test_mb2_broken);
    g_test_add_func ("/image-loader/maki", test_maki);
    g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
    g_test_add_func ("/image-loader/maki/comment", test_maki_comment);

@@ -3689,8 +3689,12 @@ msgid "MB Image Loader"
 msgstr "MB画像ローダ"
 
 #: plugins/image_loader/mb.c
-msgid "MB images (PC-8801)"
-msgstr "MB 形式の画像 (PC-8801)"
+msgid "MB images (PC-8801) and MB2 (PC-9801)"
+msgstr "MB 形式 (PC-8801) と MB2 形式 (PC-9801) の画像"
+
+#: plugins/image_loader/mb.c
+msgid "The MB2 image format (PC-9801)"
+msgstr "MB2 画像形式 (PC-9801)"
 
 #: plugins/image_loader/mb.c
 msgid "The MB image format (PC-8801)"
