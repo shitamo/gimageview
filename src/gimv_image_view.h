@@ -249,6 +249,10 @@ void       gimv_image_view_set_spread         (GimvImageView *iv,
                                               gboolean       on);
 void       gimv_image_view_resume_spread      (GimvImageView *iv,
                                               const gchar   *layout);
+/* on for the list of owner (pages side by side are for the tab they were
+   turned on in only) */
+gboolean   gimv_image_view_spread_for         (GimvImageView *iv,
+                                              gpointer       owner);
 gchar     *gimv_image_view_spread_status      (GimvImageView *iv);
 gchar     *gimv_image_view_spread_status_widest (GimvImageView *iv);
 gint       gimv_image_view_spread_shown       (GimvImageView *iv);

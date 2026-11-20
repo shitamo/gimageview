@@ -191,6 +191,10 @@ struct GimvImageViewPrivate_Tag
    /* two pages (a spread of a book): the page of the list after the
       image shown beside it (gimv_image_view_spread.c below) */
    gboolean         spread;           /* turned on (by hand) */
+   gpointer         spread_owner;     /* the owner of the list (a tab) it
+                                         was turned on in: on for it only;
+                                         NULL: the list set next */
+   gboolean         setting_list;
    gint             spread_shown;     /* pages shown now: 1 alone */
    gdouble          spread_wide;      /* the width shown / that of the page
                                          (iv->info): 1.0 alone */
@@ -269,6 +273,7 @@ static void cb_spread_edit                 (GimvImageView   *iv,
 static void spread_menu_update             (GimvImageView   *iv);
 static GimvPageLayout *spread_layout       (GimvImageView   *iv);
 static void spread_remember                (GimvImageView   *iv);
+static void spread_off_quietly             (GimvImageView   *iv);
 static void spread_prefetch                (GimvImageView   *iv);
 static void cb_spread_shift                (GimvImageView   *iv,
                                             guint            action,
@@ -6128,6 +6133,19 @@ cb_spread (GimvImageView *iv, guint action, GimvMenuItem *widget)
 }
 
 
+/* off for a list of another folder: the image shown next is shown alone
+   (not loaded again here, the book not forgotten) */
+static void
+spread_off_quietly (GimvImageView *iv)
+{
+   iv->priv->spread = FALSE;
+   iv->priv->spread_owner = NULL;
+   if (iv->spread_menu)
+      menu_check_item_set_active (iv->spread_menu, "/Two Pages", FALSE);
+   g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
+}
+
+
 /* two pages on or off (the menu, the T key, a button of the window) */
 void
 gimv_image_view_set_spread (GimvImageView *iv, gboolean on)
@@ -6137,6 +6155,7 @@ gimv_image_view_set_spread (GimvImageView *iv, gboolean on)
    on = on != FALSE;
    if (on == iv->priv->spread) return;
    iv->priv->spread = on;
+   iv->priv->spread_owner = on && iv->priv->image_list ? iv->priv->image_list->owner : NULL;
    if (iv->spread_menu)
       menu_check_item_set_active (iv->spread_menu, "/Two Pages", on);
    /* turned off in a book: no going on from there */
@@ -6169,12 +6188,22 @@ gimv_image_view_resume_spread (GimvImageView *iv, const gchar *layout)
          break;
       }
    spread_menu_update (iv);
+   /* for the list set next (the book's) */
+   iv->priv->spread_owner = NULL;
    if (!iv->priv->spread) {
       iv->priv->spread = TRUE;
       if (iv->spread_menu)
          menu_check_item_set_active (iv->spread_menu, "/Two Pages", TRUE);
    }
    g_signal_emit (G_OBJECT (iv), gimv_image_view_signals[SPREAD_CHANGED_SIGNAL], 0);
+}
+
+
+gboolean
+gimv_image_view_spread_for (GimvImageView *iv, gpointer owner)
+{
+   g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
+   return iv->priv->spread && iv->priv->spread_owner == owner;
 }
 
 
@@ -6463,8 +6492,20 @@ gimv_image_view_set_list (GimvImageView       *iv,
 
    if (!g_list_find (GimvImageViewList, iv)) return;
 
+   /* pages side by side are for the folder (the tab) they were turned on
+      in: a list of another one shows its images alone (the book is not
+      forgotten: it goes on from where it was when it is opened again) */
+   if (iv->priv->spread) {
+      if (!iv->priv->spread_owner)
+         iv->priv->spread_owner = list_owner;
+      else if (iv->priv->spread_owner != list_owner)
+         spread_off_quietly (iv);
+   }
+
+   iv->priv->setting_list = TRUE;
    if (iv->priv->image_list)
       gimv_image_view_remove_list (iv, iv->priv->image_list->owner);
+   iv->priv->setting_list = FALSE;
 
    iv->priv->image_list = g_new0 (GimvImageViewImageList, 1);
 
@@ -6500,6 +6541,11 @@ gimv_image_view_remove_list (GimvImageView *iv, gpointer list_owner)
           iv->priv->image_list->owner,
           iv->priv->image_list->list_fn_user_data);
    }
+
+   /* the tab of the book closed */
+   if (!iv->priv->setting_list && iv->priv->spread
+       && iv->priv->spread_owner && iv->priv->spread_owner == iv->priv->image_list->owner)
+      spread_off_quietly (iv);
 
    g_free (iv->priv->image_list);
    iv->priv->image_list = NULL;

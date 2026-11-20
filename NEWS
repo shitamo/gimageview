@@ -241,6 +241,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Pages side by side are for the tab (the book) they were turned on in
+	  only: images of other tabs, dates or tags are shown alone.
 	* Fixed a crash closing the tab of an archive with the same name twice
 	  in it (or opened again while an image of it was still held).
 	* The thumbnails of folders and archives are their covers (the first

@@ -1361,9 +1361,13 @@ Two Pages
     with its last page and layout (~/.gimv/books, the 1000 most recent): when
     a tab of it is opened again, that page is chosen and shown in the preview
     with pages side by side (going on from there). Turning them off in the
-    book forgets it. While pages are side by side, the pages of the next turn
-    are read beforehand in a thread (the formats of GdkPixbuf; the images in
-    an archive are extracted first).
+    book forgets it. Pages side by side are for the tab (the book) they were
+    turned on in only: an image opened from another tab, or from a list of
+    dates, tags and so on, is shown alone; opening an image in the tab of the
+    book again shows pages side by side again. Closing that tab turns them off
+    (the book is still remembered). While pages are side by side, the pages of
+    the next turn are read beforehand in a thread (the formats of GdkPixbuf;
+    the images in an archive are extracted first).
 
     With "Auto resize to image size" of the image window, the window is sized
     for all the pages of the layout (four pages for 2 × 2), the cover shown
@@ -3884,6 +3888,11 @@ How duplicates are found
  ・ Fixed a crash closing the tab of an archive with the same name twice in
     it, or opened again while an image of it was still held (the second entry
     of the list held no reference: freed twice).
+
+ ・ Pages side by side are for the tab (the book) they were turned on in only:
+    an image opened from another tab or a list of dates or tags is shown
+    alone, and opening one in the tab of the book again shows them side by
+    side again. Closing the tab turns them off (the book is still remembered).
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

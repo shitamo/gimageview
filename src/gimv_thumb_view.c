@@ -3138,6 +3138,18 @@ gimv_thumb_view_open_image (GimvThumbView *tv, GimvThumb *thumb, gint type)
    {
       iv = tw->iv;
       gimv_comment_view_change_file (tw->cv, thumb->info);
+      /* a book read with pages side by side (another tab had the
+         preview): as it was left */
+      if ((tv->mode == GIMV_THUMB_VIEW_MODE_DIR || tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE)
+          && !gimv_image_view_spread_for (iv, tv))
+      {
+         const gchar *path = gimv_thumb_view_get_path (tv);
+         gchar *page = NULL, *layout = NULL;
+         if (path && gimv_books_get (path, &page, &layout))
+            gimv_image_view_resume_spread (iv, layout);
+         g_free (page);
+         g_free (layout);
+      }
       /* the list first: pages side by side are those after it */
       if (g_list_find (gimv_image_view_get_list (), iv)) {
          gimv_image_view_set_list (iv, tv->thumblist, g_list_find (tv->thumblist, thumb),
