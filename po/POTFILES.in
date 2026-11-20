@@ -62,6 +62,7 @@ plugins/image_loader/mag.c
 plugins/image_loader/mng.c
 plugins/image_loader/pcx.c
 plugins/image_loader/maki.c
+plugins/image_loader/mb.c
 plugins/image_loader/pi.c
 plugins/image_loader/pic.c
 plugins/image_loader/pnm.c

@@ -6,7 +6,7 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* The system libexif and GLib replace the bundled libexif and MD5 code.
 	* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801),
 	  Pi (PC-9801, X68000; 16 and 256 colours), PIC (X68000, FM TOWNS,
-	  PC-88VA), MAKI01 (.mki, before MAG) and AK5/MSL (MASL,
+	  PC-88VA), MAKI01 (.mki, before MAG), MB (PC-8801) and AK5/MSL (MASL,
 	  PC-9801; an .msl is played by its scenario, with its PCM
 	  sound through GStreamer); formats of the
 	  installed gdk-pixbuf loaders (WebP, AVIF, HEIF, JPEG XL, ...) are

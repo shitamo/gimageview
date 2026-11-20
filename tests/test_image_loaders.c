@@ -914,6 +914,187 @@ test_pic_broken (void)
 }
 
 
+/******************************************************************************
+ *  MB (PC-8801)
+ ******************************************************************************/
+
+/* the stream packed as literal runs (the decoder's runs of a byte are
+ * checked by the boxes, written as repeats) */
+
+static void
+mb_put (GByteArray *a, const guint8 *data, gsize n)
+{
+   while (n > 0) {
+      guint8 c = MIN (n, 127);
+      guint8 head = 0x80 | c;
+      g_byte_array_append (a, &head, 1);
+      g_byte_array_append (a, data, c);
+      data += c;
+      n -= c;
+   }
+}
+
+static void
+mb_put_repeat (GByteArray *a, guint8 value, guint n)
+{
+   guint8 two[2] = { n & 0x7f, value };     /* n < 128 */
+   g_byte_array_append (a, two, 2);
+}
+
+/* the 2000 bytes of the mask as the decoder turns them */
+static guint8
+mb_chain (guint8 v, guint8 after)
+{
+   guint8 x = (after >> 7) ^ v;
+   guint bit;
+   for (bit = 1; bit < 8; bit++) x ^= ((x >> (bit - 1)) & 1) << bit;
+   return x;
+}
+
+/* a plane: boxes, then the bytes where keep (a bit for each byte) is 0 */
+static void
+mb_put_plane (GByteArray *a, const guint8 *boxes, gsize boxes_len,
+              const guint8 *keep, const guint8 *plane)
+{
+   guint8 x[2000], pre[2000], bits[250];
+   GByteArray *s = g_byte_array_new ();
+   guint i, v;
+   guint8 zero = 0;
+
+   /* the boxes: their width and height as a repeat, the rest literal */
+   mb_put (s, boxes, boxes_len);
+   mb_put_repeat (s, 0, 1);
+
+   /* the mask before the decoder turns it */
+   x[1999] = keep[1999];
+   for (i = 1999; i-- > 0; ) {
+      for (v = 0; v < 256 && mb_chain (v, keep[i + 1]) != keep[i]; v++) ;
+      g_assert_cmpuint (v, <, 256);
+      x[i] = v;
+   }
+   for (i = 0; i < 2000; i++) pre[i] = i + 10 < 2000 ? x[i] ^ x[i + 10] : x[i];
+   memset (bits, 0, sizeof (bits));
+   for (i = 0; i < 2000; i++)
+      if (pre[i]) bits[i / 8] |= 0x80 >> (i % 8);
+   mb_put (s, bits, 250);
+   for (i = 0; i < 2000; i++)
+      if (pre[i]) mb_put (s, &pre[i], 1);
+   for (i = 0; i < 16000; i++)
+      if (!((keep[i / 8] >> (7 - i % 8)) & 1)) mb_put (s, &plane[i], 1);
+   g_byte_array_append (a, s->data, s->len);
+   g_byte_array_unref (s);
+   (void) zero;
+}
+
+typedef struct {
+   guint8 plane[3][16000];
+} MbPicture;
+
+static GByteArray *
+make_mb (MbPicture *pic)
+{
+   GByteArray *a = g_byte_array_new ();
+   guint8 keep[2000];
+   guint i, x, y;
+
+   /* blue: a pattern of two lines over the screen, a box, kept on the
+      top half, bytes of the stream below */
+   {
+      static const guint8 boxes[] = {
+         80, 200, 0x40, 0x00, 0x55, 0xaa,              /* 2 pattern bytes */
+         10, 50, (20 * 80 + 5) >> 8, (20 * 80 + 5) & 255, 0xff,
+      };
+      for (i = 0; i < 16000; i++)
+         pic->plane[0][i] = (i / 80) % 2 ? 0xaa : 0x55;
+      for (y = 20; y < 70; y++)
+         for (x = 5; x < 15; x++) pic->plane[0][y * 80 + x] = 0xff;
+      for (i = 0; i < 2000; i++) keep[i] = i < 1000 ? 0xff : 0x00;
+      for (i = 8000; i < 16000; i++) pic->plane[0][i] = (i * 7) & 0xff;
+      mb_put_plane (a, boxes, sizeof (boxes), keep, pic->plane[0]);
+   }
+   /* red: all from the stream */
+   {
+      for (i = 0; i < 16000; i++) pic->plane[1][i] = (i * 13 + i / 80) & 0xff;
+      memset (keep, 0, sizeof (keep));
+      mb_put_plane (a, NULL, 0, keep, pic->plane[1]);
+   }
+   /* green: boxes only (a height of 0: 256 lines, cut at the bottom) */
+   {
+      static const guint8 boxes[] = {
+         3, 0, 0x00, 70, 0xf0,
+         0x80 | 4, 9, (100 * 80 + 40) >> 8 | 0xc0, (100 * 80 + 40) & 255, 1, 2, 3, 4,
+      };
+      memset (pic->plane[2], 0, 16000);
+      for (y = 0; y < 200; y++)
+         for (x = 70; x < 73; x++) pic->plane[2][y * 80 + x] = 0xf0;
+      for (y = 100; y < 109; y++)
+         for (x = 40; x < 44; x++) pic->plane[2][y * 80 + x] = 1 + (y - 100) % 4;
+      memset (keep, 0xff, sizeof (keep));
+      mb_put_plane (a, boxes, sizeof (boxes), keep, pic->plane[2]);
+   }
+   return a;
+}
+
+static guint32
+mb_rgb (MbPicture *pic, guint x, guint y)
+{
+   guint at = y * 80 + x / 8, shift = 7 - x % 8;
+   return (((pic->plane[1][at] >> shift) & 1) ? 0xff0000 : 0)
+      | (((pic->plane[2][at] >> shift) & 1) ? 0x00ff00 : 0)
+      | (((pic->plane[0][at] >> shift) & 1) ? 0x0000ff : 0);
+}
+
+static void
+test_mb (void)
+{
+   MbPicture *pic = g_new (MbPicture, 1);
+   GByteArray *a = make_mb (pic);
+   GimvImage *image = load_array ("mb", a);
+   guint x, y;
+
+   assert_size (image, 640, 200);
+   for (y = 0; y < 200; y++)
+      for (x = 0; x < 640; x++)
+         assert_pixel (image, x, y, mb_rgb (pic, x, y));
+   gimv_image_unref (image);
+
+   /* a Maya scene, nothing */
+   image = LOAD_LIT ("mb", "FOR4\0\0\0\x10" "Maya");
+   g_assert_null (image);
+   g_byte_array_unref (a);
+   g_free (pic);
+}
+
+static void
+mb_broken (void)
+{
+   MbPicture *pic = g_new (MbPicture, 1);
+   GByteArray *a = make_mb (pic);
+
+   gsize cut;
+
+   /* cut short: nothing (the format can not be told otherwise); some
+      cuts only, the file is long */
+   for (cut = 0; cut < a->len; cut += cut < 64 ? 1 : 997) {
+      GimvImage *image = load_bytes ("mb", a->data, cut, FALSE);
+      g_assert_null (image);
+   }
+   {
+      GimvImage *image = load_bytes ("mb", a->data, a->len - 1, FALSE);
+      g_assert_null (image);
+   }
+   check_fuzz ("mb", a, 0, 100);
+   g_byte_array_unref (a);
+   g_free (pic);
+}
+
+static void
+test_mb_broken (void)
+{
+   IN_SUBPROCESS (mb_broken ());
+}
+
+
 /* the pixels shown as on the machine: the X68000 (512 dots wide) 4/3
  * wide, the PC-9801 1.2 high, the others as they are */
 static void
@@ -2256,6 +2437,7 @@ main (int argc, char *argv[])
    gimv_test_core_load_plugin ("image_loader", "gimv_zim_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_pi_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_pic_loader");
+   gimv_test_core_load_plugin ("image_loader", "gimv_mb_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_maki_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_mag_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_ras_loader");
@@ -2272,6 +2454,8 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/pic", test_pic);
    g_test_add_func ("/image-loader/pic/broken", test_pic_broken);
    g_test_add_func ("/image-loader/dot-aspect", test_dot_aspect);
+   g_test_add_func ("/image-loader/mb", test_mb);
+   g_test_add_func ("/image-loader/mb/broken", test_mb_broken);
    g_test_add_func ("/image-loader/maki", test_maki);
    g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
    g_test_add_func ("/image-loader/maki/comment", test_maki_comment);
