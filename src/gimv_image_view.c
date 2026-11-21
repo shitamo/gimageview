@@ -126,6 +126,7 @@ struct GimvImageViewPrivate_Tag
 {
    GtkWidget       *navwin;
    GtkWidget       *overlay;   /* GTK4: holds the navigator */
+   GtkWidget       *spread_hint;   /* where a click goes, two pages */
 
    /* image */
    GdkTexture       *pixmap;
@@ -274,6 +275,13 @@ static void spread_menu_update             (GimvImageView   *iv);
 static GimvPageLayout *spread_layout       (GimvImageView   *iv);
 static void spread_remember                (GimvImageView   *iv);
 static void spread_off_quietly             (GimvImageView   *iv);
+static void spread_hint_hide               (GimvImageView   *iv);
+static void cb_spread_hint_motion          (GtkEventControllerMotion *controller,
+                                            gdouble          x,
+                                            gdouble          y,
+                                            GimvImageView   *iv);
+static void cb_spread_hint_leave           (GtkEventControllerMotion *controller,
+                                            GimvImageView   *iv);
 static void spread_prefetch                (GimvImageView   *iv);
 static void cb_spread_shift                (GimvImageView   *iv,
                                             guint            action,
@@ -2285,6 +2293,13 @@ gimv_image_view_change_draw_widget (GimvImageView *iv, const gchar *label)
    gimv_event_connect (GTK_WIDGET (iv->draw_area), GIMV_EVENT_BUTTON_RELEASE, G_CALLBACK (cb_image_button_release), iv);
    gimv_event_connect (GTK_WIDGET (iv->draw_area), GIMV_EVENT_MOTION_NOTIFY, G_CALLBACK (cb_image_motion_notify), iv);
    gimv_event_connect (GTK_WIDGET (iv->draw_area), GIMV_EVENT_SCROLL, G_CALLBACK (cb_image_scroll), iv);
+   {
+      GtkEventController *hint = gtk_event_controller_motion_new ();
+      g_signal_connect (hint, "enter",  G_CALLBACK (cb_spread_hint_motion), iv);
+      g_signal_connect (hint, "motion", G_CALLBACK (cb_spread_hint_motion), iv);
+      g_signal_connect (hint, "leave",  G_CALLBACK (cb_spread_hint_leave), iv);
+      gtk_widget_add_controller (iv->draw_area, hint);
+   }
 
    if (iv->priv->fullscreen) {
       gimv_container_add (GTK_WIDGET (iv->priv->fullscreen), iv->draw_area);
@@ -6133,11 +6148,70 @@ cb_spread (GimvImageView *iv, guint action, GimvMenuItem *widget)
 }
 
 
+/* where a click goes with pages side by side (the side of the book under
+   the pointer: next or previous), shown over that side while the pointer
+   is on the image */
+static void
+spread_hint_hide (GimvImageView *iv)
+{
+   if (iv->priv && iv->priv->spread_hint)
+      gtk_widget_set_visible (iv->priv->spread_hint, FALSE);
+}
+
+
+static void
+cb_spread_hint_motion (GtkEventControllerMotion *controller,
+                       gdouble x, gdouble y, GimvImageView *iv)
+{
+   gint width;
+   gboolean left, next;
+
+   if (!iv->priv) return;
+   if (!iv->priv->spread || iv->priv->pressed || !iv->draw_area
+       || !iv->priv->overlay
+       || !gtk_widget_is_ancestor (iv->draw_area, iv->priv->overlay))
+   {
+      spread_hint_hide (iv);
+      return;
+   }
+   width = gtk_widget_get_width (iv->draw_area);
+   if (width <= 0) return;
+   left = x < width / 2.0;
+   next = left == (spread_layout (iv)->rtl != FALSE);   /* as spread_click */
+
+   if (!iv->priv->spread_hint) {
+      GtkWidget *label = gtk_label_new (NULL);
+      gtk_widget_add_css_class (label, "osd");
+      gtk_widget_add_css_class (label, "gimv-spread-hint");
+      gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
+      gtk_widget_set_margin_start (label, 12);
+      gtk_widget_set_margin_end (label, 12);
+      /* the clicks go to the image under it */
+      gtk_widget_set_can_target (label, FALSE);
+      gtk_overlay_add_overlay (GTK_OVERLAY (iv->priv->overlay), label);
+      iv->priv->spread_hint = label;
+   }
+   gtk_label_set_text (GTK_LABEL (iv->priv->spread_hint),
+                       left ? (next ? _("◀ Next") : _("◀ Previous"))
+                            : (next ? _("Next ▶") : _("Previous ▶")));
+   gtk_widget_set_halign (iv->priv->spread_hint, left ? GTK_ALIGN_START : GTK_ALIGN_END);
+   gtk_widget_set_visible (iv->priv->spread_hint, TRUE);
+}
+
+
+static void
+cb_spread_hint_leave (GtkEventControllerMotion *controller, GimvImageView *iv)
+{
+   spread_hint_hide (iv);
+}
+
+
 /* off for a list of another folder: the image shown next is shown alone
    (not loaded again here, the book not forgotten) */
 static void
 spread_off_quietly (GimvImageView *iv)
 {
+   spread_hint_hide (iv);
    iv->priv->spread = FALSE;
    iv->priv->spread_owner = NULL;
    if (iv->spread_menu)
@@ -6160,6 +6234,7 @@ gimv_image_view_set_spread (GimvImageView *iv, gboolean on)
       menu_check_item_set_active (iv->spread_menu, "/Two Pages", on);
    /* turned off in a book: no going on from there */
    if (!on) {
+      spread_hint_hide (iv);
       gchar *book, *page;
       if (spread_book_of (iv->info, &book, &page)) gimv_books_forget (book);
       g_free (book);

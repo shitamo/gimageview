@@ -50,3 +50,9 @@ progressbar.gimv-status-progress > trough {
   border: none;
   box-shadow: none;
 }
+
+/* where a click goes with pages side by side, over that side */
+label.gimv-spread-hint {
+  padding: 6px 12px;
+  border-radius: 6px;
+}

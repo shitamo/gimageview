@@ -7911,3 +7911,19 @@ msgstr "%s · 画質 %d"
 msgid "<b>%s</b>  %u group"
 msgid_plural "<b>%s</b>  %u groups"
 msgstr[0] "<b>%s</b>  %u 組"
+
+#: src/gimv_image_view.c
+msgid "◀ Next"
+msgstr "◀ 次へ"
+
+#: src/gimv_image_view.c
+msgid "◀ Previous"
+msgstr "◀ 前へ"
+
+#: src/gimv_image_view.c
+msgid "Next ▶"
+msgstr "次へ ▶"
+
+#: src/gimv_image_view.c
+msgid "Previous ▶"
+msgstr "前へ ▶"

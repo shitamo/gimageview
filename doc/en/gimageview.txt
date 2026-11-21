@@ -1362,9 +1362,11 @@ Two Pages
     The next image (a click, Space, Page Down) shows the next pages, the
     previous image (Page Up) the ones before. A click of the left button goes
     by the side clicked: in a book from right to left the left half goes on
-    and the right half back (left to right, the other way). The pages are
-    shown at the height of the first one without a gap. A wide image (a spread
-    scanned as one) is shown alone, and the pages before it end there.
+    and the right half back (left to right, the other way). With the pointer
+    on the image, that side shows where a click goes ("◀ Next", "Previous ▶").
+    The pages are shown at the height of the first one without a gap. A wide
+    image (a spread scanned as one) is shown alone, and the pages before it
+    end there.
 
     While pages are shown side by side, Create Thumbnail, Crop and Edit Faces
     cannot be used (it is not the image of a page).
@@ -3933,6 +3935,10 @@ How duplicates are found
     selected, whole with its lines in place of the value (long ones were hard
     to read on one line). The image size of an image not loaded yet is not
     shown as "-1x-1".
+
+ ・ With pages side by side, the side under the pointer shows where a click
+    goes ("◀ Next", "Previous ▶"): a click on the right half going back in a
+    book from right to left was not clear.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

@@ -242,6 +242,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Pages side by side: the side of the image under the pointer shows
+	  where a click goes ("◀ Next", "Previous ▶").
 	* A comment written in the image file: its first 4 lines in the list
 	  of the "Data" tab, and, selected, the whole with its lines.
 	* MAG, ZIM, Pi, PIC and MAKI images are shown with the pixels of their
