@@ -242,6 +242,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Fixed: closing the tab of an archive while its thumbnails were made
+	  could crash, and a page chosen while they were made was not shown
+	  (the preview stayed on the image before).
 	* [Join Images] reads MAG, Pi and the other formats of gimv's own
 	  loaders too (saved as PNG).  A PNG joined or cropped takes the
 	  comments written in the files.

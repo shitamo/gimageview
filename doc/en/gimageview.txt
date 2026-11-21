@@ -3953,6 +3953,11 @@ How duplicates are found
     These formats have no EXIF: "the information of the file was not copied"
     is no more told for them.
 
+ ・ Closing the tab of an archive while its thumbnails were made could crash
+    (the view of the tab closed while a member was extracted was used on). A
+    page chosen meanwhile was not extracted (the preview stayed on the image
+    before): it waits for the extraction going on.
+
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg
     before 2.jpg). [View | Sort File List | Numbers by Value] turns it off.

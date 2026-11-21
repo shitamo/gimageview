@@ -830,6 +830,16 @@ gimv_image_info_extract_archive (GimvImageInfo *info)
    if (failed && g_hash_table_contains (failed, filename))
       return FALSE;
 
+   /* the archive kept while it is waited for (a tab closed meanwhile would
+      take it, and its "done" that ends the wait: see fileload.c) */
+   g_object_ref (archive);
+
+   /* another member being extracted (the thumbnails): after it, not
+      given up (the preview stayed on the image before, whatever page was
+      chosen while the thumbnails were made) */
+   while (!file_exists (temp_file) && archive->process->running)
+      g_main_context_iteration (NULL, TRUE);
+
    if (!file_exists (temp_file) && !archive->process->running) {
       ensure_dir_exists (temp_dir);
       filelist = g_list_append (filelist, filename);
@@ -850,10 +860,10 @@ gimv_image_info_extract_archive (GimvImageInfo *info)
       }
    }
 
-   if (file_exists (temp_file)) {
-      return TRUE;
-   } else {
-      return FALSE;
+   {
+      gboolean ok = file_exists (temp_file);
+      g_object_unref (archive);
+      return ok;
    }
 }
 

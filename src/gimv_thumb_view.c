@@ -2282,8 +2282,17 @@ recreate_bg_done (GimvThumb *thumb, gboolean made, gboolean cancelled, gpointer 
    gint pos;
 
    if (!priv || gimv_thumb_get_parent_thumbview (thumb) != tv) return;
-   if (!made && !cancelled && recreate_wanted (tv, thumb))
-      gimv_thumb_load (thumb, tv->thumb_size, CREATE_THUMB);   /* a plugin format */
+   if (!made && !cancelled && recreate_wanted (tv, thumb)) {
+      /* a plugin format; an archive member waits in a main loop (the tab
+         may be closed meanwhile) */
+      GimvThumbView *watched = tv;
+      g_object_add_weak_pointer (G_OBJECT (tv), (gpointer *) &watched);
+      gimv_thumb_load (thumb, tv->thumb_size, CREATE_THUMB);
+      if (!watched) return;
+      g_object_remove_weak_pointer (G_OBJECT (tv), (gpointer *) &watched);
+      priv = tv->priv;
+      if (!priv || gimv_thumb_get_parent_thumbview (thumb) != tv) return;
+   }
    if (made || !cancelled) {
       recreate_done (tv, thumb);
       pos = gimv_thumb_view_get_thumb_index (tv, thumb);
@@ -2373,12 +2382,34 @@ recreate_background (GimvThumbView *tv, gint64 start)
 }
 
 
+static gboolean window_idle_load_real (GimvThumbView *tv, GimvThumbView **watched);
+
+
+/* the thumbnails near the view.  A member of an archive is extracted
+   waiting in a main loop of its own, where the tab may be closed: the view
+   is watched (a weak pointer; not kept: it must go with its tab) */
 static gboolean
 window_idle_load (gpointer data)
 {
-   GimvThumbView *tv = data;
+   GimvThumbView *tv = data, *watched = tv;
+   gboolean again;
+
+   g_object_add_weak_pointer (G_OBJECT (tv), (gpointer *) &watched);
+   again = window_idle_load_real (tv, &watched);
+   if (!watched) return G_SOURCE_REMOVE;    /* gone, with its source */
+   g_object_remove_weak_pointer (G_OBJECT (tv), (gpointer *) &watched);
+   if (!tv->priv) again = G_SOURCE_REMOVE;
+   return again;
+}
+
+
+static gboolean
+window_idle_load_real (GimvThumbView *tv, GimvThumbView **watched)
+{
    GimvThumbViewPriv *priv = tv->priv;
    gint64 start = g_get_monotonic_time ();
+
+   if (!priv) return G_SOURCE_REMOVE;
 
    /* not inside gimv_flush_events (): a click (its handler lets the events
     * run to show the selection) or the preview loading an image (it lets
@@ -2428,12 +2459,23 @@ window_idle_load (gpointer data)
          continue;
       }
       /* the cache (fast) here; the image itself in a thread when it can */
+      g_object_ref (thumb);
       if (!gimv_thumb_load_quick (thumb, tv->thumb_size, type)
+          && *watched && tv->priv
           && gimv_thumb_async_load (thumb, tv->thumb_size, type,
                                     window_async_done, tv))
+      {
+         g_object_unref (thumb);
          continue;
-      if (!gimv_thumb_is_loaded (thumb) || again)
+      }
+      if (*watched && tv->priv && (!gimv_thumb_is_loaded (thumb) || again))
          gimv_thumb_load (thumb, tv->thumb_size, type);
+      /* closed meanwhile */
+      if (!*watched || !tv->priv || gimv_thumb_get_parent_thumbview (thumb) != tv) {
+         g_object_unref (thumb);
+         return G_SOURCE_REMOVE;
+      }
+      g_object_unref (thumb);
       recreate_done (tv, thumb);
       window_mark_loaded (tv, thumb);
       if (tv->vfuncs && tv->vfuncs->update_thumb)
