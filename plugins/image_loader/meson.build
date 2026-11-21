@@ -1,5 +1,5 @@
 dir = plugindir / 'image_loader'
-foreach n : ['bmp', 'mag', 'maki', 'mb', 'pcx', 'pi', 'pic', 'pnm', 'ras', 'tga', 'wbmp', 'xbm', 'xcf', 'xpm', 'xvpics', 'zim']
+foreach n : ['bmp', 'mag', 'maki', 'mb', 'pcx', 'pi', 'pic', 'pic2', 'pnm', 'ras', 'tga', 'wbmp', 'xbm', 'xcf', 'xpm', 'xvpics', 'zim']
   gimv_plugins += shared_module('gimv_' + n + '_loader', n + '.c',
     dependencies : common_deps, install_dir : dir, kwargs : plugin_kwargs)
 endforeach

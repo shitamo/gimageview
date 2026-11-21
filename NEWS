@@ -6,7 +6,7 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* The system libexif and GLib replace the bundled libexif and MD5 code.
 	* New loaders for Sun raster, WBMP, PNM, XPM, ZIM (KID98, PC-9801),
 	  Pi (PC-9801, X68000; 16 and 256 colours), PIC (X68000, FM TOWNS,
-	  PC-88VA), MAKI01 (.mki, before MAG), MB (PC-8801), MB2 (PC-9801)
+	  PC-88VA), PIC2 (X68000), MAKI01 (.mki, before MAG), MB (PC-8801), MB2 (PC-9801)
 	  and AK5/MSL (MASL,
 	  PC-9801; an .msl is played by its scenario, with its PCM
 	  sound through GStreamer); formats of the
@@ -242,6 +242,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* A loader for PIC2 (.p2, X68000; up to 24 bits, all four kinds of
+	  blocks, several blocks in one file); its author, title, comment and
+	  saver are shown in the "Data" tab.
 	* A tab of a folder comes back where it was scrolled, after the tab of
 	  an archive opened from it is closed (it showed its top).
 	* The comments of Pi and PIC files (and their machine) are shown in the

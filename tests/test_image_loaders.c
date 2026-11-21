@@ -915,6 +915,652 @@ test_pic_broken (void)
 
 
 /******************************************************************************
+ *  PIC2 (X68000)
+ ******************************************************************************/
+
+/* the picture: bands that slant (chains), flat parts (runs), a few
+ * colours back again (caches) and some new ones; R G B of cb bits each */
+static guint32
+pic2_value (guint x, guint y, guint cb)
+{
+   static const guint8 band[6][3] = {
+      { 0, 0, 0 }, { 255, 255, 255 }, { 200, 40, 30 },
+      { 20, 180, 60 }, { 30, 60, 220 }, { 250, 220, 0 },
+   };
+   guint max = 0xff >> (8 - cb), r, g, b, i;
+
+   if ((x * 7 + y * 13) % 29 == 0) {
+      r = (x * 37 + y * 11) & 0xff;
+      g = (x * 5 + y * 71) & 0xff;
+      b = (x * y * 3 + 17) & 0xff;
+   } else {
+      i = ((x + y / 2) / 5 + y / 4) % 6;
+      r = band[i][0]; g = band[i][1]; b = band[i][2];
+   }
+   r = (r >> (8 - cb)) & max;
+   g = (g >> (8 - cb)) & max;
+   b = (b >> (8 - cb)) & max;
+   return (r << (cb * 2)) | (g << cb) | b;
+}
+
+static guint32
+pic2_rgb (guint32 c, guint cb)
+{
+   guint32 max = 0xff >> (8 - cb), rgb = 0;
+   gint ch;
+
+   for (ch = 2; ch >= 0; ch--) {
+      guint32 v = (c >> (cb * ch)) & max, w = 0;
+      gint to = 8;
+      do {
+         to -= cb;
+         w |= to >= 0 ? v << to : v >> -to;
+      } while (to >= 0);
+      rgb = (rgb << 8) | (w & 0xff);
+   }
+   return rgb;
+}
+
+static guint32
+pic2_swap_rg (guint32 p, guint cb)
+{
+   guint32 mask = 0xff >> (8 - cb);
+   return ((p << cb) & (mask << (cb * 2))) | ((p >> cb) & (mask << cb)) | (p & mask);
+}
+
+static void
+put_be16 (GByteArray *a, guint v)
+{
+   guint8 b[2] = { v >> 8, v };
+   g_byte_array_append (a, b, 2);
+}
+
+static void
+put_be32 (GByteArray *a, guint32 v)
+{
+   guint8 b[4] = { v >> 24, v >> 16, v >> 8, v };
+   g_byte_array_append (a, b, 4);
+}
+
+static void
+put_field (GByteArray *a, const gchar *s, guint n)
+{
+   guint8 *f = g_malloc (n);
+   memset (f, ' ', n);
+   memcpy (f, s, MIN (strlen (s), n));
+   g_byte_array_append (a, f, n);
+   g_free (f);
+}
+
+/* the header: depth, the size, the aspect, a palette of 2 if asked, a
+ * comment (the first block follows) */
+static GByteArray *
+pic2_header (guint depth, guint w, guint h, guint xa, guint ya,
+             gboolean palette, const gchar *comment)
+{
+   GByteArray *a = g_byte_array_new ();
+   gsize size_at;
+
+   g_byte_array_append (a, (const guint8 *) "P2DT", 4);
+   put_field (a, "Author", 18);
+   put_field (a, "TEST", 8);
+   g_byte_array_append (a, (const guint8 *) "\r\n", 2);
+   put_field (a, "Title", 30);
+   g_byte_array_append (a, (const guint8 *) "\r\n", 2);
+   put_field (a, "Saver", 30);
+   g_byte_array_append (a, (const guint8 *) "\r\n\x1a\0", 4);
+   put_be16 (a, palette ? 1 : 0);
+   put_be16 (a, 1);
+   put_be32 (a, 0);
+   size_at = a->len;
+   put_be32 (a, 0);
+   put_be16 (a, depth);
+   put_be16 (a, xa);
+   put_be16 (a, ya);
+   put_be16 (a, w);
+   put_be16 (a, h);
+   put_be32 (a, 0);
+   g_assert_cmpuint (a->len, ==, 124);
+   if (palette) {
+      static const guint8 pal[] = { 8, 0, 2, 255, 0, 0, 0, 255, 0 };
+      g_byte_array_append (a, pal, sizeof (pal));
+   }
+   g_byte_array_append (a, (const guint8 *) comment, strlen (comment) + 1);
+   a->data[size_at] = a->len >> 24;
+   a->data[size_at + 1] = a->len >> 16;
+   a->data[size_at + 2] = a->len >> 8;
+   a->data[size_at + 3] = a->len;
+   return a;
+}
+
+/* a block header; its size set by pic2_block_end */
+static gsize
+pic2_block_start (GByteArray *a, const gchar *id, guint w, guint h, guint x, guint y,
+                  gboolean has_opaque, guint32 opaque)
+{
+   gsize at = a->len;
+
+   g_byte_array_append (a, (const guint8 *) id, 4);
+   put_be32 (a, 0);
+   put_be16 (a, has_opaque ? 1 : 0);
+   put_be16 (a, w);
+   put_be16 (a, h);
+   put_be16 (a, x);
+   put_be16 (a, y);
+   put_be32 (a, opaque);
+   put_be32 (a, 0);
+   return at;
+}
+
+static void
+pic2_block_end (GByteArray *a, gsize at)
+{
+   guint32 size = a->len - at;
+   a->data[at + 4] = size >> 24;
+   a->data[at + 5] = size >> 16;
+   a->data[at + 6] = size >> 8;
+   a->data[at + 7] = size;
+}
+
+/* the lines of a picture being coded, as the decoder keeps them (room
+ * of 4 on each side) */
+typedef struct {
+   guint    w, h, cb;
+   guint32 *pix;                 /* the picture */
+   guint32 *v[3];
+   gint16  *f[2], *g[3];
+   guint32  cache[512][64];
+   guint16  pos[512];
+} Pic2Enc;
+
+#define P2V(e, i, x)  ((e)->v[i][(x) + 4])
+#define P2F(e, i, x)  ((e)->f[i][(x) + 4])
+#define P2G(e, i, x)  ((e)->g[i][(x) + 4])
+
+static Pic2Enc *
+pic2_enc_new (guint w, guint h, guint cb)
+{
+   Pic2Enc *e = g_new0 (Pic2Enc, 1);
+   guint i, x, y;
+
+   e->w = w; e->h = h; e->cb = cb;
+   e->pix = g_new (guint32, w * h);
+   for (y = 0; y < h; y++)
+      for (x = 0; x < w; x++)
+         e->pix[y * w + x] = pic2_value (x, y, cb);
+   for (i = 0; i < 3; i++) {
+      e->v[i] = g_new0 (guint32, w + 8);
+      e->g[i] = g_new0 (gint16, w + 8);
+   }
+   for (i = 0; i < 2; i++) e->f[i] = g_new0 (gint16, w + 8);
+   return e;
+}
+
+static void
+pic2_enc_free (Pic2Enc *e)
+{
+   guint i;
+   for (i = 0; i < 3; i++) { g_free (e->v[i]); g_free (e->g[i]); }
+   g_free (e->f[0]); g_free (e->f[1]);
+   g_free (e->pix);
+   g_free (e);
+}
+
+static void
+pic2_enc_rotate (Pic2Enc *e)
+{
+   guint32 *v = e->v[0];
+   gint16 *f = e->f[0], *g = e->g[0];
+   e->v[0] = e->v[1]; e->v[1] = e->v[2]; e->v[2] = v;
+   e->f[0] = e->f[1]; e->f[1] = f;
+   e->g[0] = e->g[1]; e->g[1] = e->g[2]; e->g[2] = g;
+}
+
+/* where a chain from x on line y goes: 0 down, 1 left, 2 right, 3 two
+ * left, 4 two right (dx), -1 none: a pixel below of the colour, where
+ * the line below changes, not reached yet */
+static gint
+pic2_chain_to (Pic2Enc *e, guint x, guint y, guint32 c)
+{
+   static const gint dx[] = { 0, -1, 1, -2, 2 };
+   guint k;
+
+   if (y + 1 >= e->h) return -1;
+   for (k = 0; k < 5; k++) {
+      gint q = (gint) x + dx[k];
+      const guint32 *below = e->pix + (y + 1) * e->w;
+      if (q < 1 || q >= (gint) e->w) continue;
+      if (below[q] == c && below[q - 1] != c && P2F (e, 1, q) == 0) return k;
+   }
+   return -1;
+}
+
+/* the binary arithmetic code: the low end of the range kept as 16 bits,
+ * the bits sent, a carry going back into them */
+typedef struct {
+   GArray  *out;                 /* guint8 0 / 1 */
+   guint32  low, range;
+   guint16  mul[16384];
+} Pic2Ac;
+
+static void
+pic2_ac_bit (Pic2Ac *ac, guint ctx, guint v)
+{
+   guint pp = ac->mul[((ac->range & 0x7f00) >> 1) + ctx];
+
+   if (v) {
+      ac->low += pp;
+      ac->range -= pp;
+      if (ac->low >= 0x10000) {
+         gint i = ac->out->len - 1;
+         ac->low -= 0x10000;
+         while (i >= 0 && g_array_index (ac->out, guint8, i) == 1)
+            g_array_index (ac->out, guint8, i--) = 0;
+         g_assert_cmpint (i, >=, 0);
+         g_array_index (ac->out, guint8, i) = 1;
+      }
+   } else {
+      ac->range = pp;
+   }
+   while (!(ac->range & 0x8000)) {
+      guint8 b = (ac->low >> 15) & 1;
+      g_array_append_val (ac->out, b);
+      ac->low = (ac->low << 1) & 0xffff;
+      ac->range <<= 1;
+   }
+}
+
+static void
+pic2_ac_number (Pic2Ac *ac, guint c, guint n)
+{
+   guint k = 0, i;
+
+   while (k < 8 && n >= (2u << k) - 1) k++;
+   for (i = 0; i < k; i++) pic2_ac_bit (ac, c + i, 0);
+   if (k == 8) return;
+   pic2_ac_bit (ac, c + k, 1);
+   for (i = 0; i < k; i++)
+      pic2_ac_bit (ac, c + 8 + i, ((n - ((1u << k) - 1)) >> i) & 1);
+}
+
+/* the decoder's value of n near bef */
+static gint
+pic2_near (gint n, gint bef, gint max)
+{
+   if (bef > (max >> 1)) {
+      if (n > (max - bef) * 2) n = max - n;
+      else if (n & 1) n = n / 2 + bef + 1;
+      else n = bef - n / 2;
+   } else if (n <= bef * 2) {
+      if (n & 1) n = n / 2 + bef + 1;
+      else n = bef - n / 2;
+   }
+   return n & max;
+}
+
+static gint
+pic2_ac_value (Pic2Ac *ac, guint c, gint bef, gint want, gint max)
+{
+   guint n;
+
+   for (n = 0; n < 256 && pic2_near (n, bef, max) != want; n++) ;
+   g_assert_cmpuint (n, <, 256);
+   pic2_ac_number (ac, c, n);
+   return want;
+}
+
+static void
+pic2_ac_chain (Pic2Ac *ac, Pic2Enc *e, guint x, guint y, guint32 c)
+{
+   static const gint dx[] = { 0, -1, 1, -2, 2 };
+   gint16 f = P2F (e, 0, x);
+   guint ctx = 80 + 6 * (f < 0 ? -f : 0), i;
+   gint k = pic2_chain_to (e, x, y, c);
+
+   pic2_ac_bit (ac, ctx, k < 0);
+   if (k < 0) return;
+   for (i = 0; i < 4; i++) {
+      pic2_ac_bit (ac, ctx + 1 + i, (gint) i == k);
+      if ((gint) i == k) break;
+   }
+   P2V (e, 2, x + dx[k]) = c;
+   P2F (e, 1, x + dx[k]) = -(k + 1);
+}
+
+static void
+put_bits_array (GByteArray *a, GArray *bits)
+{
+   PiBits b = { a, 0, 0 };
+   guint i;
+   for (i = 0; i < bits->len; i++) pi_bit (&b, g_array_index (bits, guint8, i));
+   pi_flush (&b);
+}
+
+static void
+pic2_put_ss (GByteArray *a, Pic2Enc *e)
+{
+   Pic2Ac *ac = g_new0 (Pic2Ac, 1);
+   guint cb = e->cb, max = 0xff >> (8 - cb), x, y, i, hit_ctx = 16;
+   guint16 prob[128];
+
+   for (i = 0; i < 128; i++) {
+      prob[i] = 0x3000 + i * 0x197;           /* each context its own */
+      put_be16 (a, prob[i]);
+   }
+   for (i = 0; i < 16384; i++) {
+      guint m = (i / 128 + 128) * prob[i & 127] / 256;
+      ac->mul[i] = m ? m : 1;
+   }
+   ac->out = g_array_new (FALSE, FALSE, 1);
+   ac->range = 0xffff;
+
+   for (y = 0; y < e->h; y++) {
+      guint32 color = y == 0 ? 0 : P2V (e, 0, e->w - 1);
+      gboolean last = y + 1 >= e->h;
+
+      P2V (e, 1, -1) = color;
+      memset (e->f[1] + 4, 0, e->w * sizeof (gint16));
+      memset (e->g[2] + 4, 0, e->w * sizeof (gint16));
+      for (x = 0; x < e->w; x++) {
+         guint32 want = e->pix[y * e->w + x];
+
+         if (P2F (e, 0, x) < 0) {
+            color = P2V (e, 1, x);
+            g_assert_cmphex (color, ==, want);
+         } else if (want == color) {
+            pic2_ac_bit (ac, P2G (e, 0, x), 0);
+            P2V (e, 1, x) = color;
+            continue;
+         } else {
+            guint32 above = P2V (e, 0, x), left = P2V (e, 1, x - 1);
+            guint k, m, p;
+
+            pic2_ac_bit (ac, P2G (e, 0, x), 1);
+            P2G (e, 0, x + 1)++; P2G (e, 0, x + 2)++;
+            P2G (e, 1, x - 1)++; P2G (e, 1, x)++; P2G (e, 1, x + 1)++;
+            P2G (e, 2, x - 1)++; P2G (e, 2, x)++; P2G (e, 2, x + 1)++;
+
+            k = ((cb >= 3 ? above >> ((cb - 3) * 3) : above << ((3 - cb) * 3)) & 0x1c0)
+               | ((cb >= 3 ? above >> ((cb - 3) * 2) : above << ((3 - cb) * 2)) & 0x038)
+               | ((cb >= 3 ? above >> (cb - 3) : above << (3 - cb)) & 0x007);
+            if (cb == 5) k = pic2_swap_rg (k, 3);
+            m = e->pos[k];
+            for (p = 0; p < 32 && e->cache[k][(m + p) & 31] != want; p++) ;
+            if (p < 32) {
+               guint i2 = (m + p / 2) & 31, at = (m + p) & 31;
+               pic2_ac_bit (ac, hit_ctx, 0);
+               hit_ctx = 15;
+               pic2_ac_number (ac, 17, p);
+               e->cache[k][at] = e->cache[k][i2];
+               e->cache[k][i2] = e->cache[k][m];
+               e->cache[k][m] = want;
+            } else {
+               gint r, g, b, g0, r0, b0;
+               pic2_ac_bit (ac, hit_ctx, 1);
+               hit_ctx = 16;
+               r = (((above >> (cb * 2)) & max) + ((left >> (cb * 2)) & max)) >> 1;
+               g = (((above >> cb) & max) + ((left >> cb) & max)) >> 1;
+               b = ((above & max) + (left & max)) >> 1;
+               g0 = pic2_ac_value (ac, 32, g, (want >> cb) & max, max);
+               r = CLAMP (r + g0 - g, 0, (gint) max);
+               b = CLAMP (b + g0 - g, 0, (gint) max);
+               r0 = pic2_ac_value (ac, 48, r, (want >> (cb * 2)) & max, max);
+               b0 = pic2_ac_value (ac, 64, b, want & max, max);
+               g_assert_cmphex ((guint32) ((r0 << (cb * 2)) | (g0 << cb) | b0), ==, want);
+               e->pos[k] = (e->pos[k] - 1) & 31;
+               e->cache[k][e->pos[k]] = want;
+            }
+            color = P2V (e, 1, x) = want;
+         }
+         if (!last) pic2_ac_chain (ac, e, x, y, color);
+      }
+      pic2_enc_rotate (e);
+   }
+   /* the low end, then room for the decoder reading ahead */
+   for (i = 0; i < 16; i++) {
+      guint8 b = (ac->low >> (15 - i)) & 1;
+      g_array_append_val (ac->out, b);
+   }
+   put_bits_array (a, ac->out);
+   g_array_unref (ac->out);
+   g_free (ac);
+}
+
+/* P2SF: the events of each pixel first (the lengths need them ahead) */
+enum { SF_RUN, SF_CHAIN, SF_NEW };
+
+static void
+pic2_sf_length (PiBits *b, guint n)
+{
+   guint k = 0;
+
+   g_assert_cmpuint (n, <, 1023);
+   while (n >= (2u << k) - 1) k++;
+   pi_bits (b, (1u << k) - 1, k);       /* k ones */
+   pi_bit (b, 0);
+   if (k) pi_bits (b, n - ((1u << k) - 1), k);
+}
+
+static void
+pic2_put_sf (GByteArray *a, Pic2Enc *e)
+{
+   static const gint dx[] = { 0, -1, 1, -2, 2 };
+   static const guint code[] = { 0x3, 0xb, 0x9, 0xa, 0x8 };     /* 11 1011 1001 1010 1000 */
+   static const guint len[] = { 2, 4, 4, 4, 4 };
+   guint total = e->w * e->h, i, x, y, depth = e->cb * 3;
+   guint8 *kind = g_new0 (guint8, total);
+   gint8 *chain = g_new0 (gint8, total);
+   guint32 color = 0;
+   PiBits b = { a, 0, 0 };
+   guint32 (*cache)[64] = e->cache;
+
+   /* the events */
+   for (y = 0; y < e->h; y++) {
+      for (x = 0; x < e->w; x++) {
+         guint32 want = e->pix[y * e->w + x];
+         i = y * e->w + x;
+         if (P2F (e, 0, x) < 0) {
+            kind[i] = SF_CHAIN;
+            color = want;
+         } else if (want == color) {
+            kind[i] = SF_RUN;
+            continue;
+         } else {
+            kind[i] = SF_NEW;
+            color = want;
+         }
+         chain[i] = pic2_chain_to (e, x, y, color);
+         if (chain[i] >= 0) P2F (e, 1, x + dx[chain[i]]) = -1;
+      }
+      pic2_enc_rotate (e);
+      memset (e->f[1] + 4, 0, e->w * sizeof (gint16));
+   }
+
+   /* the bits */
+   color = 0;
+   for (i = 0; i <= total; i++) {
+      /* a length at the start and after each new colour */
+      if (i == 0 || (i < total + 1 && kind[i - 1] == SF_NEW)) {
+         guint n = 0, j;
+         for (j = i; j < total && kind[j] != SF_NEW; j++)
+            if (kind[j] == SF_RUN) n++;
+         pic2_sf_length (&b, n);
+      }
+      if (i == total) break;
+      if (kind[i] == SF_RUN) continue;
+      if (kind[i] == SF_NEW) {
+         guint32 want = e->pix[i];
+         guint k = pic2_swap_rg (color, e->cb), j;
+         k = (depth >= 8 ? k >> (depth - 8) : k << (8 - depth)) & 0xff;
+         for (j = 0; j < 64 && cache[k][(e->pos[k] + j) & 63] != want; j++) ;
+         if (j < 64) {
+            pi_bit (&b, 1);
+            pi_bits (&b, j, 6);
+         } else {
+            pi_bit (&b, 0);
+            pi_bits (&b, pic2_swap_rg (want, e->cb), depth);
+            e->pos[k] = (e->pos[k] - 1) & 63;
+            cache[k][e->pos[k]] = want;
+         }
+      }
+      color = e->pix[i];
+      if (chain[i] < 0) pi_bit (&b, 0);
+      else pi_bits (&b, code[chain[i]], len[chain[i]]);
+   }
+   pi_flush (&b);
+   g_free (kind);
+   g_free (chain);
+}
+
+static void
+pic2_put_raw (GByteArray *a, Pic2Enc *e, gboolean little)
+{
+   guint i, total = e->w * e->h;
+
+   for (i = 0; i < total; i++) {
+      guint32 c = e->pix[i];
+      if (e->cb == 8) {
+         guint8 b[3] = { c >> 16, c >> 8, c };
+         g_byte_array_append (a, b, 3);
+      } else {
+         guint v = pic2_swap_rg (c, 5) << 1;            /* GRB and I */
+         guint8 b[2] = { little ? v : v >> 8, little ? v >> 8 : v };
+         g_byte_array_append (a, b, 2);
+      }
+   }
+}
+
+static GByteArray *
+make_pic2 (const gchar *id, guint w, guint h, guint depth)
+{
+   GByteArray *a = pic2_header (depth, w, h, 1, 1, FALSE, "Test");
+   gsize at = pic2_block_start (a, id, w, h, 0, 0, FALSE, 0);
+   Pic2Enc *e = pic2_enc_new (w, h, depth / 3);
+
+   if (!strcmp (id, "P2SS")) pic2_put_ss (a, e);
+   else if (!strcmp (id, "P2SF")) pic2_put_sf (a, e);
+   else pic2_put_raw (a, e, !strcmp (id, "P2BI"));
+   pic2_block_end (a, at);
+   put_be32 (a, 0);
+   put_be32 (a, 0);
+   pic2_enc_free (e);
+   return a;
+}
+
+static void
+check_pic2 (const gchar *id, guint w, guint h, guint depth)
+{
+   GByteArray *a = make_pic2 (id, w, h, depth);
+   GimvImage *image = load_array ("p2", a);
+   guint x, y;
+
+   if (g_test_verbose ())
+      g_test_message ("%s %ux%u, %u bits: %u bytes", id, w, h, depth, a->len);
+   assert_size (image, w, h);
+   for (y = 0; y < h; y++)
+      for (x = 0; x < w; x++)
+         assert_pixel (image, x, y, pic2_rgb (pic2_value (x, y, depth / 3), depth / 3));
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+}
+
+static void
+test_pic2 (void)
+{
+   GByteArray *a;
+   GimvImage *image;
+   gsize at;
+   Pic2Enc *e;
+
+   /* the arithmetic code, of each depth */
+   check_pic2 ("P2SS", 64, 40, 15);
+   check_pic2 ("P2SS", 37, 21, 24);
+   check_pic2 ("P2SS", 30, 20, 12);
+   check_pic2 ("P2SS", 30, 20, 6);
+   /* the fast one */
+   check_pic2 ("P2SF", 64, 40, 15);
+   check_pic2 ("P2SF", 37, 21, 24);
+   check_pic2 ("P2SF", 30, 20, 9);
+   /* raw */
+   check_pic2 ("P2BM", 20, 10, 15);
+   check_pic2 ("P2BI", 20, 10, 15);
+   check_pic2 ("P2BM", 20, 10, 24);
+
+   /* two blocks, the second beyond the size told, its black clear; and
+      one of a kind unknown, skipped */
+   a = pic2_header (24, 16, 8, 1, 1, TRUE, "");
+   at = pic2_block_start (a, "P2XX", 4, 4, 0, 0, FALSE, 0);
+   g_byte_array_append (a, (const guint8 *) "junk", 4);
+   pic2_block_end (a, at);
+   at = pic2_block_start (a, "P2BM", 16, 8, 0, 0, FALSE, 0);
+   e = pic2_enc_new (16, 8, 8);
+   pic2_put_raw (a, e, FALSE);
+   pic2_enc_free (e);
+   pic2_block_end (a, at);
+   at = pic2_block_start (a, "P2BM", 2, 2, 15, 7, TRUE, 0x000000);
+   {
+      static const guint8 four[] = { 0, 0, 0, 1, 2, 3, 0, 0, 0, 0x10, 0x20, 0x30 };
+      g_byte_array_append (a, four, sizeof (four));
+   }
+   pic2_block_end (a, at);
+   put_be32 (a, 0);
+   put_be32 (a, 0);
+   image = load_array ("p2", a);
+   assert_size (image, 17, 9);
+   assert_pixel (image, 3, 2, pic2_rgb (pic2_value (3, 2, 8), 8));
+   assert_pixel (image, 15, 7, pic2_rgb (pic2_value (15, 7, 8), 8));  /* clear */
+   assert_pixel (image, 16, 7, 0x010203);
+   assert_pixel (image, 15, 8, 0x000000);                             /* none drawn */
+   assert_pixel (image, 16, 8, 0x102030);
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+
+   /* not a PIC2 */
+   image = LOAD_LIT ("p2", "P2DX\x00\x00");
+   g_assert_null (image);
+}
+
+static void
+pic2_broken (void)
+{
+   GByteArray *a = make_pic2 ("P2SS", 40, 24, 15);
+   GByteArray *f = make_pic2 ("P2SF", 40, 24, 15);
+   GByteArray *r = make_pic2 ("P2BM", 12, 6, 24);
+   const Patch patches[] = {
+      { "16 bits",            110, 2, 16, TRUE, MUST_FAIL },
+      { "0 bits",             110, 2, 0, TRUE, MUST_FAIL },
+      { "27 bits",            110, 2, 27, TRUE, MUST_FAIL },
+      { "the block before",   106, 4, 100, TRUE, MUST_FAIL },
+      { "the block far",      106, 4, 0x7fffffff, TRUE, MUST_FAIL },
+      { "3 bits",             110, 2, 3, TRUE, NO_CRASH },
+      { "block 65535 wide",   129 + 8 + 2, 2, 0xffff, TRUE, NO_CRASH },
+      { "block at 65535",     129 + 8 + 6, 4, 0xffffffff, TRUE, NO_CRASH },
+      { "block size 0",       129 + 4, 4, 0, TRUE, NO_CRASH },
+      { "block size huge",    129 + 4, 4, 0xffffffff, TRUE, NO_CRASH },
+      { "probabilities 0",    129 + 26, 4, 0, TRUE, NO_CRASH },
+      { "probabilities max",  129 + 26, 4, 0xffffffff, TRUE, NO_CRASH },
+   };
+
+   /* a block cut short is shown as far as it goes */
+   check_truncated ("p2", a, 124, FALSE);
+   check_truncated ("p2", f, 124, FALSE);
+   check_truncated ("p2", r, 124, FALSE);
+   check_patches ("p2", a, patches, G_N_ELEMENTS (patches));
+   check_fuzz ("p2", a, 4, 300);
+   check_fuzz ("p2", f, 4, 300);
+   g_byte_array_unref (a);
+   g_byte_array_unref (f);
+   g_byte_array_unref (r);
+}
+
+static void
+test_pic2_broken (void)
+{
+   IN_SUBPROCESS (pic2_broken ());
+}
+
+
+/******************************************************************************
  *  MB (PC-8801)
  ******************************************************************************/
 
@@ -1313,6 +1959,8 @@ test_old_comments (void)
    static const gchar *pic[] = { "Comment", "Test", "Comment", "x", "Machine", "X68000", NULL };
    static const gchar *pic_va[] = { "Comment", "Test", "Comment", "x", "Machine", "PC-88VA", NULL };
    static const gchar *pi[] = { "Comment", "Test", "Machine", "TEST", NULL };
+   static const gchar *pic2[] = { "User Name", "Author", "Title", "Title",
+                                  "Comment", "Test", "Saver", "Saver", NULL };
 
    a = make_pic (8, 4, 0x00, 16);
    check_comments (a, "pic", pic);
@@ -1322,6 +1970,13 @@ test_old_comments (void)
    g_byte_array_unref (a);
    a = make_pi (8, 4, 4, TRUE);
    check_comments (a, "pi", pi);
+   g_byte_array_unref (a);
+   a = make_pic2 ("P2BM", 4, 2, 24);
+   check_comments (a, "p2", pic2);
+   g_byte_array_unref (a);
+   /* after a palette */
+   a = pic2_header (24, 4, 2, 1, 1, TRUE, "Test");
+   check_comments (a, "p2", pic2);
    g_byte_array_unref (a);
 }
 
@@ -1395,6 +2050,18 @@ test_dot_aspect (void)
    a = make_pic (20, 9, 0xc2, 15);                  /* FM TOWNS */
    image = load_array ("pic", a);
    assert_size (image, 20, 9);
+   gimv_image_unref (image);
+   g_byte_array_unref (a);
+
+   /* PIC2: the aspect of the header, 4:3 wide and 2:3 high */
+   a = make_pic2 ("P2BM", 30, 12, 24);
+   a->data[113] = 4; a->data[115] = 3;
+   image = load_array ("p2", a);
+   assert_size (image, 40, 12);
+   gimv_image_unref (image);
+   a->data[113] = 2; a->data[115] = 3;
+   image = load_array ("p2", a);
+   assert_size (image, 30, 18);
    gimv_image_unref (image);
    g_byte_array_unref (a);
 
@@ -2718,6 +3385,7 @@ main (int argc, char *argv[])
    gimv_test_core_load_plugin ("image_loader", "gimv_pnm_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_xpm_loader");
    gimv_test_core_load_plugin ("image_loader", "gimv_ak5_loader");
+   gimv_test_core_load_plugin ("image_loader", "gimv_pic2_loader");
 
    g_test_add_func ("/image-loader/zim", test_zim);
    g_test_add_func ("/image-loader/zim/compressed", test_zim_compressed);
@@ -2726,6 +3394,8 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/pi/broken", test_pi_broken);
    g_test_add_func ("/image-loader/pic", test_pic);
    g_test_add_func ("/image-loader/pic/broken", test_pic_broken);
+   g_test_add_func ("/image-loader/pic2", test_pic2);
+   g_test_add_func ("/image-loader/pic2/broken", test_pic2_broken);
    g_test_add_func ("/image-loader/dot-aspect", test_dot_aspect);
    g_test_add_func ("/image-loader/mb", test_mb);
    g_test_add_func ("/image-loader/mb/broken", test_mb_broken);

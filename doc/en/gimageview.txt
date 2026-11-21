@@ -174,13 +174,13 @@ GImageView has the following features.
 
      □ JPEG, PNG, BMP, PCX, TGA, MAG, XBM, XCF, xvpics (gimv's own loaders)
 
-     □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, PIC, MAKI (.mki),
-       MB (PC-8801), MB2 (PC-9801), AK5/MSL (gimv's own loaders; added in the
-       GTK 4 version. MAG, ZIM, Pi, PIC, MAKI, MB and MB2 are shown with the
-       pixels of the screen of their machine: those of the PC-9801 and the
-       like 1.2 high, of the 512 dots wide screens of the X68000 4/3 wide, of
-       the 200 lines mode of MAG and MB2 and of MB twice as high again. The
-       image size is the size stretched)
+     □ PNM (PBM, PGM, PPM), XPM, Sun raster, WBMP, ZIM, Pi, PIC, PIC2, MAKI
+       (.mki), MB (PC-8801), MB2 (PC-9801), AK5/MSL (gimv's own loaders; added
+       in the GTK 4 version. MAG, ZIM, Pi, PIC, PIC2, MAKI, MB and MB2 are
+       shown with the pixels of the screen of their machine: those of the PC-
+       9801 and the like 1.2 high, of the 512 dots wide screens of the X68000
+       4/3 wide, of the 200 lines mode of MAG and MB2 and of MB twice as high
+       again. The image size is the size stretched)
 
      □ SVG (librsvg), MNG (libmng), WMF (libwmf)
 
@@ -429,11 +429,11 @@ Seeing and editing
 The "Data" tab
      ・ The "Data" tab of the preview and of the comment window shows the
         comments written in the image file itself (JPEG, PNG, GIF, MAG, MAKI,
-        Pi, PIC, MB2, AK5/MSL) in italics (shown only); the list shows their
-        first 4 lines and how many more (the whole text pops up under the
-        mouse), and the one selected is shown whole, with its lines, in place
-        of the value; for an image in an archive they are read from the file
-        extracted for the preview.
+        Pi, PIC, PIC2, MB2, AK5/MSL) in italics (shown only); the list shows
+        their first 4 lines and how many more (the whole text pops up under
+        the mouse), and the one selected is shown whole, with its lines, in
+        place of the value; for an image in an archive they are read from the
+        file extracted for the preview.
 
      ・ For a song or a movie, the information in the file (title, artist,
         album, track, genre, length, the formats of the sound and the picture,
@@ -3964,6 +3964,11 @@ How duplicates are found
  ・ A tab of a folder showed its top again (the archive chosen out of view)
     after the tab of an archive opened from it was closed: it comes back where
     it was scrolled.
+
+ ・ A loader for the PIC2 format of the X68000 (.p2: up to 24 bits; the four
+    kinds of blocks, and several blocks in one file). The author, title,
+    comment and saver of the file are shown in the "Data" tab; the dots are
+    shown with the aspect of the header (4/3 wide for the X68000's 512 dots).
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

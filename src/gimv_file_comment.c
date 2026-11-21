@@ -443,6 +443,39 @@ read_pic (FILE *f, GPtrArray *list)
 
 
 /******************************************************************************
+ *  PIC2 (X68000): "P2DT", the author (18 bytes), the file name (8), CR LF,
+ *  the title (30), CR LF, the saver (30), ...; at 98 u16 flags (1: a
+ *  palette), at 106 u32 the end of the comment; the comment from 124 (after
+ *  the palette: u8, u16 count, count * 3 bytes)
+ ******************************************************************************/
+static void
+read_pic2 (FILE *f, GPtrArray *list)
+{
+   guchar head[124], pal[3];
+   long start = sizeof (head), end;
+   gchar *text;
+   gsize n;
+
+   if (fread (head, 1, sizeof (head), f) != sizeof (head)) return;
+   add (list, _("User Name"), (gchar *) head + 4, 18, TEXT_JAPANESE);
+   add (list, _("Title"), (gchar *) head + 32, 30, TEXT_JAPANESE);
+   if (head[99] & 1) {
+      if (fread (pal, 1, 3, f) != 3) return;
+      start += 3 + 3 * ((pal[1] << 8) | pal[2]);
+   }
+   end = ((long) head[106] << 24) | (head[107] << 16) | (head[108] << 8) | head[109];
+   if (end > start && fseek (f, start, SEEK_SET) == 0) {
+      n = MIN ((gsize) (end - start), MAX_COMMENT);
+      text = g_malloc (n + 1);
+      n = fread (text, 1, n, f);
+      add (list, _("Comment"), text, n, TEXT_JAPANESE);
+      g_free (text);
+   }
+   add (list, _("Saver"), (gchar *) head + 64, 30, TEXT_JAPANESE);
+}
+
+
+/******************************************************************************
  *  MB2 (PC-9801): u16 flags (0x0800: a comment), u16 the length of the
  *  comment (big endian), the comment; no header to tell it by (.mb2)
  ******************************************************************************/
@@ -489,6 +522,8 @@ gimv_file_comment_read (const gchar *filename)
          read_ak5_head (f, list);
       else if (!memcmp (magic, "MSL\0", 4))
          read_msl (f, list);
+      else if (!memcmp (magic, "P2DT", 4))
+         read_pic2 (f, list);
       else if (!memcmp (magic, "PIC", 3))
          read_pic (f, list);
       else if (!memcmp (magic, "Pi", 2))

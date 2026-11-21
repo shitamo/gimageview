@@ -3724,6 +3724,18 @@ msgstr "PIC 形式の画像 (X68000，FM TOWNS，PC-88VA)"
 msgid "The PIC image format (X68000)"
 msgstr "PIC 画像形式 (X68000)"
 
+#: plugins/image_loader/pic2.c
+msgid "PIC2 Image Loader"
+msgstr "PIC2画像ローダ"
+
+#: plugins/image_loader/pic2.c
+msgid "PIC2 images (X68000)"
+msgstr "PIC2 形式の画像 (X68000)"
+
+#: plugins/image_loader/pic2.c
+msgid "The PIC2 image format (X68000)"
+msgstr "PIC2 画像形式 (X68000)"
+
 #: plugins/image_loader/mng.c:134
 msgid "MNG Image Loader"
 msgstr "MNG画像ローダ"
@@ -6001,6 +6013,10 @@ msgstr "ユーザー名"
 #: src/gimv_file_comment.c
 msgid "Machine"
 msgstr "機種"
+
+#: src/gimv_file_comment.c
+msgid "Saver"
+msgstr "セーバ"
 
 #: src/gimv_comment_view.c
 #, c-format

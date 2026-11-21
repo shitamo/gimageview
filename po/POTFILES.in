@@ -65,6 +65,7 @@ plugins/image_loader/maki.c
 plugins/image_loader/mb.c
 plugins/image_loader/pi.c
 plugins/image_loader/pic.c
+plugins/image_loader/pic2.c
 plugins/image_loader/pnm.c
 plugins/image_loader/pixbuf_loader.c
 plugins/image_loader/png_loader.c
