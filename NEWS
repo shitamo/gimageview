@@ -242,6 +242,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* MAG files whose user name ends early with 0x1a (no comment; some
+	  saved on the X68000) are shown (only the "Data" tab was, with the
+	  header taken as the name).
 	* A loader for PIC2 (.p2, X68000; up to 24 bits, all four kinds of
 	  blocks, several blocks in one file); its author, title, comment and
 	  saver are shown in the "Data" tab.

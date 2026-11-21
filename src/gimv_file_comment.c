@@ -148,14 +148,25 @@ read_mag (FILE *f, GPtrArray *list)
    guchar head[8 + 4 + 18 + 2];
    GString *comment;
    gint ch;
+   gsize n;
 
-   if (fread (head, 1, sizeof (head), f) != sizeof (head)) return;
+   if (fread (head, 1, 8, f) != 8) return;
    if (memcmp (head, "MAKI02  ", 8)) return;
 
+   /* a name ended early by 0x1a (no comment): the rest are spaces */
+   memset (head + 8, ' ', sizeof (head) - 8);
+   for (n = 8; n < sizeof (head); n++) {
+      if ((ch = fgetc (f)) == EOF) return;
+      if (ch == 0x1a && n >= 12) break;
+      head[n] = ch;
+   }
+
    comment = g_string_new (NULL);
-   while ((ch = fgetc (f)) != EOF && ch != 0x1a && ch != 0
-          && comment->len < MAX_COMMENT)
-      g_string_append_c (comment, ch);
+   if (n == sizeof (head)) {
+      while ((ch = fgetc (f)) != EOF && ch != 0x1a && ch != 0
+             && comment->len < MAX_COMMENT)
+         g_string_append_c (comment, ch);
+   }
 
    add (list, _("Comment"), comment->str, comment->len, TEXT_JAPANESE);
    /* the machine and the user name: by the format 4 bytes of ASCII and 18

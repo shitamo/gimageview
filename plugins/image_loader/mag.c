@@ -107,7 +107,7 @@ mag_load (GimvImageLoader *loader, gpointer data)
    GimvIO *gio;
    GimvImage *image = NULL;
    mag_info minfo;
-   guchar buffer[32], comment[BUF_SIZE], colormap[256][3], *dest, machine[4];
+   guchar buffer[32], colormap[256][3], *dest, machine[4];
    guint i;
    guint bytes_read;
    GimvIOStatus status;
@@ -124,21 +124,27 @@ mag_load (GimvImageLoader *loader, gpointer data)
       return NULL;
    }
 
-   status = gimv_io_read (gio, buffer, 4 + 18 + 2, &bytes_read);
-   if (status != GIMV_IO_STATUS_NORMAL) {
-      /* machine code:  4byte
-         user name:    18byte
-         unused:        2byte */
-      return NULL;
-   }
+   /* machine code: 4 bytes, user name: 18, unused: 2, the comment, 0x1a;
+      the header follows.  Some end the name early with 0x1a (a short name,
+      no comment), so 0x1a is looked for from the name on; a 0 after the
+      24 bytes (no 0x1a) starts the header too */
+   status = gimv_io_read (gio, buffer, 4, &bytes_read);
+   if (status != GIMV_IO_STATUS_NORMAL || bytes_read != 4) return NULL;
    memcpy (machine, buffer, 4);
 
    i = 0;
-   do {                                        /* comment: unlimited */
+   for (;;) {
       status = gimv_io_read (gio, buffer, 1, &bytes_read);
-      if (status != GIMV_IO_STATUS_NORMAL) return NULL;
-      comment[i++] = buffer[0];
-   } while (buffer[0] != '\0' && i < 4096);    /* start of header */
+      if (status != GIMV_IO_STATUS_NORMAL || bytes_read != 1) return NULL;
+      if (buffer[0] == 0x1a) {
+         /* the header starts after it (its first byte is 0) */
+         status = gimv_io_read (gio, buffer, 1, &bytes_read);
+         if (status != GIMV_IO_STATUS_NORMAL || bytes_read != 1) return NULL;
+         break;
+      }
+      if (buffer[0] == '\0' && i >= 18 + 2) break;
+      if (++i >= 18 + 2 + 4096) return NULL;
+   }
 
    gimv_io_tell (gio, &minfo.offset);
    minfo.offset--;

@@ -3970,6 +3970,10 @@ How duplicates are found
     comment and saver of the file are shown in the "Data" tab; the dots are
     shown with the aspect of the header (4/3 wide for the X68000's 512 dots).
 
+ ・ MAG files whose user name ends early with 0x1a (no comment; some saved on
+    the X68000) were not shown, only their "Data" tab: they are shown, and the
+    name and the machine are read right.
+
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg
     before 2.jpg). [View | Sort File List | Numbers by Value] turns it off.

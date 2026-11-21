@@ -2463,6 +2463,25 @@ test_mag (void)
    gimv_image_unref (image);
    g_byte_array_unref (a);
 
+   /* a short name ended by 0x1a, no comment (an X68000 saver) */
+   {
+      static const gchar *names[] = { "User Name", "name", "Machine", "PC98", NULL };
+      GByteArray *s = make_mag16 (16, 3, 99);
+      a = g_byte_array_new ();
+      g_byte_array_append (a, s->data, 12);
+      g_byte_array_append (a, (const guint8 *) "name\x1a", 5);
+      g_byte_array_append (a, s->data + 40, s->len - 40);
+      g_byte_array_unref (s);
+      image = load_array ("mag", a);
+      assert_size (image, 16, 3);
+      for (y = 0; y < 3; y++)
+         for (x = 0; x < 16; x++)
+            assert_pixel (image, x, y, mag_palette_rgb (mag_index16 (x, y)));
+      gimv_image_unref (image);
+      check_comments (a, "mag", names);
+      g_byte_array_unref (a);
+   }
+
    /* rows 1 and 2 copied from the one above (flags 4) */
    a = make_mag16 (16, 3, 1);
    image = load_array ("mag", a);
