@@ -6007,6 +6007,12 @@ msgstr "機種"
 msgid "In File: %s"
 msgstr "ファイル内: %s"
 
+#: src/gimv_comment_view.c
+#, c-format
+msgid "… (%u more line)"
+msgid_plural "… (%u more lines)"
+msgstr[0] "… あと %u 行 (マウスを置くと全文)"
+
 #: plugins/image_loader/ak5.c
 msgid "The AK5 image format (MASL)"
 msgstr "AK5 画像形式 (MASL)"

@@ -429,9 +429,10 @@ Seeing and editing
 The "Data" tab
      ・ The "Data" tab of the preview and of the comment window shows the
         comments written in the image file itself (JPEG, PNG, GIF, MAG, MAKI,
-        MB2, AK5/MSL) in italics (shown only); the list shows their first
-        line, and the one selected is shown whole, with its lines, in place of
-        the value; for an image in an archive they are read from the file
+        MB2, AK5/MSL) in italics (shown only); the list shows their first 4
+        lines and how many more (the whole text pops up under the mouse), and
+        the one selected is shown whole, with its lines, in place of the
+        value; for an image in an archive they are read from the file
         extracted for the preview.
 
      ・ For a song or a movie, the information in the file (title, artist,
@@ -3927,10 +3928,11 @@ How duplicates are found
     the MB2 format of the PC-9801 (.mb2, 16 colours, 400 lines; its comment in
     the "Data" tab).
 
- ・ A comment written in the image file, selected in the "Data" tab, is shown
-    whole with its lines in place of the value (long ones were hard to read on
-    one line). The image size of an image not loaded yet is not shown as "-1x-
-    1".
+ ・ A comment written in the image file is shown in the list of the "Data" tab
+    by its first 4 lines and how many more ("... (13 more lines)"), and,
+    selected, whole with its lines in place of the value (long ones were hard
+    to read on one line). The image size of an image not loaded yet is not
+    shown as "-1x-1".
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

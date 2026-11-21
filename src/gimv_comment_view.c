@@ -112,6 +112,34 @@ selected_is_tags (GimvCommentView *cv)
 }
 
 
+/* the text of a comment of the file in the list: its first lines, and
+ * how many more (the whole text: the tooltip, and below when selected) */
+#define FILE_COMMENT_LINES 4
+
+static gchar *
+file_comment_head (const gchar *text)
+{
+   const gchar *p = text;
+   guint lines = 0, more = 0;
+
+   while (lines < FILE_COMMENT_LINES && (p = strchr (p, '\n'))) {
+      p++;
+      lines++;
+   }
+   if (lines < FILE_COMMENT_LINES || !p || !*p) return g_strdup (text);
+   for (const gchar *q = p; *q; q++) if (*q == '\n') more++;
+   more++;                               /* the last line */
+   {
+      gchar *head = g_strndup (text, p - 1 - text);
+      gchar *rest = g_strdup_printf (ngettext ("… (%u more line)", "… (%u more lines)", more), more);
+      gchar *all = g_strconcat (head, "\n", rest, NULL);
+      g_free (head);
+      g_free (rest);
+      return all;
+   }
+}
+
+
 /* a cell of the data list: the comments of the file in italics, with
  * their whole text as the tooltip */
 static GtkWidget *
@@ -1326,12 +1354,9 @@ cb_media_tags (GPtrArray *pairs, gpointer data)
    if (!g_cancellable_is_cancelled (job->cancel) && pairs) {
       for (i = 0; i + 1 < pairs->len; i += 2) {
          const gchar *value = g_ptr_array_index (pairs, i + 1);
-         const gchar *nl = strchr (value, '\n');
-         gchar *first = nl ? g_strdup_printf ("%.*s …", (gint) (nl - value), value)
-                           : NULL;
+         gchar *first = file_comment_head (value);
 
-         append_file_row (job->cv, g_ptr_array_index (pairs, i),
-                          first ? first : value, value);
+         append_file_row (job->cv, g_ptr_array_index (pairs, i), first, value);
          g_free (first);
       }
    }
@@ -1434,10 +1459,8 @@ gimv_comment_view_reset_data (GimvCommentView *cv)
 
          for (i = 0; i < list->len; i++) {
             GimvFileComment *c = g_ptr_array_index (list, i);
-            const gchar *nl = strchr (c->text, '\n');
             gchar *name = g_strdup_printf (_("In File: %s"), c->name);
-            gchar *value = nl ? g_strdup_printf ("%.*s …", (gint) (nl - c->text), c->text)
-                              : g_strdup (c->text);
+            gchar *value = file_comment_head (c->text);
             gchar *tip = g_markup_escape_text (c->text, -1);
             GimvRow *row = comment_row_new ();
 
