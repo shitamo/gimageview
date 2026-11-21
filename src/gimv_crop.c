@@ -961,7 +961,11 @@ gimv_crop_save_pixbuf (GdkPixbuf *pixbuf, const gchar *src, const gchar *suffix,
    }
 
 #ifdef ENABLE_GEXIV2
-   if (metadata && strcmp (writer, "webp")) {
+   /* not of the formats of gimv's own loaders (MAG, Pi, ...): they have no
+      EXIF, and Exiv2 can not open them (told as "not copied") */
+   if (metadata && strcmp (writer, "webp")
+       && gdk_pixbuf_get_file_info (src, NULL, NULL))
+   {
       gchar *e = NULL;
       if (!gimv_save_copy_metadata (src, *dest, gdk_pixbuf_get_width (pixbuf),
                                     gdk_pixbuf_get_height (pixbuf), FALSE, &e))
