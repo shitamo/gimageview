@@ -378,16 +378,28 @@ cb_data_list_selection_changed (GtkSelectionModel *selection,
       if (entry) raw_key = entry->key;
       key   = gimv_row_peek_string (row, COLUMN_KEY);
       value = gimv_row_peek_string (row, COLUMN_VALUE);
-      /* a comment of the file: its whole text (the list shows its first line) */
+      /* a comment of the file: its whole text (the list shows its first
+         line), as it is written, below */
       if (gimv_row_peek_boolean (row, COLUMN_FILE)) {
          const gchar *tip = gimv_row_peek_string (row, COLUMN_TIP);
          if (tip && pango_parse_markup (tip, -1, 0, NULL, &whole, NULL, NULL))
-            value = g_strdelimit (whole, "\n", ' ');
+            value = whole;
       }
    }
 
    combo_select_name (cv, key, raw_key);
-   gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), value ? value : "");
+   {
+      gboolean file = row && gimv_row_peek_boolean (row, COLUMN_FILE);
+      if (cv->file_text) {
+         gtk_text_buffer_set_text (gtk_text_view_get_buffer (GTK_TEXT_VIEW (cv->file_text)),
+                                   file && value ? value : "", -1);
+         gtk_widget_set_visible (cv->file_text_win, file);
+         gtk_widget_set_visible (cv->value_box, !file);
+      }
+      /* (hidden then; on one line) */
+      if (file && whole) g_strdelimit (whole, "\n", ' ');
+      gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), value ? value : "");
+   }
    g_free (whole);
 
    gimv_comment_view_set_sensitive (cv);
@@ -634,6 +646,9 @@ gimv_comment_view_new ()
    cv->selected_row  = -1;
    cv->key_combo     = NULL;
    cv->value_entry   = NULL;
+   cv->value_box     = NULL;
+   cv->file_text_win = NULL;
+   cv->file_text     = NULL;
    cv->note_box      = NULL;
    cv->selected_item = NULL;
 
@@ -986,7 +1001,7 @@ create_data_page (GimvCommentView *cv)
    g_signal_connect (G_OBJECT (combo), "notify::selected",
                      G_CALLBACK (cb_combo_changed), cv);
 
-   vbox1 = gimv_vbox_new (FALSE, 0);
+   cv->value_box = vbox1 = gimv_vbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (hbox), vbox1, TRUE, TRUE, 0);
    hbox1 = gimv_hbox_new (FALSE, 0);
    gimv_box_pack_start (GTK_BOX (vbox1), hbox1, TRUE, TRUE, 0);
@@ -1011,7 +1026,25 @@ create_data_page (GimvCommentView *cv)
                      G_CALLBACK (cb_item_del_button_pressed), cv);
    gimv_box_pack_start (GTK_BOX (hbox), cv->item_del_button, FALSE, FALSE, 0);
 
+   /* a comment written in the file (they may be long, of many lines):
+      its whole text, in place of the entry, while it is selected */
+   cv->file_text_win = gimv_scrolled_window_new (NULL, NULL);
+   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (cv->file_text_win),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (cv->file_text_win), TRUE);
+   gtk_scrolled_window_set_min_content_height (GTK_SCROLLED_WINDOW (cv->file_text_win), 140);
+   gtk_widget_set_margin_start (cv->file_text_win, 5);
+   gtk_widget_set_margin_end (cv->file_text_win, 5);
+   gtk_widget_set_margin_bottom (cv->file_text_win, 5);
+   cv->file_text = gtk_text_view_new ();
+   gtk_text_view_set_editable (GTK_TEXT_VIEW (cv->file_text), FALSE);
+   gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW (cv->file_text), FALSE);
+   gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (cv->file_text), GTK_WRAP_WORD_CHAR);
+   gimv_container_add (GTK_WIDGET (cv->file_text_win), cv->file_text);
+   gimv_box_pack_start (GTK_BOX (vbox), cv->file_text_win, FALSE, FALSE, 0);
+
    gimv_widget_show_all (cv->data_page);
+   gtk_widget_set_visible (cv->file_text_win, FALSE);
 
    return vbox;
 }
@@ -1462,6 +1495,10 @@ gimv_comment_view_clear (GimvCommentView *cv)
                                GTK_INVALID_LIST_POSITION);
    combo_remove_extra (cv);
    gtk_editable_set_text (GTK_EDITABLE (cv->value_entry), "\0");
+   if (cv->file_text_win) {
+      gtk_widget_set_visible (cv->file_text_win, FALSE);
+      gtk_widget_set_visible (cv->value_box, TRUE);
+   }
 
    {
       GtkTextBuffer *buffer;

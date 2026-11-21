@@ -373,6 +373,8 @@ defval_img_size (GimvImageInfo *info, gpointer data)
    gchar buf[256];
 
    g_return_val_if_fail (info, NULL);
+   /* not known yet (not loaded: no "-1x-1") */
+   if (info->width <= 0 || info->height <= 0) return NULL;
 
    g_snprintf (buf, 256, "%dx%d", info->width, info->height);
 

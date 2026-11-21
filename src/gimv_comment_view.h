@@ -43,6 +43,8 @@ struct GimvCommentView_Tag
    gint       selected_row;
 
    GtkWidget *key_combo, *value_entry;
+   GtkWidget *value_box;          /* "Value:" and value_entry */
+   GtkWidget *file_text_win, *file_text;   /* a comment of the file, whole */
    GtkWidget *selected_item;
 
    GtkWidget *note_box;
