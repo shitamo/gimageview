@@ -13,7 +13,9 @@
  * "name_join.jpg" (never over another file).
  *
  * The images are read, the overlaps looked for and the new image made and
- * written in threads.
+ * written in threads.  Those GdkPixbuf can not read (MAG, Pi, ... of gimv's
+ * own loaders) are read after, in the main loop (the loaders are not made
+ * for threads), as they are shown (their pixels the shape of their machine).
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +30,7 @@
 
 #include "gimageview.h"
 #include "gimv_crop.h"
+#include "gimv_image.h"
 #include "gimv_resize_dialog.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
@@ -52,6 +55,7 @@ typedef enum {
 
 typedef struct {
    gchar     *path;
+   gchar     *error;     /* of GdkPixbuf: read by gimv's loaders then */
    GdkPixbuf *full;      /* turned as its EXIF says */
    GdkPixbuf *preview;
    gint       w, h;
@@ -120,6 +124,7 @@ item_free (gpointer p)
    Item *it = p;
    if (!it) return;
    g_free (it->path);
+   g_free (it->error);
    g_clear_object (&it->full);
    g_clear_object (&it->preview);
    g_free (it);
@@ -949,6 +954,9 @@ load_job_free (gpointer p)
 }
 
 
+static void item_set_full (Item *it, GdkPixbuf *full);
+
+
 static void
 load_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
@@ -961,31 +969,72 @@ load_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
       GError *error = NULL;
       GdkPixbuf *p = gdk_pixbuf_new_from_file (path, &error);
       Item *it;
-      gdouble s;
 
+      it = g_new0 (Item, 1);
+      it->path = g_strdup (path);
+      g_ptr_array_add (job->items, it);
+      /* not for GdkPixbuf: read later by gimv's loaders (load_done) */
       if (!p) {
-         gchar *name = g_filename_display_basename (path);
-         if (!job->errors) job->errors = g_string_new (NULL);
-         g_string_append_printf (job->errors, "%s%s: %s", job->errors->len ? "\n" : "",
-                                 name, error ? error->message : "?");
-         g_free (name);
+         it->error = g_strdup (error ? error->message : "?");
          g_clear_error (&error);
          continue;
       }
-      it = g_new0 (Item, 1);
-      it->path = g_strdup (path);
-      it->full = gdk_pixbuf_apply_embedded_orientation (p);
+      item_set_full (it, gdk_pixbuf_apply_embedded_orientation (p));
       g_object_unref (p);
-      it->w = gdk_pixbuf_get_width (it->full);
-      it->h = gdk_pixbuf_get_height (it->full);
-      s = MIN (1.0, (gdouble) PREVIEW_SIZE / MAX (it->w, it->h));
-      it->preview = s < 1.0
-         ? gdk_pixbuf_scale_simple (it->full, MAX (1, (gint) (it->w * s)),
-                                    MAX (1, (gint) (it->h * s)), GDK_INTERP_BILINEAR)
-         : g_object_ref (it->full);
-      g_ptr_array_add (job->items, it);
    }
    g_task_return_boolean (task, TRUE);
+}
+
+
+/* the image of an item: its size and its preview */
+static void
+item_set_full (Item *it, GdkPixbuf *full)
+{
+   gdouble s;
+
+   it->full = full;
+   it->w = gdk_pixbuf_get_width (it->full);
+   it->h = gdk_pixbuf_get_height (it->full);
+   s = MIN (1.0, (gdouble) PREVIEW_SIZE / MAX (it->w, it->h));
+   it->preview = s < 1.0
+      ? gdk_pixbuf_scale_simple (it->full, MAX (1, (gint) (it->w * s)),
+                                 MAX (1, (gint) (it->h * s)), GDK_INTERP_BILINEAR)
+      : g_object_ref (it->full);
+}
+
+
+/* those GdkPixbuf could not read, by gimv's loaders; the others left out
+   (and told) */
+static void
+load_by_gimv (LoadJob *job)
+{
+   guint i = 0;
+
+   while (i < job->items->len) {
+      Item *it = g_ptr_array_index (job->items, i);
+      GimvImage *image;
+
+      if (it->full) {
+         i++;
+         continue;
+      }
+      image = gimv_image_load_file (it->path, FALSE);
+      if (image && GDK_IS_PIXBUF (image->image)) {
+         item_set_full (it, gdk_pixbuf_copy (image->image));
+         gimv_image_unref (image);
+         i++;
+         continue;
+      }
+      if (image) gimv_image_unref (image);
+      {
+         gchar *name = g_filename_display_basename (it->path);
+         if (!job->errors) job->errors = g_string_new (NULL);
+         g_string_append_printf (job->errors, "%s%s: %s", job->errors->len ? "\n" : "",
+                                 name, it->error);
+         g_free (name);
+      }
+      g_ptr_array_remove_index (job->items, i);
+   }
 }
 
 
@@ -996,6 +1045,7 @@ load_done (GObject *source, GAsyncResult *res, gpointer data)
    LoadJob *job = g_task_get_task_data (G_TASK (res));
 
    if (!d->closed) {
+      load_by_gimv (job);
       d->items = g_ptr_array_ref (job->items);
       d->overlap = g_new0 (gint, MAX (1, n_items (d)));
       d->found = g_new0 (gint, MAX (1, n_items (d)));

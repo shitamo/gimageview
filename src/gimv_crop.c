@@ -809,6 +809,12 @@ format_for (const gchar *src, gboolean alpha, const gchar **ext)
    for (i = 0; name && i < G_N_ELEMENTS (keep) && !ret; i++)
       if (!strcmp (name, keep[i]) && writable (name)) ret = keep[i];
    g_free (name);
+   /* a format of gimv's own loaders (MAG, Pi, ...: pictures of a few
+      colours, drawn by dots): PNG, not JPEG */
+   if (!ret && !format) {
+      ret = "png";
+      *ext = "png";
+   }
    if (!ret) {
       ret = alpha ? "png" : "jpeg";
       *ext = alpha ? "png" : "jpg";

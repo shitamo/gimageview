@@ -188,7 +188,7 @@ Joins the two or more selected images into one, saved as a new file.  The images
 <li><p class="para">The quality (JPEG, WebP; 90 by default), keeping the information (EXIF, ...) of the first file, copying the comment and the tags given by hand of the first one.</p></li>
 </ul></div>
 <p class="para">
-Saved next to the first image as "name_join.jpg" (in its format; JPEG when gdk-pixbuf cannot write it), never over another file (-1, -2, ... is added).  The EXIF orientation is applied first.  The images are read, the overlaps found and the image saved in threads.  [Show the Saved Image] then chooses it in the thumbnail window.
+Saved next to the first image as "name_join.jpg" (in its format; JPEG when gdk-pixbuf cannot write it, PNG for the formats of gimv's own loaders, MAG, Pi, ...), never over another file (-1, -2, ... is added).  The EXIF orientation is applied first.  MAG, Pi and the like can be joined too (as they are shown: stretched to the shape of the pixels of their machine).  The images are read, the overlaps found and the image saved in threads.  [Show the Saved Image] then chooses it in the thumbnail window.
 </p>
 </dd>
 </dl></div>
