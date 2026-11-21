@@ -372,6 +372,76 @@ read_msl (FILE *f, GPtrArray *list)
 }
 
 
+/* a text up to the byte end (or 0) */
+static GString *
+read_until (FILE *f, gint end)
+{
+   GString *text = g_string_new (NULL);
+   gint ch;
+
+   while ((ch = fgetc (f)) != EOF && ch != end && ch != 0 && text->len < MAX_COMMENT)
+      g_string_append_c (text, ch);
+   /* the rest of a long one */
+   while (ch != EOF && ch != end && ch != 0) ch = fgetc (f);
+   return text;
+}
+
+
+/******************************************************************************
+ *  Pi: "Pi", a comment up to 0x1a, a dummy up to 0x00, the mode, the aspect,
+ *  the planes, the machine (4 bytes)
+ ******************************************************************************/
+static void
+read_pi (FILE *f, GPtrArray *list)
+{
+   guchar head[2], rest[8];
+   GString *comment, *dummy;
+
+   if (fread (head, 1, 2, f) != 2) return;
+   comment = read_until (f, 0x1a);
+   dummy = read_until (f, 0x00);
+   add (list, _("Comment"), comment->str, comment->len, TEXT_JAPANESE);
+   if (fread (rest, 1, 8, f) == 8 && rest[4]) {
+      gboolean ascii = TRUE;
+      gint i;
+      for (i = 4; i < 8; i++)
+         if (rest[i] && !g_ascii_isprint (rest[i])) ascii = FALSE;
+      if (ascii) add (list, _("Machine"), (gchar *) rest + 4, 4, TEXT_JAPANESE);
+   }
+   g_string_free (comment, TRUE);
+   g_string_free (dummy, TRUE);
+}
+
+
+/******************************************************************************
+ *  PIC (X68000): "PIC", a comment up to 0x1a, another up to 0x00, the
+ *  machine (u16, big endian)
+ ******************************************************************************/
+static void
+read_pic (FILE *f, GPtrArray *list)
+{
+   guchar head[3], m[2];
+   GString *comment, *second;
+
+   if (fread (head, 1, 3, f) != 3) return;
+   comment = read_until (f, 0x1a);
+   second = read_until (f, 0x00);
+   add (list, _("Comment"), comment->str, comment->len, TEXT_JAPANESE);
+   add (list, _("Comment"), second->str, second->len, TEXT_JAPANESE);
+   if (fread (m, 1, 2, f) == 2) {
+      const gchar *machine = NULL;
+      switch ((m[0] << 8) | m[1]) {
+      case 0x00: case 0x1f: machine = "X68000";   break;
+      case 0x02: case 0xc2: machine = "FM TOWNS"; break;
+      case 0x11: case 0x21: machine = "PC-88VA";  break;
+      }
+      if (machine) add (list, _("Machine"), machine, strlen (machine), TEXT_JAPANESE);
+   }
+   g_string_free (comment, TRUE);
+   g_string_free (second, TRUE);
+}
+
+
 /******************************************************************************
  *  MB2 (PC-9801): u16 flags (0x0800: a comment), u16 the length of the
  *  comment (big endian), the comment; no header to tell it by (.mb2)
@@ -419,6 +489,10 @@ gimv_file_comment_read (const gchar *filename)
          read_ak5_head (f, list);
       else if (!memcmp (magic, "MSL\0", 4))
          read_msl (f, list);
+      else if (!memcmp (magic, "PIC", 3))
+         read_pic (f, list);
+      else if (!memcmp (magic, "Pi", 2))
+         read_pi (f, list);
       else if (g_str_has_suffix (filename, ".mb2") || g_str_has_suffix (filename, ".MB2"))
          read_mb2 (f, list);
    }

@@ -1286,6 +1286,46 @@ test_mb2 (void)
    g_assert_null (image);
 }
 
+/* the comments of Pi and PIC files (the Data tab) */
+static void
+check_comments (GByteArray *a, const gchar *ext, const gchar * const *expect)
+{
+   gchar *path = write_file (ext, a->data, a->len);
+   GPtrArray *list = gimv_file_comment_read (path);
+   guint i;
+
+   for (i = 0; expect[i]; i += 2) {
+      GimvFileComment *c;
+      g_assert_cmpuint (list->len, >, i / 2);
+      c = g_ptr_array_index (list, i / 2);
+      g_assert_cmpstr (c->text, ==, expect[i + 1]);
+   }
+   g_assert_cmpuint (list->len, ==, i / 2);
+   g_ptr_array_unref (list);
+   g_unlink (path);
+   g_free (path);
+}
+
+static void
+test_old_comments (void)
+{
+   GByteArray *a;
+   static const gchar *pic[] = { "Comment", "Test", "Comment", "x", "Machine", "X68000", NULL };
+   static const gchar *pic_va[] = { "Comment", "Test", "Comment", "x", "Machine", "PC-88VA", NULL };
+   static const gchar *pi[] = { "Comment", "Test", "Machine", "TEST", NULL };
+
+   a = make_pic (8, 4, 0x00, 16);
+   check_comments (a, "pic", pic);
+   g_byte_array_unref (a);
+   a = make_pic (8, 4, 0x11, 16);
+   check_comments (a, "pic", pic_va);
+   g_byte_array_unref (a);
+   a = make_pi (8, 4, 4, TRUE);
+   check_comments (a, "pi", pi);
+   g_byte_array_unref (a);
+}
+
+
 static void
 test_mb2_comment (void)
 {
@@ -2691,6 +2731,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/image-loader/mb/broken", test_mb_broken);
    g_test_add_func ("/image-loader/mb2", test_mb2);
    g_test_add_func ("/image-loader/mb2/comment", test_mb2_comment);
+   g_test_add_func ("/image-loader/old-comments", test_old_comments);
    g_test_add_func ("/image-loader/mb2/broken", test_mb2_broken);
    g_test_add_func ("/image-loader/maki", test_maki);
    g_test_add_func ("/image-loader/maki/broken", test_maki_broken);
