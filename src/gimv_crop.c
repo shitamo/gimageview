@@ -903,6 +903,74 @@ comment_of_files (const gchar * const *sources)
 }
 
 
+static guint32
+png_crc (const guchar *p, gsize len)
+{
+   static guint32 table[256];
+   guint32 c = 0xffffffff;
+   gsize i;
+
+   if (!table[1]) {
+      for (i = 0; i < 256; i++) {
+         guint32 v = i;
+         gint k;
+         for (k = 0; k < 8; k++) v = (v & 1) ? 0xedb88320 ^ (v >> 1) : v >> 1;
+         table[i] = v;
+      }
+   }
+   for (i = 0; i < len; i++) c = table[(c ^ p[i]) & 0xff] ^ (c >> 8);
+   return c ^ 0xffffffff;
+}
+
+
+/* the PNG in *buf with a "Comment" after its IHDR: tEXt (Latin-1) when
+   the text can be, else iTXt (UTF-8).  Written here, not by GdkPixbuf:
+   some versions of it store a text not in Latin-1 broken (tEXt of the
+   wrong bytes). */
+static void
+png_add_comment (gchar **buf, gsize *len, const gchar *text)
+{
+   static const guchar sig[8] = { 0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n' };
+   const gsize at = 8 + 4 + 4 + 13 + 4;        /* after IHDR */
+   gchar *latin1 = g_convert (text, -1, "ISO-8859-1", "UTF-8", NULL, NULL, NULL);
+   GByteArray *chunk = g_byte_array_new (), *out;
+   guchar n[4];
+   guint32 crc, size;
+
+   if (*len < at || memcmp (*buf, sig, 8) || memcmp (*buf + 12, "IHDR", 4)) {
+      g_free (latin1);
+      g_byte_array_unref (chunk);
+      return;
+   }
+   if (latin1) {
+      g_byte_array_append (chunk, (const guint8 *) "tEXtComment", 12);
+      g_byte_array_append (chunk, (const guint8 *) latin1, strlen (latin1));
+   } else {
+      /* keyword, 0, no compression, method 0, no language, no
+         translated keyword */
+      g_byte_array_append (chunk, (const guint8 *) "iTXtComment\0\0\0\0", 16);
+      g_byte_array_append (chunk, (const guint8 *) text, strlen (text));
+   }
+   g_free (latin1);
+   size = chunk->len - 4;
+   crc = png_crc (chunk->data, chunk->len);
+
+   out = g_byte_array_sized_new (*len + chunk->len + 8);
+   g_byte_array_append (out, (const guint8 *) *buf, at);
+   n[0] = size >> 24; n[1] = size >> 16; n[2] = size >> 8; n[3] = size;
+   g_byte_array_append (out, n, 4);
+   g_byte_array_append (out, chunk->data, chunk->len);
+   n[0] = crc >> 24; n[1] = crc >> 16; n[2] = crc >> 8; n[3] = crc;
+   g_byte_array_append (out, n, 4);
+   g_byte_array_append (out, (const guint8 *) *buf + at, *len - at);
+   g_byte_array_unref (chunk);
+
+   g_free (*buf);
+   *len = out->len;
+   *buf = (gchar *) g_byte_array_free (out, FALSE);
+}
+
+
 /* pixbuf saved next to the image src as name<suffix>.ext (any thread);
    the comments written in the files sources (NULL-terminated) go into a
    PNG ("Comment");
@@ -941,13 +1009,9 @@ gimv_crop_save_pixbuf (GdkPixbuf *pixbuf, const gchar *src, const gchar *suffix,
       ok = gdk_pixbuf_save_to_buffer (p, &buf, &len, writer, &error, "quality", q, NULL);
       g_object_unref (p);
    } else if (!strcmp (writer, "png")) {
-      /* a text not in Latin-1 is written as iTXt (UTF-8) by GdkPixbuf */
       gchar *comment = comment_of_files (sources);
-      if (comment)
-         ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error,
-                                         "tEXt::Comment", comment, NULL);
-      else
-         ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);
+      ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);
+      if (ok && comment) png_add_comment (&buf, &len, comment);
       g_free (comment);
    } else {
       ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);

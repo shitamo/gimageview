@@ -24,6 +24,7 @@
 #include "gimv_test.h"
 #include "gimv_test_core.h"
 #include "gimv_file_comment.h"
+#include "gimv_crop.h"
 #include "gimv_image_info.h"
 #include "charset.h"
 #include "prefs.h"
@@ -2480,6 +2481,49 @@ test_mag (void)
       gimv_image_unref (image);
       check_comments (a, "mag", names);
       g_byte_array_unref (a);
+   }
+
+   /* the comments carried into a PNG (joined, cropped): Shift_JIS read
+      right, written as iTXt (UTF-8), or as tEXt when ASCII */
+   {
+      static const struct { const gchar *name; const gchar *expect; } cases[] = {
+         { "\x8el\x8bR", "comment\nUser Name: \xe5\x9b\x9b\xe9\xa8\x8e\nMachine: PC98" },
+         { "abc", "comment\nUser Name: abc\nMachine: PC98" },
+      };
+      guint c;
+
+      for (c = 0; c < G_N_ELEMENTS (cases); c++) {
+         GByteArray *s = make_mag16 (16, 3, 99);
+         GdkPixbuf *pb = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, 4, 4);
+         gchar *src, *dest = NULL, *err = NULL, *warn = NULL;
+         const gchar *sources[2];
+         const gchar *expect[] = { "Comment", cases[c].expect, NULL };
+         GPtrArray *list;
+
+         memset (s->data + 12, ' ', 18);
+         memcpy (s->data + 12, cases[c].name, strlen (cases[c].name));
+         src = write_file ("mag", s->data, s->len);
+         sources[0] = src;
+         sources[1] = NULL;
+         gdk_pixbuf_fill (pb, 0);
+         g_assert_true (gimv_crop_save_pixbuf (pb, src, "_join", 90, FALSE, sources,
+                                               &dest, &err, &warn));
+         list = gimv_file_comment_read (dest);
+         g_assert_nonnull (list);
+         g_assert_cmpuint (list->len, ==, 1);
+         g_assert_cmpstr (((GimvFileComment *) g_ptr_array_index (list, 0))->text, ==, expect[1]);
+         g_ptr_array_unref (list);
+         /* still a PNG GdkPixbuf reads */
+         g_object_unref (pb);
+         pb = gdk_pixbuf_new_from_file (dest, NULL);
+         g_assert_nonnull (pb);
+         g_object_unref (pb);
+         g_unlink (dest);
+         g_unlink (src);
+         g_free (dest);
+         g_free (src);
+         g_byte_array_unref (s);
+      }
    }
 
    /* rows 1 and 2 copied from the one above (flags 4) */

@@ -242,6 +242,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* The comments carried into a joined or cropped PNG are written by gimv
+	  itself (tEXt when ASCII, else iTXt in UTF-8): GdkPixbuf on some
+	  systems wrote Japanese ones garbled.
 	* MAG files whose user name ends early with 0x1a (no comment; some
 	  saved on the X68000) are shown (only the "Data" tab was, with the
 	  header taken as the name).
