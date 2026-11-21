@@ -1141,8 +1141,14 @@ save_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
       g_object_unref (src);
    }
 
-   gimv_crop_save_pixbuf (canvas, job->src, "_join", job->quality, job->metadata,
-                          &job->dest, &job->error, &job->warning);
+   {
+      const gchar **sources = g_new0 (const gchar *, job->items->len + 1);
+      for (i = 0; i < job->items->len; i++)
+         sources[i] = ((Item *) g_ptr_array_index (job->items, i))->path;
+      gimv_crop_save_pixbuf (canvas, job->src, "_join", job->quality, job->metadata,
+                             sources, &job->dest, &job->error, &job->warning);
+      g_free (sources);
+   }
    g_object_unref (canvas);
    g_task_return_boolean (task, TRUE);
 }

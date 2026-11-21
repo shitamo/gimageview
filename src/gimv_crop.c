@@ -24,6 +24,7 @@
  */
 
 #include "gimv_crop.h"
+#include "gimv_file_comment.h"
 
 #include <math.h>
 #include <string.h>
@@ -846,11 +847,69 @@ dest_for (const gchar *src, const gchar *suffix, const gchar *new_ext)
 }
 
 
+/* the comments written in the files (MAG, Pi, PNG, ...) as one text:
+   "name: text" (a comment: the text alone); of several files, those not
+   the same, each under the name of its file; NULL: none */
+static gchar *
+comment_of_files (const gchar * const *sources)
+{
+   GPtrArray *texts = g_ptr_array_new_with_free_func (g_free);
+   GPtrArray *names = g_ptr_array_new_with_free_func (g_free);
+   GString *all;
+   guint i, j;
+
+   for (i = 0; sources && sources[i]; i++) {
+      GPtrArray *list = gimv_file_comment_read (sources[i]);
+      GString *one = g_string_new (NULL);
+      gboolean seen = FALSE;
+
+      for (j = 0; list && j < list->len; j++) {
+         GimvFileComment *c = g_ptr_array_index (list, j);
+         gchar *t;
+         if (!c->text || !*c->text) continue;
+         t = g_strchomp (g_strdup (c->text));
+         if (one->len) g_string_append_c (one, '\n');
+         if (!strcmp (c->name, "Comment") || !strcmp (c->name, _("Comment")))
+            g_string_append (one, t);
+         else
+            g_string_append_printf (one, "%s: %s", c->name, t);
+         g_free (t);
+      }
+      if (list) g_ptr_array_unref (list);
+      for (j = 0; j < texts->len; j++)
+         if (!strcmp (g_ptr_array_index (texts, j), one->str)) seen = TRUE;
+      if (one->len && !seen) {
+         g_ptr_array_add (texts, g_string_free (one, FALSE));
+         g_ptr_array_add (names, g_filename_display_basename (sources[i]));
+      } else {
+         g_string_free (one, TRUE);
+      }
+   }
+
+   all = g_string_new (NULL);
+   for (i = 0; i < texts->len; i++) {
+      if (texts->len > 1)
+         g_string_append_printf (all, "%s[%s]\n", i ? "\n" : "",
+                                 (gchar *) g_ptr_array_index (names, i));
+      g_string_append (all, g_ptr_array_index (texts, i));
+   }
+   g_ptr_array_unref (texts);
+   g_ptr_array_unref (names);
+   if (!all->len) {
+      g_string_free (all, TRUE);
+      return NULL;
+   }
+   return g_string_free (all, FALSE);
+}
+
+
 /* pixbuf saved next to the image src as name<suffix>.ext (any thread);
+   the comments written in the files sources (NULL-terminated) go into a
+   PNG ("Comment");
    FALSE: not saved (*error); *warning: saved, the information not copied */
 gboolean
 gimv_crop_save_pixbuf (GdkPixbuf *pixbuf, const gchar *src, const gchar *suffix,
-                       gint quality, gboolean metadata,
+                       gint quality, gboolean metadata, const gchar * const *sources,
                        gchar **dest, gchar **error_text, gchar **warning)
 {
    const gchar *ext, *writer;
@@ -881,6 +940,15 @@ gimv_crop_save_pixbuf (GdkPixbuf *pixbuf, const gchar *src, const gchar *suffix,
          g_object_ref (p);
       ok = gdk_pixbuf_save_to_buffer (p, &buf, &len, writer, &error, "quality", q, NULL);
       g_object_unref (p);
+   } else if (!strcmp (writer, "png")) {
+      /* a text not in Latin-1 is written as iTXt (UTF-8) by GdkPixbuf */
+      gchar *comment = comment_of_files (sources);
+      if (comment)
+         ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error,
+                                         "tEXt::Comment", comment, NULL);
+      else
+         ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);
+      g_free (comment);
    } else {
       ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);
    }
@@ -908,9 +976,10 @@ static void
 save_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
 {
    SaveJob *job = data;
+   const gchar *sources[2] = { job->src, NULL };
 
    gimv_crop_save_pixbuf (job->pixbuf, job->src, "_crop", job->quality, job->metadata,
-                          &job->dest, &job->error, &job->warning);
+                          sources, &job->dest, &job->error, &job->warning);
    g_task_return_boolean (task, TRUE);
 }
 

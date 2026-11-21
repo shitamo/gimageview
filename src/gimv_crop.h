@@ -32,6 +32,7 @@ gboolean gimv_crop_save_pixbuf (GdkPixbuf   *pixbuf,
                                 const gchar *suffix,
                                 gint         quality,
                                 gboolean     metadata,
+                                const gchar * const *sources,
                                 gchar      **dest,
                                 gchar      **error_text,
                                 gchar      **warning);
