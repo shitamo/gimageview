@@ -3958,8 +3958,12 @@ restore_switch_scroll (GimvThumbView *tv)
 
    if (!value || !GTK_IS_SCROLLED_WINDOW (tv->container)) return;
    vadj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (tv->container));
-   if (gtk_adjustment_get_value (vadj) != *value)
-      gtk_adjustment_set_value (vadj, *value);
+   /* set again even when the value is the same: a list hidden behind
+      another page may show its top while its adjustment keeps the value
+      (the list view lays itself out again when it is shown) */
+   if (gtk_adjustment_get_value (vadj) == *value && *value > 0)
+      gtk_adjustment_set_value (vadj, *value - 1);
+   gtk_adjustment_set_value (vadj, *value);
 }
 
 
@@ -4050,19 +4054,21 @@ cb_thumb_notebook_switch_page (GtkNotebook *notebook, GtkWidget *page,
                                  ? g_strdup (gimv_image_info_get_path (focus->info))
                                  : NULL,
                                  g_free);
+
+      /* where its list was, taken as it is left: a page hidden behind
+         another (an archive opened from it, then closed) may come back
+         scrolled to the top (see the _after () handler) */
+      if (old && GTK_IS_SCROLLED_WINDOW (old->container)) {
+         GtkAdjustment *vadj
+            = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (old->container));
+               g_object_set_data_full (G_OBJECT (old), "gimv-switch-scroll",
+                                 g_memdup2 ((gdouble[]) { gtk_adjustment_get_value (vadj) },
+                                            sizeof (gdouble)),
+                                 g_free);
+      }
    }
 
    tv = gimv_thumb_win_find_thumbtable (tw, pagenum);
-
-   /* where the list of the page was (see the _after () handler) */
-   if (tv && GTK_IS_SCROLLED_WINDOW (tv->container)) {
-      GtkAdjustment *vadj
-         = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (tv->container));
-      g_object_set_data_full (G_OBJECT (tv), "gimv-switch-scroll",
-                              g_memdup2 ((gdouble[]) { gtk_adjustment_get_value (vadj) },
-                                         sizeof (gdouble)),
-                              g_free);
-   }
 
    if (files_loader_query_loading ()) {
       gimv_thumb_win_set_sensitive (tw, GIMV_THUMB_WIN_STATUS_LOADING);

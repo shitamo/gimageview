@@ -3961,6 +3961,10 @@ How duplicates are found
  ・ The comments written in Pi and PIC files (two in PIC) and their machine
     are shown in the "Data" tab.
 
+ ・ A tab of a folder showed its top again (the archive chosen out of view)
+    after the tab of an archive opened from it was closed: it comes back where
+    it was scrolled.
+
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg
     before 2.jpg). [View | Sort File List | Numbers by Value] turns it off.

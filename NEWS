@@ -242,6 +242,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* A tab of a folder comes back where it was scrolled, after the tab of
+	  an archive opened from it is closed (it showed its top).
 	* The comments of Pi and PIC files (and their machine) are shown in the
 	  "Data" tab.
 	* Fixed: closing the tab of an archive while its thumbnails were made
