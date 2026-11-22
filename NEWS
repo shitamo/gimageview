@@ -242,6 +242,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Copying files keeps their modification times, and so does moving to
+	  another file system (done as a copy and a removal): the date of an
+	  image was the time it was copied.  A copy failing at its close (a
+	  full disk) is an error, so the source of such a move is kept.
 	* Keyboard Shortcuts: a key is set in a window of its own, as Mozc does:
 	  any key can be pressed (Backspace and Escape too), and it tells what
 	  the key is now (another item's, a key gimv itself uses, or free);

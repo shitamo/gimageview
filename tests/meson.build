@@ -134,6 +134,11 @@ test('image-loaders',
     kwargs : core_test_kwargs),
   kwargs : test_kwargs)
 
+test('file-ops',
+  executable('test-file-ops', 'test_file_ops.c', 'gimv_test_core.c',
+    kwargs : core_test_kwargs),
+  kwargs : test_kwargs)
+
 test('thumbnail-freedesktop',
   executable('test-thumbnail-freedesktop', 'test_thumbnail_freedesktop.c', 'gimv_test_core.c',
     kwargs : core_test_kwargs),

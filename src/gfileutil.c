@@ -1109,7 +1109,29 @@ copy_file_to_file (const gchar *from_path, const gchar *to_path,
    }
 
    fclose (from);
-   fclose (to);
+   /* what is not written until it closes (a full disk) fails here: the
+      source of a move to another file system is removed after this */
+   if (fclose (to) != 0) {
+      if (show_error) {
+         g_snprintf (error_message, BUF_SIZE,
+                     _("An error occurred while copying file:\n%s"),
+                     to_path_internal);
+         gtkutil_message_dialog (_("Error!"), error_message, window);
+      }
+      goto ERROR;
+   }
+
+   /* the copy keeps the times of the file (as a move keeps them; an
+      image's date is its date) */
+   {
+      struct stat st;
+      if (stat (from_path, &st) == 0) {
+         struct utimbuf ut;
+         ut.actime = st.st_atime;
+         ut.modtime = st.st_mtime;
+         utime (to_path, &ut);
+      }
+   }
 
    g_free (to_path_internal);
    g_free (from_path_internal);
