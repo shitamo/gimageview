@@ -6931,9 +6931,6 @@ msgstr "右ボタンメニューを開く"
 msgid "Other Keys"
 msgstr "その他のキー"
 
-#: src/gimv_shortcuts_win.c
-msgid "Press a key..."
-msgstr "キーを押してください..."
 
 #: src/gimv_shortcuts_win.c
 msgid "Reset _All to Defaults..."
@@ -6969,13 +6966,7 @@ msgstr "すべて戻す(_R)"
 msgid "_Use It Here"
 msgstr "こちらに使う(_U)"
 
-#: src/gimv_shortcuts_win.c
-msgid "Click, then press the new key (Escape: as it was, Backspace: no key)"
-msgstr "クリックして新しいキーを押します (Esc: そのまま、BackSpace: キーなし)"
 
-#: src/gimv_shortcuts_win.c
-msgid "Click a key and press the new one (Escape: leave it as it was, Backspace: no key). A key changed works at once and is kept."
-msgstr "キーをクリックして新しいキーを押してください (Esc: そのまま、BackSpace: キーなし)。変えたキーはすぐに使え、保存されます。"
 
 #: src/gimv_comment_view.c
 #, c-format
@@ -7943,3 +7934,114 @@ msgstr "次へ ▶"
 #: src/gimv_image_view.c
 msgid "Previous ▶"
 msgstr "前へ ▶"
+
+#: src/gimv_shortcuts_win.c
+msgid "Click to set the key"
+msgstr "クリックしてキーを設定"
+
+#: src/gimv_shortcuts_win.c
+msgid "Click a key to set another: press it in the window that opens, which tells what the key is now. A key changed works at once and is kept."
+msgstr "キーをクリックすると開くウィンドウで新しいキーを押します (そのキーが今どう使われているかも表示)。変えたキーはすぐに使え、保存されます。"
+
+#: src/gimv_shortcuts_win.c
+msgid "Set a Key"
+msgstr "キーの設定"
+
+#: src/gimv_shortcuts_win.c
+msgid "Press the key to use (any key: Escape and Backspace too)."
+msgstr "割り当てるキーを押してください (Esc や BackSpace も含め、どのキーでも)。"
+
+#: src/gimv_shortcuts_win.c
+msgid "No Key"
+msgstr "キーなし"
+
+#: src/gimv_shortcuts_win.c
+msgid "Take the key away"
+msgstr "この項目のキーを外します"
+
+#: src/gimv_shortcuts_win.c
+msgid "The key now."
+msgstr "今のキーです。"
+
+#: src/gimv_shortcuts_win.c
+msgid "No key now."
+msgstr "今はキーなしです。"
+
+#: src/gimv_shortcuts_win.c
+#, c-format
+msgid "The key of \"%s\" (%s): OK asks to take it from there."
+msgstr "「%s」(%s) のキーです。了解を押すと、そちらから外すか確認します。"
+
+#: src/gimv_shortcuts_win.c
+#, c-format
+msgid "In another window, the key of \"%s\" (%s)."
+msgstr "別のウィンドウでは「%s」(%s) のキーです。"
+
+#: src/gimv_shortcuts_win.c
+#, c-format
+msgid "Used by gimv itself (%s): it may not work here."
+msgstr "gimv が直接使っているキーです (%s)。ここに割り当てても効かないことがあります。"
+
+#: src/gimv_shortcuts_win.c
+msgid "Not used in this window."
+msgstr "このウィンドウでは使われていません。"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: scroll"
+msgstr "画像: スクロール"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: the previous one"
+msgstr "画像: 前の画像"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: the next one"
+msgstr "画像: 次の画像"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: the first one"
+msgstr "画像: 最初の画像"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: the last one"
+msgstr "画像: 最後の画像"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: zoom in"
+msgstr "画像: 拡大"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: zoom out"
+msgstr "画像: 縮小"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: 100%"
+msgstr "画像: 100%"
+
+#: src/gimv_shortcuts_win.c
+msgid "the image: fit to the window"
+msgstr "画像: ウィンドウに合わせる"
+
+#: src/gimv_shortcuts_win.c
+msgid "the list: open the image"
+msgstr "一覧: 画像を開く"
+
+#: src/gimv_shortcuts_win.c
+msgid "leave the full screen"
+msgstr "全画面表示をやめる"
+
+#: src/gimv_shortcuts_win.c
+msgid "the navigator: move"
+msgstr "ナビゲーター: 移動"
+
+#: src/gimv_shortcuts_win.c
+msgid "the navigator: close"
+msgstr "ナビゲーター: 閉じる"
+
+#: src/gimv_shortcuts_win.c
+msgid "the navigator: zoom in"
+msgstr "ナビゲーター: 拡大"
+
+#: src/gimv_shortcuts_win.c
+msgid "the navigator: zoom out"
+msgstr "ナビゲーター: 縮小"

@@ -1189,14 +1189,19 @@ Keyboard Shortcuts...
     Shows the keys of the menu items of the thumbnail window (with the
     preview) and the image window, and the other keys (the right button menu,
     completing a path, the navigator, the display modes of the thumbnail
-    window), to change them. Click the key of a row and press the new key:
-    Escape leaves it as it was, Backspace leaves the item without a key. When
-    the key is the key of another item of the same window, you are asked
-    whether to take it away from that item. The undo button of a row, or
-    "Reset All to Defaults...", brings back the default. A key changed works
-    at once (the keys of the display modes from the next start) and is written
-    in ~/.gimv/keyaccelrc or ~/.gimv/keyconf. The entry at the top narrows the
-    rows by a part of the name or of the key ("ctrl+t").
+    window), to change them. Click the key of a row: a window opens to press
+    the new key in (any key, Escape and Backspace too; press another to change
+    it). Under the key it tells what the key is now: the key of another item
+    (of the same window or another one), a key gimv itself uses (the arrows
+    and Page Up/Down on the image, ...), or not used, so pressing keys there
+    shows which are free. [OK] takes it, [No Key] leaves the item without a
+    key, [Cancel] leaves it as it was. When the key is the key of another item
+    of the same window, you are asked whether to take it away from that item.
+    The undo button of a row, or "Reset All to Defaults...", brings back the
+    default. A key changed works at once (the keys of the display modes from
+    the next start) and is written in ~/.gimv/keyaccelrc or ~/.gimv/keyconf.
+    The entry at the top narrows the rows by a part of the name or of the key
+    ("ctrl+t").
 
 4.3. View
 
@@ -3985,6 +3990,12 @@ How duplicates are found
  ・ A PNG joined or cropped from MAG, Pi and the like (no EXIF) gets the date
     of the newest file as EXIF DateTime (an eXIf chunk) when the information
     is to be kept; the date tab of the index shows it on that day.
+
+ ・ Keyboard Shortcuts: a key is set in a window of its own (as in the key
+    settings of Mozc), where any key can be pressed, Backspace and Escape too,
+    and what the key is now is shown (another item's, in this window or
+    another, a key gimv itself uses, or not used), so free keys can be found;
+    [OK], [No Key], [Cancel].
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

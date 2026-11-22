@@ -130,8 +130,17 @@ static struct {
    GtkWidget  *list;
    GtkWidget  *entry;
    GPtrArray  *shortcuts;
-   Shortcut   *capturing;    /* waiting for a key */
 } sw;
+
+/* the window a key is set in */
+static struct {
+   GtkWidget  *window;
+   GtkWidget  *key;          /* the key pressed */
+   GtkWidget  *status;       /* what it is now */
+   GtkWidget  *ok;
+   Shortcut   *sc;
+   gchar      *pending;      /* canonical, "" for none */
+} kd;
 
 
 /* "" for none or a key not understood */
@@ -292,17 +301,11 @@ update_row (Shortcut *sc)
 {
    gchar *cur = current_key (sc), *l;
 
-   if (sw.capturing == sc) {
-      gtk_button_set_label (GTK_BUTTON (sc->key_button), _("Press a key..."));
-      gtk_widget_add_css_class (sc->key_button, "suggested-action");
-   } else {
-      l = key_label (cur);
-      gtk_button_set_label (GTK_BUTTON (sc->key_button), *l ? l : _("None"));
-      gtk_widget_remove_css_class (sc->key_button, "suggested-action");
-      if (*l) gtk_widget_remove_css_class (sc->key_button, "dim-label");
-      else gtk_widget_add_css_class (sc->key_button, "dim-label");
-      g_free (l);
-   }
+   l = key_label (cur);
+   gtk_button_set_label (GTK_BUTTON (sc->key_button), *l ? l : _("None"));
+   if (*l) gtk_widget_remove_css_class (sc->key_button, "dim-label");
+   else gtk_widget_add_css_class (sc->key_button, "dim-label");
+   g_free (l);
    gtk_widget_set_visible (sc->reset_button, strcmp (cur, sc->default_key) != 0);
    if (strcmp (cur, sc->default_key)) {
       gchar *d = key_label (sc->default_key), *tip;
@@ -419,31 +422,9 @@ out:
 
 
 static void
-stop_capture (void)
-{
-   Shortcut *sc = sw.capturing;
-
-   sw.capturing = NULL;
-   if (sc) update_row (sc);
-}
-
-
-static void
-cb_key_clicked (GtkButton *button, Shortcut *sc)
-{
-   Shortcut *was = sw.capturing;
-
-   stop_capture ();
-   if (was == sc) return;   /* clicked again: left as it was */
-   sw.capturing = sc;
-   update_row (sc);
-}
-
-
-static void
 cb_reset_clicked (GtkButton *button, Shortcut *sc)
 {
-   stop_capture ();
+   if (kd.window) gtk_window_destroy (GTK_WINDOW (kd.window));
    assign (sc, sc->default_key);
 }
 
@@ -468,33 +449,241 @@ is_modifier (guint keyval)
 }
 
 
-/* the new key, while a key is waited for */
-static gboolean
-cb_window_key (GtkEventControllerKey *controller, guint keyval, guint keycode,
-               GdkModifierType state, gpointer data)
-{
-   Shortcut *sc = sw.capturing;
-   GdkModifierType mods = state & gtk_accelerator_get_default_mod_mask ();
-   gchar *accel;
+/* the keys gimv itself uses, not changed here (with no modifier) */
+typedef struct {
+   guint        keyval;
+   guint        scope;
+   const gchar *label;
+} FixedKey;
 
-   if (!sc) return FALSE;
+static const FixedKey fixed_keys[] = {
+   { GDK_KEY_Left,      SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: scroll") },
+   { GDK_KEY_Right,     SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: scroll") },
+   { GDK_KEY_Up,        SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: scroll") },
+   { GDK_KEY_Down,      SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: scroll") },
+   { GDK_KEY_Page_Up,   SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: the previous one") },
+   { GDK_KEY_Page_Down, SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: the next one") },
+   { GDK_KEY_space,     SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: the next one") },
+   { GDK_KEY_Home,      SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: the first one") },
+   { GDK_KEY_End,       SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: the last one") },
+   { GDK_KEY_plus,      SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: zoom in") },
+   { GDK_KEY_KP_Add,    SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: zoom in") },
+   { GDK_KEY_minus,     SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: zoom out") },
+   { GDK_KEY_KP_Subtract, SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: zoom out") },
+   { GDK_KEY_equal,     SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: 100%") },
+   { GDK_KEY_KP_Enter,  SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: 100%") },
+   { GDK_KEY_KP_Divide, SCOPE_THUMBWIN | SCOPE_IMAGEWIN, N_("the image: fit to the window") },
+   { GDK_KEY_Return,    SCOPE_THUMBWIN, N_("the list: open the image") },
+   { GDK_KEY_Escape,    SCOPE_IMAGEWIN, N_("leave the full screen") },
+   { GDK_KEY_Left,      SCOPE_NAVWIN, N_("the navigator: move") },
+   { GDK_KEY_Right,     SCOPE_NAVWIN, N_("the navigator: move") },
+   { GDK_KEY_Up,        SCOPE_NAVWIN, N_("the navigator: move") },
+   { GDK_KEY_Down,      SCOPE_NAVWIN, N_("the navigator: move") },
+   { GDK_KEY_Escape,    SCOPE_NAVWIN, N_("the navigator: close") },
+   { GDK_KEY_equal,     SCOPE_NAVWIN, N_("the navigator: zoom in") },
+   { GDK_KEY_minus,     SCOPE_NAVWIN, N_("the navigator: zoom out") },
+};
+
+
+/* what the key pressed is now, under it */
+static void
+key_dialog_update (void)
+{
+   Shortcut *sc = kd.sc;
+   GString *str = g_string_new (NULL);
+   gchar *cur = current_key (sc), *l = key_label (kd.pending);
+   guint keyval = 0, i;
+   GdkModifierType mods = 0;
+
+   gtk_label_set_text (GTK_LABEL (kd.key), *l ? l : _("None"));
+   gtk_widget_set_sensitive (kd.ok, strcmp (kd.pending, cur) != 0);
+
+   if (!strcmp (kd.pending, cur)) {
+      g_string_append (str, *cur ? _("The key now.") : _("No key now."));
+   } else if (*kd.pending) {
+      gboolean used = FALSE;
+
+      for (i = 0; i < sw.shortcuts->len; i++) {
+         Shortcut *other = g_ptr_array_index (sw.shortcuts, i);
+         gchar *okey;
+         if (other == sc) continue;
+         okey = current_key (other);
+         if (!strcmp (okey, kd.pending)) {
+            if (str->len) g_string_append_c (str, '\n');
+            if (other->scope & sc->scope)
+               g_string_append_printf (str, _("The key of \"%s\" (%s): OK asks to take it from there."),
+                                       other->label, _(other->group));
+            else
+               g_string_append_printf (str, _("In another window, the key of \"%s\" (%s)."),
+                                       other->label, _(other->group));
+            used = used || (other->scope & sc->scope);
+         }
+         g_free (okey);
+      }
+      gimv_accelerator_parse (kd.pending, &keyval, &mods);
+      for (i = 0; !mods && i < G_N_ELEMENTS (fixed_keys); i++) {
+         if (fixed_keys[i].keyval != keyval || !(fixed_keys[i].scope & sc->scope)) continue;
+         if (str->len) g_string_append_c (str, '\n');
+         g_string_append_printf (str, _("Used by gimv itself (%s): it may not work here."),
+                                 _(fixed_keys[i].label));
+         used = TRUE;
+         break;
+      }
+      if (!used) {
+         if (str->len) g_string_append_c (str, '\n');
+         g_string_append (str, _("Not used in this window."));
+      }
+   }
+   gtk_label_set_text (GTK_LABEL (kd.status), str->str);
+   g_string_free (str, TRUE);
+   g_free (l);
+   g_free (cur);
+}
+
+
+/* any key is the key: Escape and Backspace too */
+static gboolean
+cb_key_dialog_key (GtkEventControllerKey *controller, guint keyval, guint keycode,
+                   GdkModifierType state, gpointer data)
+{
+   GdkModifierType mods = state & gtk_accelerator_get_default_mod_mask ();
+
+   if (!kd.sc) return FALSE;
    if (is_modifier (keyval)) return TRUE;
-   if (!mods && keyval == GDK_KEY_Escape) {
-      stop_capture ();
-      return TRUE;
-   }
-   if (!mods && keyval == GDK_KEY_BackSpace) {
-      stop_capture ();
-      assign (sc, "");
-      return TRUE;
-   }
    if (keyval == GDK_KEY_ISO_Left_Tab) keyval = GDK_KEY_Tab;
    keyval = gdk_keyval_to_lower (keyval);
-   accel = gtk_accelerator_name (keyval, mods);
-   stop_capture ();
-   assign (sc, accel);
-   g_free (accel);
+   g_free (kd.pending);
+   kd.pending = gtk_accelerator_name (keyval, mods);
+   key_dialog_update ();
    return TRUE;
+}
+
+
+static void
+cb_key_dialog_destroy (GtkWidget *window, gpointer data)
+{
+   kd.window = NULL;
+   kd.sc = NULL;
+   g_clear_pointer (&kd.pending, g_free);
+}
+
+
+static void
+cb_key_dialog_ok (GtkButton *button, gpointer data)
+{
+   Shortcut *sc = kd.sc;
+   gchar *key = g_strdup (kd.pending);
+
+   gtk_window_destroy (GTK_WINDOW (kd.window));
+   if (sc && sw.window) assign (sc, key);
+   g_free (key);
+}
+
+
+static void
+cb_key_dialog_none (GtkButton *button, gpointer data)
+{
+   Shortcut *sc = kd.sc;
+
+   gtk_window_destroy (GTK_WINDOW (kd.window));
+   if (sc && sw.window) assign (sc, "");
+}
+
+
+/* a window to press the new key in, as Mozc has: the key shown with what
+   it is now, OK to take it */
+static void
+key_dialog_open (Shortcut *sc)
+{
+   GtkWidget *vbox, *label, *frame, *hbox, *button;
+   GtkEventController *keys;
+   gchar *markup;
+
+   if (kd.window) gtk_window_destroy (GTK_WINDOW (kd.window));
+
+   kd.sc = sc;
+   kd.pending = current_key (sc);
+   kd.window = gtk_window_new ();
+   gtk_window_set_title (GTK_WINDOW (kd.window), _("Set a Key"));
+   gtk_window_set_transient_for (GTK_WINDOW (kd.window), GTK_WINDOW (sw.window));
+   gtk_window_set_modal (GTK_WINDOW (kd.window), TRUE);
+   gtk_window_set_resizable (GTK_WINDOW (kd.window), FALSE);
+   gtk_window_set_default_size (GTK_WINDOW (kd.window), 420, -1);
+   g_signal_connect (kd.window, "destroy", G_CALLBACK (cb_key_dialog_destroy), NULL);
+
+   /* before the buttons and the mnemonics: every key is the key */
+   keys = gtk_event_controller_key_new ();
+   gtk_event_controller_set_propagation_phase (keys, GTK_PHASE_CAPTURE);
+   g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_key_dialog_key), NULL);
+   gtk_widget_add_controller (kd.window, keys);
+
+   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
+   gtk_widget_set_margin_start (vbox, 12);
+   gtk_widget_set_margin_end (vbox, 12);
+   gtk_widget_set_margin_top (vbox, 12);
+   gtk_widget_set_margin_bottom (vbox, 12);
+   gtk_window_set_child (GTK_WINDOW (kd.window), vbox);
+
+   label = gtk_label_new (NULL);
+   markup = g_markup_printf_escaped ("<b>%s</b>\n%s", sc->label, _(sc->group));
+   gtk_label_set_markup (GTK_LABEL (label), markup);
+   g_free (markup);
+   gtk_label_set_wrap (GTK_LABEL (label), TRUE);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_box_append (GTK_BOX (vbox), label);
+
+   label = gtk_label_new (_("Press the key to use (any key: Escape and Backspace too)."));
+   gtk_label_set_wrap (GTK_LABEL (label), TRUE);
+   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+   gtk_widget_add_css_class (label, "dim-label");
+   gtk_box_append (GTK_BOX (vbox), label);
+
+   frame = gtk_frame_new (NULL);
+   kd.key = gtk_label_new (NULL);
+   gtk_widget_add_css_class (kd.key, "title-2");
+   gtk_widget_set_margin_top (kd.key, 8);
+   gtk_widget_set_margin_bottom (kd.key, 8);
+   gtk_label_set_selectable (GTK_LABEL (kd.key), FALSE);
+   gtk_frame_set_child (GTK_FRAME (frame), kd.key);
+   gtk_box_append (GTK_BOX (vbox), frame);
+
+   kd.status = gtk_label_new (NULL);
+   gtk_label_set_wrap (GTK_LABEL (kd.status), TRUE);
+   gtk_label_set_xalign (GTK_LABEL (kd.status), 0.0);
+   gtk_label_set_max_width_chars (GTK_LABEL (kd.status), 50);
+   gtk_box_append (GTK_BOX (vbox), kd.status);
+
+   /* no mnemonics: Alt and a letter is a key to set */
+   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   gtk_widget_set_margin_top (hbox, 6);
+   gtk_box_append (GTK_BOX (vbox), hbox);
+   button = gtk_button_new_with_label (_("No Key"));
+   gtk_widget_set_tooltip_text (button, _("Take the key away"));
+   gtk_widget_set_focusable (button, FALSE);
+   g_signal_connect (button, "clicked", G_CALLBACK (cb_key_dialog_none), NULL);
+   gtk_box_append (GTK_BOX (hbox), button);
+   label = gtk_label_new (NULL);
+   gtk_widget_set_hexpand (label, TRUE);
+   gtk_box_append (GTK_BOX (hbox), label);
+   button = gtk_button_new_with_label (_("Cancel"));
+   gtk_widget_set_focusable (button, FALSE);
+   g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), kd.window);
+   gtk_box_append (GTK_BOX (hbox), button);
+   kd.ok = gtk_button_new_with_label (_("OK"));
+   gtk_widget_add_css_class (kd.ok, "suggested-action");
+   gtk_widget_set_focusable (kd.ok, FALSE);
+   g_signal_connect (kd.ok, "clicked", G_CALLBACK (cb_key_dialog_ok), NULL);
+   gtk_box_append (GTK_BOX (hbox), kd.ok);
+
+   key_dialog_update ();
+   gtk_window_present (GTK_WINDOW (kd.window));
+}
+
+
+static void
+cb_key_clicked (GtkButton *button, Shortcut *sc)
+{
+   key_dialog_open (sc);
 }
 
 
@@ -576,7 +765,6 @@ cb_reset_all (GtkButton *button, gpointer data)
    const gchar *buttons[] = { _("_Cancel"), _("_Reset All"), NULL };
    GtkAlertDialog *dialog;
 
-   stop_capture ();
    dialog = gtk_alert_dialog_new ("%s", _("Reset all the keys to the defaults?"));
    gtk_alert_dialog_set_detail (dialog, _("The keys changed here or in the files are lost."));
    gtk_alert_dialog_set_buttons (dialog, buttons);
@@ -591,7 +779,7 @@ static void
 cb_destroy (GtkWidget *window, gpointer data)
 {
    sw.window = NULL;
-   sw.capturing = NULL;
+   if (kd.window) gtk_window_destroy (GTK_WINDOW (kd.window));
    g_clear_pointer (&sw.shortcuts, g_ptr_array_unref);
 }
 
@@ -629,8 +817,7 @@ make_row (Shortcut *sc)
    gtk_widget_set_size_request (sc->key_button, 150, -1);
    gtk_widget_set_valign (sc->key_button, GTK_ALIGN_CENTER);
    gtk_widget_set_tooltip_text (sc->key_button,
-                                _("Click, then press the new key (Escape: as it was, "
-                                  "Backspace: no key)"));
+                                _("Click to set the key"));
    g_signal_connect (sc->key_button, "clicked", G_CALLBACK (cb_key_clicked), sc);
    gtk_box_append (GTK_BOX (box), sc->key_button);
 
@@ -649,7 +836,6 @@ void
 gimv_shortcuts_win_open (GtkWindow *parent)
 {
    GtkWidget *vbox, *label, *scroll, *hbox, *button;
-   GtkEventController *keys;
    guint i;
 
    if (sw.window) {
@@ -665,11 +851,6 @@ gimv_shortcuts_win_open (GtkWindow *parent)
    if (parent) gtk_window_set_transient_for (GTK_WINDOW (sw.window), parent);
    g_signal_connect (sw.window, "destroy", G_CALLBACK (cb_destroy), NULL);
 
-   keys = gtk_event_controller_key_new ();
-   gtk_event_controller_set_propagation_phase (keys, GTK_PHASE_CAPTURE);
-   g_signal_connect (keys, "key-pressed", G_CALLBACK (cb_window_key), NULL);
-   gtk_widget_add_controller (sw.window, keys);
-
    vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
    gtk_widget_set_margin_start (vbox, 12);
    gtk_widget_set_margin_end (vbox, 12);
@@ -677,8 +858,9 @@ gimv_shortcuts_win_open (GtkWindow *parent)
    gtk_widget_set_margin_bottom (vbox, 12);
    gtk_window_set_child (GTK_WINDOW (sw.window), vbox);
 
-   label = gtk_label_new (_("Click a key and press the new one (Escape: leave it as it was, "
-                            "Backspace: no key). A key changed works at once and is kept."));
+   label = gtk_label_new (_("Click a key to set another: press it in the window that opens, "
+                            "which tells what the key is now. A key changed works at once "
+                            "and is kept."));
    gtk_label_set_wrap (GTK_LABEL (label), TRUE);
    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
    gtk_widget_add_css_class (label, "dim-label");
