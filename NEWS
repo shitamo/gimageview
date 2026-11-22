@@ -242,6 +242,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* A PNG joined or cropped from MAG, Pi and the like (no EXIF) gets the
+	  date of the newest file as EXIF DateTime, with the information to be
+	  kept; the date tab of the index shows it on that day.
 	* The comments carried into a joined or cropped PNG are written by gimv
 	  itself (tEXt when ASCII, else iTXt in UTF-8): GdkPixbuf on some
 	  systems wrote Japanese ones garbled.

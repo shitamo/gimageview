@@ -28,6 +28,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <glib/gstdio.h>
 
 #include "gimageview.h"
 #include "gimv_image.h"
@@ -923,51 +924,102 @@ png_crc (const guchar *p, gsize len)
 }
 
 
-/* the PNG in *buf with a "Comment" after its IHDR: tEXt (Latin-1) when
-   the text can be, else iTXt (UTF-8).  Written here, not by GdkPixbuf:
-   some versions of it store a text not in Latin-1 broken (tEXt of the
-   wrong bytes). */
+/* a chunk put into the PNG in *buf after its IHDR (with its length and
+   CRC); nothing when *buf is not a PNG */
 static void
-png_add_comment (gchar **buf, gsize *len, const gchar *text)
+png_insert_chunk (gchar **buf, gsize *len, const gchar *type,
+                  const guchar *data, gsize size)
 {
    static const guchar sig[8] = { 0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n' };
    const gsize at = 8 + 4 + 4 + 13 + 4;        /* after IHDR */
-   gchar *latin1 = g_convert (text, -1, "ISO-8859-1", "UTF-8", NULL, NULL, NULL);
-   GByteArray *chunk = g_byte_array_new (), *out;
+   GByteArray *out;
    guchar n[4];
-   guint32 crc, size;
+   guint32 crc;
 
-   if (*len < at || memcmp (*buf, sig, 8) || memcmp (*buf + 12, "IHDR", 4)) {
-      g_free (latin1);
-      g_byte_array_unref (chunk);
-      return;
-   }
-   if (latin1) {
-      g_byte_array_append (chunk, (const guint8 *) "tEXtComment", 12);
-      g_byte_array_append (chunk, (const guint8 *) latin1, strlen (latin1));
-   } else {
-      /* keyword, 0, no compression, method 0, no language, no
-         translated keyword */
-      g_byte_array_append (chunk, (const guint8 *) "iTXtComment\0\0\0\0", 16);
-      g_byte_array_append (chunk, (const guint8 *) text, strlen (text));
-   }
-   g_free (latin1);
-   size = chunk->len - 4;
-   crc = png_crc (chunk->data, chunk->len);
+   if (*len < at || memcmp (*buf, sig, 8) || memcmp (*buf + 12, "IHDR", 4)) return;
 
-   out = g_byte_array_sized_new (*len + chunk->len + 8);
+   out = g_byte_array_sized_new (*len + size + 12);
    g_byte_array_append (out, (const guint8 *) *buf, at);
    n[0] = size >> 24; n[1] = size >> 16; n[2] = size >> 8; n[3] = size;
    g_byte_array_append (out, n, 4);
-   g_byte_array_append (out, chunk->data, chunk->len);
+   g_byte_array_append (out, (const guint8 *) type, 4);
+   g_byte_array_append (out, data, size);
+   crc = png_crc (out->data + at + 4, size + 4);
    n[0] = crc >> 24; n[1] = crc >> 16; n[2] = crc >> 8; n[3] = crc;
    g_byte_array_append (out, n, 4);
    g_byte_array_append (out, (const guint8 *) *buf + at, *len - at);
-   g_byte_array_unref (chunk);
 
    g_free (*buf);
    *len = out->len;
    *buf = (gchar *) g_byte_array_free (out, FALSE);
+}
+
+
+/* a "Comment" in the PNG: tEXt (Latin-1) when the text can be, else iTXt
+   (UTF-8).  Written here, not by GdkPixbuf: some versions of it store a
+   text not in Latin-1 broken (tEXt of the wrong bytes). */
+static void
+png_add_comment (gchar **buf, gsize *len, const gchar *text)
+{
+   gchar *latin1 = g_convert (text, -1, "ISO-8859-1", "UTF-8", NULL, NULL, NULL);
+   GByteArray *chunk = g_byte_array_new ();
+
+   if (latin1) {
+      g_byte_array_append (chunk, (const guint8 *) "Comment", 8);
+      g_byte_array_append (chunk, (const guint8 *) latin1, strlen (latin1));
+      png_insert_chunk (buf, len, "tEXt", chunk->data, chunk->len);
+   } else {
+      /* keyword, 0, no compression, method 0, no language, no
+         translated keyword */
+      g_byte_array_append (chunk, (const guint8 *) "Comment\0\0\0\0", 12);
+      g_byte_array_append (chunk, (const guint8 *) text, strlen (text));
+      png_insert_chunk (buf, len, "iTXt", chunk->data, chunk->len);
+   }
+   g_free (latin1);
+   g_byte_array_unref (chunk);
+}
+
+
+/* the newest modification time of the files (local time, as EXIF has
+   it: "YYYY:MM:DD HH:MM:SS"); NULL: none known */
+static gchar *
+newest_date_of_files (const gchar * const *sources)
+{
+   GDateTime *dt;
+   gint64 newest = G_MININT64;
+   gchar *text;
+   guint i;
+
+   for (i = 0; sources && sources[i]; i++) {
+      GStatBuf st;
+      if (g_stat (sources[i], &st) == 0 && (gint64) st.st_mtime > newest)
+         newest = st.st_mtime;
+   }
+   if (newest == G_MININT64) return NULL;
+   dt = g_date_time_new_from_unix_local (newest);
+   if (!dt) return NULL;
+   text = g_date_time_format (dt, "%Y:%m:%d %H:%M:%S");
+   g_date_time_unref (dt);
+   return text;
+}
+
+
+/* an eXIf chunk of EXIF DateTime alone (big endian TIFF, IFD0 of one
+   entry, the 20 bytes of the date after it) */
+static void
+png_add_exif_date (gchar **buf, gsize *len, const gchar *date)
+{
+   guchar exif[8 + 2 + 12 + 4 + 20] = {
+      'M', 'M', 0, 42, 0, 0, 0, 8,       /* the header, IFD0 at 8 */
+      0, 1,                              /* one entry */
+      0x01, 0x32, 0, 2, 0, 0, 0, 20,     /* DateTime, ASCII, 20 */
+      0, 0, 0, 26,                       /* at 26 */
+      0, 0, 0, 0,                        /* no next IFD */
+   };
+
+   if (strlen (date) != 19) return;
+   memcpy (exif + 26, date, 20);
+   png_insert_chunk (buf, len, "eXIf", exif, sizeof (exif));
 }
 
 
@@ -1013,6 +1065,15 @@ gimv_crop_save_pixbuf (GdkPixbuf *pixbuf, const gchar *src, const gchar *suffix,
       ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);
       if (ok && comment) png_add_comment (&buf, &len, comment);
       g_free (comment);
+
+      /* of gimv's own formats (MAG, Pi, ...): no EXIF to copy, so the
+         date of the newest file as EXIF DateTime (the date tab of the
+         index has it) */
+      if (ok && metadata && !gdk_pixbuf_get_file_info (src, NULL, NULL)) {
+         gchar *date = newest_date_of_files (sources);
+         if (date) png_add_exif_date (&buf, &len, date);
+         g_free (date);
+      }
    } else {
       ok = gdk_pixbuf_save_to_buffer (pixbuf, &buf, &len, writer, &error, NULL);
    }

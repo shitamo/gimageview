@@ -1160,9 +1160,11 @@ Crop Image... [C]
      ・ Save [Enter]: saved next to the image as "name_crop.jpg" (in the
         format of the image; JPEG when gdk-pixbuf cannot write it, PNG with
         transparency or for the formats of gimv's own loaders, MAG, Pi, ...; a
-        PNG takes the comments written in the image). When the name is taken,
-        -1, -2, ... is added: nothing is overwritten. A "Show" button then
-        chooses the new image in the thumbnail window.
+        PNG takes the comments written in the image, and for MAG, Pi and the
+        like, with the information kept, the date of the file as EXIF
+        DateTime). When the name is taken, -1, -2, ... is added: nothing is
+        overwritten. A "Show" button then chooses the new image in the
+        thumbnail window.
 
      ・ Stop [Esc]: stops cropping; going to another image or turning it stops
         it too.
@@ -1968,9 +1970,11 @@ Join Images...
     they are shown: stretched to the shape of the pixels of their machine).
     Saved as PNG, the comments written in the files (the comment, the user
     name of MAG, ...) go into the comment of the PNG (under the name of each
-    file when they differ). The images are read, the overlaps found and the
-    image saved in threads. [Show the Saved Image] then chooses it in the
-    thumbnail window.
+    file when they differ), and with [Keep the information of the first file]
+    the date of the newest file as EXIF DateTime (MAG, Pi and the like have no
+    EXIF; the date tab of the index then shows it there). The images are read,
+    the overlaps found and the image saved in threads. [Show the Saved Image]
+    then chooses it in the thumbnail window.
 
 6.3. Directory View
 
@@ -3977,6 +3981,10 @@ How duplicates are found
  ・ The Japanese of the comments carried into a joined or cropped PNG could be
     garbled: gimv writes them itself now, not GdkPixbuf (tEXt when ASCII, else
     iTXt in UTF-8).
+
+ ・ A PNG joined or cropped from MAG, Pi and the like (no EXIF) gets the date
+    of the newest file as EXIF DateTime (an eXIf chunk) when the information
+    is to be kept; the date tab of the index shows it on that day.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

@@ -25,6 +25,11 @@
 #include "gimv_test_core.h"
 #include "gimv_file_comment.h"
 #include "gimv_crop.h"
+#include <utime.h>
+#include <glib/gstdio.h>
+#ifdef ENABLE_GEXIV2
+#include <gexiv2/gexiv2.h>
+#endif
 #include "gimv_image_info.h"
 #include "charset.h"
 #include "prefs.h"
@@ -2525,6 +2530,64 @@ test_mag (void)
          g_byte_array_unref (s);
       }
    }
+
+#ifdef ENABLE_GEXIV2
+   /* a PNG of MAG files gets the newest of their dates as EXIF DateTime */
+   {
+      GByteArray *s = make_mag16 (16, 3, 99);
+      gchar *src1 = write_file ("mag", s->data, s->len);
+      gchar *src2 = write_file ("mag", s->data, s->len);
+      const gchar *sources[] = { src1, src2, NULL };
+      GDateTime *t1 = g_date_time_new_local (1991, 12, 5, 12, 0, 0);
+      GDateTime *t2 = g_date_time_new_local (1991, 12, 11, 8, 30, 15);
+      struct utimbuf u;
+      GdkPixbuf *pb = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, 4, 4);
+      gchar *dest = NULL, *err = NULL, *warn = NULL, *v;
+      GExiv2Metadata *m;
+
+      u.actime = u.modtime = g_date_time_to_unix (t2);
+      g_assert_cmpint (g_utime (src2, &u), ==, 0);
+      u.actime = u.modtime = g_date_time_to_unix (t1);
+      g_assert_cmpint (g_utime (src1, &u), ==, 0);
+      gdk_pixbuf_fill (pb, 0);
+      g_assert_true (gimv_crop_save_pixbuf (pb, src1, "_join", 90, TRUE, sources,
+                                            &dest, &err, &warn));
+      g_assert_null (warn);
+      m = gexiv2_metadata_new ();
+      g_assert_true (gexiv2_metadata_open_path (m, dest, NULL));
+      v = gexiv2_metadata_try_get_tag_string (m, "Exif.Image.DateTime", NULL);
+      g_assert_cmpstr (v, ==, "1991:12:11 08:30:15");
+      g_free (v);
+      g_object_unref (m);
+      g_object_unref (pb);
+      pb = gdk_pixbuf_new_from_file (dest, NULL);
+      g_assert_nonnull (pb);
+      g_object_unref (pb);
+
+      /* not when the information is not to be copied */
+      g_unlink (dest);
+      g_free (dest);
+      pb = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, 4, 4);
+      gdk_pixbuf_fill (pb, 0);
+      g_assert_true (gimv_crop_save_pixbuf (pb, src1, "_join", 90, FALSE, sources,
+                                            &dest, &err, &warn));
+      m = gexiv2_metadata_new ();
+      g_assert_true (gexiv2_metadata_open_path (m, dest, NULL));
+      g_assert_false (gexiv2_metadata_has_exif (m));
+      g_object_unref (m);
+      g_object_unref (pb);
+
+      g_unlink (dest);
+      g_unlink (src1);
+      g_unlink (src2);
+      g_free (dest);
+      g_free (src1);
+      g_free (src2);
+      g_date_time_unref (t1);
+      g_date_time_unref (t2);
+      g_byte_array_unref (s);
+   }
+#endif
 
    /* rows 1 and 2 copied from the one above (flags 4) */
    a = make_mag16 (16, 3, 1);
