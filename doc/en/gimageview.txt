@@ -2492,7 +2492,8 @@ comment, EXIF, a date in the file name, the modification time, in this order);
 the modification time for an image outside the index. A click on its title
 sorts by it, another click reverses the order (newest first), as [View | Sort
 File List | by Date Taken]. The "Bookmark" column is a narrow one (a star as
-its title) with a yellow star for a bookmarked image.
+its title) with a yellow star for a bookmarked image. First in the list of the
+columns shown, it comes left of the thumbnail (or icon) too.
 
 The title of the column the list is sorted by has an arrow (up for ascending,
 down for reversed), also when it was sorted from the menu. A click on the
@@ -4010,8 +4011,9 @@ How duplicates are found
 
  ・ A bookmarked image has a yellow star at the top right corner of its
     thumbnail or icon (as the emblems of a file manager), and a "Bookmark"
-    column of stars can be added to the detail view (not one by default); they
-    follow the bookmarks at once.
+    column of stars can be added to the detail view (not one by default; first
+    in the order, left of the thumbnails too); they follow the bookmarks at
+    once.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

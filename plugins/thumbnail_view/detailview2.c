@@ -666,8 +666,7 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
    GtkColumnViewColumn *column;
    GimvThumbWin *tw;
    DetailViewData *tv_data;
-   GList *node;
-   gint col, idx;
+   gint idx;
    GimvSortItem sort_item, current_item;
    GimvSortFlag sort_flag = 0, current_flag;
 
@@ -690,26 +689,10 @@ cb_sorter_changed (GtkSorter *sorter, GtkSorterChange change, GimvThumbView *tv)
 
    column = gtk_column_view_sorter_get_primary_sort_column (GTK_COLUMN_VIEW_SORTER (sorter));
    if (!column) return;
-   {
-      GListModel *columns = gtk_column_view_get_columns (GTK_COLUMN_VIEW (tv_data->treeview));
-      guint i, n = g_list_model_get_n_items (columns);
-
-      col = -1;
-      for (i = 0; i < n; i++) {
-         GtkColumnViewColumn *c = g_list_model_get_item (columns, i);
-         g_object_unref (c);
-         if (c == column) {
-            col = i;
-            break;
-         }
-      }
-      if (col < 0) return;
-   }
-
-   node = g_list_nth (detailview_title_idx_list, col - 1);
-   if (!node) return;
-
-   idx = GPOINTER_TO_INT (node->data);
+   /* the column of detailview_columns it shows (set when it was made: the
+      columns are not always in the order of the list, see set_column_types) */
+   idx = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (column), "gimv-column-idx"));
+   if (idx <= 0) return;
 
    sort_item = column_sort_item (idx);
    if (sort_item == GIMV_SORT_NONE) return;
@@ -997,8 +980,13 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
                                                             text_cell_bind,
                                                             tc, g_free,
                                                             FALSE));
+      g_object_set_data (G_OBJECT (col), "gimv-column-idx", GINT_TO_POINTER (idx));
       gtk_column_view_column_set_fixed_width (col, detailview_columns[idx].width);
       gtk_column_view_column_set_resizable (col, TRUE);
+
+      /* the stars first in the order: left of the thumbnail (or icon) too */
+      if (tc->star && node == detailview_title_idx_list)
+         gtk_column_view_insert_column (view, 0, col);
       g_signal_connect (col, "notify::fixed-width", G_CALLBACK (cb_column_width),
                         GINT_TO_POINTER (idx));
 
