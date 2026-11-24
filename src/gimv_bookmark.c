@@ -423,6 +423,7 @@ gimv_bookmark_tooltip (const gchar *path)
    ensure ();
    bm = g_hash_table_lookup (bookmarks, path);
    if (!bm) return NULL;
-   text = g_strconcat ("\u2605 ", bm->note ? bm->note : _("Bookmarked"), NULL);
+   /* not "Bookmarked" (the title when one is just added): it is there */
+   text = g_strconcat ("\u2605 ", bm->note ? bm->note : _("In the bookmarks"), NULL);
    return text;
 }

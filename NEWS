@@ -242,6 +242,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* The tooltip of a bookmarked image without a note says "In the
+	  bookmarks", not "Bookmarked" (as if just done).
 	* A bookmarked image has a yellow star at the top right of its thumbnail
 	  or icon (as a file manager shows an emblem), and a "Bookmark" column
 	  of stars can be added to the detail view (first in the order, left of

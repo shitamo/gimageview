@@ -6335,9 +6335,13 @@ msgstr "/編集(_E)/ブックマーク(_K)..."
 msgid "/Boo_kmark..."
 msgstr "/ブックマーク(_K)..."
 
-#: src/gimv_bookmark.c src/gimv_bookmark_edit.c
+#: src/gimv_bookmark_edit.c
 msgid "Bookmarked"
 msgstr "ブックマークしました"
+
+#: src/gimv_bookmark.c
+msgid "In the bookmarks"
+msgstr "ブックマークされています"
 
 #: src/gimv_bookmark_edit.c
 msgid "Bookmark"

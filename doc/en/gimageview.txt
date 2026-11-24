@@ -497,7 +497,7 @@ The notes
     columns by default: add it in [Preferences | Thumbnail Window | Thumbnail
     View | Detail View]). The star comes and goes as soon as a bookmark is
     added or removed. The tooltip of the thumbnail of a bookmarked image
-    starts with "★ the note" ("★ Bookmarked" without a note).
+    starts with "★ the note" ("★ In the bookmarks" without a note).
 
 Moved and missing images
     An image renamed or moved with GImageView keeps its bookmark. In the
@@ -4014,6 +4014,9 @@ How duplicates are found
     column of stars can be added to the detail view (not one by default; first
     in the order, left of the thumbnails too); they follow the bookmarks at
     once.
+
+ ・ The tooltip of a bookmark without a note says "★ In the bookmarks", not "★
+    Bookmarked", which read as if it had just been added.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg
