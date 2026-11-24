@@ -57,6 +57,7 @@ enum
 {
    GIMV_ZALBUM_CELL_SELECTED = 1 << 1,
    GIMV_ZALBUM_CELL_ITALIC   = 1 << 2,   /* the label in italics */
+   GIMV_ZALBUM_CELL_MARKED   = 1 << 3,   /* a star at the top right (bookmarked) */
 };
 
 typedef enum
@@ -117,6 +118,11 @@ void       gimv_zalbum_set_min_pixmap_size       (GimvZAlbum       *album,
 void       gimv_zalbum_set_min_cell_size         (GimvZAlbum       *album,
                                                   guint             width,
                                                   guint             height);
+/* a yellow star at the top right corner of the image of a cell (a file
+   bookmarked) */
+void       gimv_zalbum_set_marked                (GimvZAlbum       *album,
+                                                  guint             idx,
+                                                  gboolean          marked);
 /* the label of a cell in italics (a file name not in UTF-8) */
 void       gimv_zalbum_set_italic                (GimvZAlbum       *album,
                                                   guint             idx,

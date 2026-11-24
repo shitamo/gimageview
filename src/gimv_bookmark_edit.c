@@ -165,6 +165,26 @@ gimv_bookmark_edit (GtkWidget *parent, const GdkRectangle *rect, GList *paths)
 
 /* the paths to bookmark of a list of GimvImageInfo: images only (not
  * folders, archives, files inside an archive) */
+static gboolean
+can_bookmark (GimvImageInfo *info)
+{
+   return info && !gimv_image_info_is_dir (info) && !gimv_image_info_is_archive (info)
+          && !(info->flags & GIMV_IMAGE_INFO_ARCHIVE_MEMBER_FLAG)
+          && !(info->flags & GIMV_IMAGE_INFO_MRL_FLAG);
+}
+
+
+gboolean
+gimv_bookmark_has_info (GimvImageInfo *info)
+{
+   const gchar *path;
+
+   if (!can_bookmark (info)) return FALSE;
+   path = gimv_image_info_get_path (info);
+   return path && gimv_bookmark_has (path);
+}
+
+
 GList *
 gimv_bookmark_paths_of_infos (GList *infos)
 {
@@ -172,10 +192,7 @@ gimv_bookmark_paths_of_infos (GList *infos)
 
    for (node = infos; node; node = g_list_next (node)) {
       GimvImageInfo *info = node->data;
-      if (!info || gimv_image_info_is_dir (info) || gimv_image_info_is_archive (info)
-          || (info->flags & GIMV_IMAGE_INFO_ARCHIVE_MEMBER_FLAG)
-          || (info->flags & GIMV_IMAGE_INFO_MRL_FLAG))
-         continue;
+      if (!can_bookmark (info)) continue;
       paths = g_list_prepend (paths, g_strdup (gimv_image_info_get_path (info)));
    }
    return g_list_reverse (paths);

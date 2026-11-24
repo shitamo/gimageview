@@ -505,6 +505,7 @@ thumbalbum_append_thumb_frame (GimvThumbView *tv, GimvThumb *thumb,
    /* a name read in a charset guessed (the tooltip tells) */
    if (gimv_image_info_get_name_note (thumb->info, NULL))
       gimv_zalbum_set_italic (GIMV_ZALBUM (tv_data->album), idx, TRUE);
+   gimv_zalbum_set_marked (GIMV_ZALBUM (tv_data->album), idx, thumb->bookmarked);
 
    thumbalbum_set_selection (tv, thumb, thumb->selected);
 
@@ -535,6 +536,8 @@ thumbalbum_update_thumbnail (GimvThumbView *tv, GimvThumb *thumb,
    g_return_if_fail (tv_data && tv_data->album);
 
    pos = gimv_thumb_view_get_thumb_index (tv, thumb);
+   if (pos >= 0)
+      gimv_zalbum_set_marked (GIMV_ZALBUM (tv_data->album), pos, thumb->bookmarked);
 
    /* set thumbnail */
    if (!strcmp (THUMBALBUM2_LABEL, dest_mode)) {

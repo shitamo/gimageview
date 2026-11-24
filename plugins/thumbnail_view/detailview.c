@@ -121,6 +121,7 @@ static gchar *column_data_cache      (GimvThumb *thumb);
 static gchar *column_data_subject    (GimvThumb *thumb);
 static gchar *column_data_comment    (GimvThumb *thumb);
 static gchar *column_data_date_taken (GimvThumb *thumb);
+static gchar *column_data_bookmark   (GimvThumb *thumb);
 
 
 DetailViewColumn detailview_columns [] =
@@ -142,6 +143,8 @@ DetailViewColumn detailview_columns [] =
    {N_("Comment"),           200, TRUE,  column_data_comment,   GTK_JUSTIFY_LEFT,   TRUE},
    /* as the index dates it (the comment, EXIF, the name), else mtime */
    {N_("Date taken"),        150, TRUE,  column_data_date_taken,GTK_JUSTIFY_LEFT,   FALSE},
+   /* a star when bookmarked (its title is a star, see detailview2.c) */
+   {N_("Bookmark"),          28,  TRUE,  column_data_bookmark,  GTK_JUSTIFY_CENTER, TRUE},
 };
 gint detailview_columns_num = sizeof (detailview_columns) / sizeof (DetailViewColumn);
 
@@ -585,6 +588,14 @@ column_data_date_taken (GimvThumb *thumb)
    if (!d || strlen (d) < 16) return g_strdup ("");
    /* "YYYY-MM-DD HH:MM:SS" -> "YYYY/MM/DD HH:MM" */
    return g_strdup_printf ("%.4s/%.2s/%.2s %.5s", d, d + 5, d + 8, d + 11);
+}
+
+
+static gchar *
+column_data_bookmark (GimvThumb *thumb)
+{
+   if (!thumb) return NULL;
+   return g_strdup (thumb->bookmarked ? "\xe2\x98\x85" : "");   /* U+2605 */
 }
 
 

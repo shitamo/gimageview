@@ -805,6 +805,7 @@ typedef struct {
    gint     column;
    gfloat   xalign;
    gboolean name;      /* the file names: in italics when not in UTF-8 */
+   gboolean star;      /* the bookmarks: a yellow star */
 } TextCell;
 
 
@@ -840,6 +841,10 @@ text_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item, gpointer data)
          attrs = pango_attr_list_new ();
          pango_attr_list_insert (attrs, pango_attr_style_new (PANGO_STYLE_ITALIC));
       }
+   }
+   if (tc->star) {
+      /* yellow with a dark edge (etc/gimv.css), as on the thumbnails */
+      gtk_widget_add_css_class (cell, "gimv-bookmark-star");
    }
    gtk_label_set_attributes (GTK_LABEL (cell), attrs);
    if (attrs) pango_attr_list_unref (attrs);
@@ -969,6 +974,8 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
       tc->column = i;
       tc->name = detailview_columns[idx].title
                  && !strcmp (detailview_columns[idx].title, "Name");
+      tc->star = detailview_columns[idx].title
+                 && !strcmp (detailview_columns[idx].title, "Bookmark");
       switch (detailview_columns[idx].justification) {
       case GTK_JUSTIFY_CENTER:
          tc->xalign = 0.5;
@@ -982,7 +989,10 @@ set_column_types (GimvThumbView *tv, DetailViewData *tv_data,
          break;
       }
 
-      col = gimv_column_view_append (view, _(detailview_columns[idx].title),
+      col = gimv_column_view_append (view,
+                                     /* the bookmarks: a narrow column of stars */
+                                     tc->star ? "\xe2\x98\x85"
+                                              : _(detailview_columns[idx].title),
                                      gimv_cell_factory_new (text_cell_setup,
                                                             text_cell_bind,
                                                             tc, g_free,

@@ -14,6 +14,8 @@
 
 #include <gtk/gtk.h>
 
+#include "gimv_image_info.h"
+
 /* bookmarks the images (paths: gchar *) at once, then shows a popover on
  * parent (pointing to rect, NULL: all of it) with the note, which is kept
  * however it closes, and a button to remove them again */
@@ -23,5 +25,8 @@ void   gimv_bookmark_edit            (GtkWidget          *parent,
 /* the paths of a list of GimvImageInfo that can be bookmarked (images, not
  * folders or the files in an archive); free with g_list_free_full (g_free) */
 GList *gimv_bookmark_paths_of_infos  (GList              *infos);
+/* whether the file of info is bookmarked (a file a bookmark can be on:
+   not a folder, an archive, a member of one or a stream) */
+gboolean gimv_bookmark_has_info      (GimvImageInfo      *info);
 
 #endif /* __GIMV_BOOKMARK_EDIT_H__ */

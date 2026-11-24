@@ -37,6 +37,7 @@
 #include "config.h"
 #endif
 
+#include <math.h>
 #include <string.h>
 #include "gimv_zalbum.h"
 
@@ -444,6 +445,35 @@ draw_cell_pixmap (cairo_t      *cr,
 }
 
 
+/* a yellow five-pointed star of size s (its box) at x, y, with a dark edge
+   to stand out on any image */
+static void
+draw_star (cairo_t *cr, GdkRectangle *clip, gdouble x, gdouble y, gdouble s)
+{
+   gdouble cx = x + s / 2, cy = y + s * 0.53, r = s / 2, ri = r * 0.45;
+   gint i;
+
+   cairo_save (cr);
+   gdk_cairo_rectangle (cr, clip);
+   cairo_clip (cr);
+   cairo_new_path (cr);
+   for (i = 0; i < 10; i++) {
+      gdouble a = -G_PI / 2 + i * G_PI / 5;
+      gdouble rr = (i % 2) ? ri : r;
+      if (i == 0) cairo_move_to (cr, cx + rr * cos (a), cy + rr * sin (a));
+      else        cairo_line_to (cr, cx + rr * cos (a), cy + rr * sin (a));
+   }
+   cairo_close_path (cr);
+   cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+   cairo_set_source_rgb (cr, 1.0, 0.82, 0.0);
+   cairo_fill_preserve (cr);
+   cairo_set_source_rgba (cr, 0.35, 0.25, 0.0, 0.9);
+   cairo_set_line_width (cr, MAX (1.0, s / 14));
+   cairo_stroke (cr);
+   cairo_restore (cr);
+}
+
+
 static void
 gimv_zalbum_draw (GimvZAlbum *album, cairo_t *cr, GimvZAlbumCell *cell,
                   GdkRectangle *cell_area,
@@ -535,6 +565,17 @@ gimv_zalbum_draw (GimvZAlbum *album, cairo_t *cr, GimvZAlbumCell *cell,
       if (cell->ipix && need_draw) {
          draw_cell_pixmap (cr, &intersect_area, cell->ipix,
                            pixmap_area.x, pixmap_area.y);
+      }
+
+      /* bookmarked: a star at the top right corner of the image, a little
+         out of it, inside the cell (as a file manager shows an emblem) */
+      if (cell->flags & GIMV_ZALBUM_CELL_MARKED) {
+         gdouble s = CLAMP (MIN (iwidth, iheight) / 3, 11, 18);
+         gdouble sx = pixmap_area.x + MIN (iwidth, w) - s * 0.75;
+         gdouble sy = pixmap_area.y - s * 0.25;
+         sx = MIN (sx, cell_area->x + cell_area->width - s);
+         sy = MAX (sy, cell_area->y);
+         draw_star (cr, &draw_area, sx, sy, s);
       }
    }
 
@@ -840,6 +881,23 @@ gimv_zalbum_update_max_cell_size (GimvZAlbum *album, GimvZAlbumCell *cell)
       = MAX (MAX(album->max_cell_width,  cell_width), album->max_pix_width);
    album->max_cell_height
       = MAX (MAX(album->max_cell_height, cell_height), album->max_pix_height);
+}
+
+
+void
+gimv_zalbum_set_marked (GimvZAlbum *album, guint idx, gboolean marked)
+{
+   GimvZAlbumCell *cell;
+   guint flags;
+
+   g_return_if_fail (GIMV_IS_ZALBUM (album));
+
+   cell = GIMV_ZLIST_CELL_FROM_INDEX (album, idx);
+   g_return_if_fail (cell);
+   flags = cell->flags;
+   if (marked) cell->flags |= GIMV_ZALBUM_CELL_MARKED;
+   else        cell->flags &= ~GIMV_ZALBUM_CELL_MARKED;
+   if (flags != cell->flags) gtk_widget_queue_draw (GTK_WIDGET (album));
 }
 
 

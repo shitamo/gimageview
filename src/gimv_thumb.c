@@ -25,6 +25,8 @@
 #include <string.h>
 
 #include "gimageview.h"
+#include "gimv_bookmark.h"
+#include "gimv_bookmark_edit.h"
 #include "fileload.h"
 #include "fileutil.h"
 #include "fr-archive.h"
@@ -488,6 +490,7 @@ gimv_thumb_new (GimvImageInfo *info)
       = GIMV_THUMB (g_object_new (GIMV_TYPE_THUMB, NULL));
 
    thumb->info = gimv_image_info_ref (info);
+   thumb->bookmarked = gimv_bookmark_has_info (info);
 
    return thumb;
 }

@@ -61,6 +61,9 @@ struct GimvThumb_Tag
 
    /* will be removed */
    gboolean        selected;
+
+   /* bookmarked, as shown (see gimv_thumb_view.c: the bookmarks watched) */
+   gboolean        bookmarked;
 };
 
 

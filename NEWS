@@ -242,6 +242,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* A bookmarked image has a yellow star at the top right of its thumbnail
+	  or icon (as a file manager shows an emblem), and a "Bookmark" column
+	  of stars can be added to the detail view; they follow the bookmarks
+	  at once.
 	* Copying files keeps their modification times, and so does moving to
 	  another file system (done as a copy and a removal): the date of an
 	  image was the time it was copied.  A copy failing at its close (a

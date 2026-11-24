@@ -56,3 +56,10 @@ label.gimv-spread-hint {
   padding: 6px 12px;
   border-radius: 6px;
 }
+
+/* the star of a bookmarked file in the detail view (the thumbnails draw
+   theirs: yellow, a dark edge) */
+label.gimv-bookmark-star {
+  color: #ffd100;
+  text-shadow: 0 0 1px #5a4000, 0 0 1px #5a4000;
+}

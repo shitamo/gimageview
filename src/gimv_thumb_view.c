@@ -4067,6 +4067,32 @@ gimv_thumb_view_get_compare_func (GimvThumbView *tv, gboolean *reverse)
  *   Public Functions.
  *
  ******************************************************************************/
+/* the bookmarks changed: the thumbnails whose star is to change are shown
+   again (the views draw it from thumb->bookmarked) */
+static void
+cb_bookmarks_changed (gpointer data)
+{
+   GList *tv_node, *node;
+
+   for (tv_node = GimvThumbViewList; tv_node; tv_node = g_list_next (tv_node)) {
+      GimvThumbView *tv = tv_node->data;
+
+      if (!GIMV_IS_THUMB_VIEW (tv)) continue;
+      for (node = tv->thumblist; node; node = g_list_next (node)) {
+         GimvThumb *thumb = node->data;
+         gboolean now;
+
+         if (!GIMV_IS_THUMB (thumb) || !thumb->info) continue;
+         now = gimv_bookmark_has_info (thumb->info);
+         if (now == thumb->bookmarked) continue;
+         thumb->bookmarked = now;
+         if (tv->vfuncs && tv->vfuncs->update_thumb)
+            tv->vfuncs->update_thumb (tv, thumb, tv->summary_mode);
+      }
+   }
+}
+
+
 GList *
 gimv_thumb_view_get_list (void)
 {
@@ -5081,6 +5107,13 @@ gimv_thumb_view_init (GimvThumbView *tv)
 
    GimvThumbViewList = g_list_append (GimvThumbViewList, tv);
    total_tab_count++;
+
+   /* the star of a bookmarked file follows the bookmarks */
+   {
+      static guint bookmark_watch = 0;
+      if (!bookmark_watch)
+         bookmark_watch = gimv_bookmark_add_watch (cb_bookmarks_changed, NULL);
+   }
 }
 
 
