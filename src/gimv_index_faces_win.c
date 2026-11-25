@@ -1411,6 +1411,10 @@ static void
 cb_tag_known (GtkListBox *list, GtkListBoxRow *row, TagsDialog *td)
 {
    tags_add (td, g_object_get_data (G_OBJECT (row), "tag"));
+   /* what was typed to find it is done with (OK would add it too, as a
+      tag of its own) */
+   gtk_editable_set_text (GTK_EDITABLE (td->entry), "");
+   gtk_widget_grab_focus (td->entry);
 }
 
 
