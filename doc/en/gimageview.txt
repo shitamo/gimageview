@@ -1082,7 +1082,36 @@ Rename... [Shift + E]
     extension too" edits the whole name; a new name without the extension of
     an image is then asked about, and [Rename without It] renames it so.
 
-    It cannot be used when more than one file is selected.
+    With several images selected, the "Rename Files" window opens to rename
+    them together. The buttons at the top tell what is wanted, each with an
+    example under it:
+
+     ・ Numbers: a number after the name (trip_001.jpg, trip_002.jpg); the
+        first number, the digits and the order (as in the list, by date taken,
+        by name) can be chosen. The name starts as the folder's.
+
+     ・ Date Taken: the date the image was taken as its name (2026-11-
+        25_203012.jpg), from the index (the comment's date, EXIF, ...) or
+        EXIF; an image without one gets the date of the file (the list says
+        so). Images of the same time get _2, _3 ...; a text can be put after
+        it.
+
+     ・ Replace Text: a text in the names replaced by another (IMG_ → trip_);
+        nothing to replace with takes it out. "More" has regular expressions
+        and matching the case.
+
+     ・ Add Text: a text before the name or after it (before the extension).
+
+    The list shows "name now → new name" at once. The extensions are kept
+    ("Make the extensions lower case" makes .JPG .jpg). A name of a file
+    there, the same new name for two files, names going round (rename in two
+    steps) and what is not a file name are shown in red, and nothing is
+    renamed until they are changed; nothing is overwritten. A name now of
+    another file renamed too is fine (1 → 2 and 2 → 3: that one goes first).
+
+    Once renamed, [Undo] gives the names back. Renamed in gimv, a file keeps
+    its thumbnail cache, comment (with the tags given by hand) and bookmark,
+    and the index follows the rename. The date of the file does not change.
 
 File Names to UTF-8...
     Folder tabs of the thumbnail window only. Renames the files whose names
@@ -4017,6 +4046,13 @@ How duplicates are found
 
  ・ The tooltip of a bookmark without a note says "★ In the bookmarks", not "★
     Bookmarked", which read as if it had just been added.
+
+ ・ Several files can be renamed together ([Rename...] with them selected):
+    numbers, the date taken, a text replaced or added, chosen by buttons with
+    an example; the new names are shown at once, a name taken is shown in red
+    and nothing is overwritten; the extensions are kept (or made lower case);
+    [Undo] gives the names back. The thumbnail cache, comment and bookmark go
+    with each file, and its date does not change.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

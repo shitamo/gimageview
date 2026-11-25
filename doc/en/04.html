@@ -182,7 +182,19 @@ For the differences between "Refresh List", "Reload Cache" and "Update All Thumb
 The name without the extension is edited; the extension (.jpg, ...) stays (without it the file is no longer shown as an image).  "Change the extension too" edits the whole name; a new name without the extension of an image is then asked about, and [Rename without It] renames it so.
 </p>
 <p class="para">
-It cannot be used when more than one file is selected.
+<a name="rename_files"></a>With several images selected, the "Rename Files" window opens to rename them together.  The buttons at the top tell what is wanted, each with an example under it:
+</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para"><span class="emphasis"><i>Numbers</i></span>: a number after the name (trip_001.jpg, trip_002.jpg); the first number, the digits and the order (as in the list, by date taken, by name) can be chosen.  The name starts as the folder's.</p></li>
+<li><p class="para"><span class="emphasis"><i>Date Taken</i></span>: the date the image was taken as its name (2026-11-25_203012.jpg), from the index (the comment's date, EXIF, ...) or EXIF; an image without one gets the date of the file (the list says so).  Images of the same time get _2, _3 ...; a text can be put after it.</p></li>
+<li><p class="para"><span class="emphasis"><i>Replace Text</i></span>: a text in the names replaced by another (IMG_ → trip_); nothing to replace with takes it out.  "More" has regular expressions and matching the case.</p></li>
+<li><p class="para"><span class="emphasis"><i>Add Text</i></span>: a text before the name or after it (before the extension).</p></li>
+</ul></div>
+<p class="para">
+The list shows "name now → new name" at once.  The extensions are kept ("Make the extensions lower case" makes .JPG .jpg).  A name of a file there, the same new name for two files, names going round (rename in two steps) and what is not a file name are shown in red, and nothing is renamed until they are changed; nothing is overwritten.  A name now of another file renamed too is fine (1 → 2 and 2 → 3: that one goes first).
+</p>
+<p class="para">
+Once renamed, [Undo] gives the names back.  Renamed in gimv, a file keeps its thumbnail cache, comment (with the tags given by hand) and bookmark, and the index follows the rename.  The date of the file does not change.
 </p>
 </dd>
 <dt><span class="term"><a name="names_to_utf8"></a>File Names to UTF-8...</span></dt>

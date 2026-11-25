@@ -8049,3 +8049,175 @@ msgstr "ナビゲーター: 拡大"
 #: src/gimv_shortcuts_win.c
 msgid "the navigator: zoom out"
 msgstr "ナビゲーター: 縮小"
+
+#: src/gimv_rename_files.c
+msgid "No change"
+msgstr "変更なし"
+
+#: src/gimv_rename_files.c
+msgid "The expression is wrong"
+msgstr "正規表現が正しくありません"
+
+#: src/gimv_rename_files.c
+msgid "Not a file name"
+msgstr "ファイル名に使えません"
+
+#: src/gimv_rename_files.c
+msgid "The names go round (rename in two steps)"
+msgstr "名前が入れ替わります (2 回に分けて変更してください)"
+
+#: src/gimv_rename_files.c
+msgid "No date taken: the date of the file"
+msgstr "撮影日がないためファイルの日付"
+
+#: src/gimv_rename_files.c
+msgid "The extensions are kept; nothing is overwritten."
+msgstr "拡張子はそのまま、既存のファイルは上書きしません。"
+
+#: src/gimv_rename_files.c
+msgid "No name changes."
+msgstr "変わる名前はありません。"
+
+#: src/gimv_rename_files.c
+msgid "Renamed"
+msgstr "変更しました"
+
+#: src/gimv_rename_files.c
+msgid "_Undo"
+msgstr "元に戻す(_U)"
+
+#: src/gimv_rename_files.c
+msgid "As in the list"
+msgstr "一覧の並び順"
+
+#: src/gimv_rename_files.c
+msgid "By date taken"
+msgstr "撮影日の順"
+
+#: src/gimv_rename_files.c
+msgid "By name"
+msgstr "名前の順"
+
+#: src/gimv_rename_files.c
+msgid "_Name:"
+msgstr "名前(_N):"
+
+#: src/gimv_rename_files.c
+msgid "_First number:"
+msgstr "開始番号(_F):"
+
+#: src/gimv_rename_files.c
+msgid "_Digits:"
+msgstr "桁数(_D):"
+
+#: src/gimv_rename_files.c
+msgid "_Order:"
+msgstr "番号の順(_O):"
+
+#: src/gimv_rename_files.c
+msgid "_Form:"
+msgstr "形式(_F):"
+
+#: src/gimv_rename_files.c
+msgid "Text _after it:"
+msgstr "後ろに付ける文字(_A):"
+
+#: src/gimv_rename_files.c
+msgid "(none)"
+msgstr "(なし)"
+
+#: src/gimv_rename_files.c
+msgid "The date the image was taken (the index, EXIF), else the date of the file.  Images of the same time get _2, _3 ..."
+msgstr "画像の撮影日 (索引・EXIF)、なければファイルの日付を使います。同じ日時の画像には _2、_3 … を付けます。"
+
+#: src/gimv_rename_files.c
+msgid "_Find:"
+msgstr "探す文字(_F):"
+
+#: src/gimv_rename_files.c
+msgid "Replace _with:"
+msgstr "置き換える文字(_W):"
+
+#: src/gimv_rename_files.c
+msgid "(nothing: taken out)"
+msgstr "(空にすると取り除きます)"
+
+#: src/gimv_rename_files.c
+msgid "_More"
+msgstr "詳しい設定(_M)"
+
+#: src/gimv_rename_files.c
+msgid "Regular e_xpression"
+msgstr "正規表現(_X)"
+
+#: src/gimv_rename_files.c
+msgid "Match _case"
+msgstr "大文字・小文字を区別(_C)"
+
+#: src/gimv_rename_files.c
+msgid "_Before the name:"
+msgstr "名前の前(_B):"
+
+#: src/gimv_rename_files.c
+msgid "_After the name:"
+msgstr "名前の後ろ(_A):"
+
+#: src/gimv_rename_files.c
+msgid "(before the extension)"
+msgstr "(拡張子の前に入ります)"
+
+#: src/gimv_rename_files.c
+msgid "image"
+msgstr "画像"
+
+#: src/gimv_rename_files.c
+msgid "Rename Files"
+msgstr "ファイル名の変更"
+
+#: src/gimv_rename_files.c
+msgid "_Numbers"
+msgstr "番号を付ける(_N)"
+
+#: src/gimv_rename_files.c
+msgid "trip_001.jpg, trip_002.jpg"
+msgstr "旅行_001.jpg, 旅行_002.jpg"
+
+#: src/gimv_rename_files.c
+msgid "_Date Taken"
+msgstr "撮影日時の名前(_D)"
+
+#: src/gimv_rename_files.c
+msgid "_Replace Text"
+msgstr "文字を置き換える(_R)"
+
+#: src/gimv_rename_files.c
+msgid "IMG_ → trip_"
+msgstr "IMG_ → 旅行_"
+
+#: src/gimv_rename_files.c
+msgid "_Add Text"
+msgstr "文字を足す(_A)"
+
+#: src/gimv_rename_files.c
+msgid "cover_ + name"
+msgstr "表紙_ + 名前"
+
+#: src/gimv_rename_files.c
+msgid "Make the extensions _lower case (.JPG → .jpg)"
+msgstr "拡張子を小文字にそろえる(_L) (.JPG → .jpg)"
+
+#: src/gimv_rename_files.c
+msgid "Name now"
+msgstr "今の名前"
+
+#: src/gimv_rename_files.c
+#, c-format
+msgid "%u name to change first (in red)."
+msgid_plural "%u names to change first (in red)."
+msgstr[0] "先に直す名前が %u 個あります (赤字)。"
+
+#: src/gimv_rename_files.c
+#, c-format
+msgid "%u file renamed.  [Undo] gives the name back."
+msgid_plural "%u files renamed.  [Undo] gives the names back."
+msgstr[0] "%u 個の名前を変更しました。[元に戻す] で元の名前に戻せます。"

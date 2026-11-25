@@ -242,6 +242,12 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Several files can be renamed together ([Rename...] with them selected):
+	  numbers, the date taken, a text replaced or added, chosen by buttons with
+	  an example; the new names are shown at once, a name taken is shown in
+	  red and nothing is overwritten, the extensions are kept (or made lower
+	  case), and [Undo] gives the names back.  The cache, comment and
+	  bookmark go with each file.
 	* The tooltip of a bookmarked image without a note says "In the
 	  bookmarks", not "Bookmarked" (as if just done).
 	* A bookmarked image has a yellow star at the top right of its thumbnail

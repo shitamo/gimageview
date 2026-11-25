@@ -49,6 +49,7 @@
 #include "gimv_thumb_cache.h"
 #include "gimv_bookmark_edit.h"
 #include "gimv_thumb_view.h"
+#include "gimv_rename_files.h"
 #include "gimv_books.h"
 #ifdef ENABLE_INDEX
 #include "gimv_index_tags.h"
@@ -3396,8 +3397,6 @@ gimv_thumb_view_popup_menu (GimvThumbView *tv, GimvThumb *thumb,
    if (g_list_length (thumblist) > 1) {
       menuitem = gimv_menu_get_item (ifactory, "/Properties...");
       gimv_menu_item_set_sensitive (menuitem, FALSE);
-      menuitem = gimv_menu_get_item (ifactory, "/Rename...");
-      gimv_menu_item_set_sensitive (menuitem, FALSE);
    }
 
 #ifdef ENABLE_EXIF
@@ -3698,11 +3697,23 @@ rename_dialog (const gchar *name, GtkWindow *parent)
 void
 gimv_thumb_view_rename_extras (GimvThumb *thumb, const gchar *dest_path)
 {
-   const gchar *src_path, *cache_type;
+   g_return_if_fail (GIMV_IS_THUMB (thumb) && thumb->info && dest_path);
+   gimv_thumb_view_rename_extras_from (thumb, gimv_image_info_get_path (thumb->info),
+                                       dest_path);
+}
+
+
+/* the file of thumb renamed from src_path to dest_path (it may have been
+   renamed before: its info not read again yet): its cache, comment and
+   bookmark go with it */
+void
+gimv_thumb_view_rename_extras_from (GimvThumb *thumb, const gchar *src_path,
+                                    const gchar *dest_path)
+{
+   const gchar *cache_type;
    gchar *src_cache_path, *dest_cache_path, *src_comment, *dest_comment;
 
-   g_return_if_fail (GIMV_IS_THUMB (thumb) && thumb->info && dest_path);
-   src_path = gimv_image_info_get_path (thumb->info);
+   g_return_if_fail (GIMV_IS_THUMB (thumb) && src_path && dest_path);
 
    /* rename cache */
    cache_type = gimv_thumb_get_cache_type (thumb);
@@ -3751,7 +3762,12 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
    if (tv->mode == GIMV_THUMB_VIEW_MODE_ARCHIVE) return;
 
    thumblist = gimv_thumb_view_get_selection_list (tv);
-   if (!thumblist || g_list_length (thumblist) > 1) return;
+   if (!thumblist) return;
+   /* several: renamed together (numbers, the date taken, ...) */
+   if (g_list_length (thumblist) > 1) {
+      gimv_rename_files_dialog (tv, thumblist);
+      return;
+   }
 
    thumb = thumblist->data;
    if (!thumb) return;
