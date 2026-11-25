@@ -1535,6 +1535,23 @@ gimv_comment_view_clear (GimvCommentView *cv)
 }
 
 
+/* no file shown any more (the tab of its archive was closed: the
+   archive is let go of, its files taken away) */
+void
+gimv_comment_view_release (GimvCommentView *cv)
+{
+   g_return_if_fail (cv);
+
+   if (cv->comment) {
+      g_signal_handlers_disconnect_by_func (G_OBJECT (cv->comment),
+                                            G_CALLBACK (cb_file_saved), cv);
+      gimv_comment_unref (cv->comment);
+      cv->comment = NULL;
+   }
+   gimv_comment_view_clear (cv);
+}
+
+
 gboolean
 gimv_comment_view_change_file (GimvCommentView *cv, GimvImageInfo *info)
 {

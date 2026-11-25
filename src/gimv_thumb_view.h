@@ -196,6 +196,7 @@ void           gimv_thumb_view_reload             (GimvThumbView    *tv,
 GimvThumbView *gimv_thumb_view_find_opened_dir    (const gchar      *path);
 GimvThumbView *gimv_thumb_view_find_opened_archive(const gchar      *path);
 const gchar   *gimv_thumb_view_get_path           (GimvThumbView    *tv);
+struct _FRArchive *gimv_thumb_view_get_archive    (GimvThumbView    *tv);
 void           gimv_thumb_view_sort_data          (GimvThumbView    *tv);
 gboolean       gimv_thumb_view_load_thumbnails    (GimvThumbView    *tv,
                                                    GList            *loadlist,

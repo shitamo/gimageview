@@ -5263,6 +5263,20 @@ gimv_thumb_win_close_tab (GimvThumbWin *tw, gint page)
    if (tv && (tv->status == GIMV_THUMB_VIEW_STATUS_LOADING)) return;
    if (tv && (tv->status == GIMV_THUMB_VIEW_STATUS_CHECK_DUPLICATE)) return;
 
+   /* the preview and the data/notes of a member of the archive of the tab:
+      let go of, or the archive (and the files taken out of it) would stay
+      until gimv ends */
+   if (tv && gimv_thumb_view_get_archive (tv)) {
+      FRArchive *archive = gimv_thumb_view_get_archive (tv);
+
+      if (tw->iv && tw->iv->info
+          && gimv_image_info_get_archive (tw->iv->info) == archive)
+         gimv_image_view_change_image (tw->iv, NULL);
+      if (tw->cv && tw->cv->comment && tw->cv->comment->info
+          && gimv_image_info_get_archive (tw->cv->comment->info) == archive)
+         gimv_comment_view_release (tw->cv);
+   }
+
    if (tv)
       g_object_unref (G_OBJECT (tv));
 

@@ -4276,6 +4276,17 @@ gimv_thumb_view_find_opened_dir (const gchar *path)
 }
 
 
+/* the archive the tab shows (NULL for a folder or a collection) */
+FRArchive *
+gimv_thumb_view_get_archive (GimvThumbView *tv)
+{
+   g_return_val_if_fail (GIMV_IS_THUMB_VIEW (tv), NULL);
+
+   if (tv->mode != GIMV_THUMB_VIEW_MODE_ARCHIVE || !tv->priv) return NULL;
+   return tv->priv->archive;
+}
+
+
 GimvThumbView *
 gimv_thumb_view_find_opened_archive (const gchar *path)
 {

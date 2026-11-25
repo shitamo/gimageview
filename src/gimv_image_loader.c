@@ -67,6 +67,7 @@ struct GimvImageLoaderPriv_Tag
 
    /* que */
    GimvImageInfo *next_info;
+   gboolean       let_go;     /* NULL given while loading: info let go of at the end */
 };
 
 static void      gimv_image_loader_class_init (GimvImageLoaderClass *klass);
@@ -224,6 +225,7 @@ gimv_image_loader_init (GimvImageLoader *loader)
    loader->priv->temp_file         = NULL;
    loader->priv->flags             = 0;
    loader->priv->next_info         = NULL;
+   loader->priv->let_go            = FALSE;
 
    g_object_ref_sink (G_OBJECT (loader));
 }
@@ -331,14 +333,15 @@ void
 gimv_image_loader_set_image_info (GimvImageLoader *loader, GimvImageInfo *info)
 {
    g_return_if_fail (GIMV_IS_IMAGE_LOADER (loader));
-   g_return_if_fail (info);
    g_return_if_fail (loader->priv);
 
+   /* NULL: the image is let go of (no image shown any more) */
    if (gimv_image_loader_is_loading (loader)) {
       gimv_image_loader_load_stop (loader);
       if (loader->priv->next_info)
          gimv_image_info_unref (loader->priv->next_info);
-      loader->priv->next_info = gimv_image_info_ref (info);
+      loader->priv->next_info = info ? gimv_image_info_ref (info) : NULL;
+      loader->priv->let_go = !info;
       return;
    }
 
@@ -742,9 +745,18 @@ gimv_image_loader_load_end (GimvImageLoader *loader)
    g_return_if_fail (GIMV_IS_IMAGE_LOADER (loader));
    g_return_if_fail (loader->priv);
 
-   if (!loader->priv->next_info)
+   if (!loader->priv->next_info) {
+      if (loader->priv->let_go && loader->info) {
+         gimv_image_info_unref (loader->info);
+         loader->info = NULL;
+      }
+      loader->priv->let_go = FALSE;
       return;
+   }
 
+   /* the one before is not held any more (it kept its archive) */
+   if (loader->info)
+      gimv_image_info_unref (loader->info);
    loader->info = loader->priv->next_info;
    loader->priv->next_info = NULL;
    g_idle_add (idle_gimv_image_loader_load, loader);

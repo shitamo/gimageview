@@ -2572,10 +2572,16 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
    iv->priv->x_pos = iv->priv->y_pos = 0;
 
    /* allocate memory for new image info*/
-   if (info)
+   if (info) {
       iv->info = gimv_image_info_ref (info);
-   else
+   } else {
       iv->info = NULL;
+      /* nothing shown: the loader lets go of the image before too (a
+         member of an archive kept it, and its files, after its tab was
+         closed) */
+      if (iv->loader)
+         gimv_image_loader_set_image_info (iv->loader, NULL);
+   }
 }
 
 

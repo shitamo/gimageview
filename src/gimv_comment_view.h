@@ -74,6 +74,7 @@ struct GimvCommentView_Tag
 
 
 void             gimv_comment_view_clear         (GimvCommentView   *cv);
+void             gimv_comment_view_release       (GimvCommentView   *cv);
 gboolean         gimv_comment_view_change_file   (GimvCommentView   *cv,
                                                   GimvImageInfo *info);
 GimvCommentView *gimv_comment_view_create        (void);
