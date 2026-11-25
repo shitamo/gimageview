@@ -8127,8 +8127,17 @@ msgid "(none)"
 msgstr "(なし)"
 
 #: src/gimv_rename_files.c
-msgid "The date the image was taken (the index, EXIF), else the date of the file.  Images of the same time get _2, _3 ..."
-msgstr "画像の撮影日 (索引・EXIF)、なければファイルの日付を使います。同じ日時の画像には _2、_3 … を付けます。"
+msgid ""
+"The date the image was taken (the index, EXIF), else a date in the name or the "
+"date of the file.\n"
+"Images of the same time get _2, _3 ..."
+msgstr ""
+"画像の撮影日 (索引・EXIF)、なければ名前の中の日付かファイルの日付を使います。\n"
+"同じ日時の画像には _2、_3 … を付けます。"
+
+#: src/gimv_rename_files.c
+msgid "No date taken: the date in the name"
+msgstr "撮影日がないため名前の中の日付"
 
 #: src/gimv_rename_files.c
 msgid "_Find:"

@@ -44,6 +44,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -82,7 +83,8 @@ typedef enum {
 
 typedef enum {
    DATE_FROM_TAKEN,     /* the index or EXIF */
-   DATE_FROM_FILE       /* the modification time: none taken */
+   DATE_FROM_NAME,      /* a date in the file name: none taken */
+   DATE_FROM_FILE       /* the modification time: none of them */
 } DateFrom;
 
 #define STATE_OK     GIMV_RENAME_OK
@@ -177,8 +179,43 @@ date_digits (const gchar *text, gchar out[20])
 }
 
 
+/* a date in a file name, as the indexer reads one (IMG_20190503_101500.jpg,
+   2019-05-03 10.15.00.png, ...) */
+static gboolean
+name_date (const gchar *name, gchar out[20])
+{
+   static GRegex *re = NULL;
+   GMatchInfo *mi = NULL;
+   gboolean found = FALSE;
+
+   if (!re)
+      re = g_regex_new ("(?<![0-9])((?:19|20)[0-9]{2})[-_.]?([0-9]{2})[-_.]?([0-9]{2})"
+                        "(?:(?:[-_ T.]| at )?([0-9]{2})[-_.:h]?([0-9]{2})[-_.:m]?([0-9]{2}))?"
+                        "(?![0-9])", G_REGEX_OPTIMIZE, 0, NULL);
+   if (!re || !name) return FALSE;
+   g_regex_match (re, name, 0, &mi);
+   while (g_match_info_matches (mi) && !found) {
+      gint n[7] = { 0 }, i;
+      for (i = 1; i <= 6; i++) {
+         gchar *v = g_match_info_fetch (mi, i);
+         n[i] = v && *v ? atoi (v) : 0;
+         g_free (v);
+      }
+      if (n[2] >= 1 && n[2] <= 12 && n[3] >= 1 && n[3] <= 31
+          && n[4] < 24 && n[5] < 60 && n[6] < 60)
+      {
+         g_snprintf (out, 20, "%04d%02d%02d%02d%02d%02d", n[1], n[2], n[3], n[4], n[5], n[6]);
+         found = TRUE;
+      }
+      g_match_info_next (mi, NULL);
+   }
+   g_match_info_free (mi);
+   return found;
+}
+
+
 /* the date the image was taken: the index (the comment's date, EXIF, XMP,
-   the name), else EXIF, else the date of the file */
+   the name), else EXIF, else a date in the name, else the date of the file */
 static void
 row_read_date (Row *r)
 {
@@ -209,6 +246,8 @@ row_read_date (Row *r)
       }
    }
 #endif
+   r->date_from = DATE_FROM_NAME;
+   if (name_date (r->name, r->date)) return;
    r->date_from = DATE_FROM_FILE;
    {
       struct stat st;
@@ -557,8 +596,18 @@ state_text (RenameDialog *rd, Row *r)
    default:
       if (rd->mode == MODE_DATE && r->date_from == DATE_FROM_FILE)
          return _("No date taken: the date of the file");
+      if (rd->mode == MODE_DATE && r->date_from == DATE_FROM_NAME)
+         return _("No date taken: the date in the name");
       return "";
    }
+}
+
+
+static void
+set_summary (RenameDialog *rd, const gchar *text)
+{
+   gtk_label_set_text (GTK_LABEL (rd->summary), text);
+   gtk_widget_set_tooltip_text (rd->summary, text);
 }
 
 
@@ -644,11 +693,10 @@ update_rows (RenameDialog *rd)
       gchar *text = g_strdup_printf (ngettext ("%u name to change first (in red).",
                                                "%u names to change first (in red).",
                                                problems), problems);
-      gtk_label_set_text (GTK_LABEL (rd->summary), text);
+      set_summary (rd, text);
       g_free (text);
    } else {
-      gtk_label_set_text (GTK_LABEL (rd->summary),
-                          ok ? _("The extensions are kept; nothing is overwritten.")
+      set_summary (rd, ok ? _("The extensions are kept; nothing is overwritten.")
                              : _("No name changes."));
    }
 
@@ -800,7 +848,7 @@ cb_rename (GtkWidget *widget, RenameDialog *rd)
                                                   "name back.",
                                                   "%u files renamed.  [Undo] gives the "
                                                   "names back.", done), done);
-         gtk_label_set_text (GTK_LABEL (rd->summary), text);
+         set_summary (rd, text);
          g_free (text);
       }
       gtk_button_set_label (GTK_BUTTON (rd->rename_button), _("_Undo"));
@@ -946,10 +994,11 @@ page_date (RenameDialog *rd)
    form_row (grid, 0, _("_Form:"), rd->date_format);
    rd->date_text = form_row (grid, 1, _("Text _after it:"), form_entry (rd, NULL));
    gtk_entry_set_placeholder_text (GTK_ENTRY (rd->date_text), _("(none)"));
-   label = left_label (_("The date the image was taken (the index, EXIF), else the date "
-                         "of the file.  Images of the same time get _2, _3 ..."),
+   /* two lines, not wrapped: a label wrapped as the window is measured
+      makes GTK warn ("Trying to measure GtkWindow ... for height") */
+   label = left_label (_("The date the image was taken (the index, EXIF), else a date in the "
+                         "name or the date of the file.\nImages of the same time get _2, _3 ..."),
                        "dim-label");
-   gtk_label_set_wrap (GTK_LABEL (label), TRUE);
    gtk_grid_attach (GTK_GRID (grid), label, 0, 2, 2, 1);
    return grid;
 }
@@ -1122,7 +1171,8 @@ gimv_rename_files_dialog (GimvThumbView *tv, GList *thumbs)
    hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
    gtk_box_append (GTK_BOX (vbox), hbox);
    rd->summary = left_label (NULL, "dim-label");
-   gtk_label_set_wrap (GTK_LABEL (rd->summary), TRUE);
+   /* not wrapped (see page_date): cut short, whole in its tooltip */
+   gtk_label_set_ellipsize (GTK_LABEL (rd->summary), PANGO_ELLIPSIZE_END);
    gtk_widget_set_hexpand (rd->summary, TRUE);
    gtk_box_append (GTK_BOX (hbox), rd->summary);
    rd->close_button = gtk_button_new_with_mnemonic (_("_Close"));

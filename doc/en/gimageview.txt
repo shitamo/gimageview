@@ -1092,9 +1092,10 @@ Rename... [Shift + E]
 
      ・ Date Taken: the date the image was taken as its name (2026-11-
         25_203012.jpg), from the index (the comment's date, EXIF, ...) or
-        EXIF; an image without one gets the date of the file (the list says
-        so). Images of the same time get _2, _3 ...; a text can be put after
-        it.
+        EXIF; an image without one gets a date in its name
+        (IMG_20190503_101500.jpg, ...), else the date of the file (the list
+        says which). Images of the same time get _2, _3 ...; a text can be put
+        after it.
 
      ・ Replace Text: a text in the names replaced by another (IMG_ → trip_);
         nothing to replace with takes it out. "More" has regular expressions
