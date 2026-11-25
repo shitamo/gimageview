@@ -41,6 +41,7 @@
 #include "charset.h"
 #include "fileutil.h"
 #include "gimv_image_info.h"
+#include "gimv_rename_files.h"
 #include "gimv_thumb.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
@@ -182,27 +183,6 @@ cb_destroy (GtkWidget *widget, NamesDialog *nd)
 }
 
 
-/* src to dest; never over a file there */
-static gboolean
-rename_no_replace (const gchar *src, const gchar *dest)
-{
-#ifdef RENAME_NOREPLACE
-   if (renameat2 (AT_FDCWD, src, AT_FDCWD, dest, RENAME_NOREPLACE) == 0)
-      return TRUE;
-   if (errno != EINVAL && errno != ENOSYS) return FALSE;
-   /* a file system that cannot: as below */
-#endif
-   {
-      struct stat st;
-      if (!lstat (dest, &st)) {
-         errno = EEXIST;
-         return FALSE;
-      }
-      return rename (src, dest) == 0;
-   }
-}
-
-
 static void
 cb_convert (GtkWidget *widget, NamesDialog *nd)
 {
@@ -216,7 +196,7 @@ cb_convert (GtkWidget *widget, NamesDialog *nd)
 
       if (!r->ok || !r->wanted) continue;
       dest = g_build_filename (nd->dir, r->new_name, NULL);
-      if (rename_no_replace (r->path, dest)) {
+      if (gimv_rename_no_replace (r->path, dest)) {
          gimv_thumb_view_rename_extras (r->thumb, dest);
          done++;
       } else {

@@ -3482,6 +3482,9 @@ gimv_thumb_view_file_operate (GimvThumbView *tv, FileOperateType type)
  */
 typedef struct {
    GMainLoop   *loop;
+   const gchar *dir;          /* the folder (bytes) */
+   const gchar *old_path;     /* the file now */
+   GtkWidget   *taken;        /* "a file of this name is there" */
    GtkWidget   *window;
    GtkWidget   *entry;
    GtkWidget   *ext_label;
@@ -3541,6 +3544,25 @@ static void
 cb_rename_changed (GtkEditable *editable, RenameDialog *rd)
 {
    if (rd->warned) rename_set_warning (rd, FALSE);
+   gtk_widget_set_visible (rd->taken, FALSE);
+}
+
+
+/* the new name is of another file there: as when several are renamed,
+   nothing is overwritten */
+static gboolean
+rename_taken (RenameDialog *rd, const gchar *name)
+{
+   gchar *bytes = charset_internal_to_locale (name), *path;
+   struct stat st;
+   gboolean taken;
+
+   if (!bytes) return FALSE;
+   path = g_build_filename (rd->dir, bytes, NULL);
+   taken = strcmp (path, rd->old_path) && !lstat (path, &st);
+   g_free (path);
+   g_free (bytes);
+   return taken;
 }
 
 
@@ -3573,6 +3595,11 @@ cb_rename_ok (GtkWidget *widget, RenameDialog *rd)
    gchar *name = rename_text (rd);
 
    if (!name) return;
+   if (rename_taken (rd, name)) {
+      gtk_widget_set_visible (rd->taken, TRUE);
+      g_free (name);
+      return;
+   }
    /* asked once; OK again renames as it is */
    if (!rd->warned && rename_loses_type (rd, name)) {
       rename_set_warning (rd, TRUE);
@@ -3599,15 +3626,18 @@ cb_rename_destroy (GtkWidget *window, RenameDialog *rd)
 
 
 static gchar *
-rename_dialog (const gchar *name, GtkWindow *parent)
+rename_dialog (const gchar *name, const gchar *old_path, GtkWindow *parent)
 {
    RenameDialog rd = { 0 };
+   gchar *dir = g_path_get_dirname (old_path);
    GtkWidget *vbox, *hbox, *label, *box;
    const gchar *dot = strrchr (name, '.');
    gchar *ext = NULL, *stem, *text;
 
    if (dot && dot != name && dot[1]) ext = g_strdup (dot);
    rd.old_ext = ext;
+   rd.dir = dir;
+   rd.old_path = old_path;
    rd.old_known = gimv_image_detect_type_by_ext (name) != NULL;
    stem = ext ? g_strndup (name, dot - name) : g_strdup (name);
 
@@ -3667,6 +3697,13 @@ rename_dialog (const gchar *name, GtkWindow *parent)
    gtk_widget_set_visible (rd.warning, FALSE);
    gtk_box_append (GTK_BOX (vbox), rd.warning);
 
+   rd.taken = gtk_label_new (_("A file of this name is there: choose another name "
+                               "(nothing is overwritten)."));
+   gtk_label_set_xalign (GTK_LABEL (rd.taken), 0.0);
+   gtk_widget_add_css_class (rd.taken, "error");
+   gtk_widget_set_visible (rd.taken, FALSE);
+   gtk_box_append (GTK_BOX (vbox), rd.taken);
+
    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
    gtk_widget_set_halign (box, GTK_ALIGN_END);
    {
@@ -3690,6 +3727,7 @@ rename_dialog (const gchar *name, GtkWindow *parent)
    g_main_loop_unref (rd.loop);
    g_free (stem);
    g_free (ext);
+   g_free (dir);
    return rd.result;
 }
 
@@ -3751,7 +3789,6 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
    const gchar *src_file;
    gchar *dest_file, *dest_path;
    gchar message[BUF_SIZE], *dirname;
-   ConfirmType confirm;
    gboolean exist;
    struct stat dest_st;
 
@@ -3782,7 +3819,8 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
                                                conf.charset_filename_mode);
 
       if (!src_file_internal) return;
-      tmpstr = rename_dialog (src_file_internal, GTK_WINDOW (tv->tw));
+      tmpstr = rename_dialog (src_file_internal, gimv_image_info_get_path (thumb->info),
+                             GTK_WINDOW (tv->tw));
       g_free (src_file_internal);
       src_file_internal = NULL;
 
@@ -3798,31 +3836,23 @@ gimv_thumb_view_rename_file (GimvThumbView *tv)
    dirname = g_path_get_dirname (gimv_image_info_get_path (thumb->info));
    dest_path = g_strconcat (dirname, "/", fileutil_basename (dest_file), NULL);
    g_free (dirname);
+   /* never over another file (the dialog said so; taken since) */
    exist = !lstat(dest_path, &dest_st);
    if (exist) {
-      {   /********** convert charset **********/
-         gchar *tmpstr;
-
-         tmpstr = charset_to_internal (src_file,
-                                       conf.charset_filename,
-                                       conf.charset_auto_detect_fn,
-                                       conf.charset_filename_mode);
-
-         g_snprintf (message, BUF_SIZE,
-                     _("File exists: %s\n"
-                       "\n"
-                       "Overwrite?"), tmpstr);
-
-         g_free (tmpstr);
-      }
-
-      confirm = gtkutil_confirm_dialog (_("File exists!"), message, 0,
-                                        GTK_WINDOW (tv->tw));
-      if (confirm == CONFIRM_NO) goto ERROR1;
+      gchar *tmpstr = charset_to_internal (fileutil_basename (dest_file),
+                                           conf.charset_filename,
+                                           conf.charset_auto_detect_fn,
+                                           conf.charset_filename_mode);
+      g_snprintf (message, BUF_SIZE,
+                  _("A file of this name is there: %s\n\nNothing is overwritten."),
+                  tmpstr ? tmpstr : "");
+      g_free (tmpstr);
+      gtkutil_message_dialog (_("File exists!"), message, GTK_WINDOW (tv->tw));
+      goto ERROR1;
    }
 
    /* rename file!! */
-   if (rename (gimv_image_info_get_path (thumb->info), dest_path) < 0) {
+   if (!gimv_rename_no_replace (gimv_image_info_get_path (thumb->info), dest_path)) {
       {   /********** convert charset **********/
          gchar *tmpstr;
 

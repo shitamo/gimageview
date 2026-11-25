@@ -1080,7 +1080,9 @@ Rename... [Shift + E]
     The name without the extension is edited; the extension (.jpg, ...) stays
     (without it the file is no longer shown as an image). "Change the
     extension too" edits the whole name; a new name without the extension of
-    an image is then asked about, and [Rename without It] renames it so.
+    an image is then asked about, and [Rename without It] renames it so. A
+    name of another file there is shown in red and not taken: nothing is
+    overwritten (choose another name).
 
     With several images selected, the "Rename Files" window opens to rename
     them together. The buttons at the top tell what is wanted, each with an
@@ -4054,6 +4056,10 @@ How duplicates are found
     and nothing is overwritten; the extensions are kept (or made lower case);
     [Undo] gives the names back. The thumbnail cache, comment and bookmark go
     with each file, and its date does not change.
+
+ ・ Renaming one file no longer overwrites another of the new name (it asked
+    "Overwrite?"): the dialog says in red that the name is taken, as when
+    several files are renamed.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

@@ -242,6 +242,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Renaming one file does not overwrite another of the new name any more
+	  (it asked "Overwrite?"): the dialog says the name is taken, as when
+	  several are renamed.
 	* Several files can be renamed together ([Rename...] with them selected):
 	  numbers, the date taken, a text replaced or added, chosen by buttons with
 	  an example; the new names are shown at once, a name taken is shown in

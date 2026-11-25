@@ -529,8 +529,8 @@ gimv_rename_plan_check (const gchar * const *paths, const gchar * const *new_pat
 
 
 /* src to dest; never over a file there */
-static gboolean
-rename_no_replace (const gchar *src, const gchar *dest)
+gboolean
+gimv_rename_no_replace (const gchar *src, const gchar *dest)
 {
 #ifdef RENAME_NOREPLACE
    if (renameat2 (AT_FDCWD, src, AT_FDCWD, dest, RENAME_NOREPLACE) == 0)
@@ -568,7 +568,7 @@ gimv_rename_plan_run (const gchar * const *from, const gchar * const *to, guint 
          if (!left[i] || !lstat (to[i], &st)) continue;   /* waits for it */
          left[i] = FALSE;
          moved = TRUE;
-         if (rename_no_replace (from[i], to[i])) {
+         if (gimv_rename_no_replace (from[i], to[i])) {
             done[i] = TRUE;
             count++;
          }

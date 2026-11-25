@@ -44,6 +44,9 @@ guint gimv_rename_plan_run   (const gchar * const *from,
                               GimvRenameDoneFunc   func,
                               gpointer             data);
 
+/* src renamed to dest, never over a file there (errno EEXIST) */
+gboolean gimv_rename_no_replace (const gchar *src, const gchar *dest);
+
 /* the dialog to rename several files (thumbs: GimvThumb, the selection) */
 void gimv_rename_files_dialog (GimvThumbView *tv, GList *thumbs);
 

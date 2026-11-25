@@ -8230,3 +8230,18 @@ msgstr[0] "先に直す名前が %u 個あります (赤字)。"
 msgid "%u file renamed.  [Undo] gives the name back."
 msgid_plural "%u files renamed.  [Undo] gives the names back."
 msgstr[0] "%u 個の名前を変更しました。[元に戻す] で元の名前に戻せます。"
+
+#: src/gimv_thumb_view.c
+msgid "A file of this name is there: choose another name (nothing is overwritten)."
+msgstr "同じ名前のファイルがあります。別の名前にしてください (上書きはしません)。"
+
+#: src/gimv_thumb_view.c
+#, c-format
+msgid ""
+"A file of this name is there: %s\n"
+"\n"
+"Nothing is overwritten."
+msgstr ""
+"同じ名前のファイルがあります: %s\n"
+"\n"
+"上書きはしません。"
