@@ -610,7 +610,9 @@ cb_archive_destroy (FRArchive *archive,
                     gpointer data)
 {
    gchar *temp_dir;
-   temp_dir = g_object_get_data (G_OBJECT (archive), "temp-dir");
+   temp_dir = g_object_get_data (G_OBJECT (archive), "temp-root");
+   if (!temp_dir || !*temp_dir)
+      temp_dir = g_object_get_data (G_OBJECT (archive), "temp-dir");
 
    if (!temp_dir || !*temp_dir) return;
 
@@ -681,9 +683,21 @@ open_archive_images (const gchar *filename,
                        G_CALLBACK (cb_archive_destroy),
                        NULL);
 
-   temp_dir = g_strconcat (get_temp_dir_name (),
-                           FR_ARCHIVE (archive)->filename,
-                           NULL);
+   /* a folder of its own for each archive opened: the archive's name is
+      not known before fr_archive_load (), and with it NULL here all the
+      archives shared one folder (since 0.2.27).  A page of one (003.jpg)
+      was then taken for the page of the same name of another extracted
+      before, and an archive's folder removed was the folder of all. */
+   {
+      static guint serial = 0;
+      gchar *n = g_strdup_printf ("%u", ++serial);
+      temp_dir = g_build_filename (get_temp_dir_name (), n, filename, NULL);
+      /* removed whole with the archive */
+      g_object_set_data_full (G_OBJECT (archive), "temp-root",
+                              g_build_filename (get_temp_dir_name (), n, NULL),
+                              (GDestroyNotify) g_free);
+      g_free (n);
+   }
    g_object_set_data_full (G_OBJECT (archive), "temp-dir", temp_dir,
                              (GDestroyNotify) g_free);
 

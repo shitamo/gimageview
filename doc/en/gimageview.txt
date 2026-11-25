@@ -4061,6 +4061,11 @@ How duplicates are found
     "Overwrite?"): the dialog says in red that the name is taken, as when
     several files are renamed.
 
+ ・ A page of an archive could be shown as the page of the same name (003.jpg)
+    of another archive opened before (one side of a spread from another book):
+    since 0.2.27 all the archives were extracted into one temporary folder.
+    Each archive has its own now.
+
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg
     before 2.jpg). [View | Sort File List | Numbers by Value] turns it off.

@@ -242,6 +242,10 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* A page of an archive could be shown as the page of the same name
+	  (003.jpg) of another archive opened before (in the spread, one page
+	  of the other book): all the archives were extracted into one folder.
+	  Each has its own now.
 	* Renaming one file does not overwrite another of the new name any more
 	  (it asked "Overwrite?"): the dialog says the name is taken, as when
 	  several are renamed.
