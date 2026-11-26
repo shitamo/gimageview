@@ -6514,6 +6514,10 @@ msgstr "フルパスをクリップボードにコピーします"
 msgid "/by Date Ta_ken"
 msgstr "/撮影日(_K)"
 
+#: src/gimv_thumb_win.c
+msgid "/by _Bookmark"
+msgstr "/ブックマーク(_B)"
+
 #: plugins/thumbnail_view/detailview.c
 msgid "Date taken"
 msgstr "撮影日"

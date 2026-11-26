@@ -242,6 +242,9 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Sort by bookmark ([View | Sort File List | by Bookmark], or a click on
+	  the title of the "Bookmark" column of the detail view): the bookmarked
+	  images first, each part by the name; again for the others first.
 	* A page of an archive could be shown as the page of the same name
 	  (003.jpg) of another archive opened before (in the spread, one page
 	  of the other book): all the archives were extracted into one folder.

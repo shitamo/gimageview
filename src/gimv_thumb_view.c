@@ -1628,6 +1628,19 @@ comp_func_date (gconstpointer data1, gconstpointer data2)
 }
 
 
+/* the bookmarked first (the star of thumb->bookmarked), then the name */
+static int
+comp_func_bookmark (gconstpointer data1, gconstpointer data2)
+{
+   const GimvThumb *thumb1 = data1, *thumb2 = data2;
+
+   g_return_val_if_fail (thumb1 && thumb2, 0);
+   if (thumb1->bookmarked != thumb2->bookmarked)
+      return thumb1->bookmarked ? -1 : 1;
+   return comp_func_spel (data1, data2);
+}
+
+
 /* sort by time of last modification */
 static int
 comp_func_mtime (gconstpointer data1, gconstpointer data2)
@@ -4095,6 +4108,8 @@ gimv_thumb_view_get_compare_func (GimvThumbView *tv, gboolean *reverse)
       func = comp_func_area;
    else if (item == GIMV_SORT_DATE)
       func = comp_func_date;
+   else if (item == GIMV_SORT_BOOKMARK)
+      func = comp_func_bookmark;
 
    if (reverse) {
       if ((flags & GIMV_SORT_REVERSE))

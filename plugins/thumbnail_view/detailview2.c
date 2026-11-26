@@ -632,6 +632,7 @@ column_sort_item (gint idx)
    case 7:    return GIMV_SORT_CTIME;
    case 11:   return GIMV_SORT_AREA;   /* Image size */
    case 14:   return GIMV_SORT_DATE;   /* Date taken */
+   case 15:   return GIMV_SORT_BOOKMARK;   /* Bookmark (the star) */
    default:   return GIMV_SORT_NONE;
    }
 }
