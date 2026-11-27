@@ -34,7 +34,9 @@
 #include "gtk_prop.h"
 #include "gimv_icon_stock.h"
 #include "gimv_list_view.h"
+#include "gimv_bookmark.h"
 #include "gimv_bookmark_edit.h"
+#include <math.h>
 #include "gimv_thumb_win.h"
 #ifdef ENABLE_INDEX
 #include "gimv_dupl_win.h"
@@ -1137,19 +1139,102 @@ get_icon_pixbufs (void)
 }
 
 
+/* a bookmarked folder: a yellow star at the middle of its icon (the star
+ * of the thumbnails, gimv_zalbum.c) and the note in the tooltip */
+static void
+draw_bookmark_star (GtkDrawingArea *area, cairo_t *cr, gint w, gint h, gpointer data)
+{
+   gdouble s = MIN (w, h) * 0.7, cx, cy, r, ri;
+   gint i;
+
+   if (s < 4) return;
+   cx = w / 2.0;
+   cy = h / 2.0 + s * 0.04;
+   r  = s / 2;
+   ri = r * 0.45;
+   cairo_new_path (cr);
+   for (i = 0; i < 10; i++) {
+      gdouble a = -G_PI / 2 + i * G_PI / 5;
+      gdouble rr = (i % 2) ? ri : r;
+      if (i == 0) cairo_move_to (cr, cx + rr * cos (a), cy + rr * sin (a));
+      else        cairo_line_to (cr, cx + rr * cos (a), cy + rr * sin (a));
+   }
+   cairo_close_path (cr);
+   cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+   cairo_set_source_rgb (cr, 1.0, 0.82, 0.0);
+   cairo_fill_preserve (cr);
+   cairo_set_source_rgba (cr, 0.35, 0.25, 0.0, 0.9);
+   cairo_set_line_width (cr, 1.0);
+   cairo_stroke (cr);
+}
+
+
+/* the star and the tooltip of the folder the cell shows now */
+static void
+dirtree_cell_update_bookmark (GtkWidget *cell)
+{
+   GtkWidget *star = g_object_get_data (G_OBJECT (cell), "gimv-dirview-star");
+   const gchar *path = g_object_get_data (G_OBJECT (cell), "gimv-dirview-path");
+   gchar *tip = NULL;
+   gboolean marked = FALSE;
+
+   if (!star) return;
+   if (path) {
+      g_autofree gchar *full = g_canonicalize_filename (path, NULL);
+      marked = gimv_bookmark_has (full);
+      if (marked)
+         tip = gimv_bookmark_tooltip (full);
+   }
+   gtk_widget_set_visible (star, marked);
+   gtk_widget_set_tooltip_text (cell, tip);
+   g_free (tip);
+}
+
+
+static void
+cb_dirtree_cell_bookmarks (gpointer data)
+{
+   dirtree_cell_update_bookmark (GTK_WIDGET (data));
+}
+
+
+static void
+cb_dirtree_cell_destroy (GtkWidget *cell, gpointer data)
+{
+   guint id = GPOINTER_TO_UINT (g_object_get_data (G_OBJECT (cell), "gimv-dirview-watch"));
+
+   if (id) gimv_bookmark_remove_watch (id);
+   g_object_set_data (G_OBJECT (cell), "gimv-dirview-watch", NULL);
+}
+
+
 /* the folder icon (open when the row is expanded) and the name */
 static GtkWidget *
 dirtree_cell_setup (gpointer data)
 {
-   GtkWidget *box, *picture, *label;
+   GtkWidget *box, *overlay, *picture, *star, *label;
 
    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+
+   overlay = gtk_overlay_new ();
+   gtk_widget_set_valign (overlay, GTK_ALIGN_CENTER);
+   gtk_box_append (GTK_BOX (box), overlay);
 
    picture = gtk_picture_new ();
    gtk_picture_set_can_shrink (GTK_PICTURE (picture), FALSE);
    gtk_widget_set_valign (picture, GTK_ALIGN_CENTER);
-   gtk_box_append (GTK_BOX (box), picture);
+   gtk_overlay_set_child (GTK_OVERLAY (overlay), picture);
    g_object_set_data (G_OBJECT (box), "gimv-cell-image", picture);
+
+   star = gtk_drawing_area_new ();
+   gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (star), draw_bookmark_star, NULL, NULL);
+   gtk_widget_set_can_target (star, FALSE);
+   gtk_widget_set_visible (star, FALSE);
+   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), star);
+   g_object_set_data (G_OBJECT (box), "gimv-dirview-star", star);
+   g_object_set_data (G_OBJECT (box), "gimv-dirview-watch",
+                      GUINT_TO_POINTER (gimv_bookmark_add_watch (cb_dirtree_cell_bookmarks, box)));
+   g_signal_connect (box, "destroy", G_CALLBACK (cb_dirtree_cell_destroy), NULL);
 
    label = gtk_label_new (NULL);
    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
@@ -1183,6 +1268,9 @@ dirtree_cell_bind (GtkWidget *cell, GimvRow *row, GtkListItem *item,
    gimv_icon_text_cell_set_icon (cell, gimv_row_peek_value (row, icon_col));
    gtk_label_set_text (GTK_LABEL (gimv_icon_text_cell_get_label (cell)),
                        gimv_row_peek_string (row, COLUMN_LABEL));
+   g_object_set_data_full (G_OBJECT (cell), "gimv-dirview-path",
+                           g_strdup (gimv_row_peek_string (row, COLUMN_FULLPATH)), g_free);
+   dirtree_cell_update_bookmark (cell);
 
    /* no expander for directories without subdirectories (GtkTreeView
       removed it when the dummy child row was removed) */
