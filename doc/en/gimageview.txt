@@ -490,11 +490,11 @@ Bookmarks tab
     The "Bookmarks" tab (a star) next to the directory view lists the
     bookmarks by the day they were added (Today, Yesterday, This Week, then by
     month), and "All", "With a Note", "Without a Note", with their numbers. A
-    click on a row opens them in the result tab, the newest first (the file
+    click on one opens them in the result tab, the newest first (the file
     names only, as the index tabs). Choosing a sort in the menu sorts them so.
     The bookmarked folders and archives are listed by name under "Folders and
-    Archives" (not in the rows of the days or "All"); a click opens one in a
-    tab of its own.
+    Archives" (not in the months or "All"); a click opens one in a tab of its
+    own.
 
 The notes
     A bookmarked image (folder, archive) has a yellow star at the top right
@@ -532,7 +532,7 @@ Date tab
     the comment ("2025-04-01", "2025/4/1 10:15", "2025年4月1日 10時15分", ...;
     for images of SNS, whose EXIF is removed and whose names are not dates),
     else the EXIF date (built with gexiv2, the XMP date too), else a date in
-    the file name, else the modification time. A click on a row opens the
+    the file name, else the modification time. A click on a date opens the
     images of the day (month, year) in the result tab, newest first. The
     detail view shows the arrow on "Date taken". Choosing a sort in [View |
     Sort File List] or a title of the detail view sorts them so (the one
@@ -562,13 +562,13 @@ Tag tab
     the images of the tags below it too.
 
 Opening
-    A click on a row (right of the arrow: the name, the count and the space
-    after them) shows its images in the result tab of the thumbnail view (one
-    tab, whose contents are replaced). A click on the arrow only expands or
-    collapses the row, without opening the images. The middle button, or "Open
-    in New Tab" of the right button menu, opens a new tab. Moving with the
-    arrow keys opens nothing; Enter does. A result tab shows the file names
-    only; the full path is in the tooltip and the status bar. "Open the
+    A click on a date, a tag, a person or the like (its name, or the count and
+    the space after it) shows its images in the result tab of the thumbnail
+    view (one tab, whose contents are replaced). A click on the arrow only
+    expands or collapses it, without opening the images. The middle button, or
+    "Open in New Tab" of the right button menu, opens a new tab. Moving with
+    the arrow keys opens nothing; Enter does. A result tab shows the file
+    names only; the full path is in the tooltip and the status bar. "Open the
     Folder" of the right button menu opens the folder of the image. With tens
     of thousands of images, only the thumbnails near the part shown are made.
 
@@ -821,9 +821,9 @@ I want to arrange tags in a tree ("Travel/Kyoto")
 3.3. Finding images
 
 I want to see the images with a tag
-    Click the row (right of the arrow) in the Tag tab: the images are shown in
-    the result tab. The middle button opens a new tab. A tag in the "Data" tab
-    of the comment window or the preview opens them too.
+    Click the tag in the Tag tab: the images are shown in the result tab. The
+    middle button opens a new tab. A tag in the "Data" tab of the comment
+    window or the preview opens them too.
 
     See Opening.
 
@@ -918,8 +918,8 @@ I want to add a note to a bookmark later
 I want to open a folder or archive I look at often at once
     Right-click the folder in the directory tab and choose "Bookmark..." (a
     folder or archive shown in the thumbnail view: "Bookmark..." in the right
-    button menu, as an image). A click on its row under "Folders and Archives"
-    of the Bookmarks tab (a star) opens it.
+    button menu, as an image). A click on it under "Folders and Archives" of
+    the Bookmarks tab (a star) opens it.
 
     See 2.5. Bookmarks.
 
@@ -2099,8 +2099,8 @@ Delete Directory...
 6.3.2. The Date tab
 
 Open
-    Shows the images of the row (a year, a month, a day) in the result tab of
-    the thumbnail view, as a click on the row (right of the arrow) (2.6).
+    Shows the images of the year, month or day in the result tab of the
+    thumbnail view, as a click on the year, month or day (2.6).
 
 Open in New Tab
     Shows them in a new tab instead of the result tab. A click with the middle
@@ -2137,9 +2137,9 @@ Rename... (F2)
 6.3.5. The Bookmarks tab
 
 Open, Open in New Tab
-    Show the bookmarked images of the row (all, a month, with a note, without
-    a note), as in the Date tab (6.3.2). A row under "Folders and Archives"
-    opens the folder or archive in a tab of its own (the tab of it when it is
+    Show the bookmarked images of the item clicked (all, a month, with a note,
+    without a note), as in the Date tab (6.3.2). A folder or archive under
+    "Folders and Archives" opens in a tab of its own (the tab of it when it is
     open).
 
 6.4. Preview
