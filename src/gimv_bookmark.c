@@ -243,12 +243,27 @@ changed (void)
  *  the bookmarks
  ******************************************************************************/
 
+/* a folder without the slash at the end ("/a/b/" of the thumbnail view and
+ * "/a/b" of a bookmark are one) */
+static gchar *
+norm (const gchar *path)
+{
+   gsize len = strlen (path);
+
+   while (len > 1 && path[len - 1] == '/') len--;
+   return g_strndup (path, len);
+}
+
+
 gboolean
 gimv_bookmark_has (const gchar *path)
 {
+   g_autofree gchar *p = NULL;
+
    g_return_val_if_fail (path, FALSE);
    ensure ();
-   return g_hash_table_contains (bookmarks, path);
+   p = norm (path);
+   return g_hash_table_contains (bookmarks, p);
 }
 
 
@@ -257,9 +272,12 @@ gimv_bookmark_get (const gchar *path)
 {
    GimvBookmark *bm;
 
+   g_autofree gchar *p = NULL;
+
    g_return_val_if_fail (path, NULL);
    ensure ();
-   bm = g_hash_table_lookup (bookmarks, path);
+   p = norm (path);
+   bm = g_hash_table_lookup (bookmarks, p);
    return bm ? gimv_bookmark_copy (bm) : NULL;
 }
 
@@ -269,11 +287,14 @@ gimv_bookmark_add (const gchar *path)
 {
    GimvBookmark *bm;
 
+   g_autofree gchar *p = NULL;
+
    g_return_val_if_fail (path && *path, FALSE);
    ensure ();
-   if (g_hash_table_contains (bookmarks, path)) return FALSE;
+   p = norm (path);
+   if (g_hash_table_contains (bookmarks, p)) return FALSE;
    bm = g_new0 (GimvBookmark, 1);
-   bm->path  = g_strdup (path);
+   bm->path  = g_steal_pointer (&p);
    bm->added = g_get_real_time () / G_USEC_PER_SEC;
    g_hash_table_replace (bookmarks, bm->path, bm);
    changed ();
@@ -287,9 +308,12 @@ gimv_bookmark_set_note (const gchar *path, const gchar *note)
    GimvBookmark *bm;
    gchar *text;
 
+   g_autofree gchar *p = NULL;
+
    g_return_if_fail (path);
    ensure ();
-   bm = g_hash_table_lookup (bookmarks, path);
+   p = norm (path);
+   bm = g_hash_table_lookup (bookmarks, p);
    if (!bm) return;
    text = note ? g_strstrip (g_strdup (note)) : NULL;
    if (text && !*text) g_clear_pointer (&text, g_free);
@@ -306,21 +330,27 @@ gimv_bookmark_set_note (const gchar *path, const gchar *note)
 void
 gimv_bookmark_remove (const gchar *path)
 {
+   g_autofree gchar *p = NULL;
+
    g_return_if_fail (path);
    ensure ();
-   if (g_hash_table_remove (bookmarks, path))
+   p = norm (path);
+   if (g_hash_table_remove (bookmarks, p))
       changed ();
 }
 
 
 void
-gimv_bookmark_move (const gchar *old_path, const gchar *new_path)
+gimv_bookmark_move (const gchar *old_path_in, const gchar *new_path_in)
 {
+   g_autofree gchar *old_path = NULL, *new_path = NULL;
    GPtrArray *moving;
    gsize len;
    guint i;
 
-   g_return_if_fail (old_path && new_path);
+   g_return_if_fail (old_path_in && new_path_in);
+   old_path = norm (old_path_in);
+   new_path = norm (new_path_in);
    if (!strcmp (old_path, new_path)) return;
    ensure ();
 
@@ -419,9 +449,12 @@ gimv_bookmark_tooltip (const gchar *path)
    GimvBookmark *bm;
    gchar *text;
 
+   g_autofree gchar *p = NULL;
+
    if (!path) return NULL;
    ensure ();
-   bm = g_hash_table_lookup (bookmarks, path);
+   p = norm (path);
+   bm = g_hash_table_lookup (bookmarks, p);
    if (!bm) return NULL;
    /* not "Bookmarked" (the title when one is just added): it is there */
    text = g_strconcat ("\u2605 ", bm->note ? bm->note : _("In the bookmarks"), NULL);

@@ -6353,6 +6353,13 @@ msgid "%'u image bookmarked"
 msgid_plural "%'u images bookmarked"
 msgstr[0] "%'u 枚をブックマークしました"
 
+#. TRANSLATORS: images, folders and archives
+#: src/gimv_bookmark_edit.c
+#, c-format
+msgid "%'u item bookmarked"
+msgid_plural "%'u items bookmarked"
+msgstr[0] "%'u 個をブックマークしました"
+
 #: src/gimv_bookmark_edit.c
 msgid "Note (may be left empty)"
 msgstr "メモ (空のままでも可)"
@@ -6402,6 +6409,10 @@ msgstr "%s (ブックマーク)"
 #: src/gimv_index_view.c
 msgid "Not Found"
 msgstr "見つからない"
+
+#: src/gimv_index_view.c
+msgid "Folders and Archives"
+msgstr "フォルダ・書庫"
 
 #: src/gimv_index_tags.c
 msgid "The names of people (person/...) are given to the faces, in the faces window or the faces panel (P) of the image."

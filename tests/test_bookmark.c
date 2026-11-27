@@ -229,6 +229,39 @@ test_move (void)
 }
 
 
+/* a bookmarked folder: "/a/b/" (the thumbnail view, the directory view)
+ * and "/a/b" are one */
+static void
+test_folder (void)
+{
+   GimvBookmark *bm;
+
+   setup ();
+   g_assert_true (gimv_bookmark_add ("/pics/trip/"));
+   g_assert_false (gimv_bookmark_add ("/pics/trip"));
+   g_assert_true (gimv_bookmark_has ("/pics/trip"));
+   g_assert_true (gimv_bookmark_has ("/pics/trip//"));
+   gimv_bookmark_set_note ("/pics/trip/", "summer");
+   bm = gimv_bookmark_get ("/pics/trip");
+   g_assert_cmpstr (bm->path, ==, "/pics/trip");
+   g_assert_cmpstr (bm->note, ==, "summer");
+   gimv_bookmark_free (bm);
+   g_assert_nonnull (strstr (gimv_bookmark_tooltip ("/pics/trip/"), "summer"));
+   gimv_bookmark_add ("/pics/trip/a.jpg");
+
+   /* renamed with the slash: the folder and what is in it */
+   gimv_bookmark_move ("/pics/trip/", "/pics/2025 trip/");
+   g_assert_false (gimv_bookmark_has ("/pics/trip"));
+   g_assert_true (gimv_bookmark_has ("/pics/2025 trip"));
+   g_assert_true (gimv_bookmark_has ("/pics/2025 trip/a.jpg"));
+   g_assert_cmpuint (gimv_bookmark_count (), ==, 2);
+
+   gimv_bookmark_remove ("/pics/2025 trip/");
+   g_assert_cmpuint (gimv_bookmark_count (), ==, 1);
+   teardown ();
+}
+
+
 static void
 cb_changed (gpointer data)
 {
@@ -288,6 +321,7 @@ main (int argc, char *argv[])
    g_test_add_func ("/bookmark/changed-outside", test_changed_outside);
    g_test_add_func ("/bookmark/order", test_order);
    g_test_add_func ("/bookmark/move", test_move);
+   g_test_add_func ("/bookmark/folder", test_folder);
    g_test_add_func ("/bookmark/watch", test_watch);
    g_test_add_func ("/bookmark/tooltip", test_tooltip);
 

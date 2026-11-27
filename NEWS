@@ -242,6 +242,11 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Folders and archives can be bookmarked too: "Bookmark..." in the right
+	  button menu of the thumbnail view (on a folder or archive shown) and of
+	  the directory tab.  They are listed by name under "Folders and Archives"
+	  of the Bookmarks tab, a click opens one in a tab of its own; their
+	  icons have the star too.
 	* Sort by bookmark ([View | Sort File List | by Bookmark], or a click on
 	  the title of the "Bookmark" column of the detail view): the bookmarked
 	  images first, each part by the name; again for the others first.

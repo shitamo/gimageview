@@ -34,6 +34,7 @@
 #include "gtk_prop.h"
 #include "gimv_icon_stock.h"
 #include "gimv_list_view.h"
+#include "gimv_bookmark_edit.h"
 #include "gimv_thumb_win.h"
 #ifdef ENABLE_INDEX
 #include "gimv_dupl_win.h"
@@ -192,6 +193,8 @@ static gboolean   dirview_button_action          (DirView        *dv,
                                                   gint            num);
 
 
+static void cb_bookmark (DirView *dv, guint action, GimvMenuItem *menuitem);
+
 static GimvMenuEntry dirview_popup_items [] =
 {
    {N_("/_Load Thumbnails"),                        NULL, cb_open_thumbnail, SCAN_SUB_DIR_NONE,     NULL},
@@ -204,6 +207,7 @@ static GimvMenuEntry dirview_popup_items [] =
 #endif
    {N_("/---"),                         NULL, NULL,                0,     "<Separator>"},
    {N_("/_Go Here"),                 NULL, cb_go_to_here,       0,     NULL},
+   {N_("/Boo_kmark..."),             NULL, cb_bookmark,         0,     NULL},
    {N_("/_Refresh Tree"),               NULL, cb_refresh_dir_tree, 0,     NULL},
    {N_("/---"),                         NULL, NULL,                0,     "<Separator>"},
    {N_("/_Properties..."),                NULL, cb_file_property,    0,     NULL},
@@ -653,6 +657,31 @@ cb_find_dupl (DirView *dv, guint action, GimvMenuItem *menuitem)
    g_free (path);
 }
 #endif
+
+
+/* the popover of the bookmark (and its note) at the folder in the tree */
+static void
+cb_bookmark (DirView *dv, guint action, GimvMenuItem *menuitem)
+{
+   gchar *path = dirview_get_selected_path (dv);
+   GdkRectangle rect = { 0, 0, 1, 1 };
+   graphene_rect_t area;
+   GList *paths;
+
+   if (!path) return;
+   if (gimv_list_view_get_row_area (dv->dirtree,
+                                    gimv_list_view_get_selected (dv->dirtree), &area)) {
+      graphene_point_t pt = GRAPHENE_POINT_INIT (area.origin.x + 24, area.origin.y), out;
+      if (gtk_widget_compute_point (dv->dirtree, dv->container, &pt, &out)) {
+         rect.x = (gint) out.x;
+         rect.y = (gint) out.y;
+         rect.height = (gint) area.size.height;
+      }
+   }
+   paths = g_list_append (NULL, path);
+   gimv_bookmark_edit (dv->container, &rect, paths);
+   g_list_free_full (paths, g_free);
+}
 
 
 static void

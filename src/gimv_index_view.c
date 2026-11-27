@@ -37,6 +37,8 @@
 #include "prefs.h"
 #include "gimv_index_view.h"
 #include "gimv_bookmark.h"
+#include "gfileutil.h"
+#include "fr-archive.h"
 #include "gimv_thumb_view.h"
 #include "gimv_thumb_win.h"
 
@@ -1089,6 +1091,48 @@ bookmark_in (const GimvBookmark *bm, const gchar *key, GDateTime *today)
 }
 
 
+/* a bookmarked folder or archive (opened in a tab of its own, not among
+ * the images of the rows of the days) */
+#define PLACE_KEY "place:"
+
+static gboolean
+bookmark_is_place (const gchar *path)
+{
+   return g_file_test (path, G_FILE_TEST_IS_DIR)
+          || (g_file_test (path, G_FILE_TEST_IS_REGULAR)
+              && fr_archive_utils_get_file_name_ext (path));
+}
+
+
+static gint
+compare_place (gconstpointer a, gconstpointer b)
+{
+   const GimvBookmark *x = *(GimvBookmark * const *) a, *y = *(GimvBookmark * const *) b;
+   g_autofree gchar *nx = g_path_get_basename (x->path), *ny = g_path_get_basename (y->path);
+   gint r = g_utf8_collate (nx, ny);
+
+   return r ? r : strcmp (x->path, y->path);
+}
+
+
+/* "name (~/the/folder above)" */
+static gchar *
+place_label (const gchar *path)
+{
+   g_autofree gchar *name = g_path_get_basename (path);
+   g_autofree gchar *dir = g_path_get_dirname (path);
+   const gchar *home = g_get_home_dir ();
+   gsize len = strlen (home);
+   gchar *label;
+
+   if (!strncmp (dir, home, len) && (dir[len] == '\0' || dir[len] == '/'))
+      label = g_strdup_printf ("%s (~%s)", name, dir + len);
+   else
+      label = g_strdup_printf ("%s (%s)", name, dir);
+   return label;
+}
+
+
 static void
 bookmark_row (GimvRow *root, const gchar *label, const gchar *key, gint count)
 {
@@ -1105,6 +1149,7 @@ build_bookmark_list (IndexView *iv, GimvRow *root)
    GDateTime *today = today_start ();
    GHashTable *counts = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
    GPtrArray *months = g_ptr_array_new ();   /* the keys, newest first */
+   GPtrArray *places = g_ptr_array_new ();   /* folders and archives */
    gint note = 0, missing = 0, all = 0;
    guint i;
 
@@ -1113,6 +1158,10 @@ build_bookmark_list (IndexView *iv, GimvRow *root)
       gchar *period;
       gint n;
 
+      if (bookmark_is_place (bm->path)) {
+         g_ptr_array_add (places, bm);
+         continue;
+      }
       /* not there (moved by hand, a disk not mounted): counted apart, the
        * rows count what they open */
       if (!g_file_test (bm->path, G_FILE_TEST_IS_REGULAR)) {
@@ -1160,6 +1209,22 @@ build_bookmark_list (IndexView *iv, GimvRow *root)
       bookmark_row (root, _("With a Note"), "note", note);
       bookmark_row (root, _("Without a Note"), "nonote", all - note);
    }
+   if (places->len) {
+      gchar *text = g_strdup_printf ("%s (%'u)", _("Folders and Archives"), places->len);
+      GimvRow *group = row_new (root, text, KIND_GROUP, "places", NULL, NULL);
+
+      g_free (text);
+      g_ptr_array_sort (places, compare_place);
+      for (i = 0; i < places->len; i++) {
+         GimvBookmark *bm = g_ptr_array_index (places, i);
+         gchar *key = g_strconcat (PLACE_KEY, bm->path, NULL);
+         gchar *label = place_label (bm->path);
+
+         row_new (group, label, KIND_BOOKMARK, key, NULL, label);
+         g_free (label);
+         g_free (key);
+      }
+   }
    if (missing) {
       /* shown, not opened (there is nothing to show) */
       gchar *text = g_strdup_printf ("%s (%'d)", _("Not Found"), missing);
@@ -1167,6 +1232,7 @@ build_bookmark_list (IndexView *iv, GimvRow *root)
       g_free (text);
    }
 
+   g_ptr_array_unref (places);
    g_ptr_array_unref (months);
    g_hash_table_unref (counts);
    g_date_time_unref (today);
@@ -1186,7 +1252,8 @@ bookmark_files (const gchar *key)
 
    for (i = 0; i < bms->len; i++) {
       GimvBookmark *bm = g_ptr_array_index (bms, i);
-      if (bookmark_in (bm, key, today) && g_file_test (bm->path, G_FILE_TEST_IS_REGULAR))
+      if (bookmark_in (bm, key, today) && g_file_test (bm->path, G_FILE_TEST_IS_REGULAR)
+          && !bookmark_is_place (bm->path))
          list = g_list_prepend (list, g_strdup (bm->path));
    }
    fl->paths = g_list_reverse (list);
@@ -1548,6 +1615,23 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
 
    /* one at a time: clicks while the list is read are dropped */
    if (iv->listing || files_loader_query_loading ()) return;
+
+   /* a bookmarked folder or archive: in a tab of its own, as from the
+      directory view (the tab of it when it is open already) */
+   if (iv->type == GIMV_INDEX_TAB_BOOKMARK && g_str_has_prefix (key, PLACE_KEY)) {
+      const gchar *path = key + strlen (PLACE_KEY);
+
+      if (g_file_test (path, G_FILE_TEST_IS_DIR)) {
+         gchar *dir = add_slash (path);
+         open_dir_images (dir, iv->tw, NULL, LOAD_CACHE, conf.scan_dir_recursive);
+         g_free (dir);
+      } else if (g_file_test (path, G_FILE_TEST_IS_REGULAR)) {
+         open_archive_images (path, iv->tw, NULL, LOAD_CACHE);
+      }
+      if (iv->click_open)
+         gtk_widget_grab_focus (iv->tree);
+      return;
+   }
 
    /* already shown (the second click of a double click, Enter) */
    if (!new_tab && iv->tv && iv->shown_key && !strcmp (iv->shown_key, key)) {

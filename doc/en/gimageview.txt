@@ -460,8 +460,9 @@ Moving images, the index
 2.5. Bookmarks
 
 Images can be bookmarked to look at them again later, in the indexed
-directories or not. The bookmarks are kept in ~/.gimv/bookmarks (apart from
-the index database: making the index again keeps them).
+directories or not, and so can the folders and archives looked at often. The
+bookmarks are kept in ~/.gimv/bookmarks (apart from the index database: making
+the index again keeps them).
 
 Bookmarking
     Select images in the thumbnail view (one or more) and choose [Edit |
@@ -471,7 +472,9 @@ Bookmarking
     comes up. It can be closed with Escape without writing anything (a note
     can be written later). Enter, or a click elsewhere, keeps the note
     written. Chosen on a bookmarked image, it changes the note, or "Remove"
-    takes the bookmark off.
+    takes the bookmark off. Folders and archives are bookmarked the same way
+    (those shown in the thumbnail view, or "Bookmark..." in the right button
+    menu of the directory tab).
 
 Key
     No key is given by default. One can be given in [Edit | Keyboard
@@ -489,15 +492,19 @@ Bookmarks tab
     month), and "All", "With a Note", "Without a Note", with their numbers. A
     click on a row opens them in the result tab, the newest first (the file
     names only, as the index tabs). Choosing a sort in the menu sorts them so.
+    The bookmarked folders and archives are listed by name under "Folders and
+    Archives" (not in the rows of the days or "All"); a click opens one in a
+    tab of its own.
 
 The notes
-    A bookmarked image has a yellow star at the top right corner of its image
-    in the album views (thumbnails and icons), and a star in the "Bookmark"
-    column of the detail view (its title is a star; it is not one of the
-    columns by default: add it in [Preferences | Thumbnail Window | Thumbnail
-    View | Detail View]). The star comes and goes as soon as a bookmark is
-    added or removed. The tooltip of the thumbnail of a bookmarked image
-    starts with "★ the note" ("★ In the bookmarks" without a note).
+    A bookmarked image (folder, archive) has a yellow star at the top right
+    corner of its image in the album views (thumbnails and icons), and a star
+    in the "Bookmark" column of the detail view (its title is a star; it is
+    not one of the columns by default: add it in [Preferences | Thumbnail
+    Window | Thumbnail View | Detail View]). The star comes and goes as soon
+    as a bookmark is added or removed. The tooltip of the thumbnail of a
+    bookmarked image starts with "★ the note" ("★ In the bookmarks" without a
+    note).
 
 Moved and missing images
     An image renamed or moved with GImageView keeps its bookmark. In the
@@ -904,6 +911,14 @@ I want to add a note to a bookmark later
     own).
 
     See 2.5. Bookmarks, 6.3.5. The Bookmarks tab.
+
+I want to open a folder or archive I look at often at once
+    Right-click the folder in the directory tab and choose "Bookmark..." (a
+    folder or archive shown in the thumbnail view: "Bookmark..." in the right
+    button menu, as an image). A click on its row under "Folders and Archives"
+    of the Bookmarks tab (a star) opens it.
+
+    See 2.5. Bookmarks.
 
 I want to save an image in another format (HEIC as JPEG, ...)
     [File | Save Image...] (Ctrl+S) of the image window, or "Save Image..." in
@@ -2057,6 +2072,10 @@ Find Duplicates with the Folders in It...
 Go Here
     Makes the directory under the cursor the top of the directory view.
 
+Bookmark...
+    Bookmarks the directory under the cursor, with a field for a note. It is
+    opened from "Folders and Archives" of the Bookmarks tab (2.5).
+
 Refresh Tree
     Refreshes the directory view. Used to show directories created, moved or
     deleted from the command line.
@@ -2116,7 +2135,9 @@ Rename... (F2)
 
 Open, Open in New Tab
     Show the bookmarked images of the row (all, a month, with a note, without
-    a note), as in the Date tab (6.3.2).
+    a note), as in the Date tab (6.3.2). A row under "Folders and Archives"
+    opens the folder or archive in a tab of its own (the tab of it when it is
+    open).
 
 6.4. Preview
 
@@ -4074,6 +4095,12 @@ How duplicates are found
  ・ Sort by bookmark ([View | Sort File List | by Bookmark], or a click on the
     title of the "Bookmark" column of the detail view): the bookmarked images
     first, each part by the name; Reverse Order for the others first.
+
+ ・ Folders and archives can be bookmarked too ("Bookmark..." in the right
+    button menu of the thumbnail view, on a folder or archive shown, and of
+    the directory tab): they are listed by name under "Folders and Archives"
+    of the Bookmarks tab, and a click opens one in a tab of its own; their
+    icons have the star too.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

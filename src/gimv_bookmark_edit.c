@@ -15,6 +15,7 @@
 #include "gimv_bookmark.h"
 #include "gimv_bookmark_edit.h"
 #include "gimv_image_info.h"
+#include "fr-archive.h"
 
 typedef struct {
    GtkWidget *popover;
@@ -122,8 +123,19 @@ gimv_bookmark_edit (GtkWidget *parent, const GdkRectangle *rect, GList *paths)
       bm = gimv_bookmark_get (g_ptr_array_index (e->paths, 0));
       title = g_strdup (added ? _("Bookmarked") : _("Bookmark"));
    } else {
-      title = g_strdup_printf (ngettext ("%'u image bookmarked", "%'u images bookmarked",
-                                         e->paths->len), e->paths->len);
+      gboolean images = TRUE;   /* no folder or archive among them */
+
+      for (guint i = 0; i < e->paths->len; i++)
+         if (!g_file_test (g_ptr_array_index (e->paths, i), G_FILE_TEST_IS_REGULAR)
+             || fr_archive_utils_get_file_name_ext (g_ptr_array_index (e->paths, i)))
+            images = FALSE;
+      if (images)
+         title = g_strdup_printf (ngettext ("%'u image bookmarked", "%'u images bookmarked",
+                                            e->paths->len), e->paths->len);
+      else
+         /* TRANSLATORS: images, folders and archives */
+         title = g_strdup_printf (ngettext ("%'u item bookmarked", "%'u items bookmarked",
+                                            e->paths->len), e->paths->len);
    }
    e->note = g_strdup (bm && bm->note ? bm->note : "");
    gimv_bookmark_free (bm);
@@ -163,13 +175,12 @@ gimv_bookmark_edit (GtkWidget *parent, const GdkRectangle *rect, GList *paths)
 }
 
 
-/* the paths to bookmark of a list of GimvImageInfo: images only (not
- * folders, archives, files inside an archive) */
+/* the paths to bookmark of a list of GimvImageInfo: images, folders and
+ * archives (not files inside an archive, not streams) */
 static gboolean
 can_bookmark (GimvImageInfo *info)
 {
-   return info && !gimv_image_info_is_dir (info) && !gimv_image_info_is_archive (info)
-          && !(info->flags & GIMV_IMAGE_INFO_ARCHIVE_MEMBER_FLAG)
+   return info && !(info->flags & GIMV_IMAGE_INFO_ARCHIVE_MEMBER_FLAG)
           && !(info->flags & GIMV_IMAGE_INFO_MRL_FLAG);
 }
 
@@ -181,7 +192,12 @@ gimv_bookmark_has_info (GimvImageInfo *info)
 
    if (!can_bookmark (info)) return FALSE;
    path = gimv_image_info_get_path (info);
-   return path && gimv_bookmark_has (path);
+   if (!path) return FALSE;
+   /* "../" of the thumbnail view is the folder above */
+   {
+      g_autofree gchar *full = g_canonicalize_filename (path, NULL);
+      return gimv_bookmark_has (full);
+   }
 }
 
 
