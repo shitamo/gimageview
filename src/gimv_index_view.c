@@ -37,6 +37,7 @@
 #include "prefs.h"
 #include "gimv_index_view.h"
 #include "gimv_bookmark.h"
+#include "gimv_bookmark_missing.h"
 #include "gfileutil.h"
 #include "fr-archive.h"
 #include "gimv_thumb_view.h"
@@ -1094,6 +1095,7 @@ bookmark_in (const GimvBookmark *bm, const gchar *key, GDateTime *today)
 /* a bookmarked folder or archive (opened in a tab of its own, not among
  * the images of the rows of the days) */
 #define PLACE_KEY "place:"
+#define MISSING_KEY "missing"
 
 static gboolean
 bookmark_is_place (const gchar *path)
@@ -1226,9 +1228,9 @@ build_bookmark_list (IndexView *iv, GimvRow *root)
       }
    }
    if (missing) {
-      /* shown, not opened (there is nothing to show) */
+      /* opens the window of them (gimv_bookmark_missing.c) */
       gchar *text = g_strdup_printf ("%s (%'d)", _("Not Found"), missing);
-      row_new (root, text, KIND_HEADER, "missing", NULL, NULL);
+      row_new (root, text, KIND_BOOKMARK, MISSING_KEY, NULL, NULL);
       g_free (text);
    }
 
@@ -1618,6 +1620,12 @@ open_key (IndexView *iv, const gchar *key, gboolean new_tab)
 
    /* a bookmarked folder or archive: in a tab of its own, as from the
       directory view (the tab of it when it is open already) */
+   /* the ones not found: their window */
+   if (iv->type == GIMV_INDEX_TAB_BOOKMARK && !strcmp (key, MISSING_KEY)) {
+      GtkRoot *root = gtk_widget_get_root (iv->tree);
+      gimv_bookmark_missing_open (GTK_IS_WINDOW (root) ? GTK_WINDOW (root) : NULL);
+      return;
+   }
    if (iv->type == GIMV_INDEX_TAB_BOOKMARK && g_str_has_prefix (key, PLACE_KEY)) {
       const gchar *path = key + strlen (PLACE_KEY);
 

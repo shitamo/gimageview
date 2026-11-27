@@ -152,6 +152,14 @@ if sqlite_dep.found()
       dependencies : [glib_dep, sqlite_dep]),
     kwargs : test_kwargs)
 
+  # src/gimv_bookmark_cand.c (GLib and SQLite)
+  test('bookmark-cand',
+    executable('test-bookmark-cand', 'test_bookmark_cand.c',
+      objects : gimv_exe.extract_objects('gimv_bookmark_cand.c'),
+      include_directories : test_inc,
+      dependencies : [glib_dep, sqlite_dep]),
+    kwargs : test_kwargs)
+
   # src/indexer/gimv_index_keywords.c (GLib only)
   test('keywords',
     executable('test-keywords', 'test_keywords.c',

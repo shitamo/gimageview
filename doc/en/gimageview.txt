@@ -510,8 +510,28 @@ The notes
 Moved and missing images
     An image renamed or moved with GImageView keeps its bookmark. In the
     indexed directories, the bookmarks also follow images and folders moved or
-    renamed by other programs. Other images not found any more are counted in
-    "Not Found" of the tab.
+    renamed by other programs while GImageView runs.
+
+    The others not found any more (moved, renamed or deleted while GImageView
+    was not running, outside the indexed directories, or on a drive not
+    mounted) are counted in "Not Found (n)" of the tab. A click on it opens
+    the "Bookmarks Not Found" window: the path, when it was added, the note
+    and where it may have gone, the files (folders) of the same name in the
+    index: the path when there is one, how many when there are more (all of
+    them in the tooltip).
+
+     ・ Put on Where It Went : moves the bookmark of a line with one
+        candidate, with its note and date, to it (several lines may be
+        selected).
+
+     ・ Put on Another... : chooses where it goes (from the first candidate,
+        or the folder it was in; a folder for a name without an extension).
+
+     ・ Remove the Bookmark : for one deleted, for example.
+
+    When the place it goes has a bookmark already, that one is kept. Nothing
+    is removed by itself (a drive not mounted comes back). Without the index,
+    where they went is not looked for.
 
 2.6. Image index (dates and tags)
 
@@ -922,6 +942,15 @@ I want to open a folder or archive I look at often at once
     the Bookmarks tab (a star) opens it.
 
     See 2.5. Bookmarks.
+
+A bookmarked image is "Not Found"
+    It was moved, renamed or deleted while GImageView was not running. A click
+    on "Not Found" of the Bookmarks tab (a star) opens a list of them, with
+    the files of the same name in the index as where they may have gone. "Put
+    on Where It Went" or "Put on Another..." moves the bookmark with its note;
+    "Remove the Bookmark" removes the one of a file deleted.
+
+    See 2.5. Bookmarks (moved and missing images).
 
 I want to save an image in another format (HEIC as JPEG, ...)
     [File | Save Image...] (Ctrl+S) of the image window, or "Save Image..." in
@@ -2140,7 +2169,7 @@ Open, Open in New Tab
     Show the bookmarked images of the item clicked (all, a month, with a note,
     without a note), as in the Date tab (6.3.2). A folder or archive under
     "Folders and Archives" opens in a tab of its own (the tab of it when it is
-    open).
+    open). "Not Found" opens the window of the bookmarks not found (2.5).
 
 6.4. Preview
 
@@ -4105,6 +4134,11 @@ How duplicates are found
     of the Bookmarks tab, and a click opens one in a tab of its own; their
     icons have the star too (at the middle of the folder icon in the tree of
     the directory tab, with the note in the tooltip).
+
+ ・ "Not Found" of the Bookmarks tab opens the window of the bookmarks not
+    found, with the files (folders) of the same name in the index as where
+    they may have gone: the bookmark and its note are put on it or on another,
+    or removed (never by itself).
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

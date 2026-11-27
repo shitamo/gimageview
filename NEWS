@@ -242,6 +242,11 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* "Not Found" of the Bookmarks tab opens the window of the bookmarks
+	  whose file or folder is not found (moved, renamed or deleted while
+	  gimv was not running...), with the files (folders) of the same name in
+	  the index as where they may have gone: put the bookmark and its note
+	  on it or on another, or remove it.  Nothing is removed by itself.
 	* Folders and archives can be bookmarked too: "Bookmark..." in the right
 	  button menu of the thumbnail view (on a folder or archive shown) and of
 	  the directory tab.  They are listed by name under "Folders and Archives"

@@ -8260,3 +8260,65 @@ msgstr ""
 "同じ名前のファイルがあります: %s\n"
 "\n"
 "上書きはしません。"
+
+#: src/gimv_bookmark_missing.c
+msgid "Note of the Bookmark"
+msgstr "メモ"
+
+#: src/gimv_bookmark_missing.c
+msgid "Added"
+msgstr "付けた日時"
+
+#: src/gimv_bookmark_missing.c
+msgid "Bookmarks Not Found"
+msgstr "見つからないブックマーク"
+
+#: src/gimv_bookmark_missing.c
+msgid "Bookmarked files and folders that are not found (moved, renamed or deleted while gimv was not looking, or on a drive not mounted). Put the bookmark on where it went, or remove it."
+msgstr "ブックマークしたファイル・フォルダのうち見つからないもの (gimv が見ていない間に移動・名前の変更・削除された、またはドライブがつながっていない) です。ブックマークを移動先に付け直すか、外してください。"
+
+#: src/gimv_bookmark_missing.c
+msgid "Every bookmarked file and folder is there."
+msgstr "ブックマークしたファイル・フォルダは全てあります。"
+
+#: src/gimv_bookmark_missing.c
+msgid "Looking for where they went in the index..."
+msgstr "索引から移動先を探しています..."
+
+#: src/gimv_bookmark_missing.c
+msgid "Put on Another..."
+msgstr "別の場所に付け直す..."
+
+#: src/gimv_bookmark_missing.c
+msgid "Remove the Bookmark"
+msgstr "ブックマークを外す"
+
+#: src/gimv_bookmark_missing.c
+msgid "Where It May Have Gone"
+msgstr "移動先の候補"
+
+#: src/gimv_bookmark_missing.c
+msgid "Where the Bookmark Goes"
+msgstr "ブックマークの付け直し先"
+
+#: src/gimv_bookmark_missing.c
+msgid "Without the index, where they went is not looked for."
+msgstr "索引を使っていないので、移動先は探しません。"
+
+#: src/gimv_bookmark_missing.c
+#, c-format
+msgid "%'u candidate"
+msgid_plural "%'u candidates"
+msgstr[0] "候補 %'u 件"
+
+#: src/gimv_bookmark_missing.c
+#, c-format
+msgid "%'u bookmark done."
+msgid_plural "%'u bookmarks done."
+msgstr[0] "%'u 件を片付けました。"
+
+#: src/gimv_bookmark_missing.c
+#, c-format
+msgid "%'u kept its own bookmark (the note of the missing one is not taken)."
+msgid_plural "%'u kept their own bookmarks (the notes of the missing ones are not taken)."
+msgstr[0] "%'u 件は付け直し先にブックマークがあったので、そちらを残しました (見つからない方のメモは移していません)。"

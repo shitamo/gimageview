@@ -174,7 +174,13 @@ A bookmarked image (folder, archive) has a yellow star at the top right corner o
 </p></dd>
 <dt><span class="term"><a name="bookmark_move"></a>Moved and missing images</span></dt>
 <dd><p class="para">
-An image renamed or moved with GImageView keeps its bookmark. In the indexed directories, the bookmarks also follow images and folders moved or renamed by other programs. Other images not found any more are counted in "Not Found" of the tab.
+An image renamed or moved with GImageView keeps its bookmark. In the indexed directories, the bookmarks also follow images and folders moved or renamed by other programs while GImageView runs.</p><p class="para">The others not found any more (moved, renamed or deleted while GImageView was not running, outside the indexed directories, or on a drive not mounted) are counted in "Not Found (n)" of the tab. A click on it opens the "Bookmarks Not Found" window: the path, when it was added, the note and where it may have gone, the files (folders) of the same name in the index: the path when there is one, how many when there are more (all of them in the tooltip).</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p class="para"><b>Put on Where It Went</b> : moves the bookmark of a line with one candidate, with its note and date, to it (several lines may be selected).</p></li>
+<li><p class="para"><b>Put on Another...</b> : chooses where it goes (from the first candidate, or the folder it was in; a folder for a name without an extension).</p></li>
+<li><p class="para"><b>Remove the Bookmark</b> : for one deleted, for example.</p></li>
+</ul></div>
+<p class="para">When the place it goes has a bookmark already, that one is kept. Nothing is removed by itself (a drive not mounted comes back). Without the index, where they went is not looked for.
 </p></dd>
 </dl></div>
 </div>
