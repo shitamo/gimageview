@@ -84,7 +84,8 @@ typedef enum {
    MOUSE_PRESS_UP,
    MOUSE_PRESS_DOWN,
    MOUSE_PRESS_LEFT,
-   MOUSE_PRESS_RIGHT
+   MOUSE_PRESS_RIGHT,
+   MOUSE_PRESS_LOUPE     /* while the button is pressed */
 } ImageViewPressType;
 
 
@@ -2467,6 +2468,10 @@ gimv_image_view_button_action (GimvImageView *iv, GimvEventButton *event, gint n
    case MOUSE_PRESS_RIGHT:
       mx -= 20;
       gimv_image_view_moveto (iv, mx, my);
+      break;
+   case MOUSE_PRESS_LOUPE:
+      if (num > 0)
+         gimv_image_view_loupe_begin (iv, event->x, event->y);
       break;
    default:
       break;

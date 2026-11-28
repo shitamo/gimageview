@@ -35,6 +35,19 @@
 #include "gimv_thumb_win.h"
 #include "prefs.h"
 
+/* the mouse buttons of the image window and the preview: Ctrl and the left
+ * button, the loupe while it is pressed (14 and 17 of the lists of
+ * prefs_ui_imagewin.c and prefs_ui_thumbwin.c); the old defaults without
+ * it are made the new ones when they are loaded */
+#define IMGVIEW_MOUSE_BUTTON_OLD_DEFAULT \
+   "0,0,0,0; -1,-2,0,0; -2,0,0,0; 3,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
+#define IMGVIEW_MOUSE_BUTTON_DEFAULT \
+   "0,0,0,0; -1,-2,14,0; -2,0,0,0; 3,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
+#define PREVIEW_MOUSE_BUTTON_OLD_DEFAULT \
+   "0,0,0,0; -1,-2,0,0; -4,0,0,0; 5,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
+#define PREVIEW_MOUSE_BUTTON_DEFAULT \
+   "0,0,0,0; -1,-2,17,0; -4,0,0,0; 5,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
+
 Config conf;
 KeyConf akey;
 
@@ -205,9 +218,10 @@ static ConfParam param_imageview [] = {
    {"join_metadata",              D_BOOL,   "TRUE",    &conf.join_metadata},
    {"join_comment",               D_BOOL,   "FALSE",   &conf.join_comment},
    {"imgview_movie_lock_mouse",   D_BOOL,   "FALSE",   &conf.imgview_movie_lock_mouse},
+   {"imgview_loupe_zoom",         D_INT,    "100",     &conf.imgview_loupe_zoom},
    {"movie_default_view_mode",    D_STRING, NULL,      &conf.movie_default_view_mode},
    {"imgview_mouse_button",       D_STRING,
-    "0,0,0,0; -1,-2,0,0; -2,0,0,0; 3,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0",
+    IMGVIEW_MOUSE_BUTTON_DEFAULT,
     &conf.imgview_mouse_button},
    {NULL, D_NULL, NULL, NULL}
 };
@@ -278,7 +292,7 @@ static ConfParam param_preview [] = {
    {"preview_player_visible",     D_ENUM, "2",     &conf.preview_player_visible},
    {"preview_buffer",             D_BOOL, "FALSE", &conf.preview_buffer},
    {"preview_mouse_button",       D_STRING,
-    "0,0,0,0; -1,-2,0,0; -4,0,0,0; 5,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0",
+    PREVIEW_MOUSE_BUTTON_DEFAULT,
     &conf.preview_mouse_button},
    {NULL, D_NULL, NULL, NULL}
 };
@@ -646,6 +660,20 @@ prefs_load_config (void)
    {
       g_free (conf.wallpaper_menu);
       conf.wallpaper_menu = g_strdup (WALLPAPER_MENU_DEFAULT);
+   }
+
+   /* the loupe: Ctrl and the left button, when the buttons are as they were */
+   if (conf.imgview_mouse_button
+       && !strcmp (conf.imgview_mouse_button, IMGVIEW_MOUSE_BUTTON_OLD_DEFAULT))
+   {
+      g_free (conf.imgview_mouse_button);
+      conf.imgview_mouse_button = g_strdup (IMGVIEW_MOUSE_BUTTON_DEFAULT);
+   }
+   if (conf.preview_mouse_button
+       && !strcmp (conf.preview_mouse_button, PREVIEW_MOUSE_BUTTON_OLD_DEFAULT))
+   {
+      g_free (conf.preview_mouse_button);
+      conf.preview_mouse_button = g_strdup (PREVIEW_MOUSE_BUTTON_DEFAULT);
    }
 
    gimv_plugin_prefs_read_files ();

@@ -176,6 +176,7 @@ static const gchar *preview_mouse_items[] = {
    N_("Scroll left"),
    N_("Scroll right"),
    N_("Open the folder (collections)"),
+   N_("Loupe (while pressed)"),
    NULL
 };
 

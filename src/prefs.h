@@ -149,6 +149,7 @@ typedef struct _Config {
                                               (gimv_page_layout.h), "": defaults */
    gint       imgview_page_layout;         /* the one of a new view */
    gboolean   imgview_movie_lock_mouse; /* no next/prev/zoom clicks while playing */
+   gint       imgview_loupe_zoom;       /* the loupe: % of the image (100, 200, ...) */
    gint       imgview_default_rotation;
    gboolean   imgview_remember_rotation;   /* keep each image's rotation */
    gboolean   imgview_buffer;

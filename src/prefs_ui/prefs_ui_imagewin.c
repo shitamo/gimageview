@@ -149,6 +149,7 @@ static const gchar *imageview_mouse_items[] = {
    N_("Scroll down"),
    N_("Scroll left"),
    N_("Scroll right"),
+   N_("Loupe (while pressed)"),
    NULL
 };
 

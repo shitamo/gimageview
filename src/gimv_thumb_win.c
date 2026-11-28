@@ -135,7 +135,8 @@ typedef enum {
    PREVIEW_DOWN,
    PREVIEW_LEFT,
    PREVIEW_RIGHT,
-   PREVIEW_OPEN_FOLDER   /* an image of a collection: its folder */
+   PREVIEW_OPEN_FOLDER,  /* an image of a collection: its folder */
+   PREVIEW_LOUPE         /* while the button is pressed */
 } PreviewPressType;
 
 
@@ -2752,6 +2753,10 @@ image_preview_action (GimvImageView *iv, GimvEventButton *event, gint num)
       break;
    case PREVIEW_OPEN_FOLDER:
       gimv_image_view_open_folder (iv);
+      break;
+   case PREVIEW_LOUPE:
+      if (num > 0)
+         gimv_image_view_loupe_begin (iv, event->x, event->y);
       break;
    default:
       break;

@@ -242,6 +242,11 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* A loupe: Ctrl and the left button kept pressed on the image window or
+	  the preview shows the image magnified in a square at the pointer
+	  ("Loupe (while pressed)" of the mouse buttons).  It magnifies the
+	  image itself, read in its full size in a thread (100% to 1600%, the
+	  wheel changes it, kept).
 	* "Not Found" of the Bookmarks tab opens the window of the bookmarks
 	  whose file or folder is not found (moved, renamed or deleted while
 	  gimv was not running...), with the files (folders) of the same name in

@@ -952,6 +952,14 @@ A bookmarked image is "Not Found"
 
     See 2.5. Bookmarks (moved and missing images).
 
+I want to look at a part of a photo magnified (a loupe)
+    In the image window or the preview, press the left button with Ctrl and
+    keep it pressed: a square of the image magnified comes at the pointer. It
+    goes with the pointer, the wheel changes how much (100%, 200%, 400%...),
+    and it goes when the button is released.
+
+    See 7.2.2. Mouse Button.
+
 I want to save an image in another format (HEIC as JPEG, ...)
     [File | Save Image...] (Ctrl+S) of the image window, or "Save Image..." in
     the right button menu of the preview, saves it in the format and quality
@@ -2451,6 +2459,15 @@ modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it
 runs when the button is pressed or released. Buttons 8 and 9 do nothing by
 default.
 
+"Loupe (while pressed)": while the button is pressed, a square of the image
+magnified (a loupe) is shown over it at the pointer, and goes with the
+pointer; it goes when the button is released. It magnifies the image itself
+(at 100%, a pixel of the image is a pixel of the screen), so a photo made
+smaller to fit the window shows its details. The wheel, the button kept
+pressed, changes it: 100%, 200%, 400%, 800%, 1600%; the last one is kept
+(never less than the image is shown). Control and the left button (press) by
+default. Added in the GTK 4 version.
+
 7.3. Thumbnail Window
 
 Save window state on exit
@@ -2635,6 +2652,15 @@ wheel up and down, double click of the left button, and the side buttons
 modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it
 runs when the button is pressed or released. Buttons 8 and 9 do nothing by
 default.
+
+"Loupe (while pressed)": while the button is pressed, a square of the image
+magnified (a loupe) is shown over it at the pointer, and goes with the
+pointer; it goes when the button is released. It magnifies the image itself
+(at 100%, a pixel of the image is a pixel of the screen), so a photo made
+smaller to fit the window shows its details. The wheel, the button kept
+pressed, changes it: 100%, 200%, 400%, 800%, 1600%; the last one is kept
+(never less than the image is shown). Control and the left button (press) by
+default. Added in the GTK 4 version.
 
 7.4. Movie and Audio
 
@@ -4139,6 +4165,11 @@ How duplicates are found
     found, with the files (folders) of the same name in the index as where
     they may have gone: the bookmark and its note are put on it or on another,
     or removed (never by itself).
+
+ ・ A loupe: Ctrl and the left button kept pressed on the image window or the
+    preview show the image magnified in a square at the pointer ("Loupe (while
+    pressed)" of the mouse buttons). It magnifies the image itself (read in
+    its full size in a thread), 100% to 1600% with the wheel.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

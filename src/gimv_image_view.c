@@ -148,6 +148,17 @@ struct GimvImageViewPrivate_Tag
     * image as its EXIF orientation shows it (as gimv-faces found it) */
    gboolean         face_mark;
    gdouble          face_x, face_y, face_w, face_h;
+
+   /* the loupe (while a button is pressed): where, and the image in its
+    * full size (turned) for it, loaded in a thread when the one shown is
+    * smaller; NULL: the one shown is used */
+   gboolean         loupe;
+   gdouble          loupe_x, loupe_y;
+   GdkPixbuf       *loupe_full;
+   GimvImageInfo   *loupe_info;     /* of loupe_full; not a reference */
+   gint             loupe_rotate;
+   gboolean         loupe_flip;
+   GCancellable    *loupe_cancel;   /* the loading */
    gchar           *face_label;
    GimvImageInfo   *face_orient_info;   /* not a reference: compared only */
 
@@ -346,6 +357,13 @@ static gboolean cb_image_button_press      (GtkWidget         *widget,
 static gboolean cb_image_button_release    (GtkWidget         *widget, 
                                             GimvEventButton    *event,
                                             GimvImageView     *iv);
+static void     loupe_drop                 (GimvImageView     *iv);
+static void     loupe_step                 (GimvImageView     *iv,
+                                            gint               dir);
+static void     paint_loupe                (GimvImageView     *iv,
+                                            cairo_t           *cr,
+                                            gint               width,
+                                            gint               height);
 static gboolean cb_image_motion_notify     (GtkWidget         *widget, 
                                             GimvEventMotion    *event,
                                             GimvImageView     *iv);
@@ -1034,6 +1052,15 @@ gimv_image_view_dispose (GObject *object)
    /* remove from list */
    GimvImageViewList = g_list_remove (GimvImageViewList, iv);
 
+   if (iv->priv) {
+      if (iv->priv->loupe_cancel) {
+         g_cancellable_cancel (iv->priv->loupe_cancel);
+         g_clear_object (&iv->priv->loupe_cancel);
+      }
+      g_clear_object (&iv->priv->loupe_full);
+      iv->priv->loupe = FALSE;
+   }
+
    /* GTK4: the menus are released with their window, which may happen
       after the image view has gone */
    {
@@ -1718,6 +1745,12 @@ cb_image_button_press (GtkWidget *widget, GimvEventButton *event,
                   gimv_image_view_signals[IMAGE_PRESSED_SIGNAL], 0,
                   event, &retval);
 
+   if (!iv->priv) return TRUE;
+
+   /* the loupe (a handler began it): no scrolling */
+   if (iv->priv->loupe)
+      return TRUE;
+
    if (iv->priv->dragging)
       return FALSE;
 
@@ -1765,6 +1798,14 @@ cb_image_button_release  (GtkWidget *widget, GimvEventButton *event,
 
    drag_scroll = (iv->priv->pressed && iv->priv->button == 1);
 
+   /* the loupe goes; the release is not a click */
+   if (iv->priv->loupe) {
+      iv->priv->loupe = FALSE;
+      iv->priv->dragging = TRUE;
+      drag_scroll = FALSE;
+      gtk_widget_queue_draw (widget);
+   }
+
    g_signal_emit (G_OBJECT (iv),
                   gimv_image_view_signals[IMAGE_RELEASED_SIGNAL], 0,
                   event, &retval);
@@ -1807,6 +1848,13 @@ cb_image_motion_notify (GtkWidget *widget, GimvEventMotion *event,
    x = event->x;
    y = event->y;
 
+   if (iv->priv->loupe) {
+      iv->priv->loupe_x = event->x;
+      iv->priv->loupe_y = event->y;
+      gtk_widget_queue_draw (widget);
+      return TRUE;
+   }
+
    x_pos = x - iv->priv->drag_startx;
    y_pos = y - iv->priv->drag_starty;
 
@@ -1847,6 +1895,20 @@ cb_image_scroll (GtkWidget *widget, GimvEventScroll *event,
 
    g_return_val_if_fail (GIMV_IS_IMAGE_VIEW (iv), FALSE);
    if (!iv->priv) return FALSE;
+
+   /* the loupe: the wheel changes how much it magnifies */
+   if (iv->priv->loupe) {
+      gdouble dy = event->delta_y;
+      if (event->event && gdk_scroll_event_get_direction (event->event) != GDK_SCROLL_SMOOTH)
+         dy = gdk_scroll_event_get_direction (event->event) == GDK_SCROLL_UP ? -1 : 
+              gdk_scroll_event_get_direction (event->event) == GDK_SCROLL_DOWN ? 1 : 0;
+      iv->priv->scroll_acc_y += dy;
+      if (iv->priv->scroll_acc_y <= -1.0 || iv->priv->scroll_acc_y >= 1.0) {
+         loupe_step (iv, iv->priv->scroll_acc_y < 0 ? 1 : -1);
+         iv->priv->scroll_acc_y = 0.0;
+      }
+      return TRUE;
+   }
 
    memset (&be, 0, sizeof (be));
 
@@ -2473,6 +2535,9 @@ gimv_image_view_change_image_info (GimvImageView *iv, GimvImageInfo *info)
 
    if (!g_list_find (GimvImageViewList, iv)) return;
 
+   /* the loupe: the image in its full size was of the one before */
+   loupe_drop (iv);
+
    /* two pages: known when it is loaded */
    iv->priv->spread_shown = 1;
    iv->priv->spread_wide = 1.0;
@@ -3096,6 +3161,366 @@ gimv_image_view_copy_face_to_clipboard (GimvImageView *iv,
 }
 
 
+/******************************************************************************
+ *
+ *   the loupe: the image under the pointer magnified, in a square over it,
+ *   while a button is pressed (the mouse button settings: "Loupe (while
+ *   pressed)", Ctrl and the left button by default).  How much: of the
+ *   image itself (100% = a pixel of the image a pixel of the screen), the
+ *   wheel changes it, it is kept (conf.imgview_loupe_zoom).  The image is
+ *   used in its full size: the one shown when it is (not a JPEG read
+ *   smaller), else the file is read in a thread (the one shown, larger, in
+ *   the meantime).
+ *
+ ******************************************************************************/
+
+#define LOUPE_SIZE 280   /* the side of the square */
+
+static const gint loupe_zooms[] = { 100, 200, 400, 800, 1600 };
+
+static void
+loupe_drop (GimvImageView *iv)
+{
+   if (!iv->priv) return;
+   if (iv->priv->loupe_cancel) {
+      g_cancellable_cancel (iv->priv->loupe_cancel);
+      g_clear_object (&iv->priv->loupe_cancel);
+   }
+   g_clear_object (&iv->priv->loupe_full);
+   iv->priv->loupe_info = NULL;
+}
+
+
+/* the width and height of the image itself as it is shown (turned) */
+static void
+loupe_image_size (GimvImageView *iv, gint *w, gint *h)
+{
+   *w = shown_width (iv);
+   *h = shown_height (iv);
+   if (iv->priv->rotate == GIMV_IMAGE_VIEW_ROTATE_90
+       || iv->priv->rotate == GIMV_IMAGE_VIEW_ROTATE_270)
+   {
+      gint t = *w; *w = *h; *h = t;
+   }
+}
+
+
+/* the image shown in its full size (no reference), NULL: not that one */
+static GdkPixbuf *
+loupe_shown_full (GimvImageView *iv)
+{
+   gint w, h;
+
+   if (!iv->image || GIMV_IS_ANIM (iv->image) || !GDK_IS_PIXBUF (iv->image->image))
+      return NULL;
+   loupe_image_size (iv, &w, &h);
+   if (gdk_pixbuf_get_width (iv->image->image) >= w
+       && gdk_pixbuf_get_height (iv->image->image) >= h)
+      return iv->image->image;
+   return NULL;
+}
+
+
+typedef struct {
+   gchar   *path;
+   gint     rotate;
+   gboolean flip;
+} LoupeLoad;
+
+static void
+loupe_load_free (LoupeLoad *ll)
+{
+   g_free (ll->path);
+   g_free (ll);
+}
+
+
+static void
+loupe_load_thread (GTask *task, gpointer source, gpointer data, GCancellable *cancel)
+{
+   LoupeLoad *ll = data;
+   GdkPixbuf *pb = gdk_pixbuf_new_from_file (ll->path, NULL), *t;
+
+   if (pb && ll->flip) {
+      t = gdk_pixbuf_flip (pb, TRUE);
+      g_object_unref (pb);
+      pb = t;
+   }
+   if (pb && ll->rotate != GIMV_IMAGE_VIEW_ROTATE_0) {
+      /* the turns of gimv_image_rotate_90 () (TRUE: counterclockwise) */
+      GdkPixbufRotation r = ll->rotate == GIMV_IMAGE_VIEW_ROTATE_90
+                            ? GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE
+                            : ll->rotate == GIMV_IMAGE_VIEW_ROTATE_180
+                            ? GDK_PIXBUF_ROTATE_UPSIDEDOWN
+                            : GDK_PIXBUF_ROTATE_CLOCKWISE;
+      t = gdk_pixbuf_rotate_simple (pb, r);
+      g_object_unref (pb);
+      pb = t;
+   }
+   if (pb)
+      g_task_return_pointer (task, pb, g_object_unref);
+   else
+      g_task_return_pointer (task, NULL, NULL);
+}
+
+
+static void
+loupe_load_done (GObject *source, GAsyncResult *res, gpointer data)
+{
+   GimvImageView *iv = data;
+   GdkPixbuf *pb = g_task_propagate_pointer (G_TASK (res), NULL);
+
+   /* dropped (another image, the view gone): the cancellable was cancelled */
+   if (g_cancellable_is_cancelled (g_task_get_cancellable (G_TASK (res)))
+       || !g_list_find (GimvImageViewList, iv) || !iv->priv)
+   {
+      if (pb) g_object_unref (pb);
+      return;
+   }
+   g_clear_object (&iv->priv->loupe_cancel);
+   if (pb) {
+      gint w, h;
+      loupe_image_size (iv, &w, &h);
+      /* not as large as it is (another format read by gimv only): the
+         one shown is used */
+      if (gdk_pixbuf_get_width (pb) == w && gdk_pixbuf_get_height (pb) == h)
+         iv->priv->loupe_full = pb;
+      else
+         g_object_unref (pb);
+   }
+   if (iv->priv->loupe && iv->draw_area)
+      gtk_widget_queue_draw (iv->draw_area);
+}
+
+
+/* the image in its full size for the loupe: asked for when it is not there */
+static void
+loupe_need_full (GimvImageView *iv)
+{
+   LoupeLoad *ll;
+   GTask *task;
+   const gchar *path;
+
+   if (iv->priv->loupe_info == iv->info
+       && iv->priv->loupe_rotate == (gint) iv->priv->rotate
+       && iv->priv->loupe_flip == iv->priv->flip
+       && (iv->priv->loupe_full || iv->priv->loupe_cancel))
+      return;
+   loupe_drop (iv);
+   iv->priv->loupe_info = iv->info;
+   iv->priv->loupe_rotate = iv->priv->rotate;
+   iv->priv->loupe_flip = iv->priv->flip;
+
+   if (loupe_shown_full (iv)) return;
+   if (!iv->info || gimv_image_info_is_movie (iv->info)
+       || gimv_image_info_is_audio (iv->info)
+       || gimv_image_info_is_animation (iv->info)
+       || gimv_image_info_is_in_archive (iv->info)
+       || iv->priv->spread_shown >= 2)
+      return;
+   path = gimv_image_info_get_path (iv->info);
+   if (!path) return;
+
+   ll = g_new0 (LoupeLoad, 1);
+   ll->path = g_strdup (path);
+   ll->rotate = iv->priv->rotate;
+   ll->flip = iv->priv->flip;
+   iv->priv->loupe_cancel = g_cancellable_new ();
+   task = g_task_new (NULL, iv->priv->loupe_cancel, loupe_load_done, iv);
+   g_task_set_task_data (task, ll, (GDestroyNotify) loupe_load_free);
+   g_task_run_in_thread (task, loupe_load_thread);
+   g_object_unref (task);
+}
+
+
+/* how much now: at least a step more than the image is shown */
+static gint
+loupe_zoom (GimvImageView *iv)
+{
+   gint w, h, shown, z, i;
+
+   loupe_image_size (iv, &w, &h);
+   shown = w > 0 && iv->priv->pixmap
+           ? (gint) (100.0 * gdk_texture_get_width (iv->priv->pixmap) / w + 0.5) : 100;
+   z = conf.imgview_loupe_zoom;
+   for (i = 0; i < (gint) G_N_ELEMENTS (loupe_zooms) && z <= shown; i++)
+      if (loupe_zooms[i] > z) z = loupe_zooms[i];
+   if (z <= shown) z = shown * 2;
+   return z;
+}
+
+
+/* a step more (1) or less (-1) */
+static void
+loupe_step (GimvImageView *iv, gint dir)
+{
+   gint z = loupe_zoom (iv), i, n = G_N_ELEMENTS (loupe_zooms);
+
+   if (dir > 0) {
+      for (i = 0; i < n; i++)
+         if (loupe_zooms[i] > z) { z = loupe_zooms[i]; break; }
+   } else {
+      for (i = n - 1; i >= 0; i--)
+         if (loupe_zooms[i] < z) { z = loupe_zooms[i]; break; }
+   }
+   conf.imgview_loupe_zoom = z;
+   if (iv->draw_area) gtk_widget_queue_draw (iv->draw_area);
+}
+
+
+/* a part of a pixbuf as a cairo surface */
+static cairo_surface_t *
+loupe_surface (GdkPixbuf *pb, gint x, gint y, gint w, gint h)
+{
+   cairo_surface_t *s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
+   const guchar *src = gdk_pixbuf_read_pixels (pb);
+   gint stride = gdk_pixbuf_get_rowstride (pb), nc = gdk_pixbuf_get_n_channels (pb);
+   gboolean alpha = gdk_pixbuf_get_has_alpha (pb);
+   guchar *dst;
+   gint dstride, i, j;
+
+   cairo_surface_flush (s);
+   dst = cairo_image_surface_get_data (s);
+   dstride = cairo_image_surface_get_stride (s);
+   for (j = 0; j < h; j++) {
+      const guchar *p = src + (gsize) (y + j) * stride + (gsize) x * nc;
+      guint32 *q = (guint32 *) (dst + (gsize) j * dstride);
+      for (i = 0; i < w; i++, p += nc) {
+         guint a = alpha ? p[3] : 255;
+         guint r = p[0] * a / 255, g = p[1] * a / 255, b = p[2] * a / 255;
+         q[i] = (a << 24) | (r << 16) | (g << 8) | b;
+      }
+   }
+   cairo_surface_mark_dirty (s);
+   return s;
+}
+
+
+static void
+loupe_rounded (cairo_t *cr, gdouble x, gdouble y, gdouble w, gdouble h, gdouble r)
+{
+   cairo_new_sub_path (cr);
+   cairo_arc (cr, x + w - r, y + r,     r, -G_PI / 2, 0);
+   cairo_arc (cr, x + w - r, y + h - r, r, 0, G_PI / 2);
+   cairo_arc (cr, x + r,     y + h - r, r, G_PI / 2, G_PI);
+   cairo_arc (cr, x + r,     y + r,     r, G_PI, 3 * G_PI / 2);
+   cairo_close_path (cr);
+}
+
+
+static void
+paint_loupe (GimvImageView *iv, cairo_t *cr, gint width, gint height)
+{
+   GdkPixbuf *src, *shown = NULL;
+   gint iw, ih, pw, ph, sw, sh, zoom, x0, y0, x1, y1;
+   gdouble k, cx, cy, lx, ly, half = LOUPE_SIZE / 2.0;
+   GdkRGBA bg;
+
+   loupe_need_full (iv);
+   src = iv->priv->loupe_full ? iv->priv->loupe_full : loupe_shown_full (iv);
+   if (!src && iv->image && !GIMV_IS_ANIM (iv->image) && GDK_IS_PIXBUF (iv->image->image))
+      src = iv->image->image;    /* smaller: until the full one is read */
+   if (!src) {
+      shown = gimv_pixbuf_from_texture (iv->priv->pixmap);
+      src = shown;
+   }
+   if (!src) return;
+
+   loupe_image_size (iv, &iw, &ih);
+   pw = gdk_texture_get_width (iv->priv->pixmap);
+   ph = gdk_texture_get_height (iv->priv->pixmap);
+   sw = gdk_pixbuf_get_width (src);
+   sh = gdk_pixbuf_get_height (src);
+   if (iw <= 0 || ih <= 0 || pw <= 0 || ph <= 0) goto END;
+
+   zoom = loupe_zoom (iv);
+   /* screen pixels a pixel of src */
+   k = zoom / 100.0 * iw / sw;
+   /* the point of src under the pointer */
+   cx = (iv->priv->loupe_x - iv->priv->x_pos) * sw / (gdouble) pw;
+   cy = (iv->priv->loupe_y - iv->priv->y_pos) * sh / (gdouble) ph;
+   lx = iv->priv->loupe_x - half;
+   ly = iv->priv->loupe_y - half;
+
+   cairo_save (cr);
+   loupe_rounded (cr, lx, ly, LOUPE_SIZE, LOUPE_SIZE, 8);
+   cairo_clip_preserve (cr);
+   gimv_image_view_get_bg_rgba (iv, &bg);
+   gdk_cairo_set_source_rgba (cr, &bg);
+   cairo_fill (cr);
+
+   /* the part of src in the square (and a pixel more around) */
+   x0 = MAX (0, (gint) floor (cx - half / k) - 1);
+   y0 = MAX (0, (gint) floor (cy - half / k) - 1);
+   x1 = MIN (sw, (gint) ceil (cx + half / k) + 1);
+   y1 = MIN (sh, (gint) ceil (cy + half / k) + 1);
+   if (x1 > x0 && y1 > y0) {
+      cairo_surface_t *part = loupe_surface (src, x0, y0, x1 - x0, y1 - y0);
+      cairo_pattern_t *pat;
+
+      cairo_save (cr);
+      cairo_translate (cr, iv->priv->loupe_x, iv->priv->loupe_y);
+      cairo_scale (cr, k, k);
+      cairo_translate (cr, -cx, -cy);
+      cairo_set_source_surface (cr, part, x0, y0);
+      pat = cairo_get_source (cr);
+      /* pixels as squares when they are large */
+      cairo_pattern_set_filter (pat, k >= 3.0 ? CAIRO_FILTER_NEAREST : CAIRO_FILTER_GOOD);
+      cairo_rectangle (cr, x0, y0, x1 - x0, y1 - y0);
+      cairo_fill (cr);
+      cairo_restore (cr);
+      cairo_surface_destroy (part);
+   }
+   cairo_restore (cr);
+
+   /* the frame */
+   loupe_rounded (cr, lx + 0.5, ly + 0.5, LOUPE_SIZE - 1, LOUPE_SIZE - 1, 8);
+   cairo_set_source_rgba (cr, 0, 0, 0, 0.75);
+   cairo_set_line_width (cr, 3);
+   cairo_stroke_preserve (cr);
+   cairo_set_source_rgba (cr, 1, 1, 1, 0.9);
+   cairo_set_line_width (cr, 1);
+   cairo_stroke (cr);
+
+   /* how much */
+   if (iv->draw_area) {
+      gchar *text = g_strdup_printf ("%d%%", zoom);
+      PangoLayout *layout = gtk_widget_create_pango_layout (iv->draw_area, text);
+      gint tw, th;
+
+      pango_layout_get_pixel_size (layout, &tw, &th);
+      loupe_rounded (cr, lx + 6, ly + 6, tw + 10, th + 4, 4);
+      cairo_set_source_rgba (cr, 0, 0, 0, 0.6);
+      cairo_fill (cr);
+      cairo_move_to (cr, lx + 11, ly + 8);
+      cairo_set_source_rgb (cr, 1, 1, 1);
+      pango_cairo_show_layout (cr, layout);
+      g_object_unref (layout);
+      g_free (text);
+   }
+
+END:
+   if (shown) g_object_unref (shown);
+}
+
+
+void
+gimv_image_view_loupe_begin (GimvImageView *iv, gdouble x, gdouble y)
+{
+   g_return_if_fail (GIMV_IS_IMAGE_VIEW (iv));
+   if (!iv->priv || !iv->priv->pixmap || !iv->draw_area) return;
+   if (iv->info && (gimv_image_info_is_movie (iv->info) || gimv_image_info_is_audio (iv->info)))
+      return;
+
+   iv->priv->loupe = TRUE;
+   iv->priv->loupe_x = x;
+   iv->priv->loupe_y = y;
+   iv->priv->scroll_acc_y = 0.0;
+   loupe_need_full (iv);
+   gtk_widget_queue_draw (iv->draw_area);
+}
+
+
 void
 gimv_image_view_paint (GimvImageView *iv, cairo_t *cr,
                        gint width, gint height)
@@ -3157,6 +3582,8 @@ gimv_image_view_paint (GimvImageView *iv, cairo_t *cr,
       paint_face_mark (iv, cr);
    if (iv->priv->crop_mark && iv->priv->pixmap)
       paint_crop_mark (iv, cr);
+   if (iv->priv->loupe && iv->priv->pixmap)
+      paint_loupe (iv, cr, width, height);
 }
 
 

@@ -8322,3 +8322,7 @@ msgstr[0] "%'u 件を片付けました。"
 msgid "%'u kept its own bookmark (the note of the missing one is not taken)."
 msgid_plural "%'u kept their own bookmarks (the notes of the missing ones are not taken)."
 msgstr[0] "%'u 件は付け直し先にブックマークがあったので、そちらを残しました (見つからない方のメモは移していません)。"
+
+#: src/prefs_ui/prefs_ui_imagewin.c src/prefs_ui/prefs_ui_thumbwin.c
+msgid "Loupe (while pressed)"
+msgstr "ルーペ (押している間)"

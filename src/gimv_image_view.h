@@ -295,6 +295,12 @@ void       gimv_image_view_get_bg_color           (GimvImageView  *iv,
                                                    gint           *red,
                                                    gint           *green,
                                                    gint           *blue);
+/* the loupe: the image under the pointer magnified (of the image itself:
+ * 100%, 200%, ...) until the button pressed is released; the wheel changes
+ * how much.  x, y: in the draw area */
+void       gimv_image_view_loupe_begin            (GimvImageView  *iv,
+                                                   gdouble         x,
+                                                   gdouble         y);
 void       gimv_image_view_open_navwin            (GimvImageView  *iv,
                                                    gint            x_root,
                                                    gint            y_root);
