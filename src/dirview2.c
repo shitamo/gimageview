@@ -281,6 +281,25 @@ dirview_row_at (DirView *dv, gdouble x, gdouble y, guint *position)
 }
 
 
+/* the point is on the icon and the name of a row, right of the arrow of
+ * the expander (and of the indentation before it) */
+static gboolean
+dirview_on_name (DirView *dv, gdouble x, gdouble y)
+{
+   GtkWidget *w = gtk_widget_pick (dv->dirtree, x, y, GTK_PICK_DEFAULT);
+   graphene_rect_t b;
+
+   for (; w && w != dv->dirtree; w = gtk_widget_get_parent (w)) {
+      if (GTK_IS_TREE_EXPANDER (w)) {
+         GtkWidget *child = gtk_tree_expander_get_child (GTK_TREE_EXPANDER (w));
+         return child && gtk_widget_compute_bounds (child, dv->dirtree, &b)
+                && x >= b.origin.x;
+      }
+   }
+   return TRUE;   /* not known: as before */
+}
+
+
 static gboolean
 dirview_row_is_expanded (DirView *dv, GimvRow *row)
 {
@@ -1923,6 +1942,12 @@ dirview_button_action (DirView *dv, GimvEventButton *event, gint num)
 
    row = dirview_row_at (dv, event->x, event->y, &position);
    if (!row) return FALSE;
+
+   /* the arrow (and the indentation before it) only expands and collapses
+      the row (GtkTreeExpander): the folder is not selected nor opened;
+      the menu is still shown */
+   if (abs (num) != MouseActPopupMenu && !dirview_on_name (dv, event->x, event->y))
+      return FALSE;
 
    gimv_list_view_select (dv->dirtree, position);
 

@@ -2632,7 +2632,9 @@ wheel up and down, double click of the left button, and the side buttons
 "back" (button 8) and "forward" (button 9)), choose on the tabs of the
 modifier keys (Normal, Shift, Control, Mod1 (Alt)) the function and whether it
 runs when the button is pressed or released. Buttons 8 and 9 do nothing by
-default.
+default. A click on the arrow left of a folder only expands or collapses it:
+no button selects or opens the folder there (the menu of the right button is
+shown).
 
 7.3.4. Preview
 
@@ -4172,6 +4174,9 @@ How duplicates are found
     preview show the image magnified in a square at the pointer ("Loupe (while
     pressed)" of the mouse buttons). It magnifies the image itself (read in
     its full size in a thread), 100% to 1600% with the wheel.
+
+ ・ Directory view: a click on the arrow of a folder only expands or collapses
+    it, without selecting or opening the folder.
 
  ・ Sort by name puts the numbers in names in the order of their value:
     0p.jpg, 1.jpg, 2.jpg, 10.jpg (before, 0p.jpg came after 09.jpg and 10.jpg

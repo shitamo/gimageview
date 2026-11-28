@@ -242,6 +242,8 @@ Version-0.2.27+gtk4 (GTK 4 port)
 	* A book read with pages side by side goes on from its last page when
 	  its tab is opened again (~/.gimv/books); the pages of the next turn
 	  are read beforehand in a thread.
+	* Directory view: a click on the arrow of a folder only expands or
+	  collapses it, without selecting or opening the folder.
 	* A loupe: Ctrl and the left button kept pressed on the image window or
 	  the preview shows the image magnified in a square at the pointer
 	  ("Loupe (while pressed)" of the mouse buttons).  It magnifies the
