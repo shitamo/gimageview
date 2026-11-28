@@ -2466,7 +2466,8 @@ pointer; it goes when the button is released. It magnifies the image itself
 smaller to fit the window shows its details. The wheel, the button kept
 pressed, changes it: 100%, 200%, 400%, 800%, 1600%; the last one is kept
 (never less than the image is shown). Control and the left button (press) by
-default. Added in the GTK 4 version.
+default; settings made before get it once, when Control and the left button do
+nothing. Added in the GTK 4 version.
 
 7.3. Thumbnail Window
 
@@ -2660,7 +2661,8 @@ pointer; it goes when the button is released. It magnifies the image itself
 smaller to fit the window shows its details. The wheel, the button kept
 pressed, changes it: 100%, 200%, 400%, 800%, 1600%; the last one is kept
 (never less than the image is shown). Control and the left button (press) by
-default. Added in the GTK 4 version.
+default; settings made before get it once, when Control and the left button do
+nothing. Added in the GTK 4 version.
 
 7.4. Movie and Audio
 

@@ -37,14 +37,13 @@
 
 /* the mouse buttons of the image window and the preview: Ctrl and the left
  * button, the loupe while it is pressed (14 and 17 of the lists of
- * prefs_ui_imagewin.c and prefs_ui_thumbwin.c); the old defaults without
- * it are made the new ones when they are loaded */
-#define IMGVIEW_MOUSE_BUTTON_OLD_DEFAULT \
-   "0,0,0,0; -1,-2,0,0; -2,0,0,0; 3,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
+ * prefs_ui_imagewin.c and prefs_ui_thumbwin.c).  Settings made before:
+ * given it once (mouse_loupe_added), when Ctrl and the left button do
+ * nothing */
+#define IMGVIEW_MOUSE_LOUPE 14
+#define PREVIEW_MOUSE_LOUPE 17
 #define IMGVIEW_MOUSE_BUTTON_DEFAULT \
    "0,0,0,0; -1,-2,14,0; -2,0,0,0; 3,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
-#define PREVIEW_MOUSE_BUTTON_OLD_DEFAULT \
-   "0,0,0,0; -1,-2,0,0; -4,0,0,0; 5,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
 #define PREVIEW_MOUSE_BUTTON_DEFAULT \
    "0,0,0,0; -1,-2,17,0; -4,0,0,0; 5,0,0,0; 2,0,0,0; 1,0,0,0; 0,0,0,0; 0,0,0,0"
 
@@ -219,6 +218,7 @@ static ConfParam param_imageview [] = {
    {"join_comment",               D_BOOL,   "FALSE",   &conf.join_comment},
    {"imgview_movie_lock_mouse",   D_BOOL,   "FALSE",   &conf.imgview_movie_lock_mouse},
    {"imgview_loupe_zoom",         D_INT,    "100",     &conf.imgview_loupe_zoom},
+   {"mouse_loupe_added",          D_BOOL,   "FALSE",   &conf.mouse_loupe_added},
    {"movie_default_view_mode",    D_STRING, NULL,      &conf.movie_default_view_mode},
    {"imgview_mouse_button",       D_STRING,
     IMGVIEW_MOUSE_BUTTON_DEFAULT,
@@ -640,6 +640,38 @@ prefs_load_rc (gchar *filename, PrefsSection *sections)
 }
 
 
+/* a button (button_id) with a modifier (mod_id) of the string of the mouse
+ * buttons given num when it does nothing (0) */
+static void
+prefs_mouse_set_if_none (gchar **string, gint button_id, gint mod_id, gint num)
+{
+   gchar **buttons, **mods;
+   gint i;
+
+   if (!string || !*string) return;
+   if (prefs_mouse_get_num (button_id, mod_id, *string) != 0) return;
+
+   buttons = g_strsplit (*string, ";", -1);
+   if ((gint) g_strv_length (buttons) > button_id) {
+      GString *b = g_string_new (NULL);
+
+      mods = g_strsplit (buttons[button_id], ",", -1);
+      for (i = 0; i < 4; i++) {
+         gint v = 0;
+         if (i < (gint) g_strv_length (mods)) v = atoi (g_strstrip (mods[i]));
+         if (i == mod_id) v = num;
+         g_string_append_printf (b, "%s%d", i ? "," : (button_id ? " " : ""), v);
+      }
+      g_strfreev (mods);
+      g_free (buttons[button_id]);
+      buttons[button_id] = g_string_free (b, FALSE);
+      g_free (*string);
+      *string = g_strjoinv (";", buttons);
+   }
+   g_strfreev (buttons);
+}
+
+
 void
 prefs_load_config (void)
 {
@@ -662,18 +694,11 @@ prefs_load_config (void)
       conf.wallpaper_menu = g_strdup (WALLPAPER_MENU_DEFAULT);
    }
 
-   /* the loupe: Ctrl and the left button, when the buttons are as they were */
-   if (conf.imgview_mouse_button
-       && !strcmp (conf.imgview_mouse_button, IMGVIEW_MOUSE_BUTTON_OLD_DEFAULT))
-   {
-      g_free (conf.imgview_mouse_button);
-      conf.imgview_mouse_button = g_strdup (IMGVIEW_MOUSE_BUTTON_DEFAULT);
-   }
-   if (conf.preview_mouse_button
-       && !strcmp (conf.preview_mouse_button, PREVIEW_MOUSE_BUTTON_OLD_DEFAULT))
-   {
-      g_free (conf.preview_mouse_button);
-      conf.preview_mouse_button = g_strdup (PREVIEW_MOUSE_BUTTON_DEFAULT);
+   /* the loupe: Ctrl and the left button, once, where they do nothing */
+   if (!conf.mouse_loupe_added) {
+      prefs_mouse_set_if_none (&conf.imgview_mouse_button, 1, 2, IMGVIEW_MOUSE_LOUPE);
+      prefs_mouse_set_if_none (&conf.preview_mouse_button, 1, 2, PREVIEW_MOUSE_LOUPE);
+      conf.mouse_loupe_added = TRUE;
    }
 
    gimv_plugin_prefs_read_files ();
